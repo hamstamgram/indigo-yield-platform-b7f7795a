@@ -269,7 +269,7 @@ export function YieldCorrectionPreview({
                   <TableBody>
                     {txDiffs.map((diff, i) => (
                       <TableRow key={i}>
-                        <TableCell><Badge variant="outline">{diff.tx_type}</Badge></TableCell>
+                        <TableCell><Badge variant="outline">{diff.type}</Badge></TableCell>
                         <TableCell className="text-sm">{diff.investor_name}</TableCell>
                         <TableCell className={`text-right font-mono text-sm ${deltaColor(diff.delta_amount)}`}>
                           {deltaSign(diff.delta_amount)}{formatTokenAmount(diff.delta_amount, summary.fund_asset)}

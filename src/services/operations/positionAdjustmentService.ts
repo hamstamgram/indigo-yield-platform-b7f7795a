@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toDecimal } from "@/utils/financial";
 
 /**
  * Position Adjustment Service
@@ -16,22 +17,23 @@ export async function adjustPosition(
   input: { 
     investor_id: string; 
     fund_id: string; 
-    delta: number; 
+    delta: string | number; 
     note?: string;
-    tx_type?: string;
+    type?: string;
     tx_date?: string;
   },
   adminId: string
 ) {
-  const { investor_id, fund_id, delta, note, tx_type, tx_date } = input;
+  const { investor_id, fund_id, delta, note, type, tx_date } = input;
+  const deltaFixed = toDecimal(delta).toFixed(10);
   const rpcCall = (supabase.rpc as any).bind(supabase);
   const { data, error } = await rpcCall("adjust_investor_position", {
     p_investor_id: investor_id,
     p_fund_id: fund_id,
-    p_delta: delta,
+    p_delta: deltaFixed,
     p_note: note || "",
     p_admin_id: adminId,
-    p_tx_type: tx_type || "ADJUSTMENT",
+    p_tx_type: type || "ADJUSTMENT",
     p_tx_date: tx_date || new Date().toISOString().split('T')[0],
     p_reference_id: `adj:${fund_id}:${investor_id}:${Date.now()}`,
   });
@@ -63,7 +65,7 @@ export async function adjustPosition(
 export async function createAdjustment(
   investorId: string,
   fundId: string,
-  amount: number,
+  amount: string | number,
   type: "Credit" | "Debit",
   notes: string
 ) {
@@ -73,8 +75,8 @@ export async function createAdjustment(
     return null;
   }
 
-  // Convert to delta (positive for credit, negative for debit)
-  const delta = type === "Credit" ? Math.abs(amount) : -Math.abs(amount);
+  const absAmount = toDecimal(amount).abs();
+  const delta = (type === "Credit" ? absAmount : absAmount.negated()).toFixed(10);
   
   const result = await adjustPosition(
     {
@@ -82,7 +84,7 @@ export async function createAdjustment(
       fund_id: fundId,
       delta,
       note: notes,
-      tx_type: "ADJUSTMENT",
+      type: "ADJUSTMENT",
     },
     user.id
   );

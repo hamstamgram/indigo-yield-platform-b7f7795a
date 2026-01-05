@@ -176,7 +176,8 @@ async function testNonAdminCannotExecuteAdminRPCs() {
     await expectError(async () => {
       const { error } = await supabase.rpc("complete_withdrawal", {
         p_request_id: testRequestId,
-        p_tx_hash: "0x123",
+        p_closing_aum: "1000000.0000000000",
+        p_transaction_hash: "0x123",
       });
       if (error) throw error;
     }, "Admin only operation");
@@ -254,7 +255,8 @@ async function testAdminCanExecuteValidTransitions() {
   await runTest("Admin can complete processing withdrawal", async () => {
     const { error } = await supabase.rpc("complete_withdrawal", {
       p_request_id: transitionTestId,
-      p_tx_hash: "0xabc123final",
+      p_closing_aum: "1000000.0000000000",
+      p_transaction_hash: "0xabc123final",
     });
     if (error) throw error;
   });
@@ -263,7 +265,8 @@ async function testAdminCanExecuteValidTransitions() {
     await expectError(async () => {
       const { error } = await supabase.rpc("complete_withdrawal", {
         p_request_id: transitionTestId,
-        p_tx_hash: "0xabc123final2",
+        p_closing_aum: "1000000.0000000000",
+        p_transaction_hash: "0xabc123final2",
       });
       if (error) throw error;
     }, "Can only complete requests in processing");

@@ -199,12 +199,14 @@ describe('Withdrawals Integration', () => {
       
       const result = await supabase.rpc('complete_withdrawal', {
         p_request_id: 'withdrawal-123',
-        p_tx_hash: '0xabc123def456',
+        p_closing_aum: '1000000.0000000000',
+        p_transaction_hash: '0xabc123def456',
       });
 
       expect(mockRpc).toHaveBeenCalledWith('complete_withdrawal', {
         p_request_id: 'withdrawal-123',
-        p_tx_hash: '0xabc123def456',
+        p_closing_aum: '1000000.0000000000',
+        p_transaction_hash: '0xabc123def456',
       });
       expect(result.error).toBeNull();
     });
@@ -238,12 +240,14 @@ describe('Withdrawals Integration', () => {
       
       const result1 = await supabase.rpc('complete_withdrawal', {
         p_request_id: 'withdrawal-123',
-        p_tx_hash: '0xabc123',
+        p_closing_aum: '1000000.0000000000',
+        p_transaction_hash: '0xabc123',
       });
       
       const result2 = await supabase.rpc('complete_withdrawal', {
         p_request_id: 'withdrawal-123',
-        p_tx_hash: '0xabc123',
+        p_closing_aum: '1000000.0000000000',
+        p_transaction_hash: '0xabc123',
       });
 
       expect(result1.error).toBeNull();
@@ -259,9 +263,9 @@ describe('Withdrawals Integration', () => {
       const { supabase } = await import('@/integrations/supabase/client');
       
       // Call complete_withdrawal multiple times
-      await supabase.rpc('complete_withdrawal', { p_request_id: 'wd-1', p_tx_hash: '0x1' });
-      await supabase.rpc('complete_withdrawal', { p_request_id: 'wd-1', p_tx_hash: '0x1' });
-      await supabase.rpc('complete_withdrawal', { p_request_id: 'wd-1', p_tx_hash: '0x1' });
+      await supabase.rpc('complete_withdrawal', { p_request_id: 'wd-1', p_closing_aum: '1000000.0000000000', p_transaction_hash: '0x1' });
+      await supabase.rpc('complete_withdrawal', { p_request_id: 'wd-1', p_closing_aum: '1000000.0000000000', p_transaction_hash: '0x1' });
+      await supabase.rpc('complete_withdrawal', { p_request_id: 'wd-1', p_closing_aum: '1000000.0000000000', p_transaction_hash: '0x1' });
 
       // Each call should succeed without error (idempotent behavior)
       expect(mockRpc).toHaveBeenCalledTimes(3);
@@ -282,7 +286,8 @@ describe('Withdrawals Integration', () => {
       
       const result = await supabase.rpc('complete_withdrawal', {
         p_request_id: 'overdraft-attempt',
-        p_tx_hash: null,
+        p_closing_aum: '1000000.0000000000',
+        p_transaction_hash: null,
       });
 
       expect(result.error).not.toBeNull();
@@ -297,7 +302,8 @@ describe('Withdrawals Integration', () => {
       // Withdraw exact balance amount
       const result = await supabase.rpc('complete_withdrawal', {
         p_request_id: 'exact-balance-wd',
-        p_tx_hash: '0xexact',
+        p_closing_aum: '1000000.0000000000',
+        p_transaction_hash: '0xexact',
       });
 
       expect(result.error).toBeNull();

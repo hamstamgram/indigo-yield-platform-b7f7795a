@@ -58,7 +58,7 @@ export async function fetchRecentActivities(): Promise<ActivityItem[]> {
       amount,
       asset,
       created_at,
-      profile:profiles!fk_transactions_v2_profile(first_name, last_name, email)
+      profile:profiles!transactions_v2_investor_id_fkey(first_name, last_name, email)
     `)
     .eq("is_voided", false)
     .order("created_at", { ascending: false })
@@ -73,11 +73,11 @@ export async function fetchRecentActivities(): Promise<ActivityItem[]> {
       id,
       requested_amount,
       status,
-      created_at,
+      request_date,
       profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email),
       fund:funds(asset)
     `)
-    .order("created_at", { ascending: false })
+    .order("request_date", { ascending: false })
     .limit(5);
 
   if (wdError) throw wdError;
@@ -130,7 +130,7 @@ export async function fetchRecentActivities(): Promise<ActivityItem[]> {
       type: "withdrawal",
       title: `Withdrawal ${w.status === "pending" ? "Requested" : w.status}`,
       description: investorName,
-      timestamp: new Date(w.created_at),
+      timestamp: new Date(w.request_date),
       metadata: {
         amount: w.requested_amount,
         asset: w.fund?.asset,
@@ -154,12 +154,12 @@ export async function fetchPendingItems(): Promise<PendingItem[]> {
     .select(`
       id,
       requested_amount,
-      created_at,
+      request_date,
       profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email),
       fund:funds(asset, name)
     `)
     .eq("status", "pending")
-    .order("created_at", { ascending: false })
+    .order("request_date", { ascending: false })
     .limit(5);
 
   if (wdError) throw wdError;
@@ -178,7 +178,7 @@ export async function fetchPendingItems(): Promise<PendingItem[]> {
       title: `Withdrawal Request`,
       subtitle: `${investorName} - ${w.fund?.name || "Unknown Fund"}`,
       amount: `${w.requested_amount?.toFixed(4)} ${w.fund?.asset || ""}`,
-      timestamp: new Date(w.created_at),
+      timestamp: new Date(w.request_date),
       priority: "high",
     });
   });

@@ -31,19 +31,14 @@ export async function updateInvestorStatus(
 }
 
 /**
- * Lock all positions for an investor until a specified date
+ * Locking is disabled: all capital is always liquid.
  */
 export async function lockPositions(
   investorId: string,
   lockUntil: string,
   _reason?: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from("investor_positions")
-    .update({ lock_until_date: lockUntil })
-    .eq("investor_id", investorId);
-
-  if (error) throw error;
+  throw new Error("Position locking is disabled. All capital is always liquid.");
 }
 
 /**

@@ -175,6 +175,15 @@ export interface CreateTransactionUIParams {
   asset: string;
   amount: number;
   tx_date: string;
+  /**
+   * Authoritative AUM snapshot used for crystallize-before-flow accounting.
+   * Required when `type` is DEPOSIT/WITHDRAWAL/FIRST_INVESTMENT.
+   */
+  closing_aum?: string;
+  /**
+   * Timestamp for the effective flow event (defaults to tx_date at 00:00Z).
+   */
+  event_ts?: string;
   reference_id?: string;
   tx_hash?: string;
   notes?: string;

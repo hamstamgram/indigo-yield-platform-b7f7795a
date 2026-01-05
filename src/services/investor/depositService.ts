@@ -9,7 +9,7 @@ export class DepositService {
       .select(
         `
         *,
-        profile:profiles!fk_transactions_v2_profile (
+        profile:profiles!transactions_v2_investor_id_fkey (
           first_name,
           last_name,
           email
@@ -61,7 +61,7 @@ export class DepositService {
       status: "completed",
       transaction_hash: tx.tx_hash,
       created_at: tx.tx_date || tx.created_at,
-      updated_at: tx.updated_at,
+      updated_at: tx.created_at,
       user_name: userName,
       user_email: profile?.email,
     };
@@ -73,7 +73,7 @@ export class DepositService {
       .select(
         `
         *,
-        profile:profiles!fk_transactions_v2_profile (
+        profile:profiles!transactions_v2_investor_id_fkey (
           first_name,
           last_name,
           email
@@ -89,8 +89,8 @@ export class DepositService {
   }
 
   /**
-   * Create deposit using the canonical adjust_investor_position RPC
-   * This ensures atomic transaction + position update with invariant checks
+   * Create deposit using crystallize-before-flow accounting.
+   * NOTE: This requires an authoritative closing AUM snapshot (p_closing_aum).
    */
   async createDeposit(formData: DepositFormData): Promise<Deposit> {
     const profileId = formData.user_id;
@@ -121,44 +121,51 @@ export class DepositService {
 
     const amount = Number(formData.amount);
     const txDate = formData.tx_date || new Date().toISOString().split("T")[0];
-    
-    // Generate unique reference_id for idempotency
-    const referenceId = `deposit:${fund.id}:${profileId}:${txDate}:${crypto.randomUUID()}`;
 
-    // Use canonical adjust_investor_position RPC for atomic transaction + position update
+    const closingAum = formData.closing_aum;
+    if (!closingAum) {
+      throw new Error(
+        "closing_aum is required to apply a deposit (crystallize-before-flow). Provide the authoritative AUM snapshot for this event."
+      );
+    }
+
+    const eventTs =
+      formData.event_ts ||
+      (formData.tx_date ? `${formData.tx_date}T00:00:00.000Z` : new Date().toISOString());
+    
+    // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
+    const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${crypto.randomUUID()}`;
+
     const rpcCall = (supabase.rpc as any).bind(supabase);
-    const { data, error } = await rpcCall("adjust_investor_position", {
+    const { data, error } = await rpcCall("apply_deposit_with_crystallization", {
       p_investor_id: profileId,
       p_fund_id: fund.id,
-      p_delta: amount,
-      p_note: `DEPOSIT of ${amount} ${assetSymbol}`,
-      p_admin_id: null,
-      p_tx_type: "DEPOSIT",
-      p_tx_date: txDate,
-      p_reference_id: referenceId,
+      p_amount: amount,
+      p_event_ts: eventTs,
+      p_closing_aum: closingAum,
+      p_trigger_reference: triggerReference,
+      p_purpose: "transaction",
     });
 
     if (error) {
-      console.error("adjust_investor_position error:", error);
+      console.error("apply_deposit_with_crystallization error:", error);
       throw new Error(error.message || "Failed to create deposit");
     }
 
-    // Get the created transaction ID from the RPC result
-    const result = data?.[0];
-    if (!result?.out_success) {
-      throw new Error(result?.out_message || "Failed to create deposit");
+    if (!data?.success || !data?.deposit_tx_id) {
+      throw new Error("Failed to create deposit");
     }
 
     // Send deposit notification (non-blocking)
     depositNotifications.onConfirmed(
       profileId,
-      result.out_transaction_id,
+      data.deposit_tx_id,
       amount,
       assetSymbol,
       fund?.name
     ).catch(err => console.error("Failed to send deposit notification:", err));
 
-    return this.getDepositById(result.out_transaction_id);
+    return this.getDepositById(data.deposit_tx_id);
   }
 
   async verifyDeposit(id: string): Promise<Deposit> {

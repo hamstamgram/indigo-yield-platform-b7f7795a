@@ -103,7 +103,6 @@ class FundService {
         mgmt_fee_bps: 200,
         perf_fee_bps: 2000,
         min_investment: 0,
-        lock_period_days: 0,
       })
       .select()
       .single();

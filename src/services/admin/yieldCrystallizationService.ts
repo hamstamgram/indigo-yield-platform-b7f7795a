@@ -7,19 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface CrystallizationResult {
   success: boolean;
-  skipped?: boolean;
-  reason?: string;
-  snapshot_id?: string;
   fund_id?: string;
-  trigger_date?: string;
-  trigger_type?: string;
-  period_start?: string;
-  previous_aum?: number;
-  current_aum?: number;
-  fund_yield_pct?: number;
-  gross_yield?: number;
-  investors_processed?: number;
-  total_yield_distributed?: number;
+  event_id?: string;
+  opening_aum?: string;
+  closing_aum?: string;
+  gross_yield?: string;
+  yield_tx_count?: number;
+  allocated_sum?: string;
+  remainder?: string;
 }
 
 export interface FinalizationResult {
@@ -78,15 +73,19 @@ export interface YieldSnapshot {
 export async function crystallizeYieldBeforeFlow(
   fundId: string,
   triggerType: "deposit" | "withdrawal" | "month_end" | "manual",
-  triggerDate: Date,
-  triggerTransactionId?: string,
+  eventTs: Date,
+  closingAum: string,
+  triggerReference?: string,
   adminId?: string
 ): Promise<CrystallizationResult> {
-  const { data, error } = await supabase.rpc("crystallize_yield_before_flow", {
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { data, error } = await rpcCall("crystallize_yield_before_flow", {
     p_fund_id: fundId,
+    p_event_ts: eventTs.toISOString(),
+    p_closing_aum: closingAum,
     p_trigger_type: triggerType,
-    p_trigger_date: triggerDate.toISOString().split("T")[0],
-    p_trigger_transaction_id: triggerTransactionId || null,
+    p_trigger_reference: triggerReference || null,
+    p_purpose: "transaction",
     p_admin_id: adminId || null,
   });
 

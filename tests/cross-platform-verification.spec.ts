@@ -151,7 +151,8 @@ test.describe("Cross-Platform Credential Verification", () => {
         password: password,
         options: {
           data: {
-            full_name: "iOS User",
+            first_name: "iOS",
+            last_name: "User",
           },
         },
       });

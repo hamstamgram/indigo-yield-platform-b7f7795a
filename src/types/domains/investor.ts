@@ -78,7 +78,6 @@ export interface InvestorPosition {
   aum_percentage: number | null;
   mgmt_fees_paid: number | null;
   perf_fees_paid: number | null;
-  lock_until_date: string | null;
   last_transaction_date: string | null;
   last_modified_at: string | null;
   last_modified_by: string | null;
@@ -156,7 +155,6 @@ export function mapDbPositionToInvestorPosition(dbPosition: DbInvestorPosition):
     aum_percentage: dbPosition.aum_percentage ? Number(dbPosition.aum_percentage) : null,
     mgmt_fees_paid: dbPosition.mgmt_fees_paid ? Number(dbPosition.mgmt_fees_paid) : null,
     perf_fees_paid: dbPosition.perf_fees_paid ? Number(dbPosition.perf_fees_paid) : null,
-    lock_until_date: dbPosition.lock_until_date,
     last_transaction_date: dbPosition.last_transaction_date,
     last_modified_at: dbPosition.updated_at,
     last_modified_by: null,

@@ -53,7 +53,7 @@ describe('Yield Correction System', () => {
         ],
         tx_diffs: [
           {
-            tx_type: 'INTEREST',
+            type: 'INTEREST',
             investor_id: 'inv1',
             old_amount: 1.64,
             new_amount: 1.804,

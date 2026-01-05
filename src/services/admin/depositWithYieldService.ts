@@ -1,29 +1,33 @@
 /**
  * Deposit with Yield Distribution Service
  * 
- * Handles the combined operation of:
- * 1. Calculating and distributing yield based on AUM change
- * 2. Processing the deposit transaction
- * 
- * The yield is distributed to ALL existing investors BEFORE the deposit is processed.
+ * Implements crystallize-before-flow accounting:
+ * - Crystallize yield up to the flow event using an authoritative AUM snapshot
+ * - Apply the DEPOSIT afterwards (same DB transaction)
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { toDecimal } from "@/utils/financial";
 
 export interface DepositWithYieldParams {
   investorId: string;
   fundId: string;
-  amount: number;
-  newTotalAum: number;
+  amount: string | number;
+  /**
+   * Authoritative AUM snapshot AFTER the deposit is applied (admin input).
+   * The crystallization snapshot used is (newTotalAum - amount) to ensure
+   * "crystallize before flows".
+   */
+  newTotalAum: string | number;
   txDate: string;
   notes?: string;
   txHash?: string;
 }
 
 export interface YieldPreviewResult {
-  currentAum: number;
-  preDepositYield: number;
-  yieldPercentage: number;
+  currentAum: string;
+  preDepositYield: string;
+  yieldPercentage: string;
   investorCount: number;
   fundAsset: string;
   fundCode: string;
@@ -41,14 +45,13 @@ export interface DepositWithYieldResult {
 /**
  * Preview the yield that will be distributed before a deposit
  * 
- * Formula: preDepositYield = newTotalAum - currentAum - depositAmount
- * 
- * This shows the yield earned by existing investors BEFORE the new deposit is added.
+ * Uses last fund_aum_events checkpoint as opening AUM, and (newTotalAum - depositAmount)
+ * as the closing AUM snapshot for crystallization.
  */
 export async function previewDepositYield(
   fundId: string,
-  depositAmount: number,
-  newTotalAum: number
+  depositAmount: string | number,
+  newTotalAum: string | number
 ): Promise<YieldPreviewResult> {
   // Get fund info
   const { data: fund, error: fundError } = await supabase
@@ -61,31 +64,34 @@ export async function previewDepositYield(
     throw new Error("Fund not found");
   }
 
-  // Get current AUM from positions
-  const { data: positions, error: posError } = await supabase
-    .from("investor_positions")
-    .select("current_value, investor_id")
-    .eq("fund_id", fundId)
-    .gt("current_value", 0);
-
-  if (posError) {
-    throw new Error(`Failed to fetch positions: ${posError.message}`);
+  const depositAmountDec = toDecimal(depositAmount).abs();
+  const newTotalAumDec = toDecimal(newTotalAum);
+  const closingAumBeforeDeposit = newTotalAumDec.minus(depositAmountDec);
+  if (closingAumBeforeDeposit.isNegative()) {
+    throw new Error("Invalid AUM inputs: newTotalAum must be >= depositAmount");
   }
 
-  const currentAum = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  
-  // Calculate pre-deposit yield
-  // newTotalAum = currentAum + yield + depositAmount
-  // Therefore: yield = newTotalAum - currentAum - depositAmount
-  const preDepositYield = newTotalAum - currentAum - depositAmount;
-  
-  const yieldPercentage = currentAum > 0 ? (preDepositYield / currentAum) * 100 : 0;
+  const { data: lastCheckpoint } = await (supabase.from as any)("fund_aum_events")
+    .select("closing_aum, event_ts")
+    .eq("fund_id", fundId)
+    .eq("is_voided", false)
+    .order("event_ts", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const openingAumDec = lastCheckpoint?.closing_aum
+    ? toDecimal(lastCheckpoint.closing_aum)
+    : closingAumBeforeDeposit;
+  const preDepositYieldDec = closingAumBeforeDeposit.minus(openingAumDec);
+  const yieldPercentageDec = openingAumDec.gt(0)
+    ? preDepositYieldDec.div(openingAumDec).times(100)
+    : toDecimal(0);
 
   return {
-    currentAum,
-    preDepositYield,
-    yieldPercentage,
-    investorCount: positions?.length || 0,
+    currentAum: openingAumDec.toFixed(10),
+    preDepositYield: preDepositYieldDec.toFixed(10),
+    yieldPercentage: yieldPercentageDec.toFixed(10),
+    investorCount: 0,
     fundAsset: fund.asset,
     fundCode: fund.code,
   };
@@ -95,15 +101,14 @@ export async function previewDepositYield(
  * Process a deposit with yield distribution
  * 
  * Steps:
- * 1. Calculate yield from AUM difference (before deposit)
- * 2. If yield > 0, distribute to all existing investors
- * 3. Process the deposit transaction
- * 4. Record new AUM
+ * 1. Compute crystallization closing snapshot = (newTotalAum - amount)
+ * 2. Call apply_deposit_with_crystallization (crystallize first, then deposit)
  */
 export async function processDepositWithYield(
   params: DepositWithYieldParams
 ): Promise<DepositWithYieldResult> {
   const { investorId, fundId, amount, newTotalAum, txDate, notes, txHash } = params;
+  void notes;
 
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
@@ -111,116 +116,62 @@ export async function processDepositWithYield(
     return { success: false, yieldDistributed: 0, yieldInvestorsAffected: 0, depositProcessed: false, error: "Not authenticated" };
   }
 
-  // Get current AUM from positions
-  const { data: positions, error: posError } = await supabase
-    .from("investor_positions")
-    .select("current_value")
-    .eq("fund_id", fundId)
-    .gt("current_value", 0);
-
-  if (posError) {
-    return { success: false, yieldDistributed: 0, yieldInvestorsAffected: 0, depositProcessed: false, error: posError.message };
+  const amountDec = toDecimal(amount).abs();
+  const newTotalAumDec = toDecimal(newTotalAum);
+  const closingAumBeforeDeposit = newTotalAumDec.minus(amountDec);
+  if (closingAumBeforeDeposit.isNegative()) {
+    return {
+      success: false,
+      yieldDistributed: 0,
+      yieldInvestorsAffected: 0,
+      depositProcessed: false,
+      error: "Invalid AUM inputs: newTotalAum must be >= deposit amount",
+    };
   }
-
-  const currentAum = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  
-  // Calculate pre-deposit yield
-  const preDepositYield = newTotalAum - currentAum - amount;
-  
-  let yieldDistributed = 0;
-  let yieldInvestorsAffected = 0;
-
-  // Step 1: If there's yield to distribute, do it first
-  if (preDepositYield > 0) {
-    try {
-      // Use v3 apply function which supports ownership-weighted yield distribution
-      // and properly sets aum_record_id for cascade voiding
-      const { data: yieldResult, error: yieldError } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v3", {
-        p_fund_id: fundId,
-        p_yield_date: txDate,
-        p_new_aum: currentAum + preDepositYield, // v3 uses new AUM, not gross amount
-        p_purpose: "transaction",
-        p_admin_id: user.id,
-      });
-
-      if (yieldError) {
-        console.error("Yield distribution error:", yieldError);
-        return { 
-          success: false, 
-          yieldDistributed: 0, 
-          yieldInvestorsAffected: 0, 
-          depositProcessed: false, 
-          error: `Yield distribution failed: ${yieldError.message}` 
-        };
-      }
-
-      yieldDistributed = preDepositYield;
-      yieldInvestorsAffected = yieldResult?.investors_updated || positions?.length || 0;
-      console.log(`Yield distributed: ${preDepositYield} to ${yieldInvestorsAffected} investors`);
-    } catch (err) {
-      console.error("Yield distribution exception:", err);
-      return { 
-        success: false, 
-        yieldDistributed: 0, 
-        yieldInvestorsAffected: 0, 
-        depositProcessed: false, 
-        error: `Yield distribution exception: ${err}` 
-      };
-    }
-  }
-
-  // Step 2: Process the deposit
-  // Check if investor already has a position
-  const { data: existingPosition } = await supabase
-    .from("investor_positions")
-    .select("investor_id, current_value")
-    .eq("investor_id", investorId)
-    .eq("fund_id", fundId)
-    .maybeSingle();
-
-  const isFirstInvestment = !existingPosition || Number(existingPosition.current_value) === 0;
-  const transactionType = isFirstInvestment ? "FIRST_INVESTMENT" : "DEPOSIT";
 
   try {
-    // Use the adjust_investor_position RPC for the deposit
-    const { data: depositResult, error: depositError } = await (supabase.rpc as any)("adjust_investor_position", {
+    const triggerReference = (txHash || `deposit_yield:${Date.now()}`).replace(/^DEP:/, "");
+    const closingAumBeforeDepositFixed = closingAumBeforeDeposit.toFixed(10);
+    const amountFixed = amountDec.toFixed(10);
+
+    const rpcCall = (supabase.rpc as any).bind(supabase);
+    const { data: depositResult, error: depositError } = await rpcCall("apply_deposit_with_crystallization", {
       p_investor_id: investorId,
       p_fund_id: fundId,
-      p_amount: amount,
-      p_notes: notes || `${transactionType} with yield distribution`,
+      p_amount: amountFixed,
+      p_event_ts: `${txDate}T00:00:00.000Z`,
+      p_closing_aum: closingAumBeforeDepositFixed,
+      p_trigger_reference: triggerReference,
+      p_purpose: "transaction",
       p_admin_id: user.id,
-      p_tx_type: transactionType,
-      p_tx_date: txDate,
-      p_reference_id: txHash || `deposit_yield:${Date.now()}`,
     });
 
     if (depositError) {
       console.error("Deposit error:", depositError);
       return { 
         success: false, 
-        yieldDistributed, 
-        yieldInvestorsAffected, 
+        yieldDistributed: 0, 
+        yieldInvestorsAffected: 0, 
         depositProcessed: false, 
         error: `Deposit failed: ${depositError.message}` 
       };
     }
 
-    // Note: AUM is now automatically updated by the adjust_investor_position RPC
-    // which calls recalculate_fund_aum_for_date internally
+    const grossYield = Number(depositResult?.crystallization?.gross_yield || 0);
 
     return {
       success: true,
-      yieldDistributed,
-      yieldInvestorsAffected,
+      yieldDistributed: grossYield,
+      yieldInvestorsAffected: 0,
       depositProcessed: true,
-      transactionId: depositResult?.transaction_id,
+      transactionId: depositResult?.deposit_tx_id,
     };
   } catch (err) {
     console.error("Deposit exception:", err);
     return { 
       success: false, 
-      yieldDistributed, 
-      yieldInvestorsAffected, 
+      yieldDistributed: 0, 
+      yieldInvestorsAffected: 0, 
       depositProcessed: false, 
       error: `Deposit exception: ${err}` 
     };

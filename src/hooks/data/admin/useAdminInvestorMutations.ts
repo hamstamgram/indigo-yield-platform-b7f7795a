@@ -7,7 +7,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   updateInvestorStatus,
-  lockPositions,
   cleanupInactiveInvestors,
   getPendingWithdrawalsCount,
   updateFundPerformance,
@@ -42,31 +41,6 @@ export function useUpdateInvestorStatus() {
       investorId: string;
       status: InvestorStatus;
     }) => updateInvestorStatus(investorId, status),
-    onSuccess: (_, { investorId }) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investors });
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.investorOverview(investorId),
-      });
-    },
-  });
-}
-
-/**
- * Mutation to lock investor positions
- */
-export function useLockPositions() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      investorId,
-      lockUntil,
-      reason,
-    }: {
-      investorId: string;
-      lockUntil: string;
-      reason?: string;
-    }) => lockPositions(investorId, lockUntil, reason),
     onSuccess: (_, { investorId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investors });
       queryClient.invalidateQueries({

@@ -14,7 +14,6 @@ export interface InvestorPosition {
   current_value: number;
   aum_percentage?: number;
   high_water_mark?: number;
-  lock_until_date?: string;
   last_transaction_date?: string;
   updated_at?: string;
 }
@@ -35,7 +34,9 @@ class PositionService {
   async getAllPositions(): Promise<InvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select("*")
+      .select(
+        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
+      )
       .order("updated_at", { ascending: false });
 
     if (error) throw error;
@@ -48,7 +49,9 @@ class PositionService {
   async getPositionsByFund(fundId: string): Promise<InvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select("*")
+      .select(
+        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
+      )
       .eq("fund_id", fundId);
 
     if (error) throw error;
@@ -61,7 +64,9 @@ class PositionService {
   async getPositionByInvestorAndClass(investorId: string, fundClass: string): Promise<InvestorPosition | null> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select("*")
+      .select(
+        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
+      )
       .eq("investor_id", investorId)
       .eq("fund_class", fundClass)
       .maybeSingle();
@@ -83,7 +88,9 @@ class PositionService {
   async getPositionsByInvestor(investorId: string): Promise<InvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select("*")
+      .select(
+        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
+      )
       .eq("investor_id", investorId);
 
     if (error) throw error;
@@ -91,40 +98,21 @@ class PositionService {
   }
 
   /**
-   * Update position value
+   * Direct writes to investor_positions are disabled.
    */
   async updatePosition(investorId: string, fundId: string, newValue: number): Promise<void> {
-    const { error } = await supabase
-      .from("investor_positions")
-      .update({
-        current_value: newValue,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("investor_id", investorId)
-      .eq("fund_id", fundId);
-
-    if (error) throw error;
+    throw new Error(
+      "Direct investor_positions updates are disabled. Insert ledger rows into transactions_v2 and let triggers recompute balances."
+    );
   }
 
   /**
-   * Create a new position
+   * Direct writes to investor_positions are disabled.
    */
   async createPosition(params: CreatePositionParams): Promise<InvestorPosition> {
-    const { data, error } = await supabase
-      .from("investor_positions")
-      .insert({
-        investor_id: params.investorId,
-        fund_id: params.fundId,
-        fund_class: params.fundClass,
-        shares: params.shares,
-        cost_basis: params.costBasis,
-        current_value: params.currentValue,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    throw new Error(
+      "Direct investor_positions inserts are disabled. Positions are derived from transactions_v2 and created automatically by recompute triggers."
+    );
   }
 }
 

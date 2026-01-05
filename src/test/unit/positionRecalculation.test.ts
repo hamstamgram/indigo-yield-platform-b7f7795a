@@ -27,7 +27,6 @@ interface Transaction {
   type: TransactionType;
   amount: number;
   tx_date: string;
-  effective_date: string;
   is_voided: boolean;
   created_at: string;
 }
@@ -70,12 +69,12 @@ function getDirection(type: TransactionType): 1 | -1 {
 
 /**
  * Sort transactions deterministically
- * Critical: Same ordering as backend (effective_date ASC, id ASC)
+ * Critical: Same ordering as backend (tx_date ASC, id ASC)
  */
 function sortTransactions(transactions: Transaction[]): Transaction[] {
   return [...transactions].sort((a, b) => {
-    // First by effective_date
-    const dateCompare = a.effective_date.localeCompare(b.effective_date);
+    // First by tx_date
+    const dateCompare = a.tx_date.localeCompare(b.tx_date);
     if (dateCompare !== 0) return dateCompare;
     // Then by id for deterministic ordering
     return a.id.localeCompare(b.id);
@@ -123,7 +122,7 @@ function calculatePosition(
       costBasis = costBasis.minus(costReduction);
     }
 
-    lastTxDate = tx.effective_date;
+    lastTxDate = tx.tx_date;
   }
 
   return {
@@ -211,7 +210,6 @@ describe("Position Recalculation", () => {
         type: "DEPOSIT",
         amount: 10.0,
         tx_date: "2024-01-01",
-        effective_date: "2024-01-01",
         is_voided: false,
         created_at: "2024-01-01T00:00:00Z",
       },
@@ -222,7 +220,6 @@ describe("Position Recalculation", () => {
         type: "DEPOSIT",
         amount: 5.0,
         tx_date: "2024-01-01",
-        effective_date: "2024-01-01",
         is_voided: false,
         created_at: "2024-01-01T00:00:01Z",
       },
@@ -233,7 +230,6 @@ describe("Position Recalculation", () => {
         type: "INTEREST",
         amount: 0.5,
         tx_date: "2024-01-15",
-        effective_date: "2024-01-15",
         is_voided: false,
         created_at: "2024-01-15T00:00:00Z",
       },
@@ -244,7 +240,6 @@ describe("Position Recalculation", () => {
         type: "INTEREST",
         amount: 0.25,
         tx_date: "2024-01-15",
-        effective_date: "2024-01-15",
         is_voided: false,
         created_at: "2024-01-15T00:00:01Z",
       },
@@ -270,7 +265,6 @@ describe("Position Recalculation", () => {
           type: "WITHDRAWAL" as TransactionType,
           amount: 2.0,
           tx_date: "2024-01-20",
-          effective_date: "2024-01-20",
           is_voided: false,
           created_at: "2024-01-20T00:00:00Z",
         },
@@ -292,7 +286,6 @@ describe("Position Recalculation", () => {
           type: "FEE" as TransactionType,
           amount: 0.1,
           tx_date: "2024-01-15",
-          effective_date: "2024-01-15",
           is_voided: false,
           created_at: "2024-01-15T00:00:02Z",
         },
@@ -337,7 +330,6 @@ describe("Position Recalculation", () => {
           type: "DEPOSIT" as TransactionType,
           amount: 1.0,
           tx_date: "2024-01-01",
-          effective_date: "2024-01-01",
           is_voided: false,
           created_at: "2024-01-01T00:00:02Z",
         },
@@ -348,7 +340,6 @@ describe("Position Recalculation", () => {
           type: "WITHDRAWAL" as TransactionType,
           amount: 1.0,
           tx_date: "2024-01-02",
-          effective_date: "2024-01-02",
           is_voided: false,
           created_at: "2024-01-02T00:00:00Z",
         },
@@ -424,7 +415,7 @@ describe("Position Recalculation", () => {
       expect(pos1.cost_basis).toBe(pos2.cost_basis);
     });
 
-    it("sorts by effective_date then by id", () => {
+    it("sorts by tx_date then by id", () => {
       const txs: Transaction[] = [
         {
           id: "tx-b",
@@ -433,7 +424,6 @@ describe("Position Recalculation", () => {
           type: "DEPOSIT",
           amount: 1.0,
           tx_date: "2024-01-01",
-          effective_date: "2024-01-01",
           is_voided: false,
           created_at: "2024-01-01T00:00:01Z",
         },
@@ -444,7 +434,6 @@ describe("Position Recalculation", () => {
           type: "DEPOSIT",
           amount: 2.0,
           tx_date: "2024-01-01",
-          effective_date: "2024-01-01",
           is_voided: false,
           created_at: "2024-01-01T00:00:00Z",
         },
@@ -485,7 +474,6 @@ describe("Position Recalculation", () => {
           type: "INTEREST" as TransactionType,
           amount: inv1Interest,
           tx_date: "2024-01-31",
-          effective_date: "2024-01-31",
           is_voided: false,
           created_at: "2024-01-31T00:00:00Z",
         },
@@ -496,7 +484,6 @@ describe("Position Recalculation", () => {
           type: "INTEREST" as TransactionType,
           amount: inv2Interest,
           tx_date: "2024-01-31",
-          effective_date: "2024-01-31",
           is_voided: false,
           created_at: "2024-01-31T00:00:01Z",
         },
@@ -524,7 +511,6 @@ describe("Position Recalculation", () => {
           type: "INTEREST" as TransactionType,
           amount: yieldAmount * (initialAllocations.get("inv-1")! / 100),
           tx_date: "2024-01-31",
-          effective_date: "2024-01-31",
           is_voided: false,
           created_at: "2024-01-31T00:00:00Z",
         },
@@ -535,7 +521,6 @@ describe("Position Recalculation", () => {
           type: "INTEREST" as TransactionType,
           amount: yieldAmount * (initialAllocations.get("inv-2")! / 100),
           tx_date: "2024-01-31",
-          effective_date: "2024-01-31",
           is_voided: false,
           created_at: "2024-01-31T00:00:01Z",
         },
@@ -566,7 +551,6 @@ describe("Position Recalculation", () => {
           type: "DEPOSIT",
           amount: 0.00000001, // 1 satoshi
           tx_date: "2024-01-01",
-          effective_date: "2024-01-01",
           is_voided: false,
           created_at: "2024-01-01T00:00:00Z",
         },
@@ -585,7 +569,6 @@ describe("Position Recalculation", () => {
           type: "DEPOSIT",
           amount: 1234567890.12345678,
           tx_date: "2024-01-01",
-          effective_date: "2024-01-01",
           is_voided: false,
           created_at: "2024-01-01T00:00:00Z",
         },
@@ -604,7 +587,6 @@ describe("Position Recalculation", () => {
           type: "DEPOSIT",
           amount: 10.0,
           tx_date: "2024-01-01",
-          effective_date: "2024-01-01",
           is_voided: false,
           created_at: "2024-01-01T00:00:00Z",
         },
@@ -615,7 +597,6 @@ describe("Position Recalculation", () => {
           type: "DEPOSIT",
           amount: 100.0,
           tx_date: "2024-01-01",
-          effective_date: "2024-01-01",
           is_voided: false,
           created_at: "2024-01-01T00:00:01Z",
         },
@@ -640,7 +621,6 @@ describe("Position Reset and Rebuild", () => {
         type: "DEPOSIT",
         amount: 10.0,
         tx_date: "2024-01-01",
-        effective_date: "2024-01-01",
         is_voided: false,
         created_at: "2024-01-01T00:00:00Z",
       },
@@ -651,7 +631,6 @@ describe("Position Reset and Rebuild", () => {
         type: "INTEREST",
         amount: 1.0,
         tx_date: "2024-02-01",
-        effective_date: "2024-02-01",
         is_voided: false,
         created_at: "2024-02-01T00:00:00Z",
       },
@@ -662,7 +641,6 @@ describe("Position Reset and Rebuild", () => {
         type: "WITHDRAWAL",
         amount: 3.0,
         tx_date: "2024-03-01",
-        effective_date: "2024-03-01",
         is_voided: false,
         created_at: "2024-03-01T00:00:00Z",
       },
@@ -673,7 +651,6 @@ describe("Position Reset and Rebuild", () => {
         type: "INTEREST",
         amount: 0.5,
         tx_date: "2024-04-01",
-        effective_date: "2024-04-01",
         is_voided: false,
         created_at: "2024-04-01T00:00:00Z",
       },
@@ -695,7 +672,6 @@ describe("Position Reset and Rebuild", () => {
         type: "DEPOSIT",
         amount: 10.0,
         tx_date: "2024-01-01",
-        effective_date: "2024-01-01",
         is_voided: false,
         created_at: "2024-01-01T00:00:00Z",
       },

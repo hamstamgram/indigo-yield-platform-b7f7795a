@@ -1,0 +1,1113 @@
+{
+  "enums": {
+    "access_event": [
+      "login",
+      "logout",
+      "2fa_setup",
+      "2fa_verify",
+      "session_revoked",
+      "password_change"
+    ],
+    "account_type": [
+      "investor",
+      "ib",
+      "fees_account"
+    ],
+    "app_role": [
+      "super_admin",
+      "admin",
+      "moderator",
+      "ib",
+      "user",
+      "investor"
+    ],
+    "asset_code": [
+      "BTC",
+      "ETH",
+      "SOL",
+      "USDT",
+      "EURC",
+      "xAUT",
+      "XRP",
+      "ADA"
+    ],
+    "aum_purpose": [
+      "reporting",
+      "transaction"
+    ],
+    "benchmark_type": [
+      "BTC",
+      "ETH",
+      "STABLE",
+      "CUSTOM"
+    ],
+    "document_type": [
+      "statement",
+      "notice",
+      "terms",
+      "tax",
+      "other"
+    ],
+    "fee_kind": [
+      "mgmt",
+      "perf"
+    ],
+    "fund_status": [
+      "active",
+      "inactive",
+      "suspended",
+      "deprecated",
+      "pending"
+    ],
+    "notification_priority": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "notification_type": [
+      "deposit",
+      "statement",
+      "performance",
+      "system",
+      "support",
+      "withdrawal",
+      "yield"
+    ],
+    "share_scope": [
+      "portfolio",
+      "documents",
+      "statement"
+    ],
+    "ticket_category": [
+      "account",
+      "portfolio",
+      "statement",
+      "technical",
+      "general"
+    ],
+    "ticket_priority": [
+      "low",
+      "medium",
+      "high",
+      "urgent"
+    ],
+    "ticket_status": [
+      "open",
+      "in_progress",
+      "waiting_on_lp",
+      "closed"
+    ],
+    "transaction_status": [
+      "pending",
+      "confirmed",
+      "failed",
+      "cancelled"
+    ],
+    "transaction_type": [
+      "DEPOSIT",
+      "WITHDRAWAL",
+      "INTEREST",
+      "FEE"
+    ],
+    "tx_source": [
+      "manual_admin",
+      "yield_distribution",
+      "fee_allocation",
+      "ib_allocation",
+      "system_bootstrap",
+      "investor_wizard",
+      "internal_routing",
+      "yield_correction",
+      "withdrawal_completion"
+    ],
+    "tx_type": [
+      "DEPOSIT",
+      "WITHDRAWAL",
+      "INTEREST",
+      "FEE",
+      "ADJUSTMENT",
+      "FEE_CREDIT",
+      "IB_CREDIT",
+      "YIELD",
+      "INTERNAL_WITHDRAWAL",
+      "INTERNAL_CREDIT",
+      "IB_DEBIT"
+    ],
+    "visibility_scope": [
+      "investor_visible",
+      "admin_only"
+    ],
+    "withdrawal_action": [
+      "create",
+      "approve",
+      "reject",
+      "processing",
+      "complete",
+      "cancel",
+      "update",
+      "route_to_fees"
+    ],
+    "withdrawal_status": [
+      "pending",
+      "approved",
+      "processing",
+      "completed",
+      "rejected",
+      "cancelled"
+    ],
+    "yield_distribution_status": [
+      "draft",
+      "applied",
+      "voided",
+      "previewed",
+      "corrected",
+      "rolled_back"
+    ]
+  },
+  "tables": {
+    "access_logs": {
+      "columns": [
+        "created_at",
+        "device_label",
+        "event",
+        "id",
+        "ip",
+        "success",
+        "user_agent",
+        "user_id"
+      ]
+    },
+    "admin_invites": {
+      "columns": [
+        "created_at",
+        "created_by",
+        "email",
+        "expires_at",
+        "id",
+        "intended_role",
+        "invite_code",
+        "used"
+      ]
+    },
+    "assets": {
+      "columns": [
+        "created_at",
+        "decimal_places",
+        "icon_url",
+        "id",
+        "is_active",
+        "name",
+        "symbol"
+      ]
+    },
+    "audit_log": {
+      "columns": [
+        "action",
+        "actor_user",
+        "created_at",
+        "entity",
+        "entity_id",
+        "id",
+        "meta",
+        "new_values",
+        "old_values"
+      ]
+    },
+    "daily_nav": {
+      "columns": [
+        "aum",
+        "created_at",
+        "created_by",
+        "fees_accrued",
+        "fund_id",
+        "gross_return_pct",
+        "high_water_mark",
+        "investor_count",
+        "is_month_end",
+        "nav_date",
+        "nav_per_share",
+        "net_return_pct",
+        "purpose",
+        "shares_outstanding",
+        "total_inflows",
+        "total_outflows"
+      ]
+    },
+    "daily_rates": {
+      "columns": [
+        "btc_rate",
+        "created_at",
+        "created_by",
+        "eth_rate",
+        "eurc_rate",
+        "id",
+        "notes",
+        "rate_date",
+        "sol_rate",
+        "updated_at",
+        "usdc_rate",
+        "usdt_rate",
+        "xaut_rate",
+        "xrp_rate"
+      ]
+    },
+    "data_edit_audit": {
+      "columns": [
+        "changed_fields",
+        "edit_source",
+        "edited_at",
+        "edited_by",
+        "id",
+        "import_id",
+        "import_related",
+        "new_data",
+        "old_data",
+        "operation",
+        "record_id",
+        "table_name",
+        "voided_record"
+      ]
+    },
+    "documents": {
+      "columns": [
+        "checksum",
+        "created_at",
+        "created_by",
+        "fund_id",
+        "id",
+        "period_end",
+        "period_start",
+        "storage_path",
+        "title",
+        "type",
+        "user_id"
+      ]
+    },
+    "fee_allocations": {
+      "columns": [
+        "base_net_income",
+        "created_at",
+        "created_by",
+        "credit_transaction_id",
+        "debit_transaction_id",
+        "distribution_id",
+        "fee_amount",
+        "fee_percentage",
+        "fees_account_id",
+        "fund_id",
+        "id",
+        "investor_id",
+        "is_voided",
+        "period_end",
+        "period_start",
+        "purpose",
+        "voided_at",
+        "voided_by"
+      ]
+    },
+    "fund_daily_aum": {
+      "columns": [
+        "as_of_date",
+        "aum_date",
+        "created_at",
+        "created_by",
+        "fund_id",
+        "id",
+        "is_month_end",
+        "is_voided",
+        "nav_per_share",
+        "purpose",
+        "source",
+        "total_aum",
+        "total_shares",
+        "updated_at",
+        "updated_by",
+        "void_reason",
+        "voided_at",
+        "voided_by"
+      ]
+    },
+    "fund_daily_aum_archive": {
+      "columns": [
+        "archive_id",
+        "archived_at",
+        "archived_by",
+        "as_of_date",
+        "aum_date",
+        "fund_id",
+        "id",
+        "nav_per_share",
+        "original_created_at",
+        "reset_batch_id",
+        "source",
+        "total_aum",
+        "total_shares"
+      ]
+    },
+    "fund_period_snapshot": {
+      "columns": [
+        "created_at",
+        "created_by",
+        "fund_id",
+        "id",
+        "investor_count",
+        "is_locked",
+        "locked_at",
+        "locked_by",
+        "period_id",
+        "snapshot_date",
+        "total_aum"
+      ]
+    },
+    "fund_yield_snapshots": {
+      "columns": [
+        "closing_aum",
+        "created_at",
+        "created_by",
+        "days_in_period",
+        "fund_id",
+        "gross_yield_amount",
+        "gross_yield_pct",
+        "id",
+        "is_voided",
+        "opening_aum",
+        "period_end",
+        "period_start",
+        "snapshot_date",
+        "trigger_reference",
+        "trigger_type",
+        "voided_at",
+        "voided_by"
+      ]
+    },
+    "funds": {
+      "columns": [
+        "asset",
+        "code",
+        "created_at",
+        "fund_class",
+        "high_water_mark",
+        "id",
+        "inception_date",
+        "lock_period_days",
+        "logo_url",
+        "mgmt_fee_bps",
+        "min_investment",
+        "name",
+        "perf_fee_bps",
+        "status",
+        "strategy",
+        "updated_at"
+      ]
+    },
+    "generated_reports": {
+      "columns": [
+        "created_at",
+        "created_by",
+        "fund_id",
+        "html_content",
+        "id",
+        "investor_id",
+        "pdf_url",
+        "report_data",
+        "report_month",
+        "report_name",
+        "report_type",
+        "status",
+        "updated_at"
+      ]
+    },
+    "generated_statements": {
+      "columns": [
+        "created_at",
+        "fund_names",
+        "generated_by",
+        "html_content",
+        "id",
+        "investor_id",
+        "pdf_url",
+        "period_id",
+        "user_id"
+      ]
+    },
+    "ib_allocations": {
+      "columns": [
+        "created_at",
+        "created_by",
+        "distribution_id",
+        "effective_date",
+        "fund_id",
+        "ib_fee_amount",
+        "ib_investor_id",
+        "ib_percentage",
+        "id",
+        "is_voided",
+        "paid_at",
+        "paid_by",
+        "payout_batch_id",
+        "payout_status",
+        "period_end",
+        "period_id",
+        "period_start",
+        "purpose",
+        "source",
+        "source_investor_id",
+        "source_net_income",
+        "voided_at",
+        "voided_by"
+      ]
+    },
+    "integrity_check_log": {
+      "columns": [
+        "checked_at",
+        "critical_failures",
+        "failed",
+        "id",
+        "passed",
+        "results",
+        "total_checks",
+        "triggered_by"
+      ]
+    },
+    "investor_emails": {
+      "columns": [
+        "created_at",
+        "email",
+        "id",
+        "investor_id",
+        "is_primary",
+        "updated_at",
+        "verified"
+      ]
+    },
+    "investor_fee_schedule": {
+      "columns": [
+        "created_at",
+        "effective_date",
+        "end_date",
+        "fee_pct",
+        "fund_id",
+        "id",
+        "investor_id",
+        "updated_at"
+      ]
+    },
+    "investor_fund_performance": {
+      "columns": [
+        "created_at",
+        "fund_name",
+        "id",
+        "investor_id",
+        "itd_additions",
+        "itd_beginning_balance",
+        "itd_ending_balance",
+        "itd_net_income",
+        "itd_rate_of_return",
+        "itd_redemptions",
+        "mtd_additions",
+        "mtd_beginning_balance",
+        "mtd_ending_balance",
+        "mtd_net_income",
+        "mtd_rate_of_return",
+        "mtd_redemptions",
+        "period_id",
+        "purpose",
+        "qtd_additions",
+        "qtd_beginning_balance",
+        "qtd_ending_balance",
+        "qtd_net_income",
+        "qtd_rate_of_return",
+        "qtd_redemptions",
+        "updated_at",
+        "ytd_additions",
+        "ytd_beginning_balance",
+        "ytd_ending_balance",
+        "ytd_net_income",
+        "ytd_rate_of_return",
+        "ytd_redemptions"
+      ]
+    },
+    "investor_fund_performance_archive": {
+      "columns": [
+        "archive_id",
+        "archived_at",
+        "archived_by",
+        "fund_name",
+        "id",
+        "investor_id",
+        "itd_additions",
+        "itd_beginning_balance",
+        "itd_ending_balance",
+        "itd_net_income",
+        "itd_rate_of_return",
+        "itd_redemptions",
+        "mtd_additions",
+        "mtd_beginning_balance",
+        "mtd_ending_balance",
+        "mtd_net_income",
+        "mtd_rate_of_return",
+        "mtd_redemptions",
+        "original_created_at",
+        "original_updated_at",
+        "period_id",
+        "qtd_additions",
+        "qtd_beginning_balance",
+        "qtd_ending_balance",
+        "qtd_net_income",
+        "qtd_rate_of_return",
+        "qtd_redemptions",
+        "reset_batch_id",
+        "ytd_additions",
+        "ytd_beginning_balance",
+        "ytd_ending_balance",
+        "ytd_net_income",
+        "ytd_rate_of_return",
+        "ytd_redemptions"
+      ]
+    },
+    "investor_invites": {
+      "columns": [
+        "created_at",
+        "created_by",
+        "email",
+        "expires_at",
+        "id",
+        "investor_id",
+        "invite_code",
+        "used",
+        "used_at"
+      ]
+    },
+    "investor_period_snapshot": {
+      "columns": [
+        "balance_at_snapshot",
+        "created_at",
+        "fund_id",
+        "fund_period_snapshot_id",
+        "id",
+        "investor_id",
+        "ownership_pct",
+        "period_id"
+      ]
+    },
+    "investor_positions": {
+      "columns": [
+        "aum_percentage",
+        "cost_basis",
+        "cumulative_yield_earned",
+        "current_value",
+        "fund_class",
+        "fund_id",
+        "high_water_mark",
+        "investor_id",
+        "last_transaction_date",
+        "last_yield_crystallization_date",
+        "lock_until_date",
+        "mgmt_fees_paid",
+        "perf_fees_paid",
+        "realized_pnl",
+        "shares",
+        "unrealized_pnl",
+        "updated_at"
+      ]
+    },
+    "investor_positions_archive": {
+      "columns": [
+        "archive_id",
+        "archived_at",
+        "archived_by",
+        "aum_percentage",
+        "cost_basis",
+        "current_value",
+        "fund_class",
+        "fund_id",
+        "high_water_mark",
+        "investor_id",
+        "last_transaction_date",
+        "lock_until_date",
+        "mgmt_fees_paid",
+        "original_updated_at",
+        "perf_fees_paid",
+        "realized_pnl",
+        "reset_batch_id",
+        "shares",
+        "unrealized_pnl"
+      ]
+    },
+    "investor_yield_events": {
+      "columns": [
+        "created_at",
+        "created_by",
+        "days_in_period",
+        "event_date",
+        "fee_amount",
+        "fee_pct",
+        "fund_aum_after",
+        "fund_aum_before",
+        "fund_id",
+        "fund_yield_pct",
+        "gross_yield_amount",
+        "id",
+        "investor_balance",
+        "investor_id",
+        "investor_share_pct",
+        "is_voided",
+        "made_visible_at",
+        "made_visible_by",
+        "net_yield_amount",
+        "period_end",
+        "period_start",
+        "reference_id",
+        "trigger_transaction_id",
+        "trigger_type",
+        "visibility_scope",
+        "voided_at",
+        "voided_by"
+      ]
+    },
+    "notification_settings": {
+      "columns": [
+        "daily_rates_enabled",
+        "email_enabled",
+        "notification_types",
+        "push_enabled",
+        "sms_enabled",
+        "updated_at",
+        "user_id"
+      ]
+    },
+    "notifications": {
+      "columns": [
+        "body",
+        "created_at",
+        "data_jsonb",
+        "id",
+        "priority",
+        "read_at",
+        "title",
+        "type",
+        "user_id"
+      ]
+    },
+    "position_reset_log": {
+      "columns": [
+        "admin_user_id",
+        "affected_counts",
+        "completed_at",
+        "confirmation_code",
+        "error_message",
+        "id",
+        "initiated_at",
+        "reset_batch_id",
+        "status"
+      ]
+    },
+    "price_alerts": {
+      "columns": [
+        "alert_type",
+        "asset_code",
+        "created_at",
+        "id",
+        "is_active",
+        "threshold_value",
+        "triggered_at",
+        "user_id"
+      ]
+    },
+    "profiles": {
+      "columns": [
+        "account_type",
+        "avatar_url",
+        "created_at",
+        "email",
+        "entity_type",
+        "fee_pct",
+        "first_name",
+        "ib_commission_source",
+        "ib_parent_id",
+        "ib_percentage",
+        "id",
+        "include_in_reporting",
+        "is_admin",
+        "is_system_account",
+        "kyc_status",
+        "last_activity_at",
+        "last_name",
+        "onboarding_date",
+        "phone",
+        "preferences",
+        "status",
+        "totp_enabled",
+        "totp_verified",
+        "updated_at"
+      ]
+    },
+    "report_change_log": {
+      "columns": [
+        "change_reason",
+        "change_summary",
+        "changed_at",
+        "changed_by",
+        "created_at",
+        "id",
+        "previous_html_hash",
+        "previous_pdf_url",
+        "report_id",
+        "report_table"
+      ]
+    },
+    "report_delivery_events": {
+      "columns": [
+        "created_at",
+        "delivery_id",
+        "event_data",
+        "event_type",
+        "id",
+        "occurred_at",
+        "provider_message_id"
+      ]
+    },
+    "statement_email_delivery": {
+      "columns": [
+        "attempt_count",
+        "bounce_type",
+        "bounced_at",
+        "channel",
+        "clicked_at",
+        "created_at",
+        "created_by",
+        "delivered_at",
+        "delivery_mode",
+        "error_code",
+        "error_message",
+        "failed_at",
+        "id",
+        "investor_id",
+        "last_attempt_at",
+        "locked_at",
+        "locked_by",
+        "metadata",
+        "opened_at",
+        "period_id",
+        "provider",
+        "provider_message_id",
+        "recipient_email",
+        "retry_count",
+        "sent_at",
+        "statement_id",
+        "status",
+        "subject",
+        "updated_at",
+        "user_id"
+      ]
+    },
+    "statement_periods": {
+      "columns": [
+        "created_at",
+        "created_by",
+        "finalized_at",
+        "finalized_by",
+        "id",
+        "month",
+        "notes",
+        "period_end_date",
+        "period_name",
+        "status",
+        "updated_at",
+        "year"
+      ]
+    },
+    "statements": {
+      "columns": [
+        "additions",
+        "asset_code",
+        "begin_balance",
+        "created_at",
+        "end_balance",
+        "id",
+        "investor_id",
+        "net_income",
+        "period_month",
+        "period_year",
+        "rate_of_return_itd",
+        "rate_of_return_mtd",
+        "rate_of_return_qtd",
+        "rate_of_return_ytd",
+        "redemptions",
+        "storage_path"
+      ]
+    },
+    "support_tickets": {
+      "columns": [
+        "assigned_admin_id",
+        "attachments",
+        "category",
+        "created_at",
+        "id",
+        "messages_jsonb",
+        "priority",
+        "status",
+        "subject",
+        "updated_at",
+        "user_id"
+      ]
+    },
+    "system_2fa_policy": {
+      "columns": [
+        "backup_code_length",
+        "backup_codes_count",
+        "grace_period_days",
+        "id",
+        "lockout_duration_minutes",
+        "max_failed_attempts",
+        "require_2fa_for_admins",
+        "require_2fa_for_investors",
+        "updated_at",
+        "updated_by"
+      ]
+    },
+    "system_config": {
+      "columns": [
+        "description",
+        "key",
+        "updated_at",
+        "updated_by",
+        "value"
+      ]
+    },
+    "transactions_v2": {
+      "columns": [
+        "amount",
+        "approved_at",
+        "approved_by",
+        "asset",
+        "balance_after",
+        "balance_before",
+        "correction_id",
+        "created_at",
+        "created_by",
+        "distribution_id",
+        "fund_class",
+        "fund_id",
+        "id",
+        "investor_id",
+        "is_system_generated",
+        "is_voided",
+        "notes",
+        "purpose",
+        "reference_id",
+        "source",
+        "transfer_id",
+        "tx_date",
+        "tx_hash",
+        "tx_subtype",
+        "type",
+        "value_date",
+        "visibility_scope",
+        "void_reason",
+        "voided_at",
+        "voided_by"
+      ]
+    },
+    "transactions_v2_archive": {
+      "columns": [
+        "amount",
+        "archive_id",
+        "archived_at",
+        "archived_by",
+        "asset",
+        "created_by",
+        "fund_id",
+        "id",
+        "investor_id",
+        "notes",
+        "original_created_at",
+        "reference_id",
+        "reset_batch_id",
+        "tx_date",
+        "type"
+      ]
+    },
+    "user_roles": {
+      "columns": [
+        "created_at",
+        "id",
+        "role",
+        "user_id"
+      ]
+    },
+    "user_sessions": {
+      "columns": [
+        "created_at",
+        "device_label",
+        "id",
+        "ip",
+        "last_seen_at",
+        "refresh_token_id",
+        "revoked_at",
+        "revoked_by",
+        "user_agent",
+        "user_id"
+      ]
+    },
+    "user_totp_backup_codes": {
+      "columns": [
+        "code_hash",
+        "created_at",
+        "generated_batch_id",
+        "id",
+        "totp_settings_id",
+        "used_at",
+        "user_id"
+      ]
+    },
+    "user_totp_settings": {
+      "columns": [
+        "algorithm",
+        "backup_codes_generated_at",
+        "created_at",
+        "created_by",
+        "digits",
+        "enabled",
+        "enforce_required",
+        "failed_attempts",
+        "id",
+        "last_used_at",
+        "locked_until",
+        "period",
+        "qr_code_shown_at",
+        "recovery_used_count",
+        "secret_encrypted",
+        "setup_completed_at",
+        "updated_at",
+        "user_id",
+        "verified_at"
+      ]
+    },
+    "withdrawal_audit_logs": {
+      "columns": [
+        "action",
+        "actor_id",
+        "created_at",
+        "details",
+        "id",
+        "request_id"
+      ]
+    },
+    "withdrawal_requests": {
+      "columns": [
+        "admin_notes",
+        "approved_amount",
+        "approved_at",
+        "approved_by",
+        "approved_shares",
+        "cancellation_reason",
+        "cancelled_at",
+        "cancelled_by",
+        "created_by",
+        "fund_class",
+        "fund_id",
+        "id",
+        "investor_id",
+        "notes",
+        "processed_amount",
+        "processed_at",
+        "rejected_at",
+        "rejected_by",
+        "rejection_reason",
+        "request_date",
+        "requested_amount",
+        "requested_shares",
+        "settlement_date",
+        "status",
+        "tx_hash",
+        "updated_at",
+        "version",
+        "withdrawal_type"
+      ]
+    },
+    "yield_corrections": {
+      "columns": [
+        "applied_at",
+        "applied_by",
+        "correction_distribution_id",
+        "created_at",
+        "created_by",
+        "delta_aum",
+        "delta_gross_yield",
+        "id",
+        "investors_affected",
+        "new_aum",
+        "new_gross_yield",
+        "old_aum",
+        "old_gross_yield",
+        "original_distribution_id",
+        "preview_json",
+        "reason",
+        "rolled_back_at",
+        "rolled_back_by",
+        "status",
+        "total_fee_delta",
+        "total_ib_delta"
+      ]
+    },
+    "yield_distributions": {
+      "columns": [
+        "aum_record_id",
+        "closing_aum",
+        "created_at",
+        "created_by",
+        "distribution_type",
+        "effective_date",
+        "fund_id",
+        "gross_yield",
+        "id",
+        "investor_count",
+        "is_month_end",
+        "net_yield",
+        "opening_aum",
+        "parent_distribution_id",
+        "period_end",
+        "period_start",
+        "previous_aum",
+        "purpose",
+        "reason",
+        "recorded_aum",
+        "reference_id",
+        "status",
+        "summary_json",
+        "total_fees",
+        "total_ib",
+        "void_reason",
+        "voided_at",
+        "voided_by",
+        "yield_percentage"
+      ]
+    },
+    "yield_edit_audit": {
+      "columns": [
+        "created_at",
+        "edit_reason",
+        "edited_at",
+        "edited_by",
+        "id",
+        "new_values",
+        "previous_values",
+        "record_id",
+        "record_type"
+      ]
+    },
+    "yield_rates": {
+      "columns": [
+        "asset_id",
+        "created_at",
+        "daily_yield_percentage",
+        "date",
+        "entered_by",
+        "id",
+        "is_api_sourced",
+        "updated_at"
+      ]
+    }
+  }
+}

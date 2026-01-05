@@ -23,7 +23,6 @@ export interface Fund {
   mgmt_fee_bps: number | null;
   perf_fee_bps: number | null;
   min_investment: number | null;
-  lock_period_days: number | null;
   high_water_mark: number | null;
   strategy: string | null;
   created_at: string | null;
@@ -144,7 +143,6 @@ interface FundUpdateInput {
   mgmt_fee_bps?: number;
   perf_fee_bps?: number;
   min_investment?: number;
-  lock_period_days?: number;
   strategy?: string;
 }
 

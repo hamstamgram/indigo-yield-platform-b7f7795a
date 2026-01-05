@@ -37,7 +37,8 @@ test.describe("Admin Workflow Integration Tests", () => {
     const investorEmail = `investor-${timestamp}@test.com`;
 
     await page.fill('input[name="email"]', investorEmail);
-    await page.fill('input[name="full_name"]', `Test Investor ${timestamp}`);
+    await page.fill('input[name="first_name"]', "Test");
+    await page.fill('input[name="last_name"]', `Investor ${timestamp}`);
     await page.fill('input[name="phone"]', "+1234567890");
 
     // Step 4: Submit form
@@ -290,7 +291,8 @@ test.describe("Admin Workflow Integration Tests", () => {
 
     // Step 4: Fill invalid email
     await page.fill('input[name="email"]', "invalid-email");
-    await page.fill('input[name="full_name"]', "Test Name");
+    await page.fill('input[name="first_name"]', "Test");
+    await page.fill('input[name="last_name"]', "Name");
 
     // Step 5: Submit and verify email validation
     await page.click('button[type="submit"]');

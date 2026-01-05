@@ -2,7 +2,7 @@
  * Portfolio Service
  * Handles all portfolio-related operations
  * 
- * IMPORTANT: Uses canonical adjust_investor_position RPC for all money movements
+ * IMPORTANT: Money movements must use crystallize-before-flow RPCs.
  */
 
 import { ApiClient, ApiResponse } from "./ApiClient";
@@ -19,7 +19,7 @@ async function getAllFunds() {
 export class PortfolioService extends ApiClient {
   /**
    * Create investor positions and seed initial DEPOSIT transactions for each funded asset.
-   * Uses canonical adjust_investor_position RPC for atomic transaction + position update.
+   * Uses apply_deposit_with_crystallization so yield is crystallized (if applicable) before the flow.
    * Balances are expected as native token amounts keyed by asset symbol (e.g., BTC, ETH).
    */
   async createPortfolioEntries(
@@ -42,20 +42,31 @@ export class PortfolioService extends ApiClient {
           continue;
         }
 
-        // Generate unique reference_id for idempotency
-        const referenceId = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
+        // Best-effort closing AUM snapshot (authoritative snapshots should be provided by admin flows).
+        const { data: lastEvent } = await (supabase as any)
+          .from("fund_aum_events")
+          .select("closing_aum, event_ts")
+          .eq("fund_id", fund.id)
+          .eq("is_voided", false)
+          .order("event_ts", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-        // Use canonical adjust_investor_position RPC for atomic transaction + position update
+        const closingAum = lastEvent?.closing_aum ? String(lastEvent.closing_aum) : "0.0000000000";
+
+        // Generate trigger reference for idempotency
+        const triggerReference = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
+
         const rpcCall = (supabase.rpc as any).bind(supabase);
-        const { data, error } = await rpcCall("adjust_investor_position", {
+        const { data, error } = await rpcCall("apply_deposit_with_crystallization", {
           p_investor_id: investorId,
           p_fund_id: fund.id,
-          p_delta: amount,
-          p_note: "Initial funding on investor creation",
+          p_amount: amount,
+          p_event_ts: `${today}T00:00:00.000Z`,
+          p_closing_aum: closingAum,
+          p_trigger_reference: triggerReference,
+          p_purpose: "transaction",
           p_admin_id: null,
-          p_tx_type: "DEPOSIT",
-          p_tx_date: today,
-          p_reference_id: referenceId,
         });
 
         if (error) {
@@ -63,9 +74,8 @@ export class PortfolioService extends ApiClient {
           throw error;
         }
 
-        const result = data?.[0];
-        if (!result?.out_success && result?.out_message !== 'Already exists') {
-          throw new Error(result?.out_message || `Failed to create position for ${assetSymbol}`);
+        if (!data?.success) {
+          throw new Error(`Failed to create position for ${assetSymbol}`);
         }
       }
 
@@ -240,7 +250,7 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Update position - for admin manual adjustments only
-   * Note: For money movements, use adjust_investor_position RPC instead
+   * Note: Direct position writes are disabled. Use the ledger (transactions_v2) and recompute triggers.
    */
   async updatePosition(
     investorId: string,
@@ -248,58 +258,16 @@ export class PortfolioService extends ApiClient {
     updates: Partial<PortfolioPosition>
   ): Promise<ApiResponse<PortfolioPosition>> {
     return this.execute(async () => {
-      const dbUpdates: any = {
-        ...(updates.shares_held !== undefined && { shares: updates.shares_held }),
-        ...(updates.cost_basis !== undefined && { cost_basis: updates.cost_basis }),
-        ...(updates.current_value !== undefined && { current_value: updates.current_value }),
-        ...(updates.unrealized_gain !== undefined && { unrealized_pnl: updates.unrealized_gain }),
-        ...(updates.fund_class !== undefined && { fund_class: updates.fund_class }),
+      void investorId;
+      void fundId;
+      void updates;
+      return {
+        data: null,
+        error: {
+          message:
+            "Direct updates to investor_positions are disabled. Positions are derived from SUM(transactions_v2) via recompute triggers.",
+        } as any,
       };
-
-      const { data, error } = await this.supabase
-        .from("investor_positions")
-        .update(dbUpdates)
-        .eq("investor_id", investorId)
-        .eq("fund_id", fundId)
-        .select(
-          `
-          *,
-          funds!fk_investor_positions_fund (
-            name,
-            code,
-            asset,
-            fund_class
-          )
-        `
-        )
-        .maybeSingle();
-
-      if (error) {
-        return { data: null, error };
-      }
-
-      if (!data) {
-        return { data: null, error: { message: "Position not found", code: "NOT_FOUND" } as any };
-      }
-
-      const position: PortfolioPosition = {
-        fund_id: data.fund_id,
-        fund_name: data.funds?.name || "Unknown Fund",
-        fund_class: data.fund_class || data.funds?.fund_class || "Standard",
-        asset_code: data.funds?.asset || "UNKNOWN",
-        asset_name: data.funds?.name || "Unknown",
-        shares_held: Number(data.shares) || 0,
-        cost_basis: Number(data.cost_basis) || 0,
-        current_value: Number(data.current_value) || 0,
-        unrealized_gain: Number(data.unrealized_pnl) || 0,
-        unrealized_gain_percent:
-          Number(data.cost_basis) > 0
-            ? ((Number(data.unrealized_pnl) || 0) / Number(data.cost_basis)) * 100
-            : 0,
-        percentage_of_portfolio: Number(data.aum_percentage) || 0,
-      };
-
-      return { data: position, error: null };
     });
   }
 }

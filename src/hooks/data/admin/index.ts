@@ -319,7 +319,6 @@ export {
 export {
   usePendingWithdrawalsCount as useAdminPendingWithdrawalsCount,
   useUpdateInvestorStatus as useAdminUpdateInvestorStatus,
-  useLockPositions,
   useCleanupInactiveInvestors,
   useUpdateFundPerformance,
 } from "./useAdminInvestorMutations";

@@ -20,7 +20,6 @@ export interface Fund {
   mgmt_fee_bps: number | null;
   perf_fee_bps: number | null;
   min_investment: number | null;
-  lock_period_days: number | null;
   high_water_mark: number | null;
   created_at: string | null;
   updated_at: string | null;
@@ -80,7 +79,6 @@ export function mapDbFundToFund(dbFund: DbFund): Fund {
     mgmt_fee_bps: dbFund.mgmt_fee_bps,
     perf_fee_bps: dbFund.perf_fee_bps,
     min_investment: dbFund.min_investment,
-    lock_period_days: dbFund.lock_period_days,
     high_water_mark: dbFund.high_water_mark,
     created_at: dbFund.created_at,
     updated_at: dbFund.updated_at,

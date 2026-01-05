@@ -65,7 +65,6 @@ export interface InvestorPositionDetail {
   unrealizedPnl: number;
   realizedPnl: number;
   lastTransactionDate?: string | null;
-  lockUntilDate?: string | null;
   allocationPercentage?: number;
 }
 
@@ -147,7 +146,16 @@ export class InvestorDataService {
         .from("investor_positions")
         .select(
           `
-          *,
+          investor_id,
+          fund_id,
+          fund_class,
+          shares,
+          cost_basis,
+          current_value,
+          unrealized_pnl,
+          realized_pnl,
+          last_transaction_date,
+          updated_at,
           funds (
             name,
             code,
@@ -178,7 +186,6 @@ export class InvestorDataService {
         unrealizedPnl: Number(fp.unrealized_pnl) || 0,
         realizedPnl: Number(fp.realized_pnl) || 0,
         lastTransactionDate: fp.last_transaction_date || fp.updated_at,
-        lockUntilDate: fp.lock_until_date,
         allocationPercentage: totalValue > 0 ? (Number(fp.current_value) / totalValue) * 100 : 0,
       }));
     } catch (error) {
@@ -747,12 +754,12 @@ export async function updatePositionValue(
   fundId: string,
   newValue: number
 ): Promise<boolean> {
-  const { error } = await supabase
-    .from("investor_positions")
-    .update({ current_value: newValue, updated_at: new Date().toISOString() })
-    .eq("investor_id", investorId)
-    .eq("fund_id", fundId);
-  return !error;
+  void investorId;
+  void fundId;
+  void newValue;
+  throw new Error(
+    "Direct updates to investor_positions are disabled. Positions are derived from SUM(transactions_v2) via recompute triggers."
+  );
 }
 
 /**

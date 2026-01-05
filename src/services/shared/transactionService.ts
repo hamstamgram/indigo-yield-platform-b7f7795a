@@ -165,36 +165,60 @@ export async function createAdminTransaction(
     // Map FIRST_INVESTMENT to DEPOSIT for DB enum compliance
     const dbType = mapTypeForDb(params.type);
     
-    // For DEPOSIT/WITHDRAWAL, use the adjust_investor_position RPC
-    // This properly updates both transactions_v2 AND investor_positions atomically
+    // For DEPOSIT/WITHDRAWAL, use crystallize-before-flow RPCs (no manual position writes).
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
-      const delta = dbType === "DEPOSIT" ? params.amount : -params.amount;
       const note = params.notes || `${dbType} of ${params.amount} ${params.asset}`;
-      
-      // Generate unique reference_id client-side (belt + suspenders with DB generation)
-      const referenceId = params.reference_id || 
-        `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
-      
-      // Use the canonical 8-param signature with reference_id
+      void note;
+
+      const closingAum = params.closing_aum;
+      if (!closingAum) {
+        throw new Error(
+          "closing_aum is required for DEPOSIT/WITHDRAWAL (crystallize-before-flow). Provide the authoritative AUM snapshot for this event."
+        );
+      }
+
+      const eventTs = params.event_ts || `${params.tx_date}T00:00:00.000Z`;
+
+      // Generate unique trigger reference client-side (idempotency key)
+      const triggerReferenceRaw =
+        params.reference_id || `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
+      const triggerReference = triggerReferenceRaw.replace(/^(DEP:|WDR:)/, "");
+
       const rpcCall = (supabase.rpc as any).bind(supabase);
-      const { data, error } = await rpcCall("adjust_investor_position", {
-        p_investor_id: params.investor_id,
-        p_fund_id: params.fund_id,
-        p_delta: delta,
-        p_note: note,
-        p_admin_id: user.id,
-        p_tx_type: dbType, // Use mapped type (FIRST_INVESTMENT → DEPOSIT)
-        p_tx_date: params.tx_date,
-        p_reference_id: referenceId,
-      });
+      const { data, error } =
+        dbType === "DEPOSIT"
+          ? await rpcCall("apply_deposit_with_crystallization", {
+              p_investor_id: params.investor_id,
+              p_fund_id: params.fund_id,
+              p_amount: params.amount,
+              p_event_ts: eventTs,
+              p_closing_aum: closingAum,
+              p_trigger_reference: triggerReference,
+              p_purpose: "transaction",
+              p_admin_id: user.id,
+            })
+          : await rpcCall("apply_withdrawal_with_crystallization", {
+              p_investor_id: params.investor_id,
+              p_fund_id: params.fund_id,
+              p_amount: params.amount,
+              p_event_ts: eventTs,
+              p_closing_aum: closingAum,
+              p_trigger_reference: triggerReference,
+              p_purpose: "transaction",
+              p_admin_id: user.id,
+            });
       
       if (error) {
-        console.error("adjust_investor_position error:", error);
+        console.error(`${dbType} crystallize-before-flow error:`, error);
         // Surface the actual Postgres error message
         const errorMessage = error.message || error.details || "Failed to create transaction";
         throw new Error(errorMessage);
       }
-      
+
+      if (!data?.success) {
+        throw new Error("Failed to create transaction");
+      }
+
       return { success: true };
     }
     
@@ -240,6 +264,8 @@ export interface QuickTransactionParams {
   type: "DEPOSIT" | "WITHDRAWAL";
   amount: number;
   description?: string;
+  closingAum?: string;
+  eventTs?: string;
   txHash?: string;
 }
 
@@ -247,28 +273,55 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const delta = params.type === "DEPOSIT" ? params.amount : -params.amount;
   const note = params.description || `${params.type} transaction`;
   
-  // Generate unique reference_id to prevent duplicates
-  const referenceId = `manual:${params.fundId}:${params.investorId}:${new Date().toISOString().split('T')[0]}:${crypto.randomUUID()}`;
+  const closingAum = params.closingAum;
+  if (!closingAum) {
+    throw new Error(
+      "closingAum is required for DEPOSIT/WITHDRAWAL (crystallize-before-flow). Provide the authoritative AUM snapshot for this event."
+    );
+  }
 
-  // Use the canonical 8-param signature with reference_id
-  const { error } = await (supabase.rpc as any)("adjust_investor_position", {
-    p_investor_id: params.investorId,
-    p_fund_id: params.fundId,
-    p_delta: delta,
-    p_note: note,
-    p_admin_id: user.id,
-    p_tx_type: params.type,
-    p_tx_date: new Date().toISOString().split('T')[0],
-    p_reference_id: referenceId,
-  });
+  const today = new Date().toISOString().split("T")[0];
+  const eventTs = params.eventTs || `${today}T00:00:00.000Z`;
+
+  // Generate unique trigger reference to prevent duplicates
+  const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${crypto.randomUUID()}`;
+
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { data, error } =
+    params.type === "DEPOSIT"
+      ? await rpcCall("apply_deposit_with_crystallization", {
+          p_investor_id: params.investorId,
+          p_fund_id: params.fundId,
+          p_amount: params.amount,
+          p_event_ts: eventTs,
+          p_closing_aum: closingAum,
+          p_trigger_reference: triggerReference,
+          p_purpose: "transaction",
+          p_admin_id: user.id,
+        })
+      : await rpcCall("apply_withdrawal_with_crystallization", {
+          p_investor_id: params.investorId,
+          p_fund_id: params.fundId,
+          p_amount: params.amount,
+          p_event_ts: eventTs,
+          p_closing_aum: closingAum,
+          p_trigger_reference: triggerReference,
+          p_purpose: "transaction",
+          p_admin_id: user.id,
+        });
 
   if (error) {
     const errorMessage = error.message || error.details || "Failed to create transaction";
     throw new Error(errorMessage);
   }
+
+  if (!data?.success) {
+    throw new Error(`Failed to create ${params.type}`);
+  }
+
+  void note;
 }
 
 export const transactionService = {

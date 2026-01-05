@@ -123,12 +123,14 @@ describe("Withdrawal RPC Functions", () => {
       
       const result = await supabase.rpc("complete_withdrawal", {
         p_request_id: "test-id",
+        p_closing_aum: "1000000.0000000000",
         p_transaction_hash: "0x123abc",
         p_admin_notes: null,
       });
 
       expect(mockRpc).toHaveBeenCalledWith("complete_withdrawal", {
         p_request_id: "test-id",
+        p_closing_aum: "1000000.0000000000",
         p_transaction_hash: "0x123abc",
         p_admin_notes: null,
       });

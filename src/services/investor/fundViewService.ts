@@ -34,7 +34,6 @@ export interface InvestorPosition {
   last_transaction_date: string | null;
   aum_percentage?: number | null;
   high_water_mark: number | null;
-  lock_until_date: string | null;
   mgmt_fees_paid: number | null;
   perf_fees_paid: number | null;
   fund?: {
@@ -124,28 +123,12 @@ export async function addFundToInvestor(
   fundId: string,
   initialInvestment: number = 0
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Insert directly into investor_positions
-    const { error } = await supabase
-      .from("investor_positions")
-      .insert({
-        investor_id: investorId,
-        fund_id: fundId,
-        cost_basis: initialInvestment,
-        current_value: initialInvestment,
-        shares: initialInvestment, // 1:1 share ratio initially
-      });
-
-    if (error) throw error;
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error adding fund to investor:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to add fund",
-    };
-  }
+  void investorId;
+  void fundId;
+  void initialInvestment;
+  throw new Error(
+    "Direct writes to investor_positions are disabled. A position is created/updated automatically via recompute triggers from transactions_v2."
+  );
 }
 
 /**
@@ -157,8 +140,20 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     .from("investor_positions")
     .select(
       `
-      *,
-      fund:funds!fk_investor_positions_fund (
+      investor_id,
+      fund_id,
+      fund_class,
+      shares,
+      cost_basis,
+      current_value,
+      unrealized_pnl,
+      realized_pnl,
+      last_transaction_date,
+      aum_percentage,
+      high_water_mark,
+      mgmt_fees_paid,
+      perf_fees_paid,
+      fund:funds!investor_positions_fund_id_fkey (
         id,
         code,
         name,
@@ -176,7 +171,7 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     console.error("Error fetching investor positions:", error);
     throw new Error(`Failed to fetch investor positions: ${error.message}`);
   }
-  return data || [];
+  return (data as unknown as InvestorPosition[]) || [];
 }
 
 /**
@@ -187,26 +182,12 @@ export async function updateInvestorPosition(
   fundId: string,
   updates: Partial<InvestorPosition>
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase
-      .from("investor_positions")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("investor_id", investorId)
-      .eq("fund_id", fundId);
-
-    if (error) throw error;
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating investor position:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to update position",
-    };
-  }
+  void investorId;
+  void fundId;
+  void updates;
+  throw new Error(
+    "Direct updates to investor_positions are disabled. Positions are derived from SUM(transactions_v2) via recompute triggers."
+  );
 }
 
 /**
@@ -248,23 +229,11 @@ export async function removeFundFromInvestor(
   investorId: string,
   fundId: string
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase
-      .from("investor_positions")
-      .delete()
-      .eq("investor_id", investorId)
-      .eq("fund_id", fundId);
-
-    if (error) throw error;
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error removing fund from investor:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to remove fund",
-    };
-  }
+  void investorId;
+  void fundId;
+  throw new Error(
+    "Direct deletes from investor_positions are disabled. To remove a position, void or offset the underlying transactions in transactions_v2."
+  );
 }
 
 /**

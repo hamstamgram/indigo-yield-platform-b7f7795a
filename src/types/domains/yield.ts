@@ -33,7 +33,6 @@ export interface YieldDistribution {
   ibParentName?: string;
   ibPercentage: number;
   ibAmount: number;
-  ibSource?: 'from_platform_fees' | 'from_investor_yield';
   // Idempotency
   referenceId: string;
   wouldSkip: boolean;

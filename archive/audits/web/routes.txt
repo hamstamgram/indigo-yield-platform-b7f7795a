@@ -1,8 +1,0 @@
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/login
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/about
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/privacy
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/contact
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/terms
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/strategies
-https://indigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app/faq

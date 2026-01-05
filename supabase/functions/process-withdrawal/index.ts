@@ -1,10 +1,16 @@
 /**
- * Supabase Edge Function: Process Withdrawal
- * Handles withdrawal requests with compliance checks
+ * Supabase Edge Function: process-withdrawal
+ *
+ * Rules:
+ * - Creates a row in public.withdrawal_requests only (no ledger writes).
+ * - Uses public.can_withdraw(...) for availability checks.
+ * - Any extra input fields are stored in withdrawal_requests.notes as JSON text.
+ * - Monetary values are handled as numeric(28,10) strings (no float math).
  */
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+type JsonObject = Record<string, unknown>;
 
 // Secure CORS configuration
 const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS")?.split(",") || [];
@@ -16,83 +22,239 @@ const corsHeaders = (origin: string | null) => ({
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 });
 
-interface WithdrawalRequest {
+interface NormalizedWithdrawalRequest {
   investorId: string;
-  amount: number;
-  currency: string;
-  withdrawalMethod: "bank_transfer" | "crypto" | "wire";
-  cryptoAssetId?: string;
-  cryptoAddress?: string;
-  bankAccountId?: string;
-  reason?: string;
-  metadata?: Record<string, any>;
+  fundId: string;
+  withdrawalType: "full" | "partial";
+  requestedAmount28_10: string;
+  requestDateIso: string;
+  notesJson: string | null;
+  adminNotes: string | null;
 }
 
-interface ComplianceCheck {
-  passed: boolean;
-  checks: {
-    name: string;
-    passed: boolean;
-    message?: string;
-  }[];
-  requiresManualReview: boolean;
+const SCALE_28_10 = 10_000_000_000n;
+
+function isRecord(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// Token-denominated withdrawal limits per asset
-const DAILY_LIMITS: Record<string, number> = {
-  BTC: 5,
-  ETH: 50,
-  SOL: 500,
-  XRP: 10000,
-  USDT: 50000,
-  USDC: 50000,
-  EURC: 50000,
-  XAUT: 10,
-};
-
-const MONTHLY_LIMITS: Record<string, number> = {
-  BTC: 20,
-  ETH: 200,
-  SOL: 2000,
-  XRP: 40000,
-  USDT: 200000,
-  USDC: 200000,
-  EURC: 200000,
-  XAUT: 40,
-};
-
-const LARGE_WITHDRAWAL_THRESHOLDS: Record<string, number> = {
-  BTC: 2,
-  ETH: 25,
-  SOL: 250,
-  XRP: 5000,
-  USDT: 25000,
-  USDC: 25000,
-  EURC: 25000,
-  XAUT: 5,
-};
-
-// Helper to get limit for currency with fallback
-function getLimit(limits: Record<string, number>, currency: string, defaultValue: number): number {
-  return limits[currency.toUpperCase()] ?? defaultValue;
+function getStringField(
+  obj: JsonObject,
+  keys: string[],
+  opts: { required?: boolean } = {}
+): string | null {
+  for (const key of keys) {
+    const value = obj[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  if (opts.required) {
+    throw new Error(`Missing required field: ${keys[0]}`);
+  }
+  return null;
 }
 
-// Helper to format token amount with symbol
-function formatTokenAmount(amount: number, currency: string): string {
-  return `${amount.toLocaleString()} ${currency.toUpperCase()}`;
+function pow10BigInt(exp: number): bigint {
+  if (exp < 0) throw new Error("pow10BigInt exp must be >= 0");
+  let result = 1n;
+  for (let i = 0; i < exp; i += 1) {
+    result *= 10n;
+  }
+  return result;
+}
+
+function parseNumeric28_10(input: string): bigint {
+  const raw = input.trim();
+  const match = raw.match(/^([+-]?)(\d+(?:\.\d+)?)(?:[eE]([+-]?\d+))?$/);
+  if (!match) {
+    throw new Error("Invalid amount format. Pass a decimal string.");
+  }
+  const sign = match[1] === "-" ? -1n : 1n;
+  const mantissa = match[2];
+  const exponent = match[3] ? Number(match[3]) : 0;
+
+  const dotIndex = mantissa.indexOf(".");
+  const decimalDigits = dotIndex >= 0 ? mantissa.length - dotIndex - 1 : 0;
+  const digits = mantissa.replace(".", "");
+  const digitsBig = BigInt(digits);
+
+  const exponentOffset = exponent + 10 - decimalDigits;
+  if (exponentOffset >= 0) {
+    return sign * digitsBig * pow10BigInt(exponentOffset);
+  }
+
+  const divisor = pow10BigInt(-exponentOffset);
+  const remainder = digitsBig % divisor;
+  if (remainder !== 0n) {
+    throw new Error("Amount has more than 10 decimal places.");
+  }
+  return sign * (digitsBig / divisor);
+}
+
+function formatNumeric28_10(value: bigint): string {
+  const sign = value < 0n ? "-" : "";
+  const abs = value < 0n ? -value : value;
+  const integerPart = abs / SCALE_28_10;
+  const fractionPart = abs % SCALE_28_10;
+  return `${sign}${integerPart.toString()}.${fractionPart.toString().padStart(10, "0")}`;
+}
+
+function normalizeAmountTo28_10String(input: unknown): string {
+  if (typeof input === "string") {
+    return formatNumeric28_10(parseNumeric28_10(input));
+  }
+  if (typeof input === "number") {
+    return formatNumeric28_10(parseNumeric28_10(String(input)));
+  }
+  throw new Error("requested_amount must be provided as a decimal string.");
+}
+
+function startOfUtcDayIso(now: Date): string {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)).toISOString();
+}
+
+function startOfUtcMonthIso(now: Date): string {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0)).toISOString();
+}
+
+async function isAdmin(supabase: any, userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to check admin role: ${error.message}`);
+  }
+  return Boolean(data);
+}
+
+async function getWithdrawalTotalsScaled28_10(
+  supabase: any,
+  investorId: string,
+  fundId: string,
+  now: Date
+): Promise<{ todayTotal: bigint; monthTotal: bigint }> {
+  const statuses = ["pending", "approved", "processing", "completed"];
+
+  const { data: todayRows, error: todayError } = await supabase
+    .from("withdrawal_requests")
+    .select("requested_amount")
+    .eq("investor_id", investorId)
+    .eq("fund_id", fundId)
+    .in("status", statuses)
+    .gte("request_date", startOfUtcDayIso(now));
+
+  if (todayError) {
+    throw new Error(`Failed to load daily withdrawals: ${todayError.message}`);
+  }
+
+  const { data: monthRows, error: monthError } = await supabase
+    .from("withdrawal_requests")
+    .select("requested_amount")
+    .eq("investor_id", investorId)
+    .eq("fund_id", fundId)
+    .in("status", statuses)
+    .gte("request_date", startOfUtcMonthIso(now));
+
+  if (monthError) {
+    throw new Error(`Failed to load monthly withdrawals: ${monthError.message}`);
+  }
+
+  const sum = (rows: any[] | null): bigint => {
+    let total = 0n;
+    for (const row of rows ?? []) {
+      const v = row?.requested_amount;
+      if (typeof v === "string") total += parseNumeric28_10(v);
+      else if (typeof v === "number") total += parseNumeric28_10(String(v));
+    }
+    return total;
+  };
+
+  return { todayTotal: sum(todayRows), monthTotal: sum(monthRows) };
+}
+
+async function normalizeRequestBody(body: unknown, now: Date): Promise<NormalizedWithdrawalRequest> {
+  if (!isRecord(body)) {
+    throw new Error("Request body must be a JSON object.");
+  }
+
+  const investorId =
+    getStringField(body, ["investor_id", "investorId"], { required: true }) ?? "";
+  const fundId = getStringField(body, ["fund_id", "fundId"], { required: true }) ?? "";
+
+  const withdrawalTypeRaw =
+    getStringField(body, ["withdrawal_type", "withdrawalType"]) ?? "partial";
+  const withdrawalType: "full" | "partial" = withdrawalTypeRaw === "full" ? "full" : "partial";
+
+  const amountRaw = body["requested_amount"] ?? body["requestedAmount"] ?? body["amount"];
+  const requestedAmount28_10 = normalizeAmountTo28_10String(amountRaw);
+  if (parseNumeric28_10(requestedAmount28_10) <= 0n) {
+    throw new Error("requested_amount must be greater than 0.");
+  }
+
+  const requestDateIso = getStringField(body, ["request_date", "requestDate"]) ?? now.toISOString();
+  const notes = getStringField(body, ["notes", "note", "reason"]);
+  const adminNotes = getStringField(body, ["admin_notes", "adminNotes"]);
+
+  const reservedKeys = new Set([
+    "investor_id",
+    "investorId",
+    "fund_id",
+    "fundId",
+    "withdrawal_type",
+    "withdrawalType",
+    "requested_amount",
+    "requestedAmount",
+    "amount",
+    "request_date",
+    "requestDate",
+    "notes",
+    "note",
+    "reason",
+    "admin_notes",
+    "adminNotes",
+  ]);
+
+  const extras: JsonObject = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (!reservedKeys.has(key)) extras[key] = value;
+  }
+
+  const notesPayload: JsonObject = {};
+  if (notes) notesPayload.user_note = notes;
+  if (Object.keys(extras).length > 0) notesPayload.extra = extras;
+
+  return {
+    investorId,
+    fundId,
+    withdrawalType,
+    requestedAmount28_10,
+    requestDateIso,
+    notesJson: Object.keys(notesPayload).length > 0 ? JSON.stringify(notesPayload) : null,
+    adminNotes,
+  };
 }
 
 serve(async (req) => {
   const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
 
-  // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers });
   }
 
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ success: false, error: "Method not allowed" }), {
+      headers: { ...headers, "Content-Type": "application/json" },
+      status: 405,
+    });
+  }
+
   try {
-    // CSRF validation for state-changing operations
     const csrfToken = req.headers.get("x-csrf-token");
     if (!csrfToken || csrfToken.length < 32) {
       return new Response(JSON.stringify({ success: false, error: "Invalid CSRF token" }), {
@@ -100,509 +262,143 @@ serve(async (req) => {
         status: 403,
       });
     }
-    // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
 
-    // Verify authentication
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!supabaseUrl || !serviceKey) {
+      throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    }
+
+    const supabaseClient = createClient(supabaseUrl, serviceKey);
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Missing authorization header");
     }
+    const token = authHeader.replace(/^Bearer\\s+/i, "").trim();
 
     const {
       data: { user },
       error: authError,
-    } = await supabaseClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
       throw new Error("Unauthorized");
     }
 
-    // Parse request
-    const withdrawalRequest: WithdrawalRequest = await req.json();
-    const currency = withdrawalRequest.currency.toUpperCase();
+    const now = new Date();
+    const normalized = await normalizeRequestBody(await req.json(), now);
 
-    console.log("Processing withdrawal:", {
-      investorId: withdrawalRequest.investorId,
-      amount: withdrawalRequest.amount,
-      currency: currency,
-      method: withdrawalRequest.withdrawalMethod,
-    });
-
-    // Verify investor ownership
-    if (withdrawalRequest.investorId !== user.id) {
-      // Check if user is admin using user_roles table
-      const { data: adminRole } = await supabaseClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (!adminRole) {
-        throw new Error("Unauthorized to process withdrawal for this investor");
+    if (normalized.investorId !== user.id) {
+      const admin = await isAdmin(supabaseClient, user.id);
+      if (!admin) {
+        throw new Error("Unauthorized to create withdrawal request for this investor");
       }
     }
 
-    // Validate withdrawal amount
-    if (withdrawalRequest.amount <= 0) {
-      throw new Error("Withdrawal amount must be greater than zero");
-    }
-
-    // Verify investor account is active - query profiles table
-    const { data: investor } = await supabaseClient
+    const { data: investorProfile, error: profileError } = await supabaseClient
       .from("profiles")
       .select("id, status")
-      .eq("id", withdrawalRequest.investorId)
+      .eq("id", normalized.investorId)
       .single();
 
-    if (!investor) {
+    if (profileError) {
+      throw new Error(`Failed to load investor profile: ${profileError.message}`);
+    }
+    if (!investorProfile) {
       throw new Error("Investor account not found");
     }
-
-    if (investor.status !== "active") {
+    if (investorProfile.status !== "active") {
       throw new Error("Investor account is not active");
     }
 
-    // Get investor position for balance check
-    const { data: position } = await supabaseClient
-      .from("investor_positions")
-      .select("current_value, fund_id")
-      .eq("investor_id", withdrawalRequest.investorId)
-      .maybeSingle();
+    const { data: canWithdrawResult, error: canWithdrawError } = await supabaseClient.rpc("can_withdraw", {
+      p_investor_id: normalized.investorId,
+      p_fund_id: normalized.fundId,
+      p_amount: normalized.requestedAmount28_10,
+    });
 
-    // Check sufficient balance
-    const availableBalance = position?.current_value || 0;
-    if (withdrawalRequest.amount > availableBalance) {
-      throw new Error(
-        `Insufficient balance. Available: ${formatTokenAmount(availableBalance, currency)}, ` +
-          `Requested: ${formatTokenAmount(withdrawalRequest.amount, currency)}`
+    if (canWithdrawError) {
+      throw new Error(`Withdrawal eligibility check failed: ${canWithdrawError.message}`);
+    }
+    if (!canWithdrawResult?.can_withdraw) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: canWithdrawResult?.reason ?? "Withdrawal not permitted",
+          details: canWithdrawResult ?? null,
+        }),
+        { headers: { ...headers, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
-    // Run compliance checks
-    const complianceResult = await runComplianceChecks(
+    const { todayTotal, monthTotal } = await getWithdrawalTotalsScaled28_10(
       supabaseClient,
-      withdrawalRequest.investorId,
-      withdrawalRequest.amount,
-      currency,
-      withdrawalRequest.withdrawalMethod
+      normalized.investorId,
+      normalized.fundId,
+      now
     );
 
-    if (!complianceResult.passed) {
-      const failedChecks = complianceResult.checks
-        .filter((c) => !c.passed)
-        .map((c) => c.name)
-        .join(", ");
-
-      throw new Error(`Compliance checks failed: ${failedChecks}`);
-    }
-
-    // Create withdrawal transaction record
-    const withdrawalId = crypto.randomUUID();
-    const now = new Date().toISOString();
-
-    // Determine initial status based on compliance review
-    const initialStatus = complianceResult.requiresManualReview ? "pending_review" : "pending";
-
-    const { error: insertError } = await supabaseClient.from("transactions").insert({
-      id: withdrawalId,
-      investor_id: withdrawalRequest.investorId,
-      transaction_type: "withdrawal",
-      amount: withdrawalRequest.amount,
-      currency: currency,
-      status: initialStatus,
-      payment_method: withdrawalRequest.withdrawalMethod,
-      created_at: now,
-      created_by: user.id,
-      metadata: {
-        ...withdrawalRequest.metadata,
-        reason: withdrawalRequest.reason,
-        complianceChecks: complianceResult.checks,
-        requiresManualReview: complianceResult.requiresManualReview,
-      },
-    });
-
-    if (insertError) {
-      throw new Error(`Failed to create withdrawal record: ${insertError.message}`);
-    }
-
-    // Store crypto withdrawal details if applicable
-    if (withdrawalRequest.withdrawalMethod === "crypto" && withdrawalRequest.cryptoAddress) {
-      await supabaseClient.from("crypto_withdrawals").insert({
-        id: crypto.randomUUID(),
-        transaction_id: withdrawalId,
-        crypto_asset_id: withdrawalRequest.cryptoAssetId,
-        destination_address: withdrawalRequest.cryptoAddress,
-        amount: withdrawalRequest.amount,
-        currency: currency,
-        status: "pending",
-      });
-    }
-
-    // Store bank withdrawal details if applicable
-    if (withdrawalRequest.withdrawalMethod === "bank_transfer" && withdrawalRequest.bankAccountId) {
-      // Verify bank account belongs to investor
-      const { data: bankAccount } = await supabaseClient
-        .from("bank_accounts")
-        .select("id, account_number, routing_number, bank_name")
-        .eq("id", withdrawalRequest.bankAccountId)
-        .eq("investor_id", withdrawalRequest.investorId)
-        .single();
-
-      if (!bankAccount) {
-        throw new Error("Bank account not found or does not belong to investor");
-      }
-
-      await supabaseClient.from("bank_withdrawals").insert({
-        id: crypto.randomUUID(),
-        transaction_id: withdrawalId,
-        bank_account_id: withdrawalRequest.bankAccountId,
-        amount: withdrawalRequest.amount,
-        status: "pending",
-      });
-    }
-
-    // Create audit log
-    await supabaseClient.from("audit_logs").insert({
-      user_id: user.id,
-      action: "withdrawal_initiated",
-      resource_type: "transaction",
-      resource_id: withdrawalId,
-      details: {
-        amount: withdrawalRequest.amount,
-        currency: currency,
-        withdrawalMethod: withdrawalRequest.withdrawalMethod,
-        requiresManualReview: complianceResult.requiresManualReview,
-      },
-      ip_address: req.headers.get("x-forwarded-for") || "unknown",
-      user_agent: req.headers.get("user-agent") || "unknown",
-    });
-
-    // Send notification email
-    if (Deno.env.get("ENABLE_EMAIL_NOTIFICATIONS") === "true") {
-      await sendWithdrawalNotificationEmail(
-        supabaseClient,
-        withdrawalRequest.investorId,
-        withdrawalId,
-        withdrawalRequest.amount,
-        currency,
-        initialStatus
-      );
-    }
-
-    // Notify admins if manual review required
-    if (complianceResult.requiresManualReview) {
-      await notifyAdminsForReview(
-        supabaseClient,
-        withdrawalId,
-        withdrawalRequest.investorId,
-        withdrawalRequest.amount,
-        currency,
-        complianceResult
-      );
-    }
-
-    const response = {
-      success: true,
-      withdrawalId,
-      status: initialStatus,
-      amount: withdrawalRequest.amount,
-      currency: currency,
-      withdrawalMethod: withdrawalRequest.withdrawalMethod,
-      requiresManualReview: complianceResult.requiresManualReview,
-      message: complianceResult.requiresManualReview
-        ? "Withdrawal request submitted for manual review"
-        : "Withdrawal request created successfully",
-      estimatedProcessingTime: complianceResult.requiresManualReview
-        ? "1-3 business days"
-        : "3-5 business days",
+    const requestedScaled = parseNumeric28_10(normalized.requestedAmount28_10);
+    const compliance = {
+      today_total: formatNumeric28_10(todayTotal),
+      month_total: formatNumeric28_10(monthTotal),
+      today_total_after: formatNumeric28_10(todayTotal + requestedScaled),
+      month_total_after: formatNumeric28_10(monthTotal + requestedScaled),
     };
 
-    console.log("Withdrawal processed successfully:", {
-      withdrawalId,
-      amount: withdrawalRequest.amount,
-      currency: currency,
-      requiresReview: complianceResult.requiresManualReview,
-    });
+    const notesPayload: JsonObject = {};
+    if (normalized.notesJson) {
+      try {
+        const parsed = JSON.parse(normalized.notesJson);
+        if (isRecord(parsed)) Object.assign(notesPayload, parsed);
+        else notesPayload.user_note = normalized.notesJson;
+      } catch {
+        notesPayload.user_note = normalized.notesJson;
+      }
+    }
+    notesPayload.compliance = compliance;
 
-    return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    const { data: created, error: insertError } = await supabaseClient
+      .from("withdrawal_requests")
+      .insert({
+        investor_id: normalized.investorId,
+        fund_id: normalized.fundId,
+        requested_amount: normalized.requestedAmount28_10,
+        withdrawal_type: normalized.withdrawalType,
+        status: "pending",
+        request_date: normalized.requestDateIso,
+        notes: JSON.stringify(notesPayload),
+        admin_notes: normalized.adminNotes,
+        created_by: user.id,
+      })
+      .select("id, status, request_date")
+      .single();
+
+    if (insertError) {
+      throw new Error(`Failed to create withdrawal request: ${insertError.message}`);
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        withdrawal_request_id: created?.id,
+        status: created?.status ?? "pending",
+        request_date: created?.request_date,
+        requested_amount: normalized.requestedAmount28_10,
+        compliance,
+      }),
+      { headers: { ...headers, "Content-Type": "application/json" }, status: 200 }
+    );
   } catch (error) {
-    console.error("Withdrawal processing failed:", error);
-
+    console.error("process-withdrawal failed:", error);
     return new Response(
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      }
+      { headers: { ...headers, "Content-Type": "application/json" }, status: 400 }
     );
   }
 });
 
-/**
- * Run compliance checks for withdrawal
- */
-async function runComplianceChecks(
-  supabase: any,
-  investorId: string,
-  amount: number,
-  currency: string,
-  withdrawalMethod: string
-): Promise<ComplianceCheck> {
-  const checks: ComplianceCheck["checks"] = [];
-  let requiresManualReview = false;
-
-  // Get per-asset limits
-  const dailyLimit = getLimit(DAILY_LIMITS, currency, 50000);
-  const monthlyLimit = getLimit(MONTHLY_LIMITS, currency, 200000);
-  const largeWithdrawalThreshold = getLimit(LARGE_WITHDRAWAL_THRESHOLDS, currency, 25000);
-
-  // Check 1: Daily withdrawal limit
-  const { data: todayWithdrawals } = await supabase
-    .from("transactions")
-    .select("amount")
-    .eq("investor_id", investorId)
-    .eq("transaction_type", "withdrawal")
-    .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
-
-  const todayTotal = todayWithdrawals?.reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
-  const wouldExceedDaily = todayTotal + amount > dailyLimit;
-
-  checks.push({
-    name: "daily_limit",
-    passed: !wouldExceedDaily,
-    message: wouldExceedDaily
-      ? `Would exceed daily withdrawal limit of ${formatTokenAmount(dailyLimit, currency)}`
-      : "Within daily limit",
-  });
-
-  // Check 2: Monthly withdrawal limit
-  const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const { data: monthWithdrawals } = await supabase
-    .from("transactions")
-    .select("amount")
-    .eq("investor_id", investorId)
-    .eq("transaction_type", "withdrawal")
-    .gte("created_at", firstDayOfMonth.toISOString());
-
-  const monthTotal = monthWithdrawals?.reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
-  const wouldExceedMonthly = monthTotal + amount > monthlyLimit;
-
-  checks.push({
-    name: "monthly_limit",
-    passed: !wouldExceedMonthly,
-    message: wouldExceedMonthly
-      ? `Would exceed monthly withdrawal limit of ${formatTokenAmount(monthlyLimit, currency)}`
-      : "Within monthly limit",
-  });
-
-  // Check 3: Large withdrawal threshold (requires manual review)
-  const isLargeWithdrawal = amount >= largeWithdrawalThreshold;
-
-  if (isLargeWithdrawal) {
-    requiresManualReview = true;
-  }
-
-  checks.push({
-    name: "large_withdrawal_review",
-    passed: true,
-    message: isLargeWithdrawal
-      ? `Withdrawal amount exceeds ${formatTokenAmount(largeWithdrawalThreshold, currency)} - requires manual review`
-      : "Below large withdrawal threshold",
-  });
-
-  // Check 4: Account status (using profiles table)
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("status")
-    .eq("id", investorId)
-    .single();
-
-  const accountActive = profile?.status === "active";
-
-  checks.push({
-    name: "account_status",
-    passed: accountActive,
-    message: accountActive ? "Account is active" : "Account is not active",
-  });
-
-  if (!accountActive) {
-    requiresManualReview = true;
-  }
-
-  // Check 5: Suspicious activity patterns
-  const { data: recentTransactions } = await supabase
-    .from("transactions")
-    .select("amount, transaction_type, created_at")
-    .eq("investor_id", investorId)
-    .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-    .order("created_at", { ascending: false });
-
-  // Check for rapid deposit-withdrawal pattern
-  const hasRapidDepositWithdrawal = recentTransactions?.some((t, i) => {
-    if (t.transaction_type === "deposit" && i > 0) {
-      const nextTx = recentTransactions[i - 1];
-      if (nextTx.transaction_type === "withdrawal") {
-        const timeDiff = new Date(nextTx.created_at).getTime() - new Date(t.created_at).getTime();
-        return timeDiff < 24 * 60 * 60 * 1000; // Less than 24 hours
-      }
-    }
-    return false;
-  });
-
-  if (hasRapidDepositWithdrawal) {
-    requiresManualReview = true;
-  }
-
-  checks.push({
-    name: "suspicious_activity",
-    passed: true,
-    message: hasRapidDepositWithdrawal
-      ? "Rapid deposit-withdrawal pattern detected - requires review"
-      : "No suspicious patterns detected",
-  });
-
-  // Check 6: Minimum holding period
-  const { data: firstDeposit } = await supabase
-    .from("transactions")
-    .select("created_at")
-    .eq("investor_id", investorId)
-    .eq("transaction_type", "deposit")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .single();
-
-  const minimumHoldingDays = 7; // 7 days minimum
-  const accountAge = firstDeposit
-    ? (Date.now() - new Date(firstDeposit.created_at).getTime()) / (1000 * 60 * 60 * 24)
-    : 0;
-
-  const meetsHoldingPeriod = accountAge >= minimumHoldingDays;
-
-  checks.push({
-    name: "minimum_holding_period",
-    passed: meetsHoldingPeriod,
-    message: meetsHoldingPeriod
-      ? "Meets minimum holding period"
-      : `Account must have funds for at least ${minimumHoldingDays} days`,
-  });
-
-  // Determine overall pass/fail
-  const allChecksPassed = checks.every((check) => check.passed);
-
-  return {
-    passed: allChecksPassed,
-    checks,
-    requiresManualReview,
-  };
-}
-
-/**
- * Send withdrawal notification email
- */
-async function sendWithdrawalNotificationEmail(
-  supabase: any,
-  investorId: string,
-  withdrawalId: string,
-  amount: number,
-  currency: string,
-  status: string
-): Promise<void> {
-  try {
-    // Get investor email from profiles table
-    const { data: investor } = await supabase
-      .from("profiles")
-      .select("email, first_name")
-      .eq("id", investorId)
-      .single();
-
-    if (!investor) {
-      console.error("Investor not found for email notification");
-      return;
-    }
-
-    // Log email intent
-    await supabase.from("email_logs").insert({
-      to: investor.email,
-      subject: "Withdrawal Request Received",
-      template: "withdrawal_initiated",
-      status: "pending",
-      metadata: {
-        amount: formatTokenAmount(amount, currency),
-        withdrawalId,
-      },
-    });
-
-    console.log("Withdrawal notification email queued for:", investor.email);
-  } catch (error) {
-    console.error("Failed to send withdrawal notification email:", error);
-  }
-}
-
-/**
- * Notify admins for manual review
- */
-async function notifyAdminsForReview(
-  supabase: any,
-  withdrawalId: string,
-  investorId: string,
-  amount: number,
-  currency: string,
-  complianceResult: ComplianceCheck
-): Promise<void> {
-  try {
-    // Get admin emails using user_roles table
-    const { data: adminRoles } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "admin");
-
-    if (!adminRoles || adminRoles.length === 0) {
-      console.error("No admins found for notification");
-      return;
-    }
-
-    // Get admin profiles
-    const adminIds = adminRoles.map((r: { user_id: string }) => r.user_id);
-    const { data: admins } = await supabase
-      .from("profiles")
-      .select("email, first_name, last_name")
-      .in("id", adminIds);
-
-    if (!admins || admins.length === 0) {
-      console.error("No admin profiles found for notification");
-      return;
-    }
-
-    // Create admin notification with token-denominated amount
-    await supabase.from("admin_notifications").insert({
-      notification_type: "withdrawal_review_required",
-      title: "Withdrawal Requires Manual Review",
-      message: `Withdrawal of ${formatTokenAmount(amount, currency)} requires manual review`,
-      priority: "high",
-      related_entity_type: "transaction",
-      related_entity_id: withdrawalId,
-      metadata: {
-        investorId,
-        amount,
-        currency,
-        formattedAmount: formatTokenAmount(amount, currency),
-        complianceChecks: complianceResult.checks,
-      },
-    });
-
-    console.log("Admin notification created for withdrawal review");
-  } catch (error) {
-    console.error("Failed to notify admins:", error);
-  }
-}

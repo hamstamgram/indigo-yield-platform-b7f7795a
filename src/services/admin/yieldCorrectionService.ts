@@ -60,11 +60,11 @@ export interface InvestorImpactRow {
   old_ib: number;
   new_ib: number;
   delta_ib: number;
-  ib_source: string | null;
+  ib_commission_source: string | null;
 }
 
 export interface TransactionDiff {
-  tx_type: string;
+  type: string;
   investor_id: string;
   investor_name: string;
   source_investor_id?: string;
@@ -425,7 +425,7 @@ export function exportTransactionDiffsToCsv(
 
   const dataRows = diffs.map((diff) =>
     [
-      diff.tx_type,
+      diff.type,
       diff.investor_id,
       `"${diff.investor_name}"`,
       diff.old_amount,

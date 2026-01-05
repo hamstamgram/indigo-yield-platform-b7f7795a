@@ -27,45 +27,57 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_opening_aum numeric;
-  v_gross_yield_amount numeric;
-  v_gross_yield_pct numeric;
+  v_opening_aum numeric(28,10);
+  v_gross_yield_amount numeric(28,10);
 BEGIN
-  -- Get opening AUM (most recent before yield_date)
-  SELECT COALESCE(total_aum, 0) INTO v_opening_aum
-  FROM fund_daily_aum
-  WHERE fund_id = p_fund_id
-    AND aum_date < p_yield_date
-    AND purpose = p_purpose
-    AND is_voided = false
-  ORDER BY aum_date DESC
-  LIMIT 1;
-  
-  IF v_opening_aum IS NULL OR v_opening_aum = 0 THEN
-    v_opening_aum := p_new_aum; -- First record, no change
+  -- Opening AUM source:
+  -- Prefer fund_aum_events (canonical stream) when present; otherwise fall back to fund_daily_aum.
+  IF to_regclass('public.fund_aum_events') IS NOT NULL THEN
+    EXECUTE $q$
+      SELECT closing_aum
+      FROM public.fund_aum_events
+      WHERE fund_id = $1
+        AND purpose = $2
+        AND is_voided = false
+        AND event_ts < ($3::date::timestamptz)
+      ORDER BY event_ts DESC
+      LIMIT 1
+    $q$
+    INTO v_opening_aum
+    USING p_fund_id, p_purpose, p_yield_date;
+  ELSE
+    SELECT total_aum
+    INTO v_opening_aum
+    FROM public.fund_daily_aum
+    WHERE fund_id = p_fund_id
+      AND aum_date < p_yield_date
+      AND purpose = p_purpose
+      AND is_voided = false
+    ORDER BY aum_date DESC
+    LIMIT 1;
   END IF;
-  
-  -- Calculate gross yield from AUM change
-  v_gross_yield_amount := p_new_aum - v_opening_aum;
-  v_gross_yield_pct := CASE 
-    WHEN v_opening_aum > 0 THEN (v_gross_yield_amount / v_opening_aum) * 100
-    ELSE 0
-  END;
+
+  IF v_opening_aum IS NULL OR v_opening_aum = 0 THEN
+    v_opening_aum := round(p_new_aum::numeric, 10)::numeric(28,10); -- first record, no change
+  END IF;
+
+  v_gross_yield_amount := round((p_new_aum::numeric - v_opening_aum)::numeric, 10)::numeric(28,10);
   
   RETURN QUERY
   WITH investor_positions_cte AS (
     SELECT 
       ip.investor_id,
-      p.full_name as investor_name,
-      ip.current_value as opening_balance,
+      trim(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,'')) as investor_name,
+      ip.current_value::numeric(28,10) as opening_balance,
       CASE 
-        WHEN v_opening_aum > 0 THEN (ip.current_value / v_opening_aum) * 100
-        ELSE 0
+        WHEN v_opening_aum > 0 THEN round(((ip.current_value / v_opening_aum) * 100)::numeric, 10)::numeric(28,10)
+        ELSE 0::numeric(28,10)
       END as ownership_pct
     FROM investor_positions ip
     JOIN profiles p ON p.id = ip.investor_id
     WHERE ip.fund_id = p_fund_id
       AND ip.current_value > 0
+      AND COALESCE(p.account_type, 'investor') <> 'fees_account'
   ),
   yield_calc AS (
     SELECT 
@@ -74,7 +86,7 @@ BEGIN
       ipc.opening_balance,
       ipc.ownership_pct,
       -- Ownership-weighted gross yield
-      (ipc.ownership_pct / 100.0) * v_gross_yield_amount as gross_yield,
+      round(((ipc.ownership_pct / 100.0) * v_gross_yield_amount)::numeric, 10)::numeric(28,10) as gross_yield,
       -- Get fee percentage from schedule or profile
       COALESCE(
         (SELECT ifs.fee_pct FROM investor_fee_schedule ifs 
@@ -84,37 +96,37 @@ BEGIN
            AND (ifs.end_date IS NULL OR ifs.end_date >= p_yield_date)
          ORDER BY ifs.fund_id NULLS LAST, ifs.effective_date DESC
          LIMIT 1),
-        (SELECT pr.perf_fee_percentage FROM profiles pr WHERE pr.id = ipc.investor_id),
+        (SELECT pr.fee_pct FROM profiles pr WHERE pr.id = ipc.investor_id),
         20.0
-      ) as fee_pct
+      )::numeric(28,10) as fee_pct
     FROM investor_positions_cte ipc
   ),
   with_fees AS (
     SELECT 
       yc.*,
       CASE 
-        WHEN yc.gross_yield > 0 THEN yc.gross_yield * (yc.fee_pct / 100.0)
-        ELSE 0
+        WHEN yc.gross_yield > 0 THEN round((yc.gross_yield * (yc.fee_pct / 100.0))::numeric, 10)::numeric(28,10)
+        ELSE 0::numeric(28,10)
       END as fee_amount,
       CASE 
-        WHEN yc.gross_yield > 0 THEN yc.gross_yield * (1 - yc.fee_pct / 100.0)
+        WHEN yc.gross_yield > 0 THEN round((yc.gross_yield * (1 - yc.fee_pct / 100.0))::numeric, 10)::numeric(28,10)
         ELSE yc.gross_yield
-      END as net_yield
+      END::numeric(28,10) as net_yield
     FROM yield_calc yc
   ),
   with_ib AS (
     SELECT 
       wf.*,
       wf.opening_balance + wf.net_yield as closing_balance,
-      ib_profile.full_name as ib_name,
+      trim(coalesce(ib_profile.first_name,'') || ' ' || coalesce(ib_profile.last_name,'')) as ib_name,
       CASE 
-        WHEN wf.fee_amount > 0 AND inv_profile.ib_percentage > 0 
-        THEN wf.fee_amount * (inv_profile.ib_percentage / 100.0)
-        ELSE 0
+        WHEN wf.fee_amount > 0 AND COALESCE(inv_profile.ib_percentage, 0) > 0 
+        THEN round((wf.fee_amount * (inv_profile.ib_percentage / 100.0))::numeric, 10)::numeric(28,10)
+        ELSE 0::numeric(28,10)
       END as ib_commission
     FROM with_fees wf
     JOIN profiles inv_profile ON inv_profile.id = wf.investor_id
-    LEFT JOIN profiles ib_profile ON ib_profile.id = inv_profile.introducing_broker_id
+    LEFT JOIN profiles ib_profile ON ib_profile.id = inv_profile.ib_parent_id
   )
   SELECT 
     wi.investor_id,

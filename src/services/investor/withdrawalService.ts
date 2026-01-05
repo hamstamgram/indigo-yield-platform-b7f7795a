@@ -337,7 +337,8 @@ export const withdrawalService = {
    * Mark withdrawal as completed using secure RPC with server-side admin check
    */
   async markAsCompleted(
-    withdrawalId: string, 
+    withdrawalId: string,
+    closingAum: string,
     txHash?: string, 
     adminNotes?: string,
     correlationId?: string
@@ -349,6 +350,7 @@ export const withdrawalService = {
     
     const { error } = await supabase.rpc('complete_withdrawal', {
       p_request_id: withdrawalId,
+      p_closing_aum: closingAum,
       p_transaction_hash: txHash || null,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
     });

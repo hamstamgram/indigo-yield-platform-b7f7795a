@@ -19,6 +19,7 @@ import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon, Tren
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction, invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
+import { toDecimal } from "@/utils/financial";
 import {
   useTransactionFormInvestors,
   useTransactionFormFunds,
@@ -101,16 +102,23 @@ export default function AdminManualTransaction() {
       return;
     }
 
-    const amount = parseFloat(depositAmount);
-    const aum = parseFloat(newTotalAum);
+    let amountDec;
+    let aumDec;
+    try {
+      amountDec = toDecimal(depositAmount);
+      aumDec = toDecimal(newTotalAum);
+    } catch {
+      setYieldPreview(null);
+      return;
+    }
 
-    if (isNaN(amount) || isNaN(aum) || amount <= 0 || aum <= 0) {
+    if (amountDec.lte(0) || aumDec.lte(0)) {
       setYieldPreview(null);
       return;
     }
 
     setIsLoadingPreview(true);
-    previewDepositYield(selectedFundId, amount, aum)
+    previewDepositYield(selectedFundId, amountDec.toFixed(10), aumDec.toFixed(10))
       .then(setYieldPreview)
       .catch(() => setYieldPreview(null))
       .finally(() => setIsLoadingPreview(false));
@@ -129,6 +137,10 @@ export default function AdminManualTransaction() {
   const hasExistingPosition = currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
   const isDeposit = txnType === "DEPOSIT" || txnType === "FIRST_INVESTMENT";
   const isLoading = investorsLoading || fundsLoading;
+  const yieldPreviewAum = yieldPreview ? toDecimal(yieldPreview.currentAum) : null;
+  const yieldPreviewGross = yieldPreview ? toDecimal(yieldPreview.preDepositYield) : null;
+  const yieldPreviewPct = yieldPreview ? toDecimal(yieldPreview.yieldPercentage) : null;
+  const depositAmountDec = depositAmount ? toDecimal(depositAmount || "0") : null;
 
   const onSubmit = async (data: TransactionFormValues) => {
     setIsSubmitting(true);
@@ -140,18 +152,22 @@ export default function AdminManualTransaction() {
 
       // For deposits with AUM, use the combined yield + deposit flow
       if (isDeposit && data.newTotalAum) {
-        const aumValue = parseFloat(data.newTotalAum);
-        const amountValue = parseFloat(data.amount);
+        let aumValue;
+        try {
+          aumValue = toDecimal(data.newTotalAum);
+        } catch {
+          throw new Error("Please enter a valid New Total AUM");
+        }
 
-        if (isNaN(aumValue) || aumValue <= 0) {
+        if (aumValue.lte(0)) {
           throw new Error("Please enter a valid New Total AUM");
         }
 
         const result = await processDepositWithYield({
           investorId: data.investorId,
           fundId: data.fundId,
-          amount: amountValue,
-          newTotalAum: aumValue,
+          amount: toDecimal(data.amount).toFixed(10),
+          newTotalAum: aumValue.toFixed(10),
           txDate: data.txDate,
           notes: data.description,
           txHash: data.txHash,
@@ -177,15 +193,22 @@ export default function AdminManualTransaction() {
         });
       } else {
         // Standard transaction (withdrawal or deposit without AUM)
+        const isFlow = data.type === "DEPOSIT" || data.type === "WITHDRAWAL" || data.type === "FIRST_INVESTMENT";
+        if (isFlow && !data.newTotalAum) {
+          throw new Error("New Total AUM is required for deposits/withdrawals (crystallize-before-flow).");
+        }
+
         const result = await createAdminTransaction({
           investor_id: data.investorId,
           fund_id: data.fundId,
           type: data.type as CreateTransactionParams["type"],
-          amount: parseFloat(data.amount),
+          amount: Number(toDecimal(data.amount).toFixed(10)),
           tx_date: data.txDate,
           asset: selectedFund.asset,
           notes: data.description,
           tx_hash: data.txHash,
+          closing_aum: data.newTotalAum || undefined,
+          event_ts: `${data.txDate}T00:00:00.000Z`,
         });
 
         if (!result.success) {
@@ -402,8 +425,8 @@ export default function AdminManualTransaction() {
                 <Input
                   {...form.register("newTotalAum")}
                   placeholder="Enter new total fund AUM"
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                 />
                 {currentAum !== null && (
                   <p className="text-xs text-muted-foreground">
@@ -432,30 +455,30 @@ export default function AdminManualTransaction() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Current AUM</p>
-                      <p className="font-medium">{yieldPreview.currentAum.toFixed(8)} {yieldPreview.fundAsset}</p>
+                      <p className="font-medium">{yieldPreviewAum?.toFixed(8)} {yieldPreview.fundAsset}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Yield to Distribute</p>
                       <p className={cn(
                         "font-medium",
-                        yieldPreview.preDepositYield > 0 ? "text-green-600" : "text-muted-foreground"
+                        yieldPreviewGross?.gt(0) ? "text-green-600" : "text-muted-foreground"
                       )}>
-                        {yieldPreview.preDepositYield > 0 ? "+" : ""}{yieldPreview.preDepositYield.toFixed(8)} {yieldPreview.fundAsset}
-                        {yieldPreview.preDepositYield > 0 && (
-                          <span className="text-xs ml-1">({yieldPreview.yieldPercentage.toFixed(4)}%)</span>
+                        {yieldPreviewGross?.gt(0) ? "+" : ""}{yieldPreviewGross?.toFixed(8)} {yieldPreview.fundAsset}
+                        {yieldPreviewGross?.gt(0) && (
+                          <span className="text-xs ml-1">({yieldPreviewPct?.toFixed(4)}%)</span>
                         )}
                       </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">This Deposit</p>
-                      <p className="font-medium">+{parseFloat(depositAmount || "0").toFixed(8)} {yieldPreview.fundAsset}</p>
+                      <p className="font-medium">+{depositAmountDec?.abs().toFixed(8)} {yieldPreview.fundAsset}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Investors Affected</p>
                       <p className="font-medium">{yieldPreview.investorCount} investors</p>
                     </div>
                   </div>
-                  {yieldPreview.preDepositYield > 0 && (
+                  {yieldPreviewGross?.gt(0) && (
                     <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
                       <Check className="h-4 w-4 text-green-600" />
                       <AlertDescription className="text-green-700 dark:text-green-400 text-sm">
@@ -463,7 +486,7 @@ export default function AdminManualTransaction() {
                       </AlertDescription>
                     </Alert>
                   )}
-                  {yieldPreview.preDepositYield <= 0 && (
+                  {yieldPreviewGross?.lte(0) && (
                     <Alert className="py-2">
                       <Info className="h-4 w-4" />
                       <AlertDescription className="text-sm">
@@ -504,7 +527,7 @@ export default function AdminManualTransaction() {
                   Processing...
                 </>
               ) : (
-                isDeposit && yieldPreview && yieldPreview.preDepositYield > 0
+                isDeposit && yieldPreview && yieldPreviewGross?.gt(0)
                   ? "Distribute Yield & Create Deposit"
                   : "Create Transaction"
               )}

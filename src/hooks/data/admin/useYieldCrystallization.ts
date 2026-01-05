@@ -107,29 +107,32 @@ export function useCrystallizeYield() {
     mutationFn: async ({
       fundId,
       triggerType,
-      triggerDate,
-      triggerTransactionId,
+      eventTs,
+      closingAum,
+      triggerReference,
     }: {
       fundId: string;
       triggerType: "deposit" | "withdrawal" | "month_end" | "manual";
-      triggerDate: Date;
-      triggerTransactionId?: string;
+      eventTs: Date;
+      closingAum: string;
+      triggerReference?: string;
     }) => {
       return crystallizeYieldBeforeFlow(
         fundId,
         triggerType,
-        triggerDate,
-        triggerTransactionId,
+        eventTs,
+        closingAum,
+        triggerReference,
         user?.id
       );
     },
     onSuccess: (result) => {
-      if (result.skipped) {
-        toast.info(result.reason || "Crystallization skipped");
+      const grossYield = result.gross_yield ?? "0";
+      const txCount = result.yield_tx_count ?? 0;
+      if (txCount === 0) {
+        toast.info(`No yield to crystallize (gross_yield=${grossYield})`);
       } else {
-        toast.success(
-          `Yield crystallized for ${result.investors_processed} investors`
-        );
+        toast.success(`Yield crystallized (${txCount} YIELD transactions)`);
       }
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundYieldEvents() });

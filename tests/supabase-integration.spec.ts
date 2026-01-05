@@ -171,7 +171,7 @@ test.describe("Supabase Database Integration Tests", () => {
 
       // Fetch transactions
       const { data, error } = await userClient
-        .from("transactions")
+        .from("transactions_v2")
         .select("*")
         .eq("investor_id", userId)
         .limit(10);
@@ -190,7 +190,7 @@ test.describe("Supabase Database Integration Tests", () => {
       });
 
       // Try to fetch all transactions
-      const { data, error } = await userClient.from("transactions").select("*").limit(100);
+      const { data, error } = await userClient.from("transactions_v2").select("*").limit(100);
 
       // Should only return own transactions or empty
       if (data) {
@@ -210,14 +210,28 @@ test.describe("Supabase Database Integration Tests", () => {
 
       const userId = authData.user?.id;
 
+      const { data: fund } = await userClient
+        .from("funds")
+        .select("id")
+        .limit(1)
+        .maybeSingle();
+
+      if (!fund?.id) {
+        console.log("⚠️ No fund found; skipping withdrawal request creation test");
+        return;
+      }
+
       // Create withdrawal request
       const { data, error } = await userClient
         .from("withdrawal_requests")
         .insert({
           investor_id: userId,
-          amount: 1000,
+          fund_id: fund.id,
+          requested_amount: "1000.0000000000",
+          withdrawal_type: "partial",
           status: "pending",
-          reason: "Test withdrawal",
+          notes: "Test withdrawal",
+          created_by: userId,
         })
         .select();
 
@@ -258,7 +272,7 @@ test.describe("Supabase Database Integration Tests", () => {
         });
 
         // Fetch all transactions
-        const { data, error } = await adminClient.from("transactions").select("*").limit(10);
+        const { data, error } = await adminClient.from("transactions_v2").select("*").limit(10);
 
         // Admin should see all transactions
         console.log("✅ Admin can read all transactions");
@@ -326,7 +340,7 @@ test.describe("Supabase Database Integration Tests", () => {
       // Query transactions with aggregation
       // Note: PostgREST supports limited aggregation
       const { data, error } = await userClient
-        .from("transactions")
+        .from("transactions_v2")
         .select("amount, type")
         .eq("investor_id", userId)
         .order("created_at", { ascending: false })
@@ -358,7 +372,7 @@ test.describe("Supabase Database Integration Tests", () => {
       await Promise.all([
         userClient.from("profiles").select("*").limit(10),
         userClient.from("portfolios").select("*").limit(10),
-        userClient.from("transactions").select("*").limit(10),
+        userClient.from("transactions_v2").select("*").limit(10),
       ]);
 
       const endTime = Date.now();
@@ -743,12 +757,13 @@ test.describe("Data Integrity Tests", () => {
       password: TEST_USER_PASSWORD,
     });
 
-    // Try to insert transaction with invalid investor_id
-    const { error } = await userClient.from("transactions").insert({
+    // Try to insert ledger row with invalid foreign keys
+    const { error } = await userClient.from("transactions_v2").insert({
       investor_id: "00000000-0000-0000-0000-000000000000",
-      amount: 100,
-      type: "deposit",
-      status: "pending",
+      fund_id: "00000000-0000-0000-0000-000000000000",
+      asset: "USDT",
+      amount: "100.0000000000",
+      type: "DEPOSIT",
     });
 
     // Should fail due to foreign key constraint
@@ -765,9 +780,11 @@ test.describe("Data Integrity Tests", () => {
     });
 
     // Try to insert invalid data
-    const { error } = await userClient.from("transactions").insert({
+    const { error } = await userClient.from("transactions_v2").insert({
+      fund_id: "00000000-0000-0000-0000-000000000000",
+      asset: "USDT",
       amount: "invalid-number", // Should be numeric
-      type: "deposit",
+      type: "DEPOSIT",
     });
 
     // Should fail

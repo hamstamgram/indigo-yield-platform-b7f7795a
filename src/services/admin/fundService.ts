@@ -18,7 +18,6 @@ export interface Fund {
   perf_fee_bps: number;
   high_water_mark: number;
   min_investment: number;
-  lock_period_days: number;
   created_at: string;
   updated_at: string;
 }
@@ -59,7 +58,9 @@ export interface FundKPI {
 export async function listFunds() {
   const { data, error } = await supabase
     .from("funds")
-    .select("*")
+    .select(
+      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url"
+    )
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -70,7 +71,13 @@ export async function listFunds() {
  * Get fund by ID
  */
 export async function getFund(fundId: string) {
-  const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
+  const { data, error } = await supabase
+    .from("funds")
+    .select(
+      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url"
+    )
+    .eq("id", fundId)
+    .maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error(`Fund not found: ${fundId}`);

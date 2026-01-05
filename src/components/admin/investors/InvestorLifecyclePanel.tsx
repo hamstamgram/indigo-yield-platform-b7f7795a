@@ -1,18 +1,17 @@
 /**
  * Investor Lifecycle Panel
- * Manages investor status, position locking, and cleanup operations
+ * Manages investor status and cleanup operations
  */
 
 import { useState } from "react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Button, Input, Label, Textarea,
+  Button, Input, Label,
 } from "@/components/ui";
-import { Calendar, Clock, User, UserX, AlertTriangle } from "lucide-react";
+import { Calendar, User, UserX, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks";
 import {
   useAdminUpdateInvestorStatus as useUpdateInvestorStatus,
-  useLockPositions,
   useCleanupInactiveInvestors,
 } from "@/hooks/data/admin";
 
@@ -20,18 +19,14 @@ const InvestorLifecyclePanel = () => {
   const [selectedInvestor] = useState<string>("");
   const [entryDate, setEntryDate] = useState<string>("");
   const [exitDate, setExitDate] = useState<string>("");
-  const [lockUntilDate, setLockUntilDate] = useState<string>("");
-  const [reason, setReason] = useState<string>("");
   const { toast } = useToast();
 
   // React Query mutations
   const updateStatusMutation = useUpdateInvestorStatus();
-  const lockPositionsMutation = useLockPositions();
   const cleanupMutation = useCleanupInactiveInvestors();
 
   const isProcessing =
     updateStatusMutation.isPending ||
-    lockPositionsMutation.isPending ||
     cleanupMutation.isPending;
 
   const handleUpdateInvestorStatus = (
@@ -52,28 +47,6 @@ const InvestorLifecyclePanel = () => {
           toast({
             title: "Update Failed",
             description: "Failed to update investor status",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
-
-  const handleLockPositions = (investorId: string, lockUntil: string) => {
-    lockPositionsMutation.mutate(
-      { investorId, lockUntil, reason },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Positions Locked",
-            description: `Positions locked until ${lockUntil}`,
-          });
-        },
-        onError: (error) => {
-          console.error("Error locking positions:", error);
-          toast({
-            title: "Lock Failed",
-            description: "Failed to lock investor positions",
             variant: "destructive",
           });
         },
@@ -175,50 +148,6 @@ const InvestorLifecyclePanel = () => {
               Suspend
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Position Locking */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Position Lock Management
-          </CardTitle>
-          <CardDescription>
-            Lock investor positions based on status or compliance requirements
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Lock Positions Until</Label>
-            <Input
-              type="date"
-              value={lockUntilDate}
-              onChange={(e) => setLockUntilDate(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Reason for Lock</Label>
-            <Textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Enter reason for position lock..."
-              rows={3}
-            />
-          </div>
-
-          <Button
-            onClick={() =>
-              selectedInvestor &&
-              lockUntilDate &&
-              handleLockPositions(selectedInvestor, lockUntilDate)
-            }
-            disabled={!selectedInvestor || !lockUntilDate || isProcessing}
-          >
-            Apply Position Lock
-          </Button>
         </CardContent>
       </Card>
 

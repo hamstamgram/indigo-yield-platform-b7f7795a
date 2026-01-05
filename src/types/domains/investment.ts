@@ -36,6 +36,15 @@ export interface InvestmentFormData {
   investment_date: string;
   amount: number;
   transaction_type: InvestmentTransactionType;
+  /**
+   * Authoritative AUM snapshot used for crystallize-before-flow accounting.
+   * Required for deposits/withdrawals becoming effective.
+   */
+  closing_aum?: string;
+  /**
+   * Timestamp for the effective flow event (defaults to investment_date at 00:00Z).
+   */
+  event_ts?: string;
   reference_number?: string;
   notes?: string;
 }

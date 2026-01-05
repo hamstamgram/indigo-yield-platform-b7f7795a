@@ -1,0 +1,23 @@
+{
+  "banned_refs_counts": {
+    "effective_date": 47,
+    "from(\"transactions\")": 0,
+    "full_name": 0,
+    "ib_source": 0,
+    "tx_type": 4
+  },
+  "counts": {
+    "banned_refs": 51,
+    "from_calls": 812,
+    "select_calls": 558
+  },
+  "note": "These artifacts are generated. Re-run after refactors to confirm counts drop to zero for banned refs.",
+  "repo_root": "/Users/mama/indigo-yield-platform-v01",
+  "schema_dump": "/tmp/indigo_yield_remote.sql",
+  "scopes": [
+    "src",
+    "supabase/functions",
+    "tests",
+    "archive"
+  ]
+}

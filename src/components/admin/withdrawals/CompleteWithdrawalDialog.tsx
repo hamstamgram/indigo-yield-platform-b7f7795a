@@ -25,6 +25,7 @@ export function CompleteWithdrawalDialog({
 }: CompleteWithdrawalDialogProps) {
   const [txHash, setTxHash] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
+  const [closingAum, setClosingAum] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,6 +34,7 @@ export function CompleteWithdrawalDialog({
     if (open) {
       setTxHash(withdrawal.tx_hash || "");
       setAdminNotes("");
+      setClosingAum("");
       setConfirmText("");
     }
   }, [open, withdrawal.tx_hash]);
@@ -50,7 +52,15 @@ export function CompleteWithdrawalDialog({
     setIsSubmitting(true);
 
     try {
-      await withdrawalService.markAsCompleted(withdrawal.id, txHash || undefined, adminNotes || undefined);
+      if (!closingAum) {
+        throw new Error("Closing AUM snapshot is required to complete this withdrawal.");
+      }
+      await withdrawalService.markAsCompleted(
+        withdrawal.id,
+        closingAum,
+        txHash || undefined,
+        adminNotes || undefined
+      );
       toast.success("Withdrawal completed successfully. Ledger entries created.");
       onSuccess();
       onOpenChange(false);
@@ -89,6 +99,20 @@ export function CompleteWithdrawalDialog({
               </div>
             </div>
             
+            <div>
+              <Label htmlFor="closingAum">Closing AUM Snapshot (Before Withdrawal) *</Label>
+              <Input
+                id="closingAum"
+                type="text"
+                value={closingAum}
+                onChange={(e) => setClosingAum(e.target.value)}
+                placeholder="e.g. 1000000.0000000000"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Authoritative AUM snapshot used to crystallize yield before posting the withdrawal.
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="txHash">Transaction Hash</Label>
               <Input
