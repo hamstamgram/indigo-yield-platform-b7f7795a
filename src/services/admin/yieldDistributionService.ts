@@ -181,74 +181,87 @@ export async function previewYieldDistribution(
     throw new Error(`Failed to preview yield: ${error.message}`);
   }
 
-  const rows = Array.isArray(data) ? (data as any[]) : [];
+  // Backend returns complete JSONB object - use it directly
+  const result = data as any;
 
-  const distributions: YieldDistribution[] = rows.map((r: any) => {
-    const openingBalance = Number(r.opening_balance || 0);
-    const closingBalance = Number(r.closing_balance || 0);
-    return {
-      investorId: r.investor_id,
-      investorName: r.investor_name,
-      currentBalance: openingBalance,
-      allocationPercentage: Number(r.ownership_pct || 0),
-      feePercentage: Number(r.fee_pct || 0),
-      grossYield: Number(r.gross_yield || 0),
-      feeAmount: Number(r.fee_amount || 0),
-      netYield: Number(r.net_yield || 0),
-      newBalance: closingBalance,
-      positionDelta: closingBalance - openingBalance,
-      ibParentName: r.ib_name || undefined,
-      ibPercentage: 0,
-      ibAmount: Number(r.ib_commission || 0),
-      referenceId: `yield_preview:${fundId}:${formatDate(targetDate)}:${r.investor_id}`,
-      wouldSkip: Number(r.gross_yield || 0) === 0,
-    };
-  });
+  if (!result || !result.success) {
+    throw new Error(result?.error || "Preview failed: Invalid response from server");
+  }
 
-  const totalsFromRows = rows.reduce(
-    (acc, r: any) => {
-      acc.gross += Number(r.gross_yield || 0);
-      acc.fees += Number(r.fee_amount || 0);
-      acc.ibFees += Number(r.ib_commission || 0);
-      acc.net += Number(r.net_yield || 0);
-      return acc;
-    },
-    { gross: 0, fees: 0, ibFees: 0, net: 0 }
-  );
+  // Map distributions from backend format
+  const distributions: YieldDistribution[] = (result.distributions || []).map((d: any) => ({
+    investorId: d.investorId,
+    investorName: d.investorName,
+    accountType: d.accountType,
+    currentBalance: Number(d.currentBalance || 0),
+    allocationPercentage: Number(d.allocationPercentage || 0),
+    feePercentage: Number(d.feePercentage || 0),
+    grossYield: Number(d.grossYield || 0),
+    feeAmount: Number(d.feeAmount || 0),
+    netYield: Number(d.netYield || 0),
+    newBalance: Number(d.newBalance || 0),
+    positionDelta: Number(d.positionDelta || 0),
+    ibParentId: d.ibParentId,
+    ibParentName: d.ibParentName,
+    ibPercentage: Number(d.ibPercentage || 0),
+    ibAmount: Number(d.ibAmount || 0),
+    referenceId: d.referenceId,
+    wouldSkip: Boolean(d.wouldSkip),
+  }));
 
-  const totals: YieldTotals = {
-    gross: totalsFromRows.gross || grossYieldAmount,
-    fees: totalsFromRows.fees,
-    ibFees: totalsFromRows.ibFees,
-    net: totalsFromRows.net,
-    indigoCredit: totalsFromRows.fees - totalsFromRows.ibFees,
+  // Map IB credits from backend format
+  const ibCredits: IBCredit[] = (result.ibCredits || []).map((ib: any) => ({
+    ibInvestorId: ib.ibInvestorId,
+    ibInvestorName: ib.ibInvestorName,
+    sourceInvestorId: ib.sourceInvestorId,
+    sourceInvestorName: ib.sourceInvestorName,
+    amount: Number(ib.amount || 0),
+    ibPercentage: Number(ib.ibPercentage || 0),
+    source: ib.source,
+    referenceId: ib.referenceId,
+    wouldSkip: Boolean(ib.wouldSkip),
+  }));
+
+  // Extract totals from backend response
+  const totals: YieldTotals = result.totals ? {
+    gross: Number(result.totals.gross || 0),
+    fees: Number(result.totals.fees || 0),
+    ibFees: Number(result.totals.ibFees || 0),
+    net: Number(result.totals.net || 0),
+    indigoCredit: Number(result.totals.indigoCredit || 0),
+  } : {
+    gross: Number(result.grossYield || 0),
+    fees: Number(result.totalFees || 0),
+    ibFees: Number(result.totalIbFees || 0),
+    net: Number(result.netYield || 0),
+    indigoCredit: Number(result.indigoFeesCredit || 0),
   };
 
-  const yieldPercentage = currentAUM > 0 ? (totals.gross / currentAUM) * 100 : 0;
-
+  // Return mapped result
   return {
     success: true,
     preview: true,
-    fundId,
-    fundCode: fund?.code || "",
-    fundAsset: fund?.asset || "",
+    fundId: result.fundId || fundId,
+    fundCode: result.fundCode || fund?.code || "",
+    fundAsset: result.fundAsset || fund?.asset || "",
     yieldDate: targetDate,
-    effectiveDate: formatDate(targetDate),
-    purpose,
-    isMonthEnd: false,
-    currentAUM,
-    newAUM: newTotalAUM,
-    grossYield: totals.gross,
-    netYield: totals.net,
-    totalFees: totals.fees,
-    totalIbFees: totals.ibFees,
-    yieldPercentage,
-    investorCount: distributions.length,
+    effectiveDate: result.effectiveDate || formatDate(targetDate),
+    purpose: result.purpose || purpose,
+    isMonthEnd: Boolean(result.isMonthEnd),
+    currentAUM: Number(result.currentAUM || currentAUM),
+    newAUM: Number(result.newAUM || newTotalAUM),
+    grossYield: Number(result.grossYield || totals.gross),
+    netYield: Number(result.netYield || totals.net),
+    totalFees: Number(result.totalFees || totals.fees),
+    totalIbFees: Number(result.totalIbFees || totals.ibFees),
+    yieldPercentage: Number(result.yieldPercentage || 0),
+    investorCount: Number(result.investorCount || distributions.length),
     distributions,
-    ibCredits: [] as IBCredit[],
-    indigoFeesCredit: totals.indigoCredit,
-    existingConflicts: [],
-    hasConflicts: false,
+    ibCredits,
+    indigoFeesCredit: Number(result.indigoFeesCredit || totals.indigoCredit),
+    indigoFeesId: result.indigoFeesId,
+    existingConflicts: result.existingConflicts || [],
+    hasConflicts: Boolean(result.hasConflicts),
     totals,
     status: "preview",
     snapshotInfo,
