@@ -4852,21 +4852,6 @@ export type Database = {
         Args: { p_requests: Json }
         Returns: Json
       }
-      apply_daily_yield_to_fund_v2: {
-        Args: {
-          p_admin_id?: string
-          p_date: string
-          p_force?: boolean
-          p_fund_id: string
-          p_gross_amount: number
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-        }
-        Returns: {
-          investors_updated: number
-          new_fund_aum: number
-          total_yield_amount: number
-        }[]
-      }
       apply_daily_yield_to_fund_v3: {
         Args: {
           p_actor_id: string
@@ -4987,14 +4972,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      complete_withdrawal_legacy: {
-        Args: {
-          p_admin_notes?: string
-          p_request_id: string
-          p_transaction_hash?: string
-        }
-        Returns: boolean
-      }
       compute_correction_input_hash: {
         Args: {
           p_fund_id: string
@@ -5059,15 +5036,6 @@ export type Database = {
       }
       dispatch_report_delivery_run: {
         Args: { p_channel?: string; p_period_id: string }
-        Returns: Json
-      }
-      distribute_yield_v2: {
-        Args: {
-          p_admin_id: string
-          p_fund_name: string
-          p_gross_yield_amount: number
-          p_period_id: string
-        }
         Returns: Json
       }
       edit_transaction: {
@@ -5231,10 +5199,6 @@ export type Database = {
           total_value: number
         }[]
       }
-      get_month_closure_status: {
-        Args: { p_fund_id: string; p_month_start: string }
-        Returns: Json
-      }
       get_monthly_platform_aum: {
         Args: never
         Returns: {
@@ -5365,42 +5329,24 @@ export type Database = {
         Returns: boolean
       }
       has_super_admin_role: { Args: { p_user_id: string }; Returns: boolean }
-      internal_route_to_fees:
-        | {
-            Args: {
-              p_admin_id: string
-              p_amount: number
-              p_effective_date: string
-              p_from_investor_id: string
-              p_fund_id: string
-              p_reason: string
-            }
-            Returns: {
-              credit_tx_id: string
-              debit_tx_id: string
-              message: string
-              success: boolean
-              transfer_id: string
-            }[]
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_amount: number
-              p_effective_date: string
-              p_from_investor_id: string
-              p_fund_id: string
-              p_reason: string
-              p_transfer_id?: string
-            }
-            Returns: {
-              credit_tx_id: string
-              debit_tx_id: string
-              message: string
-              success: boolean
-              transfer_id: string
-            }[]
-          }
+      internal_route_to_fees: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_effective_date: string
+          p_from_investor_id: string
+          p_fund_id: string
+          p_reason: string
+          p_transfer_id?: string
+        }
+        Returns: {
+          credit_tx_id: string
+          debit_tx_id: string
+          message: string
+          success: boolean
+          transfer_id: string
+        }[]
+      }
       is_2fa_required: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_admin_for_jwt: { Args: never; Returns: boolean }
