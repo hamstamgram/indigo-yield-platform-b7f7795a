@@ -38,7 +38,10 @@ import {
   Clock,
 } from "lucide-react";
 import { AdminGuard, SuperAdminGuard, useSuperAdmin } from "@/components/admin";
+import { FundAUMEventsTable } from "@/components/admin/yields";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
 import {
@@ -442,6 +445,64 @@ function YieldOperationsContent() {
           </Card>
         ))}
       </div>
+
+      {/* AUM Checkpoints Section */}
+      {funds.length > 0 && (
+        <Collapsible>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    AUM Checkpoints
+                  </CardTitle>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Label>Select Fund</Label>
+                  <Select
+                    value={selectedFund?.id || ""}
+                    onValueChange={(value) => {
+                      const fund = funds.find((f) => f.id === value);
+                      setSelectedFund(fund || null);
+                    }}
+                  >
+                    <SelectTrigger className="w-[250px]">
+                      <SelectValue placeholder="Choose a fund..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {funds.map((fund) => (
+                        <SelectItem key={fund.id} value={fund.id}>
+                          <div className="flex items-center gap-2">
+                            <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                            {fund.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedFund ? (
+                  <FundAUMEventsTable
+                    fundId={selectedFund.id}
+                    formatValue={formatValue}
+                    asset={selectedFund.asset || ""}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Select a fund to view AUM checkpoints
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       {/* Yield Distribution Dialog */}
       <Dialog open={showYieldDialog} onOpenChange={setShowYieldDialog}>
