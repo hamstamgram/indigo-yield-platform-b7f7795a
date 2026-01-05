@@ -177,8 +177,6 @@ export async function createAdminTransaction(
         );
       }
 
-      const eventTs = params.event_ts || `${params.tx_date}T00:00:00.000Z`;
-
       // Generate unique trigger reference client-side (idempotency key)
       const triggerReferenceRaw =
         params.reference_id || `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
@@ -188,24 +186,24 @@ export async function createAdminTransaction(
       const { data, error } =
         dbType === "DEPOSIT"
           ? await rpcCall("apply_deposit_with_crystallization", {
-              p_investor_id: params.investor_id,
               p_fund_id: params.fund_id,
+              p_investor_id: params.investor_id,
               p_amount: params.amount,
-              p_event_ts: eventTs,
               p_closing_aum: closingAum,
-              p_trigger_reference: triggerReference,
-              p_purpose: "transaction",
+              p_effective_date: params.tx_date,
               p_admin_id: user.id,
+              p_notes: params.notes || `${dbType} - ${triggerReference}`,
+              p_purpose: "transaction",
             })
           : await rpcCall("apply_withdrawal_with_crystallization", {
-              p_investor_id: params.investor_id,
               p_fund_id: params.fund_id,
+              p_investor_id: params.investor_id,
               p_amount: params.amount,
-              p_event_ts: eventTs,
               p_closing_aum: closingAum,
-              p_trigger_reference: triggerReference,
-              p_purpose: "transaction",
+              p_effective_date: params.tx_date,
               p_admin_id: user.id,
+              p_notes: params.notes || `${dbType} - ${triggerReference}`,
+              p_purpose: "transaction",
             });
       
       if (error) {
@@ -283,7 +281,6 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   }
 
   const today = new Date().toISOString().split("T")[0];
-  const eventTs = params.eventTs || `${today}T00:00:00.000Z`;
 
   // Generate unique trigger reference to prevent duplicates
   const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${crypto.randomUUID()}`;
@@ -292,24 +289,24 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   const { data, error } =
     params.type === "DEPOSIT"
       ? await rpcCall("apply_deposit_with_crystallization", {
-          p_investor_id: params.investorId,
           p_fund_id: params.fundId,
+          p_investor_id: params.investorId,
           p_amount: params.amount,
-          p_event_ts: eventTs,
           p_closing_aum: closingAum,
-          p_trigger_reference: triggerReference,
-          p_purpose: "transaction",
+          p_effective_date: today,
           p_admin_id: user.id,
+          p_notes: params.description || `${params.type} - ${triggerReference}`,
+          p_purpose: "transaction",
         })
       : await rpcCall("apply_withdrawal_with_crystallization", {
-          p_investor_id: params.investorId,
           p_fund_id: params.fundId,
+          p_investor_id: params.investorId,
           p_amount: params.amount,
-          p_event_ts: eventTs,
           p_closing_aum: closingAum,
-          p_trigger_reference: triggerReference,
-          p_purpose: "transaction",
+          p_effective_date: today,
           p_admin_id: user.id,
+          p_notes: params.description || `${params.type} - ${triggerReference}`,
+          p_purpose: "transaction",
         });
 
   if (error) {

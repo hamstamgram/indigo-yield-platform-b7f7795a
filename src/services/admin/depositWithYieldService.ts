@@ -72,16 +72,19 @@ export async function previewDepositYield(
   }
 
   const { data: lastCheckpoint } = await (supabase.from as any)("fund_aum_events")
-    .select("closing_aum, event_ts")
+    .select("closing_aum, post_flow_aum, event_ts")
     .eq("fund_id", fundId)
     .eq("is_voided", false)
     .order("event_ts", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  const openingAumDec = lastCheckpoint?.closing_aum
-    ? toDecimal(lastCheckpoint.closing_aum)
-    : closingAumBeforeDeposit;
+  // Use post_flow_aum if available (for accurate yield calculation), otherwise closing_aum
+  const openingAumDec = lastCheckpoint?.post_flow_aum
+    ? toDecimal(lastCheckpoint.post_flow_aum)
+    : lastCheckpoint?.closing_aum
+      ? toDecimal(lastCheckpoint.closing_aum)
+      : closingAumBeforeDeposit;
   const preDepositYieldDec = closingAumBeforeDeposit.minus(openingAumDec);
   const yieldPercentageDec = openingAumDec.gt(0)
     ? preDepositYieldDec.div(openingAumDec).times(100)
@@ -136,14 +139,14 @@ export async function processDepositWithYield(
 
     const rpcCall = (supabase.rpc as any).bind(supabase);
     const { data: depositResult, error: depositError } = await rpcCall("apply_deposit_with_crystallization", {
-      p_investor_id: investorId,
       p_fund_id: fundId,
+      p_investor_id: investorId,
       p_amount: amountFixed,
-      p_event_ts: `${txDate}T00:00:00.000Z`,
       p_closing_aum: closingAumBeforeDepositFixed,
-      p_trigger_reference: triggerReference,
-      p_purpose: "transaction",
+      p_effective_date: txDate,
       p_admin_id: user.id,
+      p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
+      p_purpose: "transaction",
     });
 
     if (depositError) {

@@ -69,7 +69,8 @@ export function FundAUMEventsTable({
             <TableHead className="w-[150px]">Date/Time</TableHead>
             <TableHead className="w-[100px]">Trigger</TableHead>
             <TableHead className="text-right">Opening AUM</TableHead>
-            <TableHead className="text-right">Closing AUM</TableHead>
+            <TableHead className="text-right">Pre-Flow AUM</TableHead>
+            <TableHead className="text-right">Post-Flow AUM</TableHead>
             <TableHead className="w-[100px]">Purpose</TableHead>
             <TableHead className="min-w-[150px]">Reference</TableHead>
           </TableRow>
@@ -93,6 +94,9 @@ export function FundAUMEventsTable({
               </TableCell>
               <TableCell className="text-right font-mono">
                 {formatValue(event.closing_aum, asset)}
+              </TableCell>
+              <TableCell className="text-right font-mono">
+                {event.post_flow_aum != null ? formatValue(event.post_flow_aum, asset) : "—"}
               </TableCell>
               <TableCell>
                 <Badge variant="outline" className="text-xs">
