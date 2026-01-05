@@ -4797,16 +4797,27 @@ export type Database = {
           total_yield_amount: number
         }[]
       }
-      apply_daily_yield_to_fund_v3: {
-        Args: {
-          p_admin_id?: string
-          p_fund_id: string
-          p_new_aum: number
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_yield_date: string
-        }
-        Returns: Json
-      }
+      apply_daily_yield_to_fund_v3:
+        | {
+            Args: {
+              p_actor_id: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: string
+              p_target_date: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id?: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_yield_date: string
+            }
+            Returns: Json
+          }
       apply_deposit_with_crystallization: {
         Args: {
           p_admin_id: string
@@ -5417,27 +5428,37 @@ export type Database = {
         }
         Returns: Json
       }
-      preview_daily_yield_to_fund_v3: {
-        Args: {
-          p_fund_id: string
-          p_new_aum: number
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_yield_date: string
-        }
-        Returns: {
-          closing_balance: number
-          fee_amount: number
-          fee_pct: number
-          gross_yield: number
-          ib_commission: number
-          ib_name: string
-          investor_id: string
-          investor_name: string
-          net_yield: number
-          opening_balance: number
-          ownership_pct: number
-        }[]
-      }
+      preview_daily_yield_to_fund_v3:
+        | {
+            Args: {
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: string
+              p_target_date: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_yield_date: string
+            }
+            Returns: {
+              closing_balance: number
+              fee_amount: number
+              fee_pct: number
+              gross_yield: number
+              ib_commission: number
+              ib_name: string
+              investor_id: string
+              investor_name: string
+              net_yield: number
+              opening_balance: number
+              ownership_pct: number
+            }[]
+          }
       preview_investor_balances: {
         Args: { p_fund_id?: string }
         Returns: {
