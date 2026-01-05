@@ -43,30 +43,36 @@ export class PortfolioService extends ApiClient {
         }
 
         // Best-effort closing AUM snapshot (authoritative snapshots should be provided by admin flows).
+        // Use post_flow_aum if available for accurate opening AUM
         const { data: lastEvent } = await (supabase as any)
           .from("fund_aum_events")
-          .select("closing_aum, event_ts")
+          .select("closing_aum, post_flow_aum, event_ts")
           .eq("fund_id", fund.id)
           .eq("is_voided", false)
           .order("event_ts", { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        const closingAum = lastEvent?.closing_aum ? String(lastEvent.closing_aum) : "0.0000000000";
+        // Use post_flow_aum if available, otherwise closing_aum
+        const closingAum = lastEvent?.post_flow_aum 
+          ? String(lastEvent.post_flow_aum) 
+          : lastEvent?.closing_aum 
+            ? String(lastEvent.closing_aum) 
+            : "0.0000000000";
 
         // Generate trigger reference for idempotency
         const triggerReference = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
 
         const rpcCall = (supabase.rpc as any).bind(supabase);
         const { data, error } = await rpcCall("apply_deposit_with_crystallization", {
-          p_investor_id: investorId,
           p_fund_id: fund.id,
+          p_investor_id: investorId,
           p_amount: amount,
-          p_event_ts: `${today}T00:00:00.000Z`,
           p_closing_aum: closingAum,
-          p_trigger_reference: triggerReference,
-          p_purpose: "transaction",
+          p_effective_date: today,
           p_admin_id: null,
+          p_notes: `Initial position - ${triggerReference}`,
+          p_purpose: "transaction",
         });
 
         if (error) {

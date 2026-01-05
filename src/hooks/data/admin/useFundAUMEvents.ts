@@ -13,6 +13,7 @@ export interface FundAUMEvent {
   event_ts: string;
   opening_aum: number;
   closing_aum: number;
+  post_flow_aum: number | null;
   trigger_type: string;
   trigger_reference: string | null;
   purpose: string;

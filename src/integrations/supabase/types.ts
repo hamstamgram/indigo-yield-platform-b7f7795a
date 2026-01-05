@@ -590,6 +590,7 @@ export type Database = {
           id: string
           is_voided: boolean
           opening_aum: number
+          post_flow_aum: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           trigger_reference: string | null
           trigger_type: string
@@ -607,6 +608,7 @@ export type Database = {
           id?: string
           is_voided?: boolean
           opening_aum: number
+          post_flow_aum?: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           trigger_reference?: string | null
           trigger_type: string
@@ -624,6 +626,7 @@ export type Database = {
           id?: string
           is_voided?: boolean
           opening_aum?: number
+          post_flow_aum?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           trigger_reference?: string | null
           trigger_type?: string
@@ -4806,27 +4809,27 @@ export type Database = {
       }
       apply_deposit_with_crystallization: {
         Args: {
-          p_admin_id?: string
+          p_admin_id: string
           p_amount: number
           p_closing_aum: number
-          p_event_ts: string
+          p_effective_date: string
           p_fund_id: string
           p_investor_id: string
+          p_notes?: string
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_trigger_reference: string
         }
         Returns: Json
       }
       apply_withdrawal_with_crystallization: {
         Args: {
-          p_admin_id?: string
+          p_admin_id: string
           p_amount: number
           p_closing_aum: number
-          p_event_ts: string
+          p_effective_date: string
           p_fund_id: string
           p_investor_id: string
+          p_notes?: string
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_trigger_reference: string
         }
         Returns: Json
       }
@@ -4952,39 +4955,18 @@ export type Database = {
         }
         Returns: Json
       }
-      crystallize_yield_before_flow:
-        | {
-            Args: {
-              p_admin_id: string
-              p_closing_aum: number
-              p_event_ts: string
-              p_fund_id: string
-              p_purpose: Database["public"]["Enums"]["aum_purpose"]
-              p_trigger_reference: string
-              p_trigger_type: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_fund_id: string
-              p_trigger_date: string
-              p_trigger_transaction_id?: string
-              p_trigger_type: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_flow_amount: number
-              p_flow_date: string
-              p_fund_id: string
-              p_investor_id: string
-            }
-            Returns: Json
-          }
+      crystallize_yield_before_flow: {
+        Args: {
+          p_admin_id: string
+          p_closing_aum: number
+          p_event_ts: string
+          p_fund_id: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_trigger_reference: string
+          p_trigger_type: string
+        }
+        Returns: Json
+      }
       current_user_is_admin_or_owner: {
         Args: { check_user_id: string }
         Returns: boolean

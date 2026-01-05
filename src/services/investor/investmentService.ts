@@ -34,7 +34,6 @@ export const investmentService = {
     }
 
     const txDate = data.investment_date || new Date().toISOString().split("T")[0];
-    const eventTs = data.event_ts || `${txDate}T00:00:00.000Z`;
     
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference =
@@ -44,24 +43,24 @@ export const investmentService = {
     const { data: result, error } =
       type === "DEPOSIT"
         ? await rpcCall("apply_deposit_with_crystallization", {
-            p_investor_id: data.investor_id,
             p_fund_id: data.fund_id,
+            p_investor_id: data.investor_id,
             p_amount: amount,
-            p_event_ts: eventTs,
             p_closing_aum: closingAum,
-            p_trigger_reference: triggerReference,
-            p_purpose: "transaction",
+            p_effective_date: txDate,
             p_admin_id: user?.id || null,
+            p_notes: `Investment - ${triggerReference}`,
+            p_purpose: "transaction",
           })
         : await rpcCall("apply_withdrawal_with_crystallization", {
-            p_investor_id: data.investor_id,
             p_fund_id: data.fund_id,
+            p_investor_id: data.investor_id,
             p_amount: amount,
-            p_event_ts: eventTs,
             p_closing_aum: closingAum,
-            p_trigger_reference: triggerReference,
-            p_purpose: "transaction",
+            p_effective_date: txDate,
             p_admin_id: user?.id || null,
+            p_notes: `Redemption - ${triggerReference}`,
+            p_purpose: "transaction",
           });
 
     if (error) {

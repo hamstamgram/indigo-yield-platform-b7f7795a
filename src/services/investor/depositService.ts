@@ -129,21 +129,18 @@ export class DepositService {
       );
     }
 
-    const eventTs =
-      formData.event_ts ||
-      (formData.tx_date ? `${formData.tx_date}T00:00:00.000Z` : new Date().toISOString());
-    
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${crypto.randomUUID()}`;
 
     const rpcCall = (supabase.rpc as any).bind(supabase);
     const { data, error } = await rpcCall("apply_deposit_with_crystallization", {
-      p_investor_id: profileId,
       p_fund_id: fund.id,
+      p_investor_id: profileId,
       p_amount: amount,
-      p_event_ts: eventTs,
       p_closing_aum: closingAum,
-      p_trigger_reference: triggerReference,
+      p_effective_date: txDate,
+      p_admin_id: null,
+      p_notes: `Deposit - ${triggerReference}`,
       p_purpose: "transaction",
     });
 
