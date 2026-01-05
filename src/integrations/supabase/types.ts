@@ -4943,6 +4943,15 @@ export type Database = {
         }
         Returns: string
       }
+      crystallize_month_end: {
+        Args: {
+          p_admin_id: string
+          p_closing_aum: number
+          p_fund_id: string
+          p_month_end_date: string
+        }
+        Returns: Json
+      }
       crystallize_yield_before_flow:
         | {
             Args: {
