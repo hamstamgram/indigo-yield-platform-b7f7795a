@@ -5505,7 +5505,7 @@ export type Database = {
       }
       apply_daily_yield_to_fund_v3: {
         Args: {
-          p_admin_id?: string
+          p_admin_id: string
           p_fund_id: string
           p_gross_yield_pct: number
           p_period_end?: string
