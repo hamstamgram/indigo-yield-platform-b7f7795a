@@ -13,6 +13,7 @@ export { YieldActionsColumn } from "./YieldActionsColumn";
 export { YieldCorrectionPanel } from "./YieldCorrectionPanel";
 export { YieldCorrectionPreview } from "./YieldCorrectionPreview";
 export { YieldEventsTable } from "./YieldEventsTable";
+export { FundAUMEventsTable } from "./FundAUMEventsTable";
 
 // Re-export void hook for convenience
 export { useVoidYieldDistribution } from "@/hooks/data/admin";

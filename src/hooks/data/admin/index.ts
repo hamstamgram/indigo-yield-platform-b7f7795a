@@ -332,3 +332,9 @@ export {
   useIBAllocationsForPayout,
   useMarkAllocationsAsPaid,
 } from "./useIBPayoutMutations";
+
+// useFundAUMEvents (new - for FundAUMEventsTable component)
+export {
+  useFundAUMEvents,
+  type FundAUMEvent,
+} from "./useFundAUMEvents";

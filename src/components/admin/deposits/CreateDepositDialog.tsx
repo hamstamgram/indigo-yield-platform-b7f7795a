@@ -92,13 +92,15 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
 
   const createMutation = useMutation({
     mutationFn: async (data: DepositFormData) => {
-      // If AUM is needed, create it first
+      // If AUM is needed, create it first (legacy flow for AUM record creation)
       if (needsAum && aumValue) {
         await createAumMutation.mutateAsync();
       }
+      // Pass closing_aum for crystallize-before-flow accounting
       return depositService.createDeposit({
         ...data,
         tx_date: formattedDate,
+        closing_aum: aumValue || undefined,
       });
     },
     onSuccess: () => {
@@ -142,8 +144,9 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       return;
     }
 
-    if (needsAum && !aumValue) {
-      toast.error("Please enter the fund AUM before creating the deposit");
+    // Preflow AUM is always required for crystallize-before-flow accounting
+    if (!aumValue) {
+      toast.error("Preflow AUM Snapshot is required to create a deposit");
       return;
     }
 
@@ -258,36 +261,29 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             </div>
           </div>
 
-          {/* AUM Warning and Input */}
-          {needsAum && (
-            <Alert variant="destructive" className="bg-warning/10 border-warning">
-              <AlertTriangle className="h-4 w-4 text-warning" />
-              <AlertDescription className="ml-2">
-                <div className="space-y-3">
-                  <p className="font-medium">
-                    No AUM record for {selectedFund?.name || "this fund"} on {formattedDate}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Enter the current fund AUM to record this deposit:
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="aum_value" className="text-sm whitespace-nowrap">
-                      Fund AUM ({selectedFund?.asset?.toUpperCase()}):
-                    </Label>
-                    <Input
-                      id="aum_value"
-                      type="number"
-                      step="0.00000001"
-                      min="0"
-                      value={aumValue}
-                      onChange={(e) => setAumValue(e.target.value)}
-                      className="w-48"
-                      placeholder="Enter AUM"
-                    />
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
+          {/* Preflow AUM Snapshot - Required for crystallize-before-flow */}
+          {selectedFundId && (
+            <div className="space-y-2">
+              <Label htmlFor="aum_value" className="flex items-center gap-2">
+                Preflow AUM Snapshot ({selectedFund?.asset?.toUpperCase()}) *
+                <span className="text-xs text-muted-foreground font-normal">
+                  (Fund AUM before this deposit)
+                </span>
+              </Label>
+              <Input
+                id="aum_value"
+                type="number"
+                step="0.00000001"
+                min="0"
+                value={aumValue}
+                onChange={(e) => setAumValue(e.target.value)}
+                placeholder="Enter preflow AUM"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                The authoritative fund AUM immediately before this deposit. Used for yield crystallization.
+              </p>
+            </div>
           )}
 
           <DialogFooter>
