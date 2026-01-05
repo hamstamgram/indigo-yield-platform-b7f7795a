@@ -318,15 +318,14 @@ export async function applyYieldDistribution(
     throw new Error("New AUM must be greater than current AUM to distribute yield");
   }
 
-  // The RPC expects p_gross_amount as the yield to distribute, not new total AUM
-  // Purpose is passed to control whether this yield appears in investor reports
-  // Updated to match new 5-param signature: (p_fund_id, p_date, p_gross_amount, p_admin_id, p_purpose)
-  const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v2", {
+  // Use v3 apply function which supports ownership-weighted yield distribution
+  // and properly sets aum_record_id for cascade voiding
+  const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
-    p_date: formatDate(targetDate),
-    p_gross_amount: grossYieldAmount,
+    p_yield_date: formatDate(targetDate),
+    p_new_aum: newTotalAUM,
+    p_purpose: purpose,
     p_admin_id: adminId,
-    p_purpose: purpose, // Uses correct column mappings now
   });
 
   if (error) {

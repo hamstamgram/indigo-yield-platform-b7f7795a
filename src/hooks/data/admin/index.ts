@@ -286,6 +286,7 @@ export {
   useYieldCorrectionHistory,
   useRecordCorrectionHistory,
   useVoidYieldRecord as useVoidYieldMutation,
+  useVoidYieldDistribution,
   useUpdateYieldAum,
   type YieldRecord as RecordedYieldRecord,
   type YieldFilters as RecordedYieldFilters,

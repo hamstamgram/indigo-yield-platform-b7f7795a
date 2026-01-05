@@ -45,7 +45,8 @@ export interface YieldDetails {
 }
 
 /**
- * Void a yield record (soft delete with audit trail)
+ * Void a yield record by AUM record ID (soft delete with audit trail)
+ * Use this when voiding from the RecordedYieldsPage (AUM perspective)
  */
 export async function voidYieldRecord(
   recordId: string,
@@ -69,6 +70,34 @@ export async function voidYieldRecord(
   }
 
   return data as VoidYieldResult;
+}
+
+/**
+ * Void a yield distribution by distribution ID (cascade void with audit trail)
+ * Use this when voiding a specific distribution from YieldDistributionsPage
+ */
+export async function voidYieldDistribution(
+  distributionId: string,
+  reason: string
+): Promise<{ success: boolean; voided_count?: number; error?: string }> {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  const { data, error } = await (supabase.rpc as any)("void_yield_distribution", {
+    p_distribution_id: distributionId,
+    p_reason: reason,
+    p_admin_id: user.id,
+  });
+
+  if (error) {
+    console.error("Error voiding yield distribution:", error);
+    throw new Error(error.message || "Failed to void yield distribution");
+  }
+
+  return data;
 }
 
 /**

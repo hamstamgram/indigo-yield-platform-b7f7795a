@@ -133,12 +133,14 @@ export async function processDepositWithYield(
   // Step 1: If there's yield to distribute, do it first
   if (preDepositYield > 0) {
     try {
-      const { data: yieldResult, error: yieldError } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v2", {
+      // Use v3 apply function which supports ownership-weighted yield distribution
+      // and properly sets aum_record_id for cascade voiding
+      const { data: yieldResult, error: yieldError } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v3", {
         p_fund_id: fundId,
-        p_date: txDate,
-        p_gross_amount: preDepositYield,
-        p_admin_id: user.id,
+        p_yield_date: txDate,
+        p_new_aum: currentAum + preDepositYield, // v3 uses new AUM, not gross amount
         p_purpose: "transaction",
+        p_admin_id: user.id,
       });
 
       if (yieldError) {
