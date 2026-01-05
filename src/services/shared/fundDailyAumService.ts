@@ -50,7 +50,7 @@ class FundDailyAumService {
   }
 
   /**
-   * Upsert AUM record
+   * Upsert AUM record (check-then-insert/update pattern for partial index compatibility)
    */
   async upsertAumRecord(params: {
     fundId: string;
@@ -58,16 +58,38 @@ class FundDailyAumService {
     totalAum: number;
     source?: string;
   }): Promise<void> {
-    const { error } = await supabase.from("fund_daily_aum").upsert({
-      fund_id: params.fundId,
-      aum_date: params.date,
-      total_aum: params.totalAum,
-      source: params.source || "manual",
-    }, {
-      onConflict: "fund_id,aum_date",
-    });
+    // Check for existing active record (partial index workaround)
+    const { data: existing } = await supabase
+      .from("fund_daily_aum")
+      .select("id")
+      .eq("fund_id", params.fundId)
+      .eq("aum_date", params.date)
+      .eq("is_voided", false)
+      .maybeSingle();
 
-    if (error) throw error;
+    if (existing) {
+      const { error } = await supabase
+        .from("fund_daily_aum")
+        .update({
+          total_aum: params.totalAum,
+          source: params.source || "manual",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from("fund_daily_aum")
+        .insert({
+          fund_id: params.fundId,
+          aum_date: params.date,
+          total_aum: params.totalAum,
+          source: params.source || "manual",
+        });
+
+      if (error) throw error;
+    }
   }
 }
 
