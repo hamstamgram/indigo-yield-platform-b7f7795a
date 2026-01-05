@@ -306,3 +306,29 @@ export async function getPendingYieldEventsCount(
 
   return { count, totalYield };
 }
+
+/**
+ * Crystallize month-end yield for a fund
+ * Creates a month_end trigger in fund_aum_events and crystallizes yield for all positions
+ */
+export async function crystallizeMonthEnd(
+  fundId: string,
+  monthEndDate: Date,
+  closingAum: string,
+  adminId: string
+): Promise<CrystallizationResult> {
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { data, error } = await rpcCall("crystallize_month_end", {
+    p_fund_id: fundId,
+    p_month_end_date: monthEndDate.toISOString().split("T")[0],
+    p_closing_aum: closingAum,
+    p_admin_id: adminId,
+  });
+
+  if (error) {
+    console.error("Month-end crystallization error:", error);
+    throw new Error(error.message);
+  }
+
+  return data as unknown as CrystallizationResult;
+}

@@ -164,3 +164,21 @@ export { reportService, type SendReportParams } from "./reportService";
 
 // Deposit with yield service
 export * from "./depositWithYieldService";
+
+// Yield crystallization service
+export {
+  crystallizeYieldBeforeFlow,
+  finalizeMonthYield,
+  getYieldEventsForFund,
+  getYieldEventsForInvestor,
+  getAggregatedYieldForPeriod,
+  getFundYieldSnapshots,
+  getPendingYieldEventsCount,
+  crystallizeMonthEnd,
+} from "./yieldCrystallizationService";
+export type {
+  CrystallizationResult,
+  FinalizationResult,
+  YieldEvent,
+  YieldSnapshot,
+} from "./yieldCrystallizationService";
