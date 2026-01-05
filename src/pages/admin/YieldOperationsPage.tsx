@@ -1,7 +1,7 @@
 /**
  * Yield Operations Page
  * Consolidated fund management and yield distribution
- * With confirmation dialog for safety and month closing functionality
+ * With confirmation dialog for safety
  * 
  * Preview now uses backend RPC for exact parity with apply
  */
@@ -30,14 +30,12 @@ import {
   CalendarIcon,
   AlertTriangle,
   Info,
-  Lock,
-  LockOpen,
   Building2,
   UserCheck,
   ArrowRightLeft,
   Clock,
 } from "lucide-react";
-import { AdminGuard, SuperAdminGuard, useSuperAdmin } from "@/components/admin";
+import { AdminGuard } from "@/components/admin";
 import { FundAUMEventsTable } from "@/components/admin/yields";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -51,7 +49,7 @@ import {
   type YieldDistribution,
   type IBCredit,
 } from "@/services";
-import { useMonthClosure, useActiveFundsWithAUM } from "@/hooks";
+import { useActiveFundsWithAUM } from "@/hooks";
 import { usePendingYieldEvents } from "@/hooks/data/admin/useYieldCrystallization";
 import { useAUMReconciliation } from "@/hooks/data/admin/useAUMReconciliation";
 import { cn } from "@/lib/utils";
@@ -75,23 +73,9 @@ function YieldOperationsContent() {
   const [aumDate, setAumDate] = useState<Date>(new Date());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
-  // Month closure state
+  // Reporting month state (closure functionality removed)
   const [reportingMonth, setReportingMonth] = useState<string>("");
-  const [closeMonthLoading, setCloseMonthLoading] = useState(false);
-  const [reopenMonthLoading, setReopenMonthLoading] = useState(false);
-  const [showReopenConfirm, setShowReopenConfirm] = useState(false);
-  const [reopenReason, setReopenReason] = useState("");
-  const { 
-    closureStatus, 
-    checkMonthClosed, 
-    closeReportingMonth,
-    reopenReportingMonth,
-    getAvailableMonths,
-    setClosureStatus 
-  } = useMonthClosure();
   
-  // Super admin check for reopen functionality
-  const { isSuperAdmin } = useSuperAdmin();
 
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -107,6 +91,19 @@ function YieldOperationsContent() {
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Generate available months for selection
+  const getAvailableMonths = (): { value: string; label: string }[] => {
+    const months: { value: string; label: string }[] = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = date.toISOString().split("T")[0];
+      const label = date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+      months.push({ value, label });
+    }
+    return months;
+  };
   const availableMonths = getAvailableMonths();
 
   // Use the hook for funds data
@@ -132,7 +129,7 @@ function YieldOperationsContent() {
     return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
   };
 
-  const openYieldDialog = async (fund: Fund) => {
+  const openYieldDialog = (fund: Fund) => {
     setSelectedFund(fund);
     setNewAUM("");
     setYieldPreview(null);
@@ -140,7 +137,6 @@ function YieldOperationsContent() {
     setAumDate(new Date());
     setShowYieldDialog(true);
     setConfirmationText("");
-    setClosureStatus(null);
     setShowSystemAccounts(true);
     setShowOnlyChanged(false);
     setSearchInvestor("");
@@ -149,17 +145,11 @@ function YieldOperationsContent() {
     // Default to current month
     const currentMonthStart = startOfMonth(new Date()).toISOString().split("T")[0];
     setReportingMonth(currentMonthStart);
-    
-    // Check closure status for current month
-    await checkMonthClosed(fund.id, new Date(currentMonthStart));
   };
 
-  // Check closure status when reporting month changes
-  const handleReportingMonthChange = async (monthStart: string) => {
+  // Handle reporting month change
+  const handleReportingMonthChange = (monthStart: string) => {
     setReportingMonth(monthStart);
-    if (selectedFund && monthStart) {
-      await checkMonthClosed(selectedFund.id, new Date(monthStart));
-    }
   };
 
   // Validate effective date is within reporting month
@@ -185,56 +175,6 @@ function YieldOperationsContent() {
     }
     
     return { valid: true };
-  };
-
-  // Handle closing the reporting month
-  const handleCloseMonth = async () => {
-    if (!selectedFund || !reportingMonth || !user) return;
-    
-    const validation = validateEffectiveDate();
-    if (!validation.valid) {
-      toast.error(validation.error);
-      return;
-    }
-    
-    setCloseMonthLoading(true);
-    try {
-      const result = await closeReportingMonth(
-        selectedFund.id,
-        new Date(reportingMonth),
-        aumDate,
-        user.id,
-        `Closed via Yield Operations UI`
-      );
-      
-      if (!result.success) {
-        toast.error(result.error || "Failed to close month");
-      }
-    } finally {
-      setCloseMonthLoading(false);
-    }
-  };
-
-  // Handle reopening the reporting month (superadmin only)
-  const handleReopenMonth = async () => {
-    if (!selectedFund || !reportingMonth || !user || !isSuperAdmin) return;
-    
-    setReopenMonthLoading(true);
-    try {
-      const result = await reopenReportingMonth(
-        selectedFund.id,
-        new Date(reportingMonth),
-        user.id,
-        reopenReason || "Reopened via Yield Operations UI"
-      );
-      
-      if (result.success) {
-        setShowReopenConfirm(false);
-        setReopenReason("");
-      }
-    } finally {
-      setReopenMonthLoading(false);
-    }
   };
 
   const handlePreviewYield = async () => {
@@ -545,30 +485,6 @@ function YieldOperationsContent() {
                   <h3 className="font-semibold">Choose Period & Purpose</h3>
                 </div>
                 
-                {/* Month Closure Status Badge */}
-                {yieldPurpose === "reporting" && reportingMonth && (
-                  <Badge 
-                    variant={closureStatus?.is_closed ? "destructive" : "outline"}
-                    className={cn(
-                      "flex items-center gap-1",
-                      closureStatus?.is_closed 
-                        ? "bg-red-100 text-red-700 border-red-300" 
-                        : "bg-green-100 text-green-700 border-green-300"
-                    )}
-                  >
-                    {closureStatus?.is_closed ? (
-                      <>
-                        <Lock className="h-3 w-3" />
-                        Closed {closureStatus.closed_at && format(new Date(closureStatus.closed_at), "MMM d")}
-                      </>
-                    ) : (
-                      <>
-                        <LockOpen className="h-3 w-3" />
-                        Open
-                      </>
-                    )}
-                  </Badge>
-                )}
               </div>
 
               {/* Reporting Month Selector - Only for reporting purpose */}
@@ -612,13 +528,7 @@ function YieldOperationsContent() {
                     onChange={(e) => setNewAUM(e.target.value)}
                     placeholder={`Enter new total AUM`}
                     className="font-mono"
-                    disabled={closureStatus?.is_closed && yieldPurpose === "reporting"}
                   />
-                  {closureStatus?.is_closed && yieldPurpose === "reporting" && (
-                    <p className="text-xs text-red-500">
-                      Month is closed. Edits blocked.
-                    </p>
-                  )}
                 </div>
               </div>
 
@@ -784,7 +694,6 @@ function YieldOperationsContent() {
                   disabled={
                     !newAUM || 
                     previewLoading || 
-                    (yieldPurpose === "reporting" && closureStatus?.is_closed) ||
                     (yieldPurpose === "reporting" && !validateEffectiveDate().valid)
                   }
                   variant="secondary"
@@ -798,39 +707,6 @@ function YieldOperationsContent() {
                   Preview Yield Distribution
                 </Button>
                 
-                {/* Close Month Button - Only for reporting purpose */}
-                {yieldPurpose === "reporting" && reportingMonth && !closureStatus?.is_closed && (
-                  <Button
-                    onClick={handleCloseMonth}
-                    disabled={closeMonthLoading || !validateEffectiveDate().valid}
-                    variant="outline"
-                    className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20"
-                  >
-                    {closeMonthLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Lock className="h-4 w-4 mr-2" />
-                    )}
-                    Close Month
-                  </Button>
-                )}
-                
-                {/* Reopen Month Button - Only for superadmin when month is closed */}
-                {yieldPurpose === "reporting" && reportingMonth && closureStatus?.is_closed && isSuperAdmin && (
-                  <Button
-                    onClick={() => setShowReopenConfirm(true)}
-                    disabled={reopenMonthLoading}
-                    variant="outline"
-                    className="border-red-500 text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                  >
-                    {reopenMonthLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <LockOpen className="h-4 w-4 mr-2" />
-                    )}
-                    Reopen Month
-                  </Button>
-                )}
               </div>
             </div>
 
@@ -1180,53 +1056,6 @@ function YieldOperationsContent() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reopen Month Confirmation Dialog */}
-      <AlertDialog open={showReopenConfirm} onOpenChange={setShowReopenConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-              <LockOpen className="h-5 w-5" />
-              Reopen Closed Month
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4 pt-2">
-                <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-sm">
-                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>
-                    <strong>Warning:</strong> Reopening this month will allow new yield distributions and edits. 
-                    This action is logged and should only be done for corrections.
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="reopen-reason">Reason for reopening:</Label>
-                  <Input
-                    id="reopen-reason"
-                    value={reopenReason}
-                    onChange={(e) => setReopenReason(e.target.value)}
-                    placeholder="e.g., Correcting yield calculation error"
-                  />
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button
-              onClick={handleReopenMonth}
-              disabled={reopenMonthLoading}
-              variant="destructive"
-            >
-              {reopenMonthLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <LockOpen className="h-4 w-4 mr-2" />
-              )}
-              Reopen Month
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

@@ -4952,16 +4952,6 @@ export type Database = {
           view_name: string
         }[]
       }
-      close_fund_reporting_month: {
-        Args: {
-          p_admin_id: string
-          p_effective_date: string
-          p_fund_id: string
-          p_month_start: string
-          p_notes?: string
-        }
-        Returns: Json
-      }
       complete_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -5290,7 +5280,10 @@ export type Database = {
         Args: { p_transaction_id: string }
         Returns: Json
       }
-      get_void_yield_impact: { Args: { p_record_id: string }; Returns: Json }
+      get_void_yield_impact: {
+        Args: { p_distribution_id: string }
+        Returns: Json
+      }
       get_yield_corrections: {
         Args: { p_date_from?: string; p_date_to?: string; p_fund_id?: string }
         Returns: {
@@ -5548,15 +5541,6 @@ export type Database = {
       reject_withdrawal: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
-      }
-      reopen_fund_reporting_month: {
-        Args: {
-          p_admin_id: string
-          p_fund_id: string
-          p_month_start: string
-          p_reason?: string
-        }
-        Returns: Json
       }
       repair_all_positions: { Args: never; Returns: Json }
       requeue_stale_sending: {

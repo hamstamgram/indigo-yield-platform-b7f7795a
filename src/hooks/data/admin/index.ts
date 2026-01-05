@@ -81,13 +81,6 @@ export {
   useAuditEvents,
 } from "./useIntegrityData";
 
-// useMonthClosure
-export { 
-  useMonthClosure,
-  type MonthClosureStatus,
-  type CloseMonthResult,
-  type ReopenMonthResult,
-} from "./useMonthClosure";
 
 // useMonthlyReports
 export { 
