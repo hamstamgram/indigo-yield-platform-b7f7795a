@@ -40,17 +40,18 @@ export async function adjustPosition(
     return { success: false, error: error.message };
   }
   
+  // DB returns: { transaction_id, old_balance, new_balance } - not out_* prefixed
   const result = data?.[0];
-  if (!result?.out_success) {
-    return { success: false, error: result?.out_message || "Failed to adjust position" };
+  if (!result?.transaction_id) {
+    return { success: false, error: "No transaction created" };
   }
   
   return { 
     success: true, 
     data: {
-      transactionId: result.out_transaction_id,
-      oldBalance: result.out_old_balance,
-      newBalance: result.out_new_balance,
+      transactionId: result.transaction_id,
+      oldBalance: result.old_balance,
+      newBalance: result.new_balance,
     }
   };
 }

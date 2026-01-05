@@ -9,6 +9,7 @@ import {
   getYieldRecords,
   getYieldCorrectionHistory,
   voidYieldRecord,
+  voidYieldDistribution,
   updateYieldAum,
   type YieldRecord,
   type YieldFilters,
@@ -100,6 +101,27 @@ export function useUpdateYieldAum(onSuccess?: () => void) {
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Failed to update AUM");
+    },
+  });
+}
+
+/**
+ * Hook to void a yield distribution by distribution ID
+ * Use this when voiding a specific distribution (e.g., from YieldDistributionsPage)
+ */
+export function useVoidYieldDistribution(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ distributionId, reason }: { distributionId: string; reason: string }) =>
+      voidYieldDistribution(distributionId, reason),
+    onSuccess: () => {
+      toast.success("Yield distribution voided successfully");
+      invalidateAfterYieldOp(queryClient);
+      onSuccess?.();
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to void distribution");
     },
   });
 }
