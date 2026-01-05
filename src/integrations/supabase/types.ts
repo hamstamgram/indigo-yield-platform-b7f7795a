@@ -3197,6 +3197,20 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "transactions_v2_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
@@ -3896,6 +3910,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
             foreignKeyName: "fk_yield_distributions_fund_new"
             columns: ["fund_id"]
             isOneToOne: false
@@ -4559,6 +4594,20 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "transactions_v2_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
@@ -4695,6 +4744,27 @@ export type Database = {
           net_to_investors: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
           {
             foreignKeyName: "fk_yield_distributions_fund_new"
             columns: ["fund_id"]
@@ -5298,15 +5368,13 @@ export type Database = {
         }
         Returns: undefined
       }
-      has_role:
-        | {
-            Args: {
-              _role: Database["public"]["Enums"]["app_role"]
-              _user_id: string
-            }
-            Returns: boolean
-          }
-        | { Args: { required_role: string }; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_super_admin_role: { Args: { p_user_id: string }; Returns: boolean }
       internal_route_to_fees:
         | {
@@ -5417,15 +5485,6 @@ export type Database = {
       }
       mark_sent_manually: {
         Args: { p_delivery_id: string; p_note?: string }
-        Returns: Json
-      }
-      preview_daily_yield_to_fund_v2: {
-        Args: {
-          p_date: string
-          p_fund_id: string
-          p_gross_yield: number
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-        }
         Returns: Json
       }
       preview_daily_yield_to_fund_v3:

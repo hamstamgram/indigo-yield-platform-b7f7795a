@@ -9,10 +9,8 @@ export * from "./fundService";
 export { adminServiceV2 } from "./adminService";
 export type { InvestorSummaryV2, DashboardStatsV2 } from "./adminService";
 
-// Transaction management
-// NOTE: adminTransactionService is deprecated - use transactionService from @/services/shared
-export { adminTransactionService } from "./adminTransactionService";
-// Note: CreateTransactionParams type is exported from @/services/shared/transactionService
+// Transaction management - use transactionService from @/services/shared
+// adminTransactionService is removed - use transactionService.createQuickTransaction instead
 
 // Yield management
 export * from "./yieldDistributionService";

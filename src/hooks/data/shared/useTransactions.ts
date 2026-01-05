@@ -5,8 +5,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { adminTransactionService, transactionsV2Service } from "@/services";
-import type { CreateTransactionParams } from "@/services/admin/adminTransactionService";
+import { transactionsV2Service, transactionService } from "@/services";
+import type { QuickTransactionParams } from "@/services/shared/transactionService";
 import { toast } from "sonner";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -109,8 +109,9 @@ export function useCreateTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: CreateTransactionParams) => {
-      return adminTransactionService.createTransaction(params);
+    mutationFn: async (params: QuickTransactionParams) => {
+      await transactionService.createQuickTransaction(params);
+      return { success: true };
     },
     onSuccess: (_, variables) => {
       invalidateAfterTransaction(queryClient, variables.investorId, variables.fundId);
