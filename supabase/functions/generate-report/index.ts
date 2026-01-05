@@ -129,7 +129,7 @@ serve(async (req) => {
 
     // 2. Fetch Monthly Reports (Source of Truth)
     // Default to current month if not specified
-    const reportDateStr = filters?.dateRangeEnd || new Date().toISOString();
+    const reportDateStr = (filters?.dateRangeEnd as string) || new Date().toISOString();
     const reportDate = new Date(reportDateStr);
     const mtdEnd = new Date(reportDate.getFullYear(), reportDate.getMonth() + 1, 0); // End of month
 
@@ -214,8 +214,10 @@ serve(async (req) => {
     let filename: string;
     let contentType: string;
 
-    // Populate HTML Template
-    let htmlContent = STATEMENT_TEMPLATE;
+    // Populate HTML Template - call the function to get the HTML string
+    let htmlContent: string = typeof STATEMENT_TEMPLATE === 'function' 
+      ? STATEMENT_TEMPLATE({ investor_name: investorName, statement_period: mtdEnd.toISOString().slice(0, 7), funds: [] })
+      : String(STATEMENT_TEMPLATE);
     Object.entries(templateData).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, "g");
       htmlContent = htmlContent.replace(regex, value);

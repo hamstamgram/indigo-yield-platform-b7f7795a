@@ -1,4 +1,4 @@
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 export interface AdminCheckResult {
   isAdmin: boolean;
@@ -21,7 +21,7 @@ export interface AdminCheckResult {
  * @returns AdminCheckResult with isAdmin status and user info
  */
 export async function checkAdminAccess(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<any, any, any>,
   userId: string
 ): Promise<AdminCheckResult> {
   try {

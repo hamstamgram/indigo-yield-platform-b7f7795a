@@ -62,12 +62,12 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
   },
 ];
 
-async function runIntegrityChecks(supabase: ReturnType<typeof createClient>): Promise<CheckResult[]> {
+async function runIntegrityChecks(supabase: any): Promise<CheckResult[]> {
   const results: CheckResult[] = [];
 
   for (const check of INTEGRITY_CHECKS) {
     try {
-      const { data, error } = await supabase.rpc("exec_sql", { sql: check.query });
+      const { data, error } = await supabase.rpc("exec_sql", { sql: check.query }) as { data: any[] | null; error: any };
       
       if (error) {
         // Fallback: try direct query for views
@@ -101,14 +101,15 @@ async function runIntegrityChecks(supabase: ReturnType<typeof createClient>): Pr
         continue;
       }
 
-      const count = Array.isArray(data) ? data.length : 0;
+      const dataArray = data as any[] | null;
+      const count = Array.isArray(dataArray) ? dataArray.length : 0;
       results.push({
         name: check.name,
         status: count === 0 ? "pass" : "fail",
         severity: check.severity,
         count,
         description: check.description,
-        sample: count > 0 ? data.slice(0, 3) : undefined,
+        sample: count > 0 && dataArray ? dataArray.slice(0, 3) : undefined,
       });
     } catch (err) {
       results.push({
@@ -174,7 +175,7 @@ async function sendSlackAlert(webhookUrl: string, results: CheckResult[]): Promi
 }
 
 async function sendEmailAlert(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   email: string,
   results: CheckResult[]
 ): Promise<void> {
@@ -216,7 +217,7 @@ async function sendEmailAlert(
 }
 
 async function logIntegrityCheck(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   results: CheckResult[],
   triggeredBy: string = "scheduled"
 ): Promise<void> {
@@ -308,9 +309,9 @@ Deno.serve(async (req) => {
         alertPromises.push(sendEmailAlert(supabase, alertEmail, results));
       }
 
-      // Send alerts in background
+      // Send alerts in background (fire and forget)
       if (alertPromises.length > 0) {
-        EdgeRuntime.waitUntil(Promise.all(alertPromises));
+        Promise.all(alertPromises).catch(err => console.error("Alert sending failed:", err));
       }
     }
 
