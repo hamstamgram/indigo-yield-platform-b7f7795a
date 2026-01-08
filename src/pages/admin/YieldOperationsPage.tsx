@@ -96,11 +96,14 @@ function YieldOperationsContent() {
   const getAvailableMonths = (): { value: string; label: string }[] => {
     const months: { value: string; label: string }[] = [];
     const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const value = date.toISOString().split("T")[0];
-      const label = date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+    const startDate = new Date(2024, 0, 1); // January 2024
+    let current = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    while (current >= startDate) {
+      const value = current.toISOString().split("T")[0];
+      const label = current.toLocaleDateString("en-US", { year: "numeric", month: "long" });
       months.push({ value, label });
+      current = new Date(current.getFullYear(), current.getMonth() - 1, 1);
     }
     return months;
   };
@@ -560,6 +563,9 @@ function YieldOperationsContent() {
                       }}
                       initialFocus
                       className="p-3 pointer-events-auto"
+                      captionLayout="dropdown-buttons"
+                      fromYear={2024}
+                      toYear={new Date().getFullYear()}
                     />
                   </PopoverContent>
                 </Popover>
