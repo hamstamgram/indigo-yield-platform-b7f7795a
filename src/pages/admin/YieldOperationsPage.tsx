@@ -36,7 +36,7 @@ import {
   Clock,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
-import { FundAUMEventsTable } from "@/components/admin/yields";
+import { FundAUMEventsTable, OpenPeriodDialog } from "@/components/admin/yields";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
@@ -63,6 +63,7 @@ type Fund = NonNullable<ReturnType<typeof useActiveFundsWithAUM>["data"]>[number
 function YieldOperationsContent() {
   const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
   const [showYieldDialog, setShowYieldDialog] = useState(false);
+  const [showOpenPeriodDialog, setShowOpenPeriodDialog] = useState(false);
   const [newAUM, setNewAUM] = useState("");
   const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -375,15 +376,40 @@ function YieldOperationsContent() {
                 </div>
               </div>
 
-              <Button
-                onClick={() => openYieldDialog(fund)}
-                disabled={fund.investor_count === 0}
-                className="w-full"
-                variant={fund.investor_count > 0 ? "primary" : "secondary"}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Record Yield
-              </Button>
+              {/* Show warning if no AUM records */}
+              {fund.aum_record_count === 0 && (
+                <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  No AUM baseline - Open Period first
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                {/* Open Period button - shown when no AUM baseline exists */}
+                {fund.aum_record_count === 0 && (
+                  <Button
+                    onClick={() => {
+                      setSelectedFund(fund);
+                      setShowOpenPeriodDialog(true);
+                    }}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    Open Period
+                  </Button>
+                )}
+                
+                <Button
+                  onClick={() => openYieldDialog(fund)}
+                  disabled={fund.investor_count === 0}
+                  className={fund.aum_record_count === 0 ? "flex-1" : "w-full"}
+                  variant={fund.investor_count > 0 ? "primary" : "secondary"}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Record Yield
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -1061,6 +1087,14 @@ function YieldOperationsContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Open Period Dialog */}
+      <OpenPeriodDialog
+        open={showOpenPeriodDialog}
+        onOpenChange={setShowOpenPeriodDialog}
+        fund={selectedFund}
+        onSuccess={() => refetchFunds()}
+      />
 
     </div>
   );
