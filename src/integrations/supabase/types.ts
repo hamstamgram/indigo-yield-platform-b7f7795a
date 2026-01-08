@@ -1261,6 +1261,45 @@ export type Database = {
           },
         ]
       }
+      global_fee_settings: {
+        Row: {
+          description: string | null
+          setting_key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: number
+        }
+        Insert: {
+          description?: string | null
+          setting_key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: number
+        }
+        Update: {
+          description?: string | null
+          setting_key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_fee_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_fee_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       ib_allocations: {
         Row: {
           created_at: string | null
@@ -5608,6 +5647,15 @@ export type Database = {
         Returns: boolean
       }
       update_fund_daily_aum: {
+        Args: {
+          p_admin_id: string
+          p_new_total_aum: number
+          p_reason: string
+          p_record_id: string
+        }
+        Returns: Json
+      }
+      update_fund_daily_aum_with_recalc: {
         Args: {
           p_admin_id: string
           p_new_total_aum: number

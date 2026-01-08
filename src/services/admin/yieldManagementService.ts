@@ -103,18 +103,22 @@ export async function voidYieldDistribution(
 /**
  * Update a yield record's AUM with audit trail
  */
+/**
+ * Update a yield record's AUM with full cascade recalculation
+ * Voids existing yield distributions and re-applies with new AUM
+ */
 export async function updateYieldAum(
   recordId: string,
   newTotalAum: number,
   reason: string
 ): Promise<UpdateYieldResult> {
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error("Not authenticated");
   }
 
-  const { data, error } = await (supabase.rpc as any)("update_fund_daily_aum", {
+  // Use the new recalc function that voids and re-applies
+  const { data, error } = await (supabase.rpc as any)("update_fund_daily_aum_with_recalc", {
     p_record_id: recordId,
     p_new_total_aum: newTotalAum,
     p_reason: reason,
@@ -126,7 +130,17 @@ export async function updateYieldAum(
     throw new Error(error.message || "Failed to update yield record");
   }
 
-  return data as UpdateYieldResult;
+  if (!data?.success) {
+    throw new Error(data?.error || "Failed to recalculate yield");
+  }
+
+  return {
+    success: true,
+    record_id: data.record_id,
+    old_aum: data.old_aum,
+    new_aum: data.new_aum,
+    updated_at: data.updated_at,
+  };
 }
 
 /**
