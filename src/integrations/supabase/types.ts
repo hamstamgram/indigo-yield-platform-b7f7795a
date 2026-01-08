@@ -4962,7 +4962,6 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
-      carryforward_daily_aum: { Args: never; Returns: Json }
       check_and_fix_aum_integrity: {
         Args: {
           p_dry_run?: boolean
