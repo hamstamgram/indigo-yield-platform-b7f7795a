@@ -50,6 +50,42 @@ class FundDailyAumService {
   }
 
   /**
+   * Create a baseline AUM record for opening a period
+   */
+  async createBaselineAUM(params: {
+    fundId: string;
+    date: string;
+    totalAum: number;
+    purpose: "reporting" | "transaction";
+    createdBy: string;
+  }): Promise<void> {
+    // Check if a record already exists for this date
+    const { data: existing } = await supabase
+      .from("fund_daily_aum")
+      .select("id")
+      .eq("fund_id", params.fundId)
+      .eq("aum_date", params.date)
+      .eq("is_voided", false)
+      .maybeSingle();
+
+    if (existing) {
+      throw new Error("An AUM record already exists for this date. Void it first or choose a different date.");
+    }
+
+    const { error } = await supabase.from("fund_daily_aum").insert({
+      fund_id: params.fundId,
+      aum_date: params.date,
+      total_aum: params.totalAum,
+      purpose: params.purpose,
+      source: "manual_baseline",
+      is_month_end: params.purpose === "reporting",
+      created_by: params.createdBy,
+    });
+
+    if (error) throw error;
+  }
+
+  /**
    * Upsert AUM record (check-then-insert/update pattern for partial index compatibility)
    */
   async upsertAumRecord(params: {
