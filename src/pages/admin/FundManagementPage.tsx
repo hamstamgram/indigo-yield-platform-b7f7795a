@@ -4,7 +4,7 @@
  * Token-denominated only - fees managed per-investor, not per-fund
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
   Button, Badge, Skeleton,
@@ -23,24 +23,13 @@ import {
 } from "lucide-react";
 import { AdminGuard, CreateFundDialog, EditFundDialog } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { toast } from "sonner";
-import { useAuth } from "@/services/auth";
 import { format } from "date-fns";
-import { fundService, positionService, auditLogService } from "@/services/shared";
-
-interface FundWithMetrics {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  fund_class?: string;
-  status: string;
-  inception_date: string;
-  logo_url?: string | null;
-  created_at?: string | null;
-  total_aum: number;
-  investor_count: number;
-}
+import {
+  useFundsWithMetrics,
+  useArchiveFund,
+  useRestoreFund,
+  type FundWithMetrics,
+} from "@/hooks/data/admin/useFundsWithMetrics";
 
 type FundStatus = "active" | "inactive" | "suspended" | "deprecated";
 
@@ -52,11 +41,12 @@ const STATUS_CONFIG: Record<FundStatus, { label: string; variant: "default" | "s
 };
 
 function FundManagementContent() {
-  const [funds, setFunds] = useState<FundWithMetrics[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: funds = [], isLoading: loading, refetch } = useFundsWithMetrics();
+  const archiveMutation = useArchiveFund();
+  const restoreMutation = useRestoreFund();
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingFund, setEditingFund] = useState<FundWithMetrics | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     action: "archive" | "restore";
@@ -64,43 +54,9 @@ function FundManagementContent() {
     error?: string;
   }>({ open: false, action: "archive", fund: null });
 
-  const { user } = useAuth();
-
-  useEffect(() => {
-    loadFunds();
-  }, []);
-
-  const loadFunds = async () => {
-    setLoading(true);
-    try {
-      // Get funds via service
-      const fundsData = await fundService.getAllFunds();
-
-      // Get AUM and investor count for each fund
-      const fundsWithMetrics = await Promise.all(
-        (fundsData || []).map(async (fund) => {
-          const positions = await positionService.getPositionsByFund(fund.id);
-
-          const total_aum = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-          const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
-
-          return {
-            ...fund,
-            status: fund.status || "active",
-            total_aum,
-            investor_count: uniqueInvestors.size,
-          };
-        })
-      );
-
-      setFunds(fundsWithMetrics);
-    } catch (error) {
-      console.error("Error loading funds:", error);
-      toast.error("Failed to load funds");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const actionLoading = archiveMutation.isPending || restoreMutation.isPending
+    ? (archiveMutation.variables?.id || restoreMutation.variables?.id)
+    : null;
 
   const handleArchive = async (fund: FundWithMetrics) => {
     // Check for active investors
@@ -143,32 +99,13 @@ function FundManagementContent() {
       return;
     }
 
-    setActionLoading(fund.id);
-    try {
-      const newStatus = action === "archive" ? "deprecated" : "active";
-
-      // Update fund status via service
-      await fundService.updateFundStatus(fund.id, newStatus);
-
-      // Audit log via service
-      await auditLogService.logEvent({
-        actorUserId: user?.id || "",
-        action: action === "archive" ? "ARCHIVE_FUND" : "RESTORE_FUND",
-        entity: "fund",
-        entityId: fund.id,
-        oldValues: { status: fund.status },
-        newValues: { status: newStatus },
-      });
-
-      toast.success(`Fund ${action === "archive" ? "archived" : "restored"} successfully`);
-      await loadFunds();
-    } catch (error: any) {
-      console.error(`Error ${confirmDialog.action}ing fund:`, error);
-      toast.error(error.message || `Failed to ${confirmDialog.action} fund`);
-    } finally {
-      setActionLoading(null);
-      setConfirmDialog({ open: false, action: "archive", fund: null });
+    if (action === "archive") {
+      archiveMutation.mutate(fund);
+    } else {
+      restoreMutation.mutate(fund);
     }
+
+    setConfirmDialog({ open: false, action: "archive", fund: null });
   };
 
   const formatAssetValue = (value: number, asset: string) => {
@@ -197,7 +134,7 @@ function FundManagementContent() {
         </Button>
       </div>
 
-      {/* Stats Cards - Removed Fee Structure card */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -364,7 +301,7 @@ function FundManagementContent() {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
-          loadFunds();
+          refetch();
           setShowCreateDialog(false);
         }}
         existingAssets={funds.filter((f) => f.status === "active").map((f) => f.asset)}
@@ -376,7 +313,7 @@ function FundManagementContent() {
         onOpenChange={(open) => !open && setEditingFund(null)}
         fund={editingFund}
         onSuccess={() => {
-          loadFunds();
+          refetch();
           setEditingFund(null);
         }}
         existingTickers={funds.filter((f) => f.status === "active").map((f) => f.asset)}

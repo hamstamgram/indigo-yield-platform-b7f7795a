@@ -1,4 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+/**
+ * Audit Log Viewer
+ * Admin page for viewing and filtering audit log entries
+ */
+
+import { useState } from "react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
   Input,
@@ -9,16 +14,19 @@ import {
 } from "@/components/ui";
 import { FileText, Filter, Calendar, User, Activity, Database, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
-import { auditLogService, type AuditLogEntry, type AuditLogFilters } from "@/services";
+import { auditLogService, type AuditLogFilters } from "@/services/shared";
 import { useRealtimeSubscription } from "@/hooks";
+import { useAuditLogs, exportAuditLogsToCSV } from "@/hooks/data/admin/useAuditLogs";
+
+const DEFAULT_STATS = {
+  totalEntries: 0,
+  actionCounts: {},
+  entityCounts: {},
+  topActors: [],
+};
 
 const AuditLogViewer = () => {
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
-  const [entities, setEntities] = useState<string[]>([]);
-  const [actions, setActions] = useState<string[]>([]);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<AuditLogFilters>({
@@ -26,49 +34,19 @@ const AuditLogViewer = () => {
     offset: 0,
   });
 
-  const [stats, setStats] = useState({
-    totalEntries: 0,
-    actionCounts: {} as Record<string, number>,
-    entityCounts: {} as Record<string, number>,
-    topActors: [] as Array<{ user_id: string; name: string; count: number }>,
-  });
+  const { data, isLoading: loading, refetch } = useAuditLogs(filters);
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const [logsResult, entitiesData, actionsData, summaryData] = await Promise.all([
-        auditLogService.fetchAuditLogs(filters),
-        auditLogService.getUniqueEntities(),
-        auditLogService.getUniqueActions(),
-        auditLogService.getAuditLogSummary({
-          startDate: filters.startDate,
-          endDate: filters.endDate,
-        }),
-      ]);
-
-      setLogs(logsResult.data);
-      setTotalCount(logsResult.count);
-      setEntities(entitiesData);
-      setActions(actionsData);
-      setStats(summaryData);
-    } catch (error) {
-      console.error("Error loading audit logs:", error);
-      toast.error("Failed to load audit logs");
-    } finally {
-      setLoading(false);
-    }
-  }, [filters]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const logs = data?.logs ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const entities = data?.entities ?? [];
+  const actions = data?.actions ?? [];
+  const stats = data?.stats ?? DEFAULT_STATS;
 
   // Real-time subscription
   useRealtimeSubscription({
     table: "audit_log",
     event: "*",
-    onUpdate: loadData,
+    onUpdate: refetch,
   });
 
   const handleFilterChange = (key: keyof AuditLogFilters, value: any) => {
@@ -92,51 +70,15 @@ const AuditLogViewer = () => {
   const handleExportCSV = async () => {
     setExporting(true);
     try {
-      // Fetch all logs matching current filters (no pagination limit for export)
-      const { data } = await auditLogService.fetchAuditLogs({
-        ...filters,
-        limit: 10000, // Max export limit
-        offset: 0,
-      });
-
-      if (data.length === 0) {
-        toast.warning("No audit logs to export");
-        return;
-      }
-
-      // Build CSV content
-      const headers = ["Timestamp", "Actor", "Actor Email", "Action", "Entity", "Entity ID", "Changes", "Metadata"];
-      const rows = data.map((log) => [
-        new Date(log.created_at).toISOString(),
-        log.actor_name || "System",
-        log.actor_email || "",
-        log.action,
-        log.entity,
-        log.entity_id || "",
-        auditLogService.formatChanges(log.old_values, log.new_values).replace(/,/g, ";"),
-        log.meta ? JSON.stringify(log.meta).replace(/,/g, ";") : "",
-      ]);
-
-      const csvContent = [
-        headers.join(","),
-        ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
-      ].join("\n");
-
-      // Download file
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `audit-logs-${new Date().toISOString().split("T")[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success(`Exported ${data.length} audit log entries`);
-    } catch (error) {
+      const count = await exportAuditLogsToCSV(filters);
+      toast.success(`Exported ${count} audit log entries`);
+    } catch (error: any) {
       console.error("Error exporting audit logs:", error);
-      toast.error("Failed to export audit logs");
+      if (error.message === "No audit logs to export") {
+        toast.warning("No audit logs to export");
+      } else {
+        toast.error("Failed to export audit logs");
+      }
     } finally {
       setExporting(false);
     }
