@@ -10,7 +10,6 @@ import {
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { depositService, fundDailyAumService, profileService } from "@/services";
-import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/domains";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -39,16 +38,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
   // Fetch users for dropdown (exclude system accounts like INDIGO FEES)
   const { data: users } = useQuery({
     queryKey: QUERY_KEYS.usersForDeposits,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email, is_system_account")
-        .eq("is_system_account", false)
-        .order("first_name");
-
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => profileService.getUsersForDeposits(),
     enabled: open,
   });
 
