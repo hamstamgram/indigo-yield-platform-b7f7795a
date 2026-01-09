@@ -12,7 +12,7 @@ export { documentService } from "./documentService";
 // Asset management
 export { assetService } from "./assetService";
 
-// Fund management
+// Fund management (delegates to admin/fundService)
 export { fundService } from "./fundService";
 export type { Fund, FundRef, FundStatus, FundKPI } from "./fundService";
 

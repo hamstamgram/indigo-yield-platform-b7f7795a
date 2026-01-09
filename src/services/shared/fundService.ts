@@ -1,26 +1,30 @@
 /**
  * Fund Service - Shared fund operations
- * Wraps admin fund service with additional convenience methods
+ * Provides a unified API for fund operations, delegating to admin functions
  */
 
 import { supabase } from "@/integrations/supabase/client";
 import * as adminFundService from "@/services/admin/fundService";
-import type { Fund } from "@/types/domains/fund";
+import type { FundStatus } from "@/types/domains/fund";
 
 // Re-export types from canonical source
 export type { Fund, FundRef, FundStatus } from "@/types/domains/fund";
 export type { DailyNav, FundKPI } from "@/services/admin/fundService";
 
 class FundService {
-  /**
-   * Get all funds
-   */
-  async getAllFunds() {
-    return adminFundService.listFunds();
-  }
+  // Delegate to admin service functions
+  getAllFunds = () => adminFundService.listFunds();
+  getFundById = (fundId: string) => adminFundService.getFund(fundId);
+  updateFund = (fundId: string, updates: Parameters<typeof adminFundService.updateFund>[1]) => 
+    adminFundService.updateFund(fundId, updates);
+  updateFundStatus = (fundId: string, status: FundStatus) => 
+    adminFundService.updateFund(fundId, { status });
+  getFundKPIs = () => adminFundService.getFundKPIs();
+  getLatestNav = (fundId: string) => adminFundService.getLatestNav(fundId);
+  getFundPerformance = (fundId: string) => adminFundService.getFundPerformance(fundId);
 
   /**
-   * Get active funds
+   * Get active funds (minimal fields for dropdowns)
    */
   async getActiveFunds(): Promise<Array<{ id: string; code: string; name: string; asset: string }>> {
     const { data, error } = await supabase
@@ -31,13 +35,6 @@ class FundService {
 
     if (error) throw error;
     return data || [];
-  }
-
-  /**
-   * Get fund by ID
-   */
-  async getFundById(fundId: string) {
-    return adminFundService.getFund(fundId);
   }
 
   /**
@@ -114,20 +111,6 @@ class FundService {
   }
 
   /**
-   * Update fund status
-   */
-  async updateFundStatus(fundId: string, status: string) {
-    return adminFundService.updateFund(fundId, { status } as any);
-  }
-
-  /**
-   * Update fund
-   */
-  async updateFund(fundId: string, updates: Partial<adminFundService.Fund>) {
-    return adminFundService.updateFund(fundId, updates);
-  }
-
-  /**
    * Deactivate fund
    */
   async deactivateFund(fundId: string) {
@@ -137,27 +120,6 @@ class FundService {
       .eq("id", fundId);
 
     if (error) throw error;
-  }
-
-  /**
-   * Get fund KPIs
-   */
-  async getFundKPIs() {
-    return adminFundService.getFundKPIs();
-  }
-
-  /**
-   * Get latest NAV for a fund
-   */
-  async getLatestNav(fundId: string) {
-    return adminFundService.getLatestNav(fundId);
-  }
-
-  /**
-   * Get fund performance
-   */
-  async getFundPerformance(fundId: string) {
-    return adminFundService.getFundPerformance(fundId);
   }
 }
 
