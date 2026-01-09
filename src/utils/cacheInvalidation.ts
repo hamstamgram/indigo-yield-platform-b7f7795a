@@ -41,7 +41,7 @@ import {
 const INVALIDATION_GRAPH = {
   transaction: [
     QUERY_KEYS.transactions(),
-    QUERY_KEYS.adminTransactions,
+    QUERY_KEYS.adminTransactionsHistory(),
     QUERY_KEYS.investorPositions(),
     QUERY_KEYS.fundAumAll,
     QUERY_KEYS.fundAumUnified,

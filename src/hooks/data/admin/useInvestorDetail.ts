@@ -39,12 +39,12 @@ export function useInvestorOpsIndicators(
 }
 
 /**
- * Hook to fetch investor positions with fund details
+ * Hook to fetch investor positions with fund details and totals
  */
 export function useInvestorPositions(investorId: string | undefined) {
   return useQuery<InvestorPositionsData>({
     queryKey: QUERY_KEYS.adminInvestorPositions(investorId || ""),
-    queryFn: () => investorDetailService.fetchInvestorPositions(investorId!),
+    queryFn: () => investorDetailService.fetchInvestorPositionsWithTotals(investorId!),
     enabled: !!investorId,
   });
 }

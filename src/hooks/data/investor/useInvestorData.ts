@@ -51,7 +51,7 @@ export interface InvestorSelectorItem {
  */
 export function useInvestorList() {
   return useQuery<InvestorListItem[], Error>({
-    queryKey: QUERY_KEYS.investorList,
+    queryKey: QUERY_KEYS.investorsList,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
