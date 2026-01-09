@@ -181,3 +181,18 @@ export async function resendVerificationEmail(email: string): Promise<AuthRespon
   });
   return { data, error, success: !error };
 }
+
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+
+  if (error) {
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+
+  return { success: true };
+}

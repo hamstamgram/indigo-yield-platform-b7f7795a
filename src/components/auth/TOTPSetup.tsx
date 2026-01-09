@@ -16,8 +16,8 @@ import {
   X,
 } from "lucide-react";
 
-import { TOTPService } from "@/lib/auth/mfaService";
-import { useAuth } from "@/lib/auth/context";
+import { TOTPService } from "@/services/auth/mfaService";
+import { useAuth } from "@/services/auth";
 
 interface TOTPSetupProps {
   open: boolean;

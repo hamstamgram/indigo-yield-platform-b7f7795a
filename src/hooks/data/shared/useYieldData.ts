@@ -19,7 +19,7 @@ import type {
 } from "@/services/admin/recordedYieldsService";
 import type { YieldDetails } from "@/services/admin/yieldManagementService";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 

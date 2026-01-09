@@ -4,7 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { ibService } from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";

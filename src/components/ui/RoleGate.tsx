@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { Alert, AlertDescription } from "@/components/ui";
 import { ShieldX } from "lucide-react";
 

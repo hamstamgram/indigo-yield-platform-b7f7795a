@@ -6,8 +6,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks";
-import * as authService from "@/lib/auth/authService";
-import * as inviteService from "@/lib/auth/inviteService";
+import * as authService from "@/services/auth/authService";
+import * as inviteService from "@/services/auth/inviteService";
 
 const QUERY_KEYS = {
   session: ["auth", "session"] as const,
@@ -276,4 +276,4 @@ export function useSetSessionFromTokens() {
 }
 
 // Re-export types
-export type { InviteDetails, UserMetadata, SignInResult } from "@/lib/auth/types";
+export type { InviteDetails, UserMetadata, SignInResult } from "@/services/auth/types";

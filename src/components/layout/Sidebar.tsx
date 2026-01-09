@@ -9,7 +9,7 @@ import { Input, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
 import { useUserRole } from "@/hooks";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { useCurrentProfile } from "@/hooks";
 type SidebarProps = {
   sidebarOpen: boolean;

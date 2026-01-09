@@ -8,18 +8,12 @@ export * from "./correlationId";
 export * from "./email";
 export * from "./performance";
 
-// Reports (unified module)
-export * from "./reports";
-
 // GDPR compliance
 export * from "./gdpr";
-
-// Auth
-export * from "./auth";
 
 // Type adapters
 export * from "./typeAdapters";
 
-// Re-export subdirectories (consumers can import from subdirectories directly for specific modules)
-// e.g., import { something } from "@/lib/auth"
-// e.g., import { something } from "@/lib/documents"
+// NOTE: Auth and Reports have moved to services layer
+// Use: import { useAuth } from "@/services/auth"
+// Use: import { ReportEngine } from "@/services/reports"
