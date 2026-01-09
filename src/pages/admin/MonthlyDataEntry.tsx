@@ -9,7 +9,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { ChevronDown, ChevronUp, ArrowUpDown, Users, TrendingUp, Plus, CheckCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import {
   previewYieldDistribution,
   type YieldCalculationResult,

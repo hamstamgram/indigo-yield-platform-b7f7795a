@@ -8,9 +8,9 @@
  * Reduces initial bundle size by ~400KB
  */
 export const generatePDFReportLazy = async (
-  ...args: Parameters<typeof import("@/lib/reports/pdfGenerator").generatePDFReport>
+  ...args: Parameters<typeof import("@/services/reports/pdfGenerator").generatePDFReport>
 ) => {
-  const { generatePDFReport } = await import("@/lib/reports/pdfGenerator");
+  const { generatePDFReport } = await import("@/services/reports/pdfGenerator");
   return generatePDFReport(...args);
 };
 
@@ -19,9 +19,9 @@ export const generatePDFReportLazy = async (
  * Reduces initial bundle size by ~200KB
  */
 export const generateExcelReportLazy = async (
-  ...args: Parameters<typeof import("@/lib/reports/excelGenerator").generateExcelReport>
+  ...args: Parameters<typeof import("@/services/reports/excelGenerator").generateExcelReport>
 ) => {
-  const { generateExcelReport } = await import("@/lib/reports/excelGenerator");
+  const { generateExcelReport } = await import("@/services/reports/excelGenerator");
   return generateExcelReport(...args);
 };
 
@@ -31,16 +31,16 @@ export const generateExcelReportLazy = async (
  */
 export const ReportEngineLazy = {
   generateReport: async (
-    ...args: Parameters<typeof import("@/lib/reports/reportEngine").ReportEngine.generateReport>
+    ...args: Parameters<typeof import("@/services/reports/reportEngine").ReportEngine.generateReport>
   ) => {
-    const { ReportEngine } = await import("@/lib/reports/reportEngine");
+    const { ReportEngine } = await import("@/services/reports/reportEngine");
     return ReportEngine.generateReport(...args);
   },
 
   fetchReportData: async (
-    ...args: Parameters<typeof import("@/lib/reports/reportEngine").ReportEngine.fetchReportData>
+    ...args: Parameters<typeof import("@/services/reports/reportEngine").ReportEngine.fetchReportData>
   ) => {
-    const { ReportEngine } = await import("@/lib/reports/reportEngine");
+    const { ReportEngine } = await import("@/services/reports/reportEngine");
     return ReportEngine.fetchReportData(...args);
   },
 };

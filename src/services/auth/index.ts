@@ -14,8 +14,5 @@ export * from './inviteService';
 // MFA operations
 export * from './mfaService';
 
-// Password reset
-export { sendPasswordResetEmail } from './passwordReset';
-
 // Types
 export type * from './types';

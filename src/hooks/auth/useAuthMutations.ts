@@ -6,8 +6,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import * as authService from "@/lib/auth/authService";
-import * as mfaService from "@/lib/auth/mfaService";
+import * as authService from "@/services/auth/authService";
+import * as mfaService from "@/services/auth/mfaService";
 import QRCode from "qrcode";
 
 interface LoginData {

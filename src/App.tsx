@@ -4,7 +4,7 @@ import { initPostHog } from "./utils/analytics/posthog";
 import "./utils/cleanup/debugCleanup"; // Initialize cleanup on app start
 import { SkipLink } from "./components/accessibility/SkipLink";
 import { ErrorBoundary } from "./components/error/ErrorBoundary";
-import { AuthProvider } from "./lib/auth/context";
+import { AuthProvider } from "@/services/auth";
 import { SecurityProvider } from "./components/security/SecurityProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { queryClientConfig, setQueryClient } from "./utils/performance/caching";
