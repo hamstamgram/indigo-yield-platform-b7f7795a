@@ -390,6 +390,7 @@ export async function generateInvestorStatement(
     const insertData: GeneratedStatementInsert = {
       period_id: periodId,
       user_id: userId,
+      investor_id: userId,
       html_content: html,
       generated_by: user.id,
       fund_names: performances.map((p) => p.fund_name),
@@ -550,6 +551,7 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
     const deliveryInsert: StatementEmailDeliveryInsert = {
       statement_id: statement.id,
       user_id: userId,
+      investor_id: userId,
       period_id: periodId,
       recipient_email: recipientEmails[0], // Primary recipient
       subject,

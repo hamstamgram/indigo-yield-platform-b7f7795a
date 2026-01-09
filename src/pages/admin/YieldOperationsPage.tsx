@@ -151,9 +151,14 @@ function YieldOperationsContent() {
     setReportingMonth(currentMonthStart);
   };
 
-  // Handle reporting month change
+  // Handle reporting month change - auto-navigate calendar to end of selected month
   const handleReportingMonthChange = (monthStart: string) => {
     setReportingMonth(monthStart);
+    
+    // Auto-set calendar date to end of selected month (typical yield distribution date)
+    const selectedDate = new Date(monthStart + "T12:00:00");
+    const lastDayOfMonth = endOfMonth(selectedDate);
+    setAumDate(lastDayOfMonth);
   };
 
   // Validate effective date is within reporting month
