@@ -5,7 +5,7 @@ import {
   Button, Input, Label,
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { Loader2, UserCheck, UserMinus } from "lucide-react";
 import {
   useAdminUsersList,

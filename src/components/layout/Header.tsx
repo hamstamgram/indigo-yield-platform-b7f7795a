@@ -5,7 +5,7 @@ import {
 } from "@/components/ui";
 import { useBreadcrumbs } from "@/hooks";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { FundAUMBar } from "@/components/admin";
 
 type HeaderProps = {

@@ -8,7 +8,7 @@ import {
   Database,
   ArrowUpFromLine,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 
 export interface NavItem {
   title: string;

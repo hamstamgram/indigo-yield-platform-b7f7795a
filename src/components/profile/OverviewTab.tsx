@@ -5,7 +5,7 @@ import {
   Button, Badge, Progress, Separator,
   Avatar, AvatarFallback, AvatarImage,
 } from "@/components/ui";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { profileService } from "@/services/shared";
 
 interface ProfileData {
