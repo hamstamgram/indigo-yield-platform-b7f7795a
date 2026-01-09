@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import type { SignInData, SignUpData, SignInResult, AuthResponse } from "./types";
+import type { Database } from "@/integrations/supabase/types";
 
 /**
  * Sign in with email and password
@@ -135,9 +136,11 @@ export async function setSessionFromTokens(
  * Get user admin status
  */
 export async function getUserAdminStatus(userId: string): Promise<boolean> {
-  const { data: adminStatus } = await supabase.rpc("get_user_admin_status", {
-    user_id: userId,
-  });
+  const { data: adminStatus } = await supabase
+    .rpc("get_user_admin_status", {
+      user_id: userId,
+    })
+    .returns<Database["public"]["Functions"]["get_user_admin_status"]["Returns"]>();
   return adminStatus === true;
 }
 

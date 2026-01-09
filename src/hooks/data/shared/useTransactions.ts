@@ -10,6 +10,7 @@ import type { QuickTransactionParams } from "@/services/shared/transactionServic
 import { toast } from "sonner";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import type { Database } from "@/integrations/supabase/types";
 
 import type { TransactionWithFund } from "@/types/domains/transaction";
 
@@ -55,7 +56,7 @@ async function fetchTransactions(filters: TransactionFilters): Promise<Transacti
   }
 
   if (filters.type) {
-    query = query.eq("type", filters.type as any);
+    query = query.eq("type", filters.type as Database["public"]["Enums"]["tx_type"]);
   }
 
   if (filters.dateFrom) {

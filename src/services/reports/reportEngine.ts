@@ -119,7 +119,16 @@ export class ReportEngine {
         value: p.current_value,
         fundName: p.funds?.name,
       })),
-      transactions,
+      transactions: transactions.map((tx: any) => ({
+        date: tx.tx_date,
+        type: tx.type,
+        assetCode: tx.asset,
+        amount: Number(tx.amount) || 0,
+        value: Number(tx.amount) || 0, // For reports, value is typically same as amount
+        is_voided: tx.is_voided || false,
+        note: tx.notes || undefined,
+        txHash: tx.tx_hash || undefined,
+      })),
       statements,
     };
   }

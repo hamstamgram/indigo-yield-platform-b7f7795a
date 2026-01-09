@@ -241,9 +241,11 @@ export interface TransactionData {
   assetCode: string;
   amount: number;
   value: number;
-  status: string;
+  is_voided: boolean;
   note?: string;
   txHash?: string;
+  // Computed display field - derived from is_voided
+  status?: string;
 }
 
 // Performance Period

@@ -6,6 +6,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { securityLogger } from '@/utils/security-logger';
 import { fieldEncryption } from '@/utils/encryption';
+import { Database } from '@/integrations/supabase/types';
+import { PostgrestError } from '@supabase/supabase-js';
 import {
   ConsentType,
   DataRequestType,
@@ -13,6 +15,53 @@ import {
   ConsentRecord,
   DataRequest,
 } from './types';
+
+// Type definitions for GDPR tables (not in generated types yet)
+interface GDPRConsentRow {
+  id: string;
+  user_id: string;
+  consent_type: ConsentType;
+  consented: boolean;
+  consent_date?: string;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface GDPRDataRequestRow {
+  id: string;
+  user_id: string;
+  request_type: DataRequestType;
+  status: DataRequestStatus;
+  requested_at: string;
+  completed_at?: string;
+  export_url?: string;
+  notes?: string;
+}
+
+// Supabase query result types
+type SupabaseQueryResult<T> = {
+  data: T | null;
+  error: PostgrestError | null;
+};
+
+// Database table row types from generated types
+type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+type TransactionV2Row = Database['public']['Tables']['transactions_v2']['Row'];
+type AuditLogRow = Database['public']['Tables']['audit_log']['Row'];
+
+// User export data structure
+interface UserExportData {
+  export_date: string;
+  user_id: string;
+  profile?: Partial<ProfileRow>;
+  investor_profile?: Record<string, unknown>;
+  transactions: TransactionV2Row[];
+  monthly_statements: unknown[];
+  audit_logs: AuditLogRow[];
+  consent_records: GDPRConsentRow[];
+}
 
 class GDPRComplianceManager {
   private static instance: GDPRComplianceManager;
@@ -37,16 +86,16 @@ class GDPRComplianceManager {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Cast supabase to any to avoid excessive type depth inference in query builder
-      const result = await (supabase as any)
+      // Type-safe query for gdpr_consent table
+      const result = await supabase
         .from('gdpr_consent')
         .select('*')
         .eq('user_id', user.id);
 
-      const { data } = result as { data: any; error: any };
+      const { data } = result as SupabaseQueryResult<GDPRConsentRow[]>;
 
       if (data) {
-        data.forEach((consent: any) => {
+        data.forEach((consent: GDPRConsentRow) => {
           this.userConsents.set(consent.consent_type, consent.consented);
         });
       }
@@ -76,8 +125,8 @@ class GDPRComplianceManager {
         user_agent: navigator.userAgent,
       };
 
-      // Cast supabase to any - gdpr_consent table not in generated types
-      const result = await (supabase as any)
+      // Type-safe upsert for gdpr_consent table
+      const result = await supabase
         .from('gdpr_consent')
         .upsert({
           user_id: user.id,
@@ -85,7 +134,7 @@ class GDPRComplianceManager {
           updated_at: new Date().toISOString(),
         });
 
-      const { error } = result as { data: any; error: any };
+      const { error } = result as SupabaseQueryResult<GDPRConsentRow>;
 
       if (error) {
         return { success: false, error: error.message };
@@ -132,10 +181,9 @@ class GDPRComplianceManager {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Create data request
-      // Cast supabase to any - gdpr_data_requests table not in generated types
-      const result = await (supabase as any)
-        .from('gdpr_data_requests' as any)
+      // Create data request with type-safe insert
+      const result = await supabase
+        .from('gdpr_data_requests')
         .insert({
           user_id: user.id,
           request_type: DataRequestType.EXPORT,
@@ -144,10 +192,10 @@ class GDPRComplianceManager {
         .select()
         .single();
 
-      const { data, error } = result as { data: any; error: any };
+      const { data, error } = result as SupabaseQueryResult<GDPRDataRequestRow>;
 
-      if (error) {
-        return { success: false, error: error.message };
+      if (error || !data) {
+        return { success: false, error: error?.message || 'Failed to create request' };
       }
 
       // Log data export request
@@ -171,9 +219,8 @@ class GDPRComplianceManager {
   private async processDataExport(userId: string, requestId: string): Promise<void> {
     try {
       // Update status to processing
-      // Cast supabase to any - gdpr_data_requests table not in generated types
-      await (supabase as any)
-        .from('gdpr_data_requests' as any)
+      await supabase
+        .from('gdpr_data_requests')
         .update({ status: DataRequestStatus.PROCESSING })
         .eq('id', requestId);
 
@@ -191,9 +238,8 @@ class GDPRComplianceManager {
         const dataUrl = reader.result as string;
 
         // Update request with export URL
-        // Cast supabase to any - gdpr_data_requests table not in generated types
-        await (supabase as any)
-          .from('gdpr_data_requests' as any)
+        await supabase
+          .from('gdpr_data_requests')
           .update({
             status: DataRequestStatus.COMPLETED,
             completed_at: new Date().toISOString(),
@@ -209,9 +255,8 @@ class GDPRComplianceManager {
       console.error('Data export processing failed:', error);
 
       // Update status to failed
-      // Cast supabase to any - gdpr_data_requests table not in generated types
-      await (supabase as any)
-        .from('gdpr_data_requests' as any)
+      await supabase
+        .from('gdpr_data_requests')
         .update({
           status: DataRequestStatus.FAILED,
           notes: String(error),
@@ -223,21 +268,24 @@ class GDPRComplianceManager {
   /**
    * Collect all user data for export
    */
-  private async collectUserData(userId: string): Promise<any> {
-    const userData: any = {
+  private async collectUserData(userId: string): Promise<UserExportData> {
+    const userData: UserExportData = {
       export_date: new Date().toISOString(),
       user_id: userId,
+      transactions: [],
+      monthly_statements: [],
+      audit_logs: [],
+      consent_records: [],
     };
 
     // Profile data
-    // Cast supabase to any to avoid excessive type depth inference in query builder
-    const profileResult = await (supabase as any)
+    const profileResult = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
 
-    const { data: profile } = profileResult as { data: any; error: any };
+    const { data: profile } = profileResult as SupabaseQueryResult<ProfileRow>;
 
     if (profile) {
       // Decrypt PII fields if encrypted
@@ -248,14 +296,13 @@ class GDPRComplianceManager {
     }
 
     // Investor profile
-    // Cast supabase to any to avoid excessive type depth inference in query builder
-    const result = await (supabase as any)
+    const investorProfileResult = await supabase
       .from('investor_profiles')
       .select('*')
       .eq('investor_id', userId)
       .maybeSingle();
 
-    const { data: investorProfile } = result as { data: any; error: any };
+    const { data: investorProfile } = investorProfileResult as SupabaseQueryResult<Record<string, unknown>>;
 
     if (investorProfile) {
       userData.investor_profile = await fieldEncryption.decryptPIIFields(
@@ -265,50 +312,46 @@ class GDPRComplianceManager {
     }
 
     // Transactions (V2 table)
-    // Cast supabase to any to avoid excessive type depth inference in query builder
-    const transactionsResult = await (supabase as any)
+    const transactionsResult = await supabase
       .from('transactions_v2')
       .select('*')
       .eq('investor_id', userId)
       .order('tx_date', { ascending: false })
       .order('id', { ascending: false }); // Deterministic tie-breaker for same-day ordering
 
-    const { data: transactions } = transactionsResult as { data: any; error: any };
+    const { data: transactions } = transactionsResult as SupabaseQueryResult<TransactionV2Row[]>;
 
     userData.transactions = transactions || [];
 
     // Monthly statements
-    // Cast supabase to any to avoid excessive type depth inference in query builder
-    const statementsResult = await (supabase as any)
+    const statementsResult = await supabase
       .from('monthly_statements')
       .select('*')
       .eq('investor_id', userId)
       .order('statement_period', { ascending: false });
 
-    const { data: statements } = statementsResult as { data: any; error: any };
+    const { data: statements } = statementsResult as SupabaseQueryResult<unknown[]>;
 
     userData.monthly_statements = statements || [];
 
     // Audit logs (user's own actions)
-    // Cast supabase to any to avoid excessive type depth inference in query builder
-    const auditLogsResult = await (supabase as any)
+    const auditLogsResult = await supabase
       .from('audit_log')
       .select('*')
       .eq('actor_user', userId)
       .order('created_at', { ascending: false })
       .limit(1000);
 
-    const { data: auditLogs } = auditLogsResult as { data: any; error: any };
+    const { data: auditLogs } = auditLogsResult as SupabaseQueryResult<AuditLogRow[]>;
     userData.audit_logs = auditLogs || [];
 
     // Consent records
-    // Cast supabase to any - gdpr_consent table not in generated types
-    const consentsResult = await (supabase as any)
+    const consentsResult = await supabase
       .from('gdpr_consent')
       .select('*')
       .eq('user_id', userId);
 
-    const { data: consents } = consentsResult as { data: any; error: any };
+    const { data: consents } = consentsResult as SupabaseQueryResult<GDPRConsentRow[]>;
     userData.consent_records = consents || [];
 
     return userData;
@@ -324,10 +367,9 @@ class GDPRComplianceManager {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Create deletion request
-      // Cast supabase to any - gdpr_data_requests table not in generated types
-      const result = await (supabase as any)
-        .from('gdpr_data_requests' as any)
+      // Create deletion request with type-safe insert
+      const result = await supabase
+        .from('gdpr_data_requests')
         .insert({
           user_id: user.id,
           request_type: DataRequestType.DELETE,
@@ -336,10 +378,10 @@ class GDPRComplianceManager {
         .select()
         .single();
 
-      const { data, error } = result as { data: any; error: any };
+      const { data, error } = result as SupabaseQueryResult<GDPRDataRequestRow>;
 
-      if (error) {
-        return { success: false, error: error.message };
+      if (error || !data) {
+        return { success: false, error: error?.message || 'Failed to create request' };
       }
 
       // Log deletion request
@@ -365,14 +407,14 @@ class GDPRComplianceManager {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Cast supabase to any to avoid excessive type depth inference in query builder
-      const result = await (supabase as any)
-        .from('gdpr_data_requests' as any)
+      // Type-safe query for data requests
+      const result = await supabase
+        .from('gdpr_data_requests')
         .select('*')
         .eq('user_id', user.id)
         .order('requested_at', { ascending: false });
 
-      const { data } = result as { data: any; error: any };
+      const { data } = result as SupabaseQueryResult<GDPRDataRequestRow[]>;
 
       return data || [];
     } catch (error) {
@@ -391,10 +433,9 @@ class GDPRComplianceManager {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Get export request
-      // Cast supabase to any to avoid excessive type depth inference in query builder
-      const result = await (supabase as any)
-        .from('gdpr_data_requests' as any)
+      // Get export request with type-safe query
+      const result = await supabase
+        .from('gdpr_data_requests')
         .select('*')
         .eq('id', requestId)
         .eq('user_id', user.id)
@@ -402,7 +443,7 @@ class GDPRComplianceManager {
         .eq('status', DataRequestStatus.COMPLETED)
         .single();
 
-      const { data, error } = result as { data: any; error: any };
+      const { data, error } = result as SupabaseQueryResult<GDPRDataRequestRow>;
 
       if (error || !data || !data.export_url) {
         return { success: false, error: 'Export not available' };

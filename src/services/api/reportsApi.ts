@@ -293,8 +293,12 @@ export class ReportsApi {
       lines.push("Date,Type,Asset,Amount,Value Date,Status/Notes");
 
       data.transactions.forEach((tx: any) => {
+        // Compute status display from is_voided
+        const statusDisplay = tx.is_voided ? "Voided" : "Active";
+        const notesOrStatus = tx.notes || statusDisplay;
+
         lines.push(
-          `${tx.tx_date},${tx.type},${tx.asset},${tx.amount},${tx.value_date},${tx.notes || tx.status || ""}`
+          `${tx.tx_date},${tx.type},${tx.asset},${tx.amount},${tx.value_date},${notesOrStatus}`
         );
       });
     }

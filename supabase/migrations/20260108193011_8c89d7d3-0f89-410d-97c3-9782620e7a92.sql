@@ -89,7 +89,7 @@ BEGIN
   FOR v_inv IN
     SELECT
       ip.investor_id,
-      ip.current_balance,
+      ip.current_value,
       COALESCE(ifs.fee_pct, 0.20) as fee_pct,
       p.ib_parent_id,
       COALESCE(p.ib_commission_pct, 0) as ib_pct
@@ -100,10 +100,10 @@ BEGIN
       AND ifs.effective_date <= p_yield_date
       AND (ifs.end_date IS NULL OR ifs.end_date >= p_yield_date)
     WHERE ip.fund_id = p_fund_id
-      AND ip.current_balance > 0
+      AND ip.current_value > 0
   LOOP
     -- Calculate investor's share of yield
-    v_inv_net := (v_inv.current_balance / v_prev_aum) * v_yield_amount;
+    v_inv_net := (v_inv.current_value / v_prev_aum) * v_yield_amount;
     v_fee_amount := v_inv_net * v_inv.fee_pct;
     v_inv_net := v_inv_net - v_fee_amount;
 
@@ -146,7 +146,7 @@ BEGIN
 
     -- Update investor position
     UPDATE investor_positions
-    SET current_balance = current_balance + v_inv_net,
+    SET current_value = current_value + v_inv_net,
         updated_at = NOW()
     WHERE investor_id = v_inv.investor_id
       AND fund_id = p_fund_id;

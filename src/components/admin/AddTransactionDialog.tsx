@@ -155,7 +155,8 @@ export function AddTransactionDialog({
   useEffect(() => {
     if (selectedFundId && !fundId) {
       // Only clear if fund wasn't pre-selected
-      setValue("txn_type", undefined as any);
+      // Reset transaction type - casting undefined is necessary due to form library constraints
+      setValue("txn_type", undefined as unknown as TransactionFormData["txn_type"]);
     }
   }, [selectedFundId, fundId, setValue]);
 
@@ -432,7 +433,7 @@ export function AddTransactionDialog({
 
           <div className="space-y-2">
             <Label htmlFor="txn_type">Transaction Type *</Label>
-            <Select value={txnType} onValueChange={(value) => setValue("txn_type", value as any)}>
+            <Select value={txnType} onValueChange={(value) => setValue("txn_type", value as TransactionFormData["txn_type"])}>
               <SelectTrigger>
                 <SelectValue placeholder="Select transaction type" />
               </SelectTrigger>

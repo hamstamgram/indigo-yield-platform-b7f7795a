@@ -6,6 +6,11 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
+// iOS-specific Navigator extension
+interface IOSNavigator extends Navigator {
+  standalone?: boolean;
+}
+
 declare global {
   interface WindowEventMap {
     beforeinstallprompt: BeforeInstallPromptEvent;
@@ -37,7 +42,7 @@ export function InstallPrompt() {
     // Check if already installed
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true;
+      (window.navigator as IOSNavigator).standalone === true;
 
     if (isStandalone) {
       return;

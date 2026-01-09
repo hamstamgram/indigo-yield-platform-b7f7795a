@@ -34,7 +34,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_current_balance numeric := 0;
+  v_current_value numeric := 0;
   v_new_balance numeric;
   v_fund_asset text;
   v_fund_class text;
@@ -71,21 +71,21 @@ BEGIN
   END IF;
 
   -- Get current balance (default to 0 if no position exists)
-  SELECT COALESCE(ip.current_balance, 0)
-  INTO v_current_balance
+  SELECT COALESCE(ip.current_value, 0)
+  INTO v_current_value
   FROM public.investor_positions ip
   WHERE ip.investor_id = p_investor_id AND ip.fund_id = p_fund_id;
   
-  IF v_current_balance IS NULL THEN
-    v_current_balance := 0;
+  IF v_current_value IS NULL THEN
+    v_current_value := 0;
   END IF;
 
   -- Calculate new balance
-  v_new_balance := v_current_balance + p_delta;
+  v_new_balance := v_current_value + p_delta;
 
   -- Prevent negative balances for withdrawals
   IF v_new_balance < 0 THEN
-    RAISE EXCEPTION 'Insufficient balance. Current: %, Requested withdrawal: %', v_current_balance, ABS(p_delta);
+    RAISE EXCEPTION 'Insufficient balance. Current: %, Requested withdrawal: %', v_current_value, ABS(p_delta);
   END IF;
 
   -- Determine effective transaction type
@@ -103,7 +103,7 @@ BEGIN
   INSERT INTO public.investor_positions (
     investor_id,
     fund_id,
-    current_balance,
+    current_value,
     cost_basis,
     created_at,
     updated_at
@@ -117,7 +117,7 @@ BEGIN
     now()
   )
   ON CONFLICT (investor_id, fund_id) DO UPDATE SET
-    current_balance = v_new_balance,
+    current_value = v_new_balance,
     cost_basis = public.investor_positions.cost_basis + CASE WHEN p_delta > 0 THEN p_delta ELSE 0 END,
     updated_at = now();
 
@@ -163,7 +163,7 @@ BEGIN
     p_investor_id::text || '_' || p_fund_id::text,
     'POSITION_ADJUSTMENT',
     p_admin_id,
-    jsonb_build_object('balance', v_current_balance),
+    jsonb_build_object('balance', v_current_value),
     jsonb_build_object('balance', v_new_balance, 'delta', p_delta, 'tx_id', v_tx_id),
     now()
   );
@@ -172,7 +172,7 @@ BEGIN
   RETURN QUERY SELECT 
     p_investor_id AS out_investor_id,
     p_fund_id AS out_fund_id,
-    v_current_balance AS out_previous_balance,
+    v_current_value AS out_previous_balance,
     v_new_balance AS out_new_balance;
 END;
 $$;

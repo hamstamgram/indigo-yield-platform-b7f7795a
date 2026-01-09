@@ -376,13 +376,16 @@ export class ExcelReportGenerator {
 
     // Data rows
     transactions.forEach((tx) => {
+      // Compute status display from is_voided
+      const statusDisplay = tx.is_voided ? "Voided" : "Active";
+
       const row = sheet.addRow([
         tx.date,
         tx.type,
         tx.assetCode,
         tx.amount,
         tx.value,
-        tx.status,
+        statusDisplay,
         tx.note || "",
         tx.txHash || "",
       ]);

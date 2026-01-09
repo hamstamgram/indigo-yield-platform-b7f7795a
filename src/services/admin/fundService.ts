@@ -13,7 +13,7 @@ export interface Fund {
   fund_class?: string;
   strategy?: string;
   inception_date: string;
-  status: "active" | "inactive" | "suspended";
+  status: "active" | "inactive" | "suspended" | "deprecated" | "pending"; // Matches DB enum fund_status
   mgmt_fee_bps: number;
   perf_fee_bps: number;
   high_water_mark: number;

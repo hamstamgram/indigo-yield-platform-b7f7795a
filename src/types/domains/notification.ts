@@ -64,14 +64,14 @@ export interface NotificationSettings {
 export interface PriceAlert {
   id: string;
   user_id: string;
-  asset_symbol: string;
+  asset_code: string; // Fixed: was asset_symbol, DB uses asset_code
   alert_type: "above" | "below" | "change_percent";
   threshold_value: number;
   current_value?: number;
   is_active: boolean;
   triggered_at?: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at?: string;
 }
 
 export interface NotificationPreference {

@@ -104,20 +104,6 @@ export interface InvestorRef {
   email: string;
 }
 
-/**
- * Admin-facing investor type with camelCase for UI compatibility
- * @deprecated Use Investor with mappers instead
- */
-export interface AdminInvestor {
-  id: string;
-  email: string;
-  name?: string;
-  totalPrincipal: string;
-  totalEarned: string;
-  status: "active" | "inactive" | "suspended";
-  createdAt: string;
-  lastActivity?: string;
-}
 
 /**
  * Convert database profile row to application Investor type

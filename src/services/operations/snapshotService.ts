@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface FundPeriodSnapshot {
   id: string;
@@ -48,11 +49,13 @@ export async function generatePeriodSnapshot(
   adminId?: string
 ): Promise<{ success: boolean; snapshotId?: string; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc("generate_fund_period_snapshot", {
-      p_fund_id: fundId,
-      p_period_id: periodId,
-      p_admin_id: adminId || null,
-    });
+    const { data, error } = await supabase
+      .rpc("generate_fund_period_snapshot", {
+        p_fund_id: fundId,
+        p_period_id: periodId,
+        p_admin_id: adminId || null,
+      })
+      .returns<Database["public"]["Functions"]["generate_fund_period_snapshot"]["Returns"]>();
 
     if (error) {
       console.error("Error generating snapshot:", error);
@@ -79,11 +82,13 @@ export async function lockPeriodSnapshot(
   adminId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc("lock_fund_period_snapshot", {
-      p_fund_id: fundId,
-      p_period_id: periodId,
-      p_admin_id: adminId,
-    });
+    const { data, error } = await supabase
+      .rpc("lock_fund_period_snapshot", {
+        p_fund_id: fundId,
+        p_period_id: periodId,
+        p_admin_id: adminId,
+      })
+      .returns<Database["public"]["Functions"]["lock_fund_period_snapshot"]["Returns"]>();
 
     if (error) {
       console.error("Error locking snapshot:", error);
@@ -105,10 +110,12 @@ export async function lockPeriodSnapshot(
  */
 export async function isPeriodLocked(fundId: string, periodId: string): Promise<boolean> {
   try {
-    const { data, error } = await supabase.rpc("is_period_locked", {
-      p_fund_id: fundId,
-      p_period_id: periodId,
-    });
+    const { data, error } = await supabase
+      .rpc("is_period_locked", {
+        p_fund_id: fundId,
+        p_period_id: periodId,
+      })
+      .returns<Database["public"]["Functions"]["is_period_locked"]["Returns"]>();
 
     if (error) {
       console.error("Error checking period lock:", error);
@@ -131,10 +138,12 @@ export async function getPeriodOwnership(
   periodId: string
 ): Promise<OwnershipData[] | null> {
   try {
-    const { data, error } = await supabase.rpc("get_period_ownership", {
-      p_fund_id: fundId,
-      p_period_id: periodId,
-    });
+    const { data, error } = await supabase
+      .rpc("get_period_ownership", {
+        p_fund_id: fundId,
+        p_period_id: periodId,
+      })
+      .returns<Database["public"]["Functions"]["get_period_ownership"]["Returns"]>();
 
     if (error) {
       console.error("Error getting period ownership:", error);
@@ -284,12 +293,14 @@ export async function unlockPeriodSnapshot(
   reason: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc("unlock_fund_period_snapshot", {
-      p_fund_id: fundId,
-      p_period_id: periodId,
-      p_admin_id: adminId,
-      p_reason: reason,
-    });
+    const { data, error } = await supabase
+      .rpc("unlock_fund_period_snapshot", {
+        p_fund_id: fundId,
+        p_period_id: periodId,
+        p_admin_id: adminId,
+        p_reason: reason,
+      })
+      .returns<Database["public"]["Functions"]["unlock_fund_period_snapshot"]["Returns"]>();
 
     if (error) {
       console.error("Error unlocking snapshot:", error);

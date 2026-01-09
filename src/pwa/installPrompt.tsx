@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 
-type BeforeInstallPromptEvent = Event & {
+interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string[] }>;
-};
+}
+
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
 
 const DISMISS_KEY = "pwaInstallDismissedUntil";
 const DISMISS_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -15,14 +21,14 @@ export function InstallPrompt() {
   useEffect(() => {
     const until = Number(localStorage.getItem(DISMISS_KEY) || 0);
     const now = Date.now();
-    const onBeforeInstall = (e: Event) => {
+    const onBeforeInstall = (e: BeforeInstallPromptEvent) => {
       e.preventDefault?.();
       if (now < until) return; // still dismissed
-      setDeferred(e as BeforeInstallPromptEvent);
+      setDeferred(e);
       setVisible(true);
     };
-    window.addEventListener("beforeinstallprompt", onBeforeInstall as any);
-    return () => window.removeEventListener("beforeinstallprompt", onBeforeInstall as any);
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    return () => window.removeEventListener("beforeinstallprompt", onBeforeInstall);
   }, []);
 
   if (!visible || !deferred) return null;

@@ -90,7 +90,7 @@ erDiagram
         tx_type type "deposit, withdrawal, interest, fee, adjustment"
         decimal amount
         string asset
-        date tx_date "Effective date"
+        date tx_date "Transaction date"
         date value_date
         uuid distribution_id FK "Links to yield distribution"
         string reference_id UK "Idempotency key"

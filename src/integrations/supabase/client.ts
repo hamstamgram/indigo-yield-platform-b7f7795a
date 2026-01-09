@@ -1,6 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
+// Type definition for Vite's import.meta.env
+interface ImportMetaEnv {
+  [key: string]: string | undefined;
+}
+
+interface ImportMeta {
+  env?: ImportMetaEnv;
+}
+
 // Helper to get env vars safely across Next.js and Vite environments
 const getEnv = (key: string, viteKey: string) => {
   // 1. Try standard Next.js process.env
@@ -10,10 +19,10 @@ const getEnv = (key: string, viteKey: string) => {
   // 2. Try Vite import.meta.env (if available)
   if (
     typeof import.meta !== "undefined" &&
-    (import.meta as any).env &&
-    (import.meta as any).env[viteKey]
+    (import.meta as ImportMeta).env &&
+    (import.meta as ImportMeta).env![viteKey]
   ) {
-    return (import.meta as any).env[viteKey];
+    return (import.meta as ImportMeta).env![viteKey];
   }
   // 3. Fallback to process.env for VITE_ keys (legacy)
   if (typeof process !== "undefined" && process.env[viteKey]) {

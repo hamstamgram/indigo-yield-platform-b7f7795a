@@ -1,14 +1,26 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import {
   generateMonthlyStatementHTML,
   generateStatementPreview,
 } from "@/lib/statements/monthlyEmailGenerator";
 
-// NOTE: These database tables don't exist yet - using any types for now
-type StatementPeriod = any; // Will need to be defined properly later
-export interface InvestorFundPerformance {
+// Database table types
+type StatementPeriod = Database["public"]["Tables"]["statement_periods"]["Row"];
+type StatementPeriodInsert = Database["public"]["Tables"]["statement_periods"]["Insert"];
+type StatementPeriodUpdate = Database["public"]["Tables"]["statement_periods"]["Update"];
+type GeneratedStatement = Database["public"]["Tables"]["generated_statements"]["Row"];
+type GeneratedStatementInsert = Database["public"]["Tables"]["generated_statements"]["Insert"];
+type InvestorFundPerformanceRow = Database["public"]["Tables"]["investor_fund_performance"]["Row"];
+type InvestorFundPerformanceInsert = Database["public"]["Tables"]["investor_fund_performance"]["Insert"];
+type StatementEmailDelivery = Database["public"]["Tables"]["statement_email_delivery"]["Row"];
+type StatementEmailDeliveryInsert = Database["public"]["Tables"]["statement_email_delivery"]["Insert"];
+type AuditLogInsert = Database["public"]["Tables"]["audit_log"]["Insert"];
+type PeriodSummaryRpcReturn = Database["public"]["Functions"]["get_statement_period_summary"]["Returns"][0];
+
+// Extended types for API responses
+export interface InvestorFundPerformance extends InvestorFundPerformanceRow {
   fund_name: string;
-  [key: string]: any; // Allow other properties
 }
 
 // API Response types
@@ -53,16 +65,16 @@ export interface ReportFreshness {
  */
 export async function fetchStatementPeriods(): Promise<StatementPeriodWithStats[]> {
   try {
-    const { data, error } = (await supabase
-      .from("statement_periods" as any)
+    const { data, error } = await supabase
+      .from("statement_periods")
       .select("*")
-      .order("period_end_date", { ascending: false })) as any;
+      .order("period_end_date", { ascending: false });
 
     if (error) throw error;
 
     // Fetch stats for each period
     const periodsWithStats = await Promise.all(
-      (data || []).map(async (period: any) => {
+      (data || []).map(async (period: StatementPeriod) => {
         const summary = await fetchPeriodSummary(period.id);
         return {
           ...period,
@@ -97,15 +109,17 @@ export async function createStatementPeriod(data: {
     } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const { data: period, error } = (await supabase
-      .from("statement_periods" as any)
-      .insert({
-        ...data,
-        created_by: user.id,
-        status: "DRAFT",
-      })
+    const insertData: StatementPeriodInsert = {
+      ...data,
+      created_by: user.id,
+      status: "DRAFT",
+    };
+
+    const { data: period, error } = await supabase
+      .from("statement_periods")
+      .insert(insertData)
       .select()
-      .single()) as any;
+      .single();
 
     if (error) throw error;
     return period;
@@ -122,8 +136,17 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
   try {
     // V2: Get all investors with fund performance data for this period
     // investor_id = profiles.id (One ID architecture)
-    const { data: performances, error: perfError } = (await supabase
-      .from("investor_fund_performance" as any)
+    type PerformanceWithProfile = InvestorFundPerformanceRow & {
+      profiles: {
+        id: string;
+        email: string | null;
+        first_name: string | null;
+        last_name: string | null;
+      } | null;
+    };
+
+    const { data: performances, error: perfError } = await supabase
+      .from("investor_fund_performance")
       .select(
         `
         investor_id,
@@ -136,7 +159,8 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
         )
       `
       )
-      .eq("period_id", periodId)) as any;
+      .eq("period_id", periodId)
+      .returns<PerformanceWithProfile[]>();
 
     if (perfError) throw perfError;
 
@@ -144,7 +168,7 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
     const investorMap = new Map<string, InvestorStatementSummary>();
 
     for (const perf of performances || []) {
-      const profile = perf.profiles as any;
+      const profile = perf.profiles;
       if (!profile) continue;
 
       const existing = investorMap.get(perf.investor_id);
@@ -166,10 +190,12 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
     }
 
     // Get generated statements with created_at for freshness
-    const { data: statements, error: stmtError } = (await supabase
-      .from("generated_statements" as any)
+    type StatementSummary = Pick<GeneratedStatement, "user_id" | "id" | "created_at">;
+    const { data: statements, error: stmtError } = await supabase
+      .from("generated_statements")
       .select("user_id, id, created_at")
-      .eq("period_id", periodId)) as any;
+      .eq("period_id", periodId)
+      .returns<StatementSummary[]>();
 
     if (stmtError) throw stmtError;
 
@@ -195,10 +221,12 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
     }
 
     // Get delivery status
-    const { data: deliveries, error: delError } = (await supabase
-      .from("statement_email_delivery" as any)
+    type DeliverySummary = Pick<StatementEmailDelivery, "user_id" | "status" | "sent_at" | "statement_id">;
+    const { data: deliveries, error: delError } = await supabase
+      .from("statement_email_delivery")
       .select("user_id, status, sent_at, statement_id")
-      .eq("period_id", periodId)) as any;
+      .eq("period_id", periodId)
+      .returns<DeliverySummary[]>();
 
     if (delError) throw delError;
 
@@ -220,13 +248,13 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
         investor.recipient_count = 0;
       }
 
-      const statement = statements?.find((s: any) => s.user_id === investor.id);
+      const statement = statements?.find((s) => s.user_id === investor.id);
       if (statement) {
         investor.statement_generated = true;
         investor.statement_id = statement.id;
         investor.generated_at = statement.created_at;
 
-        const delivery = deliveries?.find((d: any) => d.user_id === investor.id);
+        const delivery = deliveries?.find((d) => d.user_id === investor.id);
         if (delivery) {
           investor.statement_sent = delivery.status === "SENT";
           investor.delivery_status = delivery.status;
@@ -247,7 +275,7 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
  */
 export async function fetchPeriodSummary(periodId: string): Promise<PeriodSummary> {
   try {
-    const { data, error } = await supabase.rpc("get_statement_period_summary" as any, {
+    const { data, error } = await supabase.rpc("get_statement_period_summary", {
       p_period_id: periodId,
     });
 
@@ -285,11 +313,11 @@ export async function generateInvestorStatement(
     if (!user) throw new Error("Not authenticated");
 
     // Fetch period details
-    const { data: period, error: periodError } = (await supabase
-      .from("statement_periods" as any)
+    const { data: period, error: periodError } = await supabase
+      .from("statement_periods")
       .select("*")
       .eq("id", periodId)
-      .maybeSingle()) as any;
+      .maybeSingle();
 
     if (!period) throw new Error("Statement period not found");
 
@@ -309,11 +337,11 @@ export async function generateInvestorStatement(
     const investorFullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Investor";
 
     // V2: Fetch fund performance data using investor_id
-    const { data: performances, error: perfError } = (await supabase
-      .from("investor_fund_performance" as any)
+    const { data: performances, error: perfError } = await supabase
+      .from("investor_fund_performance")
       .select("*")
       .eq("period_id", periodId)
-      .eq("investor_id", userId)) as any;
+      .eq("investor_id", userId);
 
     if (perfError) throw perfError;
 
@@ -322,7 +350,7 @@ export async function generateInvestorStatement(
     }
 
     // Convert to format expected by HTML generator
-    const funds = performances.map((p: any) => ({
+    const funds = performances.map((p) => ({
       fund_name: p.fund_name,
       mtd_beginning_balance: p.mtd_beginning_balance?.toString() || "0",
       mtd_additions: p.mtd_additions?.toString() || "0",
@@ -359,17 +387,19 @@ export async function generateInvestorStatement(
     });
 
     // Save to database
-    const { data: statement, error: stmtError } = (await supabase
-      .from("generated_statements" as any)
-      .upsert({
-        period_id: periodId,
-        user_id: userId,
-        html_content: html,
-        generated_by: user.id,
-        fund_names: performances.map((p: any) => p.fund_name),
-      })
+    const insertData: GeneratedStatementInsert = {
+      period_id: periodId,
+      user_id: userId,
+      html_content: html,
+      generated_by: user.id,
+      fund_names: performances.map((p) => p.fund_name),
+    };
+
+    const { data: statement, error: stmtError } = await supabase
+      .from("generated_statements")
+      .upsert(insertData)
       .select()
-      .single()) as any;
+      .single();
 
     if (stmtError) throw stmtError;
 
@@ -421,12 +451,14 @@ export async function generateAllStatements(
 export async function previewInvestorStatement(periodId: string, userId: string): Promise<string> {
   try {
     // Check if statement exists
-    const { data: existing, error: existingError } = (await supabase
-      .from("generated_statements" as any)
+    type StatementPreview = Pick<GeneratedStatement, "html_content">;
+    const { data: existing, error: existingError } = await supabase
+      .from("generated_statements")
       .select("html_content")
       .eq("period_id", periodId)
       .eq("user_id", userId)
-      .maybeSingle()) as any;
+      .maybeSingle()
+      .returns<StatementPreview | null>();
 
     if (existingError) throw existingError;
 
@@ -450,12 +482,12 @@ export async function previewInvestorStatement(periodId: string, userId: string)
 export async function sendInvestorStatement(periodId: string, userId: string): Promise<{ recipients: string[] }> {
   try {
     // Get statement
-    const { data: statement, error: stmtError } = (await supabase
-      .from("generated_statements" as any)
+    const { data: statement, error: stmtError } = await supabase
+      .from("generated_statements")
       .select("*")
       .eq("period_id", periodId)
       .eq("user_id", userId)
-      .maybeSingle()) as any;
+      .maybeSingle();
 
     if (stmtError) throw stmtError;
     if (!statement) throw new Error("Statement not found. Please generate first.");
@@ -470,9 +502,7 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
     if (!profile) throw new Error("Profile not found");
     if (profileError) throw profileError;
 
-    // ========================================
-    // FIX: Fetch report recipients from investor_emails table
-    // ========================================
+    // Fetch report recipients from investor_emails table
     const { data: reportRecipients, error: recipientsError } = await supabase
       .from("investor_emails")
       .select("email, is_primary, verified")
@@ -503,11 +533,13 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
     }
 
     // Get period details
-    const { data: period, error: periodError } = (await supabase
-      .from("statement_periods" as any)
+    type PeriodName = Pick<StatementPeriod, "period_name">;
+    const { data: period, error: periodError } = await supabase
+      .from("statement_periods")
       .select("period_name")
       .eq("id", periodId)
-      .maybeSingle()) as any;
+      .maybeSingle()
+      .returns<PeriodName | null>();
 
     if (!period) throw new Error("Period not found");
     if (periodError) throw periodError;
@@ -515,18 +547,20 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
     const subject = `Your ${period.period_name} Investment Statement - Indigo Fund`;
 
     // Queue email for delivery (store primary recipient and full list in metadata)
-    const { data: deliveryRecord, error: deliveryError } = (await supabase
-      .from("statement_email_delivery" as any)
-      .insert({
-        statement_id: statement.id,
-        user_id: userId,
-        period_id: periodId,
-        recipient_email: recipientEmails[0], // Primary recipient
-        subject,
-        status: "SENDING",
-      })
+    const deliveryInsert: StatementEmailDeliveryInsert = {
+      statement_id: statement.id,
+      user_id: userId,
+      period_id: periodId,
+      recipient_email: recipientEmails[0], // Primary recipient
+      subject,
+      status: "SENDING",
+    };
+
+    const { data: deliveryRecord, error: deliveryError } = await supabase
+      .from("statement_email_delivery")
+      .insert(deliveryInsert)
       .select()
-      .single()) as any;
+      .single();
 
     if (deliveryError) throw deliveryError;
 
@@ -542,25 +576,29 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
 
     if (sendError) {
       // Update status to FAILED
+      const failedUpdate: Partial<StatementEmailDelivery> = {
+        status: "FAILED",
+        error_message: sendError.message || "Failed to invoke edge function",
+        failed_at: new Date().toISOString(),
+      };
+
       await supabase
-        .from("statement_email_delivery" as any)
-        .update({
-          status: "FAILED",
-          error_message: sendError.message || "Failed to invoke edge function",
-          failed_at: new Date().toISOString(),
-        })
+        .from("statement_email_delivery")
+        .update(failedUpdate)
         .eq("id", deliveryRecord.id);
 
       throw sendError;
     }
 
     // Update status to SENT
+    const sentUpdate: Partial<StatementEmailDelivery> = {
+      status: "SENT",
+      sent_at: new Date().toISOString(),
+    };
+
     await supabase
-      .from("statement_email_delivery" as any)
-      .update({
-        status: "SENT",
-        sent_at: new Date().toISOString(),
-      })
+      .from("statement_email_delivery")
+      .update(sentUpdate)
       .eq("id", deliveryRecord.id);
 
     return { recipients: recipientEmails };
@@ -576,21 +614,25 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
 export async function getReportFreshness(periodId: string, userId: string): Promise<ReportFreshness> {
   try {
     // Get generated_statements.created_at
-    const { data: statement } = (await supabase
-      .from("generated_statements" as any)
+    type StatementTimestamp = Pick<GeneratedStatement, "created_at">;
+    const { data: statement } = await supabase
+      .from("generated_statements")
       .select("created_at")
       .eq("period_id", periodId)
       .eq("user_id", userId)
-      .maybeSingle()) as any;
+      .maybeSingle()
+      .returns<StatementTimestamp | null>();
 
     // Get MAX(updated_at) from investor_fund_performance
-    const { data: performances } = (await supabase
-      .from("investor_fund_performance" as any)
+    type PerformanceTimestamp = Pick<InvestorFundPerformanceRow, "updated_at">;
+    const { data: performances } = await supabase
+      .from("investor_fund_performance")
       .select("updated_at")
       .eq("period_id", periodId)
       .eq("investor_id", userId)
       .order("updated_at", { ascending: false })
-      .limit(1)) as any;
+      .limit(1)
+      .returns<PerformanceTimestamp[]>();
 
     const generatedAt = statement?.created_at || null;
     const dataUpdatedAt = performances?.[0]?.updated_at || null;
@@ -652,25 +694,29 @@ export async function finalizePeriod(periodId: string): Promise<void> {
     if (!user) throw new Error("Not authenticated");
 
     // Direct update instead of RPC
+    const updateData: StatementPeriodUpdate = {
+      status: "finalized",
+      finalized_at: new Date().toISOString(),
+      finalized_by: user.id,
+    };
+
     const { error: updateError } = await supabase
       .from("statement_periods")
-      .update({
-        status: "finalized",
-        finalized_at: new Date().toISOString(),
-        finalized_by: user.id,
-      } as any)
+      .update(updateData)
       .eq("id", periodId);
 
     if (updateError) throw updateError;
 
     // Log audit event
-    await supabase.from("audit_log").insert({
+    const auditData: AuditLogInsert = {
       action: "FINALIZE_PERIOD",
       entity: "statement_periods",
       entity_id: periodId,
       actor_user: user.id,
       new_values: { status: "finalized" },
-    } as any);
+    };
+
+    await supabase.from("audit_log").insert(auditData);
 
   } catch (error) {
     console.error("Error finalizing period:", error);
@@ -689,19 +735,21 @@ export async function saveInvestorFundPerformance(
 ): Promise<InvestorFundPerformance> {
   try {
     // V2 Architecture: investor_id = profiles.id (One ID)
-    const { data: performance, error } = (await supabase
-      .from("investor_fund_performance" as any)
-      .upsert({
-        period_id: periodId,
-        investor_id: userId,
-        fund_name: fundName,
-        ...data,
-      })
+    const upsertData: InvestorFundPerformanceInsert = {
+      period_id: periodId,
+      investor_id: userId,
+      fund_name: fundName,
+      ...data,
+    };
+
+    const { data: performance, error } = await supabase
+      .from("investor_fund_performance")
+      .upsert(upsertData)
       .select()
-      .single()) as any;
+      .single();
 
     if (error) throw error;
-    return performance;
+    return performance as InvestorFundPerformance;
   } catch (error) {
     console.error("Error saving investor fund performance:", error);
     throw new Error("Failed to save investor fund performance");
@@ -717,15 +765,14 @@ export async function fetchInvestorFundPerformance(
 ): Promise<InvestorFundPerformance[]> {
   try {
     // V2 Architecture: investor_id = profiles.id (One ID)
-    const result = await (supabase as any)
+    const { data, error } = await supabase
       .from("investor_fund_performance")
       .select("*")
       .eq("period_id", periodId)
       .eq("investor_id", userId);
 
-    const { data, error } = result as { data: InvestorFundPerformance[] | null; error: any };
     if (error) throw error;
-    return data || [];
+    return (data || []) as InvestorFundPerformance[];
   } catch (error) {
     console.error("Error fetching investor fund performance:", error);
     throw new Error("Failed to fetch investor fund performance");

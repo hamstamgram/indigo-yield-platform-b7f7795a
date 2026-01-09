@@ -437,14 +437,19 @@ export class PDFReportGenerator {
     // Limit to most recent transactions for PDF (avoid excessive pages)
     const transactions = data.transactions.slice(0, 100);
 
-    const tableData = transactions.map((t) => [
-      t.date,
-      t.type,
-      t.assetCode,
-      this.formatNumber(t.amount, 8),
-      this.formatCurrency(t.value, t.assetCode),
-      t.status,
-    ]);
+    const tableData = transactions.map((t) => {
+      // Compute status display from is_voided
+      const statusDisplay = t.is_voided ? "Voided" : "Active";
+
+      return [
+        t.date,
+        t.type,
+        t.assetCode,
+        this.formatNumber(t.amount, 8),
+        this.formatCurrency(t.value, t.assetCode),
+        statusDisplay,
+      ];
+    });
 
     (this.doc as any).autoTable({
       startY: this.currentY,

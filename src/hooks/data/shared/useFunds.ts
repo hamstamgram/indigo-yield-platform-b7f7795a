@@ -9,7 +9,7 @@ import { useAuth } from "@/services/auth";
 import { fundService, auditLogService } from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
-type FundStatus = "active" | "deprecated" | "inactive" | "suspended";
+type FundStatus = "active" | "inactive" | "suspended" | "deprecated" | "pending"; // Matches DB enum fund_status
 
 export interface Fund {
   id: string;
@@ -51,8 +51,8 @@ export function useFunds(activeOnly = false) {
     queryKey: activeOnly ? LOCAL_QUERY_KEYS.activeFunds : LOCAL_QUERY_KEYS.funds,
     queryFn: async (): Promise<Fund[]> => {
       const funds = await fundService.getAllFunds();
-      const result = activeOnly ? funds.filter((f: any) => f.status === "active") : funds;
-      return result as unknown as Fund[];
+      const result = activeOnly ? funds.filter((f) => f.status === "active") : funds;
+      return result as Fund[];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -159,7 +159,7 @@ export function useUpdateFund() {
       fundId: string;
       updates: FundUpdateInput;
     }) => {
-      const data = await fundService.updateFund(fundId, updates as any);
+      const data = await fundService.updateFund(fundId, updates);
 
       // Audit log
       if (user?.id) {
@@ -168,7 +168,7 @@ export function useUpdateFund() {
           action: "UPDATE_FUND",
           entity: "fund",
           entityId: fundId,
-          newValues: updates as any,
+          newValues: updates,
         });
       }
 

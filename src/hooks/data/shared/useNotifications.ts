@@ -6,6 +6,7 @@ import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { useToast } from "@/hooks";
 import { notificationService } from "@/services/shared";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 export function useNotifications(userId?: string) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -45,8 +46,7 @@ export function useNotifications(userId?: string) {
     if (!userId) return;
 
     try {
-      // Use type assertion since notification_settings table may not exist in generated types
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("notification_settings")
         .select("*")
         .eq("user_id", userId)
@@ -74,7 +74,7 @@ export function useNotifications(userId?: string) {
           email_frequency: "realtime",
         };
 
-        const { data: newData, error: createError } = await (supabase as any)
+        const { data: newData, error: createError } = await supabase
           .from("notification_settings")
           .insert(defaultSettings)
           .select()
@@ -143,7 +143,7 @@ export function useNotifications(userId?: string) {
       if (!userId) return;
 
       try {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("notification_settings")
           .update(updates)
           .eq("user_id", userId);
@@ -187,7 +187,7 @@ export function useNotifications(userId?: string) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const newNotification = toNotification(payload.new as any);
+          const newNotification = toNotification(payload.new as Database['public']['Tables']['notifications']['Row']);
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
 
@@ -209,7 +209,7 @@ export function useNotifications(userId?: string) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const updatedNotification = toNotification(payload.new as any);
+          const updatedNotification = toNotification(payload.new as Database['public']['Tables']['notifications']['Row']);
           setNotifications((prev) =>
             prev.map((n) => (n.id === updatedNotification.id ? updatedNotification : n))
           );
@@ -245,7 +245,7 @@ export function usePriceAlerts(userId?: string) {
     if (!userId) return;
 
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("price_alerts")
         .select("*")
         .eq("user_id", userId)
@@ -269,7 +269,7 @@ export function usePriceAlerts(userId?: string) {
       if (!userId) return;
 
       try {
-        const { data, error } = await (supabase as any)
+        const { data, error } = await supabase
           .from("price_alerts")
           .insert({ ...alert, user_id: userId })
           .select()
@@ -280,7 +280,7 @@ export function usePriceAlerts(userId?: string) {
         setAlerts((prev) => [data as unknown as PriceAlert, ...prev]);
         toast({
           title: "Alert created",
-          description: `Price alert for ${alert.asset_symbol} set successfully.`,
+          description: `Price alert for ${alert.asset_code} set successfully.`,
         });
       } catch (error) {
         console.error("Error creating price alert:", error);
@@ -298,7 +298,7 @@ export function usePriceAlerts(userId?: string) {
   const updateAlert = useCallback(
     async (alertId: string, updates: Partial<PriceAlert>) => {
       try {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("price_alerts")
           .update(updates)
           .eq("id", alertId);
@@ -329,7 +329,7 @@ export function usePriceAlerts(userId?: string) {
   const deleteAlert = useCallback(
     async (alertId: string) => {
       try {
-        const { error } = await (supabase as any).from("price_alerts").delete().eq("id", alertId);
+        const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
 
         if (error) throw error;
 

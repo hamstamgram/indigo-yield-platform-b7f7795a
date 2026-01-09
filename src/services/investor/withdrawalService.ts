@@ -1,9 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Withdrawal, 
-  WithdrawalFilters, 
-  WithdrawalStats, 
-  PaginatedWithdrawals, 
+import {
+  Withdrawal,
+  WithdrawalFilters,
+  WithdrawalStats,
+  PaginatedWithdrawals,
   WithdrawalAuditLog,
   InvestorOption,
   WithdrawalInvestorPosition,
@@ -13,6 +13,7 @@ import {
   RouteToFeesParams
 } from "@/types/domains";
 import { generateCorrelationId, createCorrelatedLogger } from "@/lib/correlationId";
+import type { Database } from "@/integrations/supabase/types";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -247,11 +248,13 @@ export const withdrawalService = {
     
     log.info('Approving withdrawal', { withdrawalId, processedAmount });
     
-    const { error } = await supabase.rpc('approve_withdrawal', {
-      p_request_id: withdrawalId,
-      p_approved_amount: processedAmount,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-    });
+    const { error } = await supabase
+      .rpc('approve_withdrawal', {
+        p_request_id: withdrawalId,
+        p_approved_amount: processedAmount,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
+      })
+      .returns<Database["public"]["Functions"]["approve_withdrawal"]["Returns"]>();
 
     if (error) {
       log.error('Error approving withdrawal', error);
@@ -279,11 +282,13 @@ export const withdrawalService = {
     
     log.info('Rejecting withdrawal', { withdrawalId, reason });
     
-    const { error } = await supabase.rpc('reject_withdrawal', {
-      p_request_id: withdrawalId,
-      p_reason: reason,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-    });
+    const { error } = await supabase
+      .rpc('reject_withdrawal', {
+        p_request_id: withdrawalId,
+        p_reason: reason,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
+      })
+      .returns<Database["public"]["Functions"]["reject_withdrawal"]["Returns"]>();
 
     if (error) {
       log.error('Error rejecting withdrawal', error);
@@ -311,13 +316,15 @@ export const withdrawalService = {
     
     log.info('Starting withdrawal processing', { withdrawalId, txHash });
     
-    const { error } = await supabase.rpc('start_processing_withdrawal', {
-      p_request_id: withdrawalId,
-      p_processed_amount: null,
-      p_tx_hash: txHash || null,
-      p_settlement_date: null,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-    });
+    const { error } = await supabase
+      .rpc('start_processing_withdrawal', {
+        p_request_id: withdrawalId,
+        p_processed_amount: null,
+        p_tx_hash: txHash || null,
+        p_settlement_date: null,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
+      })
+      .returns<Database["public"]["Functions"]["start_processing_withdrawal"]["Returns"]>();
 
     if (error) {
       log.error('Error marking withdrawal as processing', error);
@@ -348,12 +355,14 @@ export const withdrawalService = {
     
     log.info('Completing withdrawal', { withdrawalId, txHash });
     
-    const { error } = await supabase.rpc('complete_withdrawal', {
-      p_request_id: withdrawalId,
-      p_closing_aum: parseFloat(closingAum),
-      p_transaction_hash: txHash || null,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-    });
+    const { error } = await supabase
+      .rpc('complete_withdrawal', {
+        p_request_id: withdrawalId,
+        p_closing_aum: parseFloat(closingAum),
+        p_transaction_hash: txHash || null,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
+      })
+      .returns<Database["public"]["Functions"]["complete_withdrawal"]["Returns"]>();
 
     if (error) {
       log.error('Error completing withdrawal', error);
@@ -383,11 +392,13 @@ export const withdrawalService = {
     
     log.info('Cancelling withdrawal', { withdrawalId, reason });
     
-    const { error } = await supabase.rpc('cancel_withdrawal_by_admin', {
-      p_request_id: withdrawalId,
-      p_reason: reason,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-    });
+    const { error } = await supabase
+      .rpc('cancel_withdrawal_by_admin', {
+        p_request_id: withdrawalId,
+        p_reason: reason,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
+      })
+      .returns<Database["public"]["Functions"]["cancel_withdrawal_by_admin"]["Returns"]>();
 
     if (error) {
       log.error('Error cancelling withdrawal', error);
@@ -456,13 +467,15 @@ export const withdrawalService = {
    * Create a new withdrawal request via RPC
    */
   async createWithdrawal(params: CreateWithdrawalParams): Promise<void> {
-    const { error } = await supabase.rpc("create_withdrawal_request", {
-      p_investor_id: params.investorId,
-      p_fund_id: params.fundId,
-      p_amount: params.amount,
-      p_type: params.withdrawalType,
-      p_notes: params.notes || null,
-    });
+    const { error } = await supabase
+      .rpc("create_withdrawal_request", {
+        p_investor_id: params.investorId,
+        p_fund_id: params.fundId,
+        p_amount: params.amount,
+        p_type: params.withdrawalType,
+        p_notes: params.notes || null,
+      })
+      .returns<Database["public"]["Functions"]["create_withdrawal_request"]["Returns"]>();
 
     if (error) throw error;
   },
@@ -471,10 +484,12 @@ export const withdrawalService = {
    * Route a withdrawal to INDIGO FEES account via RPC
    */
   async routeToFees(params: RouteToFeesParams): Promise<void> {
-    const { error } = await supabase.rpc("route_withdrawal_to_fees", {
-      p_request_id: params.withdrawalId,
-      p_reason: params.reason || "Routed to INDIGO FEES",
-    });
+    const { error } = await supabase
+      .rpc("route_withdrawal_to_fees", {
+        p_request_id: params.withdrawalId,
+        p_reason: params.reason || "Routed to INDIGO FEES",
+      })
+      .returns<Database["public"]["Functions"]["route_withdrawal_to_fees"]["Returns"]>();
 
     if (error) throw error;
   },
@@ -483,13 +498,15 @@ export const withdrawalService = {
    * Update an existing withdrawal request via RPC
    */
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
-    const { error } = await supabase.rpc("update_withdrawal", {
-      p_withdrawal_id: params.withdrawalId,
-      p_requested_amount: params.requestedAmount,
-      p_withdrawal_type: params.withdrawalType,
-      p_notes: params.notes || null,
-      p_reason: params.reason,
-    });
+    const { error } = await supabase
+      .rpc("update_withdrawal", {
+        p_withdrawal_id: params.withdrawalId,
+        p_requested_amount: params.requestedAmount,
+        p_withdrawal_type: params.withdrawalType,
+        p_notes: params.notes || null,
+        p_reason: params.reason,
+      })
+      .returns<Database["public"]["Functions"]["update_withdrawal"]["Returns"]>();
 
     if (error) throw error;
   },
@@ -498,11 +515,13 @@ export const withdrawalService = {
    * Delete or cancel a withdrawal request via RPC
    */
   async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
-    const { error } = await supabase.rpc("delete_withdrawal", {
-      p_withdrawal_id: params.withdrawalId,
-      p_reason: params.reason,
-      p_hard_delete: params.hardDelete || false,
-    });
+    const { error } = await supabase
+      .rpc("delete_withdrawal", {
+        p_withdrawal_id: params.withdrawalId,
+        p_reason: params.reason,
+        p_hard_delete: params.hardDelete || false,
+      })
+      .returns<Database["public"]["Functions"]["delete_withdrawal"]["Returns"]>();
 
     if (error) throw error;
   },
@@ -607,16 +626,18 @@ export const withdrawalService = {
     ].filter(Boolean).join('\n');
 
     // Create withdrawal via RPC
-    const { data: requestId, error: rpcError } = await supabase.rpc(
-      "create_withdrawal_request",
-      {
-        p_investor_id: investorId,
-        p_fund_id: params.fundId,
-        p_amount: params.amount,
-        p_type: "partial",
-        p_notes: combinedNotes || null,
-      }
-    );
+    const { data: requestId, error: rpcError } = await supabase
+      .rpc(
+        "create_withdrawal_request",
+        {
+          p_investor_id: investorId,
+          p_fund_id: params.fundId,
+          p_amount: params.amount,
+          p_type: "partial",
+          p_notes: combinedNotes || null,
+        }
+      )
+      .returns<Database["public"]["Functions"]["create_withdrawal_request"]["Returns"]>();
 
     if (rpcError) throw rpcError;
 

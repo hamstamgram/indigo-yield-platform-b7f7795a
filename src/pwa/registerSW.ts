@@ -1,5 +1,10 @@
 // Service Worker Registration for Indigo Yield Platform
 
+// iOS-specific Navigator extension (not in standard TypeScript types)
+interface IOSNavigator extends Navigator {
+  standalone?: boolean;
+}
+
 export interface ServiceWorkerRegistrationResult {
   registration: ServiceWorkerRegistration | null;
   error: Error | null;
@@ -143,8 +148,8 @@ export function isAppInstalled(): boolean {
   // Check for display mode
   const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
 
-  // Check for iOS standalone mode
-  const isIOSStandalone = (window.navigator as any).standalone === true;
+  // Check for iOS standalone mode (Safari-specific property)
+  const isIOSStandalone = (window.navigator as IOSNavigator).standalone === true;
 
   return isStandalone || isIOSStandalone;
 }

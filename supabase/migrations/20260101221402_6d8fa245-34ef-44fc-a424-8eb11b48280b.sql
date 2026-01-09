@@ -53,7 +53,7 @@ BEGIN
   -- Update investor position (reverse the original transaction effect)
   UPDATE investor_positions
   SET 
-    current_balance = current_balance + v_delta,
+    current_value = current_value + v_delta,
     updated_at = NOW()
   WHERE investor_id = v_tx.investor_id 
     AND fund_id = v_tx.fund_id;

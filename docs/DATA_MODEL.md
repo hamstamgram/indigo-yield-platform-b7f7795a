@@ -133,7 +133,7 @@ investor_positions.current_value = SUM(transactions_v2.amount)
 | fund_id | UUID | Yes | FK to funds |
 | type | transaction_type | No | 'deposit', 'withdrawal', 'interest', 'fee', etc. |
 | amount | NUMERIC | No | Transaction amount (signed) |
-| effective_date | DATE | No | When transaction takes effect |
+| tx_date | DATE | No | When transaction takes effect |
 | distribution_id | UUID | Yes | FK to yield_distributions |
 | reference_id | TEXT | Yes | Idempotency key (unique when not null) |
 | purpose | aum_purpose | Yes | 'transaction' or 'reporting' |

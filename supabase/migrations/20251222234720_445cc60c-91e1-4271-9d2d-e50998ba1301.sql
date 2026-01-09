@@ -84,7 +84,7 @@ BEGIN
   FOR v_investor IN
     SELECT 
       ip.investor_id,
-      ip.current_balance as position_balance,
+      ip.current_value as position_balance,
       p.first_name,
       p.last_name,
       p.ib_parent_id,
@@ -103,7 +103,7 @@ BEGIN
     FROM investor_positions ip
     JOIN profiles p ON p.id = ip.investor_id
     WHERE ip.fund_id = p_fund_id
-      AND ip.current_balance > 0
+      AND ip.current_value > 0
       AND p.is_active = true
   LOOP
     -- Calculate investor's share of the yield
@@ -341,7 +341,7 @@ BEGIN
 
     -- Update investor position with net yield
     UPDATE investor_positions
-    SET current_balance = current_balance + (v_investor->>'net_yield')::numeric,
+    SET current_value = current_value + (v_investor->>'net_yield')::numeric,
         updated_at = now()
     WHERE investor_id = v_investor_id AND fund_id = p_fund_id;
   END LOOP;

@@ -5,6 +5,22 @@
 
 import { lazy, ComponentType } from "react";
 
+// Google Analytics gtag function type definition
+declare global {
+  interface Window {
+    gtag?: (
+      command: 'event' | 'config' | 'set',
+      targetId: string,
+      params?: Record<string, unknown>
+    ) => void;
+  }
+}
+
+// Extend React's LazyExoticComponent to include prefetch method
+type LazyComponentWithPrefetch<T extends ComponentType<any>> = React.LazyExoticComponent<T> & {
+  prefetch?: () => void;
+};
+
 /**
  * Enhanced lazy loading with prefetch support
  * @param factory - Dynamic import function
@@ -13,8 +29,8 @@ import { lazy, ComponentType } from "react";
 export function lazyWithPrefetch<T extends ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
   prefetch = true
-) {
-  const LazyComponent = lazy(factory);
+): LazyComponentWithPrefetch<T> {
+  const LazyComponent = lazy(factory) as LazyComponentWithPrefetch<T>;
 
   if (prefetch && typeof window !== "undefined") {
     // Prefetch on mouse over for better UX
@@ -22,7 +38,7 @@ export function lazyWithPrefetch<T extends ComponentType<any>>(
       factory();
     };
 
-    (LazyComponent as any).prefetch = prefetchComponent;
+    LazyComponent.prefetch = prefetchComponent;
   }
 
   return LazyComponent;
@@ -260,8 +276,8 @@ export function reportWebVitals(metric: {
   // In production, send to analytics
   if (process.env.NODE_ENV === "production" && typeof window !== "undefined") {
     // Send to analytics service
-    if ((window as any).gtag) {
-      (window as any).gtag("event", metric.name, {
+    if (window.gtag) {
+      window.gtag("event", metric.name, {
         event_category: metric.label === "web-vital" ? "Web Vitals" : "Custom",
         value: Math.round(metric.name === "CLS" ? metric.value * 1000 : metric.value),
         event_label: metric.id,

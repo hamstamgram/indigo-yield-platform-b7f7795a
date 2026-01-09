@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCallback } from "react";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { LedgerTransaction } from "@/types/domains/transaction";
+import type { Database } from "@/integrations/supabase/types";
 
 // Re-export for backwards compatibility
 export type Transaction = LedgerTransaction;
@@ -56,7 +57,7 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
 
       // Apply filters
       if (filters.txType && filters.txType !== "all") {
-        dbQuery = dbQuery.eq("type", filters.txType as any);
+        dbQuery = dbQuery.eq("type", filters.txType as Database["public"]["Enums"]["tx_type"]);
       }
 
       if (filters.txPurpose && filters.txPurpose !== "all") {

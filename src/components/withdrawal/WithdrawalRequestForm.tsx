@@ -117,7 +117,7 @@ export function WithdrawalRequestForm({
             <Label htmlFor="assetCode">Asset</Label>
             <Select
               value={selectedAsset}
-              onValueChange={(value) => setValue("assetCode", value as any)}
+              onValueChange={(value) => setValue("assetCode", value as WithdrawalRequestInput["assetCode"])}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select asset to withdraw" />
@@ -203,7 +203,7 @@ export function WithdrawalRequestForm({
             <Label htmlFor="reason">Reason for Withdrawal</Label>
             <Select
               value={watch("reason")}
-              onValueChange={(value) => setValue("reason", value as any)}
+              onValueChange={(value) => setValue("reason", value as WithdrawalRequestInput["reason"])}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select reason" />
