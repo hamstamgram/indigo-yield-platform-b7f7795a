@@ -7,7 +7,7 @@
 // Withdrawal Types
 // ============================================================================
 
-export type WithdrawalStatus = "pending" | "approved" | "rejected" | "completed" | "processing";
+export type WithdrawalStatus = "pending" | "approved" | "rejected" | "completed" | "processing" | "cancelled";
 
 export interface WithdrawalRequestProfile {
   first_name?: string | null;
@@ -29,8 +29,7 @@ export interface WithdrawalRequest {
   withdrawal_type: string;
   fund_class: string;
   notes?: string | null;
-  created_at?: string;
-  request_date?: string;
+  request_date: string;
   created_by?: string | null;
   profile?: WithdrawalRequestProfile;
   funds: WithdrawalRequestFund;

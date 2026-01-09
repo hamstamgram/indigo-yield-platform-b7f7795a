@@ -7,8 +7,8 @@
 import type { WithdrawalStatus } from "./requests";
 export type { WithdrawalStatus };
 
-// Extended status with cancelled for full workflow
-export type WithdrawalFullStatus = WithdrawalStatus | "cancelled";
+// Full status is now the same as WithdrawalStatus (cancelled included in base type)
+export type WithdrawalFullStatus = WithdrawalStatus;
 
 export interface Withdrawal {
   id: string;
@@ -30,7 +30,6 @@ export interface Withdrawal {
   approved_by: string | null;
   rejected_by: string | null;
   cancelled_by: string | null;
-  created_at?: string | null;
   updated_at?: string | null;
   // Joined data
   investor_name?: string;

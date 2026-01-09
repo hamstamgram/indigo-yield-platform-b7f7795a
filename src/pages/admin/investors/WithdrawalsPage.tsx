@@ -20,7 +20,7 @@ interface WithdrawalRequest {
   processed_amount?: number;
   status: string;
   withdrawal_type: string;
-  created_at: string;
+  request_date: string;
   approved_at?: string;
   processed_at?: string;
   rejected_at?: string;
@@ -278,7 +278,7 @@ const WithdrawalsPage = () => {
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {withdrawal.withdrawal_type} •{" "}
-                          {new Date(withdrawal.created_at).toLocaleDateString()}
+                          {new Date(withdrawal.request_date).toLocaleDateString()}
                         </div>
                       </div>
                     </div>

@@ -113,13 +113,13 @@ export const investorPortfolioService = {
         )
       `)
       .eq("investor_id", investorId)
-      .order("created_at", { ascending: false });
+      .order("request_date", { ascending: false });
 
     if (error) throw error;
 
     return (data || []).map((item: any) => ({
       ...item,
-      created_at: item.created_at || new Date().toISOString(),
+      request_date: item.request_date || new Date().toISOString(),
       funds: item.funds || {
         name: "Unknown Fund",
         code: "N/A",
