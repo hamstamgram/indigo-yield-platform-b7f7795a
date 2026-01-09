@@ -7,6 +7,9 @@ import { Database } from "@/integrations/supabase/types";
 
 type SupabaseProfile = Database["public"]["Tables"]["profiles"]["Row"];
 
+// Status matches database CHECK constraint on profiles.status
+export type InvestorProfileStatus = "active" | "pending" | "suspended" | "archived" | "inactive";
+
 export interface InvestorProfile {
   id: string;
   email: string;
@@ -18,7 +21,7 @@ export interface InvestorProfile {
   avatar_url: string | null;
   totp_enabled: boolean;
   totp_verified: boolean;
-  status: "active" | "pending" | "closed";
+  status: InvestorProfileStatus;
   created_at: string;
   updated_at: string;
 }
@@ -38,7 +41,7 @@ export function toInvestorProfile(row: SupabaseProfile): InvestorProfile {
     avatar_url: row.avatar_url,
     totp_enabled: row.totp_enabled ?? false,
     totp_verified: row.totp_verified ?? false,
-    status: (row.status as "active" | "pending" | "closed") ?? "pending",
+    status: (row.status as InvestorProfileStatus) ?? "pending",
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
