@@ -8,6 +8,7 @@ export { CorrectionConfirmDialog } from "./CorrectionConfirmDialog";
 export { EditYieldDialog } from "./EditYieldDialog";
 export { VoidYieldDialog } from "./VoidYieldDialog";
 export { OpenPeriodDialog } from "./OpenPeriodDialog";
+export { UnlockPeriodDialog } from "./UnlockPeriodDialog";
 
 // Components
 export { YieldActionsColumn } from "./YieldActionsColumn";

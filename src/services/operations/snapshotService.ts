@@ -266,16 +266,50 @@ export async function getLockedPeriods(fundId: string): Promise<string[]> {
       return [];
     }
 
-    return (data || []).map((r) => r.period_id);
+  return (data || []).map((r) => r.period_id);
   } catch (error) {
     console.error("Fetch locked periods failed:", error);
     return [];
   }
 }
 
+/**
+ * Unlock a period snapshot (Super Admin only)
+ * Allows yield modifications after a period was locked
+ */
+export async function unlockPeriodSnapshot(
+  fundId: string,
+  periodId: string,
+  adminId: string,
+  reason: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc("unlock_fund_period_snapshot", {
+      p_fund_id: fundId,
+      p_period_id: periodId,
+      p_admin_id: adminId,
+      p_reason: reason,
+    });
+
+    if (error) {
+      console.error("Error unlocking snapshot:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: data === true };
+  } catch (error) {
+    console.error("Snapshot unlock failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
 export const snapshotService = {
   generatePeriodSnapshot,
   lockPeriodSnapshot,
+  unlockPeriodSnapshot,
   isPeriodLocked,
   getPeriodOwnership,
   getFundPeriodSnapshot,
