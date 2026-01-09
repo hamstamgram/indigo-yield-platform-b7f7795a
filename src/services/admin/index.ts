@@ -2,8 +2,9 @@
  * Admin Services - Re-exports all admin-related services
  */
 
-// Fund management
-export * from "./fundService";
+// Fund management (low-level functions - prefer shared/fundService for most uses)
+export { listFunds, getFund, createFund, updateFund, getFundKPIs, getLatestNav, getFundPerformance, checkFundUsage } from "./fundService";
+export type { DailyNav, FundKPI } from "./fundService";
 
 // Admin operations
 export { adminServiceV2 } from "./adminService";

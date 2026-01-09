@@ -2,13 +2,13 @@
  * Services - Unified barrel export for all service modules
  * 
  * Import services by domain:
- * import { adminServiceV2 } from '@/services/admin';
+ * import { fundService } from '@/services/shared';
  * import { depositService } from '@/services/investor';
  * import { operationsService } from '@/services/operations';
  * import { auditLogService } from '@/services/shared';
  * 
  * Or import everything from here:
- * import { adminServiceV2, depositService } from '@/services';
+ * import { fundService, depositService } from '@/services';
  */
 
 // ============================================================================
@@ -105,7 +105,7 @@ export { operationsService } from "./operations";
 export type { OperationsMetrics, PendingBreakdown } from "./operations";
 
 // ============================================================================
-// SHARED SERVICES
+// SHARED SERVICES (preferred for most uses)
 // ============================================================================
 export * from "./shared";
 
