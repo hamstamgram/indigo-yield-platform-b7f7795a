@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 
-import { TOTPService } from "@/services/auth/mfaService";
+import { enrollMFA, verifyTOTPSetup } from "@/services/auth/mfaService";
 import { useAuth } from "@/services/auth";
 
 interface TOTPSetupProps {
@@ -83,10 +83,11 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
 
     try {
       // Generate secret and initialize TOTP
-      const result = await TOTPService.enroll();
-      if (!result || !result.secret) {
-        throw new Error("Failed to generate TOTP secret");
+      const enrollResult = await enrollMFA();
+      if (!enrollResult.success || !enrollResult.data?.secret) {
+        throw new Error(enrollResult.error?.message || "Failed to generate TOTP secret");
       }
+      const result = enrollResult.data;
       setFactorId(result.id);
 
       // Use the QR code provided by Supabase
@@ -127,7 +128,7 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
 
     try {
       // Complete TOTP setup with verification
-      await TOTPService.verifySetup(factorId, verificationCode);
+      await verifyTOTPSetup(factorId, verificationCode);
 
       updateStepCompletion(2, true);
       finishSetup();
