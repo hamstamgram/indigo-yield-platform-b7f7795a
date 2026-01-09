@@ -7,7 +7,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { investorDataExportService } from "@/services/shared";
 
 export default function PrivacyTab() {

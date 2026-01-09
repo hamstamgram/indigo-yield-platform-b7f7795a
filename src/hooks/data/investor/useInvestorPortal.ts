@@ -6,7 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import {
   getInvestorTransactionAssets,
   getInvestorTransactionsList,

@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo } from "react";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { PageHeader } from "@/components/layout";
 import {
   Card,

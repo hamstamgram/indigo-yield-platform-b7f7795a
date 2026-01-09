@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fundDailyAumService } from "@/services/shared/fundDailyAumService";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 

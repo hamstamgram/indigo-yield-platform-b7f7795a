@@ -10,7 +10,7 @@ import {
   applyYieldDistribution,
   type YieldCalculationInput,
 } from "@/services";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 

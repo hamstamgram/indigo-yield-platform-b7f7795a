@@ -23,7 +23,7 @@ import {
 import ProfileTab from "@/components/account/ProfileTab";
 import SecurityTab from "@/components/account/SecurityTab";
 import NotificationsTab from "@/components/account/NotificationsTab";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import {
   useInvestorProfileData,
   useUserPreferences,

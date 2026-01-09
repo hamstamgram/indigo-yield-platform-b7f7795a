@@ -26,7 +26,7 @@ import {
   Calculator,
 } from "lucide-react";
 import { useKeyboardShortcuts, SHORTCUTS, formatShortcut } from "@/hooks";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { useCommandPaletteInvestors } from "@/hooks/data/admin";
 
 interface CommandPaletteProps {

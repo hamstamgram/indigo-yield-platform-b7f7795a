@@ -4,7 +4,7 @@ import { useIsMobile } from "@/hooks";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ContentArea from "./ContentArea";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { useUserRole } from "@/hooks/auth";
 import { GlobalShortcuts } from "@/components/global";
 

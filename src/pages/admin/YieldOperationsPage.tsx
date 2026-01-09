@@ -41,7 +41,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import {
   previewYieldDistribution,
   applyYieldDistribution,

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
 import { format } from "date-fns";
 import { updateFund, auditLogService, positionService } from "@/services";

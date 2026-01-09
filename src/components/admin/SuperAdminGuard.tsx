@@ -6,7 +6,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { useSuperAdminCheck } from "@/hooks/data/admin";
 
 interface SuperAdminGuardProps {

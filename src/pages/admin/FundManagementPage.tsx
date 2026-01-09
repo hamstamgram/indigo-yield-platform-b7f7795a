@@ -24,7 +24,7 @@ import {
 import { AdminGuard, CreateFundDialog, EditFundDialog } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { format } from "date-fns";
 import { fundService, positionService, auditLogService } from "@/services/shared";
 

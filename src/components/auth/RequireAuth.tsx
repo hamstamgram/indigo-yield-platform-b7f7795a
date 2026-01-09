@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { PageLoadingSpinner } from "@/components/ui";
 
 interface RequireAuthProps {

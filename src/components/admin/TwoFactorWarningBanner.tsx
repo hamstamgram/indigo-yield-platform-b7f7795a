@@ -6,8 +6,7 @@
 import { useState, useEffect } from "react";
 import { Shield, X, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth/context";
-import { getTotpStatus } from "@/lib/auth/mfaService";
+import { useAuth, getTotpStatus } from "@/services/auth";
 import { Button } from "@/components/ui";
 
 export function TwoFactorWarningBanner() {

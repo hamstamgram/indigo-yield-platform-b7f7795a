@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Calendar,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth } from "@/services/auth";
 import { usePendingCounts } from "@/hooks/data/admin";
 import { formatShortcut, SHORTCUTS } from "@/hooks";
 import { format } from "date-fns";
