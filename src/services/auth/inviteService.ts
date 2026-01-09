@@ -33,7 +33,7 @@ export async function verifyInvestorInvite(
   inviteCode: string
 ): Promise<InviteDetails> {
   const { data, error } = await supabase
-    .from("investor_invites" as any)
+    .from("investor_invites")
     .select("*")
     .eq("invite_code", inviteCode)
     .maybeSingle();
@@ -115,7 +115,7 @@ export async function acceptInvestorInvite(
 
   // 2. Mark invite as used
   const { error: updateError } = await supabase
-    .from("investor_invites" as any)
+    .from("investor_invites")
     .update({ used: true, used_at: new Date().toISOString() })
     .eq("invite_code", inviteCode);
 
@@ -195,9 +195,9 @@ export async function acceptAdminInvite(
     .eq("id", userId);
 
   // 6. Insert role using intended_role from invite
-  await supabase.from("user_roles" as any).insert({
+  await supabase.from("user_roles").insert({
     user_id: userId,
-    role: intendedRole,
+    role: intendedRole as "admin" | "ib" | "investor" | "moderator" | "super_admin" | "user",
   });
 
   return userId;

@@ -40,6 +40,9 @@ export * from "./requests";
 // Yield domain
 export * from "./yield";
 
+// Yield distribution record (DB types)
+export * from "./yieldDistributionRecord";
+
 // Deposit domain
 export * from "./deposit";
 
@@ -76,7 +79,14 @@ export * from "./session";
 // Adjustment domain
 export * from "./adjustment";
 
-// ============================================================================
+// Fee Allocation domain
+export * from "./feeAllocation";
+
+// IB Allocation domain
+export * from "./ibAllocation";
+
+// Database enums
+export * from "./enums";
 // Common Utility Types
 // ============================================================================
 
