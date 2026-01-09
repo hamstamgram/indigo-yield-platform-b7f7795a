@@ -26,6 +26,10 @@ export interface OpsIndicators {
   hasFeeSchedule: boolean;
 }
 
+/**
+ * Position data for investor detail view
+ * This is a simpler type than the full InvestorPosition
+ */
 export interface InvestorPosition {
   fund_id: string;
   fund_name: string;

@@ -78,17 +78,16 @@ export interface RoutingSummary {
   byAsset: Record<string, { amount: number; count: number }>;
 }
 
-export interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-}
+// Import FundRef from canonical source
+import type { FundRef } from "@/types/domains/fund";
+
+// Re-export for backward compatibility
+export type { FundRef as Fund } from "@/types/domains/fund";
 
 export interface FeesOverviewData {
   fees: FeeRecord[];
   feeSummaries: FeeSummary[];
-  funds: Fund[];
+  funds: FundRef[];
   indigoFeesBalance: Record<string, number>;
   feeAllocations: FeeAllocation[];
   yieldEarned: YieldEarned[];
@@ -101,7 +100,7 @@ export interface FeesOverviewData {
 /**
  * Load all active funds
  */
-export async function getActiveFunds(): Promise<Fund[]> {
+export async function getActiveFunds(): Promise<FundRef[]> {
   const { data, error } = await supabase
     .from("funds")
     .select("id, code, name, asset")
@@ -378,7 +377,7 @@ export async function getRoutingAuditEntries(): Promise<{
 /**
  * Load yield earned by INDIGO FEES account
  */
-export async function getYieldEarned(funds: Fund[]): Promise<YieldEarned[]> {
+export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
   const { data: yieldTxs, error } = await supabase
     .from("transactions_v2")
     .select("fund_id, amount, type")

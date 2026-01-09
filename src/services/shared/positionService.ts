@@ -4,19 +4,10 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { mapDbPositionToInvestorPosition, type InvestorPosition } from "@/types/domains/investor";
 
-export interface InvestorPosition {
-  investor_id: string;
-  fund_id: string;
-  fund_class: string;
-  shares: number;
-  cost_basis: number;
-  current_value: number;
-  aum_percentage?: number;
-  high_water_mark?: number;
-  last_transaction_date?: string;
-  updated_at?: string;
-}
+// Re-export type from canonical source for backward compatibility
+export type { InvestorPosition } from "@/types/domains/investor";
 
 export interface CreatePositionParams {
   investorId: string;
@@ -27,6 +18,13 @@ export interface CreatePositionParams {
   currentValue: number;
 }
 
+const POSITION_SELECT = `
+  investor_id, fund_id, fund_class, shares, cost_basis, current_value, 
+  unrealized_pnl, realized_pnl, aum_percentage, high_water_mark, 
+  mgmt_fees_paid, perf_fees_paid, last_transaction_date, 
+  cumulative_yield_earned, last_yield_crystallization_date, lock_until_date, updated_at
+`;
+
 class PositionService {
   /**
    * Get all positions
@@ -34,13 +32,11 @@ class PositionService {
   async getAllPositions(): Promise<InvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(
-        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
-      )
+      .select(POSITION_SELECT)
       .order("updated_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapDbPositionToInvestorPosition);
   }
 
   /**
@@ -49,13 +45,11 @@ class PositionService {
   async getPositionsByFund(fundId: string): Promise<InvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(
-        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
-      )
+      .select(POSITION_SELECT)
       .eq("fund_id", fundId);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapDbPositionToInvestorPosition);
   }
 
   /**
@@ -64,15 +58,13 @@ class PositionService {
   async getPositionByInvestorAndClass(investorId: string, fundClass: string): Promise<InvestorPosition | null> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(
-        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
-      )
+      .select(POSITION_SELECT)
       .eq("investor_id", investorId)
       .eq("fund_class", fundClass)
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return data ? mapDbPositionToInvestorPosition(data) : null;
   }
 
   /**
@@ -88,13 +80,11 @@ class PositionService {
   async getPositionsByInvestor(investorId: string): Promise<InvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(
-        "investor_id, fund_id, fund_class, shares, cost_basis, current_value, aum_percentage, high_water_mark, last_transaction_date, updated_at"
-      )
+      .select(POSITION_SELECT)
       .eq("investor_id", investorId);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapDbPositionToInvestorPosition);
   }
 
   /**

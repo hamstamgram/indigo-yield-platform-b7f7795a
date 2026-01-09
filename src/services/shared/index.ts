@@ -14,7 +14,7 @@ export { assetService } from "./assetService";
 
 // Fund management
 export { fundService } from "./fundService";
-export type { Fund, FundKPI } from "./fundService";
+export type { Fund, FundRef, FundStatus, FundKPI } from "./fundService";
 
 // Performance services
 export * from "./performanceService";

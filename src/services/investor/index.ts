@@ -98,4 +98,8 @@ export {
   getActiveFundsForList,
   getActiveInvestorPositions,
 } from "./fundViewService";
-export type { InvestorPosition, Fund as InvestorFund } from "./fundViewService";
+export type { InvestorPositionWithFund } from "./fundViewService";
+
+// Re-export canonical types for convenience
+export type { Fund } from "@/types/domains/fund";
+export type { InvestorPosition } from "@/types/domains/investor";

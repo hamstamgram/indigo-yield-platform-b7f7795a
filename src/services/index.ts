@@ -89,7 +89,8 @@ export type {
   InvestorProfile,
   MonthlyStatement,
   InvestorPosition,
-  InvestorFund,
+  InvestorPositionWithFund,
+  Fund,
 } from "./investor";
 
 // ============================================================================
