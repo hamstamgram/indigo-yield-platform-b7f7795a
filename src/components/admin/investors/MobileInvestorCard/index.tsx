@@ -5,12 +5,11 @@ import {
 } from "@/components/ui";
 import { Send, Save } from "lucide-react";
 import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
 import { AssetRef as Asset } from "@/types/asset";
 import FundAssetDropdown from "../FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { getAllFunds, updateInvestorPosition } from "@/services";
+import { getAllFunds, updateInvestorPosition, profileService } from "@/services";
 import { formatAssetAmount } from "@/utils/assets";
 
 /**
@@ -87,19 +86,8 @@ const MobileInvestorCard = ({
         throw new Error("Invalid fee percentage");
       }
 
-      // Update fee percentage in profile
-      const { error: feeError } = await supabase
-        .from("profiles")
-      .update({
-        fee_pct: feeValue,
-        updated_at: new Date().toISOString(),
-      })
-        .eq("id", investor.id);
-
-      if (feeError) {
-        console.error("Error updating fee:", feeError);
-        throw feeError;
-      }
+      // Update fee percentage using service
+      await profileService.updateFeePercentage(investor.id, feeValue);
 
       // Process portfolio updates
       // 1. Fetch funds to map assets to funds

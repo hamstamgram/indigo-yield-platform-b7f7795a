@@ -17,8 +17,7 @@ import { Loader2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
 import { format } from "date-fns";
-import { updateFund, auditLogService, positionService } from "@/services";
-import { supabase } from "@/integrations/supabase/client";
+import { updateFund, auditLogService, checkFundUsage } from "@/services";
 
 const editFundSchema = z.object({
   name: z
@@ -85,7 +84,7 @@ export function EditFundDialog({
   // Check if fund has positions/transactions
   useEffect(() => {
     if (fund && open) {
-      checkFundUsage(fund.id);
+      checkFundUsageData(fund.id);
       reset({
         name: fund.name,
         asset: fund.asset,
@@ -97,24 +96,11 @@ export function EditFundDialog({
     }
   }, [fund, open, reset]);
 
-  const checkFundUsage = async (fundId: string) => {
+  const checkFundUsageData = async (fundId: string) => {
     try {
-      const [positionsResult, transactionsResult] = await Promise.all([
-        supabase
-          .from("investor_positions")
-          .select("id", { count: "exact", head: true })
-          .eq("fund_id", fundId),
-        supabase
-          .from("transactions_v2")
-          .select("id", { count: "exact", head: true })
-          .eq("fund_id", fundId),
-      ]);
-
-      const positions = positionsResult.count || 0;
-      const transactions = transactionsResult.count || 0;
-
-      setFundUsageInfo({ positions, transactions });
-      setTickerChangeBlocked(positions > 0 || transactions > 0);
+      const usage = await checkFundUsage(fundId);
+      setFundUsageInfo(usage);
+      setTickerChangeBlocked(usage.positions > 0 || usage.transactions > 0);
     } catch (error) {
       console.error("Error checking fund usage:", error);
       setTickerChangeBlocked(true);
