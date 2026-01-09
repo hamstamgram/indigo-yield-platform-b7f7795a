@@ -211,54 +211,6 @@ export async function applyYieldCorrectionV2(
 }
 
 /**
- * Legacy preview function - calls V2 with date as both start and end
- */
-export async function previewYieldCorrection(
-  fundId: string,
-  date: string,
-  purpose: string,
-  newAum: number
-): Promise<CorrectionPreview> {
-  // For legacy calls, use date as period_end and compute period_start as first of month
-  const periodEnd = date;
-  const dateObj = new Date(date);
-  const periodStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
-
-  return previewYieldCorrectionV2(fundId, periodStart, periodEnd, purpose, newAum);
-}
-
-/**
- * Legacy apply function - calls V2 with date as both start and end
- */
-export async function applyYieldCorrection(
-  fundId: string,
-  date: string,
-  purpose: string,
-  newAum: number,
-  reason: string,
-  confirmation: string
-): Promise<CorrectionResult> {
-  // For legacy calls, use date as period_end and compute period_start as first of month
-  const periodEnd = date;
-  const dateObj = new Date(date);
-  const periodStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
-
-  return applyYieldCorrectionV2(
-    fundId,
-    periodStart,
-    periodEnd,
-    purpose,
-    newAum,
-    reason,
-    confirmation
-  );
-}
-
-/**
  * Rollback a yield correction by reversing all delta transactions
  */
 export async function rollbackYieldCorrection(

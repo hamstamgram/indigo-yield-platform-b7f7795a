@@ -58,45 +58,6 @@ export async function adjustPosition(
   };
 }
 
-/**
- * Create an adjustment transaction
- * DEPRECATED: Use adjustPosition instead - this function now delegates to it
- */
-export async function createAdjustment(
-  investorId: string,
-  fundId: string,
-  amount: string | number,
-  type: "Credit" | "Debit",
-  notes: string
-) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    console.error("createAdjustment: No authenticated user");
-    return null;
-  }
-
-  const absAmount = toDecimal(amount).abs();
-  const delta = (type === "Credit" ? absAmount : absAmount.negated()).toFixed(10);
-  
-  const result = await adjustPosition(
-    {
-      investor_id: investorId,
-      fund_id: fundId,
-      delta,
-      note: notes,
-      type: "ADJUSTMENT",
-    },
-    user.id
-  );
-
-  if (!result.success) {
-    console.error("createAdjustment error:", result.error);
-    return null;
-  }
-
-  // Return the transaction in expected format
-  return [{ id: result.data?.transactionId }];
-}
 
 /**
  * Get a position for adjustment display

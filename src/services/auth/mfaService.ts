@@ -189,35 +189,3 @@ export async function disableTotp(code: string): Promise<{ disabled: boolean }> 
   return await callMfaFunction("mfa-totp-disable", { code });
 }
 
-// ============================================================================
-// Legacy Class Export (for backward compatibility)
-// ============================================================================
-
-/**
- * @deprecated Use individual function exports instead
- */
-export class TOTPService {
-  static async enroll() {
-    const result = await enrollMFA();
-    if (!result.success || !result.data) {
-      throw new Error(result.error?.message || "Failed to enroll MFA");
-    }
-    return result.data;
-  }
-
-  static async verify(code: string) {
-    return verifyTOTPSignIn(code);
-  }
-
-  static async verifySetup(factorId: string, code: string) {
-    return verifyTOTPSetup(factorId, code);
-  }
-
-  static async unenroll(factorId: string) {
-    return unenrollMFA(factorId);
-  }
-
-  static async getAuthenticatorAssuranceLevel() {
-    return getAuthenticatorAssuranceLevel();
-  }
-}
