@@ -20,8 +20,7 @@ export * from "./systemHealthService";
 // Session management
 export * from "./sessionManagement";
 
-// Report services (email report generator moved to lib/reports)
-export * from "@/lib/reports/emailReportGenerator";
+// Report services
 export * from "./reportUpsertService";
 
 // Support service

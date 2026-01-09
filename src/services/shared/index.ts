@@ -40,12 +40,7 @@ export type {
   QuickTransactionParams,
   CreateTransactionParams,
 } from "./transactionService";
-// Re-export canonical types from domain types
-export type { 
-  CreateTransactionParams as CreateTransactionDBParams,
-  CreateTransactionUIParams,
-  UITransactionType,
-} from "@/types/domains/transaction";
+// For canonical transaction types, import directly from @/types/domains/transaction
 
 // Email templates
 export * from "./emailTemplates";
@@ -94,8 +89,7 @@ export type { InvestorPosition, CreatePositionParams } from "./positionService";
 // IB management
 export { ibManagementService } from "./ibManagementService";
 
-// Transactions V2 service (re-export from investor)
-export { transactionsV2Service } from "@/services/investor/transactionsV2Service";
+// Note: transactionsV2Service should be imported from @/services/investor
 
 // Invite service
 export { inviteService } from "./inviteService";

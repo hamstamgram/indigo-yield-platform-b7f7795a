@@ -11,7 +11,8 @@ import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { useStatements, usePublishStatements } from "@/hooks/data";
 import { useQueryClient } from "@tanstack/react-query";
-import { profileService, statementsService, transactionsV2Service } from "@/services/shared";
+import { profileService, statementsService } from "@/services/shared";
+import { transactionsV2Service } from "@/services/investor";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 
