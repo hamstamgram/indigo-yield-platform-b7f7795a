@@ -8,26 +8,10 @@ import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import { fundService, auditLogService } from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import type { Fund, FundStatus } from "@/types/domains/fund";
 
-type FundStatus = "active" | "inactive" | "suspended" | "deprecated" | "pending"; // Matches DB enum fund_status
-
-export interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  fund_class: string;
-  inception_date: string;
-  status: FundStatus | null;
-  logo_url: string | null;
-  mgmt_fee_bps: number | null;
-  perf_fee_bps: number | null;
-  min_investment: number | null;
-  high_water_mark: number | null;
-  strategy: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
+// Re-export types from canonical source
+export type { Fund, FundStatus } from "@/types/domains/fund";
 
 export interface CreateFundInput {
   code: string;

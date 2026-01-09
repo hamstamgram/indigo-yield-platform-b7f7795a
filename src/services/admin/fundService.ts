@@ -4,23 +4,10 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Fund, FundRef } from "@/types/domains/fund";
 
-export interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  fund_class?: string;
-  strategy?: string;
-  inception_date: string;
-  status: "active" | "inactive" | "suspended" | "deprecated" | "pending"; // Matches DB enum fund_status
-  mgmt_fee_bps: number;
-  perf_fee_bps: number;
-  high_water_mark: number;
-  min_investment: number;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export types from canonical source for backward compatibility
+export type { Fund, FundRef } from "@/types/domains/fund";
 
 export interface DailyNav {
   fund_id: string;

@@ -3,39 +3,17 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+import type { Fund, FundStatus } from "@/types/domains/fund";
+import type { InvestorPosition } from "@/types/domains/investor";
 
-type FundStatus = Database["public"]["Enums"]["fund_status"];
+// Re-export types from canonical sources for backward compatibility
+export type { Fund } from "@/types/domains/fund";
+export type { InvestorPosition } from "@/types/domains/investor";
 
-export interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  fund_class: string;
-  status: FundStatus | null;
-  inception_date: string;
-  mgmt_fee_bps: number | null;
-  perf_fee_bps: number | null;
-  min_investment: number | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface InvestorPosition {
-  investor_id: string;
-  fund_id: string;
-  fund_class: string | null;
-  shares: number;
-  cost_basis: number;
-  current_value: number;
-  unrealized_pnl: number | null;
-  realized_pnl: number | null;
-  last_transaction_date: string | null;
-  aum_percentage?: number | null;
-  high_water_mark: number | null;
-  mgmt_fees_paid: number | null;
-  perf_fees_paid: number | null;
+/**
+ * Extended InvestorPosition with nested fund data for queries
+ */
+export interface InvestorPositionWithFund extends InvestorPosition {
   fund?: {
     id: string;
     code: string;
@@ -135,7 +113,7 @@ export async function addFundToInvestor(
  * Get investor positions by investor ID
  * Filters out zero-value positions (deleted or fully withdrawn)
  */
-export async function getInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
+export async function getInvestorPositions(investorId: string): Promise<InvestorPositionWithFund[]> {
   const { data, error } = await supabase
     .from("investor_positions")
     .select(
@@ -153,7 +131,11 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
       high_water_mark,
       mgmt_fees_paid,
       perf_fees_paid,
-      fund:funds!investor_positions_fund_id_fkey (
+      cumulative_yield_earned,
+      last_yield_crystallization_date,
+      lock_until_date,
+      updated_at,
+      fund:funds!fk_investor_positions_fund (
         id,
         code,
         name,
@@ -171,7 +153,7 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     console.error("Error fetching investor positions:", error);
     throw new Error(`Failed to fetch investor positions: ${error.message}`);
   }
-  return (data as unknown as InvestorPosition[]) || [];
+  return (data as unknown as InvestorPositionWithFund[]) || [];
 }
 
 /**

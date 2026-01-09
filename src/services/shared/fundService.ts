@@ -5,9 +5,11 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import * as adminFundService from "@/services/admin/fundService";
+import type { Fund } from "@/types/domains/fund";
 
-// Re-export types
-export type { Fund, DailyNav, FundKPI } from "@/services/admin/fundService";
+// Re-export types from canonical source
+export type { Fund, FundRef, FundStatus } from "@/types/domains/fund";
+export type { DailyNav, FundKPI } from "@/services/admin/fundService";
 
 class FundService {
   /**

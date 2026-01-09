@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllFunds } from "@/services";
-import type { InvestorFund as Fund } from "@/services";
+import type { Fund } from "@/types/domains/fund";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**

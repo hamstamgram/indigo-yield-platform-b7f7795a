@@ -1,28 +1,48 @@
 /**
  * Fund Domain Types
- * Clean abstractions for fund-related entities
+ * CANONICAL SOURCE - All fund-related types should be imported from here
+ * 
+ * Database Schema Mapping:
+ * - funds table: id, code, name, asset, fund_class, status, inception_date, etc.
  */
 
 import { Database } from "@/integrations/supabase/types";
 
 type DbFund = Database["public"]["Tables"]["funds"]["Row"];
-type FundStatus = Database["public"]["Enums"]["fund_status"];
+export type FundStatus = Database["public"]["Enums"]["fund_status"];
 type BenchmarkType = Database["public"]["Enums"]["benchmark_type"];
 
+/**
+ * Core Fund type - the main type for fund data
+ * Maps to the funds table with standardized naming
+ */
 export interface Fund {
   id: string;
   code: string;
   name: string;
   fund_class: string;
   asset: string;
-  status: FundStatus;
+  status: FundStatus | null;
   inception_date: string;
   mgmt_fee_bps: number | null;
   perf_fee_bps: number | null;
   min_investment: number | null;
   high_water_mark: number | null;
+  lock_period_days?: number | null;
+  logo_url?: string | null;
+  strategy?: string | null;
   created_at: string | null;
   updated_at: string | null;
+}
+
+/**
+ * Minimal fund reference for dropdowns/lists
+ */
+export interface FundRef {
+  id: string;
+  code: string;
+  name: string;
+  asset: string;
 }
 
 export interface FundConfiguration {
@@ -67,6 +87,9 @@ export interface FundKPI {
   itd_return: number | null;
 }
 
+/**
+ * Convert database fund row to application Fund type
+ */
 export function mapDbFundToFund(dbFund: DbFund): Fund {
   return {
     id: dbFund.id,
@@ -74,14 +97,29 @@ export function mapDbFundToFund(dbFund: DbFund): Fund {
     name: dbFund.name,
     fund_class: dbFund.fund_class,
     asset: dbFund.asset,
-    status: dbFund.status || "inactive",
+    status: dbFund.status,
     inception_date: dbFund.inception_date,
     mgmt_fee_bps: dbFund.mgmt_fee_bps,
     perf_fee_bps: dbFund.perf_fee_bps,
     min_investment: dbFund.min_investment,
     high_water_mark: dbFund.high_water_mark,
+    lock_period_days: dbFund.lock_period_days,
+    logo_url: dbFund.logo_url,
+    strategy: dbFund.strategy,
     created_at: dbFund.created_at,
     updated_at: dbFund.updated_at,
+  };
+}
+
+/**
+ * Convert Fund to FundRef for minimal data transfer
+ */
+export function toFundRef(fund: Fund): FundRef {
+  return {
+    id: fund.id,
+    code: fund.code,
+    name: fund.name,
+    asset: fund.asset,
   };
 }
 
