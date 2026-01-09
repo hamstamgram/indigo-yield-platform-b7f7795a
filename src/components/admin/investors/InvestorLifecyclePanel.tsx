@@ -29,9 +29,10 @@ const InvestorLifecyclePanel = () => {
     updateStatusMutation.isPending ||
     cleanupMutation.isPending;
 
+  // Status values match database CHECK constraint on profiles.status
   const handleUpdateInvestorStatus = (
     investorId: string,
-    status: "active" | "inactive" | "suspended" | "exited"
+    status: "active" | "inactive" | "suspended" | "archived"
   ) => {
     updateStatusMutation.mutate(
       { investorId, status },

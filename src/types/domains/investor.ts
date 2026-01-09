@@ -13,8 +13,9 @@ import { Database } from "@/integrations/supabase/types";
 type DbProfile = Database["public"]["Tables"]["profiles"]["Row"];
 type DbInvestorPosition = Database["public"]["Tables"]["investor_positions"]["Row"];
 
-// Status mapping - lowercase for internal use, can be displayed as capitalized
-export type InvestorStatus = "active" | "pending" | "closed";
+// Status mapping - matches database CHECK constraint
+// DB: CHECK (status = ANY (ARRAY['active', 'pending', 'suspended', 'archived', 'inactive']))
+export type InvestorStatus = "active" | "pending" | "suspended" | "archived" | "inactive";
 
 /**
  * Core investor type - the main type for investor data

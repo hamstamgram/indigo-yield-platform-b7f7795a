@@ -4,8 +4,10 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { InvestorStatus } from "@/types/domains/investor";
 
-export type InvestorStatus = "active" | "inactive" | "suspended" | "exited" | "archived";
+// Re-export for backwards compatibility
+export type { InvestorStatus };
 
 export interface CleanupResult {
   archivedCount: number;
