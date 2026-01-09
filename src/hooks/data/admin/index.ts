@@ -334,3 +334,19 @@ export {
   useFundAUMEvents,
   type FundAUMEvent,
 } from "./useFundAUMEvents";
+
+// useFundsWithMetrics (new - for FundManagementPage)
+export {
+  useFundsWithMetrics,
+  useArchiveFund,
+  useRestoreFund,
+  type FundWithMetrics,
+} from "./useFundsWithMetrics";
+
+// useAuditLogs (new - for AuditLogViewer)
+export {
+  useAuditLogs,
+  exportAuditLogsToCSV,
+  type AuditLogsData,
+  type AuditLogStats,
+} from "./useAuditLogs";
