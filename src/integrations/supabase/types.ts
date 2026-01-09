@@ -5420,7 +5420,9 @@ export type Database = {
         Args: { p_fund_id: string; p_period_id: string }
         Returns: boolean
       }
-      is_super_admin: { Args: never; Returns: boolean }
+      is_super_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { p_user_id: string }; Returns: boolean }
       is_valid_share_token: { Args: { token_value: string }; Returns: boolean }
       is_within_edit_window: {
         Args: { p_created_at: string }
