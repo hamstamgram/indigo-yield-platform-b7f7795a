@@ -1,20 +1,15 @@
 import { useEffect, useState } from "react";
 import { X, Download } from "lucide-react";
 
-interface BeforeInstallPromptEvent extends Event {
+// Use existing BeforeInstallPromptEvent from lib.dom if available, otherwise define
+type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
-}
+};
 
 // iOS-specific Navigator extension
 interface IOSNavigator extends Navigator {
   standalone?: boolean;
-}
-
-declare global {
-  interface WindowEventMap {
-    beforeinstallprompt: BeforeInstallPromptEvent;
-  }
 }
 
 const DISMISS_KEY = "pwa-install-dismissed";

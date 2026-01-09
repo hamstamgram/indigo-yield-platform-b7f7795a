@@ -139,6 +139,44 @@ function RecordedYieldsContent() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
+      {/* Locked Period Alert Banner - Super Admin Only */}
+      {isSuperAdmin && lockedPeriods.length > 0 && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-300">
+                  {lockedPeriods.length} Locked Period{lockedPeriods.length !== 1 ? "s" : ""}
+                </p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  {lockedPeriods.map(p => `${p.fund_name} (${p.period_name})`).join(", ")}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {lockedPeriods.slice(0, 3).map((period) => (
+                <Button
+                  key={period.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnlockPeriod(period)}
+                  className="text-amber-600 border-amber-300 hover:bg-amber-100 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/30"
+                >
+                  <Unlock className="h-4 w-4 mr-1" />
+                  Unlock {period.fund_name}
+                </Button>
+              ))}
+              {lockedPeriods.length > 3 && (
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                  +{lockedPeriods.length - 3} more
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-display font-bold tracking-tight">Recorded Yields</h1>
