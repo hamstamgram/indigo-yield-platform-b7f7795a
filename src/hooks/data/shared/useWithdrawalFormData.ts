@@ -15,13 +15,19 @@ export function useInvestorOptions(enabled: boolean = true) {
 }
 
 /**
- * Hook to fetch investor positions for a selected investor
+ * Hook to fetch investor positions for withdrawal form
+ * Only returns positions with positive balance
  */
-export function useInvestorPositions(investorId: string | null) {
+export function usePositionsForWithdrawal(investorId: string | null) {
   return useQuery({
     queryKey: QUERY_KEYS.investorPositionsForWithdrawal(investorId || ""),
-    queryFn: () => withdrawalService.fetchInvestorPositions(investorId!),
+    queryFn: () => withdrawalService.fetchPositionsForWithdrawal(investorId!),
     enabled: !!investorId,
     staleTime: 30 * 1000, // 30 seconds - positions change more frequently
   });
 }
+
+/**
+ * @deprecated Use usePositionsForWithdrawal instead
+ */
+export const useInvestorPositions = usePositionsForWithdrawal;
