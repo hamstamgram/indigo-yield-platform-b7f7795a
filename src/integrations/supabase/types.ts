@@ -4568,6 +4568,27 @@ export type Database = {
           },
         ]
       }
+      v_orphaned_user_roles: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       v_period_orphans: {
         Row: {
           fund_code: string | null

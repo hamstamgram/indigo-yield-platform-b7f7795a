@@ -187,7 +187,7 @@ export default function AdminRequestsQueuePage() {
                         <div>
                           <span className="text-muted-foreground">Requested: </span>
                           <span>
-                            {new Date(request.request_date || request.created_at || new Date()).toLocaleDateString()}
+                            {new Date(request.request_date || new Date()).toLocaleDateString()}
                           </span>
                         </div>
                         <div>
