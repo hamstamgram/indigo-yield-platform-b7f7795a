@@ -34,9 +34,7 @@ export const calculateTotalAUM = async () => {
   }
 };
 
-export const calculateDailyInterest = async () => {
-  return 0; // Deprecated or requires Yield Engine
-};
+// calculateDailyInterest has been removed - use the Yield Engine for all yield calculations
 
 export const calculateInvestorCount = async () => {
   try {

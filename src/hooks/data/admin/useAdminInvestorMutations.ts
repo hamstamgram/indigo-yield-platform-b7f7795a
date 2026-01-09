@@ -42,7 +42,7 @@ export function useUpdateInvestorStatus() {
       status: InvestorStatus;
     }) => updateInvestorStatus(investorId, status),
     onSuccess: (_, { investorId }) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investors });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.investorOverview(investorId),
       });
@@ -59,7 +59,7 @@ export function useCleanupInactiveInvestors() {
   return useMutation<CleanupResult, Error, void>({
     mutationFn: () => cleanupInactiveInvestors(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investors });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
     },
   });
 }
@@ -80,7 +80,7 @@ export function useUpdateFundPerformance() {
     }) => updateFundPerformance(performanceId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorPerformance });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investors });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
     },
   });
 }

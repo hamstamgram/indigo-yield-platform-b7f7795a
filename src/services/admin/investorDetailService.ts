@@ -139,10 +139,11 @@ export async function loadOpsIndicators(
 }
 
 /**
- * Fetch investor positions with fund details
+ * Fetch investor positions with fund details and computed totals
+ * Used by admin investor detail views
  * Filters out zero-value positions
  */
-export async function fetchInvestorPositions(investorId: string): Promise<InvestorPositionsData> {
+export async function fetchInvestorPositionsWithTotals(investorId: string): Promise<InvestorPositionsData> {
   const { data: positions, error } = await supabase
     .from("investor_positions")
     .select(`
@@ -208,6 +209,6 @@ export async function fetchActivePositions(investorId: string): Promise<Investor
 export const investorDetailService = {
   fetchInvestorDetail,
   loadOpsIndicators,
-  fetchInvestorPositions,
+  fetchInvestorPositionsWithTotals,
   fetchActivePositions,
 };

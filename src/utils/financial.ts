@@ -35,27 +35,8 @@ export function toDecimal(value: string | number | Decimal): Decimal {
   return new Decimal(value);
 }
 
-/**
- * Format money for display
- * 
- * @deprecated This function formats values as USD which violates the platform's
- * requirement that ALL ASSETS MUST BE DISPLAYED IN THEIR NATIVE CURRENCY.
- * Use formatCrypto() or the utilities in utils/assetFormatting.ts instead.
- * 
- * @param value - The amount to format
- * @param decimals - Number of decimal places (default: 2 for USD)
- * @param includeSymbol - Include $ symbol (default: true)
- */
-export function formatMoney(
-  value: string | number | Decimal,
-  decimals: number = 2,
-  includeSymbol: boolean = true
-): string {
-  console.warn("formatMoney() is deprecated. Use formatCrypto() for token-denominated display.");
-  const decimal = toDecimal(value);
-  const formatted = decimal.toFixed(decimals);
-  return includeSymbol ? `$${formatted}` : formatted;
-}
+// formatMoney has been removed as it violates the platform's requirement that all assets
+// must be displayed in their native currency. Use formatCrypto() or getAssetConfig() instead.
 
 /**
  * Format cryptocurrency amount
@@ -398,14 +379,9 @@ export { Decimal };
  * in native token units (BTC, ETH, USDT, etc.), NOT converted to fiat currencies.
  * 
  * CORRECT USAGE:
- * - formatTokenAmount(1.5, 'BTC')  → "1.50000000 BTC"
- * - formatTokenAmount(100, 'USDT') → "100.00 USDT"
+ * - formatCrypto(1.5, 8, 'BTC')  → "1.50000000 BTC"
+ * - formatCrypto(100, 2, 'USDT') → "100.00 USDT"
  * 
- * DEPRECATED (DO NOT USE in investor-facing code):
- * - formatMoney() - Only for legacy admin contexts
- * - formatCurrency() - Only for legacy admin contexts
- * - Any Intl.NumberFormat with style: 'currency'
- * 
- * All investor-facing code MUST use formatTokenAmount() or getAssetConfig()
+ * All investor-facing code MUST use formatCrypto() or getAssetConfig()
  * to ensure proper token display without fiat conversion.
  */

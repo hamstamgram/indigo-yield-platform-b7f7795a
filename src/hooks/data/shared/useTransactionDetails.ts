@@ -75,7 +75,7 @@ export function useTransactionFormData() {
     investors: InvestorForTransaction[];
     funds: FundForTransaction[];
   }, Error>({
-    queryKey: [...QUERY_KEYS.adminTransactions, "form-data"],
+    queryKey: [...QUERY_KEYS.adminTransactionsHistory(), "form-data"],
     queryFn: getTransactionFormData,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

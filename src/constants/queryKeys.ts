@@ -34,16 +34,9 @@ export const QUERY_KEYS = {
 
   // ============ Investors (Unified Namespace) ============
   /**
-   * Investor query keys - consolidated from duplicates
-   * @deprecated Use investors.all instead of investors
-   * @deprecated Use investors.list instead of investorList  
-   * @deprecated Use investors.all instead of investorsAll
+   * Investor query keys - consolidated namespace
    */
-  investors: ["investors"] as const,
-  /** @deprecated Use investors.list() instead */
-  investorList: ["investors", "list"] as const,
-  /** @deprecated Use investors.all instead */
-  investorsAll: ["investors"] as const,
+  investorsList: ["investors", "list"] as const,
   investorsSelector: (includeSystem?: boolean) => includeSystem !== undefined
     ? ["investors", "selector", includeSystem] as const
     : ["investors", "selector"] as const,
@@ -87,8 +80,6 @@ export const QUERY_KEYS = {
   transactions: (filters?: unknown) => filters 
     ? ["transactions", "list", filters] as const 
     : ["transactions"] as const,
-  /** @deprecated Use transactions.adminHistory instead */
-  adminTransactions: ["transactions", "admin-history"] as const,
   adminTransactionsHistory: (filters?: Record<string, unknown>) => 
     filters ? ["transactions", "admin-history", filters] as const : ["transactions", "admin-history"] as const,
   investorTransactions: (investorId: string, limit?: number) => limit 
@@ -439,7 +430,7 @@ export const YIELD_RELATED_KEYS = [
   QUERY_KEYS.yieldRecords,
   QUERY_KEYS.investorPositions(),
   QUERY_KEYS.transactions(),
-  QUERY_KEYS.adminTransactions,
+  QUERY_KEYS.adminTransactionsHistory(),
   QUERY_KEYS.dashboardStats,
   QUERY_KEYS.feeAllocations(),
   QUERY_KEYS.ibAllocations(),
@@ -451,8 +442,7 @@ export const YIELD_RELATED_KEYS = [
  * Use after any investor balance change
  */
 export const INVESTOR_RELATED_KEYS = [
-  QUERY_KEYS.investors,
-  QUERY_KEYS.investorList,
+  QUERY_KEYS.investorsList,
   QUERY_KEYS.investorPositions(),
   QUERY_KEYS.transactions(),
   QUERY_KEYS.dashboardStats,
