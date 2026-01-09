@@ -4912,16 +4912,27 @@ export type Database = {
         Args: { p_requests: Json }
         Returns: Json
       }
-      apply_daily_yield_to_fund_v3: {
-        Args: {
-          p_actor_id: string
-          p_fund_id: string
-          p_new_aum: number
-          p_purpose?: string
-          p_yield_date: string
-        }
-        Returns: Json
-      }
+      apply_daily_yield_to_fund_v3:
+        | {
+            Args: {
+              p_created_by?: string
+              p_fund_id: string
+              p_gross_yield_pct: number
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_yield_date: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_actor_id: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: string
+              p_yield_date: string
+            }
+            Returns: Json
+          }
       apply_deposit_with_crystallization: {
         Args: {
           p_admin_id: string
