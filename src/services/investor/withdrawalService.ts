@@ -413,31 +413,25 @@ export const withdrawalService = {
   },
 
   /**
-   * Fetch investor options for dropdown selection (non-admin profiles)
+   * Fetch investor options for dropdown selection
+   * @deprecated Use fetchInvestorsForSelector from investorDataService instead
    */
   async fetchInvestorOptions(): Promise<InvestorOption[]> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, email, first_name, last_name")
-      .eq("is_admin", false)
-      .order("email");
-
-    if (error) throw error;
-
-    return (data || []).map((p) => ({
-      id: p.id,
-      email: p.email || "",
-      displayName:
-        p.first_name && p.last_name
-          ? `${p.first_name} ${p.last_name}`
-          : p.email || p.id,
+    // Delegate to centralized function
+    const { fetchInvestorsForSelector } = await import("@/services/investor/investorDataService");
+    const items = await fetchInvestorsForSelector(false);
+    return items.map(item => ({
+      id: item.id,
+      email: item.email,
+      displayName: item.displayName,
     }));
   },
 
   /**
-   * Fetch investor positions with positive balance
+   * Fetch investor positions with positive balance for withdrawal forms
+   * Returns only positions with current_value > 0
    */
-  async fetchInvestorPositions(investorId: string): Promise<WithdrawalInvestorPosition[]> {
+  async fetchPositionsForWithdrawal(investorId: string): Promise<WithdrawalInvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
       .select(`

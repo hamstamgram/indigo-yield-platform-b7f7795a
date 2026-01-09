@@ -25,20 +25,15 @@ export interface BalanceCheckResult {
 
 /**
  * Fetch active investors for transaction form
+ * Uses centralized investor selector and maps to form-specific shape
  */
 export async function fetchInvestorsForTransactionForm(): Promise<TransactionFormInvestor[]> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name, email")
-    .eq("status", "active")
-    .eq("is_admin", false)
-    .order("first_name");
-
-  if (error) throw error;
-
-  return (data || []).map((p) => ({
+  const { fetchInvestorsForSelector } = await import("@/services/investor/investorDataService");
+  const items = await fetchInvestorsForSelector(false); // exclude system accounts
+  
+  return items.map((p) => ({
     id: p.id,
-    name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+    name: p.displayName,
     email: p.email,
   }));
 }
