@@ -152,7 +152,7 @@ export const reportService = {
     investorId: string,
     periodId: string
   ): Promise<InvestorPerformanceData[]> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("investor_fund_performance")
       .select("*")
       .eq("investor_id", investorId)
@@ -228,7 +228,7 @@ export const reportService = {
    * Get investor performance statements for a date range
    */
   async getInvestorPerformanceStatements(investorId: string, dateRange: DateRange) {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("investor_fund_performance")
       .select(`
         *,

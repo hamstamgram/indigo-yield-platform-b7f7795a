@@ -16,7 +16,7 @@ class InviteService {
     expiresAt: string;
     createdBy?: string;
   }): Promise<void> {
-    const { error } = await supabase.from("investor_invites" as any).insert({
+    const { error } = await supabase.from("investor_invites").insert({
       email: params.email,
       invite_code: params.inviteCode,
       created_by: params.createdBy,
