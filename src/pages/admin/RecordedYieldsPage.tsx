@@ -12,9 +12,12 @@ import {
   X,
   AlertCircle,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  Unlock
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
+import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
   Button, Input, Label, Badge,
@@ -30,14 +33,17 @@ import { YieldCorrectionPanel } from "@/components/admin/yields/YieldCorrectionP
 import { VoidYieldDialog } from "@/components/admin/yields/VoidYieldDialog";
 import { EditYieldDialog } from "@/components/admin/yields/EditYieldDialog";
 import { YieldActionsColumn } from "@/components/admin/yields/YieldActionsColumn";
+import { UnlockPeriodDialog } from "@/components/admin/yields/UnlockPeriodDialog";
 import {
   useRecordedYieldsData,
   useYieldCorrectionHistory,
   useRecordCorrectionHistory,
   useVoidYieldMutation,
   useUpdateYieldAum,
+  useLockedPeriods,
   type RecordedYieldRecord,
   type CorrectionHistoryItem,
+  type LockedPeriod,
 } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
@@ -59,6 +65,10 @@ function RecordedYieldsContent() {
   const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<RecordedYieldRecord | null>(null);
   const [voidRecord, setVoidRecord] = useState<RecordedYieldRecord | null>(null);
   const [editAumRecord, setEditAumRecord] = useState<RecordedYieldRecord | null>(null);
+  const [unlockPeriod, setUnlockPeriod] = useState<LockedPeriod | null>(null);
+
+  // Super admin check for unlock capability
+  const { isSuperAdmin } = useSuperAdmin();
 
   // URL-persisted filters
   const { filters: urlFilters, setFilter, clearFilters } = useUrlFilters({
@@ -79,6 +89,11 @@ function RecordedYieldsContent() {
 
   // Fetch yield records using hook
   const { data: yields = [], isLoading } = useRecordedYieldsData(filters);
+
+  // Fetch locked periods
+  const { data: lockedPeriods = [], isLoading: isLoadingLockedPeriods } = useLockedPeriods(
+    filters.fundId === "all" ? undefined : filters.fundId
+  );
 
   // Fetch correction history for all yields (for badge display)
   const { data: correctionHistory = [] } = useYieldCorrectionHistory(
@@ -345,6 +360,97 @@ function RecordedYieldsContent() {
         </CardContent>
       </Card>
 
+      {/* Locked Periods Section - Super Admin Only */}
+      {isSuperAdmin && lockedPeriods.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-amber-600" />
+                  Locked Periods
+                </CardTitle>
+                <CardDescription>
+                  {lockedPeriods.length} locked period{lockedPeriods.length !== 1 ? "s" : ""} — Super admins can unlock for corrections
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingLockedPeriods ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fund</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead className="text-right">AUM at Snapshot</TableHead>
+                      <TableHead>Investors</TableHead>
+                      <TableHead>Locked At</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {lockedPeriods.map((period) => (
+                      <TableRow key={period.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <CryptoIcon symbol={period.fund_asset} className="h-5 w-5" />
+                            <div>
+                              <p className="font-medium">{period.fund_name}</p>
+                              <p className="text-xs text-muted-foreground">{period.fund_asset}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                              <Lock className="h-3 w-3 mr-1" />
+                              {period.period_name}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatValue(period.total_aum, period.fund_asset)}
+                        </TableCell>
+                        <TableCell>
+                          {period.investor_count}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {period.locked_at ? format(new Date(period.locked_at), "MMM d, yyyy HH:mm") : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setUnlockPeriod(period)}
+                                  className="text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/20"
+                                >
+                                  <Unlock className="h-4 w-4 mr-1" />
+                                  Unlock
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Unlock period for yield modifications</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Correction History Dialog */}
       <Dialog open={!!correctionHistoryRecord} onOpenChange={(o) => !o && setCorrectionHistoryRecord(null)}>
         <DialogContent className="max-w-3xl">
@@ -451,6 +557,21 @@ function RecordedYieldsContent() {
         }}
         isPending={editAumMutation.isPending}
       />
+
+      {/* Unlock Period Dialog */}
+      {unlockPeriod && (
+        <UnlockPeriodDialog
+          open={!!unlockPeriod}
+          onOpenChange={(open) => !open && setUnlockPeriod(null)}
+          fundId={unlockPeriod.fund_id}
+          fundName={unlockPeriod.fund_name}
+          periodId={unlockPeriod.period_id}
+          periodLabel={unlockPeriod.period_name}
+          onSuccess={() => {
+            invalidateAfterYieldOp(queryClient);
+          }}
+        />
+      )}
     </div>
   );
 }

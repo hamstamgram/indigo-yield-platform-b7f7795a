@@ -5636,6 +5636,15 @@ export type Database = {
           test_name: string
         }[]
       }
+      unlock_fund_period_snapshot: {
+        Args: {
+          p_admin_id: string
+          p_fund_id: string
+          p_period_id: string
+          p_reason: string
+        }
+        Returns: boolean
+      }
       unlock_imports: { Args: never; Returns: boolean }
       update_admin_role: {
         Args: { p_new_role: string; p_target_user_id: string }

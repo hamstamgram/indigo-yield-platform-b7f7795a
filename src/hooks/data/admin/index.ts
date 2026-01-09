@@ -286,6 +286,9 @@ export {
   type CorrectionHistoryItem,
 } from "./useRecordedYieldsPage";
 
+// useLockedPeriods (for period unlock functionality)
+export { useLockedPeriods, type LockedPeriod } from "./useLockedPeriods";
+
 // useAdminInvitesPage (new - for AdminInvitesPage)
 export {
   useAdminInvitesList,
