@@ -173,7 +173,7 @@ export const withdrawalRequestSchema = z.object({
 // ===============================
 
 export const adminDepositSchema = z.object({
-  investorId: z.string().uuid("Invalid investor ID"),
+  investorId: strictUuidSchema,
   amount: z
     .number()
     .positive("Amount must be positive")
@@ -185,7 +185,7 @@ export const adminDepositSchema = z.object({
 });
 
 export const adminWithdrawalSchema = z.object({
-  investorId: z.string().uuid("Invalid investor ID"),
+  investorId: strictUuidSchema,
   amount: z
     .number()
     .positive("Amount must be positive")
@@ -326,8 +326,8 @@ function sanitizeObject(obj: any): any {
  * Ensures frontend data maps correctly to database columns
  */
 export const adminTransactionDbSchema = z.object({
-  investorId: z.string().uuid("Invalid investor ID"),
-  fundId: z.string().uuid("Invalid fund ID"),
+  investorId: strictUuidSchema,
+  fundId: strictUuidSchema,
   amount: z.number().positive("Amount must be positive").multipleOf(0.00000001, "Invalid decimal precision"),
   type: z.enum(["DEPOSIT", "WITHDRAWAL", "YIELD"]),
   txDate: z.string().or(z.date()),
@@ -366,7 +366,7 @@ export const voidTransactionDbSchema = z.object({
  * Withdrawal approval schema with DB transform
  */
 export const withdrawalApprovalDbSchema = z.object({
-  requestId: z.string().uuid("Invalid request ID"),
+  requestId: strictUuidSchema,
   status: z.enum(["approved", "rejected"]),
   notes: z.string().max(500).optional(),
 }).transform((data) => ({
@@ -396,7 +396,7 @@ export type WithdrawalApprovalDbInput = z.output<typeof withdrawalApprovalDbSche
  * Yield distribution preview schema with DB transform
  */
 export const yieldPreviewDbSchema = z.object({
-  fundId: z.string().uuid("Invalid fund ID"),
+  fundId: strictUuidSchema,
   targetDate: z.string().or(z.date()),
   purpose: z.enum(["reporting", "transaction"]),
 }).transform((data) => ({
@@ -411,7 +411,7 @@ export const yieldPreviewDbSchema = z.object({
  * AUM record schema with DB transform
  */
 export const aumRecordDbSchema = z.object({
-  fundId: z.string().uuid("Invalid fund ID"),
+  fundId: strictUuidSchema,
   aumDate: z.string().or(z.date()),
   totalAum: z.number().positive("AUM must be positive"),
   purpose: z.enum(["reporting", "transaction"]),
@@ -428,8 +428,8 @@ export const aumRecordDbSchema = z.object({
  * Investor position query schema with DB transform
  */
 export const investorPositionQueryDbSchema = z.object({
-  investorId: z.string().uuid("Invalid investor ID"),
-  fundId: z.string().uuid("Invalid fund ID").optional(),
+  investorId: strictUuidSchema,
+  fundId: strictUuidSchema.optional(),
 }).transform((data) => ({
   p_investor_id: data.investorId,
   p_fund_id: data.fundId,

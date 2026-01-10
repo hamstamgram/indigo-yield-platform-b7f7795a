@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { strictUuidSchema } from "./schemas";
 
 export const investmentFormSchema = z.object({
-  investor_id: z.string().uuid({ message: "Please select a valid investor" }),
-  fund_id: z.string().uuid({ message: "Please select a valid fund" }),
+  investor_id: strictUuidSchema,
+  fund_id: strictUuidSchema,
   investment_date: z.string().min(1, { message: "Investment date is required" }),
   amount: z.coerce
     .number()
