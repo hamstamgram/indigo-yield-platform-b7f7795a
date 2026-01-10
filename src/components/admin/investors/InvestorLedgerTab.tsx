@@ -36,6 +36,7 @@ import { useLedgerSubscription } from "@/hooks/data";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
+import { FinancialValue } from "@/components/common/FinancialValue";
 
 interface InvestorLedgerTabProps {
   investorId: string;
@@ -461,11 +462,14 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                   <TableCell className="py-2">
                     {tx.fund?.name || "-"}
                   </TableCell>
-                  <TableCell className="py-2 text-right font-mono">
-                    <span className={tx.amount >= 0 ? "text-green-600" : "text-red-600"}>
-                      {tx.amount >= 0 ? "+" : ""}{tx.amount.toFixed(4)}
-                    </span>
-                    <span className="text-muted-foreground ml-1">{tx.asset}</span>
+                  <TableCell className="py-2 text-right">
+                    <FinancialValue 
+                      value={tx.amount} 
+                      asset={tx.asset} 
+                      prefix={tx.amount >= 0 ? "+" : ""} 
+                      colorize 
+                      showAsset 
+                    />
                   </TableCell>
                   <TableCell className="py-2">
                     {getPurposeBadge(tx.purpose)}
