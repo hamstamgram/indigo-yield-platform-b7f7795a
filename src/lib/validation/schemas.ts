@@ -5,6 +5,59 @@
 
 import { z } from "zod";
 
+// ============================================================================
+// Strict UUID Schema - Frontend Guard for Type-Safety
+// ============================================================================
+
+/**
+ * Strict UUID validation schema.
+ * Validates UUID format before network requests to prevent type errors at DB layer.
+ * Used for all ID fields: investorId, fundId, transactionId, etc.
+ */
+export const strictUuidSchema = z
+  .string()
+  .uuid("Invalid UUID format")
+  .refine(
+    (val) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val),
+    "UUID must be in standard format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"
+  );
+
+/**
+ * Withdrawal creation schema with strict UUID validation and DB transform.
+ * Prevents race conditions via advisory lock in create_withdrawal_request RPC.
+ */
+export const withdrawalCreationDbSchema = z.object({
+  investorId: strictUuidSchema,
+  fundId: strictUuidSchema,
+  amount: z.number().positive("Amount must be positive"),
+  type: z.enum(["partial", "full"]),
+  notes: z.string().max(500).optional(),
+}).transform((data) => ({
+  p_investor_id: data.investorId,
+  p_fund_id: data.fundId,
+  p_amount: data.amount,
+  p_type: data.type,
+  p_notes: data.notes,
+}));
+
+export type WithdrawalCreationInput = z.input<typeof withdrawalCreationDbSchema>;
+export type WithdrawalCreationDbParams = z.output<typeof withdrawalCreationDbSchema>;
+
+/**
+ * Data edit audit query schema for retrieving audit records by UUID.
+ * Ensures record_id is properly validated as UUID before query.
+ */
+export const dataEditAuditQuerySchema = z.object({
+  recordId: strictUuidSchema,
+  tableName: z.string().min(1, "Table name required"),
+}).transform((data) => ({
+  record_id: data.recordId,
+  table_name: data.tableName,
+}));
+
+export type DataEditAuditQueryInput = z.input<typeof dataEditAuditQuerySchema>;
+export type DataEditAuditQueryDbParams = z.output<typeof dataEditAuditQuerySchema>;
+
 // Common validation patterns
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -302,7 +355,7 @@ export const adminTransactionDbSchema = z.object({
  * Void transaction schema with camelCase → snake_case transform
  */
 export const voidTransactionDbSchema = z.object({
-  transactionId: z.string().uuid("Invalid transaction ID"),
+  transactionId: strictUuidSchema,  // Use strictUuidSchema for enhanced validation
   reason: z.string().min(3, "Reason must be at least 3 characters").max(500, "Reason too long"),
 }).transform((data) => ({
   transaction_id: data.transactionId,
