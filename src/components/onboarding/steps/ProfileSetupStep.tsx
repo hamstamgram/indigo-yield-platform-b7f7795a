@@ -5,7 +5,7 @@ import {
   Alert, AlertDescription,
 } from "@/components/ui";
 import { User, Phone, Mail, CheckCircle } from "lucide-react";
-import { useUserEmail } from "@/hooks/data/useProfileSettings";
+import { useUserEmail } from "@/hooks/data";
 import type { OnboardingData } from "@/types/domains";
 
 interface ProfileSetupStepProps {

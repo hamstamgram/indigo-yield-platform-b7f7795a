@@ -23,7 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
-import { useSubmitWithdrawal } from "@/hooks/data/useInvestorWithdrawals";
+import { useSubmitWithdrawal } from "@/hooks/data";
 
 export interface WithdrawalPosition {
   fund_id: string;

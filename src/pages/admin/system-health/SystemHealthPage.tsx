@@ -17,9 +17,8 @@ import {
   Clock,
   Inbox,
 } from "lucide-react";
-import { useSystemHealth, type ServiceStatus } from "@/hooks/data/admin";
+import { useSystemHealth, type ServiceStatus, useDeliveryQueueMetrics } from "@/hooks/data";
 import { getOverallStatus } from "@/services/core/systemHealthService";
-import { useDeliveryQueueMetrics } from "@/hooks/data/useSystemAdmin";
 import { formatDistanceToNow } from "date-fns";
 import { DataIntegrityPanel } from "@/components/admin/DataIntegrityPanel";
 

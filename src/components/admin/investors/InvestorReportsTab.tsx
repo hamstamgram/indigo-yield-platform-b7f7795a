@@ -18,7 +18,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useInvestorReportPeriods } from "@/hooks/data/useInvestorSettings";
+import { useInvestorReportPeriods } from "@/hooks/data";
 
 interface InvestorReportsTabProps {
   investorId: string;

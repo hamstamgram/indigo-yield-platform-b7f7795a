@@ -8,8 +8,7 @@ import { DeliveryExclusionStats } from "./DeliveryExclusionStats";
 import { useSortableColumns } from "@/hooks";
 
 // Import new hooks and types
-import { usePeriodsWithCounts, useDeliveryStats, useDeliveries } from "@/hooks/data/useDeliveryData";
-import { useDeliveryMutations } from "@/hooks/data/useDeliveryMutations";
+import { usePeriodsWithCounts, useDeliveryStats, useDeliveries, useDeliveryMutations } from "@/hooks/data";
 import type { DeliveryRecord, DeliveryMode, DeliveryFilters } from "@/types/domains/delivery";
 import { DELIVERY_MODES } from "@/types/domains/delivery";
 

@@ -19,7 +19,7 @@ import {
   Clock,
   Info
 } from "lucide-react";
-import { useDeliveryDiagnostics } from "@/hooks/data/useDashboardMetrics";
+import { useDeliveryDiagnostics } from "@/hooks/data";
 
 interface DeliveryDiagnosticsPanelProps {
   periodId: string;

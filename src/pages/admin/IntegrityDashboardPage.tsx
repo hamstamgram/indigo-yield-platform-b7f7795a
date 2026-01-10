@@ -9,7 +9,7 @@ import {
   Badge, Button, Skeleton,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui";
-import { useIntegrityChecks, useAuditEvents } from "@/hooks/data/useIntegrityData";
+import { useIntegrityChecks, useAuditEvents } from "@/hooks/data";
 import type { IntegrityStatus, IntegrityCheck } from "@/types/domains/integrity";
 import {
   CheckCircle2,

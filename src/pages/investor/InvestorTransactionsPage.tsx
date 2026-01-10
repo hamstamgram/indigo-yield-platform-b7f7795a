@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import {
   useInvestorTransactionAssets,
   useInvestorTransactionsList,
-} from "@/hooks/data/useInvestorPortal";
+} from "@/hooks/data";
 
 const TRANSACTION_TYPES = [
   { value: "all", label: "All Types" },

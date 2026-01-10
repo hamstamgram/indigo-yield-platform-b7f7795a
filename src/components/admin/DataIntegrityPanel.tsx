@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
-import { useDataIntegrityStatus } from "@/hooks/data/useSystemAdmin";
+import { useDataIntegrityStatus } from "@/hooks/data";
 
 export function DataIntegrityPanel() {
   const [isRefreshing, setIsRefreshing] = useState(false);

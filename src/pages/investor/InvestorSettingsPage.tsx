@@ -29,7 +29,7 @@ import {
   useUserPreferences,
   useSaveUserPreferences,
   type UserSettings,
-} from "@/hooks/data/useInvestorPortal";
+} from "@/hooks/data";
 
 const SETTINGS_KEY = "indigo_user_settings";
 

@@ -27,7 +27,7 @@ import {
 import { toast } from "sonner";
 import { operationsService, type PendingBreakdown } from "@/services/operations/operationsService";
 import { getSystemHealth, type SystemHealth } from "@/services/core/systemHealthService";
-import { useRecentAuditLogs, useOperationsRealtime, type AuditLogEntry } from "@/hooks/data/useOperationsHub";
+import { useRecentAuditLogs, useOperationsRealtime, type AuditLogEntry } from "@/hooks/data";
 
 function AdminOperationsHubContent() {
   const [metrics, setMetrics] = useState({

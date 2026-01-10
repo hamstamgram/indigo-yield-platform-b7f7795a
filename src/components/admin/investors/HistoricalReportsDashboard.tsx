@@ -5,7 +5,7 @@ import {
 } from "@/components/ui";
 import { BarChart3, Calendar, Database, TrendingUp } from "lucide-react";
 import BulkDataGenerator from "./BulkDataGenerator";
-import { useHistoricalDataSummary } from "@/hooks/data/useReportData";
+import { useHistoricalDataSummary } from "@/hooks/data";
 
 const HistoricalReportsDashboard: React.FC = () => {
   const { summary, isLoading } = useHistoricalDataSummary();

@@ -6,8 +6,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { useWithdrawalRequests, useDepositsQueue } from "@/hooks/data/useRequestsQueueData";
-import { useRequestsQueueMutations } from "@/hooks/data/useRequestsQueueMutations";
+import { useWithdrawalRequests, useDepositsQueue, useRequestsQueueMutations } from "@/hooks/data";
 import type { WithdrawalRequest } from "@/types/domains/requests";
 import {
   Loader2,

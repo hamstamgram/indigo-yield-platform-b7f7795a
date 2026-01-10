@@ -3,7 +3,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useInvestorPerformanceReports } from "@/hooks/data/useReports";
+import { useInvestorPerformanceReports } from "@/hooks/data";
 
 // Extract symbol from fund name (e.g., "eth_yield_fund" -> "ETH")
 const getSymbolFromFundName = (fundName: string) => {

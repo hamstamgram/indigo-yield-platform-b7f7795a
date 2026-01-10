@@ -8,7 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui";
 import { Loader2, Pencil, AlertTriangle } from "lucide-react";
-import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
+import { useWithdrawalMutations } from "@/hooks/data";
 
 interface EditWithdrawalDialogProps {
   open: boolean;

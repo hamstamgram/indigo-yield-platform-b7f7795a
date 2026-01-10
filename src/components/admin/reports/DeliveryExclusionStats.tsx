@@ -15,7 +15,7 @@ import {
   HelpCircle,
   Info,
 } from "lucide-react";
-import { useDeliveryExclusionBreakdown } from "@/hooks/data/useDashboardMetrics";
+import { useDeliveryExclusionBreakdown } from "@/hooks/data";
 
 interface DeliveryExclusionStatsProps {
   periodId: string;

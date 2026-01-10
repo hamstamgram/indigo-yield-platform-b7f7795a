@@ -15,7 +15,7 @@ import {
   useStatementPeriod,
   useInvestorReportData,
   useSendInvestorReport,
-} from "@/hooks/data/useReportData";
+} from "@/hooks/data";
 
 export function SingleReportGenerator() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");

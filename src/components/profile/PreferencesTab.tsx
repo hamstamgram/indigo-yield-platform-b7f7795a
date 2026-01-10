@@ -5,7 +5,7 @@ import {
   Button, Label, Switch, Separator,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui";
-import { useLocalPreferences, useSaveLocalPreferences } from "@/hooks/data/useProfileSettings";
+import { useLocalPreferences, useSaveLocalPreferences } from "@/hooks/data";
 
 interface PreferencesData {
   // Notifications

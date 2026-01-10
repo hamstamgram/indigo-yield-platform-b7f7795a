@@ -20,9 +20,9 @@ import { format } from "date-fns";
 import {
   useAdminUsersWithRoles,
   useUpdateAdminRole,
-  useCreateAdminInvite,
+  useCreateSystemAdminInvite,
   type AdminUser,
-} from "@/hooks/data/useSystemAdmin";
+} from "@/hooks/data";
 
 interface PendingRoleChange {
   adminId: string;
@@ -35,7 +35,7 @@ interface PendingRoleChange {
 function AdminListContent() {
   const { data: admins = [], isLoading: loading, refetch } = useAdminUsersWithRoles();
   const updateRoleMutation = useUpdateAdminRole();
-  const createInviteMutation = useCreateAdminInvite();
+  const createInviteMutation = useCreateSystemAdminInvite();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showInviteDialog, setShowInviteDialog] = useState(false);

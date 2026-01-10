@@ -32,7 +32,7 @@ import {
 import { toast } from "@/hooks";
 import { format } from "date-fns";
 import { useUrlFilters, useInvestorLedger, useInvestorDefaultFund } from "@/hooks";
-import { useLedgerSubscription } from "@/hooks/data/useRealtimeSubscription";
+import { useLedgerSubscription } from "@/hooks/data";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
