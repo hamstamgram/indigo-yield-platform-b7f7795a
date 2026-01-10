@@ -9,6 +9,7 @@ import {
   Badge, Button, Skeleton,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import { useIntegrityChecks, useAuditEvents } from "@/hooks/data";
 import type { IntegrityStatus, IntegrityCheck } from "@/types/domains/integrity";
 import {
@@ -205,7 +206,7 @@ export default function IntegrityDashboardPage() {
                             {Object.values(row).map((val, i) => (
                               <TableCell key={i} className="text-xs font-mono">
                                 {typeof val === "number"
-                                  ? val.toFixed(6)
+                                  ? <FinancialValue value={val} displayDecimals={6} showAsset={false} />
                                   : String(val ?? "-")}
                               </TableCell>
                             ))}
