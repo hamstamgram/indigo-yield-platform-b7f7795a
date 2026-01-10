@@ -29,7 +29,7 @@ import {
   useRecentInvestorTransactions,
   usePendingWithdrawalsCount,
   useLastStatementPeriod,
-} from "@/hooks/data/useInvestorOverviewQueries";
+} from "@/hooks/data";
 
 describe("useInvestorOverviewQueries", () => {
   beforeEach(() => {

@@ -35,7 +35,7 @@ vi.mock("@/services/admin/reportQueryService", () => ({
 }));
 
 // Import from actual hook location after mocking
-import { useGenerateFundPerformance } from "@/hooks/data/useReports";
+import { useGenerateFundPerformance } from "@/hooks/data";
 
 describe("useGenerateFundPerformance", () => {
   beforeEach(() => {
