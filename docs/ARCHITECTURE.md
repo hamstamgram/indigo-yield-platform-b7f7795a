@@ -160,7 +160,67 @@ useMutation({
 });
 ```
 
-## Yield Distribution Flow
+## Yield Distribution Flow (Enhanced)
+
+The yield distribution process includes temporal lock enforcement, conservation checks, and dust routing:
+
+```mermaid
+sequenceDiagram
+    participant A as Admin
+    participant UI as Yield Operations UI
+    participant PV as preview_daily_yield_v3
+    participant TL as Temporal Lock Check
+    participant AP as apply_daily_yield_v3
+    participant LED as transactions_v2
+    participant POS as investor_positions
+    participant FEE as INDIGO Fees Account
+    participant DUST as Dust Handler
+
+    A->>UI: Enter New AUM Value
+    UI->>PV: Preview distribution
+    PV-->>UI: Show allocations, fees, conservation check
+
+    A->>UI: Confirm & Apply
+    UI->>AP: apply_daily_yield_to_fund_v3()
+
+    rect rgb(255, 240, 240)
+        Note over AP,TL: Temporal Lock Enforcement
+        AP->>TL: Check if AUM recorded today
+        alt AUM created today (same day)
+            TL-->>AP: BLOCK - "Wait T+1"
+            AP-->>UI: Error response
+        else AUM is T-1 snapshot
+            TL-->>AP: ALLOW
+        end
+    end
+
+    loop Each Investor Position
+        AP->>LED: INSERT YIELD transaction
+        AP->>POS: UPDATE current_value
+        AP->>LED: INSERT FEE to INDIGO Fees
+        opt IB Parent Exists
+            AP->>LED: INSERT IB_CREDIT
+        end
+    end
+
+    rect rgb(240, 255, 240)
+        Note over AP,DUST: Conservation Check & Dust Routing
+        AP->>DUST: Calculate: gross - allocated
+        alt Dust < 0.0000001
+            DUST->>FEE: Route micro-dust to fees account
+            Note over DUST: Prevents micro-balance accumulation
+        end
+    end
+
+    AP-->>UI: Return success + summary JSON
+    UI-->>A: Show confirmation toast
+```
+
+> **Temporal Lock**: Yield must be calculated against a T-1 AUM snapshot. Same-day distributions are blocked unless `temporal_lock_bypass = true`.
+
+> **Dust Routing**: Micro-amounts below `0.0000001` are routed to the INDIGO Fees account to prevent accumulation of "dust" balances that display as ~0.
+
+### Detailed Yield Distribution Logic
 
 ```mermaid
 sequenceDiagram

@@ -2,15 +2,17 @@ import { useMemo } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalFullStatus } from "@/types/domains";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
 import {
-  Table, TableBody, TableCell, TableHeader, TableRow,
-  SortableTableHead, Input, Button, Badge, TruncatedText,
+  Input, Button, Badge, TruncatedText,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui";
+import { ResponsiveTable, ResponsiveTableColumn } from "@/components/ui/responsive-table";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import { useSortableColumns } from "@/hooks";
 import { 
-  Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2, Eye, 
-  ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, ArrowRightLeft 
+  Search, CheckCircle, XCircle, Play, CheckCircle2, Eye, 
+  ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, ArrowRightLeft,
+  Calendar, User, Coins
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -87,8 +89,194 @@ export function WithdrawalsTable({
 
   const displayedWithdrawals = useMemo(() => sortedData, [sortedData]);
 
+  // Actions dropdown for a withdrawal
+  const ActionsDropdown = ({ withdrawal }: { withdrawal: Withdrawal }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {onViewDetails && (
+          <DropdownMenuItem onClick={() => onViewDetails(withdrawal)}>
+            <Eye className="h-4 w-4 mr-2" />
+            View Details
+          </DropdownMenuItem>
+        )}
+        
+        {canEdit(withdrawal.status) && onEdit && (
+          <DropdownMenuItem onClick={() => onEdit(withdrawal)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </DropdownMenuItem>
+        )}
+
+        <DropdownMenuSeparator />
+
+        {withdrawal.status === "pending" && onApprove && (
+          <DropdownMenuItem onClick={() => onApprove(withdrawal)}>
+            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+            Approve
+          </DropdownMenuItem>
+        )}
+        
+        {withdrawal.status === "pending" && onReject && (
+          <DropdownMenuItem onClick={() => onReject(withdrawal)}>
+            <XCircle className="h-4 w-4 mr-2 text-red-600" />
+            Reject
+          </DropdownMenuItem>
+        )}
+        
+        {withdrawal.status === "approved" && onStartProcessing && (
+          <DropdownMenuItem onClick={() => onStartProcessing(withdrawal)}>
+            <Play className="h-4 w-4 mr-2 text-blue-600" />
+            Start Processing
+          </DropdownMenuItem>
+        )}
+        
+        {withdrawal.status === "processing" && onComplete && (
+          <DropdownMenuItem onClick={() => onComplete(withdrawal)}>
+            <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+            Complete
+          </DropdownMenuItem>
+        )}
+
+        {canRouteToFees(withdrawal.status) && onRouteToFees && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onRouteToFees(withdrawal)}>
+              <ArrowRightLeft className="h-4 w-4 mr-2 text-primary" />
+              Route to INDIGO FEES
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {canDelete(withdrawal.status) && onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => onDelete(withdrawal)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  // Define columns for ResponsiveTable
+  const columns: ResponsiveTableColumn<Withdrawal>[] = [
+    {
+      header: "Investor",
+      cell: (w) => (
+        <div className="flex flex-col max-w-[200px]">
+          <TruncatedText text={w.investor_name} className="font-medium" />
+          <TruncatedText text={w.investor_email} className="text-sm text-muted-foreground" />
+        </div>
+      ),
+    },
+    {
+      header: "Amount",
+      cell: (w) => (
+        <div className="flex items-center gap-2">
+          <img
+            src={getAssetLogo((w.fund_class || "ASSET").toUpperCase())}
+            alt={w.fund_class || "ASSET"}
+            className="h-5 w-5 rounded-full border"
+            onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+          />
+          <FinancialValue value={w.requested_amount} asset={w.fund_class || "UNITS"} showAsset />
+        </div>
+      ),
+    },
+    {
+      header: "Type",
+      cell: (w) => <Badge variant="outline">{w.withdrawal_type}</Badge>,
+    },
+    {
+      header: "Status",
+      cell: (w) => (
+        <Badge variant="outline" className={statusColors[w.status]}>
+          {w.status}
+        </Badge>
+      ),
+    },
+    {
+      header: "Request Date",
+      cell: (w) => format(new Date(w.request_date), "MMM dd, yyyy"),
+    },
+    {
+      header: "Notes",
+      cell: (w) => <span className="max-w-[200px] truncate">{w.notes || "-"}</span>,
+    },
+    {
+      header: "Actions",
+      cell: (w) => <ActionsDropdown withdrawal={w} />,
+      className: "text-right",
+    },
+  ];
+
+  // Mobile card renderer
+  const mobileCardRenderer = (withdrawal: Withdrawal) => (
+    <div className="p-4 space-y-3">
+      {/* Header: Investor name + Status */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <TruncatedText text={withdrawal.investor_name} className="font-medium text-sm" />
+          <TruncatedText text={withdrawal.investor_email} className="text-xs text-muted-foreground" />
+        </div>
+        <Badge variant="outline" className={`${statusColors[withdrawal.status]} shrink-0`}>
+          {withdrawal.status}
+        </Badge>
+      </div>
+
+      {/* Amount and Type */}
+      <div className="flex items-center justify-between gap-2 py-2 border-y border-border/50">
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <img
+              src={getAssetLogo((withdrawal.fund_class || "ASSET").toUpperCase())}
+              alt={withdrawal.fund_class || "ASSET"}
+              className="h-4 w-4 rounded-full border"
+              onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+            />
+            <FinancialValue 
+              value={withdrawal.requested_amount} 
+              asset={withdrawal.fund_class || "UNITS"} 
+              showAsset 
+              className="text-sm"
+            />
+          </div>
+        </div>
+        <Badge variant="outline" className="text-xs">{withdrawal.withdrawal_type}</Badge>
+      </div>
+
+      {/* Date */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Calendar className="h-3.5 w-3.5" />
+        <span>{format(new Date(withdrawal.request_date), "MMM dd, yyyy")}</span>
+      </div>
+
+      {/* Notes (if any) */}
+      {withdrawal.notes && (
+        <p className="text-xs text-muted-foreground truncate">{withdrawal.notes}</p>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center justify-end pt-2 border-t border-border/50">
+        <ActionsDropdown withdrawal={withdrawal} />
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -142,198 +330,20 @@ export function WithdrawalsTable({
         )}
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead
-                column="investor_name"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              >
-                Investor
-              </SortableTableHead>
-              <SortableTableHead
-                column="requested_amount"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              >
-                Amount
-              </SortableTableHead>
-              <SortableTableHead
-                column="withdrawal_type"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              >
-                Type
-              </SortableTableHead>
-              <SortableTableHead
-                column="status"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              >
-                Status
-              </SortableTableHead>
-              <SortableTableHead
-                column="request_date"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              >
-                Request Date
-              </SortableTableHead>
-              <SortableTableHead
-                column="notes"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              >
-                Notes
-              </SortableTableHead>
-              <SortableTableHead
-                column=""
-                currentSort={{ column: '', direction: null }}
-                onSort={() => {}}
-                className="text-right"
-              >
-                Actions
-              </SortableTableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                </TableCell>
-              </TableRow>
-            ) : displayedWithdrawals.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  No withdrawals found
-                </TableCell>
-              </TableRow>
-            ) : (
-              displayedWithdrawals.map((withdrawal) => (
-                <TableRow key={withdrawal.id}>
-                  <TableCell>
-                    <div className="flex flex-col max-w-[200px]">
-                      <TruncatedText 
-                        text={withdrawal.investor_name} 
-                        className="font-medium"
-                      />
-                      <TruncatedText 
-                        text={withdrawal.investor_email} 
-                        className="text-sm text-muted-foreground"
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={getAssetLogo((withdrawal.fund_class || "ASSET").toUpperCase())}
-                        alt={withdrawal.fund_class || "ASSET"}
-                        className="h-5 w-5 rounded-full border"
-                        onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-                      />
-                      <span>
-                        {formatAssetAmount(withdrawal.requested_amount, withdrawal.fund_class || "UNITS")}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{withdrawal.withdrawal_type}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={statusColors[withdrawal.status]}>
-                      {withdrawal.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{format(new Date(withdrawal.request_date), "MMM dd, yyyy")}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {withdrawal.notes || "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {onViewDetails && (
-                          <DropdownMenuItem onClick={() => onViewDetails(withdrawal)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                        )}
-                        
-                        {canEdit(withdrawal.status) && onEdit && (
-                          <DropdownMenuItem onClick={() => onEdit(withdrawal)}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                        )}
-
-                        <DropdownMenuSeparator />
-
-                        {withdrawal.status === "pending" && onApprove && (
-                          <DropdownMenuItem onClick={() => onApprove(withdrawal)}>
-                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                            Approve
-                          </DropdownMenuItem>
-                        )}
-                        
-                        {withdrawal.status === "pending" && onReject && (
-                          <DropdownMenuItem onClick={() => onReject(withdrawal)}>
-                            <XCircle className="h-4 w-4 mr-2 text-red-600" />
-                            Reject
-                          </DropdownMenuItem>
-                        )}
-                        
-                        {withdrawal.status === "approved" && onStartProcessing && (
-                          <DropdownMenuItem onClick={() => onStartProcessing(withdrawal)}>
-                            <Play className="h-4 w-4 mr-2 text-blue-600" />
-                            Start Processing
-                          </DropdownMenuItem>
-                        )}
-                        
-                        {withdrawal.status === "processing" && onComplete && (
-                          <DropdownMenuItem onClick={() => onComplete(withdrawal)}>
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-                            Complete
-                          </DropdownMenuItem>
-                        )}
-
-                        {canRouteToFees(withdrawal.status) && onRouteToFees && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onRouteToFees(withdrawal)}>
-                              <ArrowRightLeft className="h-4 w-4 mr-2 text-primary" />
-                              Route to INDIGO FEES
-                            </DropdownMenuItem>
-                          </>
-                        )}
-
-                        {canDelete(withdrawal.status) && onDelete && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => onDelete(withdrawal)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Responsive Table */}
+      {isLoading ? (
+        <div className="text-center py-8 text-muted-foreground">
+          Loading withdrawals...
+        </div>
+      ) : (
+        <ResponsiveTable
+          data={displayedWithdrawals}
+          columns={columns}
+          keyExtractor={(w) => w.id}
+          mobileCardRenderer={mobileCardRenderer}
+          emptyMessage="No withdrawals found"
+        />
+      )}
 
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
@@ -368,7 +378,6 @@ export function WithdrawalsTable({
           </div>
         </div>
       )}
-
     </div>
   );
 }

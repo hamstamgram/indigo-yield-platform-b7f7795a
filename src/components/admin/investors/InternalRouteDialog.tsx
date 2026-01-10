@@ -15,6 +15,7 @@ import {
   useInvestorPositionsForRoute,
   useInternalRouteMutation,
 } from "@/hooks/data/admin";
+import { FinancialValue } from "@/components/common/FinancialValue";
 
 interface InternalRouteDialogProps {
   open: boolean;
@@ -62,7 +63,7 @@ export function InternalRouteDialog({
     }
 
     if (parseFloat(amount) > maxAmount) {
-      toast.error(`Amount exceeds available balance (${maxAmount.toFixed(8)} ${selectedAsset})`);
+      toast.error(`Amount exceeds available balance`);
       return;
     }
 
@@ -189,8 +190,10 @@ export function InternalRouteDialog({
                   <SelectContent>
                     {positions?.map((pos) => (
                       <SelectItem key={pos.fund_id} value={pos.fund_id}>
-                        {pos.funds?.name} ({pos.funds?.asset}) - 
-                        Balance: {Number(pos.current_value).toFixed(8)}
+                        <span className="flex items-center gap-2">
+                          {pos.funds?.name} ({pos.funds?.asset}) - 
+                          Balance: <FinancialValue value={pos.current_value} asset={pos.funds?.asset} showAsset={false} />
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -207,8 +210,8 @@ export function InternalRouteDialog({
                   placeholder="0.00000000"
                 />
                 {fundId && (
-                  <p className="text-xs text-muted-foreground">
-                    Available: {maxAmount.toFixed(8)} {selectedAsset}
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    Available: <FinancialValue value={maxAmount} asset={selectedAsset} showAsset />
                   </p>
                 )}
               </div>
