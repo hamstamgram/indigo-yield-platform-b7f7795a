@@ -334,3 +334,55 @@ export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type AdminTransactionDbInput = z.output<typeof adminTransactionDbSchema>;
 export type VoidTransactionDbInput = z.output<typeof voidTransactionDbSchema>;
 export type WithdrawalApprovalDbInput = z.output<typeof withdrawalApprovalDbSchema>;
+
+// ===============================
+// Additional DB Transform Schemas
+// ===============================
+
+/**
+ * Yield distribution preview schema with DB transform
+ */
+export const yieldPreviewDbSchema = z.object({
+  fundId: z.string().uuid("Invalid fund ID"),
+  targetDate: z.string().or(z.date()),
+  purpose: z.enum(["reporting", "transaction"]),
+}).transform((data) => ({
+  p_fund_id: data.fundId,
+  p_target_date: typeof data.targetDate === 'string' 
+    ? data.targetDate 
+    : data.targetDate.toISOString().split('T')[0],
+  p_purpose: data.purpose,
+}));
+
+/**
+ * AUM record schema with DB transform
+ */
+export const aumRecordDbSchema = z.object({
+  fundId: z.string().uuid("Invalid fund ID"),
+  aumDate: z.string().or(z.date()),
+  totalAum: z.number().positive("AUM must be positive"),
+  purpose: z.enum(["reporting", "transaction"]),
+}).transform((data) => ({
+  fund_id: data.fundId,
+  aum_date: typeof data.aumDate === 'string' 
+    ? data.aumDate 
+    : data.aumDate.toISOString().split('T')[0],
+  total_aum: data.totalAum,
+  purpose: data.purpose,
+}));
+
+/**
+ * Investor position query schema with DB transform
+ */
+export const investorPositionQueryDbSchema = z.object({
+  investorId: z.string().uuid("Invalid investor ID"),
+  fundId: z.string().uuid("Invalid fund ID").optional(),
+}).transform((data) => ({
+  p_investor_id: data.investorId,
+  p_fund_id: data.fundId,
+}));
+
+// Export additional transformed types
+export type YieldPreviewDbInput = z.output<typeof yieldPreviewDbSchema>;
+export type AumRecordDbInput = z.output<typeof aumRecordDbSchema>;
+export type InvestorPositionQueryDbInput = z.output<typeof investorPositionQueryDbSchema>;

@@ -498,10 +498,32 @@ This ensures that by the time data reaches the service layer, it is already in t
 | Trigger Function | Table | Column Used | Status |
 |------------------|-------|-------------|--------|
 | `validate_transaction_has_aum` | transactions_v2 | `tx_date` | ✅ Fixed 2026-01-10 |
+| `void_transaction` | transactions_v2 | `tx_date` | ✅ Fixed 2026-01-10 |
+| `create_withdrawal_request` | withdrawal_requests | N/A | ✅ Advisory Lock Added 2026-01-10 |
 | `delta_audit_transactions_v2` | transactions_v2 | `*` (all columns) | ✅ Active |
 | `protect_transactions_immutable` | transactions_v2 | `created_at`, `reference_id` | ✅ Active |
 | `delta_audit_investor_positions` | investor_positions | `*` (all columns) | ✅ Active |
 | `delta_audit_yield_distributions` | yield_distributions | `*` (all columns) | ✅ Active |
+
+### Advisory Lock Coverage
+
+| Function | Lock Present | Lock Key Pattern |
+|----------|--------------|------------------|
+| `apply_daily_yield_to_fund_v3` | ✅ Yes | `yield:fund_id:date` |
+| `approve_withdrawal` | ✅ Yes | `withdrawal:request_id` |
+| `complete_withdrawal` | ✅ Yes | `withdrawal:request_id` |
+| `admin_create_transaction` | ✅ Yes | `tx:investor_id:fund_id` |
+| `create_withdrawal_request` | ✅ Yes | `withdrawal_request:investor_id:fund_id` |
+
+### Transform Schema Reference
+
+| Schema | Source (camelCase) | Target (snake_case) |
+|--------|-------------------|---------------------|
+| `adminTransactionDbSchema` | `txDate` | `tx_date` |
+| `voidTransactionDbSchema` | `transactionId` | `transaction_id` |
+| `withdrawalApprovalDbSchema` | `requestId` | `request_id` |
+| `yieldPreviewDbSchema` | `fundId`, `targetDate` | `p_fund_id`, `p_target_date` |
+| `aumRecordDbSchema` | `fundId`, `aumDate` | `fund_id`, `aum_date` |
 
 ### Realtime Subscription Privacy Filters
 
@@ -518,6 +540,61 @@ useRealtimeSubscription({
 
 This prevents cross-user data leakage in realtime updates.
 
+---
+
+## Transaction Lifecycle with Advisory Locking
+
+```mermaid
+sequenceDiagram
+    participant UI as Frontend
+    participant API as Edge Function
+    participant DB as PostgreSQL
+    participant Lock as Advisory Lock
+
+    UI->>API: Submit Transaction
+    API->>DB: BEGIN TRANSACTION
+    DB->>Lock: pg_advisory_xact_lock(key)
+    Lock-->>DB: Lock Acquired
+    
+    Note over DB: Validate inputs
+    DB->>DB: Check AUM exists (validate_transaction_has_aum)
+    DB->>DB: Validate balance >= 0
+    DB->>DB: INSERT transactions_v2
+    DB->>DB: UPDATE investor_positions
+    DB->>DB: Fire delta_audit_trigger
+    
+    DB->>Lock: COMMIT (releases lock)
+    Lock-->>DB: Lock Released
+    DB-->>API: Return JSONB result
+    API-->>UI: Success response
+```
+
+### Void Transaction Flow
+
+```mermaid
+sequenceDiagram
+    participant Admin as Admin UI
+    participant RPC as void_transaction RPC
+    participant DB as Database
+
+    Admin->>RPC: void_transaction(id, reason)
+    RPC->>DB: Check transaction exists
+    RPC->>DB: Calculate projected balance
+    
+    alt Balance would go negative
+        RPC-->>Admin: ERROR: Negative balance
+    else Balance OK
+        RPC->>DB: Check dependent yields
+        RPC->>DB: Mark is_voided = true
+        RPC->>DB: recompute_investor_position()
+        RPC->>DB: recalculate_fund_aum_for_date()
+        RPC->>DB: INSERT audit_log
+        RPC-->>Admin: Success with yield warnings
+    end
+```
+
+---
+
 ## Sovereign System Health Certificate
 
 > **Certification Date:** 2026-01-10  
@@ -527,14 +604,15 @@ This prevents cross-user data leakage in realtime updates.
 
 | Check | Status | Details |
 |-------|--------|---------|
-| SECURITY DEFINER Functions | ✅ PASS | 183 functions with `SET search_path = public` |
+| SECURITY DEFINER Functions | ✅ PASS | 183+ functions with `SET search_path = public` |
 | View Security Invoker | ✅ PASS | `v_ledger_reconciliation` uses `security_invoker=true` |
 | Field Immutability Triggers | ✅ PASS | `created_at`, `reference_id`, `actor_user` protected |
 | Idempotency Constraints | ✅ PASS | Unique constraints on `(fund_id, purpose, period_end)` |
-| Advisory Locking | ✅ PASS | `pg_advisory_xact_lock` for yield distribution |
+| Advisory Locking | ✅ PASS | 5 critical functions protected |
 | Delta Audit Triggers | ✅ ACTIVE | 4 tables: transactions_v2, investor_positions, yield_distributions, withdrawal_requests |
-| Void Yield Dependency | ✅ ACTIVE | `get_void_transaction_impact` returns yield warnings before confirm |
+| Void Yield Dependency | ✅ ACTIVE | `void_transaction` returns yield warnings |
 | Two-Key MFA Protocol | ✅ ACTIVE | Super-admin signature required for MFA resets |
+| Type Safety (UUID Casting) | ✅ PASS | `entity_id::text` used correctly in audit triggers |
 
 ### Data Integrity Layer
 
@@ -545,6 +623,7 @@ This prevents cross-user data leakage in realtime updates.
 | Yield Conservation | ✅ 0 violations | `yield_distribution_conservation_check` |
 | Reference ID Uniqueness | ✅ PASS | Unique index active |
 | Orphan Positions | ✅ PASS | Zero-balance orphans cleaned |
+| Column Naming | ✅ PASS | All triggers use `tx_date` (not `transaction_date`) |
 
 ### UI Safety Layer
 
@@ -552,9 +631,10 @@ This prevents cross-user data leakage in realtime updates.
 |-------|--------|---------|
 | FinancialErrorBoundary | ✅ Active | Graceful error handling for financial displays |
 | FinancialValue Precision | ✅ 95%+ | Consistent decimal formatting across platform |
-| ResponsiveTable Coverage | ✅ Active | Mobile-friendly data tables |
+| ResponsiveTable Coverage | ✅ Active | Mobile-friendly data tables (5+ pages) |
 | Withdrawal Lock-in | ✅ PASS | Server-side validation active |
 | Optimistic Updates | ✅ PASS | All mutations implement rollback |
+| Zod Transform Schemas | ✅ PASS | 6 schemas with camelCase → snake_case transforms |
 
 ---
 
