@@ -359,6 +359,7 @@ export const withdrawalService = {
       .rpc('complete_withdrawal', {
         p_request_id: withdrawalId,
         p_closing_aum: parseFloat(closingAum),
+        p_event_ts: new Date().toISOString(),
         p_transaction_hash: txHash || null,
         p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
       })
