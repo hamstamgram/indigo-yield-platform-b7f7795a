@@ -5627,7 +5627,7 @@ export type Database = {
         Args: {
           p_admin_notes?: string
           p_closing_aum: number
-          p_event_ts?: string
+          p_event_ts: string
           p_request_id: string
           p_transaction_hash?: string
         }
