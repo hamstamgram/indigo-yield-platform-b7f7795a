@@ -83,8 +83,10 @@ export function useTransactionFormData() {
 
 /**
  * Hook to check investor balance for a specific fund
+ * Returns BalanceCheckResult with hasBalance flag and current value
+ * @see useInvestorBalance in investor/useInvestorBalance.ts for raw balance value
  */
-export function useInvestorBalance(investorId: string | undefined, fundId: string | undefined) {
+export function useBalanceCheckForTransaction(investorId: string | undefined, fundId: string | undefined) {
   return useQuery<BalanceCheckResult, Error>({
     queryKey: [...QUERY_KEYS.positions(investorId || ""), fundId, "balance-check"],
     queryFn: () => {
@@ -94,6 +96,9 @@ export function useInvestorBalance(investorId: string | undefined, fundId: strin
     enabled: !!investorId && !!fundId,
   });
 }
+
+// Backward compatibility alias - will be removed in future version
+export const useInvestorBalance = useBalanceCheckForTransaction;
 
 /**
  * Hook to check if AUM exists for a fund on a specific date
