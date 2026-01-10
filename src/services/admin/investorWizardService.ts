@@ -108,7 +108,6 @@ async function createInvestorUser(params: {
         .maybeSingle();
 
       if (existingProfile?.id) {
-        console.log("Found existing user, reusing:", existingProfile.id);
         return existingProfile.id;
       }
     }

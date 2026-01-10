@@ -359,9 +359,7 @@ export async function applyYieldDistribution(
       adminId
     );
     
-    if (finalizationResult.success) {
-      console.log(`Yield finalized: ${finalizationResult.events_made_visible} events made visible to investors`);
-    }
+    // Yield finalization succeeded - events_made_visible count available if needed for debugging
   } catch (finalizationError) {
     // Log but don't fail - the yield was applied successfully
     console.warn("Yield finalization failed (non-fatal):", finalizationError);

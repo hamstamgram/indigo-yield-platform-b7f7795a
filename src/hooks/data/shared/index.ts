@@ -169,7 +169,8 @@ export {
   useTransactionById,
   useTransactionWithRelated,
   useTransactionFormData,
-  useInvestorBalance as useInvestorBalanceCheck,
+  useBalanceCheckForTransaction,
+  useInvestorBalance as useInvestorBalanceCheck, // Backward compatibility
   useAumCheck,
   useCreateAdminTransaction,
   useRecordAum,

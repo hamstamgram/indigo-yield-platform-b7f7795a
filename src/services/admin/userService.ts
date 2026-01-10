@@ -75,7 +75,6 @@ export const createOrFindInvestorUser = async (
           .maybeSingle();
         
         if (existingProfile?.id) {
-          console.log("Found existing user by email, returning their ID:", existingProfile.id);
           return existingProfile.id;
         }
       }
@@ -94,7 +93,6 @@ export const createOrFindInvestorUser = async (
           .maybeSingle();
         
         if (existingProfile?.id) {
-          console.log("Found existing user by email, returning their ID:", existingProfile.id);
           return existingProfile.id;
         }
       }
