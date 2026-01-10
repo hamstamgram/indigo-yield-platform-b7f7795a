@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { strictUuidSchema } from "./schemas";
 
 export const depositSchema = z.object({
-  user_id: z.string().uuid({ message: "Invalid user ID" }),
+  user_id: strictUuidSchema,
   asset_symbol: z
     .string()
     .trim()

@@ -503,6 +503,7 @@ This ensures that by the time data reaches the service layer, it is already in t
 | `delta_audit_transactions_v2` | transactions_v2 | `*` (all columns) | ✅ Active |
 | `protect_transactions_immutable` | transactions_v2 | `created_at`, `reference_id` | ✅ Active |
 | `delta_audit_investor_positions` | investor_positions | `*` (all columns) | ✅ Active |
+| `cascade_void_to_yield_events` | yield_distributions | `::uuid` cast | ✅ Fixed 2026-01-10 |
 | `delta_audit_yield_distributions` | yield_distributions | `*` (all columns) | ✅ Active |
 
 ### Advisory Lock Coverage
@@ -654,7 +655,7 @@ transactionId: strictUuidSchema,
 
 | Check | Status | Details |
 |-------|--------|---------|
-| SECURITY DEFINER Functions | ✅ PASS | 183+ functions with `SET search_path = public` |
+| SECURITY DEFINER Functions | ✅ PASS | 189 functions with `SET search_path = public` |
 | View Security Invoker | ✅ PASS | `v_ledger_reconciliation` uses `security_invoker=true` |
 | Field Immutability Triggers | ✅ PASS | `created_at`, `reference_id`, `actor_user` protected |
 | Idempotency Constraints | ✅ PASS | Unique constraints on `(fund_id, purpose, period_end)` |
@@ -662,7 +663,7 @@ transactionId: strictUuidSchema,
 | Delta Audit Triggers | ✅ ACTIVE | 4 tables: transactions_v2, investor_positions, yield_distributions, withdrawal_requests |
 | Void Yield Dependency | ✅ ACTIVE | `void_transaction` returns yield warnings |
 | Two-Key MFA Protocol | ✅ ACTIVE | Super-admin signature required for MFA resets |
-| UUID Type-Safety | ✅ PASS | `::uuid` casts in `log_data_edit`, `audit_investor_fund_performance_changes` |
+| UUID Type-Safety | ✅ PASS | `::uuid` casts in all 5 audit triggers: `log_data_edit`, `audit_investor_fund_performance_changes`, `finalize_statement_period`, `cascade_void_from_transaction`, `cascade_void_to_yield_events` |
 
 ### Data Integrity Layer
 
@@ -686,7 +687,7 @@ transactionId: strictUuidSchema,
 | Withdrawal Lock-in | ✅ PASS | Server-side validation active |
 | Optimistic Updates | ✅ PASS | All mutations implement rollback |
 | Zod Transform Schemas | ✅ PASS | 8 schemas with camelCase → snake_case transforms |
-| strictUuidSchema Guard | ✅ PASS | Frontend validates UUID format before network |
+| strictUuidSchema Guard | ✅ PASS | 12 schemas standardized: `adminDepositSchema`, `adminWithdrawalSchema`, `adminTransactionDbSchema`, `withdrawalApprovalDbSchema`, `yieldPreviewDbSchema`, `aumRecordDbSchema`, `investorPositionQueryDbSchema`, `voidTransactionDbSchema`, `withdrawalCreationDbSchema`, `dataEditAuditQuerySchema`, `investmentFormSchema`, `depositSchema` |
 
 ---
 
