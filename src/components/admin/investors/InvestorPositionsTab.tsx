@@ -9,6 +9,7 @@ import {
   Button, Alert, AlertDescription,
 } from "@/components/ui";
 import { Plus, Loader2, AlertCircle, Info } from "lucide-react";
+import { FinancialValue } from "@/components/common/FinancialValue";
 
 export default function InvestorPositionsTab({ investorId }: { investorId: string }) {
   const queryClient = useQueryClient();
@@ -74,10 +75,10 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
                 {positions.map((pos) => (
                   <TableRow key={`${pos.investor_id}-${pos.fund_id}`}>
                     <TableCell className="font-medium">{pos.funds?.name}</TableCell>
-                    <TableCell className="font-mono">{Number(pos.current_value).toFixed(8)}</TableCell>
+                    <TableCell className="font-mono"><FinancialValue value={pos.current_value} asset={pos.funds?.asset} /></TableCell>
                     <TableCell>{(pos.funds?.asset || "").toUpperCase()}</TableCell>
-                    <TableCell className="text-green-600 font-mono">
-                      +{Number(pos.realized_pnl || 0).toFixed(8)}
+                    <TableCell className="font-mono">
+                      <FinancialValue value={pos.realized_pnl || 0} asset={pos.funds?.asset} colorize prefix="+" />
                     </TableCell>
                   </TableRow>
                 ))}
