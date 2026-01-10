@@ -13,7 +13,8 @@ import { toast } from "sonner";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
-import { useInvestorOptions, useInvestorPositions } from "@/hooks/data/useWithdrawalFormData";
+import { useInvestorOptions, usePositionsForWithdrawal } from "@/hooks/data/useWithdrawalFormData";
+import { useAvailableBalance } from "@/hooks/data/shared/useAvailableBalance";
 import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 
 const withdrawalSchema = z.object({
@@ -53,7 +54,13 @@ export function CreateWithdrawalDialog({
 
   // Data hooks
   const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorOptions(open);
-  const { data: positions = [], isLoading: isLoadingPositions } = useInvestorPositions(selectedInvestorId || null);
+  const { data: positions = [], isLoading: isLoadingPositions } = usePositionsForWithdrawal(selectedInvestorId || null);
+  
+  // Available balance hook (accounts for pending withdrawals - security fix)
+  const { data: availableBalanceData } = useAvailableBalance(
+    selectedInvestorId || null,
+    selectedFundId || null
+  );
   
   // Mutation hook
   const { createMutation } = useWithdrawalMutations();
@@ -118,13 +125,26 @@ export function CreateWithdrawalDialog({
 
     const amount = Number(data.amount);
 
-    // Check if amount exceeds position value
-    if (selectedPosition && amount > selectedPosition.current_value) {
+    // Check if amount exceeds AVAILABLE balance (position minus pending withdrawals)
+    const maxAmount = availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? 0;
+    if (amount > maxAmount) {
+      const hasPending = availableBalanceData && availableBalanceData.pendingWithdrawals > 0;
       toast.error(
-        `Amount exceeds available balance: ${formatAssetAmount(
-          selectedPosition.current_value,
-          selectedPosition.fund.asset
-        )}`
+        hasPending
+          ? `Amount exceeds available balance. Position: ${formatAssetAmount(
+              availableBalanceData.positionValue,
+              selectedPosition?.fund.asset || "USD"
+            )}, Pending: ${formatAssetAmount(
+              availableBalanceData.pendingWithdrawals,
+              selectedPosition?.fund.asset || "USD"
+            )}, Available: ${formatAssetAmount(
+              maxAmount,
+              selectedPosition?.fund.asset || "USD"
+            )}`
+          : `Amount exceeds available balance: ${formatAssetAmount(
+              maxAmount,
+              selectedPosition?.fund.asset || "USD"
+            )}`
       );
       return;
     }

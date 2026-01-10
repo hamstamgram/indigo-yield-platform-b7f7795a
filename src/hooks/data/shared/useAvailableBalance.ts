@@ -1,0 +1,75 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+/**
+ * Result of the available balance calculation
+ */
+export interface AvailableBalanceResult {
+  /** Current position value from investor_positions */
+  positionValue: number;
+  /** Sum of pending/approved/processing withdrawal amounts */
+  pendingWithdrawals: number;
+  /** Available balance = positionValue - pendingWithdrawals */
+  availableBalance: number;
+}
+
+/**
+ * Hook to calculate the true available balance for withdrawals.
+ * This accounts for pending/approved/processing withdrawal requests
+ * to prevent over-withdrawal (withdrawal lock-in security fix).
+ *
+ * @param investorId - The investor's UUID
+ * @param fundId - The fund's UUID
+ * @returns Query result with available balance breakdown
+ */
+export function useAvailableBalance(
+  investorId: string | null,
+  fundId: string | null
+) {
+  return useQuery<AvailableBalanceResult | null>({
+    queryKey: ["available-balance", investorId, fundId],
+    queryFn: async () => {
+      if (!investorId || !fundId) return null;
+
+      // Get current position value
+      const { data: position, error: positionError } = await supabase
+        .from("investor_positions")
+        .select("current_value")
+        .eq("investor_id", investorId)
+        .eq("fund_id", fundId)
+        .maybeSingle();
+
+      if (positionError) {
+        console.error("[useAvailableBalance] Position fetch error:", positionError);
+        throw positionError;
+      }
+
+      // Get sum of pending/approved/processing withdrawals
+      const { data: pendingWithdrawals, error: withdrawalError } = await supabase
+        .from("withdrawal_requests")
+        .select("requested_amount")
+        .eq("investor_id", investorId)
+        .eq("fund_id", fundId)
+        .in("status", ["pending", "approved", "processing"]);
+
+      if (withdrawalError) {
+        console.error("[useAvailableBalance] Withdrawals fetch error:", withdrawalError);
+        throw withdrawalError;
+      }
+
+      const positionValue = Number(position?.current_value) || 0;
+      const totalPending = (pendingWithdrawals || []).reduce(
+        (sum, w) => sum + Number(w.requested_amount),
+        0
+      );
+
+      return {
+        positionValue,
+        pendingWithdrawals: totalPending,
+        availableBalance: Math.max(0, positionValue - totalPending),
+      };
+    },
+    enabled: !!investorId && !!fundId,
+    staleTime: 30 * 1000, // 30 seconds - withdrawals change frequently
+  });
+}

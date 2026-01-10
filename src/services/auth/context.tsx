@@ -124,9 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .in("role", ["admin", "super_admin"])
         .maybeSingle();
 
-      console.log("[AuthContext] Role check result:", { userId, adminRole, roleError });
       const isAdmin = !!adminRole;
-      console.log("[AuthContext] isAdmin:", isAdmin);
 
       // Try to get TOTP status
       let totpData: { enabled?: boolean; verified_at?: string | null } | null = null;

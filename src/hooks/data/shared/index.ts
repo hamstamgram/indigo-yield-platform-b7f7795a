@@ -202,10 +202,16 @@ export {
 // User assets
 export { useUserAssets, type UserAsset } from "./useUserAssets";
 
+// Available balance for withdrawals (security: accounts for pending withdrawals)
+export {
+  useAvailableBalance,
+  type AvailableBalanceResult,
+} from "./useAvailableBalance";
+
 // Withdrawal form data
 export {
   useInvestorOptions,
-  useInvestorPositions as useWithdrawalFormPositionsData,
+  usePositionsForWithdrawal,
 } from "./useWithdrawalFormData";
 
 // Withdrawal mutations
