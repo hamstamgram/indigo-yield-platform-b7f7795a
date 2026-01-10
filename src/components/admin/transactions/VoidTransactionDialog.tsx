@@ -10,7 +10,7 @@ import {
 } from "@/components/ui";
 import { AlertTriangle, Loader2, Info, TrendingDown, Database } from "lucide-react";
 import { toast } from "sonner";
-import { useTransactionMutations } from "@/hooks/data/useTransactionMutations";
+import { useTransactionMutations } from "@/hooks/data";
 import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
 
 /**

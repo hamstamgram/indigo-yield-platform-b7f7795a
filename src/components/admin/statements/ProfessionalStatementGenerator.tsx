@@ -6,7 +6,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Download, FileText } from "lucide-react";
-import { useActiveInvestorsForStatements, useGenerateStatement } from "@/hooks/data/useReports";
+import { useActiveInvestorsForStatements, useGenerateStatement } from "@/hooks/data";
 
 interface PeriodData {
   beginning_balance: number;

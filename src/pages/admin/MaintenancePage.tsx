@@ -6,7 +6,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui";
 import { PositionResetDialog } from "@/components/admin/maintenance/PositionResetDialog";
-import { useResetHistory } from "@/hooks/data/useSystemAdmin";
+import { useResetHistory } from "@/hooks/data";
 import { format } from "date-fns";
 import { formatAUM } from "@/utils/formatters";
 

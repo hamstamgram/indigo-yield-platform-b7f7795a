@@ -15,7 +15,7 @@ import {
   RotateCcw,
   Mail,
 } from "lucide-react";
-import { useDeliveryStatus, useRetryDelivery } from "@/hooks/data/useDashboardMetrics";
+import { useDeliveryStatus, useRetryDelivery } from "@/hooks/data";
 
 interface StatementDeliveryStatusProps {
   statementId: string;

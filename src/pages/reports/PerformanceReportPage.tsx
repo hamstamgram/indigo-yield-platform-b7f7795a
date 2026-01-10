@@ -4,7 +4,7 @@ import {
   Button, Badge,
 } from "@/components/ui";
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
-import { usePerformanceReportDetail } from "@/hooks/data/useReports";
+import { usePerformanceReportDetail } from "@/hooks/data";
 
 export default function PerformanceReportDetailsPage() {
   const { id } = useParams<{ id: string }>();

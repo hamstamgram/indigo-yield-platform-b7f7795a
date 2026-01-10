@@ -1,4 +1,4 @@
-import { useInvestorWithdrawals } from "@/hooks/data/useInvestorWithdrawals";
+import { useInvestorWithdrawals } from "@/hooks/data";
 import { Card, CardContent, CardHeader, Button, Input } from "@/components/ui";
 import { Search, Filter, Plus } from "lucide-react";
 import { useState } from "react";

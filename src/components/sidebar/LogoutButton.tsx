@@ -1,6 +1,6 @@
 import React from "react";
 import { LogOut } from "lucide-react";
-import { useSignOut } from "@/hooks/data/useAuthFlow";
+import { useSignOut } from "@/hooks/data";
 
 type LogoutButtonProps = {
   onLogout?: () => void;

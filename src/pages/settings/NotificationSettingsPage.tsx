@@ -9,7 +9,7 @@ import {
   useUpdateNotificationPreferences,
   type NotificationPreferences,
   DEFAULT_NOTIFICATION_PREFERENCES,
-} from "@/hooks/data/useProfileSettings";
+} from "@/hooks/data";
 
 const NotificationSettingsPage = () => {
   const { data: savedPreferences, isLoading } = useNotificationPreferences();

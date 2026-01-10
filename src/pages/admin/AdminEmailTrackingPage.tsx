@@ -14,7 +14,7 @@
  */
 
 import { useState } from "react";
-import { useEmailStats, useEmailDeliveries, type EmailFilters, type EmailDelivery } from "@/hooks/data/useEmailTracking";
+import { useEmailStats, useEmailDeliveries, type EmailFilters, type EmailDelivery } from "@/hooks/data";
 import {
   Mail,
   Send,

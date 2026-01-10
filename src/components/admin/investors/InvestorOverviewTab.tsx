@@ -17,7 +17,7 @@ import {
   AlertCircle,
   Send,
 } from "lucide-react";
-import { useInvestorOverview } from "@/hooks/data/useInvestorOverview";
+import { useInvestorOverview } from "@/hooks/data";
 import { format } from "date-fns";
 
 interface InvestorOverviewTabProps {

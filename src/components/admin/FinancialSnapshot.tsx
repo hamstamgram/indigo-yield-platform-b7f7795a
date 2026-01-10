@@ -7,7 +7,7 @@ import {
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useFundAUM } from "@/hooks";
-import { useHistoricalFlowData, useFundComposition } from "@/hooks/data/useDashboardMetrics";
+import { useHistoricalFlowData, useFundComposition } from "@/hooks/data";
 import { toast } from "sonner";
 import { FundSnapshotCard } from "./dashboard/FundSnapshotCard";
 import { InvestorCompositionSheet } from "./dashboard/InvestorCompositionSheet";

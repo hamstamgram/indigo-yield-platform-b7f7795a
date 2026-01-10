@@ -5,7 +5,7 @@ import {
   Button, Input, Label, Textarea, Alert, AlertDescription, Checkbox,
 } from "@/components/ui";
 import { withdrawalService } from "@/services";
-import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
+import { useWithdrawalMutations } from "@/hooks/data";
 import { toast } from "sonner";
 import { formatAssetAmount } from "@/utils/assets";
 import { Loader2, AlertTriangle, ArrowRightLeft } from "lucide-react";

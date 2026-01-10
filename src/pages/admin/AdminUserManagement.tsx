@@ -14,15 +14,15 @@ import { UserCog, UserPlus, Trash2, Shield, RefreshCw, Loader2 } from "lucide-re
 import {
   useAdminUsers,
   useRemoveAdminRole,
-  useCreateAdminInvite,
+  useCreateSystemAdminInvite,
   useSendAdminInviteEmail,
   useForceResetPassword,
-} from "@/hooks/data/useSystemAdmin";
+} from "@/hooks/data";
 
 function AdminUserManagementContent() {
   const { data: admins = [], isLoading, refetch } = useAdminUsers();
   const removeAdminMutation = useRemoveAdminRole();
-  const createInviteMutation = useCreateAdminInvite();
+  const createInviteMutation = useCreateSystemAdminInvite();
   const sendInviteEmailMutation = useSendAdminInviteEmail();
   const resetPasswordMutation = useForceResetPassword();
 

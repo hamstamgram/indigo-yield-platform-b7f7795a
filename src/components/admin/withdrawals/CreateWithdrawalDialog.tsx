@@ -13,9 +13,7 @@ import { toast } from "sonner";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
-import { useInvestorOptions, usePositionsForWithdrawal } from "@/hooks/data/useWithdrawalFormData";
-import { useAvailableBalance } from "@/hooks/data/shared/useAvailableBalance";
-import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
+import { useInvestorOptions, usePositionsForWithdrawal, useAvailableBalance, useWithdrawalMutations } from "@/hooks/data";
 
 const withdrawalSchema = z.object({
   amount: z

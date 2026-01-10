@@ -6,7 +6,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { useChangePassword } from "@/hooks/data/useProfileSettings";
+import { useChangePassword } from "@/hooks/data";
 
 const SecurityTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);

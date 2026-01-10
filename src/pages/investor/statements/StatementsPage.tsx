@@ -16,7 +16,7 @@ import {
   useStatementAssets,
   useDownloadStatement,
   type MonthlyStatement,
-} from "@/hooks/data/useInvestorPortal";
+} from "@/hooks/data";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());

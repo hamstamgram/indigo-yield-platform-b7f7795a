@@ -8,7 +8,7 @@ import {
   useActiveSessions,
   useAccessLogs,
   useRevokeSession,
-} from "@/hooks/data/useInvestorPortal";
+} from "@/hooks/data";
 
 export default function SessionManagementPage() {
   const { toast } = useToast();

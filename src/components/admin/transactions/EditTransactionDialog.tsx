@@ -14,7 +14,7 @@ import {
 } from "@/components/ui";
 import { Pencil, Loader2, AlertTriangle, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { useTransactionMutations } from "@/hooks/data/useTransactionMutations";
+import { useTransactionMutations } from "@/hooks/data";
 
 const editSchema = z.object({
   tx_date: z.string().optional(),

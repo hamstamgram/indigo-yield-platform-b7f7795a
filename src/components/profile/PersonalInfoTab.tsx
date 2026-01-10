@@ -5,7 +5,7 @@ import {
   Button, Input, Label,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui";
-import { usePersonalInfo, useUpdatePersonalInfo } from "@/hooks/data/useProfileSettings";
+import { usePersonalInfo, useUpdatePersonalInfo } from "@/hooks/data";
 
 interface PersonalInfoForm {
   firstName: string;

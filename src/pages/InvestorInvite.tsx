@@ -6,7 +6,7 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { useVerifyInvestorInvite, useAcceptInvestorInvite } from "@/hooks/data/useAuthFlow";
+import { useVerifyInvestorInvite, useAcceptInvestorInvite } from "@/hooks/data";
 
 const InvestorInvite = () => {
   const [searchParams] = useSearchParams();

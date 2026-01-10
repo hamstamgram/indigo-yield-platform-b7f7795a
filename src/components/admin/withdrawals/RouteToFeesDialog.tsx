@@ -6,7 +6,7 @@ import {
   Textarea, Label,
 } from "@/components/ui";
 import { Loader2, ArrowRightLeft } from "lucide-react";
-import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
+import { useWithdrawalMutations } from "@/hooks/data";
 
 interface RouteToFeesDialogProps {
   open: boolean;

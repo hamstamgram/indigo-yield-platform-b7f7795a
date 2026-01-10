@@ -6,7 +6,7 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { useVerifyAdminInvite, useAcceptAdminInvite } from "@/hooks/data/useAuthFlow";
+import { useVerifyAdminInvite, useAcceptAdminInvite } from "@/hooks/data";
 
 const AdminInvite = () => {
   const [searchParams] = useSearchParams();

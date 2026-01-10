@@ -6,7 +6,7 @@ import {
   Textarea, Input, Label, Alert, AlertDescription, Checkbox,
 } from "@/components/ui";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
-import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
+import { useWithdrawalMutations } from "@/hooks/data";
 
 interface DeleteWithdrawalDialogProps {
   open: boolean;

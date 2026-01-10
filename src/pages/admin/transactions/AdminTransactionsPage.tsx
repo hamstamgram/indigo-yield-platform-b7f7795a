@@ -24,7 +24,7 @@ import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-f
 import { AddTransactionDialog, VoidTransactionDialog, EditTransactionDialog } from "@/components/admin";
 import { useSortableColumns } from "@/hooks";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data/useAdminTransactionHistory";
+import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data";
 
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 
