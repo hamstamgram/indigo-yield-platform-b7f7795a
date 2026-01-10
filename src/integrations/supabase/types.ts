@@ -213,6 +213,13 @@ export type Database = {
             foreignKeyName: "daily_nav_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_nav_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -300,6 +307,13 @@ export type Database = {
             foreignKeyName: "daily_rates_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_rates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -357,6 +371,13 @@ export type Database = {
             columns: ["edited_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_edit_audit_edited_by_fkey"
+            columns: ["edited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -483,6 +504,13 @@ export type Database = {
             foreignKeyName: "fee_allocations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -519,6 +547,13 @@ export type Database = {
             columns: ["fees_account_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_fees_account_id_fkey"
+            columns: ["fees_account_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -568,6 +603,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_investor_v2"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -709,6 +751,13 @@ export type Database = {
             foreignKeyName: "fund_daily_aum_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -738,6 +787,13 @@ export type Database = {
             columns: ["voided_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -849,6 +905,13 @@ export type Database = {
             foreignKeyName: "fund_period_snapshot_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -878,6 +941,13 @@ export type Database = {
             columns: ["locked_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -973,6 +1043,13 @@ export type Database = {
             foreignKeyName: "fk_yield_snapshots_created_by"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -1002,6 +1079,13 @@ export type Database = {
             columns: ["voided_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_voided_by"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1149,6 +1233,13 @@ export type Database = {
             foreignKeyName: "generated_reports_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -1157,6 +1248,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_reports_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1214,6 +1312,13 @@ export type Database = {
             foreignKeyName: "generated_statements_generated_by_fkey"
             columns: ["generated_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_statements_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -1222,6 +1327,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_statements_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1250,6 +1362,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_statements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1289,6 +1408,13 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_fee_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1388,6 +1514,13 @@ export type Database = {
             foreignKeyName: "ib_allocations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -1437,6 +1570,13 @@ export type Database = {
             foreignKeyName: "ib_allocations_ib_investor_id_fkey"
             columns: ["ib_investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -1445,6 +1585,13 @@ export type Database = {
             columns: ["paid_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1473,6 +1620,13 @@ export type Database = {
             columns: ["source_investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1557,6 +1711,13 @@ export type Database = {
             foreignKeyName: "fk_investor_emails_investor"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_emails_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -1620,6 +1781,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_fee_schedule_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1737,6 +1905,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_fund_performance_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -1919,6 +2094,13 @@ export type Database = {
             foreignKeyName: "investor_invites_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -1927,6 +2109,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_invites_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -2010,6 +2199,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_period_snapshot_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -2120,6 +2316,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -2297,6 +2500,13 @@ export type Database = {
             foreignKeyName: "fk_yield_events_created_by"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -2332,6 +2542,13 @@ export type Database = {
             foreignKeyName: "fk_yield_events_investor"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -2360,6 +2577,13 @@ export type Database = {
             foreignKeyName: "fk_yield_events_visible_by"
             columns: ["made_visible_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_visible_by"
+            columns: ["made_visible_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -2368,6 +2592,13 @@ export type Database = {
             columns: ["voided_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_voided_by"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -2524,6 +2755,13 @@ export type Database = {
             foreignKeyName: "price_alerts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -2614,6 +2852,13 @@ export type Database = {
             columns: ["ib_parent_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_ib_parent_id_fkey"
+            columns: ["ib_parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -2811,6 +3056,13 @@ export type Database = {
             foreignKeyName: "statement_email_delivery_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_email_delivery_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -2840,6 +3092,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_email_delivery_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -2906,6 +3165,13 @@ export type Database = {
             foreignKeyName: "statement_periods_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_periods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -2914,6 +3180,13 @@ export type Database = {
             columns: ["finalized_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_periods_finalized_by_fkey"
+            columns: ["finalized_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -3097,6 +3370,13 @@ export type Database = {
             foreignKeyName: "system_config_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -3246,6 +3526,13 @@ export type Database = {
             foreignKeyName: "fk_transactions_v2_investor"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -3260,6 +3547,13 @@ export type Database = {
             foreignKeyName: "transactions_v2_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -3268,6 +3562,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -3282,6 +3583,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -3548,6 +3856,13 @@ export type Database = {
             foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
             columns: ["actor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -3670,6 +3985,13 @@ export type Database = {
             foreignKeyName: "fk_withdrawal_requests_profile"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -3684,6 +4006,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -3692,6 +4021,13 @@ export type Database = {
             columns: ["cancelled_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -3706,6 +4042,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -3741,6 +4084,13 @@ export type Database = {
             columns: ["rejected_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -4014,6 +4364,13 @@ export type Database = {
             foreignKeyName: "yield_distributions_dust_receiver_id_fkey"
             columns: ["dust_receiver_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_dust_receiver_id_fkey"
+            columns: ["dust_receiver_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4036,6 +4393,13 @@ export type Database = {
             columns: ["voided_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -4206,6 +4570,13 @@ export type Database = {
             foreignKeyName: "ib_allocations_ib_investor_id_fkey"
             columns: ["allocated_ib_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["allocated_ib_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4220,6 +4591,13 @@ export type Database = {
             foreignKeyName: "ib_allocations_source_investor_id_fkey"
             columns: ["source_investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4228,6 +4606,13 @@ export type Database = {
             columns: ["current_ib_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_ib_parent_id_fkey"
+            columns: ["current_ib_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -4276,6 +4661,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -4369,10 +4761,47 @@ export type Database = {
             foreignKeyName: "fk_investor_positions_investor"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
         ]
+      }
+      profiles_display: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"] | null
+          created_at: string | null
+          first_name: string | null
+          id: string | null
+          is_system_account: boolean | null
+          last_name: string | null
+          status: string | null
+        }
+        Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string | null
+          is_system_account?: boolean | null
+          last_name?: string | null
+          status?: string | null
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string | null
+          is_system_account?: boolean | null
+          last_name?: string | null
+          status?: string | null
+        }
+        Relationships: []
       }
       v_fee_allocation_orphans: {
         Row: {
@@ -4433,6 +4862,13 @@ export type Database = {
             foreignKeyName: "fk_fee_allocations_investor_v2"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_investor_v2"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4475,6 +4911,13 @@ export type Database = {
             foreignKeyName: "ib_allocations_ib_investor_id_fkey"
             columns: ["ib_investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4483,6 +4926,13 @@ export type Database = {
             columns: ["source_investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -4557,6 +5007,13 @@ export type Database = {
             foreignKeyName: "fk_investor_positions_investor"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4577,6 +5034,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -4684,6 +5148,13 @@ export type Database = {
             foreignKeyName: "fk_transactions_v2_investor"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4692,6 +5163,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {
@@ -4740,6 +5218,13 @@ export type Database = {
             foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
             columns: ["actor_id"]
             isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
@@ -4777,6 +5262,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
             referencedColumns: ["id"]
           },
           {

@@ -1,5 +1,5 @@
 /**
- * Re-export shim for backward compatibility
- * Actual implementation moved to ./investor/useInvestorInvite.ts
+ * @deprecated Import from "@/hooks/data" instead. This shim will be removed in v2.0.
+ * Example: import { useInvestorInvite } from "@/hooks/data";
  */
 export * from "./investor/useInvestorInvite";
