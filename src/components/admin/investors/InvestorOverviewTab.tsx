@@ -5,6 +5,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, Button, Badge, Skeleton } from "@/components/ui";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   Plus,
   ArrowDownToLine,
@@ -127,7 +128,7 @@ export function InvestorOverviewTab({
             <div className="flex flex-wrap gap-1.5">
               {data.tokenBalances.slice(0, 4).map((tb, idx) => (
                 <Badge key={idx} variant="secondary" className="font-mono text-xs">
-                  {tb.amount.toFixed(4)} {tb.asset}
+                  <FinancialValue value={tb.amount} asset={tb.asset} displayDecimals={4} />
                 </Badge>
               ))}
               {data.tokenBalances.length > 4 && (

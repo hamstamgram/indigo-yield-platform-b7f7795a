@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   Button,
   Badge,
@@ -169,12 +170,14 @@ export function InvestorDrawerQuickView({
                 <div>
                   <span className="font-medium text-sm">{pos.fund_code}</span>
                   <span className="text-xs text-muted-foreground ml-2">
-                    {pos.shares.toFixed(4)} shares
+                    <FinancialValue value={pos.shares} displayDecimals={4} showAsset={false} /> shares
                   </span>
                 </div>
-                <span className="font-medium text-sm font-mono">
-                  {formatTokenAmount(pos.current_value, pos.fund_code)}
-                </span>
+                <FinancialValue 
+                  value={pos.current_value} 
+                  asset={pos.fund_code} 
+                  className="font-medium text-sm"
+                />
               </div>
             ))
           )}

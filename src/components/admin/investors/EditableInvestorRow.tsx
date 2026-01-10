@@ -8,6 +8,7 @@ import { Trash2 } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
 import type { InvestorSummaryV2 } from "@/services";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import InviteInvestorDialog from "./InviteInvestorDialog";
 
 interface EditableInvestorRowProps {
@@ -55,7 +56,7 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
             {hasBalance ? (
               <div className="flex items-center gap-2">
                 <CryptoIcon symbol={asset.symbol} className="h-5 w-5 flex-shrink-0" />
-                <span className="font-mono">{balance.toFixed(4)}</span>
+                <FinancialValue value={balance} asset={asset.symbol} displayDecimals={4} showAsset={false} />
               </div>
             ) : (
               <span className="text-muted-foreground">-</span>
