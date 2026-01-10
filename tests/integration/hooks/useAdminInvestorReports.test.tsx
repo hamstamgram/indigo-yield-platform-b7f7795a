@@ -24,7 +24,7 @@ vi.mock("@/services/admin/reportQueryService", () => ({
 }));
 
 // Import the actual hook after mocking
-import { useAdminInvestorReports } from "@/hooks/data/useReports";
+import { useAdminInvestorReports } from "@/hooks/data";
 
 describe("useAdminInvestorReports", () => {
   beforeEach(() => {

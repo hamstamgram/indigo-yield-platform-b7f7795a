@@ -55,7 +55,7 @@ vi.mock("@/constants/queryKeys", () => ({
 }));
 
 // Import hooks after mocking
-import { useInvestorList, useUpdateInvestorStatus } from "@/hooks/data/useInvestorData";
+import { useInvestorList, useUpdateInvestorStatus } from "@/hooks/data";
 
 describe("useInvestorData", () => {
   beforeEach(() => {
