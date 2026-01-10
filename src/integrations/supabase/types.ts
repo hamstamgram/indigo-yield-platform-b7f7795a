@@ -2870,6 +2870,60 @@ export type Database = {
           },
         ]
       }
+      rate_limit_config: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          description: string | null
+          is_enabled: boolean | null
+          max_actions: number
+          updated_at: string | null
+          window_minutes: number
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          description?: string | null
+          is_enabled?: boolean | null
+          max_actions?: number
+          updated_at?: string | null
+          window_minutes?: number
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          description?: string | null
+          is_enabled?: boolean | null
+          max_actions?: number
+          updated_at?: string | null
+          window_minutes?: number
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          action_type: string
+          actor_id: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action_type: string
+          actor_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       report_change_log: {
         Row: {
           change_reason: string | null
@@ -5526,6 +5580,19 @@ export type Database = {
       check_duplicate_ib_allocations: { Args: never; Returns: number }
       check_duplicate_transaction_refs: { Args: never; Returns: number }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
+      check_rate_limit: {
+        Args: {
+          p_action_type: string
+          p_actor_id: string
+          p_max_actions?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
+      check_rate_limit_with_config: {
+        Args: { p_action_type: string; p_actor_id: string }
+        Returns: boolean
+      }
       check_system_integrity: {
         Args: never
         Returns: {
@@ -6111,6 +6178,16 @@ export type Database = {
           new_value: number
           old_shares: number
           old_value: number
+        }[]
+      }
+      reconcile_fund_period: {
+        Args: { p_end_date: string; p_fund_id: string; p_start_date: string }
+        Returns: {
+          actual: number
+          difference: number
+          expected: number
+          metric: string
+          status: string
         }[]
       }
       reconcile_investor_position: {
