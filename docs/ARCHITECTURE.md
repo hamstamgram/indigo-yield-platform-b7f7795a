@@ -464,6 +464,60 @@ useMutation({
 4. **Fail-Safe RLS**: Logging tables have permissive INSERT policies to ensure logs always succeed
 5. **Server-Side Validation**: Critical business rules enforced in database triggers, not just UI
 
+## Schema Synchronization
+
+### Column Naming Convention
+
+| Layer | Convention | Example |
+|-------|------------|---------|
+| PostgreSQL | snake_case | `tx_date`, `investor_id`, `fund_class` |
+| TypeScript (DB Types) | snake_case | `tx_date: string` |
+| UI Components | camelCase | `txDate`, `investorId` |
+
+### Transform Boundary
+
+All camelCase → snake_case transformation happens at the **Zod schema layer** using `.transform()`:
+
+```typescript
+// src/lib/validation/schemas.ts
+export const adminTransactionDbSchema = z.object({
+  investorId: z.string().uuid(),
+  txDate: z.string(),
+  // ...
+}).transform((data) => ({
+  investor_id: data.investorId,
+  tx_date: data.txDate,
+  // ...
+}));
+```
+
+This ensures that by the time data reaches the service layer, it is already in the correct database format.
+
+### Verified Trigger Column References
+
+| Trigger Function | Table | Column Used | Status |
+|------------------|-------|-------------|--------|
+| `validate_transaction_has_aum` | transactions_v2 | `tx_date` | ✅ Fixed 2026-01-10 |
+| `delta_audit_transactions_v2` | transactions_v2 | `*` (all columns) | ✅ Active |
+| `protect_transactions_immutable` | transactions_v2 | `created_at`, `reference_id` | ✅ Active |
+| `delta_audit_investor_positions` | investor_positions | `*` (all columns) | ✅ Active |
+| `delta_audit_yield_distributions` | yield_distributions | `*` (all columns) | ✅ Active |
+
+### Realtime Subscription Privacy Filters
+
+Investor-facing realtime subscriptions are scoped to the current user:
+
+```typescript
+useRealtimeSubscription({
+  channel: `investor-overview-positions-${user?.id}`,
+  table: "investor_positions",
+  filter: `investor_id=eq.${user.id}`,  // Privacy filter
+  onChange: () => invalidateQueries(),
+});
+```
+
+This prevents cross-user data leakage in realtime updates.
+
 ## Sovereign System Health Certificate
 
 > **Certification Date:** 2026-01-10  
