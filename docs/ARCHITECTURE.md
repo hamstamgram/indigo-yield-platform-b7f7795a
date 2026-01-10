@@ -242,7 +242,38 @@ Rounding residuals from allocation are deterministically routed to the **largest
 2. **Determinism**: Same inputs always produce same outputs
 3. **Auditability**: Dust recorded in `yield_distributions.dust_amount`
 
-## Withdrawal Lock-in (Security)
+## Withdrawal Lock-in Flow
+
+```mermaid
+sequenceDiagram
+    participant I as Investor
+    participant UI as Frontend
+    participant RQ as withdrawal_requests
+    participant YLD as Yield Engine
+    participant LED as transactions_v2
+    participant POS as investor_positions
+
+    I->>UI: Submit Withdrawal Request
+    UI->>RQ: INSERT (status=pending)
+    RQ-->>UI: Confirmation
+    UI-->>I: "Request Submitted"
+    
+    Note over RQ: Admin Review
+    
+    rect rgb(255, 245, 230)
+        Note over RQ,YLD: Crystallize Before Flow
+        RQ->>YLD: crystallize_before_flow()
+        YLD->>LED: INSERT YIELD transactions
+        YLD->>POS: UPDATE positions
+    end
+    
+    RQ->>LED: INSERT WITHDRAWAL transaction
+    LED->>POS: UPDATE via trigger
+    RQ->>RQ: status = approved
+    
+    RQ-->>UI: Realtime Update
+    UI-->>I: "Withdrawal Approved"
+```
 
 The `useAvailableBalance` hook prevents over-withdrawal:
 
@@ -250,16 +281,11 @@ The `useAvailableBalance` hook prevents over-withdrawal:
 availableBalance = positionValue - pendingWithdrawals
 ```
 
-Where `pendingWithdrawals` = SUM of `requested_amount` WHERE `status IN ('pending', 'approved', 'processing')`.
+**Server-Side Validation**: The `validate_withdrawal_request` trigger enforces this at the database level.
 
-**Server-Side Validation**: The `validate_withdrawal_request` trigger enforces this at the database level, preventing any client-side bypass.
+## Temporal Lock (T-1 Snapshot Rule)
 
-```sql
--- Trigger prevents over-withdrawal even if UI is bypassed
-IF NEW.requested_amount > get_available_balance(NEW.investor_id, NEW.fund_id) THEN
-  RAISE EXCEPTION 'Insufficient available balance';
-END IF;
-```
+Yield must be calculated against a T-1 AUM snapshot. The `validate_yield_temporal_lock` RPC blocks distributions where AUM was recorded on the same day as the yield date, ensuring NAV integrity.
 
 ## Immutable Field Protection
 
