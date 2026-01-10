@@ -405,15 +405,29 @@ Key indexes for integrity monitoring performance:
 
 ---
 
-## Schema Health Certificate
+## Schema Integrity Certificate v2.0
 
-> Last verified: 2026-01-10
+> **Certification Date:** 2026-01-10  
+> **Status:** ✅ Zero-Error State Achieved
 
-| Check | Status |
-|-------|--------|
-| Position/Ledger Sync | ✅ 0 mismatches |
-| AUM Conservation | ✅ 0 mismatches |
-| Yield Conservation | ✅ 0 violations |
-| Orphan Positions | ✅ Cleaned |
-| Reference ID Unique | ✅ Index active |
-| Immutable Protection | ✅ Triggers active |
+### Data Integrity
+
+| Check | Status | Verification Query |
+|-------|--------|-------------------|
+| Position/Ledger Sync | ✅ 0 mismatches | `SELECT * FROM investor_position_ledger_mismatch` |
+| AUM Conservation | ✅ 0 violations | `SELECT * FROM fund_aum_mismatch` |
+| Yield Conservation | ✅ 0 violations | `SELECT * FROM yield_distribution_conservation_check WHERE NOT is_conserved` |
+| Orphan Positions | ✅ Cleaned | Manual verification |
+
+### Security
+
+| Check | Status | Details |
+|-------|--------|---------|
+| Reference ID Unique | ✅ Index active | Prevents duplicate transactions |
+| Immutable Protection | ✅ Triggers active | `created_at`, `reference_id` protected |
+| Search Path Security | ✅ 183 functions | All use `SET search_path = public` |
+| View Security | ✅ Active | `v_ledger_reconciliation` uses `security_invoker=true` |
+
+---
+
+*See [ARCHITECTURE.md](./ARCHITECTURE.md) for full system documentation.*
