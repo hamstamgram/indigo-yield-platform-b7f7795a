@@ -691,6 +691,7 @@ export type Database = {
           nav_per_share: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           source: string | null
+          temporal_lock_bypass: boolean | null
           total_aum: number
           total_shares: number | null
           updated_at: string | null
@@ -711,6 +712,7 @@ export type Database = {
           nav_per_share?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
+          temporal_lock_bypass?: boolean | null
           total_aum?: number
           total_shares?: number | null
           updated_at?: string | null
@@ -731,6 +733,7 @@ export type Database = {
           nav_per_share?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
+          temporal_lock_bypass?: boolean | null
           total_aum?: number
           total_shares?: number | null
           updated_at?: string | null
@@ -5601,6 +5604,10 @@ export type Database = {
           view_name: string
         }[]
       }
+      cleanup_dormant_positions: {
+        Args: { p_dry_run?: boolean }
+        Returns: Json
+      }
       complete_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -6339,6 +6346,10 @@ export type Database = {
           id: string
           used: boolean
         }[]
+      }
+      validate_yield_temporal_lock: {
+        Args: { p_fund_id: string; p_purpose: string; p_yield_date: string }
+        Returns: Json
       }
       verify_yield_distribution_balance: {
         Args: { p_date: string; p_fund_id: string; p_purpose?: string }
