@@ -7,6 +7,7 @@ import {
   useLastStatementPeriod,
   useRealtimeSubscription,
 } from "@/hooks/data";
+import { useAuth } from "@/services/auth";
 import { HoldingsByToken } from "@/components/investor/overview/HoldingsByToken";
 import { QuickCards } from "@/components/investor/overview/QuickCards";
 import { AssetPerformanceCard } from "@/components/common";
@@ -16,32 +17,36 @@ import { BarChart3 } from "lucide-react";
 export default function InvestorOverviewPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const { data: assetStats, isLoading: isLoadingStats } = usePerAssetStats();
   const { data: recentTransactions, isLoading: isLoadingTxs } = useRecentInvestorTransactions(5);
   const { data: pendingWithdrawals, isLoading: isLoadingWithdrawals } = usePendingWithdrawalsCount();
   const { data: lastPeriod } = useLastStatementPeriod();
 
-  // Realtime subscriptions for instant updates
+  // Realtime subscriptions for instant updates (privacy-filtered to current user)
   useRealtimeSubscription({
-    channel: "investor-overview-positions",
+    channel: `investor-overview-positions-${user?.id}`,
     table: "investor_positions",
+    filter: user?.id ? `investor_id=eq.${user.id}` : undefined,
     onChange: () => {
       queryClient.invalidateQueries({ queryKey: ["per-asset-stats"] });
     },
   });
 
   useRealtimeSubscription({
-    channel: "investor-overview-transactions",
+    channel: `investor-overview-transactions-${user?.id}`,
     table: "transactions_v2",
+    filter: user?.id ? `investor_id=eq.${user.id}` : undefined,
     onChange: () => {
       queryClient.invalidateQueries({ queryKey: ["investor-recent-transactions"] });
     },
   });
 
   useRealtimeSubscription({
-    channel: "investor-overview-withdrawals",
+    channel: `investor-overview-withdrawals-${user?.id}`,
     table: "withdrawal_requests",
+    filter: user?.id ? `investor_id=eq.${user.id}` : undefined,
     onChange: () => {
       queryClient.invalidateQueries({ queryKey: ["investor-pending-withdrawals"] });
     },

@@ -264,6 +264,64 @@ function sanitizeObject(obj: any): any {
   return obj;
 }
 
+// ===============================
+// Admin Transaction Schemas (with DB Transform)
+// ===============================
+
+/**
+ * Admin transaction schema with camelCase → snake_case transform
+ * Ensures frontend data maps correctly to database columns
+ */
+export const adminTransactionDbSchema = z.object({
+  investorId: z.string().uuid("Invalid investor ID"),
+  fundId: z.string().uuid("Invalid fund ID"),
+  amount: z.number().positive("Amount must be positive").multipleOf(0.00000001, "Invalid decimal precision"),
+  type: z.enum(["DEPOSIT", "WITHDRAWAL", "YIELD"]),
+  txDate: z.string().or(z.date()),
+  valueDate: z.string().or(z.date()).optional(),
+  asset: z.string().min(1, "Asset is required"),
+  fundClass: z.string().min(1, "Fund class is required"),
+  notes: z.string().max(1000, "Notes too long").optional(),
+  source: z.string().optional(),
+}).transform((data) => ({
+  investor_id: data.investorId,
+  fund_id: data.fundId,
+  amount: data.amount,
+  type: data.type,
+  tx_date: typeof data.txDate === 'string' ? data.txDate : data.txDate.toISOString().split('T')[0],
+  value_date: data.valueDate 
+    ? (typeof data.valueDate === 'string' ? data.valueDate : data.valueDate.toISOString().split('T')[0])
+    : (typeof data.txDate === 'string' ? data.txDate : data.txDate.toISOString().split('T')[0]),
+  asset: data.asset,
+  fund_class: data.fundClass,
+  notes: data.notes,
+  source: data.source || 'manual_admin',
+}));
+
+/**
+ * Void transaction schema with camelCase → snake_case transform
+ */
+export const voidTransactionDbSchema = z.object({
+  transactionId: z.string().uuid("Invalid transaction ID"),
+  reason: z.string().min(3, "Reason must be at least 3 characters").max(500, "Reason too long"),
+}).transform((data) => ({
+  transaction_id: data.transactionId,
+  void_reason: data.reason,
+}));
+
+/**
+ * Withdrawal approval schema with DB transform
+ */
+export const withdrawalApprovalDbSchema = z.object({
+  requestId: z.string().uuid("Invalid request ID"),
+  status: z.enum(["approved", "rejected"]),
+  notes: z.string().max(500).optional(),
+}).transform((data) => ({
+  request_id: data.requestId,
+  status: data.status,
+  admin_notes: data.notes,
+}));
+
 // Export type inference helpers
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -271,3 +329,8 @@ export type DepositRequestInput = z.infer<typeof depositRequestSchema>;
 export type WithdrawalRequestInput = z.infer<typeof withdrawalRequestSchema>;
 export type SupportTicketInput = z.infer<typeof supportTicketSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+
+// DB-transformed types (output after transform)
+export type AdminTransactionDbInput = z.output<typeof adminTransactionDbSchema>;
+export type VoidTransactionDbInput = z.output<typeof voidTransactionDbSchema>;
+export type WithdrawalApprovalDbInput = z.output<typeof withdrawalApprovalDbSchema>;
