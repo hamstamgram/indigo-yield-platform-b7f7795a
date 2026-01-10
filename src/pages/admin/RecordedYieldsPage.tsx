@@ -24,6 +24,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  ResponsiveTable, ResponsiveTableColumn,
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -129,14 +130,7 @@ function RecordedYieldsContent() {
   // Edit AUM mutation using hook
   const editAumMutation = useUpdateYieldAum(() => setEditAumRecord(null));
 
-  const formatValue = (value: number, asset?: string) => {
-    if (asset === "BTC") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-    } else if (asset === "ETH" || asset === "SOL") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-    }
-    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
+  // formatValue removed - using FinancialValue component instead
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
@@ -544,17 +538,20 @@ function RecordedYieldsContent() {
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div className="bg-muted/50 rounded-lg p-3">
                         <p className="text-xs text-muted-foreground mb-1">Old AUM</p>
-                        <p className="font-mono">{c.old_aum?.toLocaleString(undefined, { maximumFractionDigits: 8 })}</p>
+                        <FinancialValue value={c.old_aum || 0} asset={correctionHistoryRecord?.fund_asset} />
                       </div>
                       <div className="bg-muted/50 rounded-lg p-3">
                         <p className="text-xs text-muted-foreground mb-1">New AUM</p>
-                        <p className="font-mono">{c.new_aum?.toLocaleString(undefined, { maximumFractionDigits: 8 })}</p>
+                        <FinancialValue value={c.new_aum || 0} asset={correctionHistoryRecord?.fund_asset} />
                       </div>
                       <div className={`rounded-lg p-3 ${(c.delta_aum || 0) >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}>
                         <p className="text-xs text-muted-foreground mb-1">Delta</p>
-                        <p className={`font-mono ${(c.delta_aum || 0) >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
-                          {(c.delta_aum || 0) > 0 ? "+" : ""}{c.delta_aum?.toLocaleString(undefined, { maximumFractionDigits: 8 })}
-                        </p>
+                        <FinancialValue 
+                          value={c.delta_aum || 0} 
+                          asset={correctionHistoryRecord?.fund_asset}
+                          prefix={(c.delta_aum || 0) > 0 ? "+" : ""}
+                          colorize
+                        />
                       </div>
                     </div>
                     

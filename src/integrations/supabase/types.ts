@@ -5076,6 +5076,20 @@ export type Database = {
           },
         ]
       }
+      v_ledger_reconciliation: {
+        Row: {
+          asset: string | null
+          difference: number | null
+          fund_id: string | null
+          fund_name: string | null
+          investor_id: string | null
+          ledger_balance: number | null
+          position_value: number | null
+          severity: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
       v_live_investor_balances: {
         Row: {
           fund_name: string | null
@@ -5437,6 +5451,18 @@ export type Database = {
           recipient_email: string
           statement_id: string
         }[]
+      }
+      acquire_position_lock: {
+        Args: { p_fund_id: string; p_investor_id: string }
+        Returns: undefined
+      }
+      acquire_withdrawal_lock: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
+      acquire_yield_lock: {
+        Args: { p_fund_id: string; p_yield_date: string }
+        Returns: undefined
       }
       add_fund_to_investor: {
         Args: {
@@ -6034,6 +6060,13 @@ export type Database = {
           p_old_values?: Json
         }
         Returns: string
+      }
+      log_ledger_mismatches: {
+        Args: never
+        Returns: {
+          logged: boolean
+          mismatch_count: number
+        }[]
       }
       log_security_event: {
         Args: {
