@@ -412,20 +412,7 @@ export const withdrawalService = {
     return { correlationId: corrId };
   },
 
-  /**
-   * Fetch investor options for dropdown selection
-   * @deprecated Use fetchInvestorsForSelector from investorDataService instead
-   */
-  async fetchInvestorOptions(): Promise<InvestorOption[]> {
-    // Delegate to centralized function
-    const { fetchInvestorsForSelector } = await import("@/services/investor/investorDataService");
-    const items = await fetchInvestorsForSelector(false);
-    return items.map(item => ({
-      id: item.id,
-      email: item.email,
-      displayName: item.displayName,
-    }));
-  },
+  // REMOVED: fetchInvestorOptions() - Use fetchInvestorsForSelector from investorDataService directly
 
   /**
    * Fetch investor positions with positive balance for withdrawal forms
