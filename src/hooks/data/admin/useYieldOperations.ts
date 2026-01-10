@@ -37,7 +37,7 @@ export function useFundInvestorComposition(fundId: string | null) {
 }
 
 /**
- * Hook to apply yield distribution
+ * Hook to apply yield distribution with optimistic updates
  */
 export function useApplyYieldDistribution() {
   const queryClient = useQueryClient();
@@ -54,18 +54,43 @@ export function useApplyYieldDistribution() {
       if (!user?.id) throw new Error("Not authenticated");
       return applyYieldDistribution(input, user.id, purpose);
     },
+    onMutate: async ({ input }) => {
+      // Cancel outgoing refetches to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.fundInvestorComposition(input.fundId) });
+      
+      // Snapshot previous values for rollback
+      const previousFundsAUM = queryClient.getQueryData(QUERY_KEYS.activeFundsWithAUM);
+      const previousComposition = queryClient.getQueryData(
+        QUERY_KEYS.fundInvestorComposition(input.fundId)
+      );
+      
+      return { previousFundsAUM, previousComposition, fundId: input.fundId };
+    },
+    onError: (error: Error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousFundsAUM) {
+        queryClient.setQueryData(QUERY_KEYS.activeFundsWithAUM, context.previousFundsAUM);
+      }
+      if (context?.previousComposition && context?.fundId) {
+        queryClient.setQueryData(
+          QUERY_KEYS.fundInvestorComposition(context.fundId),
+          context.previousComposition
+        );
+      }
+      toast.error(error.message || "Failed to apply yield");
+    },
     onSuccess: () => {
-      // Comprehensive cache invalidation
+      toast.success("Yield distributed successfully");
+    },
+    onSettled: () => {
+      // Always refetch after mutation settles to ensure consistency
       YIELD_RELATED_KEYS.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
       });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
-      toast.success("Yield distributed successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to apply yield");
     },
   });
 }

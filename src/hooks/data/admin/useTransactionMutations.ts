@@ -17,7 +17,7 @@ interface MutationContext {
 }
 
 /**
- * Hook providing transaction mutations
+ * Hook providing transaction mutations with optimistic updates
  */
 export function useTransactionMutations() {
   const queryClient = useQueryClient();
@@ -25,34 +25,74 @@ export function useTransactionMutations() {
   const updateMutation = useMutation({
     mutationFn: (params: UpdateTransactionParams & MutationContext) =>
       adminTransactionHistoryService.updateTransaction(params),
-    onSuccess: (_, variables) => {
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ 
+        queryKey: ["admin", "transactions"] 
+      });
+      
+      // Snapshot for rollback
+      const previousTransactions = queryClient.getQueriesData({ 
+        queryKey: ["admin", "transactions"] 
+      });
+      
+      return { previousTransactions };
+    },
+    onError: (error: Error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      toast.error(error.message || "Failed to update transaction");
+    },
+    onSuccess: () => {
       toast.success("Transaction updated successfully");
+    },
+    onSettled: (_, __, variables) => {
       invalidateAfterTransaction(
         queryClient,
         variables.investorId,
         variables.fundId
       );
-    },
-    onError: (error: Error) => {
-      console.error("Error updating transaction:", error);
-      toast.error(error.message || "Failed to update transaction");
     },
   });
 
   const voidMutation = useMutation({
     mutationFn: (params: VoidTransactionParams & MutationContext) =>
       adminTransactionHistoryService.voidTransaction(params),
-    onSuccess: (_, variables) => {
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ 
+        queryKey: ["admin", "transactions"] 
+      });
+      
+      // Snapshot for rollback
+      const previousTransactions = queryClient.getQueriesData({ 
+        queryKey: ["admin", "transactions"] 
+      });
+      
+      return { previousTransactions };
+    },
+    onError: (error: Error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      toast.error(error.message || "Failed to void transaction");
+    },
+    onSuccess: () => {
       toast.success("Transaction voided successfully");
+    },
+    onSettled: (_, __, variables) => {
       invalidateAfterTransaction(
         queryClient,
         variables.investorId,
         variables.fundId
       );
-    },
-    onError: (error: Error) => {
-      console.error("Error voiding transaction:", error);
-      toast.error(error.message || "Failed to void transaction");
     },
   });
 

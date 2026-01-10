@@ -15,7 +15,7 @@ interface UseRequestsQueueMutationsOptions {
 }
 
 /**
- * Hook providing mutations for approving/rejecting withdrawals
+ * Hook providing mutations for approving/rejecting withdrawals with optimistic updates
  */
 export function useRequestsQueueMutations(options: UseRequestsQueueMutationsOptions = {}) {
   const { withdrawalRequests, onSuccess } = options;
@@ -24,28 +24,68 @@ export function useRequestsQueueMutations(options: UseRequestsQueueMutationsOpti
   const approveMutation = useMutation({
     mutationFn: (params: ApproveWithdrawalParams) => 
       requestsQueueService.approveWithdrawal(params),
-    onSuccess: (_, variables) => {
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["admin", "withdrawal-requests"] });
+      
+      // Snapshot for rollback
+      const previousRequests = queryClient.getQueryData(["admin", "withdrawal-requests"]);
+      
+      // Optimistic update - mark as approved
+      queryClient.setQueryData(["admin", "withdrawal-requests"], (old: WithdrawalRequest[] | undefined) => 
+        old?.map(r => r.id === variables.requestId ? { ...r, status: "approved" } : r)
+      );
+      
+      return { previousRequests };
+    },
+    onError: (error: Error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousRequests) {
+        queryClient.setQueryData(["admin", "withdrawal-requests"], context.previousRequests);
+      }
+      toast.error(`Failed to approve withdrawal: ${error.message}`);
+    },
+    onSuccess: () => {
       toast.success("Withdrawal request approved successfully");
-      const request = withdrawalRequests?.find((r) => r.id === variables.requestId);
-      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
       onSuccess?.();
     },
-    onError: (error: Error) => {
-      toast.error(`Failed to approve withdrawal: ${error.message}`);
+    onSettled: (_, __, variables) => {
+      const request = withdrawalRequests?.find((r) => r.id === variables.requestId);
+      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
     },
   });
 
   const rejectMutation = useMutation({
     mutationFn: (params: RejectWithdrawalParams) => 
       requestsQueueService.rejectWithdrawal(params),
-    onSuccess: (_, variables) => {
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["admin", "withdrawal-requests"] });
+      
+      // Snapshot for rollback
+      const previousRequests = queryClient.getQueryData(["admin", "withdrawal-requests"]);
+      
+      // Optimistic update - mark as rejected
+      queryClient.setQueryData(["admin", "withdrawal-requests"], (old: WithdrawalRequest[] | undefined) => 
+        old?.map(r => r.id === variables.requestId ? { ...r, status: "rejected" } : r)
+      );
+      
+      return { previousRequests };
+    },
+    onError: (error: Error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousRequests) {
+        queryClient.setQueryData(["admin", "withdrawal-requests"], context.previousRequests);
+      }
+      toast.error(`Failed to reject withdrawal: ${error.message}`);
+    },
+    onSuccess: () => {
       toast.success("Withdrawal request rejected");
-      const request = withdrawalRequests?.find((r) => r.id === variables.requestId);
-      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
       onSuccess?.();
     },
-    onError: (error: Error) => {
-      toast.error(`Failed to reject withdrawal: ${error.message}`);
+    onSettled: (_, __, variables) => {
+      const request = withdrawalRequests?.find((r) => r.id === variables.requestId);
+      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
     },
   });
 

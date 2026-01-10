@@ -3860,6 +3860,8 @@ export type Database = {
           created_at: string
           created_by: string
           distribution_type: string
+          dust_amount: number | null
+          dust_receiver_id: string | null
           effective_date: string
           fund_id: string
           gross_yield: number
@@ -3891,6 +3893,8 @@ export type Database = {
           created_at?: string
           created_by: string
           distribution_type: string
+          dust_amount?: number | null
+          dust_receiver_id?: string | null
           effective_date: string
           fund_id: string
           gross_yield?: number
@@ -3922,6 +3926,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           distribution_type?: string
+          dust_amount?: number | null
+          dust_receiver_id?: string | null
           effective_date?: string
           fund_id?: string
           gross_yield?: number
@@ -3996,6 +4002,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fund_daily_aum"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_dust_receiver_id_fkey"
+            columns: ["dust_receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_dust_receiver_id_fkey"
+            columns: ["dust_receiver_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "yield_distributions_parent_distribution_id_fkey"
@@ -5169,6 +5189,10 @@ export type Database = {
           id: string
           last_name: string
         }[]
+      }
+      get_available_balance: {
+        Args: { p_fund_id: string; p_investor_id: string }
+        Returns: number
       }
       get_delivery_stats: { Args: { p_period_id: string }; Returns: Json }
       get_fund_composition: {

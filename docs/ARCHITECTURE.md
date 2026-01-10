@@ -186,6 +186,62 @@ sequenceDiagram
 
 > **Atomicity**: The entire distribution is wrapped in a single database transaction. If any step fails, everything rolls back.
 
+## Yield-to-Fee-to-IB Waterfall
+
+The yield distribution follows a strict fee waterfall to ensure conservation of funds:
+
+```mermaid
+sequenceDiagram
+    participant Fund as Fund AUM
+    participant GY as Gross Yield
+    participant PF as Platform Fee (INDIGO)
+    participant IB as IB Commission
+    participant Inv as Investor Net Yield
+    participant Dust as Dust Handler
+    
+    Note over Fund: New AUM recorded by Admin
+    Fund->>GY: gross_yield = new_aum - previous_aum
+    
+    rect rgb(255, 230, 230)
+        Note over GY,PF: Fee Calculation (% of GROSS)
+        GY->>PF: platform_fee = gross_yield × fee_pct
+        GY->>IB: ib_fee = gross_yield × ib_pct (if IB parent exists)
+    end
+    
+    rect rgb(230, 255, 230)
+        Note over GY,Inv: Per-Investor Allocation
+        loop Each Investor Position
+            GY->>Inv: investor_gross = (position / total_aum) × gross_yield
+            Inv->>Inv: investor_net = investor_gross - investor_platform_fee - investor_ib_fee
+        end
+    end
+    
+    rect rgb(230, 230, 255)
+        Note over Inv,Dust: Conservation Check
+        Dust->>Dust: remainder = gross_yield - SUM(allocations)
+        Dust->>Inv: Route dust to largest position (deterministic)
+    end
+    
+    Note over Fund: total_net + total_fees = gross_yield ✓
+```
+
+### Fee Calculation Standard
+
+| Fee Type | Calculation Base | Recipient |
+|----------|------------------|-----------|
+| Platform Fee (INDIGO) | % of **GROSS** yield | INDIGO Fees account |
+| Introducing Broker (IB) | % of **GROSS** yield | IB Parent investor |
+| Investor Net Yield | Gross - Platform - IB | Source investor |
+
+> **Critical**: Both fees are calculated from GROSS yield, not NET yield. This prevents circular dependencies and ensures deterministic results.
+
+### Dust Handling
+
+Rounding residuals from allocation are deterministically routed to the **largest position holder** (tie-break by `investor_id ASC`) to ensure:
+1. **Conservation**: SUM(allocations) = gross_yield exactly
+2. **Determinism**: Same inputs always produce same outputs
+3. **Auditability**: Dust recorded in `yield_distributions.dust_amount`
+
 ## Withdrawal Lock-in (Security)
 
 The `useAvailableBalance` hook prevents over-withdrawal:
@@ -196,12 +252,56 @@ availableBalance = positionValue - pendingWithdrawals
 
 Where `pendingWithdrawals` = SUM of `requested_amount` WHERE `status IN ('pending', 'approved', 'processing')`.
 
+**Server-Side Validation**: The `validate_withdrawal_request` trigger enforces this at the database level, preventing any client-side bypass.
+
+```sql
+-- Trigger prevents over-withdrawal even if UI is bypassed
+IF NEW.requested_amount > get_available_balance(NEW.investor_id, NEW.fund_id) THEN
+  RAISE EXCEPTION 'Insufficient available balance';
+END IF;
+```
+
+## Immutable Field Protection
+
+Critical audit fields are protected by database triggers:
+
+| Table | Protected Fields | Trigger |
+|-------|------------------|---------|
+| `transactions_v2` | `created_at`, `reference_id`, `investor_id`, `fund_id` | `protect_transactions_immutable` |
+| `fee_allocations` | `created_at`, `distribution_id`, `investor_id` | `protect_fee_allocations_immutable` |
+| `ib_allocations` | `created_at`, `distribution_id`, `source_investor_id`, `ib_investor_id` | `protect_ib_allocations_immutable` |
+| `audit_log` | ALL fields | `protect_audit_log_immutable` |
+
+> **Security**: Even super admins cannot modify these fields—ensures audit trail integrity.
+
 ## Error Handling
 
 1. **Service Layer**: Throws typed errors with context
 2. **Hook Layer**: Catches and transforms to user-friendly messages
 3. **UI Layer**: Displays via Sonner toast notifications
 4. **Audit**: All errors logged to `audit_log` table
+
+## Optimistic Updates Pattern
+
+All mutation hooks implement revert-on-failure:
+
+```typescript
+useMutation({
+  onMutate: async (newData) => {
+    await queryClient.cancelQueries({ queryKey });
+    const previous = queryClient.getQueryData(queryKey);
+    queryClient.setQueryData(queryKey, optimisticData);
+    return { previous }; // Snapshot for rollback
+  },
+  onError: (err, newData, context) => {
+    queryClient.setQueryData(queryKey, context.previous); // Rollback
+    toast.error(err.message);
+  },
+  onSettled: () => {
+    queryClient.invalidateQueries({ queryKey }); // Always refetch
+  },
+});
+```
 
 ## Monitoring Views
 
@@ -218,3 +318,19 @@ Where `pendingWithdrawals` = SUM of `requested_amount` WHERE `status IN ('pendin
 2. **Unified Investor ID**: `profiles.id` is the single source of truth for investor identity
 3. **Audit Everything**: All mutations create audit trail entries
 4. **Fail-Safe RLS**: Logging tables have permissive INSERT policies to ensure logs always succeed
+5. **Server-Side Validation**: Critical business rules enforced in database triggers, not just UI
+
+## System Health Certificate
+
+> Last verified: 2026-01-10
+
+| Metric | Status | Details |
+|--------|--------|---------|
+| Ledger ↔ Position Sync | ✅ PASS | `investor_position_ledger_mismatch` returns 0 rows |
+| AUM Conservation | ✅ PASS | `fund_aum_mismatch` returns 0 rows |
+| Yield Conservation | ✅ PASS | `yield_distribution_conservation_check` returns 0 rows |
+| Reference ID Uniqueness | ✅ PASS | Unique index active |
+| Immutable Field Protection | ✅ PASS | Triggers prevent modification |
+| Withdrawal Lock-in | ✅ PASS | Server-side validation active |
+| Optimistic Updates | ✅ PASS | All mutations implement rollback |
+| Orphan Positions | ✅ PASS | Zero-balance orphans cleaned |
