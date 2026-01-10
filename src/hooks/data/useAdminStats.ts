@@ -1,5 +1,5 @@
 /**
- * Re-export shim for backward compatibility
- * Actual implementation moved to ./admin/useAdminStats.ts
+ * @deprecated Import from "@/hooks/data" instead. This shim will be removed in v2.0.
+ * Example: import { useAdminStats } from "@/hooks/data";
  */
 export * from "./admin/useAdminStats";
