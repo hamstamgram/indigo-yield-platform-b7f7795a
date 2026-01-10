@@ -13,6 +13,7 @@ import {
   ScrollArea,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   formatTokenAmount,
   exportInvestorImpactToCsv,
@@ -232,7 +233,7 @@ export function YieldCorrectionPreview({
                           {formatTokenAmount(row.avg_capital, summary.fund_asset)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">
-                          {row.share_pct.toFixed(2)}%
+                          <FinancialValue value={row.share_pct} displayDecimals={2} />%
                         </TableCell>
                         <TableCell className={`text-right font-mono text-sm ${deltaColor(row.delta_net)}`}>
                           {deltaSign(row.delta_net)}{formatTokenAmount(row.delta_net, summary.fund_asset)}

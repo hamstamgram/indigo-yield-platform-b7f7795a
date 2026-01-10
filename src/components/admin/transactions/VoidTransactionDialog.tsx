@@ -12,6 +12,7 @@ import { AlertTriangle, Loader2, Info, TrendingDown, Database } from "lucide-rea
 import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data";
 import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
+import { FinancialValue } from "@/components/common/FinancialValue";
 
 /**
  * Minimal transaction data required for the void dialog
@@ -140,7 +141,7 @@ export function VoidTransactionDialog({
             <AlertDescription className="space-y-1">
               <div><strong>Investor:</strong> {transaction.investorName}</div>
               <div><strong>Type:</strong> {transaction.type}</div>
-              <div><strong>Amount:</strong> {transaction.amount.toFixed(8)} {transaction.asset}</div>
+              <div><strong>Amount:</strong> <FinancialValue value={transaction.amount} asset={transaction.asset} showAsset /></div>
               <div><strong>Date:</strong> {transaction.txDate}</div>
             </AlertDescription>
           </Alert>
@@ -159,12 +160,12 @@ export function VoidTransactionDialog({
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>Current Position:</div>
-                <div className="font-mono">{(impact.current_position ?? 0).toFixed(4)}</div>
+                <div className="font-mono"><FinancialValue value={impact.current_position ?? 0} displayDecimals={4} /></div>
                 <div>After Void:</div>
-                <div className="font-mono">{(impact.projected_position ?? 0).toFixed(4)}</div>
+                <div className="font-mono"><FinancialValue value={impact.projected_position ?? 0} displayDecimals={4} /></div>
                 <div>Change:</div>
-                <div className={`font-mono ${(impact.position_change ?? 0) < 0 ? "text-destructive" : "text-green-600"}`}>
-                  {(impact.position_change ?? 0) >= 0 ? "+" : ""}{(impact.position_change ?? 0).toFixed(4)}
+                <div className="font-mono">
+                  <FinancialValue value={impact.position_change ?? 0} displayDecimals={4} colorize prefix={(impact.position_change ?? 0) >= 0 ? "+" : ""} />
                 </div>
               </div>
               
