@@ -43,6 +43,13 @@ interface VoidImpact {
   aum_records_affected?: number;
   related_records?: { type: string; count: number }[];
   is_system_generated?: boolean;
+  // Yield dependency warning from void_transaction enhancement
+  yield_dependency?: {
+    warning?: string;
+    severity?: string;
+    count?: number;
+    affected_yield_ids?: string[];
+  };
 }
 
 interface VoidTransactionDialogProps {
@@ -181,6 +188,16 @@ export function VoidTransactionDialog({
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                   <AlertDescription className="text-destructive">
                     Warning: This would result in a negative balance!
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {impact.yield_dependency && (impact.yield_dependency.count ?? 0) > 0 && (
+                <Alert className="mt-2 border-amber-500/50 bg-amber-500/10">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-700">
+                    <strong>Yield Recalculation Required:</strong> {impact.yield_dependency.count} yield distribution(s) 
+                    were calculated after this transaction date and may need review.
                   </AlertDescription>
                 </Alert>
               )}

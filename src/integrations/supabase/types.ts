@@ -2613,6 +2613,63 @@ export type Database = {
           },
         ]
       }
+      mfa_reset_requests: {
+        Row: {
+          approval_signature: string | null
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          executed_at: string | null
+          expires_at: string
+          id: string
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          request_reason: string
+          requested_at: string
+          requester_ip: unknown
+          requester_user_agent: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          approval_signature?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          executed_at?: string | null
+          expires_at?: string
+          id?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          request_reason: string
+          requested_at?: string
+          requester_ip?: unknown
+          requester_user_agent?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          approval_signature?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          executed_at?: string | null
+          expires_at?: string
+          id?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          request_reason?: string
+          requested_at?: string
+          requester_ip?: unknown
+          requester_user_agent?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           daily_rates_enabled: boolean | null
@@ -5555,6 +5612,10 @@ export type Database = {
         }
         Returns: Json
       }
+      approve_mfa_reset: {
+        Args: { p_admin_id?: string; p_request_id: string }
+        Returns: Json
+      }
       approve_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -5569,6 +5630,7 @@ export type Database = {
         Args: { notification_id: string }
         Returns: boolean
       }
+      can_execute_mfa_reset: { Args: { p_user_id?: string }; Returns: Json }
       can_withdraw: {
         Args: { p_amount: number; p_fund_id: string; p_investor_id: string }
         Returns: Json
@@ -5643,6 +5705,7 @@ export type Database = {
         }
         Returns: string
       }
+      compute_jsonb_delta: { Args: { p_new: Json; p_old: Json }; Returns: Json }
       create_admin_invite: { Args: { p_email: string }; Returns: string }
       create_withdrawal_request: {
         Args: {
@@ -6095,6 +6158,7 @@ export type Database = {
         }
         Returns: Json
       }
+      mark_mfa_reset_executed: { Args: { p_request_id: string }; Returns: Json }
       mark_sent_manually: {
         Args: { p_delivery_id: string; p_note?: string }
         Returns: Json
@@ -6232,11 +6296,19 @@ export type Database = {
         Args: { p_correction_id: string }
         Returns: Json
       }
+      reject_mfa_reset: {
+        Args: { p_admin_id?: string; p_reason: string; p_request_id: string }
+        Returns: Json
+      }
       reject_withdrawal: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
       repair_all_positions: { Args: never; Returns: Json }
+      request_mfa_reset: {
+        Args: { p_ip?: unknown; p_reason: string; p_user_agent?: string }
+        Returns: Json
+      }
       requeue_stale_sending: {
         Args: { p_minutes?: number; p_period_id: string }
         Returns: Json
