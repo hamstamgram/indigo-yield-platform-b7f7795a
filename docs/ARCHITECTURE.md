@@ -595,6 +595,56 @@ sequenceDiagram
 
 ---
 
+## Type-Safety & Casting Standards
+
+### UUID vs Text Handling
+
+| Table | Column | Type | Cast Pattern |
+|-------|--------|------|--------------|
+| `audit_log` | `entity_id` | text | `value::text` (flexible for multiple table types) |
+| `data_edit_audit` | `record_id` | uuid | `value::uuid` (strict) |
+| `yield_edit_audit` | `record_id` | uuid | `value::uuid` (strict) |
+
+### Database Casting Rules
+
+1. **audit_log.entity_id**: Always cast to `::text` (supports multiple table types)
+2. **data_edit_audit.record_id**: Always cast to `::uuid` (strict table-specific)
+3. **yield_edit_audit.record_id**: Always cast to `::uuid` (strict)
+
+### Function Patterns
+
+```sql
+-- For audit_log (text entity_id):
+INSERT INTO audit_log (entity_id, ...) VALUES (NEW.id::text, ...);
+
+-- For data_edit_audit (uuid record_id):
+INSERT INTO data_edit_audit (record_id, ...) VALUES (COALESCE(NEW.id, OLD.id)::uuid, ...);
+
+-- For comparisons on uuid columns:
+WHERE record_id = p_id::uuid
+```
+
+### Zod Frontend Guard
+
+All ID fields use `strictUuidSchema` for validation before network requests:
+
+```typescript
+export const strictUuidSchema = z
+  .string()
+  .uuid("Invalid UUID format")
+  .refine(
+    (val) => /^[0-9a-f]{8}-[0-9a-f]{4}-...$/i.test(val),
+    "UUID must be in standard format"
+  );
+
+// Usage in schemas:
+investorId: strictUuidSchema,
+fundId: strictUuidSchema,
+transactionId: strictUuidSchema,
+```
+
+---
+
 ## Sovereign System Health Certificate
 
 > **Certification Date:** 2026-01-10  
@@ -612,7 +662,7 @@ sequenceDiagram
 | Delta Audit Triggers | ✅ ACTIVE | 4 tables: transactions_v2, investor_positions, yield_distributions, withdrawal_requests |
 | Void Yield Dependency | ✅ ACTIVE | `void_transaction` returns yield warnings |
 | Two-Key MFA Protocol | ✅ ACTIVE | Super-admin signature required for MFA resets |
-| Type Safety (UUID Casting) | ✅ PASS | `entity_id::text` used correctly in audit triggers |
+| UUID Type-Safety | ✅ PASS | `::uuid` casts in `log_data_edit`, `audit_investor_fund_performance_changes` |
 
 ### Data Integrity Layer
 
@@ -624,6 +674,7 @@ sequenceDiagram
 | Reference ID Uniqueness | ✅ PASS | Unique index active |
 | Orphan Positions | ✅ PASS | Zero-balance orphans cleaned |
 | Column Naming | ✅ PASS | All triggers use `tx_date` (not `transaction_date`) |
+| Type Casting | ✅ PASS | All UUID/text assignments explicitly cast |
 
 ### UI Safety Layer
 
@@ -634,7 +685,8 @@ sequenceDiagram
 | ResponsiveTable Coverage | ✅ Active | Mobile-friendly data tables (5+ pages) |
 | Withdrawal Lock-in | ✅ PASS | Server-side validation active |
 | Optimistic Updates | ✅ PASS | All mutations implement rollback |
-| Zod Transform Schemas | ✅ PASS | 6 schemas with camelCase → snake_case transforms |
+| Zod Transform Schemas | ✅ PASS | 8 schemas with camelCase → snake_case transforms |
+| strictUuidSchema Guard | ✅ PASS | Frontend validates UUID format before network |
 
 ---
 
