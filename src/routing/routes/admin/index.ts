@@ -13,3 +13,4 @@ export { SystemRoutes } from "./system";
 export { TransactionRoutes } from "./transactions";
 export { FeesRoutes } from "./fees";
 export { IBRoutes } from "./ib";
+export { TrainingRoutes } from "./training";
