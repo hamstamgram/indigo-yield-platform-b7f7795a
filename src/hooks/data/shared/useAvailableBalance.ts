@@ -70,6 +70,8 @@ export function useAvailableBalance(
       };
     },
     enabled: !!investorId && !!fundId,
-    staleTime: 30 * 1000, // 30 seconds - withdrawals change frequently
+    staleTime: 10 * 1000, // 10 seconds - critical for withdrawal lock-in
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 }
