@@ -7,6 +7,7 @@ import ContentArea from "./ContentArea";
 import { useAuth } from "@/services/auth";
 import { useUserRole } from "@/hooks/auth";
 import { GlobalShortcuts } from "@/components/global";
+import { FinancialErrorBoundary } from "@/components/error/FinancialErrorBoundary";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -89,9 +90,11 @@ const DashboardLayout = () => {
         {/* Top Header */}
         <Header toggleSidebar={toggleSidebar} />
 
-        {/* Content Area */}
+        {/* Content Area with Financial Error Boundary */}
         <ContentArea>
-          <Outlet />
+          <FinancialErrorBoundary context={isAdmin ? "admin" : "investor"}>
+            <Outlet />
+          </FinancialErrorBoundary>
         </ContentArea>
       </div>
     </div>

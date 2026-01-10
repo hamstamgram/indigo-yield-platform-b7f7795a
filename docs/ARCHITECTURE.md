@@ -300,6 +300,33 @@ Critical audit fields are protected by database triggers:
 
 > **Security**: Even super admins cannot modify these fields—ensures audit trail integrity.
 
+## Financial Error Boundary
+
+The `FinancialErrorBoundary` component provides a safety net for financial operations:
+
+```mermaid
+sequenceDiagram
+    participant C as Component
+    participant FEB as FinancialErrorBoundary
+    participant SM as Safe Mode
+    participant AL as audit_log
+    
+    C->>FEB: Throw Error
+    FEB->>FEB: Check if financial error
+    
+    alt Financial Error Detected
+        FEB->>SM: Activate Safe Mode
+        FEB->>AL: Log critical error
+        SM-->>C: Show "Safe Mode" UI
+        Note over SM: Blocks all financial operations
+    else Non-Financial Error
+        FEB-->>C: Show fallback UI
+        Note over FEB: Allow retry
+    end
+```
+
+Financial errors are detected by keywords: `ledger`, `balance`, `transaction`, `position`, `yield`, `fee`, `aum`, `conservation`.
+
 ## Error Handling
 
 1. **Service Layer**: Throws typed errors with context

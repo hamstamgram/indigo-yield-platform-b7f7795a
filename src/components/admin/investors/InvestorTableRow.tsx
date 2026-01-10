@@ -5,6 +5,7 @@ import {
 } from "@/components/ui";
 import { Send } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
+import { FinancialValue } from "@/components/common/FinancialValue";
 
 interface InvestorTableRowProps {
   investor: {
@@ -36,9 +37,13 @@ const InvestorTableRow: React.FC<InvestorTableRowProps> = ({ investor, assets, o
       {/* Asset balances */}
       {assets.map((asset) => (
         <TableCell key={asset.id}>
-          {investor.portfolio_summary && investor.portfolio_summary[asset.symbol]
-            ? `${investor.portfolio_summary[asset.symbol].balance.toFixed(4)}`
-            : "-"}
+          {investor.portfolio_summary && investor.portfolio_summary[asset.symbol] ? (
+            <FinancialValue 
+              value={investor.portfolio_summary[asset.symbol].balance} 
+              asset={asset.symbol}
+              showAsset={false}
+            />
+          ) : "-"}
         </TableCell>
       ))}
 

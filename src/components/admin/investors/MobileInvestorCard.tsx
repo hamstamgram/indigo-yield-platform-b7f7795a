@@ -14,6 +14,7 @@ import { useUpdateInvestorStatus } from "@/hooks/data";
 import { AssetRef as Asset } from "@/types/asset";
 import type { InvestorSummaryV2 } from "@/services";
 import FundAssetDropdown from "./FundAssetDropdown";
+import { FinancialValue } from "@/components/common/FinancialValue";
 
 interface MobileInvestorCardProps {
   investor: InvestorSummaryV2;
@@ -140,9 +141,13 @@ const MobileInvestorCard = ({
                 />
               ) : (
                 <div>
-                  {investor.portfolioDetails.assetBreakdown[asset.symbol]
-                    ? `${investor.portfolioDetails.assetBreakdown[asset.symbol].toFixed(4)}`
-                    : "-"}
+                  {investor.portfolioDetails.assetBreakdown[asset.symbol] ? (
+                    <FinancialValue 
+                      value={investor.portfolioDetails.assetBreakdown[asset.symbol]} 
+                      asset={asset.symbol}
+                      showAsset={false}
+                    />
+                  ) : "-"}
                 </div>
               )}
             </div>

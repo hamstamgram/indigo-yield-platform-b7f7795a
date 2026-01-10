@@ -27,6 +27,7 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { canEditYields, type AumPurpose, type YieldFilters } from "@/services";
 import { YieldCorrectionPanel } from "@/components/admin/yields/YieldCorrectionPanel";
@@ -344,8 +345,11 @@ function RecordedYieldsContent() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatValue(record.total_aum, record.fund_asset)}
+                        <TableCell className="text-right">
+                          <FinancialValue 
+                            value={record.total_aum} 
+                            asset={record.fund_asset}
+                          />
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -452,8 +456,11 @@ function RecordedYieldsContent() {
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatValue(period.total_aum, period.fund_asset)}
+                        <TableCell className="text-right">
+                          <FinancialValue 
+                            value={period.total_aum} 
+                            asset={period.fund_asset}
+                          />
                         </TableCell>
                         <TableCell>
                           {period.investor_count}
