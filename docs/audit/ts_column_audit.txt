@@ -1,0 +1,21 @@
+=== TypeScript Column Audit === echo -e 
+=== CamelCase in DB calls (POTENTIAL BUGS) === grep -rn \.select\|\.eq\|\.insert\|\.update /Users/mama/indigo-yield-platform-v01/src --include=*.ts --include=*.tsx
+=== TypeScript Column Audit === echo -e 
+=== CamelCase in DB calls (POTENTIAL BUGS) === grep -rn \.select\|\.eq\|\.insert\|\.update /Users/mama/indigo-yield-platform-v01/src --include=*.ts --include=*.tsx
+==> /Users/mama/indigo-yield-platform-v01/docs/audit/ts_column_audit.txt <==
+=== TypeScript Column Audit === echo -e 
+=== CamelCase in DB calls (POTENTIAL BUGS) === grep -rn \.select\|\.eq\|\.insert\|\.update /Users/mama/indigo-yield-platform-v01/src --include=*.ts --include=*.tsx
+=== TypeScript Column Audit === echo -e 
+=== CamelCase in DB calls (POTENTIAL BUGS) === grep -rn \.select\|\.eq\|\.insert\|\.update /Users/mama/indigo-yield-platform-v01/src --include=*.ts --include=*.tsx
+==> /Users/mama/indigo-yield-platform-v01/src <==
+
+==> /Users/mama/indigo-yield-platform-v01/src <==
+==> /Users/mama/indigo-yield-platform-v01/src <==
+
+==> /Users/mama/indigo-yield-platform-v01/src <==
+==> /Users/mama/indigo-yield-platform-v01/src <==
+
+==> /Users/mama/indigo-yield-platform-v01/src <==
+==> /Users/mama/indigo-yield-platform-v01/src <==
+
+==> /Users/mama/indigo-yield-platform-v01/src <==
