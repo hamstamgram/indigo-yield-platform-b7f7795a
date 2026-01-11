@@ -1,6 +1,6 @@
 # System Architecture
 
-> Last updated: 2026-01-10
+> Last updated: 2026-01-11
 
 ## Overview
 
@@ -279,7 +279,7 @@ sequenceDiagram
     rect rgb(230, 230, 255)
         Note over Inv,Dust: Conservation Check
         Dust->>Dust: remainder = gross_yield - SUM(allocations)
-        Dust->>Inv: Route dust to largest position (deterministic)
+        Dust->>PF: Route dust to fees account (deterministic)
     end
     
     Note over Fund: total_net + total_fees = gross_yield ✓
@@ -297,10 +297,13 @@ sequenceDiagram
 
 ### Dust Handling
 
-Rounding residuals from allocation are deterministically routed to the **largest position holder** (tie-break by `investor_id ASC`) to ensure:
+Rounding residuals from allocation are deterministically routed to the **INDIGO Fees account** to ensure:
 1. **Conservation**: SUM(allocations) = gross_yield exactly
 2. **Determinism**: Same inputs always produce same outputs
 3. **Auditability**: Dust recorded in `yield_distributions.dust_amount`
+4. **Threshold**: Only residuals `< 0.0000001` (10⁻⁷) are routed as dust
+
+> **Note:** Dust is routed to the fees account (not largest position holder) to prevent micro-balance accumulation on investor accounts and simplify reconciliation.
 
 ## Withdrawal Lock-in Flow
 
@@ -449,12 +452,33 @@ useMutation({
 
 ## Monitoring Views
 
-| View | Purpose |
-|------|---------|
-| `investor_position_ledger_mismatch` | Detects position/ledger sync issues |
-| `fund_aum_mismatch` | Detects fund AUM calculation errors |
-| `v_orphaned_user_roles` | Detects orphaned role entries |
-| `yield_distribution_conservation_check` | Validates yield math |
+### Core Integrity Views
+
+| View | Purpose | Used By |
+|------|---------|---------|
+| `investor_position_ledger_mismatch` | Detects position/ledger sync issues | SystemHealthPage |
+| `fund_aum_mismatch` | Detects fund AUM calculation errors | SystemHealthPage |
+| `v_orphaned_user_roles` | Detects orphaned role entries | SystemHealthPage |
+| `yield_distribution_conservation_check` | Validates yield math | SystemHealthPage |
+| `v_ledger_reconciliation` | Advanced ledger reconciliation with security_invoker | Manual audit |
+| `v_security_definer_audit` | Audit SECURITY DEFINER functions for search_path | Security audit |
+
+### Additional Integrity Views
+
+| View | Purpose | Status |
+|------|---------|--------|
+| `v_fee_allocation_orphans` | Orphan fee allocation records | Available |
+| `v_ib_allocation_orphans` | Orphan IB allocation records | Available |
+| `v_period_orphans` | Orphaned statement periods | Available |
+| `v_transaction_distribution_orphans` | Orphaned transaction-distribution links | Available |
+| `position_transaction_reconciliation` | Alternative reconciliation check | Available |
+
+### Integrity RPCs
+
+| Function | Purpose |
+|----------|---------|
+| `check_duplicate_transaction_refs()` | Detects duplicate transaction references |
+| `check_duplicate_ib_allocations()` | Detects duplicate IB allocation entries |
 
 ## Key Design Decisions
 
@@ -648,22 +672,24 @@ transactionId: strictUuidSchema,
 
 ## Sovereign System Health Certificate
 
-> **Certification Date:** 2026-01-10  
-> **Status:** ✅ FULLY ACTIVE - All Integrity Gaps Closed
+> **Certification Date:** 2026-01-11 (Full-Stack Forensic Audit)
+> **Previous Certification:** 2026-01-10
+> **Status:** ✅ INSTITUTIONALLY READY - All Critical Checks Pass
 
 ### Security Layer
 
 | Check | Status | Details |
 |-------|--------|---------|
-| SECURITY DEFINER Functions | ✅ PASS | 189 functions with `SET search_path = public` |
+| SECURITY DEFINER Functions | ✅ PASS | 393 total functions; 325+ with `SET search_path = public` (remediation migration applied 2026-01-11) |
 | View Security Invoker | ✅ PASS | `v_ledger_reconciliation` uses `security_invoker=true` |
 | Field Immutability Triggers | ✅ PASS | `created_at`, `reference_id`, `actor_user` protected |
 | Idempotency Constraints | ✅ PASS | Unique constraints on `(fund_id, purpose, period_end)` |
-| Advisory Locking | ✅ PASS | 5 critical functions protected |
+| Advisory Locking | ✅ PASS | 6 critical functions protected (including `void_transaction` added 2026-01-11) |
 | Delta Audit Triggers | ✅ ACTIVE | 4 tables: transactions_v2, investor_positions, yield_distributions, withdrawal_requests |
-| Void Yield Dependency | ✅ ACTIVE | `void_transaction` returns yield warnings |
+| Void Yield Dependency | ✅ ACTIVE | `void_transaction` returns yield warnings with advisory lock |
 | Two-Key MFA Protocol | ✅ ACTIVE | Super-admin signature required for MFA resets |
 | UUID Type-Safety | ✅ PASS | `::uuid` casts in all 5 audit triggers: `log_data_edit`, `audit_investor_fund_performance_changes`, `finalize_statement_period`, `cascade_void_from_transaction`, `cascade_void_to_yield_events` |
+| Security Definer Audit View | ✅ NEW | `v_security_definer_audit` for ongoing monitoring |
 
 ### Data Integrity Layer
 
@@ -694,8 +720,21 @@ transactionId: strictUuidSchema,
 ## Related Documentation
 
 - [Database ERD](./DATABASE_ERD.md) - Entity relationship diagrams
+- [Full-Stack Audit Report](./FULL_STACK_AUDIT_REPORT.md) - Forensic audit dated 2026-01-11
+- [Admin Guide](./ADMIN_GUIDE.md) - Administrative operations manual
+- [Operations Manual](./OPERATIONS_MANUAL.md) - Day-to-day operations
 - [Investor Management Regression](../src/docs/INVESTOR_MANAGEMENT_REGRESSION.md) - QA checklist
 
 ---
 
+## Audit History
+
+| Date | Type | Findings | Status |
+|------|------|----------|--------|
+| 2026-01-11 | Full-Stack Forensic Audit | 0 critical, 4 high, 3 medium | All remediated |
+| 2026-01-10 | Schema Consistency Audit | 1 trigger fix | Resolved |
+
+---
+
 *This document is maintained as part of the platform's operational excellence program.*
+*Next scheduled audit: 2026-02-11*

@@ -81,12 +81,12 @@ export async function crystallizeYieldBeforeFlow(
   const rpcCall = (supabase.rpc as any).bind(supabase);
   const { data, error } = await rpcCall("crystallize_yield_before_flow", {
     p_fund_id: fundId,
-    p_event_ts: eventTs.toISOString(),
     p_closing_aum: closingAum,
     p_trigger_type: triggerType,
     p_trigger_reference: triggerReference || null,
-    p_purpose: "transaction",
+    p_event_ts: eventTs.toISOString(),
     p_admin_id: adminId || null,
+    p_purpose: "transaction",
   });
 
   if (error) {
