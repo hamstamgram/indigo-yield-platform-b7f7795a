@@ -6,6 +6,7 @@ import { Mail, Send, RefreshCw, XCircle, CheckCircle, Clock, AlertTriangle, Eye,
 import { Link } from "react-router-dom";
 import { DeliveryExclusionStats } from "./DeliveryExclusionStats";
 import { useSortableColumns } from "@/hooks";
+import { getAccountName } from "@/utils/accountUtils";
 
 // Import new hooks and types
 import { usePeriodsWithCounts, useDeliveryStats, useDeliveries, useDeliveryMutations } from "@/hooks/data";
@@ -144,10 +145,11 @@ export default function ReportDeliveryCenter() {
   const getStatusConfig = (status: string) => {
     return STATUS_CONFIG[status.toLowerCase()] || STATUS_CONFIG.queued;
   };
+  // Use centralized account name utility
   const getInvestorName = (delivery: DeliveryRecord) => {
     if (delivery.profiles) {
-      const name = [delivery.profiles.first_name, delivery.profiles.last_name].filter(Boolean).join(" ");
-      return name || delivery.profiles.email;
+      const name = getAccountName(delivery.profiles);
+      return name !== "Unknown Investor" ? name : delivery.profiles.email;
     }
     return delivery.recipient_email;
   };

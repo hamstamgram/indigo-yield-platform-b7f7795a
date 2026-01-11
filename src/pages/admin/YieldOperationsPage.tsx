@@ -54,8 +54,9 @@ import { usePendingYieldEvents } from "@/hooks/data/admin/useYieldCrystallizatio
 import { useAUMReconciliation } from "@/hooks/data/admin/useAUMReconciliation";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isWithinInterval, getMonth, getYear } from "date-fns";
-import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
+import { formatAUM, formatPercentage } from "@/utils/formatters";
+import { isSystemAccount as checkSystemAccount, INDIGO_FEES_ACCOUNT_ID } from "@/utils/accountUtils";
 
 // Fund type used in this component
 type Fund = NonNullable<ReturnType<typeof useActiveFundsWithAUM>["data"]>[number];
@@ -124,14 +125,8 @@ function YieldOperationsContent() {
   // AUM Reconciliation check
   const { data: reconciliation } = useAUMReconciliation(selectedFund?.id || null);
 
-  const formatValue = (value: number, asset: string) => {
-    if (asset === "BTC") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 8 });
-    } else if (asset === "ETH" || asset === "SOL") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
-    }
-    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-  };
+  // Use centralized formatter from utils
+  const formatValue = (value: number, asset: string) => formatAUM(value, asset);
 
   const openYieldDialog = (fund: Fund) => {
     setSelectedFund(fund);
@@ -265,37 +260,30 @@ function YieldOperationsContent() {
     }
   };
   
-  // Filter distributions for display
+  // Filter distributions for display using centralized account utils
   const getFilteredDistributions = (distributions: YieldDistribution[]) => {
     return distributions.filter((d) => {
-      // Filter by system accounts
-      if (!showSystemAccounts) {
-        const isSystemAccount = d.investorId === INDIGO_FEES_ACCOUNT_ID || 
-          d.accountType === "fees_account" ||
-          d.investorName?.toLowerCase().includes("indigo fees");
-        if (isSystemAccount) return false;
+      // Filter by system accounts using centralized check
+      if (!showSystemAccounts && checkSystemAccount(d)) {
+        return false;
       }
-      
+
       // Filter by changed only
       if (showOnlyChanged && d.wouldSkip) return false;
-      
+
       // Filter by search
       if (searchInvestor) {
         const search = searchInvestor.toLowerCase();
-        return d.investorName?.toLowerCase().includes(search) || 
+        return d.investorName?.toLowerCase().includes(search) ||
                d.investorId.toLowerCase().includes(search);
       }
-      
+
       return true;
     });
   };
   
-  // Check if investor is a system/IB account
-  const isSystemAccount = (d: YieldDistribution) => {
-    return d.investorId === INDIGO_FEES_ACCOUNT_ID || 
-      d.accountType === "fees_account" ||
-      d.investorName?.toLowerCase().includes("indigo fees");
-  };
+  // Use centralized system account check from utils
+  const isSystemAccount = (d: YieldDistribution) => checkSystemAccount(d);
 
   if (loading) {
     return (

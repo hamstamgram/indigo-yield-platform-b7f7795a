@@ -1,9 +1,12 @@
 /**
  * Utils - Barrel export for all utility functions
- * 
+ *
  * Note: GDPR compliance moved to src/lib/gdpr/
  * Note: Password reset moved to src/lib/auth/
  */
+
+// Account utilities (system account detection, filtering)
+export * from "./accountUtils";
 
 // Asset utilities
 export * from "./assetUtils";
@@ -23,6 +26,9 @@ export * from "./session-manager";
 export * from "./financial";
 export * from "./kpiCalculations";
 export * from "./statementCalculations";
+
+// Formatting utilities
+export * from "./formatters";
 
 // PDF generation
 export * from "./investorReportPdf";

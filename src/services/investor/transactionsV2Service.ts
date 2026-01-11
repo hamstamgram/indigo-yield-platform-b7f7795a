@@ -91,7 +91,7 @@ class TransactionsV2Service {
   async voidTransaction(transactionId: string, reason: string): Promise<void> {
     const { error } = await supabase.rpc("void_transaction", {
       p_transaction_id: transactionId,
-      p_reason: reason,
+      p_void_reason: reason,
     });
 
     if (error) {

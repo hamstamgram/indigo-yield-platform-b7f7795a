@@ -332,7 +332,7 @@ export async function applyYieldDistribution(
     p_fund_id: fundId,
     p_yield_date: formatDate(targetDate),
     p_new_aum: newTotalAUM,
-    p_actor_id: adminId,
+    p_admin_id: adminId,
     p_purpose: purpose,
   });
 
