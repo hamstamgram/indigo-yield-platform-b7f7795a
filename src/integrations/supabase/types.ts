@@ -567,6 +567,13 @@ export type Database = {
             foreignKeyName: "fk_fee_allocations_distribution"
             columns: ["distribution_id"]
             isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
             referencedRelation: "yield_distribution_conservation_check"
             referencedColumns: ["distribution_id"]
           },
@@ -1526,6 +1533,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
@@ -3598,6 +3612,13 @@ export type Database = {
             foreignKeyName: "fk_transactions_v2_distribution"
             columns: ["distribution_id"]
             isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
             referencedRelation: "yield_distribution_conservation_check"
             referencedColumns: ["distribution_id"]
           },
@@ -4291,6 +4312,13 @@ export type Database = {
             foreignKeyName: "yield_corrections_correction_distribution_id_fkey"
             columns: ["correction_distribution_id"]
             isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_corrections_correction_distribution_id_fkey"
+            columns: ["correction_distribution_id"]
+            isOneToOne: false
             referencedRelation: "yield_distribution_conservation_check"
             referencedColumns: ["distribution_id"]
           },
@@ -4299,6 +4327,13 @@ export type Database = {
             columns: ["correction_distribution_id"]
             isOneToOne: false
             referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_corrections_original_distribution_id_fkey"
+            columns: ["original_distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
             referencedColumns: ["id"]
           },
           {
@@ -4487,6 +4522,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_parent_distribution_id_fkey"
+            columns: ["parent_distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "yield_distributions_parent_distribution_id_fkey"
@@ -4917,6 +4959,19 @@ export type Database = {
         }
         Relationships: []
       }
+      v_duplicate_transactions: {
+        Row: {
+          amounts: number[] | null
+          duplicate_count: number | null
+          first_created: string | null
+          last_created: string | null
+          reference_id: string | null
+          transaction_ids: string[] | null
+          tx_dates: string[] | null
+          types: Database["public"]["Enums"]["tx_type"][] | null
+        }
+        Relationships: []
+      }
       v_fee_allocation_orphans: {
         Row: {
           allocation_id: string | null
@@ -4930,6 +4985,13 @@ export type Database = {
           purpose: Database["public"]["Enums"]["aum_purpose"] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_fee_allocations_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_fee_allocations_distribution"
             columns: ["distribution_id"]
@@ -5000,6 +5062,13 @@ export type Database = {
           source_investor_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
             columns: ["distribution_id"]
@@ -5180,6 +5249,63 @@ export type Database = {
           },
         ]
       }
+      v_orphaned_positions: {
+        Row: {
+          current_value: number | null
+          fund_id: string | null
+          fund_missing: boolean | null
+          investor_id: string | null
+          investor_missing: boolean | null
+          last_transaction_date: string | null
+          orphan_type: string | null
+          shares: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       v_orphaned_user_roles: {
         Row: {
           created_at: string | null
@@ -5217,6 +5343,18 @@ export type Database = {
         }
         Relationships: []
       }
+      v_security_definer_audit: {
+        Row: {
+          arguments: string | null
+          config: string[] | null
+          description: string | null
+          function_name: unknown
+          has_search_path: boolean | null
+          is_security_definer: boolean | null
+          schema_name: unknown
+        }
+        Relationships: []
+      }
       v_transaction_distribution_orphans: {
         Row: {
           amount: number | null
@@ -5230,6 +5368,13 @@ export type Database = {
           tx_date: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_transactions_v2_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_transactions_v2_distribution"
             columns: ["distribution_id"]
@@ -5306,6 +5451,100 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      v_yield_conservation_check: {
+        Row: {
+          calculated_total: number | null
+          conservation_status: string | null
+          created_at: string | null
+          dust_amount: number | null
+          effective_date: string | null
+          fund_id: string | null
+          gross_yield: number | null
+          id: string | null
+          is_conserved: boolean | null
+          net_yield: number | null
+          status: string | null
+          total_fees: number | null
+          total_ib: number | null
+          variance: number | null
+        }
+        Insert: {
+          calculated_total?: never
+          conservation_status?: never
+          created_at?: string | null
+          dust_amount?: never
+          effective_date?: string | null
+          fund_id?: string | null
+          gross_yield?: number | null
+          id?: string | null
+          is_conserved?: never
+          net_yield?: number | null
+          status?: string | null
+          total_fees?: number | null
+          total_ib?: number | null
+          variance?: never
+        }
+        Update: {
+          calculated_total?: never
+          conservation_status?: never
+          created_at?: string | null
+          dust_amount?: never
+          effective_date?: string | null
+          fund_id?: string | null
+          gross_yield?: number | null
+          id?: string | null
+          is_conserved?: never
+          net_yield?: number | null
+          status?: string | null
+          total_fees?: number | null
+          total_ib?: number | null
+          variance?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
           },
         ]
       }
