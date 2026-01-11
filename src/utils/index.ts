@@ -11,7 +11,8 @@ export * from "./accountUtils";
 // Asset utilities
 export * from "./assetUtils";
 export * from "./assetValidation";
-export * from "./assets";
+// Exclude formatAssetAmount from assets.ts - use formatters version instead
+export { formatSignedAssetAmount } from "./assets";
 
 // Cache management
 export * from "./cacheInvalidation";
@@ -22,12 +23,42 @@ export * from "./sanitize";
 export * from "./security-logger";
 export * from "./session-manager";
 
-// Financial calculations
-export * from "./financial";
-export * from "./kpiCalculations";
-export * from "./statementCalculations";
+// Financial calculations - exclude formatPercentage (use formatters version)
+export {
+  toDecimal,
+  formatCrypto,
+  calculateYield,
+  calculateCompoundInterest,
+  calculateFee,
+  calculateNetAmount,
+  calculatePercentageChange,
+  calculateProfitLoss,
+  calculateAverage,
+  calculateWeightedAverage,
+  isInRange,
+  clamp,
+  toDbFormat,
+  fromDbFormat,
+  validatePositiveAmount,
+  validateNonNegativeAmount,
+  validatePercentage,
+  Decimal,
+} from "./financial";
 
-// Formatting utilities
+export * from "./kpiCalculations";
+
+// Statement calculations - exclude formatTokenAmount (use formatters version)
+export {
+  type StatementData,
+  type AssetStatement,
+  type Transaction,
+  calculateRateOfReturn,
+  computeStatement,
+  formatPercent,
+} from "./statementCalculations";
+
+// Formatting utilities - canonical source for:
+// formatAssetAmount, formatPercentage, formatTokenAmount
 export * from "./formatters";
 
 // PDF generation
