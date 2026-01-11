@@ -145,9 +145,10 @@ async function updateTransaction(params: UpdateTransactionParams): Promise<void>
  * Void a transaction via RPC
  */
 async function voidTransaction(params: VoidTransactionParams): Promise<void> {
+  // DB signature: void_transaction(p_transaction_id uuid, p_reason text, p_actor_id uuid)
   const { error } = await supabase.rpc("void_transaction", {
     p_transaction_id: params.transactionId,
-    p_void_reason: params.reason,
+    p_reason: params.reason,  // Fixed: was p_void_reason, DB expects p_reason
   });
 
   if (error) throw error;

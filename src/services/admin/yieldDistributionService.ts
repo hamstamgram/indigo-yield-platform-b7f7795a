@@ -326,13 +326,17 @@ export async function applyYieldDistribution(
     throw new Error("New AUM must be greater than current AUM to distribute yield");
   }
 
+  // Calculate gross yield percentage from amount
+  // DB function: apply_daily_yield_to_fund_v3(p_fund_id, p_yield_date, p_gross_yield_pct, p_created_by, p_purpose)
+  const grossYieldPct = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
+
   // Use v3 apply function which supports ownership-weighted yield distribution
   // and properly sets aum_record_id for cascade voiding
   const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
     p_yield_date: formatDate(targetDate),
-    p_new_aum: newTotalAUM,
-    p_admin_id: adminId,
+    p_gross_yield_pct: grossYieldPct,  // Fixed: was p_new_aum (amount), DB expects p_gross_yield_pct (percentage)
+    p_created_by: adminId,  // Fixed: was p_admin_id, DB expects p_created_by
     p_purpose: purpose,
   });
 

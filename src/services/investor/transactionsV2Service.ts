@@ -89,9 +89,10 @@ class TransactionsV2Service {
    * - Writes audit log entry
    */
   async voidTransaction(transactionId: string, reason: string): Promise<void> {
+    // DB signature: void_transaction(p_transaction_id uuid, p_reason text, p_actor_id uuid)
     const { error } = await supabase.rpc("void_transaction", {
       p_transaction_id: transactionId,
-      p_void_reason: reason,
+      p_reason: reason,  // Fixed: was p_void_reason, DB expects p_reason
     });
 
     if (error) {

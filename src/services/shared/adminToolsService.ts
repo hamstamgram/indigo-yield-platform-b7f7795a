@@ -23,16 +23,22 @@ class AdminToolsService {
   }
 
   /**
-   * Refresh AUM cache
+   * Refresh AUM cache by recalculating all AUM values
    */
   async refreshAumCache(): Promise<ToolResult> {
     await this.logToolExecution("refresh_aum_cache");
-    
+
     try {
-      await supabase.rpc("refresh_fund_aum_cache" as any);
-      return { success: true, message: "AUM cache refresh completed" };
-    } catch {
-      return { success: true, message: "AUM cache refresh triggered (manual verification recommended)" };
+      // Use recalculate_all_aum which exists in DB (refresh_fund_aum_cache does not exist)
+      const { error } = await supabase.rpc("recalculate_all_aum" as any);
+      if (error) {
+        console.error("Error recalculating AUM:", error);
+        return { success: false, message: `AUM recalculation failed: ${error.message}` };
+      }
+      return { success: true, message: "AUM recalculation completed" };
+    } catch (err) {
+      console.error("Exception during AUM recalculation:", err);
+      return { success: false, message: "AUM recalculation failed - see console for details" };
     }
   }
 

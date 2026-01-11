@@ -1,0 +1,18 @@
+          trigger_name           |      table_name       |       function_name        |    reference    | status  
+---------------------------------+-----------------------+----------------------------+-----------------+---------
+ audit_funds_changes             | funds                 | log_data_edit              | NEW.fund_id     | MISSING
+ audit_funds_changes             | funds                 | log_data_edit              | NEW.investor_id | MISSING
+ audit_funds_changes             | funds                 | log_data_edit              | OLD.fund_id     | MISSING
+ audit_funds_changes             | funds                 | log_data_edit              | OLD.investor_id | MISSING
+ delta_audit_investor_positions  | investor_positions    | audit_delta_trigger        | NEW.created_by  | MISSING
+ delta_audit_investor_positions  | investor_positions    | audit_delta_trigger        | NEW.updated_by  | MISSING
+ tr_check_filters                | realtime.subscription | subscription_check_filters | new.claims      | MISSING
+ tr_check_filters                | realtime.subscription | subscription_check_filters | new.entity      | MISSING
+ tr_check_filters                | realtime.subscription | subscription_check_filters | new.filters     | MISSING
+ delta_audit_transactions_v2     | transactions_v2       | audit_delta_trigger        | NEW.updated_by  | MISSING
+ delta_audit_withdrawal_requests | withdrawal_requests   | audit_delta_trigger        | NEW.updated_by  | MISSING
+ delta_audit_yield_distributions | yield_distributions   | audit_delta_trigger        | NEW.investor_id | MISSING
+ delta_audit_yield_distributions | yield_distributions   | audit_delta_trigger        | NEW.updated_by  | MISSING
+ delta_audit_yield_distributions | yield_distributions   | audit_delta_trigger        | OLD.investor_id | MISSING
+(14 rows)
+

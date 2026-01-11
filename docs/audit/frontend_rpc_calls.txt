@@ -1,0 +1,33 @@
+    const { data, error } = await supabase.rpc(functionName);
+    const { data, error } = await supabase.rpc(functionName, args);
+  const { data, error } = await supabase.rpc(functionName, args as any);
+apply_yield_correction_v2
+approve_withdrawal
+cancel_delivery
+check_aum_reconciliation
+check_duplicate_ib_allocations
+check_duplicate_transaction_refs
+complete_withdrawal
+create_admin_invite
+create_withdrawal_request
+finalize_month_yield
+get_delivery_stats
+get_funds_with_aum
+get_historical_nav
+get_statement_period_summary
+get_void_transaction_impact
+get_yield_corrections
+internal_route_to_fees
+is_admin
+is_super_admin
+mark_sent_manually
+preview_yield_correction_v2
+queue_statement_deliveries
+refresh_fund_aum_cache
+reject_withdrawal
+requeue_stale_sending
+retry_delivery
+start_processing_withdrawal
+update_admin_role
+update_transaction
+void_transaction

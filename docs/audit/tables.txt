@@ -1,0 +1,61 @@
+            table_name             | column_count |                                                                                                                     constraints                                                                                                                      
+-----------------------------------+--------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ access_logs                       |            8 | PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK
+ admin_invites                     |            8 | FOREIGN KEY, CHECK, UNIQUE, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK
+ assets                            |            7 | PRIMARY KEY, UNIQUE, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ audit_log                         |            9 | FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK
+ daily_nav                         |           16 | FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK
+ daily_rates                       |           14 | FOREIGN KEY, PRIMARY KEY, UNIQUE, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ data_edit_audit                   |           13 | CHECK, FOREIGN KEY, CHECK, PRIMARY KEY, CHECK, CHECK, CHECK
+ documents                         |           11 | FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ fee_allocations                   |           18 | FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, CHECK, CHECK, FOREIGN KEY, PRIMARY KEY, UNIQUE, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ fund_aum_events                   |           16 | PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ fund_daily_aum                    |           19 | FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ fund_daily_aum_archive            |           13 | PRIMARY KEY, CHECK, CHECK, CHECK
+ fund_period_snapshot              |           11 | FOREIGN KEY, FOREIGN KEY, UNIQUE, FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ fund_yield_snapshots              |           17 | FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, UNIQUE, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ funds                             |           16 | UNIQUE, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ generated_reports                 |           13 | FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, CHECK, UNIQUE, CHECK, CHECK, CHECK
+ generated_statements              |            9 | FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, UNIQUE, PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ global_fee_settings               |            5 | PRIMARY KEY, FOREIGN KEY, CHECK, CHECK
+ ib_allocations                    |           23 | FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, UNIQUE, FOREIGN KEY, CHECK, FOREIGN KEY, PRIMARY KEY, CHECK, FOREIGN KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ integrity_check_log               |            8 | PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ investor_emails                   |            7 | FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK
+ investor_fee_schedule             |            8 | CHECK, CHECK, CHECK, FOREIGN KEY, FOREIGN KEY, UNIQUE, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK
+ investor_fund_performance         |           31 | FOREIGN KEY, FOREIGN KEY, UNIQUE, PRIMARY KEY, UNIQUE, CHECK, CHECK, CHECK, CHECK
+ investor_fund_performance_archive |           34 | PRIMARY KEY, CHECK, CHECK, CHECK
+ investor_invites                  |            9 | FOREIGN KEY, FOREIGN KEY, UNIQUE, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK
+ investor_period_snapshot          |            8 | FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, UNIQUE, FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ investor_positions                |           17 | FOREIGN KEY, FOREIGN KEY, CHECK, UNIQUE, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK
+ investor_positions_archive        |           19 | PRIMARY KEY, CHECK, CHECK, CHECK
+ investor_yield_events             |           27 | FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, UNIQUE, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ mfa_reset_requests                |           16 | FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, CHECK, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ notification_settings             |            7 | PRIMARY KEY, FOREIGN KEY, CHECK
+ notifications                     |            9 | PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ position_reset_log                |            9 | PRIMARY KEY, UNIQUE, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ price_alerts                      |            8 | CHECK, PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK
+ profiles                          |           24 | UNIQUE, CHECK, CHECK, CHECK, FOREIGN KEY, CHECK, FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ rate_limit_config                 |            7 | PRIMARY KEY, CHECK, CHECK, CHECK
+ rate_limits                       |            5 | PRIMARY KEY, CHECK, CHECK, CHECK
+ report_change_log                 |           10 | FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ report_delivery_events            |            7 | FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK
+ statement_email_delivery          |           30 | CHECK, CHECK, FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, FOREIGN KEY, UNIQUE, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ statement_periods                 |           12 | FOREIGN KEY, FOREIGN KEY, CHECK, PRIMARY KEY, CHECK, UNIQUE, CHECK, CHECK, CHECK, CHECK, CHECK
+ statements                        |           16 | FOREIGN KEY, UNIQUE, CHECK, CHECK, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ support_tickets                   |           11 | FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ system_2fa_policy                 |           10 | CHECK, CHECK, PRIMARY KEY, FOREIGN KEY, CHECK
+ system_config                     |            5 | PRIMARY KEY, FOREIGN KEY, CHECK, CHECK
+ transactions_v2                   |           30 | CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, CHECK, FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ transactions_v2_archive           |           15 | PRIMARY KEY, CHECK, CHECK, CHECK
+ user_roles                        |            4 | PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, CHECK, CHECK
+ user_sessions                     |           10 | PRIMARY KEY, FOREIGN KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK
+ user_totp_backup_codes            |            7 | PRIMARY KEY, FOREIGN KEY, UNIQUE, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK
+ user_totp_settings                |           19 | CHECK, FOREIGN KEY, CHECK, CHECK, PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, CHECK, CHECK
+ withdrawal_audit_logs             |            6 | FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK
+ withdrawal_requests               |           28 | CHECK, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, CHECK, FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ yield_corrections                 |           21 | UNIQUE, FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ yield_distributions               |           31 | CHECK, CHECK, FOREIGN KEY, FOREIGN KEY, FOREIGN KEY, CHECK, FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, FOREIGN KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ yield_edit_audit                  |            9 | FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+ yield_rates                       |            8 | UNIQUE, FOREIGN KEY, FOREIGN KEY, PRIMARY KEY, CHECK, CHECK, CHECK, CHECK, CHECK, CHECK
+(57 rows)
+
