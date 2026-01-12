@@ -113,7 +113,7 @@ async function fetchTransactions(
       asset: tx.asset,
       type: tx.type,
       displayType,
-      amount: Number(tx.amount),
+      amount: String(tx.amount),
       txDate: tx.tx_date,
       notes: tx.notes,
       txHash: tx.tx_hash,

@@ -124,9 +124,9 @@ interface FundUpdateInput {
   inception_date?: string;
   status?: FundStatus;
   logo_url?: string | null;
-  mgmt_fee_bps?: number;
-  perf_fee_bps?: number;
-  min_investment?: number;
+  mgmt_fee_bps?: string | number;
+  perf_fee_bps?: string | number;
+  min_investment?: string | number;
   strategy?: string;
 }
 
@@ -143,7 +143,14 @@ export function useUpdateFund() {
       fundId: string;
       updates: FundUpdateInput;
     }) => {
-      const data = await fundService.updateFund(fundId, updates);
+      // Convert numeric fields to strings for domain type
+      const domainUpdates: Partial<Fund> = {
+        ...updates,
+        mgmt_fee_bps: updates.mgmt_fee_bps !== undefined ? String(updates.mgmt_fee_bps) : undefined,
+        perf_fee_bps: updates.perf_fee_bps !== undefined ? String(updates.perf_fee_bps) : undefined,
+        min_investment: updates.min_investment !== undefined ? String(updates.min_investment) : undefined,
+      };
+      const data = await fundService.updateFund(fundId, domainUpdates);
 
       // Audit log
       if (user?.id) {

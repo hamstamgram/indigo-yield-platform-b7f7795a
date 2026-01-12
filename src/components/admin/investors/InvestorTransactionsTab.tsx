@@ -64,7 +64,13 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
 
       // Fetch transactions using service
       const txData = await transactionsV2Service.getByInvestorId(investorId, { limit: 100 });
-      setTransactions(txData as Transaction[]);
+      // Map to Transaction type - use amount as-is since we display with Number()
+      setTransactions(txData.map(tx => ({
+        ...tx,
+        amount: String(tx.amount),
+        created_by: null,
+        created_at: tx.created_at,
+      })) as unknown as Transaction[]);
 
       // Calculate summary
       const txSummary = await transactionsV2Service.getSummary(investorId);

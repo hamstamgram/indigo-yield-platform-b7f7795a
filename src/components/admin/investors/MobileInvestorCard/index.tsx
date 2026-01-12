@@ -114,8 +114,8 @@ const MobileInvestorCard = ({
         
         if (newBalance > 0 || hasExistingPosition) {
           const result = await updateInvestorPosition(investor.id, fund.id, {
-            current_value: newBalance,
-            shares: newBalance 
+            current_value: String(newBalance),
+            shares: String(newBalance),
           });
 
           if (!result.success) {

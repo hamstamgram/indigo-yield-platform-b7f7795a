@@ -223,13 +223,13 @@ export async function createAdminTransaction(
     // For other transaction types (YIELD, INTEREST, FEE), use direct insert
     const txSubtype = params.tx_subtype || getDefaultTxSubtype(params.type);
 
-    const { error } = await supabase.from("transactions_v2").insert({
+    const { error } = await supabase.from("transactions_v2").insert([{
       investor_id: params.investor_id,
       fund_id: params.fund_id,
       type: dbType as any,
       tx_subtype: txSubtype,
       asset: params.asset,
-      amount: params.amount,
+      amount: Number(params.amount),
       tx_date: params.tx_date,
       value_date: params.tx_date,
       reference_id: params.reference_id || null,
@@ -238,7 +238,7 @@ export async function createAdminTransaction(
       created_by: user.id,
       approved_by: user.id,
       approved_at: new Date().toISOString(),
-    });
+    }] as any);
 
     if (error) throw error;
 

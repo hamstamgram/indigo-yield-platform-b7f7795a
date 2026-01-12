@@ -202,7 +202,7 @@ export default function AdminManualTransaction() {
           investor_id: data.investorId,
           fund_id: data.fundId,
           type: data.type as CreateTransactionParams["type"],
-          amount: Number(toDecimal(data.amount).toFixed(10)),
+          amount: toDecimal(data.amount).toFixed(10),
           tx_date: data.txDate,
           asset: selectedFund.asset,
           notes: data.description,

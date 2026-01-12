@@ -77,7 +77,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   const [selectedTransaction, setSelectedTransaction] = useState<{
     id: string;
     type: string;
-    amount: number;
+    amount: string;
     asset: string;
     investorName: string;
     txDate: string;
@@ -464,9 +464,9 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                   </TableCell>
                   <TableCell className="py-2 text-right">
                     <FinancialValue 
-                      value={tx.amount} 
+                      value={parseFloat(tx.amount)} 
                       asset={tx.asset} 
-                      prefix={tx.amount >= 0 ? "+" : ""} 
+                      prefix={parseFloat(tx.amount) >= 0 ? "+" : ""} 
                       colorize 
                       showAsset 
                     />

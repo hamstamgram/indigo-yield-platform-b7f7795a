@@ -257,7 +257,7 @@ export function AddTransactionDialog({
         fund_id: data.fund_id,
         type: data.txn_type as CreateTransactionParams["type"],
         asset: data.asset,
-        amount: Number(data.amount),
+        amount: data.amount,
         tx_date: data.tx_date,
         closing_aum: closingAumValue || undefined,
         event_ts: `${data.tx_date}T00:00:00.000Z`,

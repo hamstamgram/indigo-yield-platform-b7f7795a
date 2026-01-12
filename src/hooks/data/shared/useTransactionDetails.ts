@@ -151,7 +151,7 @@ export function useCreateAdminTransaction() {
         investor_id: params.investorId,
         fund_id: params.fundId,
         type: params.type as CreateTransactionUIParams["type"],
-        amount: params.amount,
+        amount: String(params.amount),
         tx_date: params.txDate,
         asset: params.asset,
         notes: params.description,

@@ -443,7 +443,7 @@ function TransactionHistoryContent() {
                         </TableCell>
                         <TableCell className="text-right font-mono">
                           <span className={tx.isVoided ? "line-through text-muted-foreground" : (tx.type === "WITHDRAWAL" || tx.type === "FEE" ? "text-destructive" : "text-green-600")}>
-                            {formatAmount(tx.amount, tx.asset, tx.type)}
+                            {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
                           </span>
                           <span className="text-muted-foreground ml-1">{tx.asset}</span>
                         </TableCell>
