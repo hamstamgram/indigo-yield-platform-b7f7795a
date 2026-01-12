@@ -22,7 +22,7 @@ const POSITION_SELECT = `
   investor_id, fund_id, fund_class, shares, cost_basis, current_value, 
   unrealized_pnl, realized_pnl, aum_percentage, high_water_mark, 
   mgmt_fees_paid, perf_fees_paid, last_transaction_date, 
-  cumulative_yield_earned, last_yield_crystallization_date, lock_until_date, updated_at
+  cumulative_yield_earned, last_yield_crystallization_date, lock_until_date, updated_at, is_active
 `;
 
 class PositionService {
