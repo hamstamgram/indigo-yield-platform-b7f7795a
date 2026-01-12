@@ -8,9 +8,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Textarea,
-  Alert, AlertDescription,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { Pencil, Loader2, AlertTriangle, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -33,7 +42,7 @@ type EditFormData = z.infer<typeof editSchema>;
 interface EditableTransaction {
   id: string;
   type: string;
-  amount: string;
+  amount: string; // String for NUMERIC precision preservation
   asset: string;
   investorName: string;
   txDate: string;
@@ -97,7 +106,7 @@ export function EditTransactionDialog({
 
     // Build updates object with only changed fields
     const updates: Record<string, any> = {};
-    
+
     if (data.tx_date && data.tx_date !== transaction.txDate) {
       updates.tx_date = data.tx_date;
     }
@@ -159,8 +168,12 @@ export function EditTransactionDialog({
           {/* Transaction info */}
           <Alert>
             <AlertDescription>
-              <div><strong>Investor:</strong> {transaction.investorName}</div>
-              <div><strong>Type:</strong> {transaction.type} — {transaction.asset}</div>
+              <div>
+                <strong>Investor:</strong> {transaction.investorName}
+              </div>
+              <div>
+                <strong>Type:</strong> {transaction.type} — {transaction.asset}
+              </div>
             </AlertDescription>
           </Alert>
 
@@ -169,7 +182,10 @@ export function EditTransactionDialog({
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 <strong>System-generated transactions cannot be edited.</strong>
-                <p className="text-sm mt-1">This transaction was created automatically by the system (e.g., yield distribution, fee allocation). Close this dialog to cancel.</p>
+                <p className="text-sm mt-1">
+                  This transaction was created automatically by the system (e.g., yield
+                  distribution, fee allocation). Close this dialog to cancel.
+                </p>
               </AlertDescription>
             </Alert>
           )}
@@ -227,12 +243,8 @@ export function EditTransactionDialog({
               {...register("reason")}
               rows={2}
             />
-            <p className="text-xs text-muted-foreground">
-              Required for audit trail
-            </p>
-            {errors.reason && (
-              <p className="text-sm text-destructive">{errors.reason.message}</p>
-            )}
+            <p className="text-xs text-muted-foreground">Required for audit trail</p>
+            {errors.reason && <p className="text-sm text-destructive">{errors.reason.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -246,7 +258,12 @@ export function EditTransactionDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={updateMutation.isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={updateMutation.isPending}
+            >
               Cancel
             </Button>
             {transaction.isSystemGenerated ? (
@@ -255,10 +272,7 @@ export function EditTransactionDialog({
                 Cannot Edit System Transaction
               </Button>
             ) : (
-              <Button
-                type="submit"
-                disabled={updateMutation.isPending || confirmText !== "EDIT"}
-              >
+              <Button type="submit" disabled={updateMutation.isPending || confirmText !== "EDIT"}>
                 {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>

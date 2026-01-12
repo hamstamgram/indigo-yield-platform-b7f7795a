@@ -371,17 +371,113 @@ export function validatePercentage(
 // Export Decimal for direct use if needed
 export { Decimal };
 
+// ============ String Financial Type Helpers ============
+// These helpers support the string-based financial types used in domain types
+// to preserve NUMERIC(28,10) precision from the database
+
+/**
+ * Type alias for string-based financial values
+ * Used to preserve NUMERIC(28,10) precision from PostgreSQL
+ */
+export type FinancialString = string;
+
+/**
+ * Parse any financial value to Decimal for calculations
+ * Safely handles null, undefined, string, and number inputs
+ */
+export function parseFinancial(value: string | number | null | undefined): Decimal {
+  if (value === null || value === undefined || value === "") {
+    return new Decimal(0);
+  }
+  try {
+    return new Decimal(String(value));
+  } catch {
+    console.warn(`parseFinancial: Invalid value "${value}", defaulting to 0`);
+    return new Decimal(0);
+  }
+}
+
+/**
+ * Convert a calculated value back to string for storage/display
+ * Preserves up to 10 decimal places (matching NUMERIC(28,10))
+ */
+export function toFinancialString(value: Decimal | number | string): FinancialString {
+  return new Decimal(String(value)).toFixed(10);
+}
+
+/**
+ * Sum multiple financial values safely
+ * Returns string to preserve precision
+ */
+export function sumFinancials(values: (string | number | null | undefined)[]): FinancialString {
+  return values.reduce((acc, v) => acc.plus(parseFinancial(v)), new Decimal(0)).toFixed(10);
+}
+
+/**
+ * Compare two financial values
+ * Returns: -1 if a < b, 0 if a === b, 1 if a > b
+ */
+export function compareFinancials(
+  a: string | number | null | undefined,
+  b: string | number | null | undefined
+): -1 | 0 | 1 {
+  const decA = parseFinancial(a);
+  const decB = parseFinancial(b);
+  return decA.comparedTo(decB) as -1 | 0 | 1;
+}
+
+/**
+ * Check if a financial value is greater than or equal to a threshold
+ */
+export function isFinancialGte(
+  value: string | number | null | undefined,
+  threshold: string | number
+): boolean {
+  return parseFinancial(value).gte(parseFinancial(threshold));
+}
+
+/**
+ * Check if a financial value is less than a threshold
+ */
+export function isFinancialLt(
+  value: string | number | null | undefined,
+  threshold: string | number
+): boolean {
+  return parseFinancial(value).lt(parseFinancial(threshold));
+}
+
+/**
+ * Check if a financial value is zero or effectively zero
+ */
+export function isFinancialZero(value: string | number | null | undefined): boolean {
+  return parseFinancial(value).isZero();
+}
+
+/**
+ * Format a financial string for display (removes trailing zeros)
+ * Use this for UI display, not for storage
+ */
+export function formatFinancialDisplay(
+  value: string | number | null | undefined,
+  maxDecimals: number = 8
+): string {
+  const dec = parseFinancial(value);
+  // Use toFixed then remove trailing zeros
+  const fixed = dec.toFixed(maxDecimals);
+  return fixed.replace(/\.?0+$/, "") || "0";
+}
+
 /**
  * Token-Only Formatting Guidelines
  * ================================
- * 
+ *
  * This codebase uses token-denominated accounting. All values are displayed
  * in native token units (BTC, ETH, USDT, etc.), NOT converted to fiat currencies.
- * 
+ *
  * CORRECT USAGE:
  * - formatCrypto(1.5, 8, 'BTC')  → "1.50000000 BTC"
  * - formatCrypto(100, 2, 'USDT') → "100.00 USDT"
- * 
+ *
  * All investor-facing code MUST use formatCrypto() or getAssetConfig()
  * to ensure proper token display without fiat conversion.
  */

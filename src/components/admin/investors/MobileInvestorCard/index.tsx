@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Card, CardContent, CardFooter,
-  Button, Input,
-} from "@/components/ui";
+import { Card, CardContent, CardFooter, Button, Input } from "@/components/ui";
 import { Send, Save } from "lucide-react";
 import { useToast } from "@/hooks";
 import { AssetRef as Asset } from "@/types/asset";
@@ -97,21 +94,21 @@ const MobileInvestorCard = ({
       const updatePromises = assets.map(async (asset) => {
         const symbol = asset.symbol;
         const newBalance = parseFloat(balances[symbol] || "0");
-        
+
         // Only update if we have a valid balance
         if (isNaN(newBalance)) return;
 
         // Find the fund for this asset
-        const fund = funds.find(f => f.asset === symbol);
+        const fund = funds.find((f) => f.asset === symbol);
         if (!fund) {
           console.warn(`No fund found for asset ${symbol}`);
           return;
         }
 
         // Check if user has this position (balance > 0 or existed before)
-        const hasExistingPosition = investor.portfolio_summary && 
-                                   investor.portfolio_summary[symbol.toUpperCase()];
-        
+        const hasExistingPosition =
+          investor.portfolio_summary && investor.portfolio_summary[symbol.toUpperCase()];
+
         if (newBalance > 0 || hasExistingPosition) {
           const result = await updateInvestorPosition(investor.id, fund.id, {
             current_value: String(newBalance),
@@ -196,7 +193,7 @@ const MobileInvestorCard = ({
                 className="max-w-[80px]"
               />
             ) : (
-            <div>
+              <div>
                 {investor.fee_percentage !== null && investor.fee_percentage !== undefined
                   ? `${investor.fee_percentage.toFixed(1)}%`
                   : "20.0%"}
@@ -221,10 +218,7 @@ const MobileInvestorCard = ({
               <Send className="h-4 w-4 mr-1" />
               Send Invite
             </Button>
-            <FundAssetDropdown
-              investorId={investor.id}
-              onFundAdded={onSaveSuccess}
-            />
+            <FundAssetDropdown investorId={investor.id} onFundAdded={onSaveSuccess} />
           </>
         )}
       </CardFooter>

@@ -1,8 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Checkbox, Badge,
-  Alert, AlertDescription,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  Badge,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { Target, Shield, CheckCircle, Info, Bitcoin, Coins } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -214,7 +220,10 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                           <div className="text-center">
                             <p className="text-xs text-muted-foreground">Min Investment</p>
                             <p className="font-semibold text-gray-900 dark:text-white">
-                              {formatTokenAmount(performanceData.min_investment, performanceData.currency_symbol)}
+                              {formatTokenAmount(
+                                performanceData.min_investment,
+                                performanceData.currency_symbol
+                              )}
                             </p>
                           </div>
                         </div>
@@ -224,11 +233,11 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                       <div className="grid grid-cols-2 gap-4 mt-4 text-sm text-muted-foreground">
                         <div>
                           <span className="font-medium">Management Fee:</span>{" "}
-                          {Number(fund.mgmt_fee_bps) / 100}%
+                          {Number(fund.mgmt_fee_bps || 0) / 100}%
                         </div>
                         <div>
                           <span className="font-medium">Performance Fee:</span>{" "}
-                          {Number(fund.perf_fee_bps) / 100}%
+                          {Number(fund.perf_fee_bps || 0) / 100}%
                         </div>
                       </div>
                     </div>

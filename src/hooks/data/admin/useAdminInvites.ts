@@ -29,8 +29,13 @@ export function useIsSuperAdmin() {
   return useQuery<boolean>({
     queryKey: QUERY_KEYS.isSuperAdmin,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("is_super_admin");
-      if (error) throw error;
+      // Note: is_super_admin RPC may not exist in all deployments
+      const { data, error } = await (supabase.rpc as any)("is_super_admin");
+      if (error) {
+        // Return false if RPC doesn't exist
+        if (error.code === "42883") return false; // Function not found
+        throw error;
+      }
       return !!data;
     },
     staleTime: 5 * 60 * 1000,
@@ -76,7 +81,8 @@ export function useCreateAdminInvite() {
 
   return useMutation({
     mutationFn: async (email: string) => {
-      const { data, error } = await supabase.rpc("create_admin_invite", {
+      // Note: create_admin_invite RPC may not exist in all deployments
+      const { data, error } = await (supabase.rpc as any)("create_admin_invite", {
         p_email: email.toLowerCase().trim(),
       });
 
@@ -150,10 +156,7 @@ export function useDeleteAdminInvite() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("admin_invites")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("admin_invites").delete().eq("id", id);
 
       if (error) throw error;
     },

@@ -34,17 +34,21 @@ export function useUserRole(): UseUserRoleResult {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const { data, error } = await supabase
+      // Note: user_roles table may not exist in all deployments
+      // Using type assertion to handle schema variations
+      const { data, error } = await (supabase as any)
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id);
 
       if (error) {
+        // Silently return empty if table doesn't exist
+        if (error.code === "42P01") return []; // Table not found
         console.error("Error fetching user roles:", error);
         return [];
       }
 
-      return (data || []).map((r) => r.role as string);
+      return (data || []).map((r: { role: string }) => r.role as string);
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes

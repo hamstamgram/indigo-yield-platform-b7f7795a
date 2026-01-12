@@ -4,16 +4,45 @@ import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Textarea, Badge, Calendar,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Popover, PopoverContent, PopoverTrigger,
-  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
-  Alert, AlertDescription,
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Badge,
+  Calendar,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Alert,
+  AlertDescription,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { createAdminTransaction, fetchInvestorsForSelector, type CreateTransactionParams } from "@/services";
+import {
+  createAdminTransaction,
+  fetchInvestorsForSelector,
+  type CreateTransactionParams,
+} from "@/services";
 import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
@@ -95,10 +124,10 @@ export function AddTransactionDialog({
   const [investorSearchOpen, setInvestorSearchOpen] = useState(false);
   const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
   const [investorError, setInvestorError] = useState<string | null>(null);
-  
+
   // AUM form state (for inline recording as fallback)
   const [aumValue, setAumValue] = useState<string>("");
-  
+
   const queryClient = useQueryClient();
   const { data: funds, isLoading: fundsLoading } = useActiveFunds();
 
@@ -127,7 +156,7 @@ export function AddTransactionDialog({
     selectedInvestorId || undefined,
     selectedFundId || undefined
   );
-  
+
   const { data: hasTransactionHistory = false } = useTransactionHistory(
     selectedInvestorId || undefined,
     selectedFundId || undefined
@@ -136,7 +165,7 @@ export function AddTransactionDialog({
   // Auto-select transaction type based on balance (only for initial selection, no forcing)
   useEffect(() => {
     if (currentBalance === null || currentBalance === undefined || isCheckingBalance) return;
-    
+
     // Only auto-select if no type is selected yet
     if (!txnType) {
       if (currentBalance === 0 && !hasTransactionHistory) {
@@ -162,8 +191,15 @@ export function AddTransactionDialog({
 
   // Determine if this is a first investment scenario
   // Only force FIRST_INVESTMENT if balance is 0 AND no prior transactions exist
-  const isFirstInvestment = currentBalance !== null && currentBalance !== undefined && currentBalance === 0 && !hasTransactionHistory;
-  const hasExistingPosition = currentBalance !== null && currentBalance !== undefined && (currentBalance > 0 || hasTransactionHistory);
+  const isFirstInvestment =
+    currentBalance !== null &&
+    currentBalance !== undefined &&
+    currentBalance === 0 &&
+    !hasTransactionHistory;
+  const hasExistingPosition =
+    currentBalance !== null &&
+    currentBalance !== undefined &&
+    (currentBalance > 0 || hasTransactionHistory);
 
   // Load investors when dialog opens
   useEffect(() => {
@@ -200,7 +236,7 @@ export function AddTransactionDialog({
   useEffect(() => {
     if (fundId && funds) {
       setValue("fund_id", fundId);
-      const fund = funds.find(f => f.id === fundId);
+      const fund = funds.find((f) => f.id === fundId);
       if (fund) {
         setValue("asset", fund.asset);
       }
@@ -210,7 +246,7 @@ export function AddTransactionDialog({
   // Update asset when fund selection changes
   useEffect(() => {
     if (selectedFundId && funds) {
-      const fund = funds.find(f => f.id === selectedFundId);
+      const fund = funds.find((f) => f.id === selectedFundId);
       if (fund) {
         setValue("asset", fund.asset);
       }
@@ -225,26 +261,33 @@ export function AddTransactionDialog({
     setInvestorError(null);
 
     // Block manual deposits to INDIGO FEES account
-    if (selectedInvestorId === INDIGO_FEES_ACCOUNT_ID && (data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT")) {
-      toast.error("INDIGO FEES cannot receive manual deposits. Fee credits are system-generated only.");
+    if (
+      selectedInvestorId === INDIGO_FEES_ACCOUNT_ID &&
+      (data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT")
+    ) {
+      toast.error(
+        "INDIGO FEES cannot receive manual deposits. Fee credits are system-generated only."
+      );
       return;
     }
 
     // Only block FIRST_INVESTMENT if position already exists
     if (hasExistingPosition && data.txn_type === "FIRST_INVESTMENT") {
-      toast.error("Cannot use 'First Investment' - investor already has a position. Use 'Deposit' instead.");
+      toast.error(
+        "Cannot use 'First Investment' - investor already has a position. Use 'Deposit' instead."
+      );
       return;
     }
-    
+
     try {
       setLoading(true);
 
       // For DEPOSIT/WITHDRAWAL, require closing_aum (preflow AUM snapshot)
       const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.txn_type);
-      
+
       // Use the form's closing_aum field or the inline aumValue as fallback
       const closingAumValue = data.closing_aum || aumValue;
-      
+
       if (requiresAum && !closingAumValue) {
         toast.error("Preflow AUM Snapshot is required for deposits and withdrawals.");
         setLoading(false);
@@ -257,7 +300,7 @@ export function AddTransactionDialog({
         fund_id: data.fund_id,
         type: data.txn_type as CreateTransactionParams["type"],
         asset: data.asset,
-        amount: data.amount,
+        amount: data.amount, // Keep as string for NUMERIC precision preservation
         tx_date: data.tx_date,
         closing_aum: closingAumValue || undefined,
         event_ts: `${data.tx_date}T00:00:00.000Z`,
@@ -322,10 +365,7 @@ export function AddTransactionDialog({
                   variant="outline"
                   role="combobox"
                   aria-expanded={investorSearchOpen}
-                  className={cn(
-                    "w-full justify-between",
-                    investorError && "border-destructive"
-                  )}
+                  className={cn("w-full justify-between", investorError && "border-destructive")}
                   disabled={isLoadingInvestors}
                 >
                   {isLoadingInvestors ? (
@@ -348,7 +388,9 @@ export function AddTransactionDialog({
                         <TooltipContent side="bottom" className="max-w-[400px]">
                           <p className="font-medium">{selectedInvestor.displayName}</p>
                           {selectedInvestor.displayName !== selectedInvestor.email && (
-                            <p className="text-sm text-muted-foreground">{selectedInvestor.email}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {selectedInvestor.email}
+                            </p>
                           )}
                         </TooltipContent>
                       </Tooltip>
@@ -406,9 +448,7 @@ export function AddTransactionDialog({
                 </Command>
               </PopoverContent>
             </Popover>
-            {investorError && (
-              <p className="text-sm text-destructive">{investorError}</p>
-            )}
+            {investorError && <p className="text-sm text-destructive">{investorError}</p>}
           </div>
 
           {/* Balance indicator */}
@@ -424,7 +464,8 @@ export function AddTransactionDialog({
                   </span>
                 ) : (
                   <span>
-                    <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit" for top-ups
+                    <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit"
+                    for top-ups
                   </span>
                 )}
               </AlertDescription>
@@ -433,25 +474,28 @@ export function AddTransactionDialog({
 
           <div className="space-y-2">
             <Label htmlFor="txn_type">Transaction Type *</Label>
-            <Select value={txnType} onValueChange={(value) => setValue("txn_type", value as TransactionFormData["txn_type"])}>
+            <Select
+              value={txnType}
+              onValueChange={(value) =>
+                setValue("txn_type", value as TransactionFormData["txn_type"])
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select transaction type" />
               </SelectTrigger>
               <SelectContent>
                 {/* Show First Investment - only disabled if position exists */}
-                <SelectItem 
-                  value="FIRST_INVESTMENT" 
+                <SelectItem
+                  value="FIRST_INVESTMENT"
                   disabled={hasExistingPosition}
                   className={cn(hasExistingPosition && "opacity-50")}
                 >
                   First Investment {hasExistingPosition && "(position exists)"}
                 </SelectItem>
                 {/* Deposit is always available */}
-                <SelectItem value="DEPOSIT">
-                  Deposit / Top-up
-                </SelectItem>
-                <SelectItem 
-                  value="WITHDRAWAL" 
+                <SelectItem value="DEPOSIT">Deposit / Top-up</SelectItem>
+                <SelectItem
+                  value="WITHDRAWAL"
                   disabled={isFirstInvestment}
                   className={cn(isFirstInvestment && "opacity-50")}
                 >
@@ -469,8 +513,8 @@ export function AddTransactionDialog({
 
           <div className="space-y-2">
             <Label htmlFor="fund_id">Fund *</Label>
-            <Select 
-              value={selectedFundId} 
+            <Select
+              value={selectedFundId}
               onValueChange={(value) => setValue("fund_id", value)}
               disabled={fundsLoading}
             >
@@ -481,8 +525,8 @@ export function AddTransactionDialog({
                 {funds?.map((fund) => (
                   <SelectItem key={fund.id} value={fund.id}>
                     <div className="flex items-center gap-2">
-                      <img 
-                        src={getAssetLogo(fund.asset)} 
+                      <img
+                        src={getAssetLogo(fund.asset)}
                         alt={fund.asset}
                         className="h-5 w-5 rounded-full"
                       />
@@ -492,9 +536,7 @@ export function AddTransactionDialog({
                 ))}
               </SelectContent>
             </Select>
-            {errors.fund_id && (
-              <p className="text-sm text-destructive">{errors.fund_id.message}</p>
-            )}
+            {errors.fund_id && <p className="text-sm text-destructive">{errors.fund_id.message}</p>}
             <input type="hidden" {...register("asset")} />
           </div>
 
@@ -541,43 +583,47 @@ export function AddTransactionDialog({
           </div>
 
           {/* Preflow AUM Snapshot - Required for DEPOSIT/WITHDRAWAL */}
-          {selectedFundId && txDate && ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="closing_aum">
-                  Preflow AUM Snapshot ({selectedFund?.asset || "tokens"}) *
-                </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>
-                        The authoritative fund AUM <strong>immediately before</strong> this transaction is applied.
-                        This is used to crystallize any accrued yield before the capital flow.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+          {selectedFundId &&
+            txDate &&
+            ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="closing_aum">
+                    Preflow AUM Snapshot ({selectedFund?.asset || "tokens"}) *
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>
+                          The authoritative fund AUM <strong>immediately before</strong> this
+                          transaction is applied. This is used to crystallize any accrued yield
+                          before the capital flow.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input
+                  id="closing_aum"
+                  type="number"
+                  step="0.00000001"
+                  min="0"
+                  placeholder="Enter preflow AUM"
+                  {...register("closing_aum")}
+                  className={errors.closing_aum ? "border-destructive" : ""}
+                />
+                {errors.closing_aum && (
+                  <p className="text-sm text-destructive">{errors.closing_aum.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Fund AUM snapshot used for yield crystallization before this{" "}
+                  {txnType?.toLowerCase() || "transaction"}.
+                </p>
               </div>
-              <Input
-                id="closing_aum"
-                type="number"
-                step="0.00000001"
-                min="0"
-                placeholder="Enter preflow AUM"
-                {...register("closing_aum")}
-                className={errors.closing_aum ? "border-destructive" : ""}
-              />
-              {errors.closing_aum && (
-                <p className="text-sm text-destructive">{errors.closing_aum.message}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Fund AUM snapshot used for yield crystallization before this {txnType?.toLowerCase() || "transaction"}.
-              </p>
-            </div>
-          )}
+            )}
 
           <div className="space-y-2">
             <Label htmlFor="reference_id">Reference ID</Label>
@@ -619,10 +665,7 @@ export function AddTransactionDialog({
             <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              disabled={loading || fundsLoading || isLoadingInvestors}
-            >
+            <Button type="submit" disabled={loading || fundsLoading || isLoadingInvestors}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Transaction
             </Button>

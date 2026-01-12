@@ -6,11 +6,30 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Card, CardContent, Button, Badge, Input, Skeleton,
-  Alert, AlertDescription, AlertTitle,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  Card,
+  CardContent,
+  Button,
+  Badge,
+  Input,
+  Skeleton,
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui";
 import {
   BookOpen,
@@ -37,6 +56,7 @@ import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 import { FinancialValue } from "@/components/common/FinancialValue";
+import { isFinancialGte } from "@/utils/financial";
 
 interface InvestorLedgerTabProps {
   investorId: string;
@@ -62,7 +82,11 @@ const TX_PURPOSE = [
   { value: "transaction", label: "Transaction" },
 ];
 
-export function InvestorLedgerTab({ investorId, investorName, onDataChange }: InvestorLedgerTabProps) {
+export function InvestorLedgerTab({
+  investorId,
+  investorName,
+  onDataChange,
+}: InvestorLedgerTabProps) {
   const { filters, setFilter, clearFilters, hasActiveFilters, getFilter } = useUrlFilters({
     keys: ["txType", "txPurpose", "dateFrom", "dateTo"],
   });
@@ -70,14 +94,14 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   const [showFilters, setShowFilters] = useState(false);
   const [showVoided, setShowVoided] = useState(false);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
-  
+
   // Edit and Void dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<{
     id: string;
     type: string;
-    amount: string;
+    amount: string; // String for NUMERIC precision preservation
     asset: string;
     investorName: string;
     txDate: string;
@@ -87,13 +111,16 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   } | null>(null);
 
   // Convert URL filters to hook filters
-  const ledgerFilters = useMemo(() => ({
-    txType: getFilter("txType"),
-    txPurpose: getFilter("txPurpose"),
-    dateFrom: getFilter("dateFrom"),
-    dateTo: getFilter("dateTo"),
-    showVoided,
-  }), [getFilter, showVoided]);
+  const ledgerFilters = useMemo(
+    () => ({
+      txType: getFilter("txType"),
+      txPurpose: getFilter("txPurpose"),
+      dateFrom: getFilter("dateFrom"),
+      dateTo: getFilter("dateTo"),
+      showVoided,
+    }),
+    [getFilter, showVoided]
+  );
 
   // Use React Query hook for transactions
   const {
@@ -104,9 +131,11 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     invalidateAll,
     forceRefetch,
   } = useInvestorLedger(investorId, ledgerFilters);
-  
+
   // Also fetch unfiltered count to show filter impact
-  const { transactions: unfilteredTransactions } = useInvestorLedger(investorId, { showVoided: true });
+  const { transactions: unfilteredTransactions } = useInvestorLedger(investorId, {
+    showVoided: true,
+  });
 
   // Use React Query hook for default fund
   const { data: defaultFundId = "" } = useInvestorDefaultFund(investorId);
@@ -145,39 +174,55 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   const hiddenCount = unfilteredTransactions.length - transactions.length;
 
   // Prepare transaction for edit/void dialog
-  const openEditDialog = useCallback((tx: typeof transactions[0]) => {
-    setSelectedTransaction({
-      id: tx.id,
-      type: tx.type,
-      amount: tx.amount,
-      asset: tx.asset,
-      investorName: investorName || "Unknown",
-      txDate: tx.tx_date,
-      notes: tx.notes || null,
-      txHash: tx.tx_hash || null,
-      isSystemGenerated: tx.is_system_generated || false,
-    });
-    setEditDialogOpen(true);
-  }, [investorName]);
+  const openEditDialog = useCallback(
+    (tx: (typeof transactions)[0]) => {
+      setSelectedTransaction({
+        id: tx.id,
+        type: tx.type,
+        amount: tx.amount,
+        asset: tx.asset,
+        investorName: investorName || "Unknown",
+        txDate: tx.tx_date,
+        notes: tx.notes || null,
+        txHash: tx.tx_hash || null,
+        isSystemGenerated: tx.is_system_generated || false,
+      });
+      setEditDialogOpen(true);
+    },
+    [investorName]
+  );
 
-  const openVoidDialog = useCallback((tx: typeof transactions[0]) => {
-    setSelectedTransaction({
-      id: tx.id,
-      type: tx.type,
-      amount: tx.amount,
-      asset: tx.asset,
-      investorName: investorName || "Unknown",
-      txDate: tx.tx_date,
-      notes: tx.notes || null,
-      txHash: tx.tx_hash || null,
-      isSystemGenerated: tx.is_system_generated || false,
-    });
-    setVoidDialogOpen(true);
-  }, [investorName]);
+  const openVoidDialog = useCallback(
+    (tx: (typeof transactions)[0]) => {
+      setSelectedTransaction({
+        id: tx.id,
+        type: tx.type,
+        amount: tx.amount,
+        asset: tx.asset,
+        investorName: investorName || "Unknown",
+        txDate: tx.tx_date,
+        notes: tx.notes || null,
+        txHash: tx.tx_hash || null,
+        isSystemGenerated: tx.is_system_generated || false,
+      });
+      setVoidDialogOpen(true);
+    },
+    [investorName]
+  );
 
   const getTypeIcon = (type: string) => {
     const lowerType = type.toLowerCase();
-    if (["deposit", "subscription", "transfer_in", "yield", "interest", "fee_credit", "ib_credit"].includes(lowerType)) {
+    if (
+      [
+        "deposit",
+        "subscription",
+        "transfer_in",
+        "yield",
+        "interest",
+        "fee_credit",
+        "ib_credit",
+      ].includes(lowerType)
+    ) {
       return <ArrowDownRight className="h-3.5 w-3.5 text-green-600" />;
     }
     if (["withdrawal", "transfer_out", "fee"].includes(lowerType)) {
@@ -205,15 +250,20 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
         <div className="flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-muted-foreground" />
           <h3 className="font-semibold">Transaction Ledger</h3>
-          <Badge variant="secondary" className="text-xs" title={`Showing ${transactions.length} of ${unfilteredTransactions.length} total`}>
-            {transactions.length}{unfilteredTransactions.length !== transactions.length ? ` / ${unfilteredTransactions.length}` : ''} records
+          <Badge
+            variant="secondary"
+            className="text-xs"
+            title={`Showing ${transactions.length} of ${unfilteredTransactions.length} total`}
+          >
+            {transactions.length}
+            {unfilteredTransactions.length !== transactions.length
+              ? ` / ${unfilteredTransactions.length}`
+              : ""}{" "}
+            records
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => setAddTxDialogOpen(true)}
-          >
+          <Button size="sm" onClick={() => setAddTxDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-1" />
             Add Transaction
           </Button>
@@ -224,11 +274,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
             onClick={() => setShowVoided(!showVoided)}
             title={showVoided ? "Hide voided transactions" : "Show voided transactions"}
           >
-            {showVoided ? (
-              <Eye className="h-4 w-4 mr-1" />
-            ) : (
-              <EyeOff className="h-4 w-4 mr-1" />
-            )}
+            {showVoided ? <Eye className="h-4 w-4 mr-1" /> : <EyeOff className="h-4 w-4 mr-1" />}
             {showVoided ? "Showing Voided" : "Show Voided"}
           </Button>
           {hasActiveFilters && (
@@ -255,33 +301,44 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
 
       {/* Diagnostic: Filter Impact Banner - More prominent */}
       {!loading && hiddenCount > 0 && (
-        <Alert variant="default" className="bg-amber-50 border-amber-300 dark:bg-amber-950/30 dark:border-amber-700 shadow-sm">
+        <Alert
+          variant="default"
+          className="bg-amber-50 border-amber-300 dark:bg-amber-950/30 dark:border-amber-700 shadow-sm"
+        >
           <div className="flex items-start gap-3">
             <div className="p-1.5 rounded-full bg-amber-100 dark:bg-amber-900/50">
               <Filter className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             </div>
             <div className="flex-1">
               <AlertTitle className="text-amber-800 dark:text-amber-300 font-semibold">
-                Filters Active — {hiddenCount} transaction{hiddenCount !== 1 ? 's' : ''} hidden
+                Filters Active — {hiddenCount} transaction{hiddenCount !== 1 ? "s" : ""} hidden
               </AlertTitle>
               <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm mt-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span>Showing {transactions.length} of {unfilteredTransactions.length}.</span>
+                    <span>
+                      Showing {transactions.length} of {unfilteredTransactions.length}.
+                    </span>
                     {!showVoided && (
-                      <Badge variant="outline" className="text-[10px] bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300"
+                      >
                         Voided hidden
                       </Badge>
                     )}
                     {hasActiveFilters && (
-                      <Badge variant="outline" className="text-[10px] bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300"
+                      >
                         Filters applied
                       </Badge>
                     )}
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleResetAndRefresh}
                     className="h-7 text-xs border-amber-400 dark:border-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/50"
                   >
@@ -297,15 +354,20 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
 
       {/* Diagnostic: Empty with filters */}
       {!loading && queryDataCount === 0 && !error && hasActiveFilters && hiddenCount === 0 && (
-        <Alert variant="default" className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
+        <Alert
+          variant="default"
+          className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800"
+        >
           <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800 dark:text-amber-400">No matching transactions</AlertTitle>
+          <AlertTitle className="text-amber-800 dark:text-amber-400">
+            No matching transactions
+          </AlertTitle>
           <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
             <div className="flex items-center gap-2">
               <span>Current filters may be excluding transactions.</span>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleResetAndRefresh}
                 className="h-7 text-xs"
               >
@@ -442,7 +504,10 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
             </TableHeader>
             <TableBody>
               {transactions.map((tx) => (
-                <TableRow key={tx.id} className={`text-xs ${tx.is_voided ? "opacity-50 line-through" : ""}`}>
+                <TableRow
+                  key={tx.id}
+                  className={`text-xs ${tx.is_voided ? "opacity-50 line-through" : ""}`}
+                >
                   <TableCell className="py-2 font-mono">
                     {format(new Date(tx.tx_date), "MMM d, yyyy")}
                   </TableCell>
@@ -450,30 +515,33 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {getTypeIcon(tx.type)}
                       <span className="capitalize">{tx.type.replace(/_/g, " ").toLowerCase()}</span>
-                      {tx.is_voided && <Badge variant="destructive" className="text-[9px]">Voided</Badge>}
+                      {tx.is_voided && (
+                        <Badge variant="destructive" className="text-[9px]">
+                          Voided
+                        </Badge>
+                      )}
                       {tx.visibility_scope === "admin_only" && (
-                        <Badge variant="outline" className="text-[9px] gap-0.5 text-muted-foreground border-muted-foreground/30">
+                        <Badge
+                          variant="outline"
+                          className="text-[9px] gap-0.5 text-muted-foreground border-muted-foreground/30"
+                        >
                           <Lock className="h-2.5 w-2.5" />
                           Admin
                         </Badge>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="py-2">
-                    {tx.fund?.name || "-"}
-                  </TableCell>
+                  <TableCell className="py-2">{tx.fund?.name || "-"}</TableCell>
                   <TableCell className="py-2 text-right">
-                    <FinancialValue 
-                      value={parseFloat(tx.amount)} 
-                      asset={tx.asset} 
-                      prefix={parseFloat(tx.amount) >= 0 ? "+" : ""} 
-                      colorize 
-                      showAsset 
+                    <FinancialValue
+                      value={tx.amount}
+                      asset={tx.asset}
+                      prefix={isFinancialGte(tx.amount, 0) ? "+" : ""}
+                      colorize
+                      showAsset
                     />
                   </TableCell>
-                  <TableCell className="py-2">
-                    {getPurposeBadge(tx.purpose)}
-                  </TableCell>
+                  <TableCell className="py-2">{getPurposeBadge(tx.purpose)}</TableCell>
                   <TableCell className="py-2">
                     {!tx.is_voided && (
                       <DropdownMenu>
@@ -487,7 +555,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                             <Pencil className="h-3.5 w-3.5 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => openVoidDialog(tx)}
                             className="text-destructive focus:text-destructive"
                           >

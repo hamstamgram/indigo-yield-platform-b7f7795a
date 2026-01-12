@@ -1,7 +1,7 @@
 /**
  * Fund Domain Types
  * CANONICAL SOURCE - All fund-related types should be imported from here
- * 
+ *
  * Database Schema Mapping:
  * - funds table: id, code, name, asset, fund_class, status, inception_date, etc.
  */
@@ -151,6 +151,54 @@ export function toFundRef(fund: Fund): FundRef {
     name: fund.name,
     asset: fund.asset,
   };
+}
+
+/**
+ * Convert application Fund type to database format for insert/update
+ * Converts string financial fields back to numbers for DB
+ */
+export function mapFundToDb(fund: Partial<Fund>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  // Copy non-financial fields as-is
+  const stringFields = [
+    "id",
+    "code",
+    "name",
+    "fund_class",
+    "asset",
+    "status",
+    "inception_date",
+    "logo_url",
+    "strategy",
+    "created_at",
+    "updated_at",
+  ] as const;
+
+  for (const field of stringFields) {
+    if (field in fund && fund[field] !== undefined) {
+      result[field] = fund[field];
+    }
+  }
+
+  // Convert string financial fields to numbers for DB
+  if ("mgmt_fee_bps" in fund) {
+    result.mgmt_fee_bps = fund.mgmt_fee_bps != null ? Number(fund.mgmt_fee_bps) : null;
+  }
+  if ("perf_fee_bps" in fund) {
+    result.perf_fee_bps = fund.perf_fee_bps != null ? Number(fund.perf_fee_bps) : null;
+  }
+  if ("min_investment" in fund) {
+    result.min_investment = fund.min_investment != null ? Number(fund.min_investment) : null;
+  }
+  if ("high_water_mark" in fund) {
+    result.high_water_mark = fund.high_water_mark != null ? Number(fund.high_water_mark) : null;
+  }
+  if ("lock_period_days" in fund) {
+    result.lock_period_days = fund.lock_period_days;
+  }
+
+  return result;
 }
 
 /**

@@ -5,8 +5,18 @@
 
 import { useState, useEffect } from "react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Textarea, Alert, AlertDescription,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { AlertTriangle, Loader2, Info, TrendingDown, Database } from "lucide-react";
 import { toast } from "sonner";
@@ -21,7 +31,7 @@ import { FinancialValue } from "@/components/common/FinancialValue";
 interface VoidableTransaction {
   id: string;
   type: string;
-  amount: string;
+  amount: string; // String for NUMERIC precision preservation
   asset: string;
   investorName: string;
   txDate: string;
@@ -76,7 +86,8 @@ export function VoidTransactionDialog({
   useEffect(() => {
     if (open && transaction?.id) {
       setLoadingImpact(true);
-      transactionsV2Service.getVoidImpact(transaction.id)
+      transactionsV2Service
+        .getVoidImpact(transaction.id)
         .then(setImpact)
         .catch((err) => {
           console.error("Failed to fetch void impact:", err);
@@ -90,7 +101,7 @@ export function VoidTransactionDialog({
 
   const handleVoid = async () => {
     if (!transaction) return;
-    
+
     if (confirmText !== "VOID") {
       toast.error("Please type VOID to confirm");
       return;
@@ -138,8 +149,8 @@ export function VoidTransactionDialog({
             Void Transaction
           </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. The transaction will be marked as voided
-            and positions/AUM will be recalculated.
+            This action cannot be undone. The transaction will be marked as voided and positions/AUM
+            will be recalculated.
           </DialogDescription>
         </DialogHeader>
 
@@ -147,10 +158,19 @@ export function VoidTransactionDialog({
           {/* Transaction details */}
           <Alert>
             <AlertDescription className="space-y-1">
-              <div><strong>Investor:</strong> {transaction.investorName}</div>
-              <div><strong>Type:</strong> {transaction.type}</div>
-              <div><strong>Amount:</strong> <FinancialValue value={parseFloat(transaction.amount)} asset={transaction.asset} showAsset /></div>
-              <div><strong>Date:</strong> {transaction.txDate}</div>
+              <div>
+                <strong>Investor:</strong> {transaction.investorName}
+              </div>
+              <div>
+                <strong>Type:</strong> {transaction.type}
+              </div>
+              <div>
+                <strong>Amount:</strong>{" "}
+                <FinancialValue value={transaction.amount} asset={transaction.asset} showAsset />
+              </div>
+              <div>
+                <strong>Date:</strong> {transaction.txDate}
+              </div>
             </AlertDescription>
           </Alert>
 
@@ -168,15 +188,24 @@ export function VoidTransactionDialog({
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>Current Position:</div>
-                <div className="font-mono"><FinancialValue value={impact.current_position ?? 0} displayDecimals={4} /></div>
+                <div className="font-mono">
+                  <FinancialValue value={impact.current_position ?? 0} displayDecimals={4} />
+                </div>
                 <div>After Void:</div>
-                <div className="font-mono"><FinancialValue value={impact.projected_position ?? 0} displayDecimals={4} /></div>
+                <div className="font-mono">
+                  <FinancialValue value={impact.projected_position ?? 0} displayDecimals={4} />
+                </div>
                 <div>Change:</div>
                 <div className="font-mono">
-                  <FinancialValue value={impact.position_change ?? 0} displayDecimals={4} colorize prefix={(impact.position_change ?? 0) >= 0 ? "+" : ""} />
+                  <FinancialValue
+                    value={impact.position_change ?? 0}
+                    displayDecimals={4}
+                    colorize
+                    prefix={(impact.position_change ?? 0) >= 0 ? "+" : ""}
+                  />
                 </div>
               </div>
-              
+
               {(impact.aum_records_affected ?? 0) > 0 && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                   <Database className="h-3 w-3" />
@@ -197,8 +226,9 @@ export function VoidTransactionDialog({
                 <Alert className="mt-2 border-amber-500/50 bg-amber-500/10">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-amber-700">
-                    <strong>Yield Recalculation Required:</strong> {impact.yield_dependency.count} yield distribution(s) 
-                    were calculated after this transaction date and may need review.
+                    <strong>Yield Recalculation Required:</strong> {impact.yield_dependency.count}{" "}
+                    yield distribution(s) were calculated after this transaction date and may need
+                    review.
                   </AlertDescription>
                 </Alert>
               )}
@@ -214,8 +244,8 @@ export function VoidTransactionDialog({
                     System-generated transaction
                   </AlertDescription>
                   <p className="text-xs text-amber-600/80 mt-1">
-                    This transaction was automatically created by yield distributions, fee calculations, 
-                    or IB allocations. Voiding may affect related records.
+                    This transaction was automatically created by yield distributions, fee
+                    calculations, or IB allocations. Voiding may affect related records.
                   </p>
                 </div>
               </div>
@@ -259,7 +289,12 @@ export function VoidTransactionDialog({
           <Button
             variant="destructive"
             onClick={handleVoid}
-            disabled={voidMutation.isPending || confirmText !== "VOID" || reason.trim().length < 3 || impact?.would_go_negative}
+            disabled={
+              voidMutation.isPending ||
+              confirmText !== "VOID" ||
+              reason.trim().length < 3 ||
+              impact?.would_go_negative
+            }
           >
             {voidMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Void Transaction

@@ -1,16 +1,13 @@
-import {
-  Card, CardContent, CardHeader, CardTitle,
-  Button,
-  Skeleton,
-} from "@/components/ui";
+import { Card, CardContent, CardHeader, CardTitle, Button, Skeleton } from "@/components/ui";
 import { Calendar, ArrowRight, Clock, Receipt, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatAssetAmount } from "@/utils/assets";
+import { isFinancialGte } from "@/utils/financial";
 
 import type { LedgerTransaction } from "@/types/domains/transaction";
 
 // Transaction type for quick cards - uses string amount from domain type
-type Transaction = Pick<LedgerTransaction, 'id' | 'type' | 'amount' | 'asset' | 'tx_date'>;
+type Transaction = Pick<LedgerTransaction, "id" | "type" | "amount" | "asset" | "tx_date">;
 
 interface QuickCardsProps {
   lastStatementPeriod?: string;
@@ -54,9 +51,7 @@ export function QuickCards({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-lg font-semibold">
-            {lastStatementPeriod || "No statements yet"}
-          </p>
+          <p className="text-lg font-semibold">{lastStatementPeriod || "No statements yet"}</p>
           <Button variant="link" size="sm" className="p-0 h-auto mt-1" asChild>
             <Link to="/investor/statements">
               View Statements <ArrowRight className="h-3 w-3 ml-1" />
@@ -76,21 +71,21 @@ export function QuickCards({
         <CardContent>
           {recentTransactions.length > 0 ? (
             <div className="space-y-2">
-              {recentTransactions.slice(0, 3).map((tx) => (
-                <div key={tx.id} className="flex justify-between text-sm">
-                  <span className="capitalize text-muted-foreground">
-                    {tx.type?.replace(/_/g, " ")}
-                  </span>
-                  <span
-                    className={`font-mono ${
-                      parseFloat(tx.amount) >= 0 ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {parseFloat(tx.amount) >= 0 ? "+" : ""}
-                    {formatAssetAmount(parseFloat(tx.amount), tx.asset)}
-                  </span>
-                </div>
-              ))}
+              {recentTransactions.slice(0, 3).map((tx) => {
+                const isPositive = isFinancialGte(tx.amount, 0);
+                const numAmount = Number(tx.amount);
+                return (
+                  <div key={tx.id} className="flex justify-between text-sm">
+                    <span className="capitalize text-muted-foreground">
+                      {tx.type?.replace(/_/g, " ")}
+                    </span>
+                    <span className={`font-mono ${isPositive ? "text-green-600" : "text-red-600"}`}>
+                      {isPositive ? "+" : ""}
+                      {formatAssetAmount(numAmount, tx.asset)}
+                    </span>
+                  </div>
+                );
+              })}
               <Button variant="link" size="sm" className="p-0 h-auto" asChild>
                 <Link to="/investor/transactions">
                   View All <ArrowRight className="h-3 w-3 ml-1" />
@@ -116,9 +111,7 @@ export function QuickCards({
             <>
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-amber-500" />
-                <p className="text-lg font-semibold">
-                  {pendingWithdrawalsCount} pending
-                </p>
+                <p className="text-lg font-semibold">{pendingWithdrawalsCount} pending</p>
               </div>
               <Button variant="link" size="sm" className="p-0 h-auto mt-1" asChild>
                 <Link to="/withdrawals">

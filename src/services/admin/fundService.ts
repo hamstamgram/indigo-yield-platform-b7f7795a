@@ -4,7 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { mapDbFundToFund, type Fund, type FundRef } from "@/types/domains/fund";
+import type { Fund, FundRef } from "@/types/domains/fund";
+import { mapDbFundToFund, mapFundToDb } from "@/types/domains/fund";
 
 // Re-export types from canonical source for backward compatibility
 export type { Fund, FundRef } from "@/types/domains/fund";
@@ -74,9 +75,11 @@ export async function getFund(fundId: string): Promise<Fund> {
 /**
  * Create new fund
  */
-export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated_at">): Promise<Fund> {
-  // Convert string fields to numbers for DB insertion
-  const fundForDb = {
+export async function createFund(
+  fund: Omit<Fund, "id" | "created_at" | "updated_at">
+): Promise<Fund> {
+  const fundWithDefaults = {
+    ...fund,
     code: fund.code,
     name: fund.name,
     asset: fund.asset || "BTC",
@@ -92,9 +95,12 @@ export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated
     strategy: fund.strategy,
   };
 
+  // Convert to DB format (string financial fields -> numbers)
+  const dbRecord = mapFundToDb(fundWithDefaults);
+
   const { data, error } = await supabase
     .from("funds")
-    .insert(fundForDb)
+    .insert(dbRecord as any)
     .select()
     .maybeSingle();
 
@@ -107,24 +113,12 @@ export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated
  * Update fund
  */
 export async function updateFund(fundId: string, updates: Partial<Fund>): Promise<Fund> {
-  // Convert string fields to numbers for DB update
-  const dbUpdates: Record<string, any> = {};
-  if (updates.name !== undefined) dbUpdates.name = updates.name;
-  if (updates.asset !== undefined) dbUpdates.asset = updates.asset;
-  if (updates.status !== undefined) dbUpdates.status = updates.status;
-  if (updates.inception_date !== undefined) dbUpdates.inception_date = updates.inception_date;
-  if (updates.mgmt_fee_bps !== undefined) dbUpdates.mgmt_fee_bps = updates.mgmt_fee_bps ? Number(updates.mgmt_fee_bps) : null;
-  if (updates.perf_fee_bps !== undefined) dbUpdates.perf_fee_bps = updates.perf_fee_bps ? Number(updates.perf_fee_bps) : null;
-  if (updates.min_investment !== undefined) dbUpdates.min_investment = updates.min_investment ? Number(updates.min_investment) : null;
-  if (updates.high_water_mark !== undefined) dbUpdates.high_water_mark = updates.high_water_mark ? Number(updates.high_water_mark) : null;
-  if (updates.lock_period_days !== undefined) dbUpdates.lock_period_days = updates.lock_period_days;
-  if (updates.logo_url !== undefined) dbUpdates.logo_url = updates.logo_url;
-  if (updates.strategy !== undefined) dbUpdates.strategy = updates.strategy;
-  if (updates.fund_class !== undefined) dbUpdates.fund_class = updates.fund_class;
+  // Convert to DB format (string financial fields -> numbers)
+  const dbUpdates = mapFundToDb(updates);
 
   const { data, error } = await supabase
     .from("funds")
-    .update(dbUpdates)
+    .update(dbUpdates as any)
     .eq("id", fundId)
     .select()
     .maybeSingle();
@@ -257,7 +251,9 @@ export async function getFundPerformance(fundId: string) {
  * Check fund usage (positions and transactions count)
  * Used to determine if ticker change should be blocked
  */
-export async function checkFundUsage(fundId: string): Promise<{ positions: number; transactions: number }> {
+export async function checkFundUsage(
+  fundId: string
+): Promise<{ positions: number; transactions: number }> {
   const [positionsResult, transactionsResult] = await Promise.all([
     supabase
       .from("investor_positions")

@@ -15,6 +15,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendIntegrityAlert } from "../_shared/alerts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,10 +48,10 @@ serve(async (req) => {
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -75,13 +76,16 @@ serve(async (req) => {
     if (authHeader && !authHeader.includes(supabaseServiceRoleKey)) {
       // If using a user token, verify admin access
       const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser(token);
 
       if (userError || !user) {
-        return new Response(
-          JSON.stringify({ error: "Invalid authorization" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Invalid authorization" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       // Check admin status
@@ -92,16 +96,17 @@ serve(async (req) => {
         .single();
 
       if (!profile?.is_admin) {
-        return new Response(
-          JSON.stringify({ error: "Admin access required" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Admin access required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
     // Run the integrity check via RPC
-    const { data: snapshotId, error: rpcError } = await supabase
-      .rpc("run_integrity_check", { p_triggered_by: triggeredBy });
+    const { data: snapshotId, error: rpcError } = await supabase.rpc("run_integrity_check", {
+      p_triggered_by: triggeredBy,
+    });
 
     if (rpcError) {
       console.error("Integrity check RPC error:", rpcError);
@@ -145,25 +150,69 @@ serve(async (req) => {
     };
 
     // Log for monitoring
-    console.log(`[Integrity Check] Status: ${status}, Anomalies: ${snapshot.total_anomalies}, Time: ${executionTime}ms`);
-
-    // If critical, could add alerting here (email, Slack, etc.)
-    if (status === "critical") {
-      console.warn(`[ALERT] Critical integrity issues detected: ${snapshot.total_anomalies} anomalies`);
-      // Future: integrate with alerting service
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, ...result }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    console.log(
+      `[Integrity Check] Status: ${status}, Anomalies: ${snapshot.total_anomalies}, Time: ${executionTime}ms`
     );
 
+    // Send alerts for warnings and critical issues
+    if (status === "critical" || status === "warning") {
+      console.log(`[ALERT] Sending ${status} alert for ${snapshot.total_anomalies} anomalies`);
+
+      // Build issues array for alert
+      const issues = [
+        {
+          view_name: "ledger_reconciliation",
+          issue_count: snapshot.ledger_reconciliation_count,
+          status: snapshot.ledger_reconciliation_count > 0 ? "critical" : "ok",
+        },
+        {
+          view_name: "fund_aum_mismatch",
+          issue_count: snapshot.fund_aum_mismatch_count,
+          status: snapshot.fund_aum_mismatch_count > 0 ? "warning" : "ok",
+        },
+        {
+          view_name: "orphaned_positions",
+          issue_count: snapshot.orphaned_positions_count,
+          status: snapshot.orphaned_positions_count > 0 ? "warning" : "ok",
+        },
+        {
+          view_name: "orphaned_transactions",
+          issue_count: snapshot.orphaned_transactions_count,
+          status: snapshot.orphaned_transactions_count > 0 ? "warning" : "ok",
+        },
+        {
+          view_name: "fee_calculation_orphans",
+          issue_count: snapshot.fee_calculation_orphans_count,
+          status: snapshot.fee_calculation_orphans_count > 0 ? "warning" : "ok",
+        },
+        {
+          view_name: "position_variance",
+          issue_count: snapshot.position_variance_count,
+          status: snapshot.position_variance_count > 0 ? "critical" : "ok",
+        },
+      ];
+
+      try {
+        const alertResult = await sendIntegrityAlert(issues, snapshotId);
+        console.log(
+          `[ALERT] Alert sent - Slack: ${alertResult.slack}, Email: ${alertResult.email}`
+        );
+      } catch (alertError) {
+        console.error("[ALERT] Failed to send alert:", alertError);
+        // Don't fail the function if alerting fails
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true, ...result }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Integrity check error:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

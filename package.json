@@ -183,5 +183,13 @@
     "terser": "^5.44.0",
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.0.1"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{js,jsx,ts,tsx,md,json}": [
+      "prettier --write"
+    ]
   }
 }

@@ -1,9 +1,24 @@
 import { useEffect } from "react";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Input, Button, Badge,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Input,
+  Button,
+  Badge,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui";
 import { Search, CheckCircle, XCircle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useDeposits } from "@/hooks/data/admin";
@@ -36,11 +51,15 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
         status: statusFilter === "all" ? undefined : statusFilter,
       });
     }, 300); // Debounce search input
-    
+
     return () => clearTimeout(handler);
   }, [searchInput, statusFilter]);
 
-  const { data: deposits, isLoading, refetch } = useDeposits({
+  const {
+    data: deposits,
+    isLoading,
+    refetch,
+  } = useDeposits({
     search: searchInput || undefined,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
@@ -49,7 +68,7 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
   const mapDepositToTransaction = (deposit: Deposit) => ({
     id: deposit.id,
     type: "DEPOSIT",
-    amount: String(deposit.amount),
+    amount: String(deposit.amount), // Convert to string for NUMERIC precision preservation
     asset: deposit.asset_symbol,
     investorName: deposit.user_name || "Unknown",
     txDate: deposit.created_at.split("T")[0],
@@ -179,7 +198,7 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          
+
                           {deposit.status === "pending" && (
                             <>
                               <DropdownMenuSeparator />
@@ -203,7 +222,7 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
                               </DropdownMenuItem>
                             </>
                           )}
-                          
+
                           {deposit.status !== "rejected" && (
                             <>
                               <DropdownMenuSeparator />
