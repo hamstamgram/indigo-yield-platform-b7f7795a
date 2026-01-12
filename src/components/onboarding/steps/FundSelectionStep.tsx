@@ -224,11 +224,11 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                       <div className="grid grid-cols-2 gap-4 mt-4 text-sm text-muted-foreground">
                         <div>
                           <span className="font-medium">Management Fee:</span>{" "}
-                          {fund.mgmt_fee_bps / 100}%
+                          {Number(fund.mgmt_fee_bps) / 100}%
                         </div>
                         <div>
                           <span className="font-medium">Performance Fee:</span>{" "}
-                          {fund.perf_fee_bps / 100}%
+                          {Number(fund.perf_fee_bps) / 100}%
                         </div>
                       </div>
                     </div>

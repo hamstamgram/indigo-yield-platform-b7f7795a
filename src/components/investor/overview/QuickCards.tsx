@@ -9,7 +9,7 @@ import { formatAssetAmount } from "@/utils/assets";
 
 import type { LedgerTransaction } from "@/types/domains/transaction";
 
-// Alias for component props
+// Transaction type for quick cards - uses string amount from domain type
 type Transaction = Pick<LedgerTransaction, 'id' | 'type' | 'amount' | 'asset' | 'tx_date'>;
 
 interface QuickCardsProps {
@@ -83,11 +83,11 @@ export function QuickCards({
                   </span>
                   <span
                     className={`font-mono ${
-                      tx.amount >= 0 ? "text-green-600" : "text-red-600"
+                      parseFloat(tx.amount) >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
-                    {tx.amount >= 0 ? "+" : ""}
-                    {formatAssetAmount(tx.amount, tx.asset)}
+                    {parseFloat(tx.amount) >= 0 ? "+" : ""}
+                    {formatAssetAmount(parseFloat(tx.amount), tx.asset)}
                   </span>
                 </div>
               ))}

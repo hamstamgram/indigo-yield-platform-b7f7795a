@@ -384,16 +384,16 @@ async function queryIntegrityViews() {
     supabase.from("fund_aum_mismatch").select("*", { count: "exact" }),
 
     // Orphaned transactions: transactions without profiles
-    supabase.from("v_orphaned_transactions").select("*", { count: "exact" }),
+    (supabase.from as any)("v_orphaned_transactions").select("*", { count: "exact" }),
 
     // Orphaned positions: positions without profiles/funds
     supabase.from("v_orphaned_positions").select("*", { count: "exact" }),
 
     // Fee calculation orphans: orphaned fee calculations
-    supabase.from("v_fee_calculation_orphans").select("*", { count: "exact" }),
+    (supabase.from as any)("v_fee_calculation_orphans").select("*", { count: "exact" }),
 
     // Position vs transaction variance breakdown
-    supabase.from("v_position_transaction_variance").select("*", { count: "exact" }),
+    (supabase.from as any)("v_position_transaction_variance").select("*", { count: "exact" }),
   ]);
 
   return {

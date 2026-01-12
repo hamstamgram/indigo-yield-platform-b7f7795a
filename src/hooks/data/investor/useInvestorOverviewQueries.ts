@@ -28,7 +28,11 @@ export function useRecentInvestorTransactions(limit = 5) {
         .limit(limit);
 
       if (error) throw error;
-      return data || [];
+      // Convert amount to string for domain type precision
+      return (data || []).map(tx => ({
+        ...tx,
+        amount: String(tx.amount ?? "0"),
+      }));
     },
   });
 }
@@ -83,7 +87,7 @@ export function useLastStatementPeriod() {
 export type RecentTransaction = {
   id: string;
   type: string;
-  amount: number;
+  amount: string;
   asset: string;
   tx_date: string;
 };

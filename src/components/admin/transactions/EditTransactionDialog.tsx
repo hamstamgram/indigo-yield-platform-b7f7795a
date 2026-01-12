@@ -28,11 +28,12 @@ type EditFormData = z.infer<typeof editSchema>;
 
 /**
  * Minimal transaction data required for the edit dialog
+ * amount is string to preserve NUMERIC precision
  */
 interface EditableTransaction {
   id: string;
   type: string;
-  amount: number;
+  amount: string;
   asset: string;
   investorName: string;
   txDate: string;
@@ -77,7 +78,7 @@ export function EditTransactionDialog({
     if (transaction) {
       reset({
         tx_date: transaction.txDate,
-        amount: transaction.amount.toString(),
+        amount: transaction.amount,
         notes: transaction.notes || "",
         tx_hash: transaction.txHash || "",
         reason: "",
@@ -100,7 +101,7 @@ export function EditTransactionDialog({
     if (data.tx_date && data.tx_date !== transaction.txDate) {
       updates.tx_date = data.tx_date;
     }
-    if (data.amount && parseFloat(data.amount) !== transaction.amount) {
+    if (data.amount && data.amount !== transaction.amount) {
       updates.amount = parseFloat(data.amount);
     }
     if (data.notes !== (transaction.notes || "")) {

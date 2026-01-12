@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Fund, FundRef } from "@/types/domains/fund";
+import { mapDbFundToFund, type Fund, type FundRef } from "@/types/domains/fund";
 
 // Re-export types from canonical source for backward compatibility
 export type { Fund, FundRef } from "@/types/domains/fund";
@@ -42,70 +42,96 @@ export interface FundKPI {
 /**
  * List all funds
  */
-export async function listFunds() {
+export async function listFunds(): Promise<Fund[]> {
   const { data, error } = await supabase
     .from("funds")
     .select(
-      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url"
+      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url, lock_period_days"
     )
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data as Fund[];
+  return (data || []).map(mapDbFundToFund);
 }
 
 /**
  * Get fund by ID
  */
-export async function getFund(fundId: string) {
+export async function getFund(fundId: string): Promise<Fund> {
   const { data, error } = await supabase
     .from("funds")
     .select(
-      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url"
+      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url, lock_period_days"
     )
     .eq("id", fundId)
     .maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error(`Fund not found: ${fundId}`);
-  return data as Fund;
+  return mapDbFundToFund(data);
 }
 
 /**
  * Create new fund
  */
-export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated_at">) {
-  const fundWithDefaults = {
-    ...fund,
-    fund_class: fund.fund_class || "default",
+export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated_at">): Promise<Fund> {
+  // Convert string fields to numbers for DB insertion
+  const fundForDb = {
+    code: fund.code,
+    name: fund.name,
     asset: fund.asset || "BTC",
+    fund_class: fund.fund_class || "default",
+    status: fund.status,
+    inception_date: fund.inception_date,
+    mgmt_fee_bps: fund.mgmt_fee_bps ? Number(fund.mgmt_fee_bps) : null,
+    perf_fee_bps: fund.perf_fee_bps ? Number(fund.perf_fee_bps) : null,
+    min_investment: fund.min_investment ? Number(fund.min_investment) : null,
+    high_water_mark: fund.high_water_mark ? Number(fund.high_water_mark) : null,
+    lock_period_days: fund.lock_period_days,
+    logo_url: fund.logo_url,
+    strategy: fund.strategy,
   };
 
   const { data, error } = await supabase
     .from("funds")
-    .insert(fundWithDefaults)
+    .insert(fundForDb)
     .select()
     .maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error("Failed to create fund");
-  return data as Fund;
+  return mapDbFundToFund(data);
 }
 
 /**
  * Update fund
  */
-export async function updateFund(fundId: string, updates: Partial<Fund>) {
+export async function updateFund(fundId: string, updates: Partial<Fund>): Promise<Fund> {
+  // Convert string fields to numbers for DB update
+  const dbUpdates: Record<string, any> = {};
+  if (updates.name !== undefined) dbUpdates.name = updates.name;
+  if (updates.asset !== undefined) dbUpdates.asset = updates.asset;
+  if (updates.status !== undefined) dbUpdates.status = updates.status;
+  if (updates.inception_date !== undefined) dbUpdates.inception_date = updates.inception_date;
+  if (updates.mgmt_fee_bps !== undefined) dbUpdates.mgmt_fee_bps = updates.mgmt_fee_bps ? Number(updates.mgmt_fee_bps) : null;
+  if (updates.perf_fee_bps !== undefined) dbUpdates.perf_fee_bps = updates.perf_fee_bps ? Number(updates.perf_fee_bps) : null;
+  if (updates.min_investment !== undefined) dbUpdates.min_investment = updates.min_investment ? Number(updates.min_investment) : null;
+  if (updates.high_water_mark !== undefined) dbUpdates.high_water_mark = updates.high_water_mark ? Number(updates.high_water_mark) : null;
+  if (updates.lock_period_days !== undefined) dbUpdates.lock_period_days = updates.lock_period_days;
+  if (updates.logo_url !== undefined) dbUpdates.logo_url = updates.logo_url;
+  if (updates.strategy !== undefined) dbUpdates.strategy = updates.strategy;
+  if (updates.fund_class !== undefined) dbUpdates.fund_class = updates.fund_class;
+
   const { data, error } = await supabase
     .from("funds")
-    .update(updates)
+    .update(dbUpdates)
     .eq("id", fundId)
     .select()
     .maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error(`Fund not found: ${fundId}`);
-  return data as Fund;
+  return mapDbFundToFund(data);
 }
 
 // Deprecated functions listDailyNav and upsertDailyNav have been removed.

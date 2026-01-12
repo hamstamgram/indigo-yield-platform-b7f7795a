@@ -49,7 +49,7 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
   const mapDepositToTransaction = (deposit: Deposit) => ({
     id: deposit.id,
     type: "DEPOSIT",
-    amount: deposit.amount,
+    amount: String(deposit.amount),
     asset: deposit.asset_symbol,
     investorName: deposit.user_name || "Unknown",
     txDate: deposit.created_at.split("T")[0],

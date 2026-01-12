@@ -92,7 +92,11 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
         });
       }
 
-      return (data || []) as Transaction[];
+      // Map DB data to domain types, converting amount to string for precision
+      return (data || []).map((tx) => ({
+        ...tx,
+        amount: String(tx.amount ?? "0"),
+      })) as Transaction[];
     },
     enabled: !!investorId,
     staleTime: 30000, // 30 seconds

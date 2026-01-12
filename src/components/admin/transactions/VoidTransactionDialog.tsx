@@ -16,11 +16,12 @@ import { FinancialValue } from "@/components/common/FinancialValue";
 
 /**
  * Minimal transaction data required for the void dialog
+ * amount is string to preserve NUMERIC precision
  */
 interface VoidableTransaction {
   id: string;
   type: string;
-  amount: number;
+  amount: string;
   asset: string;
   investorName: string;
   txDate: string;
@@ -148,7 +149,7 @@ export function VoidTransactionDialog({
             <AlertDescription className="space-y-1">
               <div><strong>Investor:</strong> {transaction.investorName}</div>
               <div><strong>Type:</strong> {transaction.type}</div>
-              <div><strong>Amount:</strong> <FinancialValue value={transaction.amount} asset={transaction.asset} showAsset /></div>
+              <div><strong>Amount:</strong> <FinancialValue value={parseFloat(transaction.amount)} asset={transaction.asset} showAsset /></div>
               <div><strong>Date:</strong> {transaction.txDate}</div>
             </AlertDescription>
           </Alert>
