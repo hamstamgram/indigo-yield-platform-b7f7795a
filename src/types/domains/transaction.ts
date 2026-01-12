@@ -15,6 +15,7 @@ type AssetCode = Database["public"]["Enums"]["asset_code"];
 /**
  * Core transaction type - maps to transactions_v2 table
  * This is the canonical type for transaction data
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface Transaction {
   id: string;
@@ -22,7 +23,8 @@ export interface Transaction {
   fund_id: string | null;
   type: TransactionType;
   asset: string;
-  amount: number;
+  /** @precision NUMERIC(28,10) from database */
+  amount: string;
   tx_date: string;
   notes: string | null;
   tx_hash: string | null;
@@ -75,12 +77,14 @@ export interface TransactionWithDetails extends TransactionWithFund {
 
 /**
  * Transaction for ledger views (investor-facing)
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface LedgerTransaction {
   id: string;
   tx_date: string;
   type: string;
-  amount: number;
+  /** @precision NUMERIC(28,10) from database */
+  amount: string;
   purpose: string | null;
   reference_id: string | null;
   notes: string | null;
@@ -94,33 +98,46 @@ export interface LedgerTransaction {
 
 /**
  * Transaction for statement calculations
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface StatementTransaction {
   id: string;
   date: string;
   type: "deposit" | "withdrawal" | "interest" | "fee";
-  amount: number;
+  /** @precision NUMERIC(28,10) from database */
+  amount: string;
   description: string;
-  running_balance?: number;
+  /** @precision NUMERIC(28,10) from database */
+  running_balance?: string;
 }
 
 /**
  * Transaction summary aggregates
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface TransactionSummary {
-  total_deposits: number;
-  total_withdrawals: number;
-  total_fees: number;
-  total_yield: number;
-  net_flow: number;
+  /** @precision NUMERIC(28,10) from database */
+  total_deposits: string;
+  /** @precision NUMERIC(28,10) from database */
+  total_withdrawals: string;
+  /** @precision NUMERIC(28,10) from database */
+  total_fees: string;
+  /** @precision NUMERIC(28,10) from database */
+  total_yield: string;
+  /** @precision NUMERIC(28,10) from database */
+  net_flow: string;
   transaction_count: number;
   by_asset?: Record<
     string,
     {
-      deposits: number;
-      withdrawals: number;
-      fees: number;
-      yield: number;
+      /** @precision NUMERIC(28,10) from database */
+      deposits: string;
+      /** @precision NUMERIC(28,10) from database */
+      withdrawals: string;
+      /** @precision NUMERIC(28,10) from database */
+      fees: string;
+      /** @precision NUMERIC(28,10) from database */
+      yield: string;
     }
   >;
 }
@@ -151,13 +168,15 @@ export type UITransactionType = TransactionType | "FIRST_INVESTMENT";
 /**
  * Create transaction parameters (for API/service layer)
  * Uses strict DB TransactionType
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface CreateTransactionParams {
   investor_id: string;
   fund_id: string;
   type: TransactionType;
   asset: string;
-  amount: number;
+  /** @precision NUMERIC(28,10) from database */
+  amount: string;
   tx_date: string;
   reference_id?: string;
   tx_hash?: string;
@@ -168,13 +187,15 @@ export interface CreateTransactionParams {
 /**
  * Create transaction parameters for UI forms
  * Allows FIRST_INVESTMENT which gets mapped to DEPOSIT
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface CreateTransactionUIParams {
   investor_id: string;
   fund_id: string;
   type: UITransactionType;
   asset: string;
-  amount: number;
+  /** @precision NUMERIC(28,10) from database */
+  amount: string;
   tx_date: string;
   /**
    * Authoritative AUM snapshot used for crystallize-before-flow accounting.
@@ -194,6 +215,7 @@ export interface CreateTransactionUIParams {
 /**
  * Convert database transaction to application transaction
  * Handles different field naming conventions
+ * Preserves string representation for financial precision
  */
 export function mapDbTransactionToTransaction(dbTx: any): Transaction {
   return {
@@ -202,7 +224,7 @@ export function mapDbTransactionToTransaction(dbTx: any): Transaction {
     fund_id: dbTx.fund_id || null,
     type: dbTx.type as TransactionType,
     asset: dbTx.asset || dbTx.asset_code,
-    amount: Number(dbTx.amount) || 0,
+    amount: String(dbTx.amount ?? "0"),
     tx_date: dbTx.tx_date || dbTx.created_at,
     notes: dbTx.notes || dbTx.note || null,
     tx_hash: dbTx.tx_hash || dbTx.transaction_hash || null,
@@ -262,15 +284,17 @@ export function formatTransactionType(type: TransactionType | string): string {
 
 /**
  * Calculate net amount (positive for deposits/interest, negative for withdrawals/fees)
+ * Returns string to preserve NUMERIC(28,10) precision - use Decimal.js for calculations
  */
-export function getTransactionNetAmount(tx: Transaction): number {
-  const amount = Number(tx.amount) || 0;
+export function getTransactionNetAmount(tx: Transaction): string {
+  const amount = tx.amount || "0";
   const type = tx.type?.toUpperCase?.() || tx.type;
   if (type === "DEPOSIT" || type === "INTEREST" || type === "YIELD") {
     return amount;
   }
   if (type === "WITHDRAWAL" || type === "FEE") {
-    return -amount;
+    // Return negative by prepending minus if not already negative
+    return amount.startsWith("-") ? amount : `-${amount}`;
   }
   return amount;
 }
@@ -310,6 +334,7 @@ export interface AdminTransactionFilters {
 
 /**
  * View model for transaction display in admin UI
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface TransactionViewModel {
   id: string;
@@ -321,7 +346,8 @@ export interface TransactionViewModel {
   asset: string;
   type: TransactionType;
   displayType: string;
-  amount: number;
+  /** @precision NUMERIC(28,10) from database */
+  amount: string;
   txDate: string;
   notes: string | null;
   txHash?: string | null;

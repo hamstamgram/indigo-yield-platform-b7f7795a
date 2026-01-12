@@ -65,20 +65,30 @@ export interface InvestorProfile {
 
 /**
  * Investor position from investor_positions table
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface InvestorPosition {
   investor_id: string;
   fund_id: string;
   fund_class: string | null;
-  shares: number;
-  cost_basis: number;
-  current_value: number;
-  unrealized_pnl: number;
-  realized_pnl: number;
-  high_water_mark: number | null;
-  aum_percentage: number | null;
-  mgmt_fees_paid: number | null;
-  perf_fees_paid: number | null;
+  /** @precision NUMERIC(28,10) from database */
+  shares: string;
+  /** @precision NUMERIC(28,10) from database */
+  cost_basis: string;
+  /** @precision NUMERIC(28,10) from database */
+  current_value: string;
+  /** @precision NUMERIC(28,10) from database */
+  unrealized_pnl: string;
+  /** @precision NUMERIC(28,10) from database */
+  realized_pnl: string;
+  /** @precision NUMERIC(28,10) from database */
+  high_water_mark: string | null;
+  /** @precision NUMERIC(28,10) from database */
+  aum_percentage: string | null;
+  /** @precision NUMERIC(28,10) from database */
+  mgmt_fees_paid: string | null;
+  /** @precision NUMERIC(28,10) from database */
+  perf_fees_paid: string | null;
   last_transaction_date: string | null;
   last_modified_at: string | null;
   last_modified_by: string | null;
@@ -87,11 +97,15 @@ export interface InvestorPosition {
 
 /**
  * Investor summary with aggregated position data
+ * Financial fields use string for NUMERIC(28,10) precision preservation
  */
 export interface InvestorSummary extends Investor {
-  total_principal: number;
-  total_earned: number;
-  portfolio_value: number;
+  /** @precision NUMERIC(28,10) from database */
+  total_principal: string;
+  /** @precision NUMERIC(28,10) from database */
+  total_earned: string;
+  /** @precision NUMERIC(28,10) from database */
+  portfolio_value: string;
   total_positions: number;
 }
 
@@ -127,21 +141,22 @@ export const mapDbInvestorToInvestor = mapDbProfileToInvestor;
 
 /**
  * Convert database investor position to application type
+ * Preserves string representation for financial precision
  */
 export function mapDbPositionToInvestorPosition(dbPosition: DbInvestorPosition): InvestorPosition {
   return {
     investor_id: dbPosition.investor_id,
     fund_id: dbPosition.fund_id,
     fund_class: dbPosition.fund_class,
-    shares: Number(dbPosition.shares) || 0,
-    cost_basis: Number(dbPosition.cost_basis) || 0,
-    current_value: Number(dbPosition.current_value) || 0,
-    unrealized_pnl: Number(dbPosition.unrealized_pnl) || 0,
-    realized_pnl: Number(dbPosition.realized_pnl) || 0,
-    high_water_mark: dbPosition.high_water_mark ? Number(dbPosition.high_water_mark) : null,
-    aum_percentage: dbPosition.aum_percentage ? Number(dbPosition.aum_percentage) : null,
-    mgmt_fees_paid: dbPosition.mgmt_fees_paid ? Number(dbPosition.mgmt_fees_paid) : null,
-    perf_fees_paid: dbPosition.perf_fees_paid ? Number(dbPosition.perf_fees_paid) : null,
+    shares: String(dbPosition.shares ?? "0"),
+    cost_basis: String(dbPosition.cost_basis ?? "0"),
+    current_value: String(dbPosition.current_value ?? "0"),
+    unrealized_pnl: String(dbPosition.unrealized_pnl ?? "0"),
+    realized_pnl: String(dbPosition.realized_pnl ?? "0"),
+    high_water_mark: dbPosition.high_water_mark != null ? String(dbPosition.high_water_mark) : null,
+    aum_percentage: dbPosition.aum_percentage != null ? String(dbPosition.aum_percentage) : null,
+    mgmt_fees_paid: dbPosition.mgmt_fees_paid != null ? String(dbPosition.mgmt_fees_paid) : null,
+    perf_fees_paid: dbPosition.perf_fees_paid != null ? String(dbPosition.perf_fees_paid) : null,
     last_transaction_date: dbPosition.last_transaction_date,
     last_modified_at: dbPosition.updated_at,
     last_modified_by: null,

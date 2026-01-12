@@ -4,6 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Fund, FundStatus } from "@/types/domains/fund";
+import { mapDbFundToFund } from "@/types/domains/fund";
 import type { InvestorPosition } from "@/types/domains/investor";
 
 // Re-export types from canonical sources for backward compatibility
@@ -37,7 +38,7 @@ export async function getAllFunds(): Promise<Fund[]> {
     console.error("Error fetching funds:", error);
     throw new Error(`Failed to fetch funds: ${error.message}`);
   }
-  return data || [];
+  return (data || []).map(mapDbFundToFund);
 }
 
 /**
@@ -85,7 +86,7 @@ export async function getFundById(fundId: string): Promise<Fund | null> {
     const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
 
     if (error) throw error;
-    return data;
+    return data ? mapDbFundToFund(data) : null;
   } catch (error) {
     console.error("Error fetching fund:", error);
     return null;
@@ -200,8 +201,10 @@ export async function getAvailableFundsForInvestor(investorId: string): Promise<
 
   const existingFundIds = new Set(positions?.map((p) => p.fund_id) || []);
 
-  // Filter out funds where investor already has positions
-  return (allFunds || []).filter((fund) => !existingFundIds.has(fund.id));
+  // Filter out funds where investor already has positions and map to Fund type
+  return (allFunds || [])
+    .filter((fund) => !existingFundIds.has(fund.id))
+    .map(mapDbFundToFund);
 }
 
 /**

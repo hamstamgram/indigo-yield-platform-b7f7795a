@@ -365,163 +365,130 @@ export async function getDeliveryQueueMetrics(): Promise<DeliveryQueueMetrics> {
 // ============ Data Integrity ============
 
 /**
- * Check position vs transaction reconciliation
+ * Query integrity views for system health checks
+ * Uses database-side views for accurate, efficient reconciliation
  */
-async function checkPositionReconciliation(): Promise<{ count: number; mismatches: any[] }> {
-  try {
-    // Get all positions with current_value > 0
-    const { data: positions } = await supabase
-      .from("investor_positions")
-      .select("investor_id, fund_id, current_value")
-      .gt("current_value", 0);
+async function queryIntegrityViews() {
+  const [
+    ledgerReconciliation,
+    fundAumMismatch,
+    orphanedTransactions,
+    orphanedPositions,
+    feeCalculationOrphans,
+    positionVariance,
+  ] = await Promise.all([
+    // Ledger reconciliation: position vs transaction totals
+    supabase.from("v_ledger_reconciliation").select("*", { count: "exact" }),
 
-    if (!positions || positions.length === 0) {
-      return { count: 0, mismatches: [] };
-    }
+    // Fund AUM mismatch: reported vs calculated AUM
+    supabase.from("fund_aum_mismatch").select("*", { count: "exact" }),
 
-    // Get transaction sums grouped by investor+fund
-    const { data: txSums } = await supabase
-      .from("transactions_v2")
-      .select("investor_id, fund_id, amount, type")
-      .eq("is_voided", false);
+    // Orphaned transactions: transactions without profiles
+    supabase.from("v_orphaned_transactions").select("*", { count: "exact" }),
 
-    // Calculate expected balance per investor+fund
-    const expectedBalances = new Map<string, number>();
-    (txSums || []).forEach(tx => {
-      const key = `${tx.investor_id}:${tx.fund_id}`;
-      const current = expectedBalances.get(key) || 0;
-      const isCredit = ["DEPOSIT", "TOP_UP", "FIRST_INVESTMENT", "INTEREST", "IB_COMMISSION"].includes(tx.type || "");
-      expectedBalances.set(key, current + (isCredit ? (tx.amount || 0) : -(Math.abs(tx.amount || 0))));
-    });
+    // Orphaned positions: positions without profiles/funds
+    supabase.from("v_orphaned_positions").select("*", { count: "exact" }),
 
-    // Compare positions to expected
-    const tolerance = 0.00001;
-    const mismatches: any[] = [];
-    
-    for (const pos of positions) {
-      const key = `${pos.investor_id}:${pos.fund_id}`;
-      const expected = expectedBalances.get(key) || 0;
-      const actual = pos.current_value || 0;
-      
-      if (Math.abs(actual - expected) > tolerance) {
-        mismatches.push({
-          investor_id: pos.investor_id,
-          fund_id: pos.fund_id,
-          position_value: actual,
-          transaction_sum: expected,
-          difference: actual - expected,
-        });
-      }
-    }
+    // Fee calculation orphans: orphaned fee calculations
+    supabase.from("v_fee_calculation_orphans").select("*", { count: "exact" }),
 
-    return { count: mismatches.length, mismatches };
-  } catch (error) {
-    console.error("Error checking position reconciliation:", error);
-    return { count: -1, mismatches: [] };
-  }
+    // Position vs transaction variance breakdown
+    supabase.from("v_position_transaction_variance").select("*", { count: "exact" }),
+  ]);
+
+  return {
+    ledgerReconciliation: { count: ledgerReconciliation.count ?? 0, data: ledgerReconciliation.data },
+    fundAumMismatch: { count: fundAumMismatch.count ?? 0, data: fundAumMismatch.data },
+    orphanedTransactions: { count: orphanedTransactions.count ?? 0, data: orphanedTransactions.data },
+    orphanedPositions: { count: orphanedPositions.count ?? 0, data: orphanedPositions.data },
+    feeCalculationOrphans: { count: feeCalculationOrphans.count ?? 0, data: feeCalculationOrphans.data },
+    positionVariance: { count: positionVariance.count ?? 0, data: positionVariance.data },
+  };
 }
 
 /**
  * Fetch data integrity status
+ * Uses database views for efficient, accurate integrity checking
  */
 export async function getDataIntegrityStatus(): Promise<IntegrityData> {
+  // Query integrity views and last activity timestamps in parallel
   const [
-    orphanPositions,
-    orphanAllocations,
-    duplicateRefs,
-    duplicateAllocations,
-    voidedTransactions,
-    positionMismatches,
+    integrityViews,
     lastYieldDist,
     lastReport,
     lastEmailWebhook,
   ] = await Promise.all([
-    supabase
-      .from("investor_positions")
-      .select("investor_id", { count: "exact", head: true })
-      .is("investor_id", null),
-    
-    supabase
-      .from("fee_allocations")
-      .select("id", { count: "exact", head: true })
-      .is("investor_id", null),
-    
-    supabase.rpc("check_duplicate_transaction_refs") as unknown as Promise<{ data: number | null; error: any }>,
-    
-    supabase.rpc("check_duplicate_ib_allocations") as unknown as Promise<{ data: number | null; error: any }>,
+    queryIntegrityViews(),
 
     supabase
-      .from("transactions_v2")
-      .select("id", { count: "exact", head: true })
-      .eq("is_voided", true),
-
-    checkPositionReconciliation(),
-    
-    supabase
-      .from("yield_distributions")
+      .from("daily_nav")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    
+
     supabase
       .from("generated_reports")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    
+
     supabase
-      .from("report_delivery_events")
-      .select("occurred_at")
-      .order("occurred_at", { ascending: false })
+      .from("email_logs")
+      .select("created_at")
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
   ]);
 
   const checks: IntegrityCheck[] = [
     {
+      name: "Ledger Reconciliation",
+      status: integrityViews.ledgerReconciliation.count === 0 ? "ok" : "error",
+      count: integrityViews.ledgerReconciliation.count,
+      details: integrityViews.ledgerReconciliation.count === 0
+        ? "All positions match transaction sums"
+        : `${integrityViews.ledgerReconciliation.count} positions have variance > $0.01`,
+      icon: "reconciliation",
+    },
+    {
+      name: "Fund AUM Mismatch",
+      status: integrityViews.fundAumMismatch.count === 0 ? "ok" : "warning",
+      count: integrityViews.fundAumMismatch.count,
+      details: integrityViews.fundAumMismatch.count === 0
+        ? "Reported AUM matches position totals"
+        : `${integrityViews.fundAumMismatch.count} funds have AUM discrepancies`,
+      icon: "reconciliation",
+    },
+    {
       name: "Orphan Positions",
-      status: (orphanPositions.count || 0) === 0 ? "ok" : "error",
-      count: orphanPositions.count || 0,
-      details: "Positions with missing investor reference",
+      status: integrityViews.orphanedPositions.count === 0 ? "ok" : "error",
+      count: integrityViews.orphanedPositions.count,
+      details: "Positions with missing profile or fund reference",
       icon: "orphan",
     },
     {
-      name: "Orphan Fee Allocations",
-      status: (orphanAllocations.count || 0) === 0 ? "ok" : "error",
-      count: orphanAllocations.count || 0,
-      details: "Fee allocations with missing investor reference",
+      name: "Orphan Transactions",
+      status: integrityViews.orphanedTransactions.count === 0 ? "ok" : "error",
+      count: integrityViews.orphanedTransactions.count,
+      details: "Transactions referencing non-existent profiles",
       icon: "orphan",
     },
     {
-      name: "Duplicate Transaction Refs",
-      status: (duplicateRefs?.data ?? 0) === 0 ? "ok" : "warning",
-      count: duplicateRefs?.data ?? 0,
-      details: "Transactions with non-unique reference_id",
-      icon: "duplicate",
+      name: "Fee Calc Orphans",
+      status: integrityViews.feeCalculationOrphans.count === 0 ? "ok" : "warning",
+      count: integrityViews.feeCalculationOrphans.count,
+      details: "Fee calculations without valid positions",
+      icon: "orphan",
     },
     {
-      name: "Duplicate IB Allocations",
-      status: (duplicateAllocations?.data ?? 0) === 0 ? "ok" : "warning",
-      count: duplicateAllocations?.data ?? 0,
-      details: "IB allocations with same investor/period/fund",
-      icon: "duplicate",
-    },
-    {
-      name: "Voided Transactions",
-      status: (voidedTransactions.count || 0) === 0 ? "ok" : "warning",
-      count: voidedTransactions.count || 0,
-      details: "Total voided transactions in system",
-      icon: "voided",
-    },
-    {
-      name: "Position Reconciliation",
-      status: positionMismatches.count === 0 ? "ok" : "error",
-      count: positionMismatches.count,
-      details: positionMismatches.count === 0 
-        ? "All positions match transaction sums" 
-        : `${positionMismatches.count} positions don't match transaction totals`,
+      name: "Position/Tx Variance",
+      status: integrityViews.positionVariance.count === 0 ? "ok" : "error",
+      count: integrityViews.positionVariance.count,
+      details: integrityViews.positionVariance.count === 0
+        ? "All position balances reconcile"
+        : `${integrityViews.positionVariance.count} positions need investigation`,
       icon: "reconciliation",
     },
   ];
@@ -530,6 +497,118 @@ export async function getDataIntegrityStatus(): Promise<IntegrityData> {
     checks,
     lastYieldRun: lastYieldDist.data?.created_at || null,
     lastReportRun: lastReport.data?.created_at || null,
-    lastEmailEvent: lastEmailWebhook.data?.occurred_at || null,
+    lastEmailEvent: lastEmailWebhook.data?.created_at || null,
   };
+}
+
+// ============ System Health Snapshots ============
+
+export interface HealthSnapshot {
+  snapshot_id: string;
+  snapshot_at: string;
+  total_anomalies: number;
+  ledger_reconciliation_count: number;
+  fund_aum_mismatch_count: number;
+  orphaned_positions_count: number;
+  orphaned_transactions_count: number;
+  fee_calculation_orphans_count: number;
+  position_variance_count: number;
+  status: "healthy" | "warning" | "critical";
+}
+
+export interface HealthTrendPoint {
+  snapshot_date: string;
+  total_anomalies: number;
+  ledger_issues: number;
+  aum_mismatches: number;
+  orphaned_records: number;
+}
+
+/**
+ * Trigger a manual integrity check
+ */
+export async function runIntegrityCheck(triggeredBy = "manual"): Promise<{
+  success: boolean;
+  snapshot_id?: string;
+  total_anomalies?: number;
+  status?: string;
+  error?: string;
+}> {
+  const response = await supabase.functions.invoke("scheduled-integrity-check", {
+    body: { triggered_by: triggeredBy },
+  });
+
+  if (response.error) {
+    throw new Error(response.error.message);
+  }
+
+  return response.data;
+}
+
+/**
+ * Get the latest health status snapshot
+ */
+export async function getLatestHealthStatus(): Promise<HealthSnapshot | null> {
+  const { data, error } = await supabase.rpc("get_latest_health_status");
+
+  if (error) {
+    console.error("Failed to get latest health status:", error);
+    return null;
+  }
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  return data[0] as HealthSnapshot;
+}
+
+/**
+ * Get health trend data for the last N days
+ */
+export async function getHealthTrend(days = 30): Promise<HealthTrendPoint[]> {
+  const { data, error } = await supabase.rpc("get_health_trend", {
+    p_days: days,
+  });
+
+  if (error) {
+    console.error("Failed to get health trend:", error);
+    return [];
+  }
+
+  return (data || []) as HealthTrendPoint[];
+}
+
+/**
+ * Get all health snapshots with pagination
+ */
+export async function getHealthSnapshots(
+  limit = 50,
+  offset = 0
+): Promise<{ snapshots: HealthSnapshot[]; total: number }> {
+  // Use type assertion since system_health_snapshots may not be in generated types yet
+  const { data, error, count } = await (supabase as any)
+    .from("system_health_snapshots")
+    .select("*", { count: "exact" })
+    .order("snapshot_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    throw error;
+  }
+
+  const snapshots = (data || []).map((row: any) => ({
+    snapshot_id: row.id,
+    snapshot_at: row.snapshot_at,
+    total_anomalies: row.total_anomalies,
+    ledger_reconciliation_count: row.ledger_reconciliation_count,
+    fund_aum_mismatch_count: row.fund_aum_mismatch_count,
+    orphaned_positions_count: row.orphaned_positions_count,
+    orphaned_transactions_count: row.orphaned_transactions_count,
+    fee_calculation_orphans_count: row.fee_calculation_orphans_count,
+    position_variance_count: row.position_variance_count,
+    status: row.total_anomalies === 0 ? "healthy" : row.total_anomalies <= 5 ? "warning" : "critical",
+  })) as HealthSnapshot[];
+
+  return { snapshots, total: count || 0 };
 }

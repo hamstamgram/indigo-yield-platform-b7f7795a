@@ -79,14 +79,17 @@ export async function crystallizeYieldBeforeFlow(
   adminId?: string
 ): Promise<CrystallizationResult> {
   const rpcCall = (supabase.rpc as any).bind(supabase);
+  // Parameter order matches database function signature:
+  // crystallize_yield_before_flow(p_fund_id, p_closing_aum, p_trigger_type,
+  //   p_trigger_reference, p_event_ts, p_admin_id, p_purpose)
   const { data, error } = await rpcCall("crystallize_yield_before_flow", {
-    p_fund_id: fundId,
-    p_closing_aum: closingAum,
-    p_trigger_type: triggerType,
-    p_trigger_reference: triggerReference || null,
-    p_event_ts: eventTs.toISOString(),
-    p_admin_id: adminId || null,
-    p_purpose: "transaction",
+    p_fund_id: fundId,                           // 1. uuid
+    p_closing_aum: closingAum,                   // 2. numeric (as string)
+    p_trigger_type: triggerType,                 // 3. text
+    p_trigger_reference: triggerReference || null, // 4. text (nullable)
+    p_event_ts: eventTs.toISOString(),           // 5. timestamptz
+    p_admin_id: adminId || null,                 // 6. uuid (nullable)
+    p_purpose: "transaction",                    // 7. aum_purpose enum
   });
 
   if (error) {

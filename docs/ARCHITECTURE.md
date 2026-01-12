@@ -1,6 +1,6 @@
 # System Architecture
 
-> Last updated: 2026-01-11
+> Last updated: 2026-01-12
 
 ## Overview
 
@@ -452,21 +452,44 @@ useMutation({
 
 ## Monitoring Views
 
-### Core Integrity Views
+### Core Integrity Views (2026-01-12 Update)
 
 | View | Purpose | Used By |
 |------|---------|---------|
-| `investor_position_ledger_mismatch` | Detects position/ledger sync issues | SystemHealthPage |
-| `fund_aum_mismatch` | Detects fund AUM calculation errors | SystemHealthPage |
-| `v_orphaned_user_roles` | Detects orphaned role entries | SystemHealthPage |
-| `yield_distribution_conservation_check` | Validates yield math | SystemHealthPage |
-| `v_ledger_reconciliation` | Advanced ledger reconciliation with security_invoker | Manual audit |
+| `v_ledger_reconciliation` | Position vs transaction totals mismatch | SystemHealthPage, Integrity Scheduler |
+| `fund_aum_mismatch` | Reported AUM vs sum of positions | SystemHealthPage, Integrity Scheduler |
+| `v_orphaned_positions` | Positions without valid profiles or funds | SystemHealthPage, Integrity Scheduler |
+| `v_orphaned_transactions` | Transactions without valid profiles | SystemHealthPage, Integrity Scheduler |
+| `v_fee_calculation_orphans` | Fee calculations without valid positions | SystemHealthPage, Integrity Scheduler |
+| `v_position_transaction_variance` | Detailed position vs transaction breakdown | SystemHealthPage, Integrity Scheduler |
 | `v_security_definer_audit` | Audit SECURITY DEFINER functions for search_path | Security audit |
 
-### Additional Integrity Views
+### Automated Integrity Scheduler
+
+The platform includes an automated integrity checking system:
+
+| Component | Description |
+|-----------|-------------|
+| `system_health_snapshots` table | Stores historical integrity check results |
+| `run_integrity_check(trigger_type)` RPC | Executes all integrity views and stores snapshot |
+| `get_health_trend(days)` RPC | Returns daily aggregated health metrics |
+| `get_latest_health_status()` RPC | Returns most recent snapshot with status |
+| `scheduled-integrity-check` Edge Function | HTTP endpoint for scheduled/manual triggers |
+
+**Scheduled Execution**: The integrity check runs daily via scheduled trigger (cron or external scheduler) and stores results for historical trend analysis.
+
+**Alert Thresholds**:
+- `healthy`: 0 anomalies
+- `warning`: 1-5 anomalies
+- `critical`: >5 anomalies (triggers alert logging)
+
+### Legacy Integrity Views
 
 | View | Purpose | Status |
 |------|---------|--------|
+| `investor_position_ledger_mismatch` | Legacy position/ledger sync check | Superseded by `v_ledger_reconciliation` |
+| `v_orphaned_user_roles` | Orphaned role entries | Available |
+| `yield_distribution_conservation_check` | Validates yield math | Available |
 | `v_fee_allocation_orphans` | Orphan fee allocation records | Available |
 | `v_ib_allocation_orphans` | Orphan IB allocation records | Available |
 | `v_period_orphans` | Orphaned statement periods | Available |
@@ -477,6 +500,9 @@ useMutation({
 
 | Function | Purpose |
 |----------|---------|
+| `run_integrity_check(p_triggered_by)` | Executes all integrity views and stores snapshot |
+| `get_health_trend(p_days)` | Returns historical health trend data |
+| `get_latest_health_status()` | Returns most recent health snapshot |
 | `check_duplicate_transaction_refs()` | Detects duplicate transaction references |
 | `check_duplicate_ib_allocations()` | Detects duplicate IB allocation entries |
 
@@ -672,24 +698,24 @@ transactionId: strictUuidSchema,
 
 ## Sovereign System Health Certificate
 
-> **Certification Date:** 2026-01-11 (Full-Stack Forensic Audit)
-> **Previous Certification:** 2026-01-10
+> **Certification Date:** 2026-01-12 (Security Hardening & Integrity Views)
+> **Previous Certification:** 2026-01-11
 > **Status:** ✅ INSTITUTIONALLY READY - All Critical Checks Pass
 
 ### Security Layer
 
 | Check | Status | Details |
 |-------|--------|---------|
-| SECURITY DEFINER Functions | ✅ PASS | 393 total functions; 325+ with `SET search_path = public` (remediation migration applied 2026-01-11) |
+| SECURITY DEFINER Functions | ✅ HARDENED | All 65 functions now have `SET search_path = public` (remediation 2026-01-12) |
 | View Security Invoker | ✅ PASS | `v_ledger_reconciliation` uses `security_invoker=true` |
 | Field Immutability Triggers | ✅ PASS | `created_at`, `reference_id`, `actor_user` protected |
 | Idempotency Constraints | ✅ PASS | Unique constraints on `(fund_id, purpose, period_end)` |
-| Advisory Locking | ✅ PASS | 6 critical functions protected (including `void_transaction` added 2026-01-11) |
+| Advisory Locking | ✅ ENHANCED | 7 critical functions protected (added `get_void_transaction_impact` 2026-01-12) |
 | Delta Audit Triggers | ✅ ACTIVE | 4 tables: transactions_v2, investor_positions, yield_distributions, withdrawal_requests |
 | Void Yield Dependency | ✅ ACTIVE | `void_transaction` returns yield warnings with advisory lock |
 | Two-Key MFA Protocol | ✅ ACTIVE | Super-admin signature required for MFA resets |
-| UUID Type-Safety | ✅ PASS | `::uuid` casts in all 5 audit triggers: `log_data_edit`, `audit_investor_fund_performance_changes`, `finalize_statement_period`, `cascade_void_from_transaction`, `cascade_void_to_yield_events` |
-| Security Definer Audit View | ✅ NEW | `v_security_definer_audit` for ongoing monitoring |
+| UUID Type-Safety | ✅ PASS | `::uuid` casts in all 5 audit triggers |
+| Security Definer Audit View | ✅ ACTIVE | `v_security_definer_audit` for ongoing monitoring |
 
 ### Data Integrity Layer
 
@@ -699,9 +725,14 @@ transactionId: strictUuidSchema,
 | AUM Conservation | ✅ 0 violations | `fund_aum_mismatch` |
 | Yield Conservation | ✅ 0 violations | `yield_distribution_conservation_check` |
 | Reference ID Uniqueness | ✅ PASS | Unique index active |
-| Orphan Positions | ✅ PASS | Zero-balance orphans cleaned |
+| Orphan Positions | ✅ PASS | `v_orphaned_positions` |
+| Orphan Transactions | ✅ PASS | `v_orphaned_transactions` |
+| Fee Calculation Orphans | ✅ PASS | `v_fee_calculation_orphans` |
+| Position/Tx Variance | ✅ PASS | `v_position_transaction_variance` |
 | Column Naming | ✅ PASS | All triggers use `tx_date` (not `transaction_date`) |
 | Type Casting | ✅ PASS | All UUID/text assignments explicitly cast |
+| TypeScript Financial Types | ✅ HARDENED | All financial fields use `string` for NUMERIC(28,10) precision |
+| Automated Health Checks | ✅ NEW | `system_health_snapshots` with daily scheduler |
 
 ### UI Safety Layer
 
@@ -731,10 +762,11 @@ transactionId: strictUuidSchema,
 
 | Date | Type | Findings | Status |
 |------|------|----------|--------|
+| 2026-01-12 | Security Hardening & Integrity | 57 functions remediated, 6 integrity views created | All remediated |
 | 2026-01-11 | Full-Stack Forensic Audit | 0 critical, 4 high, 3 medium | All remediated |
 | 2026-01-10 | Schema Consistency Audit | 1 trigger fix | Resolved |
 
 ---
 
 *This document is maintained as part of the platform's operational excellence program.*
-*Next scheduled audit: 2026-02-11*
+*Next scheduled audit: 2026-02-12*

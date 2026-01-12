@@ -168,7 +168,7 @@ export async function computeStatement(
           id: tx.id,
           date: tx.tx_date,
           type,
-          amount,
+          amount: String(amount), // Convert back to string for type safety
           description: tx.notes || tx.type,
         });
       }

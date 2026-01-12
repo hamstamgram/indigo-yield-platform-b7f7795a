@@ -2,7 +2,8 @@ import jsPDF from "jspdf";
 import { StatementData, formatTokenAmount, formatPercent } from "./statementCalculations";
 
 // Helper to format amounts consistently in PDF
-const formatAmount = (amount: number) => formatTokenAmount(amount);
+// Accepts number or string (for NUMERIC precision preservation)
+const formatAmount = (amount: number | string) => formatTokenAmount(Number(amount));
 
 export async function generateStatementPDF(statementData: StatementData): Promise<Blob> {
   const pdf = new jsPDF({

@@ -77,10 +77,10 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
         investor_id: tx.investor_id,
         txn_type: tx.type,
         asset: tx.asset,
-        amount: tx.amount,
+        amount: String(tx.amount), // Preserve NUMERIC precision as string
         type: tx.type,
         tx_date: tx.tx_date, // V2 schema uses tx_date
-        created_at: tx.created_at,
+        created_at: tx.created_at ?? "",
         notes: tx.notes,
         investor_name: investor_name,
       };
