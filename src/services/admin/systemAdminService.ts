@@ -420,22 +420,22 @@ export async function getDataIntegrityStatus(): Promise<IntegrityData> {
   ] = await Promise.all([
     queryIntegrityViews(),
 
-    supabase
+    (supabase as any)
       .from("daily_nav")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
 
-    supabase
+    (supabase as any)
       .from("generated_reports")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
 
-    supabase
-      .from("email_logs")
+    (supabase as any)
+      .from("statement_email_delivery")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
@@ -549,34 +549,61 @@ export async function runIntegrityCheck(triggeredBy = "manual"): Promise<{
  * Get the latest health status snapshot
  */
 export async function getLatestHealthStatus(): Promise<HealthSnapshot | null> {
-  const { data, error } = await supabase.rpc("get_latest_health_status");
+  const { data, error } = await (supabase as any)
+    .from("system_health_snapshots")
+    .select("*")
+    .order("snapshot_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     console.error("Failed to get latest health status:", error);
     return null;
   }
 
-  if (!data || data.length === 0) {
+  if (!data) {
     return null;
   }
 
-  return data[0] as HealthSnapshot;
+  return {
+    snapshot_id: data.snapshot_id,
+    snapshot_at: data.snapshot_at,
+    total_anomalies: data.total_anomalies,
+    ledger_reconciliation_count: data.ledger_reconciliation_count || 0,
+    fund_aum_mismatch_count: data.fund_aum_mismatch_count || 0,
+    orphaned_positions_count: data.orphaned_positions_count || 0,
+    orphaned_transactions_count: data.orphaned_transactions_count || 0,
+    fee_calculation_orphans_count: data.fee_calculation_orphans_count || 0,
+    position_variance_count: data.position_variance_count || 0,
+    status: data.status || "healthy",
+  } as HealthSnapshot;
 }
 
 /**
  * Get health trend data for the last N days
  */
 export async function getHealthTrend(days = 30): Promise<HealthTrendPoint[]> {
-  const { data, error } = await supabase.rpc("get_health_trend", {
-    p_days: days,
-  });
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  const { data, error } = await (supabase as any)
+    .from("system_health_snapshots")
+    .select("snapshot_at, total_anomalies, ledger_reconciliation_count, fund_aum_mismatch_count, orphaned_positions_count, orphaned_transactions_count")
+    .gte("snapshot_at", startDate.toISOString())
+    .order("snapshot_at", { ascending: true });
 
   if (error) {
     console.error("Failed to get health trend:", error);
     return [];
   }
 
-  return (data || []) as HealthTrendPoint[];
+  return (data || []).map((row: any) => ({
+    snapshot_date: row.snapshot_at,
+    total_anomalies: row.total_anomalies || 0,
+    ledger_issues: row.ledger_reconciliation_count || 0,
+    aum_mismatches: row.fund_aum_mismatch_count || 0,
+    orphaned_records: (row.orphaned_positions_count || 0) + (row.orphaned_transactions_count || 0),
+  }));
 }
 
 /**
