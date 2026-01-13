@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorStatus } from "@/types/domains/investor";
+import { logError } from "@/lib/logger";
 
 // Re-export for backwards compatibility
 export type { InvestorStatus };
@@ -106,7 +107,7 @@ export async function cleanupInactiveInvestors(): Promise<CleanupResult> {
     if (!error) {
       archivedIds.push(profile.id);
     } else {
-      console.error(`Failed to archive profile ${profile.id}:`, error);
+      logError("cleanupInactiveInvestors.archive", error, { profileId: profile.id });
     }
   }
 

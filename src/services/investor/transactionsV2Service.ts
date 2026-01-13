@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface TransactionV2 {
   id: string;
@@ -96,7 +97,7 @@ class TransactionsV2Service {
     });
 
     if (error) {
-      console.error("Error voiding transaction:", error);
+      logError("transactionsV2Service.voidTransaction", error, { transactionId });
       throw new Error(error.message || "Failed to void transaction");
     }
   }
@@ -123,7 +124,7 @@ class TransactionsV2Service {
     });
 
     if (error) {
-      console.error("Error getting void impact:", error);
+      logError("transactionsV2Service.getVoidImpact", error, { transactionId });
       throw new Error(error.message || "Failed to get void impact");
     }
 

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 interface YieldNotificationData {
   distributionId: string;
@@ -40,10 +41,10 @@ export async function notifyYieldDistributed(
     }]);
 
     if (error) {
-      console.error("Failed to create yield notification:", error);
+      logError("notifyYieldDistributed", error, { userId });
     }
   } catch (err) {
-    console.error("Error creating yield notification:", err);
+    logError("notifyYieldDistributed.exception", err, { userId });
   }
 }
 
@@ -109,10 +110,10 @@ export const yieldNotifications = {
     try {
       const { error } = await supabase.from("notifications").insert(notifications);
       if (error) {
-        console.error("Failed to create batch yield notifications:", error);
+        logError("onFundYieldDistributed", error);
       }
     } catch (err) {
-      console.error("Error creating batch yield notifications:", err);
+      logError("onFundYieldDistributed.exception", err);
     }
   },
 };

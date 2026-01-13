@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { logError } from "@/lib/logger";
 
 // =====================================================
 // TYPES
@@ -37,7 +38,7 @@ export async function getRecentAuditLogs(limit: number = 10): Promise<AuditLogEn
     .limit(limit);
 
   if (error) {
-    console.error("Error fetching audit logs:", error);
+    logError("getRecentAuditLogs", error, { limit });
     throw error;
   }
 

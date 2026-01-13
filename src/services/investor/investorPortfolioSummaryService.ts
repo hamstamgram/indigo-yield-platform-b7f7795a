@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getInvestorPositions, type InvestorPositionDetail } from "./investorPositionService";
+import { logError } from "@/lib/logger";
 
 // ============================================
 // Types
@@ -61,7 +62,7 @@ export async function getInvestorSummary(investorId: string): Promise<InvestorSu
     .maybeSingle();
 
   if (investorError) {
-    console.error("Error fetching investor:", investorError);
+    logError("getInvestorSummary", investorError, { investorId });
     throw investorError;
   }
 
@@ -149,7 +150,7 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching investors:", error);
+    logError("getAllInvestorsWithSummary", error);
     throw error;
   }
 

@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface AdminStats {
   // Fund metrics
@@ -111,7 +112,7 @@ export async function getFundCountByStatus(status: FundStatus): Promise<number> 
     .eq("status", status);
 
   if (error) {
-    console.error("Error fetching fund count:", error);
+    logError("getFundCountByStatus", error, { status });
     return 0;
   }
 
@@ -128,7 +129,7 @@ export async function getPendingWithdrawalCount(): Promise<number> {
     .eq("status", "pending");
 
   if (error) {
-    console.error("Error fetching pending withdrawals:", error);
+    logError("getPendingWithdrawalCount", error);
     return 0;
   }
 
@@ -147,7 +148,7 @@ export async function getRecentActivityCount(hoursAgo: number = 24): Promise<num
     .gte("created_at", cutoffTime);
 
   if (error) {
-    console.error("Error fetching recent activity:", error);
+    logError("getRecentActivityCount", error, { hoursAgo });
     return 0;
   }
 
