@@ -166,7 +166,7 @@ GRANT EXECUTE ON FUNCTION refresh_yield_materialized_views TO authenticated;
 -- First ensure the function exists (from fortune500_enhancements migration)
 -- Then schedule the cron job
 
-DO $$
+DO $do$
 BEGIN
   -- Only create if pg_cron extension is available
   IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
@@ -177,7 +177,7 @@ BEGIN
     PERFORM cron.schedule(
       'daily_position_snapshot',
       '5 0 * * *',  -- At 00:05 every day
-      $$SELECT public.create_daily_position_snapshot(CURRENT_DATE - 1)$$
+      'SELECT public.create_daily_position_snapshot(CURRENT_DATE - 1)'
     );
 
     RAISE NOTICE 'Scheduled daily_position_snapshot cron job';
@@ -186,7 +186,7 @@ BEGIN
   END IF;
 EXCEPTION WHEN OTHERS THEN
   RAISE NOTICE 'Could not schedule cron job: %', SQLERRM;
-END $$;
+END $do$;
 
 -- ============================================================================
 -- FIX 7: Yield Distribution with Dust Conservation
