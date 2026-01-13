@@ -33,9 +33,8 @@ export * from "./withdrawals";
 export * from "./deposits";
 export * from "./yields";
 export * from "./funds";
-// Note: operations/RecentActivityFeed conflicts with dashboard/RecentActivityFeed
-// Use explicit imports if you need the operations version
-export { OperationsStats, PendingItemsBreakdown, QuickLinksGrid, SystemStatus } from "./operations";
+// Operations components (OperationsActivityFeed renamed from RecentActivityFeed to avoid conflict with dashboard version)
+export { OperationsStats, PendingItemsBreakdown, QuickLinksGrid, SystemStatus, OperationsActivityFeed, type ActivityItem } from "./operations";
 export * from "./reports";
 export * from "./transactions";
 export * from "./statements";

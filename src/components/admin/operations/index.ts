@@ -6,5 +6,5 @@
 export { OperationsStats } from "./OperationsStats";
 export { PendingItemsBreakdown } from "./PendingItemsBreakdown";
 export { QuickLinksGrid } from "./QuickLinksGrid";
-export { RecentActivityFeed } from "./RecentActivityFeed";
+export { OperationsActivityFeed, type ActivityItem } from "./OperationsActivityFeed";
 export { SystemStatus } from "./SystemStatus";

@@ -132,3 +132,11 @@ export {
   usePerformanceHistory,
   usePendingTransactions,
 } from "./useInvestorPortfolioQueries";
+
+// useInvestorNotifications (for NotificationsPage)
+export {
+  useInvestorNotifications,
+  useMarkNotificationAsRead,
+  useDeleteNotification,
+  type InvestorNotification,
+} from "./useInvestorNotifications";

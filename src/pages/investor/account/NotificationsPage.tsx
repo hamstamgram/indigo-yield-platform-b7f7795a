@@ -1,76 +1,20 @@
-import { useState, useEffect } from "react";
 import {
   Card, CardContent, CardHeader, CardTitle,
   Button, Badge,
 } from "@/components/ui";
 import { Bell, BellOff, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks";
-import { notificationService } from "@/services/shared";
-import { logError } from "@/lib/logger";
-
-interface SimpleNotification {
-  id: string;
-  title: string;
-  body: string;
-  type: string;
-  priority: string | null;
-  read_at: string | null;
-  created_at: string;
-}
+import { 
+  useInvestorNotifications, 
+  useMarkNotificationAsRead, 
+  useDeleteNotification 
+} from "@/hooks/data/investor";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<SimpleNotification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { data: notifications = [], isLoading } = useInvestorNotifications();
+  const markAsReadMutation = useMarkNotificationAsRead();
+  const deleteMutation = useDeleteNotification();
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const fetchNotifications = async () => {
-    try {
-      const data = await notificationService.getMyNotifications();
-      setNotifications(data);
-    } catch (error) {
-      logError("NotificationsPage.fetchNotifications", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markAsRead = async (id: string) => {
-    try {
-      await notificationService.markAsRead(id);
-
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
-      );
-
-      toast({
-        title: "Success",
-        description: "Notification marked as read",
-      });
-    } catch (error) {
-      logError("NotificationsPage.markAsRead", error, { id });
-    }
-  };
-
-  const deleteNotification = async (id: string) => {
-    try {
-      await notificationService.deleteNotification(id);
-
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-
-      toast({
-        title: "Success",
-        description: "Notification deleted",
-      });
-    } catch (error) {
-      logError("NotificationsPage.deleteNotification", error, { id });
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return <div className="p-6">Loading notifications...</div>;
   }
 
@@ -120,7 +64,8 @@ export default function NotificationsPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={() => markAsReadMutation.mutate(notification.id)}
+                        disabled={markAsReadMutation.isPending}
                       >
                         <BellOff className="h-4 w-4" />
                       </Button>
@@ -128,7 +73,8 @@ export default function NotificationsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => deleteNotification(notification.id)}
+                      onClick={() => deleteMutation.mutate(notification.id)}
+                      disabled={deleteMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

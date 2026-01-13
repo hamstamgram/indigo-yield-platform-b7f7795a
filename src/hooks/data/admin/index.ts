@@ -356,3 +356,12 @@ export { useAdminInvestorWithdrawals } from "./useAdminInvestorWithdrawals";
 
 // useInvestorFeeSchedule (for InvestorFeeManager)
 export { useInvestorFeeSchedule, type FeeScheduleEntry } from "./useInvestorFeeSchedule";
+
+// useAdminInvestorsWithAssets (for InvestorsListPage)
+export {
+  useAdminInvestorsWithAssets,
+  useAdminInvestorsList,
+  useAdminAssets,
+  useDeleteInvestor,
+  type AdminInvestorSummary as AdminInvestorListItem,
+} from "./useAdminInvestorsWithAssets";

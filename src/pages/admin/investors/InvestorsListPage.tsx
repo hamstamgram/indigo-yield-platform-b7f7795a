@@ -1,62 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, Input } from "@/components/ui";
 import { InvestorsTable, AddInvestorDialog } from "@/components/admin";
 import { Search } from "lucide-react";
-import { adminInvestorService, AdminInvestorSummary, deleteInvestorUser } from "@/services/admin";
-import { assetService } from "@/services/shared";
-import { AssetRef as Asset } from "@/types/asset";
-import { useToast } from "@/hooks";
-import { logError } from "@/lib/logger";
+import { useAdminInvestorsWithAssets, useDeleteInvestor } from "@/hooks/data/admin";
 
 export default function InvestorsListPage() {
-  const [investors, setInvestors] = useState<AdminInvestorSummary[]>([]);
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { investors, assets, isLoading, refetch } = useAdminInvestorsWithAssets();
+  const deleteInvestorMutation = useDeleteInvestor();
   const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const [investorsData, assetsData] = await Promise.all([
-        adminInvestorService.getAllInvestorsWithSummary(),
-        assetService.getAssets(),
-      ]);
-      setInvestors(investorsData);
-      // Transform Asset type to match investorTypes.Asset
-      const transformedAssets: Asset[] = assetsData.map((a) => ({
-        id: parseInt(a.asset_id.split("-")[0]) || 0,
-        symbol: a.symbol,
-        name: a.name,
-      }));
-      setAssets(transformedAssets);
-    } catch (error) {
-      logError("investors.loadList", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const handleDeleteInvestor = async (investorId: string) => {
-    try {
-      await deleteInvestorUser(investorId);
-      toast({
-        title: "Investor deleted",
-        description: "The investor has been successfully removed.",
-      });
-      loadData(); // Refresh the list
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to delete investor";
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      });
-    }
+    deleteInvestorMutation.mutate(investorId);
   };
 
   const filteredInvestors = investors.filter((inv) => {
@@ -76,7 +30,7 @@ export default function InvestorsListPage() {
           <p className="text-muted-foreground">Manage all investor accounts and portfolios</p>
         </div>
         <div className="flex gap-2">
-          <AddInvestorDialog assets={assets} onInvestorAdded={loadData} />
+          <AddInvestorDialog assets={assets} onInvestorAdded={refetch} />
         </div>
       </div>
 
@@ -102,7 +56,7 @@ export default function InvestorsListPage() {
             loading={isLoading}
             searchTerm={searchTerm}
             onSendEmail={() => {}}
-            onRefresh={loadData}
+            onRefresh={refetch}
             onDelete={handleDeleteInvestor}
           />
         </CardContent>

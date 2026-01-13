@@ -266,6 +266,10 @@ export const QUERY_KEYS = {
   profiles: ["profiles"] as const,
   profile: (id: string) => ["profiles", id] as const,
 
+  // ============ Notifications ============
+  notifications: ["notifications"] as const,
+  investorNotifications: ["notifications", "investor"] as const,
+
   // ============ Admin Fees ============
   adminFeesOverview: ["admin", "fees-overview"] as const,
 
@@ -482,4 +486,12 @@ export const WITHDRAWAL_RELATED_KEYS = [
   QUERY_KEYS.withdrawalRequestsAdmin,
   QUERY_KEYS.pendingWithdrawals,
   QUERY_KEYS.withdrawalStats,
+];
+
+/**
+ * Helper for admin investor-related queries
+ */
+export const ADMIN_INVESTOR_RELATED_KEYS = [
+  QUERY_KEYS.adminInvestors,
+  QUERY_KEYS.investorsList,
 ];
