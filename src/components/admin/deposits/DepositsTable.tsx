@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -28,7 +28,8 @@ import { EditTransactionDialog } from "@/components/admin/transactions/EditTrans
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 import type { Deposit, DepositStatus, DepositFilters } from "@/types/domains";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { invalidateAfterDeposit } from "@/utils/cacheInvalidation";
 
 interface DepositsTableProps {
   filters?: DepositFilters;
@@ -36,6 +37,8 @@ interface DepositsTableProps {
 }
 
 export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) {
+  const queryClient = useQueryClient();
+
   // Local UI state for inputs (debounced before propagating)
   const [searchInput, setSearchInput] = useState(filters?.search || "");
   const [statusFilter, setStatusFilter] = useState<DepositStatus | "all">("all");
@@ -55,11 +58,7 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
     return () => clearTimeout(handler);
   }, [searchInput, statusFilter]);
 
-  const {
-    data: deposits,
-    isLoading,
-    refetch,
-  } = useDeposits({
+  const { data: deposits, isLoading } = useDeposits({
     search: searchInput || undefined,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
@@ -96,7 +95,8 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
   };
 
   const handleSuccess = () => {
-    refetch();
+    // Use centralized cache invalidation for consistent UI updates
+    invalidateAfterDeposit(queryClient);
     handleDialogClose();
   };
 

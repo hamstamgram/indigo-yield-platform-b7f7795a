@@ -1,11 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle, Button } from "@/components/ui";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Button,
-} from "@/components/ui";
-import { 
-  WithdrawalStats as WithdrawalStatsComponent, 
-  WithdrawalsTable, 
+  WithdrawalStats as WithdrawalStatsComponent,
+  WithdrawalsTable,
   CreateWithdrawalDialog,
   WithdrawalDetailsDrawer,
   ApproveWithdrawalDialog,
@@ -14,14 +11,14 @@ import {
   CompleteWithdrawalDialog,
   EditWithdrawalDialog,
   DeleteWithdrawalDialog,
-  RouteToFeesDialog
+  RouteToFeesDialog,
 } from "@/components/admin";
-import { withdrawalService } from "@/services";
-import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/domains";
-import { toast } from "sonner";
+import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/domains";
 import { ArrowDownToLine, Plus } from "lucide-react";
 import { useFunds, useUrlFilters } from "@/hooks";
-import { useQuery } from "@tanstack/react-query";
+import { useWithdrawalsWithStats } from "@/hooks/data/admin/useAdminWithdrawals";
+import { useQueryClient } from "@tanstack/react-query";
+import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import { PageHeader } from "@/components/layout";
 
 interface Fund {
@@ -38,24 +35,9 @@ const URL_FILTER_OPTIONS = {
 };
 
 export default function AdminWithdrawalsPage() {
-  const [paginatedData, setPaginatedData] = useState<PaginatedWithdrawals>({
-    data: [],
-    totalCount: 0,
-    page: 1,
-    pageSize: 20,
-    totalPages: 0,
-  });
-  const [stats, setStats] = useState<WithdrawalStats>({
-    pending: 0,
-    approved: 0,
-    processing: 0,
-    completed: 0,
-    rejected: 0,
-    pending_by_asset: [],
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  
+
   // Drawer and action dialogs
   const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -69,62 +51,85 @@ export default function AdminWithdrawalsPage() {
   const [routeToFeesDialogOpen, setRouteToFeesDialogOpen] = useState(false);
 
   // URL-persisted filters including page - using stable reference from outside component
-  const { filters: urlFilters, setFilter, setFilters: setUrlFilters } = useUrlFilters(URL_FILTER_OPTIONS);
+  const {
+    filters: urlFilters,
+    setFilter,
+    setFilters: setUrlFilters,
+  } = useUrlFilters(URL_FILTER_OPTIONS);
 
-  const filters: WithdrawalFilters = useMemo(() => ({
-    status: (urlFilters.status as WithdrawalFilters["status"]) || "all",
-    fund_id: urlFilters.fund || undefined,
-    page: parseInt(urlFilters.page || "1", 10),
+  const filters: WithdrawalFilters = useMemo(
+    () => ({
+      status: (urlFilters.status as WithdrawalFilters["status"]) || "all",
+      fund_id: urlFilters.fund || undefined,
+      page: parseInt(urlFilters.page || "1", 10),
+      pageSize: 20,
+    }),
+    [urlFilters]
+  );
+
+  // Use React Query hook for data fetching with centralized cache
+  const { withdrawals: paginatedData, stats, isLoading } = useWithdrawalsWithStats(filters);
+
+  // Provide default values when data is loading
+  const safeStats: WithdrawalStats = stats ?? {
+    pending: 0,
+    approved: 0,
+    processing: 0,
+    completed: 0,
+    rejected: 0,
+    pending_by_asset: [],
+  };
+
+  const safePaginatedData = paginatedData ?? {
+    data: [],
+    totalCount: 0,
+    page: 1,
     pageSize: 20,
-  }), [urlFilters]);
+    totalPages: 0,
+  };
 
-  const setFilters = useCallback((newFilters: WithdrawalFilters) => {
-    const updates: Record<string, string | null> = {};
-    if (newFilters.status !== filters.status) {
-      updates.status = newFilters.status || "all";
-      updates.page = "1"; // Reset page on filter change
-    }
-    if (newFilters.fund_id !== filters.fund_id) {
-      updates.fund = newFilters.fund_id || null;
-      updates.page = "1"; // Reset page on filter change
-    }
-    if (Object.keys(updates).length > 0) {
-      setUrlFilters(updates);
-    }
-  }, [filters, setUrlFilters]);
+  const setFilters = useCallback(
+    (newFilters: WithdrawalFilters) => {
+      const updates: Record<string, string | null> = {};
+      if (newFilters.status !== filters.status) {
+        updates.status = newFilters.status || "all";
+        updates.page = "1"; // Reset page on filter change
+      }
+      if (newFilters.fund_id !== filters.fund_id) {
+        updates.fund = newFilters.fund_id || null;
+        updates.page = "1"; // Reset page on filter change
+      }
+      if (Object.keys(updates).length > 0) {
+        setUrlFilters(updates);
+      }
+    },
+    [filters, setUrlFilters]
+  );
 
-  const setPage = useCallback((page: number) => {
-    setFilter("page", page.toString());
-  }, [setFilter]);
+  const setPage = useCallback(
+    (page: number) => {
+      setFilter("page", page.toString());
+    },
+    [setFilter]
+  );
 
   // Use the data hook for active funds
   const { data: fundsData = [] } = useFunds(true); // activeOnly
-  const funds: Fund[] = fundsData.map(f => ({ id: f.id, code: f.code, name: f.name, asset: f.asset }));
+  const funds: Fund[] = fundsData.map((f) => ({
+    id: f.id,
+    code: f.code,
+    name: f.name,
+    asset: f.asset,
+  }));
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [withdrawalsData, statsData] = await Promise.all([
-        withdrawalService.getWithdrawals(filters),
-        withdrawalService.getStats(filters), // Pass same filters for consistent stats
-      ]);
-      setPaginatedData(withdrawalsData);
-      setStats(statsData);
-    } catch (error) {
-      console.error("Error loading withdrawals:", error);
-      toast.error("Failed to load withdrawals");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filters]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // Centralized cache invalidation for withdrawal operations
+  const handleInvalidateCache = useCallback(() => {
+    invalidateAfterWithdrawal(queryClient);
+  }, [queryClient]);
 
   const handleCreateSuccess = () => {
     setCreateDialogOpen(false);
-    loadData();
+    handleInvalidateCache();
   };
 
   const handleViewDetails = (withdrawal: Withdrawal) => {
@@ -132,10 +137,13 @@ export default function AdminWithdrawalsPage() {
     setDrawerOpen(true);
   };
 
-  const handleDrawerAction = (action: "approve" | "reject" | "process" | "complete", withdrawal: Withdrawal) => {
+  const handleDrawerAction = (
+    action: "approve" | "reject" | "process" | "complete",
+    withdrawal: Withdrawal
+  ) => {
     setSelectedWithdrawal(withdrawal);
     setDrawerOpen(false);
-    
+
     switch (action) {
       case "approve":
         setApproveDialogOpen(true);
@@ -189,13 +197,13 @@ export default function AdminWithdrawalsPage() {
   };
 
   const handleActionSuccess = () => {
-    loadData();
+    handleInvalidateCache();
     setSelectedWithdrawal(null);
   };
 
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <PageHeader
         title="Withdrawal Management"
         subtitle="Review and process investor withdrawal requests"
         icon={ArrowDownToLine}
@@ -207,7 +215,7 @@ export default function AdminWithdrawalsPage() {
         }
       />
 
-      <WithdrawalStatsComponent stats={stats} isLoading={isLoading} />
+      <WithdrawalStatsComponent stats={safeStats} isLoading={isLoading} />
 
       <Card>
         <CardHeader>
@@ -215,17 +223,17 @@ export default function AdminWithdrawalsPage() {
         </CardHeader>
         <CardContent>
           <WithdrawalsTable
-            withdrawals={paginatedData.data}
+            withdrawals={safePaginatedData.data}
             isLoading={isLoading}
             filters={filters}
             onFiltersChange={setFilters}
-            onRefresh={loadData}
+            onRefresh={handleInvalidateCache}
             funds={funds}
             pagination={{
-              page: paginatedData.page,
-              pageSize: paginatedData.pageSize,
-              totalCount: paginatedData.totalCount,
-              totalPages: paginatedData.totalPages,
+              page: safePaginatedData.page,
+              pageSize: safePaginatedData.pageSize,
+              totalCount: safePaginatedData.totalCount,
+              totalPages: safePaginatedData.totalPages,
               onPageChange: setPage,
             }}
             onViewDetails={handleViewDetails}
