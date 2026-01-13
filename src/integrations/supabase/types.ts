@@ -8565,6 +8565,10 @@ export type Database = {
         }
         Returns: Json
       }
+      crystallize_pending_movements: {
+        Args: { p_fund_id: string; p_target_date: string }
+        Returns: Json
+      }
       crystallize_yield_before_flow: {
         Args: {
           p_admin_id: string
@@ -8671,6 +8675,13 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+        }[]
+      }
+      get_all_positions_at_date: {
+        Args: { p_fund_id: string; p_target_date: string }
+        Returns: {
+          investor_id: string
+          position_value: number
         }[]
       }
       get_available_balance: {
@@ -8801,6 +8812,14 @@ export type Database = {
           ownership_pct: number
           snapshot_date: string
         }[]
+      }
+      get_position_at_date: {
+        Args: {
+          p_fund_id: string
+          p_investor_id: string
+          p_target_date: string
+        }
+        Returns: number
       }
       get_position_reconciliation: {
         Args: { p_as_of_date?: string; p_fund_id?: string }
@@ -9083,6 +9102,21 @@ export type Database = {
           net_amount: number
         }[]
       }
+      process_yield_distribution_with_dust: {
+        Args: {
+          p_admin_id?: string
+          p_date: string
+          p_fund_id: string
+          p_gross_amount: number
+        }
+        Returns: {
+          dust_allocated: number
+          fee_amount: number
+          gross_amount: number
+          investor_id: string
+          net_amount: number
+        }[]
+      }
       queue_statement_deliveries: {
         Args: {
           p_channel?: string
@@ -9170,6 +9204,7 @@ export type Database = {
         Args: { view_name: string }
         Returns: undefined
       }
+      refresh_yield_materialized_views: { Args: never; Returns: Json }
       regenerate_reports_for_correction: {
         Args: { p_correction_id: string }
         Returns: Json
