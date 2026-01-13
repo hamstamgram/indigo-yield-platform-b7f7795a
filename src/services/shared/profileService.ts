@@ -13,6 +13,13 @@ export interface ProfileSummary {
   name: string;
 }
 
+export interface TransactionInvestor {
+  id: string;
+  email: string;
+  displayName: string;
+  isSystemAccount: boolean;
+}
+
 interface RawProfile {
   id: string;
   email: string;
@@ -204,6 +211,26 @@ class ProfileService {
 
     if (error) throw error;
     return data || [];
+  }
+
+  /**
+   * Get investors for transaction selector (active, non-admin)
+   */
+  async getInvestorsForTransaction(): Promise<TransactionInvestor[]> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .eq("is_admin", false)
+      .order("last_name");
+
+    if (error) throw error;
+
+    return (data || []).map((p) => ({
+      id: p.id,
+      email: p.email,
+      displayName: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+      isSystemAccount: false,
+    }));
   }
 }
 

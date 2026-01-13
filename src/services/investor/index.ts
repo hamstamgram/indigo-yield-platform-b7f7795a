@@ -121,7 +121,7 @@ export {
   getAllFunds,
   getFundById,
   addFundToInvestor,
-  getInvestorPositions,
+  getInvestorPositionsWithFunds,
   updateInvestorPosition,
   getAvailableFundsForInvestor,
   removeFundFromInvestor,

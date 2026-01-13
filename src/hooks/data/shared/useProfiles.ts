@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
+import { profileService } from "@/services/shared";
 
 export interface UserProfile {
   id: string;
@@ -206,22 +207,7 @@ export function useUpdateProfile() {
 export function useInvestorsForTransaction(enabled: boolean = true) {
   return useQuery({
     queryKey: ["investors", "forTransaction"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .eq("is_admin", false)
-        .order("last_name");
-
-      if (error) throw error;
-
-      return (data || []).map((p) => ({
-        id: p.id,
-        email: p.email,
-        displayName: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-        isSystemAccount: false,
-      }));
-    },
+    queryFn: () => profileService.getInvestorsForTransaction(),
     enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
