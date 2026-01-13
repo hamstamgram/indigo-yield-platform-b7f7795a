@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
-import { Users, Briefcase, TrendingUp, ArrowDownToLine, Activity, DollarSign } from "lucide-react";
+import { Users, Briefcase, TrendingUp, ArrowDownToLine, Activity } from "lucide-react";
 import { usePlatformMetrics } from "@/hooks/data/admin/useRiskAlerts";
 import { formatDistanceToNow } from "date-fns";
 
@@ -68,7 +68,7 @@ export function PlatformMetricsPanel() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <MetricCard
             title="Active Investors"
             value={metrics.active_investors?.toLocaleString() || 0}
@@ -85,25 +85,9 @@ export function PlatformMetricsPanel() {
             icon={TrendingUp}
           />
           <MetricCard
-            title="Total AUM"
-            value={
-              metrics.total_platform_aum
-                ? `$${(metrics.total_platform_aum / 1000).toFixed(1)}K`
-                : "$0"
-            }
-            icon={DollarSign}
-          />
-          <MetricCard
             title="Pending Withdrawals"
             value={metrics.pending_withdrawals?.toLocaleString() || 0}
             icon={ArrowDownToLine}
-            subtitle={
-              metrics.pending_withdrawal_amount
-                ? `${metrics.pending_withdrawal_amount.toLocaleString(undefined, {
-                    maximumFractionDigits: 2,
-                  })} total`
-                : undefined
-            }
           />
           <MetricCard
             title="Yields Today"
