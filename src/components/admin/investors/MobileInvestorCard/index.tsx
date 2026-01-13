@@ -8,6 +8,7 @@ import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { getAllFunds, updateInvestorPosition, profileService } from "@/services";
 import { formatAssetAmount } from "@/utils/assets";
+import { logWarn, logError } from "@/lib/logger";
 
 /**
  * Extended investor type for mobile card with portfolio data
@@ -101,7 +102,7 @@ const MobileInvestorCard = ({
         // Find the fund for this asset
         const fund = funds.find((f) => f.asset === symbol);
         if (!fund) {
-          console.warn(`No fund found for asset ${symbol}`);
+          logWarn("MobileInvestorCard.handleSave", { message: `No fund found for asset ${symbol}`, symbol });
           return;
         }
 
@@ -116,7 +117,7 @@ const MobileInvestorCard = ({
           });
 
           if (!result.success) {
-            console.error(`Failed to update position for ${symbol}:`, result.error);
+            logError("MobileInvestorCard.updatePosition", result.error, { symbol, investorId: investor.id });
           }
         }
       });
@@ -134,7 +135,7 @@ const MobileInvestorCard = ({
         onSaveSuccess(); // Refresh data
       }, 500); // Small delay to ensure UI feedback
     } catch (error) {
-      console.error("Error saving investor data:", error);
+      logError("MobileInvestorCard.handleSave", error, { investorId: investor.id });
       toast({
         title: "Error",
         description: "Failed to update investor portfolio",

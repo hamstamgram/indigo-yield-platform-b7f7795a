@@ -7,6 +7,7 @@ import {
 import { withdrawalService } from "@/services";
 import { toast } from "sonner";
 import { Loader2, Play } from "lucide-react";
+import { logError } from "@/lib/logger";
 
 interface StartProcessingDialogProps {
   open: boolean;
@@ -43,7 +44,7 @@ export function StartProcessingDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error starting processing:", error);
+      logError("StartProcessingDialog.handleSubmit", error, { withdrawalId: withdrawal.id });
       toast.error(error instanceof Error ? error.message : "Failed to start processing");
     } finally {
       setIsSubmitting(false);

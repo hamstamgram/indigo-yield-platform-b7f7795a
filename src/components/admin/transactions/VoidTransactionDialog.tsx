@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data";
 import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
 import { FinancialValue } from "@/components/common/FinancialValue";
+import { logError } from "@/lib/logger";
 
 /**
  * Minimal transaction data required for the void dialog
@@ -90,7 +91,7 @@ export function VoidTransactionDialog({
         .getVoidImpact(transaction.id)
         .then(setImpact)
         .catch((err) => {
-          console.error("Failed to fetch void impact:", err);
+          logError("VoidTransactionDialog.fetchImpact", err, { transactionId: transaction?.id });
           setImpact(null);
         })
         .finally(() => setLoadingImpact(false));

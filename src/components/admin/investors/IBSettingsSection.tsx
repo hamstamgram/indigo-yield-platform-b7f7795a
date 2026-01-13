@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { Loader2, Users, Percent, Save, AlertCircle, UserPlus, Search, Crown, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import {
   useIBSettings,
@@ -106,7 +107,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
       const results = await searchUsers(searchEmail);
       setSearchResults(results);
     } catch (err) {
-      console.error("Search failed:", err);
+      logError("IBSettingsSection.handleSearchUsers", err, { searchEmail });
       toast({
         title: "Search Failed",
         description: "Could not search for users",
