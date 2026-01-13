@@ -1,0 +1,2679 @@
+[
+  {
+    "table_name": "access_logs",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "event", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "ip", "type": "inet", "nullable": "YES", "default": null },
+      { "column": "user_agent", "type": "text", "nullable": "YES", "default": null },
+      { "column": "device_label", "type": "text", "nullable": "YES", "default": null },
+      { "column": "success", "type": "boolean", "nullable": "NO", "default": "true" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "admin_invites",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "email", "type": "text", "nullable": "NO", "default": null },
+      { "column": "invite_code", "type": "text", "nullable": "NO", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "used", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "expires_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": null
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "intended_role", "type": "text", "nullable": "YES", "default": "'admin'::text" }
+    ]
+  },
+  {
+    "table_name": "assets",
+    "columns": [
+      {
+        "column": "id",
+        "type": "integer",
+        "nullable": "NO",
+        "default": "nextval('assets_id_seq'::regclass)"
+      },
+      { "column": "symbol", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "name", "type": "text", "nullable": "NO", "default": null },
+      { "column": "icon_url", "type": "text", "nullable": "YES", "default": null },
+      { "column": "decimal_places", "type": "integer", "nullable": "NO", "default": "8" },
+      { "column": "is_active", "type": "boolean", "nullable": "NO", "default": "true" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "audit_events_v",
+    "columns": [
+      { "column": "event_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "user_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "old_values", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "new_values", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "meta", "type": "jsonb", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "actor_user", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "source_table", "type": "text", "nullable": "YES", "default": null },
+      { "column": "operation", "type": "text", "nullable": "YES", "default": null },
+      { "column": "entity", "type": "text", "nullable": "YES", "default": null },
+      { "column": "entity_id", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "audit_log",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "actor_user", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "action", "type": "text", "nullable": "NO", "default": null },
+      { "column": "entity", "type": "text", "nullable": "NO", "default": null },
+      { "column": "entity_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "old_values", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "new_values", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "meta", "type": "jsonb", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "aum_position_reconciliation",
+    "columns": [
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "aum_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "recorded_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "calculated_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "discrepancy", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "has_discrepancy", "type": "boolean", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "correction_runs",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "input_hash", "type": "text", "nullable": "NO", "default": null },
+      { "column": "correction_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "parameters", "type": "jsonb", "nullable": "NO", "default": null },
+      { "column": "result", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "NO", "default": "'pending'::text" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "completed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "daily_nav",
+    "columns": [
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "nav_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "nav_per_share", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "shares_outstanding", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "gross_return_pct", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "net_return_pct", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "fees_accrued", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "high_water_mark", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_inflows", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "total_outflows", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "investor_count", "type": "integer", "nullable": "YES", "default": "0" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "is_month_end", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "purpose",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'transaction'::aum_purpose"
+      }
+    ]
+  },
+  {
+    "table_name": "daily_rates",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "rate_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "btc_rate", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "eth_rate", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "sol_rate", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "usdt_rate", "type": "numeric", "nullable": "NO", "default": "1.00" },
+      { "column": "usdc_rate", "type": "numeric", "nullable": "NO", "default": "1.00" },
+      { "column": "eurc_rate", "type": "numeric", "nullable": "NO", "default": "1.00" },
+      { "column": "xaut_rate", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "xrp_rate", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "data_edit_audit",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "table_name", "type": "text", "nullable": "NO", "default": null },
+      { "column": "record_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "operation", "type": "text", "nullable": "YES", "default": null },
+      { "column": "old_data", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "new_data", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "changed_fields", "type": "ARRAY", "nullable": "YES", "default": null },
+      { "column": "import_related", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "import_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "edited_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "edited_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "edit_source", "type": "text", "nullable": "YES", "default": null },
+      { "column": "voided_record", "type": "boolean", "nullable": "YES", "default": "false" }
+    ]
+  },
+  {
+    "table_name": "documents",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "type", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "title", "type": "text", "nullable": "NO", "default": null },
+      { "column": "storage_path", "type": "text", "nullable": "NO", "default": null },
+      { "column": "period_start", "type": "date", "nullable": "YES", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "checksum", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "fee_allocations",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "distribution_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "fees_account_id",
+        "type": "uuid",
+        "nullable": "NO",
+        "default": "'169bb053-36cb-4f6e-93ea-831f0dfeaf1d'::uuid"
+      },
+      { "column": "period_start", "type": "date", "nullable": "NO", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "NO", "default": null },
+      { "column": "purpose", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "base_net_income", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "fee_percentage", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "fee_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "credit_transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "debit_transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "fund_aum_events",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "event_ts",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": null
+      },
+      { "column": "event_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "purpose", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "trigger_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "trigger_reference", "type": "text", "nullable": "YES", "default": null },
+      { "column": "opening_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "closing_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "is_voided", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "void_reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "post_flow_aum", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "fund_aum_mismatch",
+    "columns": [
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "fund_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "aum_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "recorded_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "calculated_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "discrepancy", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "fund_daily_aum",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "aum_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "total_aum", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "nav_per_share", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_shares", "type": "numeric", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "source", "type": "text", "nullable": "YES", "default": "'ingested'::text" },
+      { "column": "as_of_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "is_month_end", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "purpose",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'transaction'::aum_purpose"
+      },
+      { "column": "updated_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "void_reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "temporal_lock_bypass", "type": "boolean", "nullable": "YES", "default": "false" }
+    ]
+  },
+  {
+    "table_name": "fund_daily_aum_archive",
+    "columns": [
+      { "column": "archive_id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "reset_batch_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "archived_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "archived_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "aum_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "total_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "nav_per_share", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_shares", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "as_of_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "source", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "original_created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "fund_period_snapshot",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "period_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "snapshot_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "total_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "investor_count", "type": "integer", "nullable": "NO", "default": "0" },
+      { "column": "is_locked", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "locked_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "locked_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "fund_yield_snapshots",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "snapshot_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "opening_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "closing_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "gross_yield_pct", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "gross_yield_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "period_start", "type": "date", "nullable": "NO", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "NO", "default": null },
+      { "column": "days_in_period", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "trigger_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "trigger_reference", "type": "text", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "funds",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "code", "type": "text", "nullable": "NO", "default": null },
+      { "column": "name", "type": "text", "nullable": "NO", "default": null },
+      { "column": "asset", "type": "text", "nullable": "NO", "default": null },
+      { "column": "strategy", "type": "text", "nullable": "YES", "default": null },
+      { "column": "inception_date", "type": "date", "nullable": "NO", "default": "CURRENT_DATE" },
+      {
+        "column": "status",
+        "type": "USER-DEFINED",
+        "nullable": "YES",
+        "default": "'active'::fund_status"
+      },
+      { "column": "mgmt_fee_bps", "type": "integer", "nullable": "YES", "default": "200" },
+      { "column": "perf_fee_bps", "type": "integer", "nullable": "YES", "default": "2000" },
+      { "column": "high_water_mark", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "min_investment", "type": "numeric", "nullable": "YES", "default": "1000" },
+      { "column": "lock_period_days", "type": "integer", "nullable": "YES", "default": "0" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "fund_class", "type": "text", "nullable": "NO", "default": null },
+      { "column": "logo_url", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "large_withdrawal_threshold",
+        "type": "numeric",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "cooling_off_hours", "type": "integer", "nullable": "YES", "default": "24" },
+      { "column": "max_daily_yield_pct", "type": "numeric", "nullable": "YES", "default": "5.0" }
+    ]
+  },
+  {
+    "table_name": "generated_reports",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "report_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "report_name", "type": "text", "nullable": "NO", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "report_month", "type": "date", "nullable": "YES", "default": null },
+      { "column": "report_data", "type": "jsonb", "nullable": "YES", "default": "'{}'::jsonb" },
+      { "column": "html_content", "type": "text", "nullable": "YES", "default": null },
+      { "column": "pdf_url", "type": "text", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": "'DRAFT'::text" },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "generated_statements",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "period_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "html_content", "type": "text", "nullable": "NO", "default": null },
+      { "column": "pdf_url", "type": "text", "nullable": "YES", "default": null },
+      { "column": "generated_by", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_names", "type": "ARRAY", "nullable": "NO", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null }
+    ]
+  },
+  {
+    "table_name": "global_fee_settings",
+    "columns": [
+      { "column": "setting_key", "type": "text", "nullable": "NO", "default": null },
+      { "column": "value", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "description", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "updated_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "ib_allocation_consistency",
+    "columns": [
+      { "column": "allocation_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "source_investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "source_investor_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "allocated_ib_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "allocated_ib_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "current_ib_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "current_ib_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "ib_fee_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "YES", "default": null },
+      {
+        "column": "ib_changed_since_allocation",
+        "type": "boolean",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "ib_removed", "type": "boolean", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "ib_allocations",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "period_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "ib_investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "source_investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "source_net_income", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "ib_percentage", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "ib_fee_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "NO", "default": "CURRENT_DATE" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "period_start", "type": "date", "nullable": "YES", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "YES", "default": null },
+      {
+        "column": "purpose",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'reporting'::aum_purpose"
+      },
+      { "column": "source", "type": "text", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "payout_status", "type": "text", "nullable": "NO", "default": "'pending'::text" },
+      {
+        "column": "paid_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "paid_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "payout_batch_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "ib_commission_ledger",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "yield_distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "source_investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "source_investor_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "ib_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "ib_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "gross_yield_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "ib_percentage", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "ib_commission_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "asset", "type": "text", "nullable": "NO", "default": null },
+      { "column": "transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "void_reason", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "integrity_check_log",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      {
+        "column": "checked_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "total_checks", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "passed", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "failed", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "critical_failures", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "results", "type": "jsonb", "nullable": "NO", "default": null },
+      {
+        "column": "triggered_by",
+        "type": "text",
+        "nullable": "YES",
+        "default": "'scheduled'::text"
+      }
+    ]
+  },
+  {
+    "table_name": "investor_emails",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "email", "type": "text", "nullable": "NO", "default": null },
+      { "column": "is_primary", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "verified", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null }
+    ]
+  },
+  {
+    "table_name": "investor_fee_schedule",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "fee_pct", "type": "numeric", "nullable": "NO", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "end_date", "type": "date", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "investor_fund_performance",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "period_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "NO", "default": null },
+      { "column": "mtd_beginning_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "mtd_additions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "mtd_redemptions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "mtd_net_income", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "mtd_ending_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "mtd_rate_of_return", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "qtd_beginning_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "qtd_additions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "qtd_redemptions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "qtd_net_income", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "qtd_ending_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "qtd_rate_of_return", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "ytd_beginning_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "ytd_additions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "ytd_redemptions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "ytd_net_income", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "ytd_ending_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "ytd_rate_of_return", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "itd_beginning_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "itd_additions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "itd_redemptions", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "itd_net_income", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "itd_ending_balance", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "itd_rate_of_return", "type": "numeric", "nullable": "YES", "default": "0" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "purpose",
+        "type": "USER-DEFINED",
+        "nullable": "YES",
+        "default": "'reporting'::aum_purpose"
+      }
+    ]
+  },
+  {
+    "table_name": "investor_fund_performance_archive",
+    "columns": [
+      { "column": "archive_id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "reset_batch_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "archived_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "archived_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "period_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "mtd_beginning_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "mtd_additions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "mtd_redemptions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "mtd_net_income", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "mtd_ending_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "mtd_rate_of_return", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "qtd_beginning_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "qtd_additions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "qtd_redemptions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "qtd_net_income", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "qtd_ending_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "qtd_rate_of_return", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ytd_beginning_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ytd_additions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ytd_redemptions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ytd_net_income", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ytd_ending_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ytd_rate_of_return", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "itd_beginning_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "itd_additions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "itd_redemptions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "itd_net_income", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "itd_ending_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "itd_rate_of_return", "type": "numeric", "nullable": "YES", "default": null },
+      {
+        "column": "original_created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "original_updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "investor_invites",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "email", "type": "text", "nullable": "NO", "default": null },
+      { "column": "invite_code", "type": "text", "nullable": "NO", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "expires_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": null
+      },
+      { "column": "used", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "used_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "investor_period_snapshot",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_period_snapshot_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "period_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "balance_at_snapshot", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "ownership_pct", "type": "numeric", "nullable": "NO", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "investor_position_ledger_mismatch",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "position_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ledger_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "discrepancy", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "investor_position_snapshots",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "snapshot_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "current_value", "type": "numeric", "nullable": "NO", "default": null },
+      {
+        "column": "snapshot_source",
+        "type": "text",
+        "nullable": "YES",
+        "default": "'daily_job'::text"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "investor_positions",
+    "columns": [
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "shares", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "cost_basis", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "current_value", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "unrealized_pnl", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "realized_pnl", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "last_transaction_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "lock_until_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "high_water_mark", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "mgmt_fees_paid", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "perf_fees_paid", "type": "numeric", "nullable": "YES", "default": "0" },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "fund_class", "type": "text", "nullable": "YES", "default": null },
+      { "column": "aum_percentage", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "last_yield_crystallization_date",
+        "type": "date",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "cumulative_yield_earned", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "is_active", "type": "boolean", "nullable": "YES", "default": "true" }
+    ]
+  },
+  {
+    "table_name": "investor_positions_archive",
+    "columns": [
+      { "column": "archive_id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "reset_batch_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "archived_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "archived_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_class", "type": "text", "nullable": "YES", "default": null },
+      { "column": "shares", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "cost_basis", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "current_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "unrealized_pnl", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "realized_pnl", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "last_transaction_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "lock_until_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "high_water_mark", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "mgmt_fees_paid", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "perf_fees_paid", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "aum_percentage", "type": "numeric", "nullable": "YES", "default": null },
+      {
+        "column": "original_updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "investor_yield_events",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "event_date", "type": "date", "nullable": "NO", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "trigger_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "trigger_transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_aum_before", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "fund_aum_after", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "investor_balance", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "investor_share_pct", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "fund_yield_pct", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "gross_yield_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "fee_pct", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "fee_amount", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "net_yield_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "period_start", "type": "date", "nullable": "NO", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "NO", "default": null },
+      { "column": "days_in_period", "type": "integer", "nullable": "NO", "default": null },
+      {
+        "column": "visibility_scope",
+        "type": "text",
+        "nullable": "NO",
+        "default": "'admin_only'::text"
+      },
+      {
+        "column": "made_visible_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "made_visible_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "reference_id", "type": "text", "nullable": "NO", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "mfa_reset_requests",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "requested_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "request_reason", "type": "text", "nullable": "NO", "default": null },
+      { "column": "requester_ip", "type": "inet", "nullable": "YES", "default": null },
+      { "column": "requester_user_agent", "type": "text", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "NO", "default": "'pending'::text" },
+      { "column": "approved_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "approved_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "approval_signature", "type": "text", "nullable": "YES", "default": null },
+      { "column": "rejection_reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "rejected_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "rejected_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "expires_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "(now() + '24:00:00'::interval)"
+      },
+      {
+        "column": "executed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "monthly_fee_summary",
+    "columns": [
+      { "column": "summary_month", "type": "text", "nullable": "YES", "default": null },
+      { "column": "asset_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "total_fees_collected", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_gross_yield", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_net_yield", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "investor_count", "type": "bigint", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "notification_settings",
+    "columns": [
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "email_enabled", "type": "boolean", "nullable": "YES", "default": "true" },
+      { "column": "push_enabled", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "sms_enabled", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "notification_types",
+        "type": "jsonb",
+        "nullable": "YES",
+        "default": "'{\"deposits\": true, \"security\": true, \"marketing\": false, \"statements\": true, \"withdrawals\": true}'::jsonb"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "daily_rates_enabled", "type": "boolean", "nullable": "YES", "default": "false" }
+    ]
+  },
+  {
+    "table_name": "notifications",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "type", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "title", "type": "text", "nullable": "NO", "default": null },
+      { "column": "body", "type": "text", "nullable": "NO", "default": null },
+      { "column": "data_jsonb", "type": "jsonb", "nullable": "YES", "default": "'{}'::jsonb" },
+      {
+        "column": "read_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "priority",
+        "type": "USER-DEFINED",
+        "nullable": "YES",
+        "default": "'medium'::notification_priority"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "operation_approvals",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "operation_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "operation_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "operation_details", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "threshold_exceeded", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "threshold_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "actual_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "first_approver_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "first_approved_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "first_approval_notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "second_approver_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "second_approved_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "second_approval_notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": "'pending_first'::text" },
+      {
+        "column": "expires_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "(now() + '24:00:00'::interval)"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "operation_metrics",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "operation_name", "type": "text", "nullable": "NO", "default": null },
+      { "column": "operation_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "started_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "completed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "duration_ms", "type": "integer", "nullable": "YES", "default": null },
+      { "column": "success", "type": "boolean", "nullable": "YES", "default": null },
+      { "column": "error_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "error_message", "type": "text", "nullable": "YES", "default": null },
+      { "column": "input_params", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "output_result", "type": "jsonb", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "platform_fee_ledger",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "yield_distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "investor_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "gross_yield_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "fee_percentage", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "fee_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "asset", "type": "text", "nullable": "NO", "default": null },
+      { "column": "transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "void_reason", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "platform_fees_collected",
+    "columns": [
+      { "column": "period", "type": "text", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "total_fees", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "position_ledger_reconciliation_v2",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "position_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ledger_total", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "discrepancy", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "has_discrepancy", "type": "boolean", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "position_reset_log",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "reset_batch_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "admin_user_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "initiated_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "completed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "status", "type": "text", "nullable": "NO", "default": "'in_progress'::text" },
+      { "column": "affected_counts", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "error_message", "type": "text", "nullable": "YES", "default": null },
+      { "column": "confirmation_code", "type": "text", "nullable": "NO", "default": null }
+    ]
+  },
+  {
+    "table_name": "position_transaction_reconciliation",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "position_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "transaction_sum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "difference", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "price_alerts",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "asset_code", "type": "text", "nullable": "NO", "default": null },
+      { "column": "alert_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "threshold_value", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "is_active", "type": "boolean", "nullable": "YES", "default": "true" },
+      {
+        "column": "triggered_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "profiles",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "email", "type": "text", "nullable": "NO", "default": null },
+      { "column": "first_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "last_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "phone", "type": "text", "nullable": "YES", "default": null },
+      { "column": "is_admin", "type": "boolean", "nullable": "NO", "default": "false" },
+      { "column": "avatar_url", "type": "text", "nullable": "YES", "default": null },
+      { "column": "totp_enabled", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "totp_verified", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "status", "type": "text", "nullable": "YES", "default": "'active'::text" },
+      { "column": "preferences", "type": "jsonb", "nullable": "YES", "default": "'{}'::jsonb" },
+      { "column": "onboarding_date", "type": "date", "nullable": "YES", "default": "CURRENT_DATE" },
+      { "column": "entity_type", "type": "text", "nullable": "YES", "default": null },
+      { "column": "kyc_status", "type": "text", "nullable": "YES", "default": "'pending'::text" },
+      { "column": "ib_parent_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "ib_percentage", "type": "numeric", "nullable": "YES", "default": "0" },
+      {
+        "column": "account_type",
+        "type": "USER-DEFINED",
+        "nullable": "YES",
+        "default": "'investor'::account_type"
+      },
+      { "column": "is_system_account", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "include_in_reporting", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "last_activity_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "fee_pct", "type": "numeric", "nullable": "NO", "default": "20.000" },
+      {
+        "column": "ib_commission_source",
+        "type": "text",
+        "nullable": "NO",
+        "default": "'platform_fees'::text"
+      }
+    ]
+  },
+  {
+    "table_name": "profiles_display",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "first_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "last_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": null },
+      { "column": "account_type", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "is_system_account", "type": "boolean", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "rate_limit_config",
+    "columns": [
+      { "column": "action_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "max_actions", "type": "integer", "nullable": "NO", "default": "100" },
+      { "column": "window_minutes", "type": "integer", "nullable": "NO", "default": "60" },
+      { "column": "is_enabled", "type": "boolean", "nullable": "YES", "default": "true" },
+      { "column": "description", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "rate_limits",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "actor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "action_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "metadata", "type": "jsonb", "nullable": "YES", "default": "'{}'::jsonb" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "report_change_log",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "report_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "report_table", "type": "text", "nullable": "NO", "default": null },
+      {
+        "column": "changed_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "changed_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "change_reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "previous_html_hash", "type": "text", "nullable": "YES", "default": null },
+      { "column": "previous_pdf_url", "type": "text", "nullable": "YES", "default": null },
+      { "column": "change_summary", "type": "jsonb", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "report_delivery_events",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "delivery_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "provider_message_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "event_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "event_data", "type": "jsonb", "nullable": "YES", "default": "'{}'::jsonb" },
+      {
+        "column": "occurred_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": null
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "risk_alerts",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "alert_type", "type": "text", "nullable": "NO", "default": null },
+      { "column": "severity", "type": "text", "nullable": "YES", "default": "'medium'::text" },
+      { "column": "message", "type": "text", "nullable": "NO", "default": null },
+      { "column": "details", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "threshold_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "actual_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "acknowledged", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "acknowledged_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "acknowledged_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "resolved", "type": "boolean", "nullable": "YES", "default": "false" },
+      { "column": "resolved_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "resolved_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "resolution_notes", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "expires_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "(now() + '7 days'::interval)"
+      }
+    ]
+  },
+  {
+    "table_name": "statement_email_delivery",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "statement_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "period_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "recipient_email", "type": "text", "nullable": "NO", "default": null },
+      { "column": "subject", "type": "text", "nullable": "NO", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": "'PENDING'::text" },
+      {
+        "column": "sent_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "error_message", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "failed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "retry_count", "type": "integer", "nullable": "YES", "default": "0" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "channel", "type": "text", "nullable": "NO", "default": "'email'::text" },
+      { "column": "locked_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "locked_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "attempt_count", "type": "integer", "nullable": "NO", "default": "0" },
+      {
+        "column": "last_attempt_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "provider_message_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "error_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "metadata", "type": "jsonb", "nullable": "NO", "default": "'{}'::jsonb" },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "provider", "type": "text", "nullable": "YES", "default": "'mailersend'::text" },
+      {
+        "column": "delivery_mode",
+        "type": "text",
+        "nullable": "YES",
+        "default": "'email_html'::text"
+      },
+      {
+        "column": "delivered_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "opened_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "clicked_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "bounced_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "bounce_type", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "statement_periods",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "year", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "month", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "period_name", "type": "text", "nullable": "NO", "default": null },
+      { "column": "period_end_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": "'DRAFT'::text" },
+      {
+        "column": "finalized_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "finalized_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "statements",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "investor_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "period_year", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "period_month", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "asset_code", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "begin_balance", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "additions", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "redemptions", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "net_income", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "end_balance", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "rate_of_return_mtd", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "rate_of_return_qtd", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "rate_of_return_ytd", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "rate_of_return_itd", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "storage_path", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "support_tickets",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "subject", "type": "text", "nullable": "NO", "default": null },
+      {
+        "column": "category",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'general'::ticket_category"
+      },
+      {
+        "column": "priority",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'medium'::ticket_priority"
+      },
+      {
+        "column": "status",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'open'::ticket_status"
+      },
+      { "column": "messages_jsonb", "type": "jsonb", "nullable": "NO", "default": "'[]'::jsonb" },
+      { "column": "attachments", "type": "ARRAY", "nullable": "YES", "default": "'{}'::text[]" },
+      { "column": "assigned_admin_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "system_2fa_policy",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      {
+        "column": "require_2fa_for_admins",
+        "type": "boolean",
+        "nullable": "YES",
+        "default": "false"
+      },
+      {
+        "column": "require_2fa_for_investors",
+        "type": "boolean",
+        "nullable": "YES",
+        "default": "false"
+      },
+      { "column": "grace_period_days", "type": "integer", "nullable": "YES", "default": "30" },
+      { "column": "backup_codes_count", "type": "integer", "nullable": "YES", "default": "10" },
+      { "column": "backup_code_length", "type": "integer", "nullable": "YES", "default": "8" },
+      { "column": "max_failed_attempts", "type": "integer", "nullable": "YES", "default": "5" },
+      {
+        "column": "lockout_duration_minutes",
+        "type": "integer",
+        "nullable": "YES",
+        "default": "30"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "updated_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "system_config",
+    "columns": [
+      { "column": "key", "type": "text", "nullable": "NO", "default": null },
+      { "column": "value", "type": "jsonb", "nullable": "NO", "default": null },
+      { "column": "description", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "updated_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "system_health_snapshots",
+    "columns": [
+      { "column": "snapshot_id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      {
+        "column": "snapshot_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "total_anomalies", "type": "integer", "nullable": "NO", "default": "0" },
+      {
+        "column": "ledger_reconciliation_count",
+        "type": "integer",
+        "nullable": "YES",
+        "default": "0"
+      },
+      { "column": "fund_aum_mismatch_count", "type": "integer", "nullable": "YES", "default": "0" },
+      {
+        "column": "orphaned_positions_count",
+        "type": "integer",
+        "nullable": "YES",
+        "default": "0"
+      },
+      {
+        "column": "orphaned_transactions_count",
+        "type": "integer",
+        "nullable": "YES",
+        "default": "0"
+      },
+      {
+        "column": "fee_calculation_orphans_count",
+        "type": "integer",
+        "nullable": "YES",
+        "default": "0"
+      },
+      { "column": "position_variance_count", "type": "integer", "nullable": "YES", "default": "0" },
+      { "column": "status", "type": "text", "nullable": "YES", "default": "'healthy'::text" },
+      { "column": "details", "type": "jsonb", "nullable": "YES", "default": null },
+      { "column": "triggered_by", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "transactions_v2",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "tx_date", "type": "date", "nullable": "NO", "default": "CURRENT_DATE" },
+      { "column": "value_date", "type": "date", "nullable": "NO", "default": "CURRENT_DATE" },
+      { "column": "asset", "type": "text", "nullable": "NO", "default": null },
+      { "column": "amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "type", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "balance_before", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "balance_after", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "tx_hash", "type": "text", "nullable": "YES", "default": null },
+      { "column": "reference_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "approved_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "approved_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "fund_class", "type": "text", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "purpose",
+        "type": "USER-DEFINED",
+        "nullable": "YES",
+        "default": "'transaction'::aum_purpose"
+      },
+      {
+        "column": "source",
+        "type": "USER-DEFINED",
+        "nullable": "YES",
+        "default": "'manual_admin'::tx_source"
+      },
+      { "column": "is_system_generated", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "visibility_scope",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'investor_visible'::visibility_scope"
+      },
+      { "column": "transfer_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "correction_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "tx_subtype", "type": "text", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "NO", "default": "false" },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "void_reason", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "transactions_v2_archive",
+    "columns": [
+      { "column": "archive_id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "reset_batch_id", "type": "uuid", "nullable": "NO", "default": null },
+      {
+        "column": "archived_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "archived_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "type", "type": "text", "nullable": "YES", "default": null },
+      { "column": "asset", "type": "text", "nullable": "YES", "default": null },
+      { "column": "amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "tx_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "reference_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "original_created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "user_roles",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "role", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "user_sessions",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "device_label", "type": "text", "nullable": "YES", "default": null },
+      { "column": "user_agent", "type": "text", "nullable": "YES", "default": null },
+      { "column": "ip", "type": "inet", "nullable": "YES", "default": null },
+      { "column": "refresh_token_id", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "last_seen_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "revoked_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "revoked_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "user_totp_backup_codes",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "totp_settings_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "code_hash", "type": "text", "nullable": "NO", "default": null },
+      {
+        "column": "used_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "generated_batch_id", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "user_totp_settings",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "user_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "enabled", "type": "boolean", "nullable": "NO", "default": "false" },
+      { "column": "secret_encrypted", "type": "bytea", "nullable": "YES", "default": null },
+      { "column": "algorithm", "type": "text", "nullable": "YES", "default": "'SHA1'::text" },
+      { "column": "digits", "type": "integer", "nullable": "YES", "default": "6" },
+      { "column": "period", "type": "integer", "nullable": "YES", "default": "30" },
+      {
+        "column": "verified_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "setup_completed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "qr_code_shown_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "backup_codes_generated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "recovery_used_count", "type": "integer", "nullable": "YES", "default": "0" },
+      { "column": "enforce_required", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "last_used_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "failed_attempts", "type": "integer", "nullable": "YES", "default": "0" },
+      {
+        "column": "locked_until",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_concentration_risk",
+    "columns": [
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "account_type", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "position_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "fund_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ownership_pct", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "concentration_level", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_duplicate_transactions",
+    "columns": [
+      { "column": "reference_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "duplicate_count", "type": "bigint", "nullable": "YES", "default": null },
+      { "column": "transaction_ids", "type": "ARRAY", "nullable": "YES", "default": null },
+      { "column": "tx_dates", "type": "ARRAY", "nullable": "YES", "default": null },
+      { "column": "types", "type": "ARRAY", "nullable": "YES", "default": null },
+      { "column": "amounts", "type": "ARRAY", "nullable": "YES", "default": null },
+      {
+        "column": "first_created",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "last_created",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "v_fee_allocation_orphans",
+    "columns": [
+      { "column": "allocation_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fee_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "period_start", "type": "date", "nullable": "YES", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "YES", "default": null },
+      { "column": "purpose", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "issue_type", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_fee_calculation_orphans",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fees_account_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "period_start", "type": "date", "nullable": "YES", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "YES", "default": null },
+      { "column": "purpose", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "base_net_income", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "fee_percentage", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "fee_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "credit_transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "debit_transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "YES", "default": null },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_fund_aum_position_status",
+    "columns": [
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "asset", "type": "text", "nullable": "YES", "default": null },
+      { "column": "recorded_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "actual_positions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "active_investors", "type": "integer", "nullable": "YES", "default": null },
+      { "column": "discrepancy", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "discrepancy_pct", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_ib_allocation_orphans",
+    "columns": [
+      { "column": "allocation_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "source_investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "ib_investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "ib_fee_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "payout_status", "type": "text", "nullable": "YES", "default": null },
+      { "column": "issue_type", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_investor_kpis",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "email", "type": "text", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": null },
+      { "column": "kyc_status", "type": "text", "nullable": "YES", "default": null },
+      { "column": "funds_invested", "type": "bigint", "nullable": "YES", "default": null },
+      { "column": "total_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_invested", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_unrealized_pnl", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_realized_pnl", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_mgmt_fees", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_perf_fees", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "first_investment_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "last_activity_date", "type": "date", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_itd_returns",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "cost_basis", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "current_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "unrealized_pnl", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "realized_pnl", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "itd_return_pct", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_ledger_reconciliation",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "asset", "type": "text", "nullable": "YES", "default": null },
+      { "column": "position_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "ledger_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "difference", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": null },
+      { "column": "severity", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_liquidity_risk",
+    "columns": [
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "asset", "type": "text", "nullable": "YES", "default": null },
+      { "column": "current_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "pending_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "approved_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "processing_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_pending", "type": "numeric", "nullable": "YES", "default": null },
+      {
+        "column": "withdrawal_pressure_pct",
+        "type": "numeric",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "risk_level", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_live_investor_balances",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "last_reported_balance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "recent_deposits", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "recent_withdrawals", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "live_balance", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_orphaned_positions",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "current_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "shares", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "last_transaction_date", "type": "date", "nullable": "YES", "default": null },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "orphan_type", "type": "text", "nullable": "YES", "default": null },
+      { "column": "investor_missing", "type": "boolean", "nullable": "YES", "default": null },
+      { "column": "fund_missing", "type": "boolean", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_orphaned_transactions",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "tx_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "value_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "asset", "type": "text", "nullable": "YES", "default": null },
+      { "column": "amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "type", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "balance_before", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "balance_after", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "tx_hash", "type": "text", "nullable": "YES", "default": null },
+      { "column": "reference_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "approved_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "approved_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "fund_class", "type": "text", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "purpose", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "source", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "is_system_generated", "type": "boolean", "nullable": "YES", "default": null },
+      { "column": "visibility_scope", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "transfer_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "correction_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "tx_subtype", "type": "text", "nullable": "YES", "default": null },
+      { "column": "is_voided", "type": "boolean", "nullable": "YES", "default": null },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "void_reason", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_orphaned_user_roles",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "user_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "role", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "v_period_orphans",
+    "columns": [
+      { "column": "period_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "year", "type": "integer", "nullable": "YES", "default": null },
+      { "column": "month", "type": "integer", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "snapshot_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "snapshot_locked", "type": "boolean", "nullable": "YES", "default": null },
+      { "column": "period_status", "type": "text", "nullable": "YES", "default": null },
+      { "column": "issue_type", "type": "text", "nullable": "YES", "default": null },
+      { "column": "issue_description", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_position_transaction_variance",
+    "columns": [
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "position_value", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "transaction_sum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "variance", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_security_definer_audit",
+    "columns": [
+      { "column": "schema_name", "type": "name", "nullable": "YES", "default": null },
+      { "column": "function_name", "type": "name", "nullable": "YES", "default": null },
+      { "column": "is_security_definer", "type": "boolean", "nullable": "YES", "default": null },
+      { "column": "has_search_path", "type": "boolean", "nullable": "YES", "default": null },
+      { "column": "config", "type": "ARRAY", "nullable": "YES", "default": null },
+      { "column": "arguments", "type": "text", "nullable": "YES", "default": null },
+      { "column": "description", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_transaction_distribution_orphans",
+    "columns": [
+      { "column": "transaction_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "transaction_type", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "tx_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "purpose", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "issue_type", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "v_yield_conservation_check",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "gross_yield", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "net_yield", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_fees", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "total_ib", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "dust_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "calculated_total", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "variance", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "is_conserved", "type": "boolean", "nullable": "YES", "default": null },
+      { "column": "conservation_status", "type": "text", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "withdrawal_audit_log",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "request_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "action", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      { "column": "actor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "details", "type": "jsonb", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "withdrawal_audit_logs",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "request_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "action", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "actor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "details", "type": "jsonb", "nullable": "YES", "default": "'{}'::jsonb" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "withdrawal_queue",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_name", "type": "text", "nullable": "YES", "default": null },
+      { "column": "amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "status", "type": "USER-DEFINED", "nullable": "YES", "default": null },
+      {
+        "column": "requested_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      {
+        "column": "processed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "notes", "type": "text", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "withdrawal_requests",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "fund_class", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "request_date",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "requested_amount", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "requested_shares", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "withdrawal_type", "type": "text", "nullable": "NO", "default": null },
+      {
+        "column": "status",
+        "type": "USER-DEFINED",
+        "nullable": "NO",
+        "default": "'pending'::withdrawal_status"
+      },
+      { "column": "approved_amount", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "approved_shares", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "approved_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "approved_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "processed_amount", "type": "numeric", "nullable": "YES", "default": null },
+      {
+        "column": "processed_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "settlement_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "tx_hash", "type": "text", "nullable": "YES", "default": null },
+      { "column": "rejection_reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "rejected_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "rejected_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "cancellation_reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "cancelled_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "cancelled_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "admin_notes", "type": "text", "nullable": "YES", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": "now()"
+      },
+      { "column": "investor_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "version", "type": "integer", "nullable": "YES", "default": "1" },
+      {
+        "column": "earliest_processing_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      }
+    ]
+  },
+  {
+    "table_name": "yield_corrections",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "original_distribution_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "correction_distribution_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "status", "type": "text", "nullable": "NO", "default": "'previewed'::text" },
+      { "column": "old_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "new_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "delta_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "old_gross_yield", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "new_gross_yield", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "delta_gross_yield", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "investors_affected", "type": "integer", "nullable": "NO", "default": "0" },
+      { "column": "total_fee_delta", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "total_ib_delta", "type": "numeric", "nullable": "NO", "default": "0" },
+      { "column": "preview_json", "type": "jsonb", "nullable": "NO", "default": null },
+      {
+        "column": "applied_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "applied_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "rolled_back_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "rolled_back_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "reason", "type": "text", "nullable": "NO", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "created_by", "type": "uuid", "nullable": "NO", "default": null }
+    ]
+  },
+  {
+    "table_name": "yield_distribution_conservation_check",
+    "columns": [
+      { "column": "distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "fund_code", "type": "text", "nullable": "YES", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "YES", "default": null },
+      { "column": "gross_yield", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "calculated_fees", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "calculated_ib", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "net_to_investors", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "expected_deductions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "actual_deductions", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "conservation_error", "type": "numeric", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "yield_distributions",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "fund_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "effective_date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "purpose", "type": "USER-DEFINED", "nullable": "NO", "default": null },
+      { "column": "is_month_end", "type": "boolean", "nullable": "NO", "default": "false" },
+      { "column": "recorded_aum", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "previous_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "gross_yield", "type": "numeric", "nullable": "NO", "default": "0" },
+      {
+        "column": "distribution_type",
+        "type": "text",
+        "nullable": "NO",
+        "default": "'daily'::text"
+      },
+      { "column": "parent_distribution_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "status", "type": "text", "nullable": "NO", "default": null },
+      { "column": "created_by", "type": "uuid", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "summary_json", "type": "jsonb", "nullable": "YES", "default": null },
+      {
+        "column": "voided_at",
+        "type": "timestamp with time zone",
+        "nullable": "YES",
+        "default": null
+      },
+      { "column": "voided_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "void_reason", "type": "text", "nullable": "YES", "default": null },
+      { "column": "net_yield", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "total_fees", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "total_ib", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "investor_count", "type": "integer", "nullable": "YES", "default": "0" },
+      { "column": "aum_record_id", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "opening_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "closing_aum", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "yield_percentage", "type": "numeric", "nullable": "YES", "default": null },
+      { "column": "reference_id", "type": "text", "nullable": "YES", "default": null },
+      { "column": "period_start", "type": "date", "nullable": "YES", "default": null },
+      { "column": "period_end", "type": "date", "nullable": "YES", "default": null },
+      { "column": "dust_amount", "type": "numeric", "nullable": "YES", "default": "0" },
+      { "column": "dust_receiver_id", "type": "uuid", "nullable": "YES", "default": null }
+    ]
+  },
+  {
+    "table_name": "yield_edit_audit",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "record_id", "type": "uuid", "nullable": "NO", "default": null },
+      { "column": "record_type", "type": "text", "nullable": "NO", "default": null },
+      {
+        "column": "edited_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      { "column": "edited_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "previous_values", "type": "jsonb", "nullable": "NO", "default": null },
+      { "column": "new_values", "type": "jsonb", "nullable": "NO", "default": null },
+      { "column": "edit_reason", "type": "text", "nullable": "YES", "default": null },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  },
+  {
+    "table_name": "yield_rates",
+    "columns": [
+      { "column": "id", "type": "uuid", "nullable": "NO", "default": "gen_random_uuid()" },
+      { "column": "asset_id", "type": "integer", "nullable": "NO", "default": null },
+      { "column": "daily_yield_percentage", "type": "numeric", "nullable": "NO", "default": null },
+      { "column": "date", "type": "date", "nullable": "NO", "default": null },
+      { "column": "entered_by", "type": "uuid", "nullable": "YES", "default": null },
+      { "column": "is_api_sourced", "type": "boolean", "nullable": "YES", "default": "false" },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": "NO",
+        "default": "now()"
+      }
+    ]
+  }
+]

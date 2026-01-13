@@ -1,0 +1,263 @@
+/Users/mama/indigo-yield-platform-v01/src/middleware/twoFactorAuth.tsx:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/investor.ts:10:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/portfolio.ts:6:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/document.ts:6:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/feeAllocation.ts:6:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/transaction.ts:8:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/ibAllocation.ts:6:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/enums.ts:15:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/enums.ts:49:import { Constants } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/fund.ts:9:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/types/domains/yieldDistributionRecord.ts:10:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/test/integration/yieldCorrection.test.ts:7:import { supabase } from '@/integrations/supabase/client';
+/Users/mama/indigo-yield-platform-v01/src/utils/security-logger.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/utils/kpiCalculations.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/utils/session-manager.ts:6:import { supabase } from '@/integrations/supabase/client';
+/Users/mama/indigo-yield-platform-v01/src/utils/cacheInvalidation.ts:25:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/utils/encryption.ts:6:import { supabase } from '@/integrations/supabase/client';
+/Users/mama/indigo-yield-platform-v01/src/utils/statementStorage.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/integrations/supabase/client.ts:1:import { createClient } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/components/security/SecurityProvider.tsx:4:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/components/admin/investors/wizard/steps/ReviewStep.tsx:5:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/components/admin/investors/InvestorProfileEditor.tsx:13:import { invokeFunction } from "@/lib/supabase/functions";
+/Users/mama/indigo-yield-platform-v01/src/components/error/FinancialErrorBoundary.tsx:11:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/components/error/FinancialErrorBoundary.tsx:88:      await supabase.from("audit_log").insert({
+/Users/mama/indigo-yield-platform-v01/src/hooks/auth/useUserRole.ts:9:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/admin/useRiskAlerts.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/admin/useLockedPeriods.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/admin/useAdminStats.ts:9:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/admin/useFundAUMEvents.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/admin/useStatementData.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useTransactions.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useTransactions.ts:13:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useAvailableBalance.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useRealtimeSubscription.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useRealtimeSubscription.ts:8:import type { RealtimeChannel } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useNotificationBell.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useTransactionDetails.ts:27:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useRealtimeNotifications.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useUserAssets.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useInvestors.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useProfiles.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useAssetData.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useAssetData.ts:3:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useFinalizedPortfolio.ts:8:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useNotifications.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useNotifications.ts:8:import { RealtimeChannel } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useNotifications.ts:9:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useNotifications.ts:333:        const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useUnifiedInvestors.ts:8:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useIBSettings.ts:15:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useFundAUM.ts:8:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useFundAUM.ts:9:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/shared/useStatements.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorLedger.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorLedger.ts:6:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorOverviewQueries.ts:8:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorOverview.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorBalance.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorPerformance.ts:3:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorPortfolioQueries.ts:2:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorInvite.ts:3:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorData.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/usePortfolio.ts:9:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/hooks/data/investor/useInvestorWithdrawals.ts:9:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/lib/security/rateLimiter.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/lib/email.ts:4:import { supabase } from '@/integrations/supabase/client';
+/Users/mama/indigo-yield-platform-v01/src/lib/supabase/typedRPC.ts:8: * import { callRPC } from '@/lib/supabase/typedRPC';
+/Users/mama/indigo-yield-platform-v01/src/lib/supabase/typedRPC.ts:18:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/lib/supabase/typedRPC.ts:19:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/lib/supabase/functions.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/lib/typeAdapters/notificationAdapter.ts:6:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/lib/typeAdapters/documentAdapter.ts:6:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/lib/typeAdapters/investorAdapter.ts:6:import { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/routing/IBRoute.tsx:10:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/pages/admin/transactions/AdminManualTransaction.tsx:15:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/pages/AdminInviteCallback.tsx:3:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/systemHealthService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/systemHealthService.ts:26:    const { error } = await supabase.from("profiles").select("id").limit(1);
+/Users/mama/indigo-yield-platform-v01/src/services/core/PortfolioService.ts:10:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/PortfolioService.ts:12:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/core/PortfolioService.ts:16:  const { data, error } = await supabase.from("funds").select("*");
+/Users/mama/indigo-yield-platform-v01/src/services/core/dataIntegrityService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/dataIntegrityService.ts:146:    const { data: profiles } = await supabase.from("profiles").select("id, email, first_name, last_name").eq("is_admin", false);
+/Users/mama/indigo-yield-platform-v01/src/services/core/supportService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/sessionManagement.ts:5:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/sessionManagement.ts:6:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/services/core/sessionManagement.ts:112:    const { error } = await supabase.from("access_logs").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/core/reportUpsertService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/reportUpsertService.ts:97:  const { error } = await supabase.from("report_change_log").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/core/ApiClient.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/core/ApiClient.ts:7:import type { PostgrestError } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/inviteService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/inviteService.ts:198:  await supabase.from("user_roles").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/auth/mfaService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/authService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/authService.ts:7:import type { User, Session } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/authService.ts:9:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/types.ts:6:import type { User, Session } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/context.tsx:2:import { User, Session } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/services/auth/context.tsx:3:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/ibPayoutService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/transactionFormDataService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/requestsQueueService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/internalRouteService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/operationsHubService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/operationsHubService.ts:7:import type { RealtimeChannel } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldApplyService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldApplyService.ts:17:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldCrystallizationService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldCrystallizationService.ts:8:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/recordedYieldsService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/recordedYieldsService.ts:167:  const { error: auditError } = await supabase.from("yield_edit_audit").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/admin/reportRecipientsService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/reportRecipientsService.ts:7:import { invokeFunction } from "@/lib/supabase/functions";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldHistoryService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/deliveryService.ts:14:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/investorPerformanceService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminUsersService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/commandPaletteService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/investorLifecycleService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/transactionDetailsService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/statementAdminService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldManagementService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldManagementService.ts:8:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/reportService.ts:13:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/reportService.ts:306:    const { data: periods } = await supabase.from("statement_periods").select("id, year, month");
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldReportsService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/investorWizardService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/investorWizardService.ts:5:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/aumReconciliationService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminTransactionHistoryService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/investorSettingsService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/userService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/userService.ts:4:import { User } from "@supabase/supabase-js";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/actionBarService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/fundService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/fundService.ts:119:  const { data: funds, error } = await supabase.from("funds").select("id, code, name, asset");
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldPreviewService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldPreviewService.ts:10:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminInviteService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminInviteService.ts:2:import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminInviteService.ts:51:    const { error } = await supabase.from("admin_invites").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/admin/investorDetailService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/emailTrackingService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/feesService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/integrityService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/integrityService.ts:21:    supabase.from("fund_aum_mismatch").select("*"),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/integrityService.ts:22:    supabase.from("yield_distribution_conservation_check").select("*"),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/integrityService.ts:23:    supabase.from("ib_allocation_consistency").select("*"),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/integrityService.ts:24:    supabase.from("investor_position_ledger_mismatch").select("*"),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/ibUsersService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/systemAdminService.ts:10:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/systemAdminService.ts:381:    supabase.from("v_ledger_reconciliation").select("*", { count: "exact" }),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/systemAdminService.ts:384:    supabase.from("fund_aum_mismatch").select("*", { count: "exact" }),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/systemAdminService.ts:387:    (supabase.from as any)("v_orphaned_transactions").select("*", { count: "exact" }),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/systemAdminService.ts:390:    supabase.from("v_orphaned_positions").select("*", { count: "exact" }),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/systemAdminService.ts:393:    (supabase.from as any)("v_fee_calculation_orphans").select("*", { count: "exact" }),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/systemAdminService.ts:396:    (supabase.from as any)("v_position_transaction_variance").select("*", { count: "exact" }),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/dashboardMetricsService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminStatsService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminService.ts:250:        supabase.from("funds").select("id, code, name, asset, inception_date"),
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminService.ts:301:      const { data: existing } = await supabase.from("profiles").select("id").eq("email", investorData.email).maybeSingle();
+/Users/mama/indigo-yield-platform-v01/src/services/admin/adminService.ts:342:      const { error } = await supabase.from("profiles").update(updates).in("id", investorIds);
+/Users/mama/indigo-yield-platform-v01/src/services/admin/dashboardService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/reportQueryService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/yieldCorrectionService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/depositWithYieldService.ts:9:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/depositWithYieldService.ts:12:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/admin/depositWithYieldService.ts:76:  const { data: lastCheckpoint } = await (supabase.from as any)("fund_aum_events")
+/Users/mama/indigo-yield-platform-v01/src/services/shared/adminToolsService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/inviteService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/inviteService.ts:19:    const { error } = await supabase.from("investor_invites").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/performanceService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/investorDataExportService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/investorDataExportService.ts:17:      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+/Users/mama/indigo-yield-platform-v01/src/services/shared/investorDataExportService.ts:18:      supabase.from("investor_positions").select("*").eq("investor_id", userId),
+/Users/mama/indigo-yield-platform-v01/src/services/shared/investorDataExportService.ts:21:      supabase.from("transactions_v2").select("*").eq("investor_id", userId),
+/Users/mama/indigo-yield-platform-v01/src/services/shared/investorDataExportService.ts:22:      supabase.from("documents").select("*").eq("user_id", userId),
+/Users/mama/indigo-yield-platform-v01/src/services/shared/yieldRatesService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/yieldRatesService.ts:94:    const { error } = await supabase.from("yield_rates").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/notificationService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/notificationService.ts:215:    const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
+/Users/mama/indigo-yield-platform-v01/src/services/shared/historicalDataService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/historicalDataService.ts:193:            const { data: periods } = await supabase.from("statement_periods").select("id, year, month");
+/Users/mama/indigo-yield-platform-v01/src/services/shared/historicalDataService.ts:205:                const { data: newPeriod } = await supabase.from("statement_periods").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/historicalDataService.ts:293:    const { error } = await supabase.from("investor_fund_performance").update(v2Updates).eq("id", id);
+/Users/mama/indigo-yield-platform-v01/src/services/shared/historicalDataService.ts:308:    const { error } = await supabase.from("investor_fund_performance").delete().in("id", ids);
+/Users/mama/indigo-yield-platform-v01/src/services/shared/documentService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/documentService.ts:17:    let query = supabase.from("documents").select("*").order("created_at", { ascending: false });
+/Users/mama/indigo-yield-platform-v01/src/services/shared/documentService.ts:204:    const { error: dbError } = await supabase.from("documents").delete().eq("id", docId);
+/Users/mama/indigo-yield-platform-v01/src/services/shared/feeScheduleService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/feeScheduleService.ts:75:      const { error } = await supabase.from("investor_fee_schedule").upsert(
+/Users/mama/indigo-yield-platform-v01/src/services/shared/feeScheduleService.ts:97:    const { error } = await supabase.from("investor_fee_schedule").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/fundDailyAumService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/fundDailyAumService.ts:42:    const { error } = await supabase.from("fund_daily_aum").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/fundDailyAumService.ts:75:    const { error } = await supabase.from("fund_daily_aum").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/storageService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/ibService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/fundService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/performanceDataService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/performanceDataService.ts:89:      await supabase.from("data_edit_audit").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/positionService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/systemConfigService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/systemConfigService.ts:58:    const { error } = await supabase.from("system_config").upsert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/assetService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/assetService.ts:33:    let query = supabase.from("assets").select("*");
+/Users/mama/indigo-yield-platform-v01/src/services/shared/assetService.ts:59:    const { data, error } = await supabase.from("assets").select("*").eq("id", numericId).maybeSingle();
+/Users/mama/indigo-yield-platform-v01/src/services/shared/assetService.ts:110:    const { data, error } = await supabase.from("assets").select("*");
+/Users/mama/indigo-yield-platform-v01/src/services/shared/profileService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/statementsService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/statementsService.ts:35:    const { error } = await supabase.from("statements").upsert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/ibManagementService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/ibManagementService.ts:44:    const { error: roleError } = await supabase.from("user_roles").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/ibManagementService.ts:65:    const { error } = await supabase.from("user_roles").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/auditLogService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/auditLogService.ts:96:      const { data, error } = await supabase.from("audit_log").select("entity").order("entity");
+/Users/mama/indigo-yield-platform-v01/src/services/shared/auditLogService.ts:113:      const { data, error } = await supabase.from("audit_log").select("action").order("action");
+/Users/mama/indigo-yield-platform-v01/src/services/shared/auditLogService.ts:130:      let query = supabase.from("audit_log").select("action, entity, actor_user");
+/Users/mama/indigo-yield-platform-v01/src/services/shared/auditLogService.ts:280:      const { error } = await supabase.from("audit_log").insert({
+/Users/mama/indigo-yield-platform-v01/src/services/shared/transactionService.ts:8:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/transactionService.ts:14:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/shared/transactionService.ts:241:    const { error } = await supabase.from("transactions_v2").insert([{
+/Users/mama/indigo-yield-platform-v01/src/services/operations/snapshotService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/operations/snapshotService.ts:8:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/services/operations/operationsService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/operations/operationsService.ts:56:        supabase.from("investor_positions").select("current_value").gt("current_value", 0),
+/Users/mama/indigo-yield-platform-v01/src/services/operations/positionAdjustmentService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/operations/positionAdjustmentService.ts:4:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/profile/profileSettingsService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/api/statementsApi.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/api/statementsApi.ts:2:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/services/api/statementsApi.ts:740:    await supabase.from("audit_log").insert(auditData);
+/Users/mama/indigo-yield-platform-v01/src/services/api/reportsApi.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/api/reportsApi.ts:212:      const { error } = await supabase.from("generated_reports").delete().eq("id", reportId);
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorWithdrawalService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorPortfolioService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investmentService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investmentService.ts:4:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/transactionsV2Service.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorPortalService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorPortfolioSummaryService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/fundViewService.ts:5:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/fundViewService.ts:87:    const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
+/Users/mama/indigo-yield-platform-v01/src/services/investor/withdrawalService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/withdrawalService.ts:16:import type { Database } from "@/integrations/supabase/types";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/depositService.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/depositService.ts:5:import { callRPC } from "@/lib/supabase/typedRPC";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorDataService.ts:12:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorYieldHistoryService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorPositionService.ts:7:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorPositionService.ts:192:  const { data, error } = await supabase.from("investor_positions").select("current_value");
+/Users/mama/indigo-yield-platform-v01/src/services/investor/investorYieldService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/ib/ibService.ts:6:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/notifications/withdrawalNotifications.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/notifications/withdrawalNotifications.ts:59:    const { error } = await supabase.from("notifications").insert([{
+/Users/mama/indigo-yield-platform-v01/src/services/notifications/depositNotifications.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/notifications/depositNotifications.ts:51:    const { error } = await supabase.from("notifications").insert([{
+/Users/mama/indigo-yield-platform-v01/src/services/notifications/yieldNotifications.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/notifications/yieldNotifications.ts:26:    const { error } = await supabase.from("notifications").insert([{
+/Users/mama/indigo-yield-platform-v01/src/services/notifications/yieldNotifications.ts:111:      const { error } = await supabase.from("notifications").insert(notifications);
+/Users/mama/indigo-yield-platform-v01/src/services/reports/emailReportGenerator.ts:1:import { supabase } from "@/integrations/supabase/client";
+/Users/mama/indigo-yield-platform-v01/src/services/reports/reportEngine.ts:1:import { supabase } from "@/integrations/supabase/client";
