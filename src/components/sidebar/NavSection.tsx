@@ -2,7 +2,8 @@ import { NavItem } from "@/types/navigation";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { usePrefetchOnHover } from "@/hooks/usePrefetchOnHover";
 
 type NavSectionProps = {
   title: string;
@@ -24,6 +25,7 @@ const NavSection = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [loadingItems, setLoadingItems] = useState<string[]>([]);
+  const { prefetchRoute, cancelPrefetch } = usePrefetchOnHover();
 
   // Manage sub-nav expanded states at component level (not inside map callback)
   const [expandedSubNavs, setExpandedSubNavs] = useState<Record<number, boolean>>(() => {
@@ -132,6 +134,8 @@ const NavSection = ({
               <button
                 onClick={() => handleNavigation(item.href)}
                 onKeyDown={(e) => handleKeyDown(e, item.href)}
+                onMouseEnter={() => prefetchRoute(item.href)}
+                onMouseLeave={cancelPrefetch}
                 disabled={isLoading}
                 className={cn(
                   "w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1",

@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/services/auth";
 import { useUserRole } from "@/hooks/auth";
+import { useAdminInitialPrefetch } from "@/hooks/useAdminInitialPrefetch";
 import { PageLoadingSpinner } from "@/components/ui";
 
 interface AdminRouteProps {
@@ -16,6 +17,9 @@ export function AdminRoute({ children }: AdminRouteProps) {
   const { user, loading: authLoading, isAdmin: authIsAdmin, profile } = useAuth();
   const { isAdmin: roleIsAdmin, isLoading: roleLoading } = useUserRole();
   const location = useLocation();
+
+  // Prefetch high-priority admin data after page load
+  useAdminInitialPrefetch();
 
   // Wait for both auth context AND role check to complete
   const isLoading = authLoading || roleLoading || (user && !profile);
