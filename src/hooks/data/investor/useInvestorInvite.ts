@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { inviteService } from "@/services/shared";
+import { logWarn, logError } from "@/lib/logger";
 
 interface InvestorInfo {
   id: string;
@@ -72,10 +73,10 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
         });
 
         if (emailError) {
-          console.warn("Failed to send invite email:", emailError);
+          logWarn("sendInvestorInviteEmail.apiError", { email: investor.email, error: emailError });
         }
       } catch (emailErr) {
-        console.warn("Email sending error:", emailErr);
+        logWarn("sendInvestorInviteEmail.exception", { email: investor.email, error: emailErr });
         // Don't fail the invite creation if email fails
       }
 
@@ -90,7 +91,7 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
 
       return true;
     } catch (error) {
-      console.error("Error creating invite:", error);
+      logError("createInvestorInvite", error, { investorId: investor.id, email: investor.email });
       toast({
         title: "Error",
         description: "Failed to create invitation. Please try again.",

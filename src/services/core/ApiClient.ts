@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { PostgrestError } from "@supabase/supabase-js";
+import { logError } from "@/lib/logger";
 
 export interface ApiResponse<T> {
   data: T | null;
@@ -25,13 +26,13 @@ export class ApiClient {
       const { data, error } = await operation();
 
       if (error) {
-        console.error("API Error:", error);
+        logError("ApiClient.execute", error);
         return { data: null, error, success: false };
       }
 
       return { data, error: null, success: true };
     } catch (error) {
-      console.error("Unexpected Error:", error);
+      logError("ApiClient.unexpectedError", error);
       return {
         data: null,
         error: error as Error,

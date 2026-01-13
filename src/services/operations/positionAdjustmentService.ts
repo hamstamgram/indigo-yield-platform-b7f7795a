@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toDecimal } from "@/utils/financial";
+import { logError } from "@/lib/logger";
 
 /**
  * Position Adjustment Service
@@ -38,7 +39,7 @@ export async function adjustPosition(
     p_reference_id: `adj:${fund_id}:${investor_id}:${Date.now()}`,
   });
   if (error) {
-    console.error("adjustPosition error", error);
+    logError("adjustPosition", error, { investor_id, fund_id, delta });
     return { success: false, error: error.message };
   }
   
@@ -70,7 +71,7 @@ export async function getPositionForAdjustment(investorId: string, fundId: strin
     .eq("fund_id", fundId)
     .maybeSingle();
   if (error) {
-    console.error("getPositionForAdjustment error", error);
+    logError("getPositionForAdjustment", error, { investorId, fundId });
     return null;
   }
   return data;
@@ -92,7 +93,7 @@ export async function getFundAdjustmentHistory(fundId?: string) {
   }
   const { data, error } = await query;
   if (error) {
-    console.error("getFundAdjustmentHistory error", error);
+    logError("getFundAdjustmentHistory", error, { fundId });
     return [];
   }
   return data;
@@ -109,7 +110,7 @@ export async function reconcileAllPositions(dryRun: boolean = true) {
   });
   
   if (error) {
-    console.error("reconcileAllPositions error", error);
+    logError("reconcileAllPositions", error, { dryRun });
     return { success: false, error: error.message, mismatches: [] };
   }
   
@@ -127,7 +128,7 @@ export async function recomputePosition(investorId: string, fundId: string) {
   });
   
   if (error) {
-    console.error("recomputePosition error", error);
+    logError("recomputePosition", error, { investorId, fundId });
     return { success: false, error: error.message };
   }
   

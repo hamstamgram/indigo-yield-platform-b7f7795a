@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
+import { logError } from "@/lib/logger";
 
 // ============================================================================
 // TYPE GUARDS FOR CRYSTALLIZATION RESULTS
@@ -59,13 +60,13 @@ function isFinalizeResult(result: unknown): result is FinalizeResult {
  */
 function validateCrystallizationResult(result: unknown): CrystallizationResult {
   if (!isCrystallizationResult(result)) {
-    console.error("[useYieldCrystallization] Invalid RPC response structure:", result);
+    logError("validateCrystallizationResult.invalidResponse", new Error("Invalid RPC response structure"), { result });
     throw new Error("Invalid crystallization response from server");
   }
 
   if (!result.success) {
     const errorMsg = result.error || "Crystallization failed - unknown error";
-    console.error("[useYieldCrystallization] Crystallization failed:", errorMsg);
+    logError("validateCrystallizationResult.failed", new Error(errorMsg));
     throw new Error(errorMsg);
   }
 
@@ -77,13 +78,13 @@ function validateCrystallizationResult(result: unknown): CrystallizationResult {
  */
 function validateFinalizeResult(result: unknown): FinalizeResult {
   if (!isFinalizeResult(result)) {
-    console.error("[useYieldCrystallization] Invalid finalize response structure:", result);
+    logError("validateFinalizeResult.invalidResponse", new Error("Invalid finalize response structure"), { result });
     throw new Error("Invalid finalize response from server");
   }
 
   if (!result.success) {
     const errorMsg = result.error || "Finalize failed - unknown error";
-    console.error("[useYieldCrystallization] Finalize failed:", errorMsg);
+    logError("validateFinalizeResult.failed", new Error(errorMsg));
     throw new Error(errorMsg);
   }
 
@@ -227,7 +228,7 @@ export function useCrystallizeYield() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingYieldEvents() });
     },
     onError: (error: Error) => {
-      console.error("[useCrystallizeYield] Error:", error);
+      logError("useCrystallizeYield", error);
       toast.error(error.message || "Failed to crystallize yield");
     },
   });
@@ -280,7 +281,7 @@ export function useFinalizeMonthYield() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingYieldEvents() });
     },
     onError: (error: Error) => {
-      console.error("[useFinalizeMonthYield] Error:", error);
+      logError("useFinalizeMonthYield", error);
       toast.error(error.message || "Failed to finalize yield");
     },
   });

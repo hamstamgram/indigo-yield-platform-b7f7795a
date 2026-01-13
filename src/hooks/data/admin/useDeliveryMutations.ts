@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { deliveryService } from "@/services";
 import { invalidateAfterDeliveryOp } from "@/utils/cacheInvalidation";
 import type { DeliveryMode, BatchSendResult, QueueResult } from "@/types/domains/delivery";
+import { logDebug } from "@/lib/logger";
 
 /**
  * Progress state for batch send operations
@@ -95,10 +96,10 @@ export function useDeliveryMutations(selectedPeriodId: string) {
 
       // AUTO-QUEUE: If queue is empty, automatically queue remaining statements first
       if (queuedIds.length === 0) {
-        console.log("[useDeliveryMutations] Queue empty, auto-queueing statements...");
+        logDebug("useDeliveryMutations.autoQueue", { periodId, message: "Queue empty, auto-queueing statements" });
 
         const queueResult = await deliveryService.queueDeliveries(periodId, "email");
-        console.log("[useDeliveryMutations] Auto-queue result:", queueResult);
+        logDebug("useDeliveryMutations.autoQueueResult", { periodId, queueResult });
 
         if (queueResult.queued_count === 0) {
           return {

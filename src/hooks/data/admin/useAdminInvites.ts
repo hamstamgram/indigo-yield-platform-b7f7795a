@@ -6,6 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { adminInviteService } from "@/services/admin/adminInviteService";
+import { logError } from "@/lib/logger";
 
 // Re-export type from service for consistency
 import type { AdminInvite } from "@/services/admin/adminInviteService";
@@ -68,7 +69,7 @@ export function useCreateAdminInvite() {
       });
     },
     onError: (error: Error) => {
-      console.error("Error creating invite:", error);
+      logError("createAdminInvite", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create invitation",
@@ -93,7 +94,7 @@ export function useSendAdminInvite() {
       });
     },
     onError: (error) => {
-      console.error("Error sending invite:", error);
+      logError("sendAdminInvite", error);
       toast({
         title: "Error",
         description: "Failed to send invitation email",
@@ -120,7 +121,7 @@ export function useDeleteAdminInvite() {
       });
     },
     onError: (error) => {
-      console.error("Error deleting invite:", error);
+      logError("deleteAdminInvite", error);
       toast({
         title: "Error",
         description: "Failed to delete invitation",

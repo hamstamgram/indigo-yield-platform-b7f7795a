@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks";
 import * as authService from "@/services/auth/authService";
 import * as inviteService from "@/services/auth/inviteService";
+import { logError } from "@/lib/logger";
 
 const QUERY_KEYS = {
   session: ["auth", "session"] as const,
@@ -37,7 +38,7 @@ export function useSignIn() {
       navigate(isAdmin ? "/admin" : "/dashboard", { replace: true });
     },
     onError: (error: Error) => {
-      console.error("Login error:", error);
+      logError("signIn", error);
     },
   });
 }

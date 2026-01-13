@@ -9,6 +9,7 @@ import { useAuth } from "@/services/auth";
 import { fundService, auditLogService } from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { Fund, FundStatus } from "@/types/domains/fund";
+import { logError } from "@/lib/logger";
 
 // Re-export types from canonical source
 export type { Fund, FundStatus } from "@/types/domains/fund";
@@ -105,7 +106,7 @@ export function useCreateFund() {
       });
     },
     onError: (error: Error) => {
-      console.error("Error creating fund:", error);
+      logError("createFund", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create fund",
@@ -175,7 +176,7 @@ export function useUpdateFund() {
       });
     },
     onError: (error) => {
-      console.error("Error updating fund:", error);
+      logError("updateFund", error);
       toast({
         title: "Error",
         description: "Failed to update fund",
@@ -205,7 +206,7 @@ export function useDeactivateFund() {
       });
     },
     onError: (error) => {
-      console.error("Error deactivating fund:", error);
+      logError("deactivateFund", error);
       toast({
         title: "Error",
         description: "Failed to deactivate fund",

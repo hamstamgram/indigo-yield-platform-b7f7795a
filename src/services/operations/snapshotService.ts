@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { logError } from "@/lib/logger";
 
 export interface FundPeriodSnapshot {
   id: string;
@@ -58,13 +59,13 @@ export async function generatePeriodSnapshot(
       .returns<Database["public"]["Functions"]["generate_fund_period_snapshot"]["Returns"]>();
 
     if (error) {
-      console.error("Error generating snapshot:", error);
+      logError("generatePeriodSnapshot", error, { fundId, periodId });
       return { success: false, error: error.message };
     }
 
     return { success: true, snapshotId: data };
   } catch (error) {
-    console.error("Snapshot generation failed:", error);
+    logError("generatePeriodSnapshot.exception", error, { fundId, periodId });
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -91,13 +92,13 @@ export async function lockPeriodSnapshot(
       .returns<Database["public"]["Functions"]["lock_fund_period_snapshot"]["Returns"]>();
 
     if (error) {
-      console.error("Error locking snapshot:", error);
+      logError("lockPeriodSnapshot", error, { fundId, periodId });
       return { success: false, error: error.message };
     }
 
     return { success: data === true };
   } catch (error) {
-    console.error("Snapshot lock failed:", error);
+    logError("lockPeriodSnapshot.exception", error, { fundId, periodId });
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -118,13 +119,13 @@ export async function isPeriodLocked(fundId: string, periodId: string): Promise<
       .returns<Database["public"]["Functions"]["is_period_locked"]["Returns"]>();
 
     if (error) {
-      console.error("Error checking period lock:", error);
+      logError("isPeriodLocked", error, { fundId, periodId });
       return false;
     }
 
     return data === true;
   } catch (error) {
-    console.error("Period lock check failed:", error);
+    logError("isPeriodLocked.exception", error, { fundId, periodId });
     return false;
   }
 }
@@ -146,13 +147,13 @@ export async function getPeriodOwnership(
       .returns<Database["public"]["Functions"]["get_period_ownership"]["Returns"]>();
 
     if (error) {
-      console.error("Error getting period ownership:", error);
+      logError("getPeriodOwnership", error, { fundId, periodId });
       return null;
     }
 
     return data as OwnershipData[];
   } catch (error) {
-    console.error("Get period ownership failed:", error);
+    logError("getPeriodOwnership.exception", error, { fundId, periodId });
     return null;
   }
 }
@@ -173,13 +174,13 @@ export async function getFundPeriodSnapshot(
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching snapshot:", error);
+      logError("getFundPeriodSnapshot", error, { fundId, periodId });
       return null;
     }
 
     return data as FundPeriodSnapshot | null;
   } catch (error) {
-    console.error("Fetch snapshot failed:", error);
+    logError("getFundPeriodSnapshot.exception", error, { fundId, periodId });
     return null;
   }
 }
@@ -205,13 +206,13 @@ export async function getInvestorPeriodSnapshots(
       .order("ownership_pct", { ascending: false });
 
     if (error) {
-      console.error("Error fetching investor snapshots:", error);
+      logError("getInvestorPeriodSnapshots", error, { fundId, periodId });
       return [];
     }
 
     return (data || []) as InvestorPeriodSnapshot[];
   } catch (error) {
-    console.error("Fetch investor snapshots failed:", error);
+    logError("getInvestorPeriodSnapshots.exception", error, { fundId, periodId });
     return [];
   }
 }
@@ -250,7 +251,7 @@ export async function ensureSnapshotExists(
       snapshotId: result.snapshotId,
     };
   } catch (error) {
-    console.error("Ensure snapshot exists failed:", error);
+    logError("ensureSnapshotExists.exception", error, { fundId, periodId });
     return {
       exists: false,
       isLocked: false,
@@ -271,13 +272,13 @@ export async function getLockedPeriods(fundId: string): Promise<string[]> {
       .eq("is_locked", true);
 
     if (error) {
-      console.error("Error fetching locked periods:", error);
+      logError("getLockedPeriods", error, { fundId });
       return [];
     }
 
   return (data || []).map((r) => r.period_id);
   } catch (error) {
-    console.error("Fetch locked periods failed:", error);
+    logError("getLockedPeriods.exception", error, { fundId });
     return [];
   }
 }
@@ -303,13 +304,13 @@ export async function unlockPeriodSnapshot(
       .returns<Database["public"]["Functions"]["unlock_fund_period_snapshot"]["Returns"]>();
 
     if (error) {
-      console.error("Error unlocking snapshot:", error);
+      logError("unlockPeriodSnapshot", error, { fundId, periodId });
       return { success: false, error: error.message };
     }
 
     return { success: data === true };
   } catch (error) {
-    console.error("Snapshot unlock failed:", error);
+    logError("unlockPeriodSnapshot.exception", error, { fundId, periodId });
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

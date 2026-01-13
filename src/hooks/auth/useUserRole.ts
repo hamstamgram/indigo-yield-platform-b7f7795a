@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/services/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { logError } from "@/lib/logger";
 
 export type UserRole = "admin" | "ib" | "super_admin" | "investor";
 
@@ -44,7 +45,7 @@ export function useUserRole(): UseUserRoleResult {
       if (error) {
         // Silently return empty if table doesn't exist
         if (error.code === "42P01") return []; // Table not found
-        console.error("Error fetching user roles:", error);
+        logError("fetchUserRoles", error, { userId: user.id });
         return [];
       }
 

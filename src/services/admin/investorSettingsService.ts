@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 // =====================================================
 // TYPES
@@ -49,7 +50,7 @@ export async function getInvestorProfileForSettings(
   }
 
   if (error) {
-    console.error("Error loading investor profile:", error);
+    logError("getInvestorProfileForSettings", error, { investorId });
     throw error;
   }
 
@@ -75,7 +76,7 @@ export async function deleteInvestorProfile(investorId: string): Promise<void> {
     .eq("id", investorId);
 
   if (error) {
-    console.error("Error deleting investor:", error);
+    logError("deleteInvestorProfile", error, { investorId });
     throw error;
   }
 }
@@ -95,7 +96,7 @@ export async function getInvestorReportPeriods(
     .limit(6);
 
   if (periodsError) {
-    console.error("Error fetching statement periods:", periodsError);
+    logError("getInvestorReportPeriods.periods", periodsError, { investorId });
     throw periodsError;
   }
 
@@ -112,7 +113,7 @@ export async function getInvestorReportPeriods(
     .in("period_id", periodIds);
 
   if (perfError) {
-    console.error("Error fetching investor performance:", perfError);
+    logError("getInvestorReportPeriods.performance", perfError, { investorId });
     throw perfError;
   }
 

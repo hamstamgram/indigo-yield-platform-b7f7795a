@@ -6,6 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 
 export interface UserProfile {
   id: string;
@@ -145,7 +146,7 @@ export function useToggleAdminStatus() {
       });
     },
     onError: (error) => {
-      console.error("Error updating admin status:", error);
+      logError("toggleAdminStatus", error);
       toast({
         title: "Error",
         description: "Failed to update admin status",
@@ -189,7 +190,7 @@ export function useUpdateProfile() {
       });
     },
     onError: (error) => {
-      console.error("Error updating profile:", error);
+      logError("updateProfile", error);
       toast({
         title: "Error",
         description: "Failed to update profile",
