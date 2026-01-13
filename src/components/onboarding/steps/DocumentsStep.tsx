@@ -5,6 +5,7 @@ import {
   Alert, AlertDescription,
 } from "@/components/ui";
 import { FileText, Download, CheckCircle, AlertTriangle, ExternalLink } from "lucide-react";
+import { logInfo } from "@/lib/logger";
 import type { OnboardingData } from "@/types/domains";
 
 interface DocumentsStepProps {
@@ -96,7 +97,7 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ data, onUpdate, onComplet
   const handleDownload = (doc: (typeof REQUIRED_DOCUMENTS)[0]) => {
     // In a real implementation, this would fetch a signed URL from the backend
     // and trigger a secure download
-    console.log(`Downloading document: ${doc.title}`);
+    logInfo("DocumentsStep.download", { documentTitle: doc.title, documentId: doc.id });
 
     // For demo purposes, we'll simulate the download
     const link = document.createElement("a");

@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { GeneratedReport, ReportType, ReportStatus } from "@/types/domains";
+import { logError } from "@/lib/logger";
 
 export const ReportHistory: React.FC = () => {
   const [reports, setReports] = useState<GeneratedReport[]>([]);
@@ -54,7 +55,7 @@ export const ReportHistory: React.FC = () => {
       const data = await ReportsApi.getUserReports(filters);
       setReports(data);
     } catch (error) {
-      console.error("Failed to load reports:", error);
+      logError("ReportHistory.loadReports", error, { filterStatus, filterType });
       toast.error("Failed to load reports");
     } finally {
       setLoading(false);
@@ -76,7 +77,7 @@ export const ReportHistory: React.FC = () => {
         throw new Error(result.error || "Download failed");
       }
     } catch (error) {
-      console.error("Download failed:", error);
+      logError("ReportHistory.download", error, { reportId });
       toast.error(error instanceof Error ? error.message : "Download failed");
     } finally {
       setDownloadingId(null);
@@ -101,7 +102,7 @@ export const ReportHistory: React.FC = () => {
         throw new Error(result.error || "Delete failed");
       }
     } catch (error) {
-      console.error("Delete failed:", error);
+      logError("ReportHistory.delete", error, { reportId: pendingDeleteId });
       toast.error(error instanceof Error ? error.message : "Delete failed");
     } finally {
       setDeleteDialogOpen(false);

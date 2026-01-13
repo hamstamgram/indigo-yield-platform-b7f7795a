@@ -14,6 +14,7 @@ import {
 import { withdrawalService } from "@/services";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { logError } from "@/lib/logger";
 
 interface RejectWithdrawalDialogProps {
   open: boolean;
@@ -47,7 +48,7 @@ export function RejectWithdrawalDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error rejecting withdrawal:", error);
+      logError("RejectWithdrawalDialog.reject", error, { withdrawalId: withdrawal.id });
       const message = error instanceof Error ? error.message : "Failed to reject withdrawal";
       toast.error(message);
     } finally {

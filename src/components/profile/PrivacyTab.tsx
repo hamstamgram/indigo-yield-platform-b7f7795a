@@ -9,6 +9,7 @@ import {
 import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import { investorDataExportService } from "@/services/shared";
+import { logError } from "@/lib/logger";
 
 export default function PrivacyTab() {
   const { user } = useAuth();
@@ -34,7 +35,7 @@ export default function PrivacyTab() {
         description: "Your data has been exported successfully",
       });
     } catch (error) {
-      console.error("Failed to export data:", error);
+      logError("PrivacyTab.exportData", error, { userId: user.id });
       toast({
         title: "Error",
         description: "Failed to export your data",
@@ -63,7 +64,7 @@ export default function PrivacyTab() {
         navigate("/");
       }, 2000);
     } catch (error) {
-      console.error("Failed to delete account:", error);
+      logError("PrivacyTab.deleteAccount", error, { userId: user.id });
       toast({
         title: "Error",
         description: "Failed to process account deletion request",

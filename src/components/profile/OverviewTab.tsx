@@ -7,6 +7,7 @@ import {
 } from "@/components/ui";
 import { useAuth } from "@/services/auth";
 import { profileService } from "@/services/shared";
+import { logError } from "@/lib/logger";
 
 interface ProfileData {
   firstName?: string;
@@ -75,7 +76,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
         });
       }
     } catch (error) {
-      console.error("Failed to load profile data:", error);
+      logError("OverviewTab.loadProfileData", error, { userId: user.id });
     } finally {
       setLoading(false);
     }
@@ -96,7 +97,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
         referralsCount: 0,
       });
     } catch (error) {
-      console.error("Failed to load account stats:", error);
+      logError("OverviewTab.loadAccountStats", error, { userId: user.id });
     }
   };
 
