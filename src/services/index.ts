@@ -88,10 +88,10 @@ export type {
   UserSettings,
   InvestorProfile,
   MonthlyStatement,
-  InvestorPosition,
   InvestorPositionWithFund,
-  Fund,
 } from "./investor";
+// Note: Fund should be imported from @/types/domains/fund
+// Note: InvestorPosition should be imported from @/types/domains/investor
 
 // ============================================================================
 // ADMIN SERVICES

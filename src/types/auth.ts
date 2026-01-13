@@ -1,3 +1,5 @@
+import { Session } from "@supabase/supabase-js";
+
 export type Role = "admin" | "investor";
 
 export interface User {
@@ -12,5 +14,5 @@ export interface AuthContextType {
   isAdmin: boolean;
   isInvestor: boolean;
   loading: boolean;
-  session: any; // Supabase session
+  session: Session | null;
 }

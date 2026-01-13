@@ -82,8 +82,8 @@ export interface RoutingSummary {
 // Import FundRef from canonical source
 import type { FundRef } from "@/types/domains/fund";
 
-// Re-export for backward compatibility
-export type { FundRef as Fund } from "@/types/domains/fund";
+// Note: Fund should be imported from @/types/domains/fund
+// Using FundRef for backward compatibility in this service
 
 export interface FeesOverviewData {
   fees: FeeRecord[];

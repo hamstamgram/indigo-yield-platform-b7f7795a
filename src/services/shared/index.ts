@@ -14,7 +14,8 @@ export { assetService } from "./assetService";
 
 // Fund management (delegates to admin/fundService)
 export { fundService } from "./fundService";
-export type { Fund, FundRef, FundStatus, FundKPI } from "./fundService";
+// Note: Fund, FundRef, FundStatus should be imported from @/types/domains/fund
+// Note: FundKPI, DailyNav should be imported from @/services/admin/fundService
 
 // Performance services
 export * from "./performanceService";

@@ -5,7 +5,8 @@ import {
 } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks";
-import { addFundToInvestor, getAvailableFundsForInvestor, type Fund } from "@/services";
+import { addFundToInvestor, getAvailableFundsForInvestor } from "@/services";
+import type { Fund } from "@/types/domains/fund";
 import { logError } from "@/lib/logger";
 
 interface FundAssetDropdownProps {

@@ -95,7 +95,7 @@ export interface Report {
   format: ReportFormat;
   status: ReportStatus;
   url?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   user_id: string;
 }
 
@@ -289,7 +289,11 @@ export interface ReportData {
   performance?: {
     periods: PerformancePeriod[];
   };
-  fees?: any[];
+  fees?: Array<{
+    type: string;
+    amount: number;
+    description?: string;
+  }>;
 }
 
 // ============================================================================

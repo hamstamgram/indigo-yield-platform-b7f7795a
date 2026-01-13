@@ -12,6 +12,9 @@ import { Database } from "@/integrations/supabase/types";
 export type TransactionType = Database["public"]["Enums"]["tx_type"];
 type AssetCode = Database["public"]["Enums"]["asset_code"];
 
+/** Database row type for transactions_v2 */
+type DbTransaction = Database["public"]["Tables"]["transactions_v2"]["Row"];
+
 /**
  * Core transaction type - maps to transactions_v2 table
  * This is the canonical type for transaction data
@@ -213,17 +216,31 @@ export interface CreateTransactionUIParams {
 }
 
 /**
+ * Partial database transaction type for mapping flexibility
+ * Supports both direct DB rows and legacy field names
+ */
+type DbTransactionInput = Partial<DbTransaction> & {
+  id: string;
+  created_at: string;
+  // Legacy field aliases
+  user_id?: string;
+  asset_code?: string;
+  note?: string;
+  transaction_hash?: string;
+};
+
+/**
  * Convert database transaction to application transaction
  * Handles different field naming conventions
  * Preserves string representation for financial precision
  */
-export function mapDbTransactionToTransaction(dbTx: any): Transaction {
+export function mapDbTransactionToTransaction(dbTx: DbTransactionInput): Transaction {
   return {
     id: dbTx.id,
-    investor_id: dbTx.investor_id || dbTx.user_id,
+    investor_id: dbTx.investor_id || dbTx.user_id || "",
     fund_id: dbTx.fund_id || null,
     type: dbTx.type as TransactionType,
-    asset: dbTx.asset || dbTx.asset_code,
+    asset: dbTx.asset || dbTx.asset_code || "",
     amount: String(dbTx.amount ?? "0"),
     tx_date: dbTx.tx_date || dbTx.created_at,
     notes: dbTx.notes || dbTx.note || null,
