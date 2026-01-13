@@ -43,6 +43,7 @@ export const deliveryService = {
    * Fetch all statement periods with their statement counts
    */
   async fetchPeriodsWithCounts(): Promise<PeriodWithCount[]> {
+    // Single query with aggregated count using RPC or manual grouping
     const { data: periodsData, error: periodsError } = await supabase
       .from("statement_periods")
       .select("id, period_name, year, month")
@@ -51,18 +52,29 @@ export const deliveryService = {
 
     if (periodsError) throw periodsError;
 
-    // Get statement counts for each period
-    const periodsWithStatementCounts = await Promise.all(
-      (periodsData || []).map(async (period: Period) => {
-        const { count } = await supabase
-          .from("generated_statements")
-          .select("id", { count: "exact", head: true })
-          .eq("period_id", period.id);
-        return { ...period, statementCount: count || 0 };
-      })
-    );
+    if (!periodsData || periodsData.length === 0) {
+      return [];
+    }
 
-    return periodsWithStatementCounts;
+    // Batch fetch all statement counts in a single query
+    const periodIds = periodsData.map((p) => p.id);
+    const { data: statementCounts, error: countError } = await supabase
+      .from("generated_statements")
+      .select("period_id")
+      .in("period_id", periodIds);
+
+    if (countError) throw countError;
+
+    // Build count map
+    const countMap = new Map<string, number>();
+    (statementCounts || []).forEach((s) => {
+      countMap.set(s.period_id, (countMap.get(s.period_id) || 0) + 1);
+    });
+
+    return periodsData.map((period: Period) => ({
+      ...period,
+      statementCount: countMap.get(period.id) || 0,
+    }));
   },
 
   /**

@@ -175,6 +175,7 @@ export async function saveDraftAUMEntry(
 
 /**
  * Get active funds with AUM and record counts
+ * Optimized: batch queries instead of N+1
  */
 export async function getActiveFundsWithAUM(): Promise<
   Array<{
@@ -194,30 +195,47 @@ export async function getActiveFundsWithAUM(): Promise<
     .order("code");
 
   if (error) throw new Error(`Failed to fetch funds: ${error.message}`);
+  if (!fundsData || fundsData.length === 0) return [];
 
-  const fundsWithAUM = await Promise.all(
-    (fundsData || []).map(async (fund) => {
-      const { data: positions } = await supabase
-        .from("investor_positions")
-        .select("current_value, investor_id")
-        .eq("fund_id", fund.id);
+  const fundIds = fundsData.map((f) => f.id);
 
-      const { count: aumCount } = await supabase
-        .from("fund_daily_aum")
-        .select("*", { count: "exact", head: true })
-        .eq("fund_id", fund.id);
+  // Batch fetch all positions for all funds in a single query
+  const { data: allPositions } = await supabase
+    .from("investor_positions")
+    .select("fund_id, current_value, investor_id")
+    .in("fund_id", fundIds);
 
-      const total_aum = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-      const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
+  // Batch fetch all AUM record counts
+  const { data: aumRecords } = await supabase
+    .from("fund_daily_aum")
+    .select("fund_id")
+    .in("fund_id", fundIds);
 
-      return {
-        ...fund,
-        total_aum,
-        investor_count: uniqueInvestors.size,
-        aum_record_count: aumCount || 0,
-      };
-    })
-  );
+  // Build lookup maps
+  const positionsByFund = new Map<string, typeof allPositions>();
+  (allPositions || []).forEach((p) => {
+    const existing = positionsByFund.get(p.fund_id) || [];
+    existing.push(p);
+    positionsByFund.set(p.fund_id, existing);
+  });
+
+  const aumCountByFund = new Map<string, number>();
+  (aumRecords || []).forEach((r) => {
+    aumCountByFund.set(r.fund_id, (aumCountByFund.get(r.fund_id) || 0) + 1);
+  });
+
+  const fundsWithAUM = fundsData.map((fund) => {
+    const positions = positionsByFund.get(fund.id) || [];
+    const total_aum = positions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+    const uniqueInvestors = new Set(positions.map((p) => p.investor_id).filter(Boolean));
+
+    return {
+      ...fund,
+      total_aum,
+      investor_count: uniqueInvestors.size,
+      aum_record_count: aumCountByFund.get(fund.id) || 0,
+    };
+  });
 
   return fundsWithAUM.sort((a, b) => b.total_aum - a.total_aum);
 }

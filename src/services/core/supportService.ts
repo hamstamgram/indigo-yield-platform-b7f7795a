@@ -61,36 +61,38 @@ export const supportService = {
   },
 
   async listTickets(): Promise<{ tickets: SupportTicket[]; total: number }> {
+    // Use JOIN to fetch profiles in a single query (fixes N+1)
     const { data, error, count } = await supabase
       .from("support_tickets")
-      .select("*", { count: "exact" })
+      .select(`
+        *,
+        profiles!support_tickets_user_id_fkey (
+          email,
+          first_name,
+          last_name
+        )
+      `, { count: "exact" })
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    const enrichedData = await Promise.all(
-      (data || []).map(async (ticket: any) => {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("email, first_name, last_name")
-          .eq("id", ticket.user_id)
-          .maybeSingle();
+    const enrichedData = (data || []).map((ticket: any) => {
+      const profile = ticket.profiles;
+      // Extract description from messages_jsonb
+      const messages = Array.isArray(ticket.messages_jsonb) ? ticket.messages_jsonb : [];
+      const firstMessage = messages[0];
+      const lastMessage = messages[messages.length - 1];
 
-        // Extract description from messages_jsonb
-        const messages = Array.isArray(ticket.messages_jsonb) ? ticket.messages_jsonb : [];
-        const firstMessage = messages[0];
-        const lastMessage = messages[messages.length - 1];
-
-        return {
-          ...ticket,
-          description: firstMessage?.text || "",
-          resolution_notes: lastMessage?.sender === "admin" ? lastMessage.text : undefined,
-          user_email: profile?.email,
-          user_name:
-            `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email,
-        };
-      })
-    );
+      return {
+        ...ticket,
+        profiles: undefined, // Remove nested object
+        description: firstMessage?.text || "",
+        resolution_notes: lastMessage?.sender === "admin" ? lastMessage.text : undefined,
+        user_email: profile?.email,
+        user_name:
+          `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email,
+      };
+    });
 
     return { tickets: enrichedData, total: count || 0 };
   },
