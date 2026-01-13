@@ -6,7 +6,7 @@ import {
   SystemStatus, 
   PendingItemsBreakdown 
 } from "@/components/admin";
-import { RecentActivityFeed, type ActivityItem } from "@/components/admin/operations/RecentActivityFeed";
+import { OperationsActivityFeed, type ActivityItem } from "@/components/admin/operations/OperationsActivityFeed";
 import type { QuickLink } from "@/components/admin/operations/QuickLinksGrid";
 import {
   TrendingUp,
@@ -245,7 +245,7 @@ function AdminOperationsHubContent() {
           <SystemStatus systems={systemStatus} />
 
           {/* Recent Activity */}
-          <RecentActivityFeed activities={recentActivities} maxHeight="500px" />
+          <OperationsActivityFeed activities={recentActivities} maxHeight="500px" />
         </div>
       </div>
     </div>

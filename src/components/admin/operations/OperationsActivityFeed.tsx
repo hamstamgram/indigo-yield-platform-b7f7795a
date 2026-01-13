@@ -21,7 +21,7 @@ interface RecentActivityFeedProps {
   maxHeight?: string;
 }
 
-export function RecentActivityFeed({ activities, maxHeight = "400px" }: RecentActivityFeedProps) {
+export function OperationsActivityFeed({ activities, maxHeight = "400px" }: RecentActivityFeedProps) {
   const getStatusVariant = (status: string) => {
     switch (status) {
       case "success":
