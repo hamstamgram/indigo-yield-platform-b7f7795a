@@ -14,6 +14,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
+import { logError } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
 import { format } from "date-fns";
@@ -102,7 +103,7 @@ export function EditFundDialog({
       setFundUsageInfo(usage);
       setTickerChangeBlocked(usage.positions > 0 || usage.transactions > 0);
     } catch (error) {
-      console.error("Error checking fund usage:", error);
+      logError("EditFundDialog.checkFundUsage", error, { fundId });
       setTickerChangeBlocked(true);
     }
   };
@@ -177,7 +178,7 @@ export function EditFundDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error updating fund:", error);
+      logError("EditFundDialog.updateFund", error, { fundId: fund.id });
       toast.error(error.message || "Failed to update fund");
     } finally {
       setLoading(false);

@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback } from "react";
+import { logWarn, logError } from "@/lib/logger";
 
 interface ReCaptchaProps {
   onVerify: (token: string) => void;
@@ -22,7 +23,7 @@ export const ReCaptchaWrapper: React.FC<ReCaptchaProps> = ({
 }) => {
   // Don't render if no site key is configured or package not installed
   if (!RECAPTCHA_SITE_KEY) {
-    console.warn("ReCAPTCHA not available or site key not configured");
+    logWarn("ReCaptcha.siteKeyNotConfigured", { message: "ReCAPTCHA not available or site key not configured" });
     return null;
   }
 
@@ -98,7 +99,7 @@ export async function verifyReCaptchaToken(token: string): Promise<boolean> {
     const data = await response.json();
     return data.success === true;
   } catch (error) {
-    console.error("ReCAPTCHA verification error:", error);
+    logError("ReCaptcha.verifyToken", error);
     return false;
   }
 }

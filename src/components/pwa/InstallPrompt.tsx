@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Download } from "lucide-react";
+import { logInfo, logError } from "@/lib/logger";
 
 // Use existing BeforeInstallPromptEvent from lib.dom if available, otherwise define
 type BeforeInstallPromptEvent = Event & {
@@ -70,12 +71,12 @@ export function InstallPrompt() {
       const { outcome } = await deferredPrompt.userChoice;
 
       if (outcome === "accepted") {
-        console.log("PWA installed");
+        logInfo("InstallPrompt.pwaInstalled", { outcome });
       } else {
-        console.log("PWA installation dismissed");
+        logInfo("InstallPrompt.pwaInstallationDismissed", { outcome });
       }
     } catch (error) {
-      console.error("Installation failed:", error);
+      logError("InstallPrompt.handleInstall", error);
     } finally {
       setDeferredPrompt(null);
       setShowPrompt(false);

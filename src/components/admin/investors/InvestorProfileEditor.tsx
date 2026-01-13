@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/hooks";
 import { invokeFunction } from "@/lib/supabase/functions";
 import { User, Mail, Phone, Calendar, Activity, Pencil, X, Save, Loader2 } from "lucide-react";
+import { logError } from "@/lib/logger";
 
 interface InvestorData {
   id: string;
@@ -82,7 +83,7 @@ export function InvestorProfileEditor({ investor, onUpdate }: InvestorProfileEdi
       setIsEditing(false);
       onUpdate();
     } catch (error) {
-      console.error("Error updating profile:", error);
+      logError("InvestorProfileEditor.save", error, { investorId: investor.id });
       toast({
         title: "Update Failed",
         description: error instanceof Error ? error.message : "Failed to update profile",

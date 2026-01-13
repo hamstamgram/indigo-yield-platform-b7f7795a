@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, Database, Loader2, CheckCircle, XCircle, Archive } from "lucide-react";
+import { logError } from "@/lib/logger";
 import {
   Button,
   Input,
@@ -66,7 +67,7 @@ export function PositionResetDialog() {
       setPreview(previewData);
       setStep("preview");
     } catch (err) {
-      console.error("Preview error:", err);
+      logError("PositionResetDialog.fetchPreview", err);
       setError(err instanceof Error ? err.message : "Failed to fetch preview");
       setStep("error");
     } finally {
@@ -90,7 +91,7 @@ export function PositionResetDialog() {
       setStep("complete");
       toast.success("All positions have been reset to zero");
     } catch (err) {
-      console.error("Reset error:", err);
+      logError("PositionResetDialog.executeReset", err);
       setError(err instanceof Error ? err.message : "Reset failed");
       setStep("error");
       toast.error("Reset failed: " + (err instanceof Error ? err.message : "Unknown error"));

@@ -5,6 +5,7 @@ import {
   Card, CardContent, CardHeader, CardTitle,
 } from "@/components/ui";
 import { AlertCircle, Send } from "lucide-react";
+import { logError } from "@/lib/logger";
 
 export interface TicketFormData {
   subject: string;
@@ -77,7 +78,7 @@ export default function TicketForm({ onSubmit, loading = false, className = "" }
       });
       setErrors({});
     } catch (error) {
-      console.error("Failed to submit ticket:", error);
+      logError("TicketForm.submit", error);
     }
   };
 

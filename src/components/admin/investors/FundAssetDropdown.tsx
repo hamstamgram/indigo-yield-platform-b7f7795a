@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -6,7 +6,7 @@ import {
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks";
 import { addFundToInvestor, getAvailableFundsForInvestor, type Fund } from "@/services";
-import { useEffect } from "react";
+import { logError } from "@/lib/logger";
 
 interface FundAssetDropdownProps {
   investorId: string;
@@ -27,7 +27,7 @@ const FundAssetDropdown = ({ investorId, onFundAdded }: FundAssetDropdownProps) 
       const funds = await getAvailableFundsForInvestor(investorId);
       setAvailableFunds(funds);
     } catch (error) {
-      console.error("Error fetching available funds:", error);
+      logError("FundAssetDropdown.fetchAvailableFunds", error, { investorId });
     }
   };
 
@@ -51,7 +51,7 @@ const FundAssetDropdown = ({ investorId, onFundAdded }: FundAssetDropdownProps) 
       await fetchAvailableFunds();
       onFundAdded();
     } catch (error: any) {
-      console.error("Error in handleAddFund:", error);
+      logError("FundAssetDropdown.handleAddFund", error, { investorId, fundId });
 
       toast({
         title: "❌ Operation Failed",

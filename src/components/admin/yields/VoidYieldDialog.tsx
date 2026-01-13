@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { AlertTriangle, Loader2, Trash2, Users, FileX } from "lucide-react";
+import { logError } from "@/lib/logger";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -57,7 +58,7 @@ export function VoidYieldDialog({
       getYieldVoidImpact(record.id)
         .then(setImpact)
         .catch((err) => {
-          console.error("Failed to fetch yield void impact:", err);
+          logError("VoidYieldDialog.getYieldVoidImpact", err, { recordId: record.id });
           setImpact(null);
         })
         .finally(() => setLoadingImpact(false));
