@@ -266,7 +266,7 @@ export async function getYieldVoidImpact(recordId: string): Promise<{
   affected_investor_count?: number;
 }> {
   const { data, error } = await (supabase.rpc as any)("get_void_yield_impact", {
-    p_record_id: recordId,
+    p_distribution_id: recordId,
   });
 
   if (error) {

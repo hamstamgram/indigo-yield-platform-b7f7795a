@@ -3934,6 +3934,134 @@ export type Database = {
           },
         ]
       }
+      position_reconciliation_log: {
+        Row: {
+          action_taken: string
+          created_at: string
+          discrepancy: number
+          fund_id: string
+          id: string
+          investor_id: string
+          ledger_value: number
+          position_value: number
+          reconciled_by: string | null
+        }
+        Insert: {
+          action_taken: string
+          created_at?: string
+          discrepancy: number
+          fund_id: string
+          id?: string
+          investor_id: string
+          ledger_value: number
+          position_value: number
+          reconciled_by?: string | null
+        }
+        Update: {
+          action_taken?: string
+          created_at?: string
+          discrepancy?: number
+          fund_id?: string
+          id?: string
+          investor_id?: string
+          ledger_value?: number
+          position_value?: number
+          reconciled_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "mv_fund_summary"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_status"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       position_reset_log: {
         Row: {
           admin_user_id: string
