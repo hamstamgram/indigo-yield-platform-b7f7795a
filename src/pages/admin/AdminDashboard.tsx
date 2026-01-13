@@ -4,7 +4,7 @@
  * Enhanced with CTO/CFO Risk Monitoring (2026-01-12)
  */
 
-import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp, Shield } from "lucide-react";
+import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp, Shield, RefreshCw } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,19 +13,33 @@ import {
   TabsList,
   TabsTrigger,
   QueryErrorBoundary,
+  Button,
 } from "@/components/ui";
 import { AdminGuard, FinancialSnapshot, TwoFactorWarningBanner } from "@/components/admin";
 import {
-  RiskAlertsPanel,
   LiquidityRiskPanel,
   ConcentrationRiskPanel,
   PlatformMetricsPanel,
 } from "@/components/admin/dashboard";
 import { useAdminStats } from "@/hooks";
 import { PageHeader } from "@/components/layout";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 function AdminDashboardContent() {
   const { stats, loading } = useAdminStats();
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshRiskData = async () => {
+    setIsRefreshing(true);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["liquidity-risk"] }),
+      queryClient.invalidateQueries({ queryKey: ["concentration-risk"] }),
+      queryClient.invalidateQueries({ queryKey: ["platform-metrics"] }),
+    ]);
+    setIsRefreshing(false);
+  };
 
   if (loading) {
     return (
@@ -127,23 +141,28 @@ function AdminDashboardContent() {
 
       {/* CTO/CFO Risk Management Section */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-lg font-semibold">Risk Management</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold">Risk Management</h2>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshRiskData}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
         </div>
 
-        <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="alerts">Risk Alerts</TabsTrigger>
+        <Tabs defaultValue="liquidity" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="liquidity">Liquidity</TabsTrigger>
             <TabsTrigger value="concentration">Concentration</TabsTrigger>
             <TabsTrigger value="metrics">Platform Metrics</TabsTrigger>
           </TabsList>
-          <TabsContent value="alerts" className="mt-4">
-            <QueryErrorBoundary>
-              <RiskAlertsPanel maxAlerts={10} />
-            </QueryErrorBoundary>
-          </TabsContent>
           <TabsContent value="liquidity" className="mt-4">
             <QueryErrorBoundary>
               <LiquidityRiskPanel />
