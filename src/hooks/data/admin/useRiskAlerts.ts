@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { STALE_TIME, REFETCH_INTERVAL, QUERY_DEFAULTS } from "@/constants/queryConfig";
+import { REFETCH_INTERVAL, QUERY_DEFAULTS } from "@/constants/queryConfig";
 
 export interface RiskAlert {
   id: string;
@@ -83,7 +83,7 @@ export function useRiskAlerts(unresolvedOnly = true) {
   return useQuery({
     queryKey: ["risk-alerts", unresolvedOnly],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("risk_alerts")
         .select(
           `
@@ -101,11 +101,11 @@ export function useRiskAlerts(unresolvedOnly = true) {
       const { data, error } = await query.limit(100);
       if (error) throw error;
 
-      return (data || []).map((alert: Record<string, unknown>) => ({
+      return (data || []).map((alert: any) => ({
         ...alert,
-        fund_code: (alert.funds as Record<string, string> | null)?.code,
+        fund_code: alert.funds?.code,
         investor_name: alert.profiles
-          ? `${(alert.profiles as Record<string, string>).first_name || ""} ${(alert.profiles as Record<string, string>).last_name || ""}`.trim()
+          ? `${alert.profiles.first_name || ""} ${alert.profiles.last_name || ""}`.trim()
           : null,
       })) as RiskAlert[];
     },
@@ -119,7 +119,7 @@ export function useLiquidityRisk() {
   return useQuery({
     queryKey: ["liquidity-risk"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("v_liquidity_risk").select("*");
+      const { data, error } = await (supabase as any).from("v_liquidity_risk").select("*");
       if (error) throw error;
       return data as LiquidityRisk[];
     },
@@ -133,7 +133,7 @@ export function useConcentrationRisk() {
   return useQuery({
     queryKey: ["concentration-risk"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("v_concentration_risk")
         .select("*")
         .in("concentration_level", ["MEDIUM", "HIGH", "CRITICAL"])
@@ -152,7 +152,7 @@ export function usePlatformMetrics() {
   return useQuery({
     queryKey: ["platform-metrics"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mv_daily_platform_metrics").select("*").single();
+      const { data, error } = await (supabase as any).from("mv_daily_platform_metrics").select("*").single();
       if (error) throw error;
       return data as PlatformMetrics;
     },
@@ -166,7 +166,7 @@ export function useFundSummaries() {
   return useQuery({
     queryKey: ["fund-summaries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("mv_fund_summary")
         .select("*")
         .order("investor_aum", { ascending: false });
@@ -184,7 +184,7 @@ export function useAcknowledgeAlert() {
 
   return useMutation({
     mutationFn: async (alertId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("risk_alerts")
         .update({
           acknowledged: true,
@@ -205,7 +205,7 @@ export function useResolveAlert() {
 
   return useMutation({
     mutationFn: async ({ alertId, notes }: { alertId: string; notes: string }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("risk_alerts")
         .update({
           resolved: true,
@@ -226,11 +226,11 @@ export function useRefreshMaterializedViews() {
   return useMutation({
     mutationFn: async () => {
       // Refresh fund summary
-      await supabase.rpc("refresh_materialized_view_concurrently", {
+      await (supabase as any).rpc("refresh_materialized_view_concurrently", {
         view_name: "mv_fund_summary",
       });
       // Refresh platform metrics
-      await supabase.rpc("refresh_materialized_view_concurrently", {
+      await (supabase as any).rpc("refresh_materialized_view_concurrently", {
         view_name: "mv_daily_platform_metrics",
       });
     },

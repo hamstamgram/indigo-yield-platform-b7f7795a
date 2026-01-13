@@ -71,7 +71,7 @@ export function useInvestorOverview(investorId: string) {
         .maybeSingle();
 
       // Fetch IB parent info
-      const { data: profile } = await supabase
+      const { data: profile } = await (supabase as any)
         .from("profiles")
         .select("ib_parent_id")
         .eq("id", investorId)

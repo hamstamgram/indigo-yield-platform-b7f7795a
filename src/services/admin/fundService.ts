@@ -46,9 +46,7 @@ export interface FundKPI {
 export async function listFunds(): Promise<Fund[]> {
   const { data, error } = await supabase
     .from("funds")
-    .select(
-      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url, lock_period_days"
-    )
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -61,9 +59,7 @@ export async function listFunds(): Promise<Fund[]> {
 export async function getFund(fundId: string): Promise<Fund> {
   const { data, error } = await supabase
     .from("funds")
-    .select(
-      "id, code, name, asset, fund_class, strategy, inception_date, status, mgmt_fee_bps, perf_fee_bps, high_water_mark, min_investment, created_at, updated_at, logo_url, lock_period_days"
-    )
+    .select("*")
     .eq("id", fundId)
     .maybeSingle();
 
@@ -78,25 +74,8 @@ export async function getFund(fundId: string): Promise<Fund> {
 export async function createFund(
   fund: Omit<Fund, "id" | "created_at" | "updated_at">
 ): Promise<Fund> {
-  const fundWithDefaults = {
-    ...fund,
-    code: fund.code,
-    name: fund.name,
-    asset: fund.asset || "BTC",
-    fund_class: fund.fund_class || "default",
-    status: fund.status,
-    inception_date: fund.inception_date,
-    mgmt_fee_bps: fund.mgmt_fee_bps ? Number(fund.mgmt_fee_bps) : null,
-    perf_fee_bps: fund.perf_fee_bps ? Number(fund.perf_fee_bps) : null,
-    min_investment: fund.min_investment ? Number(fund.min_investment) : null,
-    high_water_mark: fund.high_water_mark ? Number(fund.high_water_mark) : null,
-    lock_period_days: fund.lock_period_days,
-    logo_url: fund.logo_url,
-    strategy: fund.strategy,
-  };
-
   // Convert to DB format (string financial fields -> numbers)
-  const dbRecord = mapFundToDb(fundWithDefaults);
+  const dbRecord = mapFundToDb(fund);
 
   const { data, error } = await supabase
     .from("funds")

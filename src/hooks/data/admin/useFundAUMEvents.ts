@@ -40,7 +40,7 @@ export function useFundAUMEvents({ fundId, dateRange, includeVoided = false }: U
     queryFn: async (): Promise<FundAUMEvent[]> => {
       if (!fundId) return [];
 
-      let query = supabase
+      let query = (supabase as any)
         .from("fund_aum_events")
         .select("*")
         .eq("fund_id", fundId)
