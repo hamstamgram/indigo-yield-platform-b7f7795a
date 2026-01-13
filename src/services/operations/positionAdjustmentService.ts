@@ -27,7 +27,7 @@ export async function adjustPosition(
   adminId: string
 ) {
   const { investor_id, fund_id, delta, note, type, tx_date } = input;
-  const deltaFixed = toDecimal(delta).toFixed(10);
+  const deltaFixed = Number(toDecimal(delta).toFixed(10));
   const { data, error } = await callRPC("adjust_investor_position", {
     p_investor_id: investor_id,
     p_fund_id: fund_id,

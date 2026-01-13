@@ -189,8 +189,8 @@ export async function createAdminTransaction(
           ? await callRPC("apply_deposit_with_crystallization", {
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
-              p_amount: params.amount,
-              p_closing_aum: closingAum,
+              p_amount: Number(params.amount),
+              p_closing_aum: Number(closingAum),
               p_effective_date: params.tx_date,
               p_admin_id: user.id,
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
@@ -199,8 +199,8 @@ export async function createAdminTransaction(
           : await callRPC("apply_withdrawal_with_crystallization", {
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
-              p_amount: params.amount,
-              p_closing_aum: closingAum,
+              p_amount: Number(params.amount),
+              p_closing_aum: Number(closingAum),
               p_effective_date: params.tx_date,
               p_admin_id: user.id,
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
@@ -210,11 +210,12 @@ export async function createAdminTransaction(
       if (error) {
         logError(`createAdminTransaction.${dbType}`, error, { fundId: params.fund_id });
         // Surface the actual Postgres error message
-        const errorMessage = error.message || error.details || "Failed to create transaction";
+        const errorMessage = error.message || "Failed to create transaction";
         throw new Error(errorMessage);
       }
 
-      if (!data?.success) {
+      const result = data as unknown as { success?: boolean } | null;
+      if (!result?.success) {
         throw new Error("Failed to create transaction");
       }
 
@@ -291,8 +292,8 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
       ? await callRPC("apply_deposit_with_crystallization", {
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
-          p_amount: params.amount,
-          p_closing_aum: closingAum,
+          p_amount: Number(params.amount),
+          p_closing_aum: Number(closingAum),
           p_effective_date: today,
           p_admin_id: user.id,
           p_notes: params.description || `${params.type} - ${triggerReference}`,
@@ -301,8 +302,8 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
       : await callRPC("apply_withdrawal_with_crystallization", {
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
-          p_amount: params.amount,
-          p_closing_aum: closingAum,
+          p_amount: Number(params.amount),
+          p_closing_aum: Number(closingAum),
           p_effective_date: today,
           p_admin_id: user.id,
           p_notes: params.description || `${params.type} - ${triggerReference}`,
@@ -310,11 +311,12 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
         });
 
   if (error) {
-    const errorMessage = error.message || error.details || "Failed to create transaction";
+    const errorMessage = error.message || "Failed to create transaction";
     throw new Error(errorMessage);
   }
 
-  if (!data?.success) {
+  const result = data as unknown as { success?: boolean } | null;
+  if (!result?.success) {
     throw new Error(`Failed to create ${params.type}`);
   }
 
