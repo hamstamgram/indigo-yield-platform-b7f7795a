@@ -5,6 +5,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { securityLogger, SecurityEventType, SecuritySeverity } from './security-logger';
+import { logError, logInfo } from '@/lib/logger';
 
 class SessionManager {
   private static instance: SessionManager;
@@ -85,7 +86,7 @@ class SessionManager {
         await this.refreshSession();
       }
     } catch (error) {
-      console.error('Session check failed:', error);
+      logError('sessionManager.checkSessionValidity', error);
     }
   }
 
@@ -162,7 +163,7 @@ class SessionManager {
 
       return { success: true };
     } catch (error) {
-      console.error('Session creation failed:', error);
+      logError('sessionManager.createSession', error, { email });
       await securityLogger.logLoginAttempt(email, false, { error: String(error) });
       return { success: false, error: 'Session creation failed' };
     }
@@ -175,7 +176,7 @@ class SessionManager {
     // In production, this would call a server endpoint that sets httpOnly cookies
     // For now, we'll store in a secure manner on the client
 
-    // This should be replaced with:
+    // TODO: In production, call server endpoint to set httpOnly cookies
     // await fetch('/api/auth/session', {
     //   method: 'POST',
     //   headers: {
@@ -185,7 +186,7 @@ class SessionManager {
     //   credentials: 'include', // Include cookies
     // });
 
-    console.log('Server session would be created with httpOnly cookie');
+    logInfo('sessionManager.requestServerSession', { message: 'Server session would be created with httpOnly cookie' });
   }
 
   /**
@@ -209,7 +210,7 @@ class SessionManager {
 
       return true;
     } catch (error) {
-      console.error('Session refresh failed:', error);
+      logError('sessionManager.refreshSession', error);
       return false;
     }
   }
@@ -245,7 +246,7 @@ class SessionManager {
       // });
 
     } catch (error) {
-      console.error('Session end failed:', error);
+      logError('sessionManager.endSession', error);
     }
   }
 
@@ -315,7 +316,7 @@ class SessionManager {
         timeUntilTimeout,
       };
     } catch (error) {
-      console.error('Failed to get session info:', error);
+      logError('sessionManager.getSessionInfo', error);
       return { isValid: false };
     }
   }

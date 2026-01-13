@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback } f
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import * as authService from "./authService";
+import { logError, logWarn } from "@/lib/logger";
 
 interface Profile {
   id: string;
@@ -139,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           totpData = totpResponse.data as { enabled?: boolean; verified_at?: string | null };
         }
       } catch (e) {
-        console.warn("TOTP settings not available:", e);
+        logWarn("fetchProfile.totp", { error: e });
       }
 
       if (profileData) {
@@ -156,7 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         // SECURITY: Fail closed - never trust user_metadata for admin status
         // Admin status MUST come from the user_roles table (server-verified)
-        console.warn("Profile not found in database, defaulting to non-admin");
+        logWarn("fetchProfile.notFound", { userId, reason: "Profile not found in database, defaulting to non-admin" });
         setProfile({
           id: userId,
           email: user?.email || "",
@@ -167,7 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      logError("fetchProfile", error, { userId });
 
       // SECURITY: Fail closed - no admin access if profile can't be loaded
       // Never use user_metadata.is_admin as it can be manipulated client-side

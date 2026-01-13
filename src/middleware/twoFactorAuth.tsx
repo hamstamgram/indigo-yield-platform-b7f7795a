@@ -1,6 +1,7 @@
 import React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigate } from "react-router-dom";
+import { logError, logWarn } from "@/lib/logger";
 
 interface MFAStatus {
   enrolled: boolean;
@@ -26,7 +27,7 @@ export async function checkMFAStatus(): Promise<MFAStatus> {
     const { data: factors, error } = await supabase.auth.mfa.listFactors();
 
     if (error) {
-      console.error("Error checking MFA factors:", error);
+      logError("checkMFAStatus", error);
       return { enrolled: false, verified: false, factors: [] };
     }
 
@@ -43,7 +44,7 @@ export async function checkMFAStatus(): Promise<MFAStatus> {
         })) || [],
     };
   } catch (error) {
-    console.error("MFA status check failed:", error);
+    logError("checkMFAStatus.exception", error);
     return { enrolled: false, verified: false, factors: [] };
   }
 }
@@ -72,7 +73,7 @@ export async function enforceAdminMFA(): Promise<boolean> {
   const mfaStatus = await checkMFAStatus();
 
   if (!mfaStatus.verified) {
-    console.warn("Admin user without verified MFA attempted access");
+    logWarn("enforceAdminMFA.unverified", { message: "Admin user without verified MFA attempted access" });
     return false;
   }
 
@@ -97,7 +98,7 @@ export async function setupMFA() {
       factorId: data.id,
     };
   } catch (error) {
-    console.error("MFA enrollment failed:", error);
+    logError("setupMFA", error);
     throw error;
   }
 }
@@ -124,7 +125,7 @@ export async function verifyMFA(factorId: string, code: string) {
 
     return { success: true };
   } catch (error) {
-    console.error("MFA verification failed:", error);
+    logError("verifyMFA", error);
     return { success: false, error };
   }
 }
@@ -153,7 +154,7 @@ export async function challengeMFA() {
 
     return { challengeId: data.id, factorId: verifiedFactor.id };
   } catch (error) {
-    console.error("MFA challenge failed:", error);
+    logError("challengeMFA", error);
     throw error;
   }
 }
@@ -172,7 +173,7 @@ export async function verifyMFAChallenge(challengeId: string, code: string) {
 
     return { success: true, data };
   } catch (error) {
-    console.error("MFA challenge verification failed:", error);
+    logError("verifyMFAChallenge", error);
     return { success: false, error };
   }
 }

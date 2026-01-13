@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { logError } from '@/lib/logger';
 
 class FieldEncryption {
   private static instance: FieldEncryption;
@@ -34,7 +35,7 @@ class FieldEncryption {
       const keyMaterial = await this.getKeyMaterial(user.id);
       this.encryptionKey = await this.deriveKey(keyMaterial);
     } catch (error) {
-      console.error('Failed to initialize encryption:', error);
+      logError('encryption.initialize', error);
       throw error;
     }
   }
@@ -112,7 +113,7 @@ class FieldEncryption {
       // Convert to base64 for storage
       return btoa(String.fromCharCode(...Array.from(combined)));
     } catch (error) {
-      console.error('Encryption failed:', error);
+      logError('encryption.encrypt', error);
       throw new Error('Failed to encrypt data');
     }
   }
@@ -151,7 +152,7 @@ class FieldEncryption {
       const decoder = new TextDecoder();
       return decoder.decode(decryptedData);
     } catch (error) {
-      console.error('Decryption failed:', error);
+      logError('encryption.decrypt', error);
       throw new Error('Failed to decrypt data');
     }
   }
@@ -170,7 +171,7 @@ class FieldEncryption {
         try {
           encryptedData[field] = await this.encrypt(data[field] as string) as T[keyof T];
         } catch (error) {
-          console.error(`Failed to encrypt field ${String(field)}:`, error);
+          logError('encryption.encryptPIIFields', error, { field: String(field) });
           // Don't block operation if encryption fails for a field
         }
       }
@@ -193,7 +194,7 @@ class FieldEncryption {
         try {
           decryptedData[field] = await this.decrypt(data[field] as string) as T[keyof T];
         } catch (error) {
-          console.error(`Failed to decrypt field ${String(field)}:`, error);
+          logError('encryption.decryptPIIFields', error, { field: String(field) });
           // Return encrypted value if decryption fails
         }
       }
