@@ -69,7 +69,7 @@ export async function getFund(fundId: string): Promise<Fund> {
 }
 
 /**
- * Create new fund
+ * Create new fund from full Fund data
  */
 export async function createFund(
   fund: Omit<Fund, "id" | "created_at" | "updated_at">
@@ -85,6 +85,40 @@ export async function createFund(
 
   if (error) throw error;
   if (!data) throw new Error("Failed to create fund");
+  return mapDbFundToFund(data);
+}
+
+/**
+ * Create fund with minimal input (for wizard/quick creation)
+ * Fills in sensible defaults for required fields
+ */
+export interface CreateFundInput {
+  code: string;
+  name: string;
+  asset: string;
+  inception_date: string;
+  logo_url?: string | null;
+}
+
+export async function createFundSimple(input: CreateFundInput): Promise<Fund> {
+  const { data, error } = await supabase
+    .from("funds")
+    .insert({
+      code: input.code,
+      name: input.name,
+      asset: input.asset,
+      fund_class: input.asset,
+      inception_date: input.inception_date,
+      status: "active",
+      logo_url: input.logo_url || null,
+      mgmt_fee_bps: 200,
+      perf_fee_bps: 2000,
+      min_investment: 0,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
   return mapDbFundToFund(data);
 }
 
@@ -248,4 +282,81 @@ export async function checkFundUsage(
     positions: positionsResult.count || 0,
     transactions: transactionsResult.count || 0,
   };
+}
+
+// ============= Methods migrated from shared/fundService.ts =============
+
+/**
+ * Get active funds (minimal fields for dropdowns)
+ */
+export async function getActiveFunds(): Promise<Array<{ id: string; code: string; name: string; asset: string }>> {
+  const { data, error } = await supabase
+    .from("funds")
+    .select("id, code, name, asset")
+    .eq("status", "active")
+    .order("name");
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Get multiple funds by IDs
+ */
+export async function getFundsByIds(fundIds: string[]) {
+  if (!fundIds.length) return [];
+  
+  const { data, error } = await supabase
+    .from("funds")
+    .select("*")
+    .in("id", fundIds);
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Get fund by asset symbol
+ */
+export async function getFundByAsset(asset: string) {
+  const { data, error } = await supabase
+    .from("funds")
+    .select("*")
+    .eq("asset", asset)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Check if fund code exists
+ */
+export async function codeExists(code: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("funds")
+    .select("id")
+    .eq("code", code)
+    .maybeSingle();
+  return !!data;
+}
+
+/**
+ * Deactivate fund (set status to inactive)
+ */
+export async function deactivateFund(fundId: string): Promise<void> {
+  const { error } = await supabase
+    .from("funds")
+    .update({ status: "inactive" })
+    .eq("id", fundId);
+
+  if (error) throw error;
+}
+
+/**
+ * Update fund status
+ */
+export async function updateFundStatus(fundId: string, status: string): Promise<Fund> {
+  return updateFund(fundId, { status: status as Fund["status"] });
 }

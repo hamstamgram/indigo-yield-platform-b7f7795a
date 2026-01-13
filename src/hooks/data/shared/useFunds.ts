@@ -14,13 +14,9 @@ import { logError } from "@/lib/logger";
 // Note: Fund/FundStatus should be imported from @/types/domains/fund
 // This hook does NOT re-export these types to avoid duplication
 
-export interface CreateFundInput {
-  code: string;
-  name: string;
-  asset: string;
-  inception_date: string;
-  logo_url?: string | null;
-}
+// Import CreateFundInput from fundService (canonical source for this type)
+import type { CreateFundInput } from "@/services/admin/fundService";
+export type { CreateFundInput };
 
 const LOCAL_QUERY_KEYS = {
   funds: QUERY_KEYS.funds,
