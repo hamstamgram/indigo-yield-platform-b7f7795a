@@ -18,6 +18,7 @@ export { YieldCorrectionPreview } from "./YieldCorrectionPreview";
 export { YieldEventsTable } from "./YieldEventsTable";
 export { FundAUMEventsTable } from "./FundAUMEventsTable";
 export { YieldPreviewResults } from "./YieldPreviewResults";
+export { YieldInputForm } from "./YieldInputForm";
 
 // Re-export void hook for convenience
 export { useVoidYieldDistribution } from "@/hooks/data/admin";

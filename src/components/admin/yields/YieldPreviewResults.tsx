@@ -14,6 +14,7 @@ import {
   Building2,
   UserCheck,
   ArrowRightLeft,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type YieldCalculationResult, type YieldDistribution } from "@/services";
@@ -58,6 +59,16 @@ export function YieldPreviewResults({
         </div>
         <h3 className="font-semibold">Confirm & Apply</h3>
       </div>
+
+      {/* Idempotency Warnings */}
+      {yieldPreview.hasConflicts && (
+        <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
+          <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <div>
+            <strong>Some transactions already exist.</strong> {yieldPreview.existingConflicts.length} existing reference(s) will be skipped.
+          </div>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
