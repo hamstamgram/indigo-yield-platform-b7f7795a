@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import * as adminFundService from "@/services/admin/fundService";
 import type { FundStatus } from "@/types/domains/fund";
 
-// Re-export types from canonical source
-export type { Fund, FundRef, FundStatus } from "@/types/domains/fund";
-export type { DailyNav, FundKPI } from "@/services/admin/fundService";
+// Import types from canonical source - do NOT re-export to avoid duplication
+// Consumers should import Fund, FundRef, FundStatus from @/types/domains/fund
+// Consumers should import DailyNav, FundKPI from @/services/admin/fundService
 
 class FundService {
   // Delegate to admin service functions

@@ -3,14 +3,14 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Fund, FundStatus } from "@/types/domains/fund";
+import type { Fund } from "@/types/domains/fund";
 import { mapDbFundToFund } from "@/types/domains/fund";
 import type { InvestorPosition } from "@/types/domains/investor";
 import { logError } from "@/lib/logger";
 
-// Re-export types from canonical sources for backward compatibility
-export type { Fund } from "@/types/domains/fund";
-export type { InvestorPosition } from "@/types/domains/investor";
+// Note: Fund should be imported from @/types/domains/fund
+// Note: InvestorPosition should be imported from @/types/domains/investor
+// This service does NOT re-export these types to avoid duplication
 
 /**
  * Extended InvestorPosition with nested fund data for queries

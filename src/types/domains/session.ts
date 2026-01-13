@@ -59,10 +59,35 @@ export interface ShareLinkData {
   max_views?: number;
 }
 
+/**
+ * Portfolio analytics data for share viewer
+ */
+export interface SharePortfolioData {
+  totalValue: string;
+  totalYield: string;
+  positions: Array<{
+    fundId: string;
+    fundName: string;
+    currentValue: string;
+    yieldEarned: string;
+  }>;
+}
+
+/**
+ * Document reference for share viewer
+ */
+export interface ShareDocumentData {
+  id: string;
+  title: string;
+  type: string;
+  createdAt: string;
+  storagePath: string;
+}
+
 export interface ShareViewerData {
-  portfolio?: any; // PortfolioAnalytics
-  documents?: any[]; // Document[]
-  statement?: any; // Document
+  portfolio?: SharePortfolioData;
+  documents?: ShareDocumentData[];
+  statement?: ShareDocumentData;
   redacted: boolean;
 }
 

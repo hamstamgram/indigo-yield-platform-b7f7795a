@@ -131,6 +131,5 @@ export {
 } from "./fundViewService";
 export type { InvestorPositionWithFund } from "./fundViewService";
 
-// Re-export canonical types for convenience
-export type { Fund } from "@/types/domains/fund";
-export type { InvestorPosition } from "@/types/domains/investor";
+// Note: Fund should be imported from @/types/domains/fund
+// Note: InvestorPosition should be imported from @/types/domains/investor

@@ -7,8 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Fund, FundRef } from "@/types/domains/fund";
 import { mapDbFundToFund, mapFundToDb } from "@/types/domains/fund";
 
-// Re-export types from canonical source for backward compatibility
-export type { Fund, FundRef } from "@/types/domains/fund";
+// Import types from canonical source - do NOT re-export to avoid duplication
+// Consumers should import Fund, FundRef from @/types/domains/fund
 
 export interface DailyNav {
   fund_id: string;

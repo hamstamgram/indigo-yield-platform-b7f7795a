@@ -151,13 +151,13 @@ export {
 export type {
   FeesOverviewData,
   FeeRecord,
-  Fund as FeesFund,
   FeeAllocation,
   RoutingAuditEntry,
   RoutingSummary,
   YieldEarned,
   FeeSummary,
 } from "./feesService";
+// Note: Fund should be imported from @/types/domains/fund
 
 // Yield correction service
 export * from "./yieldCorrectionService";

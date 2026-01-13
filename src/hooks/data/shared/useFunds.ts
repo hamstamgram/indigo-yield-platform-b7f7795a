@@ -11,8 +11,8 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { Fund, FundStatus } from "@/types/domains/fund";
 import { logError } from "@/lib/logger";
 
-// Re-export types from canonical source
-export type { Fund, FundStatus } from "@/types/domains/fund";
+// Note: Fund/FundStatus should be imported from @/types/domains/fund
+// This hook does NOT re-export these types to avoid duplication
 
 export interface CreateFundInput {
   code: string;

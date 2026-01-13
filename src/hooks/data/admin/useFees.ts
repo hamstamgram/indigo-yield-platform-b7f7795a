@@ -14,13 +14,13 @@ import {
   getYieldEarned,
   type FeesOverviewData,
   type FeeRecord,
-  type FeesFund,
   type FeeAllocation,
   type RoutingAuditEntry,
   type RoutingSummary,
   type YieldEarned,
   type FeeSummary,
 } from "@/services";
+import type { FundRef } from "@/types/domains/fund";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 // ==================== Re-export types ====================
@@ -34,7 +34,8 @@ export type {
   YieldEarned,
   FeeSummary,
 };
-export type { FeesFund as Fund };
+// Use FundRef from canonical source for fund data in fees
+export type { FundRef as Fund };
 
 // ==================== Hooks ====================
 
@@ -53,7 +54,7 @@ export function useFeesOverview() {
  * Hook to fetch active funds only
  */
 export function useFeeFunds() {
-  return useQuery<FeesFund[], Error>({
+  return useQuery<FundRef[], Error>({
     queryKey: [...QUERY_KEYS.adminFeesOverview, "funds"],
     queryFn: getFeesActiveFunds,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -107,7 +108,7 @@ export function useRoutingAuditEntries() {
 /**
  * Hook to fetch yield earned by INDIGO FEES account
  */
-export function useYieldEarned(funds: FeesFund[]) {
+export function useYieldEarned(funds: FundRef[]) {
   return useQuery<YieldEarned[], Error>({
     queryKey: [...QUERY_KEYS.adminFeesOverview, "yield", funds.map(f => f.id)],
     queryFn: () => getYieldEarned(funds),

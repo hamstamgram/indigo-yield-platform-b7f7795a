@@ -74,9 +74,9 @@ export {
   useCreateFund,
   useUpdateFund,
   useDeactivateFund,
-  type Fund,
   type CreateFundInput,
 } from "./useFunds";
+// Note: Fund should be imported from @/types/domains/fund
 
 // IB Settings
 export {
