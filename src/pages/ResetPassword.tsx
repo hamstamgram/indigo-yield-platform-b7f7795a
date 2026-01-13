@@ -96,6 +96,8 @@ export default function ResetPassword() {
               src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
               alt="Infinite Yield Fund"
               className="h-14"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <Card className="border shadow-md">
@@ -125,6 +127,8 @@ export default function ResetPassword() {
             src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
             alt="Infinite Yield Fund"
             className="h-14"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <Card className="border shadow-md">

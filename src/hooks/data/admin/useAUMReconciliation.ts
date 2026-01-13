@@ -18,7 +18,7 @@ export function useAUMReconciliation(
     queryKey: QUERY_KEYS.aumReconciliation(fundId || undefined, tolerancePct),
     queryFn: () => checkAUMReconciliation(fundId!, tolerancePct),
     enabled: !!fundId,
-    staleTime: 30000, // 30 seconds
+    staleTime: 60 * 1000, // 60 seconds
   });
 }
 

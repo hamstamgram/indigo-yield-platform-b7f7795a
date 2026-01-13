@@ -33,7 +33,7 @@ export function useAdminWithdrawals(filters?: WithdrawalFilters) {
   return useQuery<PaginatedWithdrawals, Error>({
     queryKey: [...QUERY_KEYS.withdrawals, "admin", filters],
     queryFn: () => withdrawalService.getWithdrawals(filters),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 60 * 1000, // 60 seconds
   });
 }
 
@@ -45,7 +45,7 @@ export function useWithdrawalStats(filters?: WithdrawalFilters) {
   return useQuery<WithdrawalStats, Error>({
     queryKey: [...QUERY_KEYS.withdrawals, "stats", filters],
     queryFn: () => withdrawalService.getStats(filters),
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000, // 60 seconds
   });
 }
 

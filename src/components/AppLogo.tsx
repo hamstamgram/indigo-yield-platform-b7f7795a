@@ -13,6 +13,8 @@ const AppLogo = ({ className = "h-8 w-auto", linkTo }: AppLogoProps) => {
         src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
         alt="Indigo Digital Assets Yield"
         className={className}
+        loading="lazy"
+        decoding="async"
       />
     </>
   );

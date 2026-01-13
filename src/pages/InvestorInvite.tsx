@@ -81,6 +81,8 @@ const InvestorInvite = () => {
               src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
               alt="Indigo Yield"
               className="h-12 w-auto"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <CardTitle className="text-2xl">Investor Invitation</CardTitle>

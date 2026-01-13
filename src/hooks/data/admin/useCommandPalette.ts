@@ -15,7 +15,7 @@ export function useCommandPaletteInvestors(isAdmin: boolean, isOpen: boolean) {
     queryKey: QUERY_KEYS.adminInvestorSearch,
     queryFn: () => commandPaletteService.fetchInvestorsForSearch(),
     enabled: isAdmin && isOpen,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
 }
 

@@ -14,6 +14,8 @@ const Terms = () => {
                 src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
                 alt="Infinite Yield Fund"
                 className="h-8 sm:h-10"
+                loading="lazy"
+                decoding="async"
               />
             </Link>
           </div>
@@ -129,6 +131,8 @@ const Terms = () => {
               src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
               alt="Infinite Yield Fund"
               className="h-8"
+              loading="lazy"
+              decoding="async"
             />
             <p className="mt-2 text-sm text-gray-500">
               © 2025 INDIGO DIGITAL ASSETS YIELD. All rights reserved.
