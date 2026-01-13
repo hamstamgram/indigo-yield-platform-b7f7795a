@@ -21,7 +21,7 @@ export function useActiveFundsWithAUM() {
   return useQuery({
     queryKey: QUERY_KEYS.activeFundsWithAUM,
     queryFn: getActiveFundsWithAUM,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 5 * 1000, // 5 seconds - Fortune 500: near real-time updates
   });
 }
 
@@ -57,14 +57,16 @@ export function useApplyYieldDistribution() {
     onMutate: async ({ input }) => {
       // Cancel outgoing refetches to avoid overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.fundInvestorComposition(input.fundId) });
-      
+      await queryClient.cancelQueries({
+        queryKey: QUERY_KEYS.fundInvestorComposition(input.fundId),
+      });
+
       // Snapshot previous values for rollback
       const previousFundsAUM = queryClient.getQueryData(QUERY_KEYS.activeFundsWithAUM);
       const previousComposition = queryClient.getQueryData(
         QUERY_KEYS.fundInvestorComposition(input.fundId)
       );
-      
+
       return { previousFundsAUM, previousComposition, fundId: input.fundId };
     },
     onError: (error: Error, _variables, context) => {
@@ -83,14 +85,19 @@ export function useApplyYieldDistribution() {
     onSuccess: () => {
       toast.success("Yield distributed successfully");
     },
-    onSettled: () => {
+    onSettled: async () => {
+      // FIX 1: Await invalidation to prevent race conditions
       // Always refetch after mutation settles to ensure consistency
-      YIELD_RELATED_KEYS.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+      const invalidationPromises = YIELD_RELATED_KEYS.map((key) =>
+        queryClient.invalidateQueries({ queryKey: key })
+      );
+      await Promise.all(invalidationPromises);
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+      // Force immediate refetch for AUM cards
+      await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumAll });
+      await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumUnified });
     },
   });
 }

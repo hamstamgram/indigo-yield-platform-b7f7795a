@@ -48,8 +48,8 @@ export function useFundAUM() {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: fetchFundsWithAUM,
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // Refetch every minute
+    staleTime: 5000, // 5 seconds - Fortune 500: near real-time AUM updates
+    refetchInterval: 15000, // Refetch every 15 seconds after yield ops
     retry: 3, // Retry failed requests
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });

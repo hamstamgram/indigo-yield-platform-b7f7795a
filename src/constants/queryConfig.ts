@@ -16,7 +16,7 @@
 
 export const STALE_TIME = {
   /** Financial data that changes frequently (balances, positions, AUM) */
-  FINANCIAL: 30 * 1000, // 30 seconds
+  FINANCIAL: 5 * 1000, // 5 seconds - Fortune 500 requirement: near real-time updates
 
   /** Transaction and activity lists */
   TRANSACTIONS: 60 * 1000, // 60 seconds

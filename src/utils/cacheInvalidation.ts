@@ -1,18 +1,18 @@
 /**
  * Cache Invalidation Helpers
  * Centralized invalidation functions for consistent cache management
- * 
+ *
  * ## Architecture
- * 
+ *
  * This module uses a dependency graph approach to ensure consistent invalidation.
  * Each operation type has a defined set of query keys that must be invalidated.
- * 
+ *
  * ```
  * Transaction Change
  *   -> positions (direct)
  *   -> fundAum (derived)
  *   -> dashboardStats (aggregated)
- * 
+ *
  * Yield Distribution
  *   -> positions (direct)
  *   -> transactions (direct)
@@ -22,11 +22,12 @@
  */
 
 import { QueryClient } from "@tanstack/react-query";
-import { 
-  QUERY_KEYS, 
-  YIELD_RELATED_KEYS, 
-  INVESTOR_RELATED_KEYS, 
-  STATEMENT_RELATED_KEYS, 
+import { supabase } from "@/integrations/supabase/client";
+import {
+  QUERY_KEYS,
+  YIELD_RELATED_KEYS,
+  INVESTOR_RELATED_KEYS,
+  STATEMENT_RELATED_KEYS,
   DELIVERY_RELATED_KEYS,
   ASSET_RELATED_KEYS,
   WITHDRAWAL_RELATED_KEYS,
@@ -52,14 +53,8 @@ const INVALIDATION_GRAPH = {
     QUERY_KEYS.recordedYields(),
     QUERY_KEYS.yieldDistributions(),
   ],
-  withdrawal: [
-    ...WITHDRAWAL_RELATED_KEYS,
-  ],
-  deposit: [
-    QUERY_KEYS.deposits,
-    QUERY_KEYS.depositsAdmin,
-    QUERY_KEYS.depositStats,
-  ],
+  withdrawal: [...WITHDRAWAL_RELATED_KEYS],
+  deposit: [QUERY_KEYS.deposits, QUERY_KEYS.depositsAdmin, QUERY_KEYS.depositStats],
   yield: [
     ...YIELD_RELATED_KEYS,
     QUERY_KEYS.funds,
@@ -67,21 +62,14 @@ const INVALIDATION_GRAPH = {
     QUERY_KEYS.recordedYields(),
     QUERY_KEYS.yieldDistributions(),
   ],
-  investor: [
-    ...INVESTOR_RELATED_KEYS,
-    QUERY_KEYS.profiles,
-  ],
+  investor: [...INVESTOR_RELATED_KEYS, QUERY_KEYS.profiles],
   statement: [
     ...STATEMENT_RELATED_KEYS,
     QUERY_KEYS.generatedStatements(),
     QUERY_KEYS.statementPeriodsWithCounts,
   ],
-  delivery: [
-    ...DELIVERY_RELATED_KEYS,
-  ],
-  asset: [
-    ...ASSET_RELATED_KEYS,
-  ],
+  delivery: [...DELIVERY_RELATED_KEYS],
+  asset: [...ASSET_RELATED_KEYS],
   ib: [
     QUERY_KEYS.ibSettings,
     QUERY_KEYS.ibReferrals(),
@@ -115,11 +103,11 @@ function invalidateByGraph(
   context?: InvalidationContext
 ): void {
   const baseKeys = INVALIDATION_GRAPH[operation];
-  
+
   // Use Set for deduplication of serialized keys
   const keysToInvalidate = new Set<string>();
-  baseKeys.forEach(key => keysToInvalidate.add(JSON.stringify(key)));
-  
+  baseKeys.forEach((key) => keysToInvalidate.add(JSON.stringify(key)));
+
   // Log in development
   if (import.meta.env.DEV) {
     console.log(`[CacheInvalidation] ${operation}:`, {
@@ -127,13 +115,13 @@ function invalidateByGraph(
       context,
     });
   }
-  
+
   // Invalidate base keys
-  keysToInvalidate.forEach(keyStr => {
+  keysToInvalidate.forEach((keyStr) => {
     const key = JSON.parse(keyStr);
     queryClient.invalidateQueries({ queryKey: key });
   });
-  
+
   // Context-specific invalidations
   if (context?.investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions(context.investorId) });
@@ -141,31 +129,33 @@ function invalidateByGraph(
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(context.investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorLedger(context.investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorQuickView(context.investorId) });
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorTransactions(context.investorId) });
+    queryClient.invalidateQueries({
+      queryKey: QUERY_KEYS.investorTransactions(context.investorId),
+    });
   }
-  
+
   if (context?.fundId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAum(context.fundId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundDailyAum(context.fundId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fund(context.fundId) });
   }
-  
+
   if (context?.periodId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.periodStatementCount(context.periodId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveries(context.periodId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveryStats(context.periodId) });
   }
-  
+
   if (context?.withdrawalId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalDetails(context.withdrawalId) });
   }
-  
+
   if (context?.ibId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibReferrals(context.ibId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibCommissions(context.ibId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibProfile(context.ibId) });
   }
-  
+
   if (context?.assetId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.assetPrices(context.assetId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.latestPrice(context.assetId) });
@@ -175,35 +165,63 @@ function invalidateByGraph(
 // ============ Public API ============
 
 /**
+ * Refresh materialized views after yield operations
+ * FIX 4: Ensures MVs are synchronized with latest data
+ */
+async function refreshYieldMaterializedViews(): Promise<void> {
+  try {
+    const { error } = await (supabase.rpc as CallableFunction)("refresh_yield_materialized_views");
+    if (error) {
+      console.warn("[CacheInvalidation] MV refresh failed:", error.message);
+    } else if (import.meta.env.DEV) {
+      console.log("[CacheInvalidation] MVs refreshed successfully");
+    }
+  } catch (err) {
+    // Non-fatal - log and continue
+    console.warn("[CacheInvalidation] MV refresh error:", err);
+  }
+}
+
+/**
  * Invalidate all yield-related queries after yield distribution operations
  * Use after: applyYieldDistribution, voidYieldDistribution, editYieldDistribution
+ *
+ * FIX 1: Returns Promise to allow awaiting invalidation completion
+ * FIX 4: Also refreshes materialized views for consistency
  */
-export function invalidateAfterYieldOp(queryClient: QueryClient): void {
-  invalidateByGraph(queryClient, 'yield');
+export async function invalidateAfterYieldOp(queryClient: QueryClient): Promise<void> {
+  invalidateByGraph(queryClient, "yield");
+
+  // FIX 4: Refresh materialized views to sync with latest data
+  await refreshYieldMaterializedViews();
+
+  // Force immediate refetch of critical AUM data
+  await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumAll });
+  await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumUnified });
 }
 
 /**
  * Invalidate queries after transaction operations (deposit, withdrawal, manual tx, void)
  * Use after: createTransaction, voidTransaction, editTransaction, deleteTransaction
- * 
+ *
  * CRITICAL: Always invalidates position data since transactions affect balances
  */
 export function invalidateAfterTransaction(
-  queryClient: QueryClient, 
+  queryClient: QueryClient,
   investorId?: string,
   fundId?: string
 ): void {
-  invalidateByGraph(queryClient, 'transaction', { investorId, fundId });
-  
+  invalidateByGraph(queryClient, "transaction", { investorId, fundId });
+
   // Additional position key patterns for thorough invalidation
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.positions() });
-  
+
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions(investorId) });
   }
-  
+
   if (fundId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fund(fundId) });
   }
@@ -214,12 +232,12 @@ export function invalidateAfterTransaction(
  * Use after: createWithdrawal, approveWithdrawal, rejectWithdrawal, deleteWithdrawal
  */
 export function invalidateAfterWithdrawal(
-  queryClient: QueryClient, 
+  queryClient: QueryClient,
   investorId?: string,
   fundId?: string,
   withdrawalId?: string
 ): void {
-  invalidateByGraph(queryClient, 'withdrawal', { investorId, fundId, withdrawalId });
+  invalidateByGraph(queryClient, "withdrawal", { investorId, fundId, withdrawalId });
   // Withdrawals also affect transactions and positions
   invalidateAfterTransaction(queryClient, investorId, fundId);
 }
@@ -233,7 +251,7 @@ export function invalidateAfterDeposit(
   investorId?: string,
   fundId?: string
 ): void {
-  invalidateByGraph(queryClient, 'deposit', { investorId, fundId });
+  invalidateByGraph(queryClient, "deposit", { investorId, fundId });
   // Deposits also affect transactions and positions
   invalidateAfterTransaction(queryClient, investorId, fundId);
 }
@@ -247,8 +265,8 @@ export function invalidateAfterIBOperation(
   ibId?: string,
   investorId?: string
 ): void {
-  invalidateByGraph(queryClient, 'ib', { ibId, investorId });
-  
+  invalidateByGraph(queryClient, "ib", { ibId, investorId });
+
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibSettingsInvestor(investorId) });
   }
@@ -276,7 +294,7 @@ export function invalidateAfterMonthClosure(
  * Use after bulk investor operations
  */
 export function invalidateInvestorData(queryClient: QueryClient, investorId?: string): void {
-  invalidateByGraph(queryClient, 'investor', { investorId });
+  invalidateByGraph(queryClient, "investor", { investorId });
 }
 
 /**
@@ -288,8 +306,8 @@ export function invalidateAfterStatementOp(
   periodId?: string,
   investorId?: string
 ): void {
-  invalidateByGraph(queryClient, 'statement', { periodId, investorId });
-  
+  invalidateByGraph(queryClient, "statement", { periodId, investorId });
+
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorStatements(investorId) });
   }
@@ -299,24 +317,17 @@ export function invalidateAfterStatementOp(
  * Invalidate queries after delivery operations
  * Use after: queueDelivery, sendDelivery, retryDelivery, cancelDelivery
  */
-export function invalidateAfterDeliveryOp(
-  queryClient: QueryClient,
-  periodId?: string
-): void {
-  invalidateByGraph(queryClient, 'delivery', { periodId });
+export function invalidateAfterDeliveryOp(queryClient: QueryClient, periodId?: string): void {
+  invalidateByGraph(queryClient, "delivery", { periodId });
 }
 
 /**
  * Invalidate queries after asset operations
  * Use after: createAsset, updateAsset, addAssetPrice
  */
-export function invalidateAfterAssetOp(
-  queryClient: QueryClient,
-  assetId?: string
-): void {
-  invalidateByGraph(queryClient, 'asset', { assetId });
+export function invalidateAfterAssetOp(queryClient: QueryClient, assetId?: string): void {
+  invalidateByGraph(queryClient, "asset", { assetId });
 }
-
 
 /**
  * Invalidate queries after admin invite operations
@@ -331,18 +342,18 @@ export function invalidateAfterAdminInviteOp(queryClient: QueryClient): void {
 export function invalidateAllFinancialData(queryClient: QueryClient): void {
   // All yield-related
   invalidateAfterYieldOp(queryClient);
-  
-  // All investor-related  
+
+  // All investor-related
   invalidateInvestorData(queryClient);
-  
+
   // All fund data
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFunds });
-  
+
   // Withdrawals and deposits
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawals });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deposits });
-  
+
   // Integrity
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
 }
