@@ -1,0 +1,217 @@
+/**
+ * Yield Apply Service
+ * Handles applying yield distributions to investor positions
+ * Split from yieldDistributionService for better maintainability
+ */
+
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  ensureSnapshotExists, 
+  lockPeriodSnapshot, 
+  isPeriodLocked,
+  getFundPeriodSnapshot
+} from "@/services/operations/snapshotService";
+import { yieldNotifications } from "@/services/notifications";
+import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
+
+import type {
+  YieldCalculationInput,
+  YieldDistribution,
+  YieldTotals,
+  YieldCalculationResult,
+} from "@/types/domains/yield";
+
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+/**
+ * Get period ID for a given date
+ */
+async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth() + 1;
+  
+  const { data, error } = await supabase
+    .from("statement_periods")
+    .select("id")
+    .eq("year", year)
+    .eq("month", month)
+    .maybeSingle();
+  
+  if (error || !data) {
+    const { data: nextPeriod } = await supabase
+      .from("statement_periods")
+      .select("id")
+      .or(`year.gt.${year},and(year.eq.${year},month.gte.${month})`)
+      .order("year", { ascending: true })
+      .order("month", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    return nextPeriod?.id || null;
+  }
+  return data.id;
+}
+
+/**
+ * Apply yield distribution (calls RPC function)
+ * This permanently updates investor positions and creates transactions.
+ * Also generates and locks a snapshot for the period to preserve ownership percentages.
+ */
+export async function applyYieldDistribution(
+  input: YieldCalculationInput,
+  adminId: string,
+  purpose: "reporting" | "transaction" = "reporting"
+): Promise<YieldCalculationResult> {
+  const { fundId, targetDate, newTotalAUM } = input;
+
+  // Get or create period snapshot before applying yield
+  const periodId = await getPeriodIdForDate(targetDate);
+  let snapshotInfo: YieldCalculationResult["snapshotInfo"];
+  
+  if (periodId) {
+    // Check if period is already locked
+    const isLocked = await isPeriodLocked(fundId, periodId);
+    if (isLocked) {
+      throw new Error("This period is locked. Yield has already been applied for this period.");
+    }
+    
+    // Ensure snapshot exists (creates one if not)
+    const snapshotResult = await ensureSnapshotExists(fundId, periodId, adminId);
+    if (!snapshotResult.exists) {
+      console.warn("Could not create snapshot:", snapshotResult.error);
+    } else if (snapshotResult.snapshotId) {
+      const snapshot = await getFundPeriodSnapshot(fundId, periodId);
+      if (snapshot) {
+        snapshotInfo = {
+          snapshotId: snapshot.id,
+          snapshotDate: snapshot.snapshot_date,
+          isLocked: snapshot.is_locked,
+          periodId,
+        };
+      }
+    }
+  }
+
+  // Calculate the gross yield (new AUM - current AUM)
+  const { data: positions, error: posError } = await supabase
+    .from("investor_positions")
+    .select("current_value")
+    .eq("fund_id", fundId)
+    .gt("current_value", 0);
+
+  if (posError) {
+    throw new Error(`Failed to fetch current positions: ${posError.message}`);
+  }
+
+  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
+
+  if (grossYieldAmount <= 0) {
+    throw new Error("New AUM must be greater than current AUM to distribute yield");
+  }
+
+  // Calculate gross yield percentage from amount
+  const grossYieldPct = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
+
+  // Use v3 apply function
+  const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v3", {
+    p_fund_id: fundId,
+    p_yield_date: formatDate(targetDate),
+    p_gross_yield_pct: grossYieldPct,
+    p_created_by: adminId,
+    p_purpose: purpose,
+  });
+
+  if (error) {
+    console.error("Error applying yield distribution:", error);
+    throw new Error(`Failed to apply yield: ${error.message}`);
+  }
+
+  // Lock the snapshot after successful yield application
+  if (periodId && snapshotInfo) {
+    const lockResult = await lockPeriodSnapshot(fundId, periodId, adminId);
+    if (lockResult.success) {
+      snapshotInfo.isLocked = true;
+    }
+  }
+
+  // Finalize yield visibility
+  try {
+    await finalizeMonthYield(
+      fundId,
+      targetDate.getFullYear(),
+      targetDate.getMonth() + 1,
+      adminId
+    );
+  } catch (finalizationError) {
+    console.warn("Yield finalization failed (non-fatal):", finalizationError);
+  }
+
+  const result = data as any;
+
+  // Send yield notifications to affected investors (non-blocking)
+  const { data: fundInfo } = await supabase
+    .from("funds")
+    .select("name, asset")
+    .eq("id", fundId)
+    .single();
+
+  const { data: affectedInvestors } = await supabase
+    .from("transactions_v2")
+    .select("investor_id, amount")
+    .eq("fund_id", fundId)
+    .eq("tx_date", formatDate(targetDate))
+    .in("type", ["INTEREST", "YIELD"])
+    .eq("is_voided", false);
+
+  if (affectedInvestors?.length && fundInfo) {
+    const distributions = affectedInvestors.map(inv => ({
+      userId: inv.investor_id,
+      distributionId: `yield:${fundId}:${formatDate(targetDate)}:${inv.investor_id}`,
+      fundId,
+      fundName: fundInfo.name,
+      amount: Number(inv.amount),
+      asset: fundInfo.asset,
+      yieldDate: formatDate(targetDate),
+      yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : undefined,
+    }));
+
+    yieldNotifications.onFundYieldDistributed(distributions)
+      .catch(err => console.error("Failed to send yield notifications:", err));
+  }
+  
+  const yieldDistributions: YieldDistribution[] = [];
+  const totals: YieldTotals = {
+    gross: grossYieldAmount,
+    fees: Number(result?.total_fees || 0),
+    ibFees: Number(result?.total_ib_fees || 0),
+    net: grossYieldAmount - Number(result?.total_fees || 0) - Number(result?.total_ib_fees || 0),
+    indigoCredit: Number(result?.total_fees || 0),
+  };
+
+  return {
+    success: true,
+    fundId,
+    fundCode: "",
+    fundAsset: "",
+    yieldDate: targetDate,
+    purpose,
+    currentAUM,
+    newAUM: newTotalAUM,
+    grossYield: grossYieldAmount,
+    netYield: totals.net,
+    totalFees: totals.fees,
+    totalIbFees: totals.ibFees,
+    yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0,
+    investorCount: Number(result?.investors_updated || 0),
+    distributions: yieldDistributions,
+    ibCredits: [],
+    indigoFeesCredit: totals.indigoCredit,
+    existingConflicts: [],
+    hasConflicts: false,
+    totals,
+    status: "applied",
+    snapshotInfo,
+  };
+}

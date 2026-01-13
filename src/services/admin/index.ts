@@ -2,6 +2,10 @@
  * Admin Services - Re-exports all admin-related services
  */
 
+// Admin stats service (dashboard metrics)
+export { fetchAdminStats, getFundCountByStatus, getPendingWithdrawalCount, getRecentActivityCount } from "./adminStatsService";
+export type { AdminStats } from "./adminStatsService";
+
 // Fund management (low-level functions - prefer shared/fundService for most uses)
 export { listFunds, getFund, createFund, updateFund, getFundKPIs, getLatestNav, getFundPerformance, checkFundUsage } from "./fundService";
 export type { DailyNav, FundKPI } from "./fundService";
@@ -13,7 +17,7 @@ export type { InvestorSummaryV2, DashboardStatsV2 } from "./adminService";
 // Transaction management - use transactionService from @/services/shared
 // adminTransactionService is removed - use transactionService.createQuickTransaction instead
 
-// Yield management
+// Yield management (refactored into focused sub-services)
 export * from "./yieldDistributionService";
 export * from "./recordedYieldsService";
 export * from "./yieldManagementService";

@@ -1,0 +1,155 @@
+/**
+ * Admin Stats Service
+ * Handles fetching dashboard statistics for admin users
+ * Extracted from useAdminStats hook to follow service layer pattern
+ */
+
+import { supabase } from "@/integrations/supabase/client";
+
+export interface AdminStats {
+  // Fund metrics
+  totalFunds: number;
+  
+  // Position metrics
+  totalPositions: number;        // Total rows in investor_positions
+  activePositions: number;       // Positions with current_value > 0
+  
+  // Investor metrics
+  totalProfiles: number;         // All non-admin profiles
+  activeProfiles: number;        // Profiles with status='active'
+  uniqueInvestorsWithPositions: number; // Unique investors that have at least one position
+  
+  // Operational metrics
+  pendingWithdrawals: number;
+  recentActivity: number;        // 24h transaction count
+}
+
+interface ProfileData {
+  id: string;
+  status: string | null;
+}
+
+interface PositionData {
+  investor_id: string;
+  current_value: number | null;
+}
+
+/**
+ * Fetch all admin dashboard statistics in parallel
+ */
+export async function fetchAdminStats(): Promise<AdminStats> {
+  const [
+    fundsResult,
+    profilesResult,
+    positionsResult,
+    withdrawalsResult,
+    activityResult,
+  ] = await Promise.all([
+    // Active funds count
+    supabase
+      .from("funds")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active"),
+    
+    // All non-admin profiles
+    supabase
+      .from("profiles")
+      .select("id, status")
+      .eq("is_admin", false),
+    
+    // All investor positions
+    supabase
+      .from("investor_positions")
+      .select("investor_id, current_value"),
+    
+    // Pending withdrawals
+    supabase
+      .from("withdrawal_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    
+    // 24h activity
+    supabase
+      .from("transactions_v2")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+  ]);
+
+  // Calculate profile stats
+  const profiles = (profilesResult.data || []) as ProfileData[];
+  const totalProfiles = profiles.length;
+  const activeProfiles = profiles.filter((p) => p.status === "active").length;
+
+  // Calculate position stats
+  const positions = (positionsResult.data || []) as PositionData[];
+  const totalPositions = positions.length;
+  const activePositions = positions.filter((p) => (p.current_value || 0) > 0).length;
+  const uniqueInvestorIds = new Set(positions.map((p) => p.investor_id));
+  const uniqueInvestorsWithPositions = uniqueInvestorIds.size;
+
+  return {
+    totalFunds: fundsResult.count || 0,
+    totalPositions,
+    activePositions,
+    totalProfiles,
+    activeProfiles,
+    uniqueInvestorsWithPositions,
+    pendingWithdrawals: withdrawalsResult.count || 0,
+    recentActivity: activityResult.count || 0,
+  };
+}
+
+type FundStatus = "active" | "deprecated" | "inactive" | "pending" | "suspended";
+
+/**
+ * Get fund count by status
+ */
+export async function getFundCountByStatus(status: FundStatus): Promise<number> {
+  const { count, error } = await supabase
+    .from("funds")
+    .select("id", { count: "exact", head: true })
+    .eq("status", status);
+
+  if (error) {
+    console.error("Error fetching fund count:", error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
+ * Get pending withdrawal count
+ */
+export async function getPendingWithdrawalCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from("withdrawal_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  if (error) {
+    console.error("Error fetching pending withdrawals:", error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
+ * Get recent activity count (last 24 hours)
+ */
+export async function getRecentActivityCount(hoursAgo: number = 24): Promise<number> {
+  const cutoffTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
+  
+  const { count, error } = await supabase
+    .from("transactions_v2")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", cutoffTime);
+
+  if (error) {
+    console.error("Error fetching recent activity:", error);
+    return 0;
+  }
+
+  return count || 0;
+}
