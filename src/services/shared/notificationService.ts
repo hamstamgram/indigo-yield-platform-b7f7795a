@@ -1,22 +1,17 @@
 /**
  * Notification Service
- * Handles notification CRUD operations
+ * Handles notification and settings CRUD operations
  */
 
 import { supabase } from "@/integrations/supabase/client";
-
-export interface Notification {
-  id: string;
-  user_id: string;
-  title: string;
-  body: string;
-  type: string;
-  priority: string | null;
-  read_at: string | null;
-  created_at: string;
-}
+import type { NotificationSettings, PriceAlert } from "@/types/domains";
+import { toNotifications, type Notification } from "@/lib/typeAdapters";
 
 class NotificationService {
+  // ============================================
+  // Notification Methods
+  // ============================================
+
   /**
    * Get notifications for the current user
    */
@@ -26,12 +21,27 @@ class NotificationService {
 
     const { data, error } = await supabase
       .from("notifications")
-      .select("id, user_id, title, body, type, priority, read_at, created_at")
+      .select("*")
       .eq("user_id", userData.user.id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return (data || []) as Notification[];
+    return toNotifications(data || []);
+  }
+
+  /**
+   * Get notifications for a specific user
+   */
+  async getNotificationsForUser(userId: string, limit = 50): Promise<Notification[]> {
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return toNotifications(data || []);
   }
 
   /**
@@ -90,6 +100,125 @@ class NotificationService {
     if (error) throw error;
     return count || 0;
   }
+
+  // ============================================
+  // Settings Methods
+  // ============================================
+
+  /**
+   * Get notification settings for a user
+   */
+  async getSettings(userId: string): Promise<NotificationSettings | null> {
+    const { data, error } = await supabase
+      .from("notification_settings")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data as unknown as NotificationSettings | null;
+  }
+
+  /**
+   * Create default notification settings
+   */
+  async createDefaultSettings(userId: string): Promise<NotificationSettings> {
+    const defaultSettings = {
+      user_id: userId,
+      email_enabled: true,
+      push_enabled: true,
+      in_app_enabled: true,
+      transaction_notifications: true,
+      alert_notifications: true,
+      system_notifications: true,
+      security_notifications: true,
+      document_notifications: true,
+      support_notifications: true,
+      yield_notifications: true,
+      portfolio_notifications: true,
+      email_frequency: "realtime",
+    };
+
+    const { data, error } = await supabase
+      .from("notification_settings")
+      .insert(defaultSettings)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as unknown as NotificationSettings;
+  }
+
+  /**
+   * Update notification settings
+   */
+  async updateSettings(userId: string, updates: Partial<NotificationSettings>): Promise<void> {
+    const { error } = await supabase
+      .from("notification_settings")
+      .update(updates)
+      .eq("user_id", userId);
+
+    if (error) throw error;
+  }
+
+  // ============================================
+  // Price Alert Methods
+  // ============================================
+
+  /**
+   * Get price alerts for a user
+   */
+  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    const { data, error } = await supabase
+      .from("price_alerts")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return (data as unknown as PriceAlert[]) || [];
+  }
+
+  /**
+   * Create a price alert
+   */
+  async createPriceAlert(
+    userId: string,
+    alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">
+  ): Promise<PriceAlert> {
+    const { data, error } = await supabase
+      .from("price_alerts")
+      .insert({ ...alert, user_id: userId })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as unknown as PriceAlert;
+  }
+
+  /**
+   * Update a price alert
+   */
+  async updatePriceAlert(alertId: string, updates: Partial<PriceAlert>): Promise<void> {
+    const { error } = await supabase
+      .from("price_alerts")
+      .update(updates)
+      .eq("id", alertId);
+
+    if (error) throw error;
+  }
+
+  /**
+   * Delete a price alert
+   */
+  async deletePriceAlert(alertId: string): Promise<void> {
+    const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
+
+    if (error) throw error;
+  }
 }
 
 export const notificationService = new NotificationService();
+
+// Re-export Notification type for backwards compatibility
+export type { Notification } from "@/lib/typeAdapters";
