@@ -5,6 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface FundAUMEvent {
   id: string;
@@ -61,7 +62,7 @@ export function useFundAUMEvents({ fundId, dateRange, includeVoided = false }: U
       const { data, error } = await query.limit(100);
 
       if (error) {
-        console.error("Error fetching fund AUM events:", error);
+        logError("useFundAUMEvents.fetch", error, { fundId });
         throw error;
       }
 

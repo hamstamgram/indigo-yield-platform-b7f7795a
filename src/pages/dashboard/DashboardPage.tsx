@@ -9,6 +9,7 @@ import { AssetPerformanceCard } from "@/components/common";
 import { useNavigate } from "react-router-dom";
 import { QuickActionsBar } from "@/components/investor/QuickActionsBar";
 import { PortfolioHero } from "@/components/investor/PortfolioHero";
+import { logError } from "@/lib/logger";
 
 export default function DashboardPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export default function DashboardPage() {
 
       toast.success("Statement downloaded successfully");
     } catch (error) {
-      console.error("Download failed:", error);
+      logError("DashboardPage.handleDownload", error, { recordId: record.id });
       toast.error("Failed to download statement");
     } finally {
       setDownloadingId(null);

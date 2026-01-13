@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { logError } from "@/lib/logger";
 
 /**
  * Hook for syncing state with localStorage
@@ -25,7 +26,7 @@ export function useLocalStorage<T>(
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.error(`Error loading localStorage key "${key}":`, error);
+      logError("useLocalStorage.load", error, { key });
       return initialValue;
     }
   });
@@ -45,7 +46,7 @@ export function useLocalStorage<T>(
           window.localStorage.setItem(key, JSON.stringify(valueToStore));
         }
       } catch (error) {
-        console.error(`Error setting localStorage key "${key}":`, error);
+        logError("useLocalStorage.set", error, { key });
       }
     },
     [key, storedValue]
@@ -59,7 +60,7 @@ export function useLocalStorage<T>(
         window.localStorage.removeItem(key);
       }
     } catch (error) {
-      console.error(`Error removing localStorage key "${key}":`, error);
+      logError("useLocalStorage.remove", error, { key });
     }
   }, [key, initialValue]);
 
@@ -70,7 +71,7 @@ export function useLocalStorage<T>(
         try {
           setStoredValue(JSON.parse(e.newValue));
         } catch (error) {
-          console.error(`Error parsing storage event for key "${key}":`, error);
+          logError("useLocalStorage.storageEvent", error, { key });
         }
       }
     };

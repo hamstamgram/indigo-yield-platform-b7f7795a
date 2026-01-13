@@ -9,6 +9,7 @@ import { createInvestorWithWizard } from "@/services";
 import type { WizardResult, WizardProgressCallback } from "@/services/admin/investorWizardService";
 import { WizardFormData } from "@/components/admin/investors/wizard/types";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { logError } from "@/lib/logger";
 
 /**
  * Hook for creating investors via the wizard with proper toast notifications
@@ -44,7 +45,7 @@ export function useCreateInvestorWizard() {
     },
     onError: (error) => {
       // Error toast is already shown via onProgress callback
-      console.error("Wizard mutation error:", error);
+      logError("useCreateInvestorWizard", error);
     },
   });
 }

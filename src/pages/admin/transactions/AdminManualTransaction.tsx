@@ -25,6 +25,7 @@ import {
   useTransactionFormFunds,
   useTransactionFormBalanceCheck,
 } from "@/hooks/data/admin";
+import { logError } from "@/lib/logger";
 
 // Form Schema
 const transactionSchema = z.object({
@@ -236,7 +237,7 @@ export default function AdminManualTransaction() {
       setYieldPreview(null);
       setCurrentAum(null);
     } catch (error: unknown) {
-      console.error("Transaction error:", error);
+      logError("AdminManualTransaction.onSubmit", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create transaction",

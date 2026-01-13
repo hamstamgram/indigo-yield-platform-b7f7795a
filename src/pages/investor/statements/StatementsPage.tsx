@@ -17,6 +17,7 @@ import {
   useDownloadStatement,
   type MonthlyStatement,
 } from "@/hooks/data";
+import { logError } from "@/lib/logger";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -94,7 +95,7 @@ const StatementsPage = () => {
         description: "Use 'Save as PDF' in the print dialog to download your statement.",
       });
     } catch (error) {
-      console.error("Download failed:", error);
+      logError("StatementsPage.handleDownload", error, { statementId: statement.id });
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to open statement",

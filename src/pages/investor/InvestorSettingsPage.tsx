@@ -30,6 +30,7 @@ import {
   useSaveUserPreferences,
   type UserSettings,
 } from "@/hooks/data";
+import { logError } from "@/lib/logger";
 
 const SETTINGS_KEY = "indigo_user_settings";
 
@@ -59,7 +60,7 @@ export default function InvestorSettingsPage() {
         try {
           setSettings({ ...defaultSettings, ...JSON.parse(localSettings) });
         } catch (e) {
-          console.error("Failed to parse local settings:", e);
+          logError("InvestorSettingsPage.loadSettings", e);
         }
       }
 
@@ -96,7 +97,7 @@ export default function InvestorSettingsPage() {
         description: "Your preferences have been updated.",
       });
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      logError("InvestorSettingsPage.handleSaveSettings", error);
       toast({
         title: "Error",
         description: "Failed to save settings. Please try again.",

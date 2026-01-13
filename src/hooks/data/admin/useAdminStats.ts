@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAdminStats, AdminStats } from "@/services/admin/adminStatsService";
+import { logError } from "@/lib/logger";
 
 // Re-export the type for consumers
 export type { AdminStats };
@@ -34,7 +35,7 @@ export function useAdminStats() {
       const data = await fetchAdminStats();
       setStats(data);
     } catch (err) {
-      console.error("Failed to load admin stats:", err);
+      logError("useAdminStats.loadStats", err);
       setError(err instanceof Error ? err : new Error("Failed to load stats"));
     } finally {
       setLoading(false);
