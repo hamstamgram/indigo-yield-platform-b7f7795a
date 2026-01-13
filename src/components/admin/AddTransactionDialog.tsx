@@ -38,6 +38,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import {
   createAdminTransaction,
   fetchInvestorsForSelector,
@@ -222,7 +223,7 @@ export function AddTransactionDialog({
       const options = await fetchInvestorsForSelector();
       setInvestors(options);
     } catch (error) {
-      console.error("Failed to load investors:", error);
+      logError("transaction.loadInvestors", error);
       toast.error("Failed to load investors");
     } finally {
       setIsLoadingInvestors(false);
@@ -323,7 +324,7 @@ export function AddTransactionDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error creating transaction:", error);
+      logError("transaction.create", error, { fundId: selectedFundId });
       toast.error(error instanceof Error ? error.message : "Failed to create transaction");
     } finally {
       setLoading(false);

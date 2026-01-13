@@ -10,6 +10,7 @@ import {
 } from "@/components/ui";
 import { Calendar, User, UserX, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 import {
   useAdminUpdateInvestorStatus as useUpdateInvestorStatus,
   useCleanupInactiveInvestors,
@@ -44,7 +45,7 @@ const InvestorLifecyclePanel = () => {
           });
         },
         onError: (error) => {
-          console.error("Error updating investor status:", error);
+          logError("investor.updateStatus", error, { status });
           toast({
             title: "Update Failed",
             description: "Failed to update investor status",
@@ -71,7 +72,7 @@ const InvestorLifecyclePanel = () => {
         }
       },
       onError: (error) => {
-        console.error("Error during cleanup:", error);
+        logError("investor.cleanup", error);
         toast({
           title: "Cleanup Failed",
           description: "Failed to cleanup inactive profiles",

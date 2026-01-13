@@ -5,6 +5,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 import { Loader2, FileText, Download, Eye, Send } from "lucide-react";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { format, parseISO } from "date-fns";
@@ -214,7 +215,7 @@ export function SingleReportGenerator() {
         throw new Error(result.error || "Failed to generate report.");
       }
     } catch (error) {
-      console.error("Generation failed:", error);
+      logError("report.generate", error, { investorId: selectedInvestor, periodId: period?.id });
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to generate report",

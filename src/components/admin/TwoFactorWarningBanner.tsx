@@ -8,6 +8,7 @@ import { Shield, X, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, getTotpStatus } from "@/services/auth";
 import { Button } from "@/components/ui";
+import { logError } from "@/lib/logger";
 
 export function TwoFactorWarningBanner() {
   const { profile, isAdmin } = useAuth();
@@ -27,7 +28,7 @@ export function TwoFactorWarningBanner() {
         const { status } = await getTotpStatus();
         setTotpEnabled(status === "enabled");
       } catch (error) {
-        console.error("Failed to check TOTP status:", error);
+        logError("auth.checkTotpStatus", error);
         setTotpEnabled(false);
       } finally {
         setLoading(false);

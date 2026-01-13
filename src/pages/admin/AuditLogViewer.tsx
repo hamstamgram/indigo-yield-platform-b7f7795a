@@ -14,6 +14,7 @@ import {
 } from "@/components/ui";
 import { FileText, Filter, Calendar, User, Activity, Database, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import { logError, logWarn } from "@/lib/logger";
 import { auditLogService, type AuditLogFilters } from "@/services/shared";
 import { useRealtimeSubscription } from "@/hooks";
 import { useAuditLogs, exportAuditLogsToCSV } from "@/hooks/data/admin/useAuditLogs";
@@ -73,8 +74,9 @@ const AuditLogViewer = () => {
       const count = await exportAuditLogsToCSV(filters);
       toast.success(`Exported ${count} audit log entries`);
     } catch (error: any) {
-      console.error("Error exporting audit logs:", error);
+      logError("auditLog.export", error, { filters });
       if (error.message === "No audit logs to export") {
+        logWarn("auditLog.export.empty", { filters });
         toast.warning("No audit logs to export");
       } else {
         toast.error("Failed to export audit logs");

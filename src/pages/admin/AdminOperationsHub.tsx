@@ -25,6 +25,7 @@ import {
   Mail,
 } from "lucide-react";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { operationsService, type PendingBreakdown } from "@/services/operations/operationsService";
 import { getSystemHealth, type SystemHealth } from "@/services/core/systemHealthService";
 import { useRecentAuditLogs, useOperationsRealtime, type AuditLogEntry } from "@/hooks/data";
@@ -83,7 +84,7 @@ function AdminOperationsHubContent() {
 
       setPendingBreakdown(operationsService.getPendingBreakdown(metricsData));
     } catch (error) {
-      console.error("Error loading metrics:", error);
+      logError("operations.loadMetrics", error);
       toast.error("Failed to load operations metrics");
     } finally {
       setIsLoadingMetrics(false);
@@ -95,7 +96,7 @@ function AdminOperationsHubContent() {
       const health = await getSystemHealth();
       setSystemStatus(health);
     } catch (error) {
-      console.error("Failed to load system health:", error);
+      logError("operations.loadSystemHealth", error);
     }
   };
 

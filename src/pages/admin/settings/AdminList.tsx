@@ -16,6 +16,7 @@ import { Loader2, Shield, ShieldCheck, UserPlus, Search } from "lucide-react";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import { RoleChangeConfirmDialog } from "@/components/admin/RoleChangeConfirmDialog";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 import { format } from "date-fns";
 import {
   useAdminUsersWithRoles,
@@ -81,7 +82,7 @@ function AdminListContent() {
       setInviteEmail("");
       setInviteRole("admin");
     } catch (error) {
-      console.error("Error creating invite:", error);
+      logError("admin.createInvite", error, { inviteEmail });
       toast({
         title: "Error",
         description: "Failed to create invite",
@@ -118,7 +119,7 @@ function AdminListContent() {
 
       refetch();
     } catch (error: any) {
-      console.error("Error updating role:", error);
+      logError("admin.updateRole", error, { adminId: pendingRoleChange.adminId, newRole: pendingRoleChange.newRole });
       if (error.message?.includes("Super Admin")) {
         toast({
           title: "Permission Denied",
