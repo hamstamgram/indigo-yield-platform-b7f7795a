@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { format } from "date-fns";
 import {
   Card, CardContent, CardHeader, CardTitle,
@@ -25,14 +25,16 @@ interface FundSnapshotCardProps {
   onClick: () => void;
 }
 
-export const FundSnapshotCard: React.FC<FundSnapshotCardProps> = ({
+export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapshotCard({
   fund,
   flows,
   isSelected,
   date,
   onClick,
-}) => {
-  const isToday = date && format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+}) {
+  const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+  const dateStr = useMemo(() => date ? format(date, 'yyyy-MM-dd') : null, [date]);
+  const isToday = dateStr === todayStr;
   const displayAUM = isToday ? fund.latest_aum : (flows?.aum ?? fund.latest_aum);
 
   return (
@@ -108,4 +110,4 @@ export const FundSnapshotCard: React.FC<FundSnapshotCardProps> = ({
       </CardContent>
     </Card>
   );
-};
+});

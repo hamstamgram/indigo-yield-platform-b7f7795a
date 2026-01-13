@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Radio, AlertCircle, RefreshCw, TrendingUp } from "lucide-react";
 import {
@@ -37,11 +37,35 @@ export const FinancialSnapshot: React.FC = () => {
     setSelectedFundId(null);
   }, [date]);
 
-  const selectedFund = funds.find((f) => f.id === selectedFundId);
+  // Memoize filtered funds to avoid recalculating on every render
+  const activeFunds = useMemo(() => 
+    funds.filter((f) => f.status === 'active'),
+    [funds]
+  );
 
-  const handleCloseDrawer = () => {
+  const selectedFund = useMemo(() => 
+    funds.find((f) => f.id === selectedFundId),
+    [funds, selectedFundId]
+  );
+
+  // Memoize click handlers to prevent unnecessary re-renders of FundSnapshotCard
+  const handleFundClick = useCallback((fundId: string) => {
+    setSelectedFundId(fundId);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
     setSelectedFundId(null);
-  };
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Check if viewing today
+  const isViewingToday = useMemo(() => {
+    if (!date) return false;
+    return format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  }, [date]);
 
   return (
     <div className="space-y-8">
@@ -52,7 +76,7 @@ export const FinancialSnapshot: React.FC = () => {
             Fund Financials
           </h2>
           <div className="flex items-center gap-2 text-muted-foreground">
-            {date && format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? (
+            {isViewingToday ? (
               <>
                 <span>Live AUM with daily flows.</span>
                 {lastUpdated && (
@@ -130,7 +154,7 @@ export const FinancialSnapshot: React.FC = () => {
             <p className="text-muted-foreground text-center mb-4 max-w-md">
               There was an error fetching fund information. This may be a temporary issue.
             </p>
-            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+            <Button onClick={handleRetry} variant="outline" className="gap-2">
               <RefreshCw className="h-4 w-4" />
               Retry
             </Button>
@@ -139,7 +163,7 @@ export const FinancialSnapshot: React.FC = () => {
       )}
 
       {/* Empty State - No Active Funds */}
-      {!loadingAUM && !isError && funds.filter(f => f.status === 'active').length === 0 && (
+      {!loadingAUM && !isError && activeFunds.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
@@ -152,16 +176,16 @@ export const FinancialSnapshot: React.FC = () => {
       )}
 
       {/* Snapshot Cards Grid - Using unified AUM data */}
-      {!loadingAUM && !isError && funds.filter(f => f.status === 'active').length > 0 && (
+      {!loadingAUM && !isError && activeFunds.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {funds.filter(f => f.status === 'active').map((fund) => (
+          {activeFunds.map((fund) => (
             <FundSnapshotCard
               key={fund.id}
               fund={fund}
               flows={flowData.get(fund.id)}
               isSelected={selectedFundId === fund.id}
               date={date}
-              onClick={() => setSelectedFundId(fund.id)}
+              onClick={() => handleFundClick(fund.id)}
             />
           ))}
         </div>
