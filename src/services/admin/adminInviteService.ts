@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
 
 export interface AdminInvite {
   id: string;
@@ -16,9 +17,9 @@ class AdminInviteService {
    * Check if current user is super admin
    */
   async isSuperAdmin(): Promise<boolean> {
-    const { data, error } = await (supabase.rpc as any)("is_super_admin");
+    const { data, error } = await callRPCNoArgs("is_super_admin");
     if (error) {
-      if (error.code === "42883") return false; // Function not found
+      if ((error as any).code === "42883") return false; // Function not found
       throw error;
     }
     return !!data;

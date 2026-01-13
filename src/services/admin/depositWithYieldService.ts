@@ -9,6 +9,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toDecimal } from "@/utils/financial";
 import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 export interface DepositWithYieldParams {
   investorId: string;
@@ -138,12 +139,11 @@ export async function processDepositWithYield(
     const closingAumBeforeDepositFixed = closingAumBeforeDeposit.toFixed(10);
     const amountFixed = amountDec.toFixed(10);
 
-    const rpcCall = (supabase.rpc as any).bind(supabase);
-    const { data: depositResult, error: depositError } = await rpcCall("apply_deposit_with_crystallization", {
+    const { data: depositResult, error: depositError } = await callRPC("apply_deposit_with_crystallization", {
       p_fund_id: fundId,
       p_investor_id: investorId,
-      p_amount: amountFixed,
-      p_closing_aum: closingAumBeforeDepositFixed,
+      p_amount: Number(amountFixed),
+      p_closing_aum: Number(closingAumBeforeDepositFixed),
       p_effective_date: txDate,
       p_admin_id: user.id,
       p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
@@ -161,14 +161,15 @@ export async function processDepositWithYield(
       };
     }
 
-    const grossYield = Number(depositResult?.crystallization?.gross_yield || 0);
+    const result = depositResult as any;
+    const grossYield = Number(result?.crystallization?.gross_yield || 0);
 
     return {
       success: true,
       yieldDistributed: grossYield,
       yieldInvestorsAffected: 0,
       depositProcessed: true,
-      transactionId: depositResult?.deposit_tx_id,
+      transactionId: result?.deposit_tx_id,
     };
   } catch (err) {
     logError("processDepositWithYield.exception", err, { fundId, investorId });

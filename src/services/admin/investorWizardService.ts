@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WizardFormData } from "@/components/admin/investors/wizard/types";
 import { addCsrfHeader } from "@/lib/security/csrf";
+import { logError, logWarn } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 interface CreateIBResponse {
   success: boolean;
@@ -50,7 +52,7 @@ async function createIBUser(params: {
   );
 
   if (error) {
-    console.error("Error creating IB:", error);
+    logError("createIBUser", error, { email: params.email });
     throw new Error(error.message || "Failed to create IB");
   }
 
@@ -193,7 +195,7 @@ export async function createInvestorWithWizard(
       .eq("id", investorId);
 
     if (profileError) {
-      console.error("Profile update error:", profileError);
+      logWarn("createInvestorWithWizard.profileUpdate", { investorId, error: profileError.message });
       // Don't throw - investor is created, just log warning
     }
 
@@ -207,7 +209,7 @@ export async function createInvestorWithWizard(
       });
 
     if (feeError) {
-      console.error("Fee schedule error:", feeError);
+      logWarn("createInvestorWithWizard.feeSchedule", { investorId, error: feeError.message });
     }
 
     // Step 5: Create initial positions via admin_create_transaction RPC
@@ -249,7 +251,7 @@ export async function createInvestorWithWizard(
           // Call admin_create_transaction RPC which handles both transaction creation
           // and position update atomically
           const { data: { user } } = await supabase.auth.getUser();
-          const { error: txError } = await (supabase.rpc as any)("admin_create_transaction", {
+          const { error: txError } = await callRPC("admin_create_transaction", {
             p_investor_id: investorId,
             p_fund_id: fund.id,
             p_type: "DEPOSIT",
@@ -261,7 +263,7 @@ export async function createInvestorWithWizard(
           });
 
           if (txError) {
-            console.error(`Transaction creation error for ${fund.asset}:`, txError);
+            logWarn("createInvestorWithWizard.transaction", { fundAsset: fund.asset, error: txError.message });
             // Fallback: try direct insert if RPC fails (for backwards compatibility)
             const { error: fallbackError } = await supabase
               .from("transactions_v2")
@@ -281,7 +283,7 @@ export async function createInvestorWithWizard(
               });
 
           if (fallbackError) {
-              console.error("Fallback transaction creation also failed:", fallbackError);
+              logWarn("createInvestorWithWizard.fallbackTransaction", { fundAsset: fund.asset, error: fallbackError.message });
               // Note: Position will be created via the recompute trigger when transaction succeeds
               // Do NOT directly insert into investor_positions - this causes orphaned positions
             }
@@ -304,14 +306,14 @@ export async function createInvestorWithWizard(
         .insert(emailRecords);
 
       if (emailError) {
-        console.error("Email save error:", emailError);
+        logWarn("createInvestorWithWizard.reportEmails", { investorId, error: emailError.message });
       }
     }
 
     onProgress?.(`Investor ${identity.first_name} ${identity.last_name} created successfully`, "success");
     return { success: true, investorId };
   } catch (error) {
-    console.error("Wizard error:", error);
+    logError("createInvestorWithWizard", error, { email: identity.email });
     const message = error instanceof Error ? error.message : "Failed to create investor";
     onProgress?.(message, "error");
     return { success: false, error: message };

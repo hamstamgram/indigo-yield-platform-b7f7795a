@@ -10,6 +10,8 @@ import type {
   Transaction as BaseTransaction,
   CreateTransactionUIParams,
 } from "@/types/domains/transaction";
+import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 // Re-export the UI type for backwards compatibility (allows FIRST_INVESTMENT)
 export type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
@@ -86,7 +88,7 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
       };
     });
   } catch (error) {
-    console.error("Error fetching transactions:", error);
+    logError("fetchUserTransactions", error);
     throw error;
   }
 }
@@ -117,7 +119,7 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
 
     return summary;
   } catch (error) {
-    console.error("Error calculating summary:", error);
+    logError("calculateTransactionSummary", error);
     return {
       totalCount: 0,
       totalDeposits: 0,
@@ -182,10 +184,9 @@ export async function createAdminTransaction(
         params.reference_id || `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
       const triggerReference = triggerReferenceRaw.replace(/^(DEP:|WDR:)/, "");
 
-      const rpcCall = (supabase.rpc as any).bind(supabase);
       const { data, error } =
         dbType === "DEPOSIT"
-          ? await rpcCall("apply_deposit_with_crystallization", {
+          ? await callRPC("apply_deposit_with_crystallization", {
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
               p_amount: params.amount,
@@ -195,7 +196,7 @@ export async function createAdminTransaction(
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
               p_purpose: "transaction",
             })
-          : await rpcCall("apply_withdrawal_with_crystallization", {
+          : await callRPC("apply_withdrawal_with_crystallization", {
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
               p_amount: params.amount,
@@ -207,7 +208,7 @@ export async function createAdminTransaction(
             });
       
       if (error) {
-        console.error(`${dbType} crystallize-before-flow error:`, error);
+        logError(`createAdminTransaction.${dbType}`, error, { fundId: params.fund_id });
         // Surface the actual Postgres error message
         const errorMessage = error.message || error.details || "Failed to create transaction";
         throw new Error(errorMessage);
@@ -244,7 +245,7 @@ export async function createAdminTransaction(
 
     return { success: true };
   } catch (error) {
-    console.error("Error creating transaction:", error);
+    logError("createAdminTransaction", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create transaction",
@@ -285,10 +286,9 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   // Generate unique trigger reference to prevent duplicates
   const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${crypto.randomUUID()}`;
 
-  const rpcCall = (supabase.rpc as any).bind(supabase);
   const { data, error } =
     params.type === "DEPOSIT"
-      ? await rpcCall("apply_deposit_with_crystallization", {
+      ? await callRPC("apply_deposit_with_crystallization", {
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
           p_amount: params.amount,
@@ -298,7 +298,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
           p_notes: params.description || `${params.type} - ${triggerReference}`,
           p_purpose: "transaction",
         })
-      : await rpcCall("apply_withdrawal_with_crystallization", {
+      : await callRPC("apply_withdrawal_with_crystallization", {
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
           p_amount: params.amount,
