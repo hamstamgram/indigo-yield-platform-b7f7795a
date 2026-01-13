@@ -24,8 +24,8 @@ export function CreateInvestmentDialog({
   onSuccess,
 }: CreateInvestmentDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [investors, setInvestors] = useState<any[]>([]);
-  const [funds, setFunds] = useState<any[]>([]);
+  const [investors, setInvestors] = useState<{ id: string; name: string; email: string }[]>([]);
+  const [funds, setFunds] = useState<{ id: string; name: string; code: string }[]>([]);
 
   const form = useForm<InvestmentFormValues>({
     resolver: zodResolver(investmentFormSchema),

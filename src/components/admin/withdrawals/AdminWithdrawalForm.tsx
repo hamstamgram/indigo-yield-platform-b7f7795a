@@ -17,9 +17,22 @@ import {
 import { useToast } from "@/hooks";
 import { MinusCircle, Info } from "lucide-react";
 
+interface InvestorOption {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+}
+
+interface AssetOption {
+  id: number;
+  symbol: string;
+  name: string;
+}
+
 interface AdminWithdrawalFormProps {
-  investors: any[];
-  assets: any[];
+  investors: InvestorOption[];
+  assets: AssetOption[];
 }
 
 const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({ investors, assets }) => {
