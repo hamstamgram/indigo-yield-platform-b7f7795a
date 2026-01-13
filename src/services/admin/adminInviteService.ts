@@ -4,7 +4,7 @@ export interface AdminInvite {
   id: string;
   email: string;
   invite_code: string;
-  intended_role: string | null;
+  intended_role?: string | null;
   created_at: string;
   expires_at: string;
   used: boolean | null;

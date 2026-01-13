@@ -9,6 +9,7 @@ export { EditYieldDialog } from "./EditYieldDialog";
 export { VoidYieldDialog } from "./VoidYieldDialog";
 export { OpenPeriodDialog } from "./OpenPeriodDialog";
 export { UnlockPeriodDialog } from "./UnlockPeriodDialog";
+export { YieldConfirmDialog } from "./YieldConfirmDialog";
 
 // Components
 export { YieldActionsColumn } from "./YieldActionsColumn";
@@ -16,6 +17,7 @@ export { YieldCorrectionPanel } from "./YieldCorrectionPanel";
 export { YieldCorrectionPreview } from "./YieldCorrectionPreview";
 export { YieldEventsTable } from "./YieldEventsTable";
 export { FundAUMEventsTable } from "./FundAUMEventsTable";
+export { YieldPreviewResults } from "./YieldPreviewResults";
 
 // Re-export void hook for convenience
 export { useVoidYieldDistribution } from "@/hooks/data/admin";
