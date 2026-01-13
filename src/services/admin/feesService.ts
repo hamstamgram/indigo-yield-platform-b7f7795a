@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
+import { logWarn } from "@/lib/logger";
 
 // ==================== Types ====================
 
@@ -313,7 +314,7 @@ export async function getRoutingAuditEntries(): Promise<{
     .limit(100);
 
   if (error) {
-    console.warn("Could not load routing audit entries:", error);
+    logWarn("getRoutingAuditEntries", { error });
     return {
       entries: [],
       summary: { totalAmount: 0, totalCount: 0, byAsset: {} },

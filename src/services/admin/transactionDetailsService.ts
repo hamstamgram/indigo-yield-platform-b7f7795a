@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 // ==================== Types ====================
 
@@ -179,7 +180,7 @@ export async function checkAumExists(fundId: string, date: string): Promise<AumC
     .maybeSingle();
 
   if (error) {
-    console.error("Error checking AUM:", error);
+    logError("checkAumExists", error, { fundId, date });
     return { exists: false };
   }
 

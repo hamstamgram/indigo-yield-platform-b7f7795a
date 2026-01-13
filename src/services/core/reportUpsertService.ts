@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface ExistingReport {
   id: string;
@@ -38,7 +39,7 @@ export async function checkStatementExists(
     .maybeSingle();
 
   if (error) {
-    console.error("Error checking statement exists:", error);
+    logError("checkStatementExists", error, { investorId, periodId });
     return { exists: false };
   }
 
@@ -71,7 +72,7 @@ export async function checkReportExists(
   const { data, error } = await query.maybeSingle();
 
   if (error) {
-    console.error("Error checking report exists:", error);
+    logError("checkReportExists", error, { investorId, fundId, reportMonth });
     return { exists: false };
   }
 
@@ -104,7 +105,7 @@ async function logReportChange(
   });
 
   if (error) {
-    console.error("Error logging report change:", error);
+    logError("logReportChange", error, { reportId, reportTable });
     // Don't throw - audit logging should not block report generation
   }
 }
@@ -364,7 +365,7 @@ export async function getReportChangeHistory(
     .order("changed_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching report change history:", error);
+    logError("getReportChangeHistory", error, { reportId, reportTable });
     return [];
   }
 

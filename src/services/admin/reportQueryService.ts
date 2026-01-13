@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface InvestorReportAsset {
   asset_code: string;
@@ -103,7 +104,7 @@ export async function fetchInvestorPerformanceReports(
   const { data, error } = await query.order("period(period_end_date)", { ascending: false });
   
   if (error) {
-    console.error("Error fetching reports:", error);
+    logError("fetchInvestorPerformanceReports", error);
     return [];
   }
 
@@ -356,7 +357,7 @@ export async function fetchLatestPerformance(
     .maybeSingle();
 
   if (perfError) {
-    console.error("Error fetching latest performance:", perfError);
+    logError("fetchLatestPerformance", perfError, { investorId, assetCode });
     return null;
   }
   if (!latestPerformance) return null;

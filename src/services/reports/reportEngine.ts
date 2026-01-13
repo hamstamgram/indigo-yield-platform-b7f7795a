@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { reportService } from "@/services";
 import { GenerateReportRequest, GenerateReportResponse } from "@/types/domains";
+import { logError } from "@/lib/logger";
 
 // Lazy load PDF/Excel generators to reduce initial bundle size
 const loadPDFGenerator = () => import("./pdfGenerator");
@@ -50,7 +51,7 @@ export class ReportEngine {
         reportId: req.reportId,
       };
     } catch (error) {
-      console.error("Report Engine Error:", error);
+      logError("ReportEngine.generateReport", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

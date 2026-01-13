@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
+import { logError } from "@/lib/logger";
 
 export const performanceService = {
   /**
@@ -27,7 +28,7 @@ export const performanceService = {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching performance:", error);
+      logError("performanceService.getInvestorPerformance", error, { userId: filters.userId });
       throw error;
     }
 
@@ -128,7 +129,7 @@ export const performanceService = {
       .maybeSingle();
 
     if (periodError) {
-      console.error("Error fetching finalized period:", periodError);
+      logError("performanceService.getFinalizedInvestorData", periodError, { userId });
     }
 
     // If no finalized period, check for any period with data
@@ -196,7 +197,7 @@ export const performanceService = {
       .order("period(period_end_date)", { ascending: false });
 
     if (error) {
-      console.error("Error fetching performance history:", error);
+      logError("performanceService.getPerformanceHistoryGrouped", error, { userId });
       throw error;
     }
 
