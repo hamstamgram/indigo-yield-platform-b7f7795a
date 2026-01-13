@@ -1,12 +1,13 @@
 /**
  * useAdminInvites - Data hook for admin invitation operations
- * Abstracts Supabase calls from AdminInvites component
+ * Uses adminInviteService for database operations
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks";
+import { adminInviteService } from "@/services/admin/adminInviteService";
 
+// Re-export with optional intended_role for backwards compatibility
 export interface AdminInvite {
   id: string;
   email: string;
@@ -15,6 +16,7 @@ export interface AdminInvite {
   expires_at: string;
   used: boolean | null;
   created_by: string | null;
+  intended_role?: string | null;
 }
 
 const QUERY_KEYS = {
@@ -28,16 +30,7 @@ const QUERY_KEYS = {
 export function useIsSuperAdmin() {
   return useQuery<boolean>({
     queryKey: QUERY_KEYS.isSuperAdmin,
-    queryFn: async () => {
-      // Note: is_super_admin RPC may not exist in all deployments
-      const { data, error } = await (supabase.rpc as any)("is_super_admin");
-      if (error) {
-        // Return false if RPC doesn't exist
-        if (error.code === "42883") return false; // Function not found
-        throw error;
-      }
-      return !!data;
-    },
+    queryFn: () => adminInviteService.isSuperAdmin(),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -50,15 +43,7 @@ export function useAdminInvites() {
 
   return useQuery<AdminInvite[]>({
     queryKey: QUERY_KEYS.invites,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("admin_invites")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return (data || []) as AdminInvite[];
-    },
+    queryFn: () => adminInviteService.getAll(),
     staleTime: 2 * 60 * 1000,
     meta: {
       onError: () => {
@@ -81,21 +66,7 @@ export function useCreateAdminInvite() {
 
   return useMutation({
     mutationFn: async (email: string) => {
-      // Note: create_admin_invite RPC may not exist in all deployments
-      const { data, error } = await (supabase.rpc as any)("create_admin_invite", {
-        p_email: email.toLowerCase().trim(),
-      });
-
-      if (error) {
-        if (error.message?.includes("Super admin")) {
-          throw new Error("Only super admins can create admin invitations.");
-        } else if (error.message?.includes("already exists")) {
-          throw new Error("An invitation for this email already exists.");
-        }
-        throw error;
-      }
-
-      return data;
+      return adminInviteService.create(email, "admin");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.invites });
@@ -122,15 +93,8 @@ export function useSendAdminInvite() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (invite: AdminInvite) => {
-      const { error } = await supabase.functions.invoke("send-admin-invite", {
-        body: { invite },
-      });
-
-      if (error) throw error;
-      return invite;
-    },
-    onSuccess: (invite) => {
+    mutationFn: (invite: AdminInvite) => adminInviteService.sendInviteEmail(invite),
+    onSuccess: (_, invite) => {
       toast({
         title: "Invitation Sent",
         description: `Invitation email sent to ${invite.email}`,
@@ -155,11 +119,7 @@ export function useDeleteAdminInvite() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("admin_invites").delete().eq("id", id);
-
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => adminInviteService.revoke(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.invites });
       toast({
@@ -185,7 +145,7 @@ export function useCopyInviteLink() {
   const { toast } = useToast();
 
   return (inviteCode: string) => {
-    const link = `${window.location.origin}/admin-invite?code=${inviteCode}`;
+    const link = adminInviteService.generateInviteLink(inviteCode);
     navigator.clipboard.writeText(link);
 
     toast({

@@ -1,13 +1,16 @@
 /**
  * Investor Services - Unified exports
- * All investor data operations go through investorDataService
+ * All investor data operations go through investorDataService or specific sub-services
  */
 
-// Unified investor data service (canonical source)
+// Unified investor data service (canonical source - facade pattern)
 export { 
   investorDataService, 
   InvestorDataService,
-  // Standalone functions
+} from "./investorDataService";
+
+// Position service exports
+export {
   fetchInvestorPositions,
   fetchInvestorsForSelector,
   getAllInvestorsExpertSummary,
@@ -16,30 +19,65 @@ export {
   checkAdminStatus,
   fetchInvestors,
   fetchPendingInvites,
-  // Legacy compatibility export
+  getInvestorPositions as getInvestorPositionsList,
+  getUserPositions,
+  getTotalAUM,
+  getActiveInvestorCount,
   expertInvestorService,
-} from "./investorDataService";
+} from "./investorPositionService";
 
-// Types from investorDataService
+// Portfolio summary service exports
+export {
+  getInvestorSummary,
+  getInvestorPortfolio,
+  getAllInvestorsWithSummary,
+} from "./investorPortfolioSummaryService";
+
+// Withdrawal service exports
+export {
+  getWithdrawalRequests,
+  createWithdrawalRequest,
+  cancelWithdrawalRequest,
+  getAvailableFunds,
+} from "./investorWithdrawalService";
+
+// Yield history service exports
+export {
+  getYieldHistory,
+  getInvestorDocuments,
+  downloadDocument,
+  getPendingTransactions,
+} from "./investorYieldHistoryService";
+
+// Types from sub-services
 export type {
   InvestorPositionDetail,
   InvestorPositionRow,
-  InvestorSummary,
-  PortfolioPerformance,
-  InvestorPortfolio,
-  YieldHistoryEntry,
-  WithdrawalRequest,
   ExpertPosition,
   ExpertInvestor,
   InvestorSelectorItem,
+} from "./investorPositionService";
+
+export type {
+  InvestorSummary,
+  PortfolioPerformance,
+  InvestorPortfolio,
+} from "./investorPortfolioSummaryService";
+
+export type {
+  WithdrawalRequest,
+} from "./investorWithdrawalService";
+
+export type {
+  YieldHistoryEntry,
   InvestorDocument,
   PendingTransaction,
-} from "./investorDataService";
+} from "./investorYieldHistoryService";
 
 // Deposit service
 export { depositService, DepositService } from "./depositService";
 
-// Withdrawal service
+// Withdrawal service (admin operations)
 export { withdrawalService } from "./withdrawalService";
 
 // Investment service
@@ -77,13 +115,6 @@ export {
   getAccessLogs,
   revokeSession,
 } from "./investorPortalService";
-
-// Investor data service functions
-export {
-  getInvestorDocuments,
-  downloadDocument,
-  getPendingTransactions,
-} from "./investorDataService";
 
 // Fund view service (investor-focused fund operations)
 export {
