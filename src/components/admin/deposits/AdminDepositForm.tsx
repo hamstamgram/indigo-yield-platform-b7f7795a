@@ -24,9 +24,22 @@ import { PlusCircle, Loader2, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+interface InvestorOption {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+}
+
+interface AssetOption {
+  id: number;
+  symbol: string;
+  name: string;
+}
+
 interface AdminDepositFormProps {
-  investors: any[];
-  assets: any[];
+  investors: InvestorOption[];
+  assets: AssetOption[];
   onSuccess?: () => void;
 }
 

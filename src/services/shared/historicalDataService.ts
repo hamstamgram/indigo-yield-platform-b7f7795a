@@ -67,9 +67,23 @@ export async function getHistoricalReports(filters?: {
 
     if (error) throw error;
 
-    return (data || []).map((r: any) => ({
+    interface PerformanceRow {
+      id: string;
+      investor_id: string;
+      fund_name: string;
+      mtd_beginning_balance: number | null;
+      mtd_ending_balance: number | null;
+      mtd_additions: number | null;
+      mtd_redemptions: number | null;
+      mtd_net_income: number | null;
+      created_at: string;
+      updated_at: string;
+      period?: { period_end_date: string } | null;
+    }
+
+    return (data || []).map((r: PerformanceRow) => ({
       id: r.id,
-      investor_id: r.investor_id, // V2: investor_id column
+      investor_id: r.investor_id,
       report_month: r.period?.period_end_date,
       asset_code: r.fund_name,
       opening_balance: r.mtd_beginning_balance,
@@ -327,14 +341,19 @@ export async function getHistoricalDataSummary(): Promise<{
       };
     }
 
-    const months = summary.map((r: any) => r.period?.period_end_date).sort();
-    const uniqueInvestors = new Set(summary.map((r) => r.investor_id));
-    const uniqueAssets = new Set(summary.map((r) => r.fund_name));
+    interface SummaryRow {
+      fund_name: string;
+      investor_id: string;
+      period?: { period_end_date: string } | null;
+    }
+    const months = (summary as SummaryRow[]).map((r) => r.period?.period_end_date).filter(Boolean).sort();
+    const uniqueInvestors = new Set((summary as SummaryRow[]).map((r) => r.investor_id));
+    const uniqueAssets = new Set((summary as SummaryRow[]).map((r) => r.fund_name));
 
     return {
       totalReports: summary.length,
-      latestMonth: months[months.length - 1],
-      earliestMonth: months[0],
+      latestMonth: months[months.length - 1] || null,
+      earliestMonth: months[0] || null,
       investorCount: uniqueInvestors.size,
       assetCount: uniqueAssets.size,
     };

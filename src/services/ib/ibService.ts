@@ -173,15 +173,24 @@ class IBService {
     // Group by asset with proper pending/paid tracking
     const byAsset: Record<string, { total: number; pending: number; paid: number }> = {};
     
-    for (const allocation of data || []) {
-      const asset = (allocation.funds as any)?.asset;
+    interface AllocationRow {
+      id: string;
+      ib_fee_amount: number;
+      fund_id: string;
+      effective_date: string;
+      payout_status: string | null;
+      funds: { asset: string } | null;
+    }
+
+    for (const allocation of (data || []) as AllocationRow[]) {
+      const asset = allocation.funds?.asset;
       if (!asset) continue;
       if (!byAsset[asset]) {
         byAsset[asset] = { total: 0, pending: 0, paid: 0 };
       }
       const amount = Number(allocation.ib_fee_amount);
       byAsset[asset].total += amount;
-      if ((allocation as any).payout_status === 'paid') {
+      if (allocation.payout_status === 'paid') {
         byAsset[asset].paid += amount;
       } else {
         byAsset[asset].pending += amount;
@@ -228,10 +237,17 @@ class IBService {
     // Group by investor
     const byInvestor: Record<string, { name: string; commissions: Record<string, number> }> = {};
 
-    for (const allocation of data || []) {
+    interface TopReferralRow {
+      source_investor_id: string;
+      ib_fee_amount: number;
+      funds: { asset: string } | null;
+      profiles: { first_name: string | null; last_name: string | null; email: string } | null;
+    }
+
+    for (const allocation of (data || []) as TopReferralRow[]) {
       const investorId = allocation.source_investor_id;
-      const profile = allocation.profiles as any;
-      const asset = (allocation.funds as any)?.asset;
+      const profile = allocation.profiles;
+      const asset = allocation.funds?.asset;
       if (!asset) continue;
 
       if (!byInvestor[investorId]) {

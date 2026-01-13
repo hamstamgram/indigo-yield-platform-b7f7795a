@@ -17,7 +17,8 @@ import { callRPC } from "@/lib/supabase/typedRPC";
 export type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 
 // Extended transaction with investor name for display
-export interface Transaction extends Pick<BaseTransaction, 'id' | 'investor_id' | 'asset' | 'amount' | 'type' | 'tx_date' | 'created_at' | 'notes'> {
+export interface Transaction extends Pick<BaseTransaction, 'id' | 'investor_id' | 'asset' | 'amount' | 'tx_date' | 'created_at' | 'notes'> {
+  type: string; // Relaxed to string to handle various transaction types from DB
   txn_type: string | null;
   investor_name?: string;
 }
@@ -44,7 +45,7 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
     // user.id IS the investor_id now (One ID)
     const investorId = user.id;
 
-    // Fetch transactions for this investor, directly joining with profiles for name
+    // Fetch transactions for this investor, using explicit FK hint for profiles join
     const { data, error } = await supabase
       .from("transactions_v2")
       .select(
@@ -57,7 +58,7 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
         tx_date,
         created_at,
         notes,
-        profile:profiles(first_name, last_name, email)
+        profile:profiles!transactions_v2_investor_id_fkey(first_name, last_name, email)
       `
       )
       .eq("investor_id", investorId)
@@ -68,8 +69,20 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
 
     if (error) throw error;
 
-    return (data || []).map((tx) => {
-      const profile = (tx as any).profile;
+    interface TransactionRow {
+      id: string;
+      investor_id: string;
+      type: string;
+      asset: string;
+      amount: string | number;
+      tx_date: string;
+      created_at: string | null;
+      notes: string | null;
+      profile?: { first_name: string | null; last_name: string | null; email: string } | null;
+    }
+
+    return (data || []).map((tx: TransactionRow) => {
+      const profile = tx.profile;
       const investor_name = profile?.first_name || profile?.last_name
         ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
         : profile?.email || "Unknown";
