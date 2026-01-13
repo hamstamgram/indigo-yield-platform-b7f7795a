@@ -7,17 +7,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { adminInviteService } from "@/services/admin/adminInviteService";
 
-// Re-export with optional intended_role for backwards compatibility
-export interface AdminInvite {
-  id: string;
-  email: string;
-  invite_code: string;
-  created_at: string;
-  expires_at: string;
-  used: boolean | null;
-  created_by: string | null;
-  intended_role?: string | null;
-}
+// Re-export type from service for consistency
+import type { AdminInvite } from "@/services/admin/adminInviteService";
+export type { AdminInvite } from "@/services/admin/adminInviteService";
 
 const QUERY_KEYS = {
   invites: ["admin-invites"] as const,
