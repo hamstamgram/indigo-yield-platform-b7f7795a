@@ -20,6 +20,7 @@ import {
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { useUpdateFundPerformance } from "@/hooks/data/admin";
 
 interface PerformanceData {
@@ -117,7 +118,7 @@ export function FundPositionCard({
           onUpdate?.();
         },
         onError: (error) => {
-          console.error("Error saving performance:", error);
+          logError("fundPerformance.save", error, { investorId, fundId });
           toast.error("Failed to save changes");
         },
       }

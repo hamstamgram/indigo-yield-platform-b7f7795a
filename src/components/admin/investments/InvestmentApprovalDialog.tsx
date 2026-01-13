@@ -13,6 +13,7 @@ import {
 } from "@/components/ui";
 import { investmentService } from "@/services";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import type { Investment } from "@/types/domains";
 
 interface InvestmentApprovalDialogProps {
@@ -48,7 +49,7 @@ export function InvestmentApprovalDialog({
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error("Error approving investment:", error);
+      logError("investment.approve", error, { investmentId: investment.id });
       toast.error(error.message || "Failed to approve investment");
     } finally {
       setLoading(false);
@@ -68,7 +69,7 @@ export function InvestmentApprovalDialog({
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error("Error rejecting investment:", error);
+      logError("investment.reject", error, { investmentId: investment.id });
       toast.error(error.message || "Failed to reject investment");
     } finally {
       setLoading(false);

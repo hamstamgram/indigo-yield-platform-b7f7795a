@@ -6,6 +6,7 @@ import { adminServiceV2, InvestorSummaryV2, deleteInvestorUser } from "@/service
 import { assetService } from "@/services/shared";
 import { AssetRef as Asset } from "@/types/asset";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 
 export default function InvestorsListPage() {
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
@@ -30,7 +31,7 @@ export default function InvestorsListPage() {
       }));
       setAssets(transformedAssets);
     } catch (error) {
-      console.error("Failed to load investors list:", error);
+      logError("investors.loadList", error);
     } finally {
       setIsLoading(false);
     }

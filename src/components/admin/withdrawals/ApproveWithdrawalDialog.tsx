@@ -7,6 +7,7 @@ import {
 import { withdrawalService } from "@/services";
 import { useWithdrawalMutations } from "@/hooks/data";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { formatAssetAmount } from "@/utils/assets";
 import { Loader2, AlertTriangle, ArrowRightLeft } from "lucide-react";
 
@@ -76,7 +77,7 @@ export function ApproveWithdrawalDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error approving withdrawal:", error);
+      logError("withdrawal.approve", error, { withdrawalId: withdrawal.id });
       const message = error instanceof Error ? error.message : "Failed to approve withdrawal";
       toast.error(message);
     } finally {

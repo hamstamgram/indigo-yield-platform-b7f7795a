@@ -6,6 +6,7 @@ import {
 } from "@/components/ui";
 import { Edit3, Save, X, TrendingUp, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { ExpertPosition, expertInvestorService } from "@/services/investor";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 
@@ -52,7 +53,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
       onPositionUpdate();
       toast.success("Position updated successfully");
     } catch (error) {
-      console.error("Error updating position:", error);
+      logError("position.update", error, { positionId });
       toast.error("Failed to update position");
     }
   };

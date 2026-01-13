@@ -9,6 +9,7 @@ import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@/components/ui";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { AdminGuard } from "@/components/admin";
 import { UserCog, UserPlus, Trash2, Shield, RefreshCw, Loader2 } from "lucide-react";
 import {
@@ -63,7 +64,7 @@ function AdminUserManagementContent() {
       setInviteOpen(false);
       setInviteEmail("");
     } catch (error: any) {
-      console.error("Invite error:", error);
+      logError("admin.invite", error, { email: inviteEmail });
       toast.error("Error", {
         description: error.message || "Failed to send invite",
       });

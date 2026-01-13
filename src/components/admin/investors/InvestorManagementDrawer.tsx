@@ -32,6 +32,7 @@ import InvestorTransactionsTab from "./InvestorTransactionsTab";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { 
   useAdminInvestorPositions, 
   useInvestorActivePositions,
@@ -122,7 +123,7 @@ export function InvestorManagementDrawer({
         setDeleteStep("confirm-empty");
       }
     } catch (err) {
-      console.error("Error checking positions:", err);
+      logError("investor.checkPositions", err, { investorId });
       setDeleteStep("confirm-empty");
     }
   };

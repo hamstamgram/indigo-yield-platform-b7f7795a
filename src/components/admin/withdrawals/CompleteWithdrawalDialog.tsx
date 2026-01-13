@@ -7,6 +7,7 @@ import {
 } from "@/components/ui";
 import { withdrawalService } from "@/services";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatAssetAmount } from "@/utils/assets";
 
@@ -65,7 +66,7 @@ export function CompleteWithdrawalDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error completing withdrawal:", error);
+      logError("withdrawal.complete", error, { withdrawalId: withdrawal.id });
       toast.error(error instanceof Error ? error.message : "Failed to complete withdrawal");
     } finally {
       setIsSubmitting(false);

@@ -15,6 +15,7 @@ import {
   FileText,
   RotateCcw,
 } from "lucide-react";
+import { logError } from "@/lib/logger";
 
 interface InvestorSendStatus {
   id: string;
@@ -138,7 +139,7 @@ export function BatchSendDialog({
       setProgress(100);
       setPhase("complete");
     } catch (error) {
-      console.error("Batch send error:", error);
+      logError("report.batchSend", error, { selectedCount: selectedIds.size });
       setInvestors((prev) =>
         prev.map((inv) =>
           selectedIds.has(inv.id)
