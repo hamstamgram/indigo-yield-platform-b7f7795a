@@ -6,6 +6,7 @@ import {
 import { Bell, BellOff, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks";
 import { notificationService } from "@/services/shared";
+import { logError } from "@/lib/logger";
 
 interface SimpleNotification {
   id: string;
@@ -31,7 +32,7 @@ export default function NotificationsPage() {
       const data = await notificationService.getMyNotifications();
       setNotifications(data);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      logError("NotificationsPage.fetchNotifications", error);
     } finally {
       setLoading(false);
     }
@@ -50,7 +51,7 @@ export default function NotificationsPage() {
         description: "Notification marked as read",
       });
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      logError("NotificationsPage.markAsRead", error, { id });
     }
   };
 
@@ -65,7 +66,7 @@ export default function NotificationsPage() {
         description: "Notification deleted",
       });
     } catch (error) {
-      console.error("Error deleting notification:", error);
+      logError("NotificationsPage.deleteNotification", error, { id });
     }
   };
 

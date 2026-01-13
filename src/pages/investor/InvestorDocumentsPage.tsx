@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";
 import type { InvestorDocument } from "@/services";
+import { logError } from "@/lib/logger";
 
 export default function InvestorDocumentsPage() {
   const { data: documents, isLoading } = useInvestorDocuments();
@@ -22,7 +23,7 @@ export default function InvestorDocumentsPage() {
           toast.success("Document downloaded successfully");
         },
         onError: (error) => {
-          console.error("Download error:", error);
+          logError("InvestorDocumentsPage.handleDownload", error, { documentId: doc.id });
           toast.error("Failed to download document");
         },
       }

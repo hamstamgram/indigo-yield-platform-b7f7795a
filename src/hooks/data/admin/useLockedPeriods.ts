@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { logError } from "@/lib/logger";
 
 export interface LockedPeriod {
   id: string;
@@ -50,7 +51,7 @@ export function useLockedPeriods(fundId?: string) {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error fetching locked periods:", error);
+        logError("useLockedPeriods.fetch", error, { fundId });
         throw error;
       }
 

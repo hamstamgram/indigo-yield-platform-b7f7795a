@@ -7,6 +7,7 @@ import { useToast } from "@/hooks";
 import { notificationService } from "@/services/shared";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { logError } from "@/lib/logger";
 
 export function useNotifications(userId?: string) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -35,7 +36,7 @@ export function useNotifications(userId?: string) {
       const unread = notifications.filter((n) => !n.read_at).length;
       setUnreadCount(unread);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      logError("useNotifications.fetchNotifications", error, { userId });
     } finally {
       setLoading(false);
     }
@@ -81,13 +82,13 @@ export function useNotifications(userId?: string) {
           .single();
 
         if (createError) {
-          console.error("Error creating default settings:", createError);
+          logError("useNotifications.createDefaultSettings", createError, { userId });
         } else {
           setSettings(newData as unknown as NotificationSettings);
         }
       }
     } catch (error) {
-      console.error("Error fetching notification settings:", error);
+      logError("useNotifications.fetchSettings", error, { userId });
     }
   }, [userId]);
 
@@ -101,7 +102,7 @@ export function useNotifications(userId?: string) {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      logError("useNotifications.markAsRead", error, { notificationId });
     }
   }, []);
 
@@ -115,7 +116,7 @@ export function useNotifications(userId?: string) {
       setNotifications((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
       setUnreadCount(0);
     } catch (error) {
-      console.error("Error marking all as read:", error);
+      logError("useNotifications.markAllAsRead", error, { userId });
     }
   }, [userId]);
 
@@ -131,7 +132,7 @@ export function useNotifications(userId?: string) {
           return notification && !notification.read_at ? Math.max(0, prev - 1) : prev;
         });
       } catch (error) {
-        console.error("Error deleting notification:", error);
+        logError("useNotifications.deleteNotification", error, { notificationId });
       }
     },
     [notifications]
@@ -157,7 +158,7 @@ export function useNotifications(userId?: string) {
           description: "Your notification preferences have been saved.",
         });
       } catch (error) {
-        console.error("Error updating settings:", error);
+        logError("useNotifications.updateSettings", error, { userId });
         toast({
           title: "Error",
           description: "Failed to update settings.",
@@ -254,7 +255,7 @@ export function usePriceAlerts(userId?: string) {
       if (error) throw error;
       setAlerts((data as unknown as PriceAlert[]) || []);
     } catch (error) {
-      console.error("Error fetching price alerts:", error);
+      logError("usePriceAlerts.fetchAlerts", error, { userId });
     } finally {
       setLoading(false);
     }
@@ -283,7 +284,7 @@ export function usePriceAlerts(userId?: string) {
           description: `Price alert for ${alert.asset_code} set successfully.`,
         });
       } catch (error) {
-        console.error("Error creating price alert:", error);
+        logError("usePriceAlerts.createAlert", error, { userId });
         toast({
           title: "Error",
           description: "Failed to create price alert.",
@@ -314,7 +315,7 @@ export function usePriceAlerts(userId?: string) {
           description: "Price alert updated successfully.",
         });
       } catch (error) {
-        console.error("Error updating price alert:", error);
+        logError("usePriceAlerts.updateAlert", error, { alertId });
         toast({
           title: "Error",
           description: "Failed to update price alert.",
@@ -340,7 +341,7 @@ export function usePriceAlerts(userId?: string) {
           description: "Price alert removed successfully.",
         });
       } catch (error) {
-        console.error("Error deleting price alert:", error);
+        logError("usePriceAlerts.deleteAlert", error, { alertId });
         toast({
           title: "Error",
           description: "Failed to delete price alert.",

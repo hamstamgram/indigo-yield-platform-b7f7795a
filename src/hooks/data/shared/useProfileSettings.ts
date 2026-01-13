@@ -8,6 +8,7 @@ import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import * as profileService from "@/services/profile/profileSettingsService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { logError } from "@/lib/logger";
 
 /**
  * Hook to fetch personal info
@@ -63,7 +64,7 @@ export function useUpdatePersonalInfo() {
       });
     },
     onError: (error) => {
-      console.error("Failed to update profile:", error);
+      logError("useUpdatePersonalInfo", error);
       toast({
         title: "Error",
         description: "Failed to update your personal information",
@@ -113,7 +114,7 @@ export function useUpdateNotificationPreferences() {
       });
     },
     onError: (error) => {
-      console.error("Failed to save preferences:", error);
+      logError("useUpdateNotificationPreferences", error);
       toast({
         title: "Error",
         description: "Failed to save preferences. Please try again.",
@@ -138,7 +139,7 @@ export function useChangePassword() {
       });
     },
     onError: (error: Error) => {
-      console.error("Error changing password:", error);
+      logError("useChangePassword", error);
       toast({
         title: "Password change failed",
         description: error.message || "Failed to update your password",

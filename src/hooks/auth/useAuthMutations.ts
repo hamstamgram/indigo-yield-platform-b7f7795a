@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import * as authService from "@/services/auth/authService";
 import * as mfaService from "@/services/auth/mfaService";
 import QRCode from "qrcode";
+import { logError } from "@/lib/logger";
 
 interface LoginData {
   email: string;
@@ -40,7 +41,7 @@ export function useLoginMutation() {
       navigate("/dashboard");
     },
     onError: (error: Error) => {
-      console.error("Login error:", error);
+      logError("useLoginMutation", error);
       toast.error(error.message || "Invalid email or password");
     },
   });
@@ -84,7 +85,7 @@ export function useRegisterMutation() {
       navigate("/verify-email");
     },
     onError: (error: Error) => {
-      console.error("Registration error:", error);
+      logError("useRegisterMutation", error);
       toast.error(error.message || "Failed to create account");
     },
   });
@@ -138,7 +139,7 @@ export function useMFAVerification() {
       setTimeout(() => navigate("/dashboard"), 2000);
     },
     onError: (error: Error) => {
-      console.error("MFA verification error:", error);
+      logError("useMFAVerification", error);
       toast.error("Invalid verification code");
     },
   });
@@ -197,7 +198,7 @@ export function useResendVerificationEmail() {
       toast.success("Verification email sent! Please check your inbox.");
     },
     onError: (error: Error) => {
-      console.error("Resend error:", error);
+      logError("useResendVerificationEmail", error);
       toast.error("Failed to resend verification email");
     },
   });

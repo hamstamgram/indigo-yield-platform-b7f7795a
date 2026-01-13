@@ -19,6 +19,7 @@ import {
   useFundInvestorComposition,
   useApplyYieldDistribution,
 } from "@/hooks/data";
+import { logError } from "@/lib/logger";
 
 type SortField = "investor_name" | "current_value" | "ownership_pct" | "mtd_yield";
 type SortDirection = "asc" | "desc";
@@ -108,7 +109,7 @@ export default function MonthlyDataEntry() {
       });
       setYieldPreview(result);
     } catch (error) {
-      console.error("Error previewing yield:", error);
+      logError("MonthlyDataEntry.handlePreviewYield", error, { fundId: selectedFundId });
       toast({
         title: "Preview Failed",
         description: error instanceof Error ? error.message : "Failed to preview yield distribution.",

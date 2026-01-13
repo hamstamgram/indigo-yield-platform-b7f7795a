@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { logError, logInfo } from "@/lib/logger";
 
 /**
  * AdminInviteCallback
@@ -22,7 +23,7 @@ export default function AdminInviteCallback() {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
-          console.error("Session error:", sessionError);
+          logError("AdminInviteCallback.sessionError", sessionError);
           setStatus("error");
           setMessage("Failed to verify your session. Please try again.");
           return;
@@ -33,7 +34,7 @@ export default function AdminInviteCallback() {
           const { data: { session: urlSession }, error: urlError } = await supabase.auth.getSession();
           
           if (urlError || !urlSession) {
-            console.error("No session found:", urlError);
+            logError("AdminInviteCallback.noSession", urlError);
             setStatus("error");
             setMessage("Invalid or expired invite link. Please request a new invite.");
             return;
@@ -41,7 +42,7 @@ export default function AdminInviteCallback() {
         }
 
         // Session exists - the database trigger should have assigned the role
-        console.log("Session established for user:", session?.user?.email);
+        logInfo("AdminInviteCallback.sessionEstablished", { email: session?.user?.email });
         
         // Brief delay to ensure trigger has executed
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -55,7 +56,7 @@ export default function AdminInviteCallback() {
         }, 2000);
 
       } catch (error) {
-        console.error("Callback error:", error);
+        logError("AdminInviteCallback.callbackError", error);
         setStatus("error");
         setMessage("An unexpected error occurred. Please try again.");
       }
