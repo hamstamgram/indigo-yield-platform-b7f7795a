@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, Input } from "@/components/ui";
 import { InvestorsTable, AddInvestorDialog } from "@/components/admin";
 import { Search } from "lucide-react";
-import { adminServiceV2, InvestorSummaryV2, deleteInvestorUser } from "@/services/admin";
+import { adminInvestorService, AdminInvestorSummary, deleteInvestorUser } from "@/services/admin";
 import { assetService } from "@/services/shared";
 import { AssetRef as Asset } from "@/types/asset";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 
 export default function InvestorsListPage() {
-  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
+  const [investors, setInvestors] = useState<AdminInvestorSummary[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,7 +19,7 @@ export default function InvestorsListPage() {
     setIsLoading(true);
     try {
       const [investorsData, assetsData] = await Promise.all([
-        adminServiceV2.getAllInvestorsWithSummary(),
+        adminInvestorService.getAllInvestorsWithSummary(),
         assetService.getAssets(),
       ]);
       setInvestors(investorsData);

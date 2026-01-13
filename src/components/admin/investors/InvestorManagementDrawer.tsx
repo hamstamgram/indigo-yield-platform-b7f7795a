@@ -25,7 +25,7 @@ import {
   Trash2,
   AlertTriangle,
 } from "lucide-react";
-import { InvestorSummaryV2, forceDeleteInvestorUser } from "@/services/admin";
+import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorYieldManager } from "./InvestorYieldManager";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import InvestorTransactionsTab from "./InvestorTransactionsTab";
@@ -43,7 +43,7 @@ type DeleteStep = "check" | "confirm-with-positions" | "confirm-empty" | "deleti
 
 interface InvestorManagementDrawerProps {
   investorId: string | null;
-  investorSummary: InvestorSummaryV2 | null;
+  investorSummary: AdminInvestorSummary | null;
   isOpen: boolean;
   onClose: () => void;
   onDataChange?: () => void;

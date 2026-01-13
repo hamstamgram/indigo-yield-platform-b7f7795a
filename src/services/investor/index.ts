@@ -83,9 +83,9 @@ export { withdrawalService } from "./withdrawalService";
 // Investment service
 export { investmentService } from "./investmentService";
 
-// Transactions V2 service
+// Transactions V2 service (named after transactions_v2 table)
 export { transactionsV2Service } from "./transactionsV2Service";
-export type { TransactionV2, TransactionFilters } from "./transactionsV2Service";
+export type { TransactionRecord, TransactionV2, TransactionFilters } from "./transactionsV2Service";
 
 // Investor Portfolio service (for investor-facing pages)
 export { investorPortfolioService } from "./investorPortfolioService";

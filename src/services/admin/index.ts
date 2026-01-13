@@ -10,9 +10,9 @@ export type { AdminStats } from "./adminStatsService";
 export { listFunds, getFund, createFund, updateFund, getFundKPIs, getLatestNav, getFundPerformance, checkFundUsage } from "./fundService";
 export type { DailyNav, FundKPI } from "./fundService";
 
-// Admin operations
-export { adminServiceV2 } from "./adminService";
-export type { InvestorSummaryV2, DashboardStatsV2 } from "./adminService";
+// Admin investor operations (renamed from adminServiceV2)
+export { adminInvestorService, adminServiceV2 } from "./adminService";
+export type { AdminInvestorSummary, DashboardStats, InvestorSummaryV2, DashboardStatsV2 } from "./adminService";
 
 // Transaction management - use transactionService from @/services/shared
 // adminTransactionService is removed - use transactionService.createQuickTransaction instead

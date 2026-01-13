@@ -10,7 +10,7 @@ type WithdrawalStatus =
   | "completed"
   | "rejected";
 
-export interface InvestorSummaryV2 {
+export interface AdminInvestorSummary {
   id: string;
   email: string;
   firstName: string;
@@ -30,15 +30,15 @@ export interface InvestorSummaryV2 {
   };
 }
 
-export interface DashboardStatsV2 {
+export interface DashboardStats {
   totalAum: number;
   investorCount: number;
   pendingWithdrawals: number;
   interest24h: number;
 }
 
-class AdminServiceV2 {
-  async getDashboardStats(): Promise<DashboardStatsV2> {
+class AdminInvestorService {
+  async getDashboardStats(): Promise<DashboardStats> {
     try {
       // Use unified data service for consistency
       const totalAum = await investorDataService.getTotalAUM();
@@ -68,7 +68,7 @@ class AdminServiceV2 {
     }
   }
 
-  async getAllInvestorsWithSummary(): Promise<InvestorSummaryV2[]> {
+  async getAllInvestorsWithSummary(): Promise<AdminInvestorSummary[]> {
     try {
       // Use unified data service
       const investorSummaries = await investorDataService.getAllInvestorsWithSummary();
@@ -433,4 +433,12 @@ class AdminServiceV2 {
 }
 
 // Export singleton instance
-export const adminServiceV2 = new AdminServiceV2();
+export const adminInvestorService = new AdminInvestorService();
+
+// Backwards-compatible aliases (deprecated - use new names)
+/** @deprecated Use AdminInvestorSummary instead */
+export type InvestorSummaryV2 = AdminInvestorSummary;
+/** @deprecated Use DashboardStats instead */
+export type DashboardStatsV2 = DashboardStats;
+/** @deprecated Use adminInvestorService instead */
+export const adminServiceV2 = adminInvestorService;

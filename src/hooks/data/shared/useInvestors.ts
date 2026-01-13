@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { AssetRef as Asset } from "@/types/asset";
-import { adminServiceV2 } from "@/services";
-import type { InvestorSummaryV2 } from "@/services/admin/adminService";
+import { adminInvestorService } from "@/services";
+import type { AdminInvestorSummary } from "@/services/admin/adminService";
 import { useInvestorSearch } from "../investor/useInvestorSearch";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -36,10 +36,10 @@ export const useInvestors = () => {
     isLoading: loading,
     error: investorsError,
     refetch,
-  } = useQuery<InvestorSummaryV2[]>({
+  } = useQuery<AdminInvestorSummary[]>({
     queryKey: QUERY_KEYS.investorsSummary,
     queryFn: async () => {
-      return await adminServiceV2.getAllInvestorsWithSummary();
+      return await adminInvestorService.getAllInvestorsWithSummary();
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for investor data
   });

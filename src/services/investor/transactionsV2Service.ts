@@ -6,7 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 
-export interface TransactionV2 {
+export interface TransactionRecord {
   id: string;
   investor_id: string;
   fund_id: string | null;
@@ -20,6 +20,9 @@ export interface TransactionV2 {
   created_at: string;
 }
 
+/** @deprecated Use TransactionRecord instead */
+export type TransactionV2 = TransactionRecord;
+
 export interface TransactionFilters {
   search?: string;
   type?: string;
@@ -28,11 +31,11 @@ export interface TransactionFilters {
   limit?: number;
 }
 
-class TransactionsV2Service {
+class TransactionsRecordService {
   /**
    * Get transactions by investor ID
    */
-  async getByInvestorId(investorId: string, filters?: TransactionFilters): Promise<TransactionV2[]> {
+  async getByInvestorId(investorId: string, filters?: TransactionFilters): Promise<TransactionRecord[]> {
     let query = supabase
       .from("transactions_v2")
       .select("*")
@@ -64,13 +67,13 @@ class TransactionsV2Service {
     const { data, error } = await query;
 
     if (error) throw error;
-    return (data || []) as TransactionV2[];
+    return (data || []) as TransactionRecord[];
   }
 
   /**
    * Get a single transaction by ID
    */
-  async getById(transactionId: string): Promise<TransactionV2 | null> {
+  async getById(transactionId: string): Promise<TransactionRecord | null> {
     const { data, error } = await supabase
       .from("transactions_v2")
       .select("*")
@@ -78,7 +81,7 @@ class TransactionsV2Service {
       .maybeSingle();
 
     if (error) throw error;
-    return data as TransactionV2 | null;
+    return data as TransactionRecord | null;
   }
 
   /**
@@ -172,4 +175,4 @@ class TransactionsV2Service {
   }
 }
 
-export const transactionsV2Service = new TransactionsV2Service();
+export const transactionsV2Service = new TransactionsRecordService();
