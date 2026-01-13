@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { type InvestmentFormData } from "@/types/domains";
+import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 export const investmentService = {
   /**
@@ -39,24 +41,23 @@ export const investmentService = {
     const triggerReference =
       data.reference_number || `investment:${data.fund_id}:${data.investor_id}:${txDate}:${crypto.randomUUID()}`;
 
-    const rpcCall = (supabase.rpc as any).bind(supabase);
     const { data: result, error } =
       type === "DEPOSIT"
-        ? await rpcCall("apply_deposit_with_crystallization", {
+        ? await callRPC("apply_deposit_with_crystallization", {
             p_fund_id: data.fund_id,
             p_investor_id: data.investor_id,
             p_amount: amount,
-            p_closing_aum: closingAum,
+            p_closing_aum: Number(closingAum),
             p_effective_date: txDate,
             p_admin_id: user?.id || null,
             p_notes: `Investment - ${triggerReference}`,
             p_purpose: "transaction",
           })
-        : await rpcCall("apply_withdrawal_with_crystallization", {
+        : await callRPC("apply_withdrawal_with_crystallization", {
             p_fund_id: data.fund_id,
             p_investor_id: data.investor_id,
             p_amount: amount,
-            p_closing_aum: closingAum,
+            p_closing_aum: Number(closingAum),
             p_effective_date: txDate,
             p_admin_id: user?.id || null,
             p_notes: `Redemption - ${triggerReference}`,
@@ -64,12 +65,13 @@ export const investmentService = {
           });
 
     if (error) {
-      console.error(`${type} crystallize-before-flow error:`, error);
+      logError(`investmentService.${type}`, error, { fundId: data.fund_id });
       throw new Error(error.message || "Failed to create investment");
     }
 
-    const txId = type === "DEPOSIT" ? result?.deposit_tx_id : result?.withdrawal_tx_id;
-    if (!result?.success || !txId) {
+    const res = result as any;
+    const txId = type === "DEPOSIT" ? res?.deposit_tx_id : res?.withdrawal_tx_id;
+    if (!res?.success || !txId) {
       throw new Error("Failed to create investment");
     }
 

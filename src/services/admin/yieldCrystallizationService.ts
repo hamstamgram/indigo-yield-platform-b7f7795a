@@ -4,6 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 export interface CrystallizationResult {
   success: boolean;
@@ -78,13 +80,12 @@ export async function crystallizeYieldBeforeFlow(
   triggerReference?: string,
   adminId?: string
 ): Promise<CrystallizationResult> {
-  const rpcCall = (supabase.rpc as any).bind(supabase);
   // Parameter order matches database function signature:
   // crystallize_yield_before_flow(p_fund_id, p_closing_aum, p_trigger_type,
   //   p_trigger_reference, p_event_ts, p_admin_id, p_purpose)
-  const { data, error } = await rpcCall("crystallize_yield_before_flow", {
+  const { data, error } = await callRPC("crystallize_yield_before_flow", {
     p_fund_id: fundId,                           // 1. uuid
-    p_closing_aum: closingAum,                   // 2. numeric (as string)
+    p_closing_aum: Number(closingAum),           // 2. numeric
     p_trigger_type: triggerType,                 // 3. text
     p_trigger_reference: triggerReference || null, // 4. text (nullable)
     p_event_ts: eventTs.toISOString(),           // 5. timestamptz
@@ -93,7 +94,7 @@ export async function crystallizeYieldBeforeFlow(
   });
 
   if (error) {
-    console.error("Crystallization error:", error);
+    logError("crystallizeYieldBeforeFlow", error, { fundId, triggerType });
     throw new Error(error.message);
   }
 
@@ -109,7 +110,7 @@ export async function finalizeMonthYield(
   month: number,
   adminId: string
 ): Promise<FinalizationResult> {
-  const { data, error } = await supabase.rpc("finalize_month_yield", {
+  const { data, error } = await callRPC("finalize_month_yield", {
     p_fund_id: fundId,
     p_period_year: year,
     p_period_month: month,
@@ -117,7 +118,7 @@ export async function finalizeMonthYield(
   });
 
   if (error) {
-    console.error("Finalization error:", error);
+    logError("finalizeMonthYield", error, { fundId, year, month });
     throw new Error(error.message);
   }
 
@@ -320,16 +321,15 @@ export async function crystallizeMonthEnd(
   closingAum: string,
   adminId: string
 ): Promise<CrystallizationResult> {
-  const rpcCall = (supabase.rpc as any).bind(supabase);
-  const { data, error } = await rpcCall("crystallize_month_end", {
+  const { data, error } = await callRPC("crystallize_month_end", {
     p_fund_id: fundId,
     p_month_end_date: monthEndDate.toISOString().split("T")[0],
-    p_closing_aum: closingAum,
+    p_closing_aum: Number(closingAum),
     p_admin_id: adminId,
   });
 
   if (error) {
-    console.error("Month-end crystallization error:", error);
+    logError("crystallizeMonthEnd", error, { fundId, monthEndDate: monthEndDate.toISOString() });
     throw new Error(error.message);
   }
 

@@ -8,6 +8,8 @@
 import { ApiClient, ApiResponse } from "./ApiClient";
 import type { PortfolioPosition, PortfolioSummary, PortfolioData } from "@/types/domains/portfolio";
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logWarn } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 // Helper to fetch funds (internal use)
 async function getAllFunds() {
@@ -38,7 +40,7 @@ export class PortfolioService extends ApiClient {
         const assetSymbol = assetSymbolRaw.toUpperCase();
         const fund = funds.find((f) => (f.asset || "").toUpperCase() === assetSymbol);
         if (!fund) {
-          console.warn(`No fund found for asset ${assetSymbol}, skipping initial position.`);
+          logWarn("createPortfolioEntries.noFund", { assetSymbol });
           continue;
         }
 
@@ -63,12 +65,11 @@ export class PortfolioService extends ApiClient {
         // Generate trigger reference for idempotency
         const triggerReference = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
 
-        const rpcCall = (supabase.rpc as any).bind(supabase);
-        const { data, error } = await rpcCall("apply_deposit_with_crystallization", {
+        const { data, error } = await callRPC("apply_deposit_with_crystallization", {
           p_fund_id: fund.id,
           p_investor_id: investorId,
           p_amount: amount,
-          p_closing_aum: closingAum,
+          p_closing_aum: Number(closingAum),
           p_effective_date: today,
           p_admin_id: null,
           p_notes: `Initial position - ${triggerReference}`,
@@ -76,18 +77,19 @@ export class PortfolioService extends ApiClient {
         });
 
         if (error) {
-          console.error(`Error creating portfolio entry for ${assetSymbol}:`, error);
+          logError("createPortfolioEntries.deposit", error, { assetSymbol, fundId: fund.id });
           throw error;
         }
 
-        if (!data?.success) {
+        const result = data as any;
+        if (!result?.success) {
           throw new Error(`Failed to create position for ${assetSymbol}`);
         }
       }
 
       return true;
     } catch (error) {
-      console.error("createPortfolioEntries error", error);
+      logError("createPortfolioEntries", error, { investorId });
       return false;
     }
   }

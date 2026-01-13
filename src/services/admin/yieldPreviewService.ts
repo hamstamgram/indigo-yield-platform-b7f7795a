@@ -7,6 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getFundPeriodSnapshot } from "@/services/operations/snapshotService";
 import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 import type {
   YieldCalculationInput,
@@ -116,7 +117,7 @@ export async function previewYieldDistribution(
     .maybeSingle();
 
   // Call backend preview RPC
-  const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v3", {
+  const { data, error } = await callRPC("preview_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
     p_yield_date: formatDate(targetDate),
     p_new_aum: newTotalAUM,

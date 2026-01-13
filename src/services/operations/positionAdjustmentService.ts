@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toDecimal } from "@/utils/financial";
 import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 /**
  * Position Adjustment Service
@@ -27,8 +28,7 @@ export async function adjustPosition(
 ) {
   const { investor_id, fund_id, delta, note, type, tx_date } = input;
   const deltaFixed = toDecimal(delta).toFixed(10);
-  const rpcCall = (supabase.rpc as any).bind(supabase);
-  const { data, error } = await rpcCall("adjust_investor_position", {
+  const { data, error } = await callRPC("adjust_investor_position", {
     p_investor_id: investor_id,
     p_fund_id: fund_id,
     p_delta: deltaFixed,
@@ -104,8 +104,7 @@ export async function getFundAdjustmentHistory(fundId?: string) {
  * Runs a dry-run by default - pass false to actually fix positions
  */
 export async function reconcileAllPositions(dryRun: boolean = true) {
-  const rpcCall = (supabase.rpc as any).bind(supabase);
-  const { data, error } = await rpcCall("reconcile_all_positions", {
+  const { data, error } = await callRPC("reconcile_all_positions", {
     p_dry_run: dryRun,
   });
   
@@ -121,8 +120,7 @@ export async function reconcileAllPositions(dryRun: boolean = true) {
  * Recompute a single investor's position from ledger
  */
 export async function recomputePosition(investorId: string, fundId: string) {
-  const rpcCall = (supabase.rpc as any).bind(supabase);
-  const { error } = await rpcCall("recompute_investor_position", {
+  const { error } = await callRPC("recompute_investor_position", {
     p_investor_id: investorId,
     p_fund_id: fundId,
   });

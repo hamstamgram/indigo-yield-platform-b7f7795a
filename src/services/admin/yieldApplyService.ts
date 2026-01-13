@@ -14,6 +14,7 @@ import {
 import { yieldNotifications } from "@/services/notifications";
 import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
 import { logWarn, logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 import type {
   YieldCalculationInput,
@@ -116,7 +117,7 @@ export async function applyYieldDistribution(
   const grossYieldPct = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
 
   // Use v3 apply function
-  const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v3", {
+  const { data, error } = await callRPC("apply_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
     p_yield_date: formatDate(targetDate),
     p_gross_yield_pct: grossYieldPct,

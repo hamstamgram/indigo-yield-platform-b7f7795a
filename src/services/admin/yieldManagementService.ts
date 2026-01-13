@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 export interface VoidYieldResult {
   success: boolean;
@@ -59,7 +60,7 @@ export async function voidYieldRecord(
     throw new Error("Not authenticated");
   }
 
-  const { data, error } = await (supabase.rpc as any)("void_fund_daily_aum", {
+  const { data, error } = await callRPC("void_fund_daily_aum", {
     p_record_id: recordId,
     p_reason: reason,
     p_admin_id: user.id,
@@ -70,7 +71,7 @@ export async function voidYieldRecord(
     throw new Error(error.message || "Failed to void yield record");
   }
 
-  return data as VoidYieldResult;
+  return data as unknown as VoidYieldResult;
 }
 
 /**
@@ -87,7 +88,7 @@ export async function voidYieldDistribution(
     throw new Error("Not authenticated");
   }
 
-  const { data, error } = await (supabase.rpc as any)("void_yield_distribution", {
+  const { data, error } = await callRPC("void_yield_distribution", {
     p_distribution_id: distributionId,
     p_reason: reason,
     p_admin_id: user.id,
@@ -98,7 +99,7 @@ export async function voidYieldDistribution(
     throw new Error(error.message || "Failed to void yield distribution");
   }
 
-  return data;
+  return data as unknown as { success: boolean; voided_count?: number; error?: string };
 }
 
 /**
@@ -119,7 +120,7 @@ export async function updateYieldAum(
   }
 
   // Use the new recalc function that voids and re-applies
-  const { data, error } = await (supabase.rpc as any)("update_fund_daily_aum_with_recalc", {
+  const { data, error } = await callRPC("update_fund_daily_aum_with_recalc", {
     p_record_id: recordId,
     p_new_total_aum: newTotalAum,
     p_reason: reason,
@@ -131,16 +132,17 @@ export async function updateYieldAum(
     throw new Error(error.message || "Failed to update yield record");
   }
 
-  if (!data?.success) {
-    throw new Error(data?.error || "Failed to recalculate yield");
+  const result = data as any;
+  if (!result?.success) {
+    throw new Error(result?.error || "Failed to recalculate yield");
   }
 
   return {
     success: true,
-    record_id: data.record_id,
-    old_aum: data.old_aum,
-    new_aum: data.new_aum,
-    updated_at: data.updated_at,
+    record_id: result.record_id,
+    old_aum: result.old_aum,
+    new_aum: result.new_aum,
+    updated_at: result.updated_at,
   };
 }
 

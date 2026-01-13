@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Deposit, DepositFormData, DepositFilters } from "@/types/domains";
 import { depositNotifications } from "@/services/notifications";
+import { logError } from "@/lib/logger";
+import { callRPC } from "@/lib/supabase/typedRPC";
 
 export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
@@ -132,12 +134,11 @@ export class DepositService {
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${crypto.randomUUID()}`;
 
-    const rpcCall = (supabase.rpc as any).bind(supabase);
-    const { data, error } = await rpcCall("apply_deposit_with_crystallization", {
+    const { data, error } = await callRPC("apply_deposit_with_crystallization", {
       p_fund_id: fund.id,
       p_investor_id: profileId,
       p_amount: amount,
-      p_closing_aum: closingAum,
+      p_closing_aum: Number(closingAum),
       p_effective_date: txDate,
       p_admin_id: null,
       p_notes: `Deposit - ${triggerReference}`,
@@ -145,24 +146,25 @@ export class DepositService {
     });
 
     if (error) {
-      console.error("apply_deposit_with_crystallization error:", error);
+      logError("depositService.createDeposit", error, { fundId: fund.id, profileId });
       throw new Error(error.message || "Failed to create deposit");
     }
 
-    if (!data?.success || !data?.deposit_tx_id) {
+    const result = data as any;
+    if (!result?.success || !result?.deposit_tx_id) {
       throw new Error("Failed to create deposit");
     }
 
     // Send deposit notification (non-blocking)
     depositNotifications.onConfirmed(
       profileId,
-      data.deposit_tx_id,
+      result.deposit_tx_id,
       amount,
       assetSymbol,
       fund?.name
-    ).catch(err => console.error("Failed to send deposit notification:", err));
+    ).catch(err => logError("depositService.notification", err, { profileId }));
 
-    return this.getDepositById(data.deposit_tx_id);
+    return this.getDepositById(result.deposit_tx_id);
   }
 
   async verifyDeposit(id: string): Promise<Deposit> {
