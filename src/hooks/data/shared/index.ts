@@ -255,3 +255,9 @@ export {
   getDateRange,
   type PeriodType,
 } from "./useIBData";
+
+// Report history
+export { useReportHistory, type ReportHistoryFilters } from "./useReportHistory";
+
+// Available funds
+export { useAvailableFunds } from "./useAvailableFunds";

@@ -1,9 +1,10 @@
 /**
  * Investor Fee Manager - Compact fee schedule management
  * Used within InvestorYieldManager as a collapsible section
+ * Migrated to React Query for data fetching
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
   Button, Input, Label, Badge,
@@ -15,21 +16,8 @@ import {
 import { Plus, Trash2, Percent, History } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { profileService, feeScheduleService } from "@/services/shared";
-
-interface FeeScheduleEntry {
-  id: string;
-  investor_id: string;
-  fund_id: string | null;
-  fee_pct: number;
-  effective_date: string;
-  fund?: { name: string } | null;
-}
-
-interface Fund {
-  id: string;
-  name: string;
-}
+import { feeScheduleService } from "@/services/shared";
+import { useInvestorFeeSchedule, useActiveFunds } from "@/hooks/data";
 
 interface InvestorFeeManagerProps {
   investorId: string;
@@ -37,9 +25,6 @@ interface InvestorFeeManagerProps {
 }
 
 export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerProps) {
-  const [feeSchedule, setFeeSchedule] = useState<FeeScheduleEntry[]>([]);
-  const [funds, setFunds] = useState<Fund[]>([]);
-  const [loading, setLoading] = useState(true);
   const [deleteEntry, setDeleteEntry] = useState<{ id: string; fundName: string } | null>(null);
   
   // Form state
@@ -50,32 +35,13 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
   );
   const [isAdding, setIsAdding] = useState(false);
 
-  const fetchFeeSchedule = useCallback(async () => {
-    try {
-      const data = await feeScheduleService.getFeeScheduleWithFunds(investorId);
-      setFeeSchedule(data || []);
-    } catch (error) {
-      console.error("Error loading fee schedule:", error);
-    }
-  }, [investorId]);
-
-  const fetchFunds = useCallback(async () => {
-    try {
-      const fundsData = await profileService.getActiveFunds();
-      setFunds(fundsData);
-    } catch (error) {
-      console.error("Error loading funds:", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchFeeSchedule(), fetchFunds()]);
-      setLoading(false);
-    };
-    loadData();
-  }, [fetchFeeSchedule, fetchFunds]);
+  // React Query hooks
+  const { 
+    data: feeSchedule = [], 
+    refetch: refetchFees 
+  } = useInvestorFeeSchedule(investorId);
+  
+  const { data: funds = [] } = useActiveFunds();
 
   const getCurrentFee = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -110,14 +76,15 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       setNewFeeFundId("all");
       setNewFeeEffectiveDate(new Date().toISOString().split("T")[0]);
       
-      await fetchFeeSchedule();
+      await refetchFees();
       onUpdate?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error adding fee:", error);
+      const err = error as { code?: string };
       // Handle specific constraint violations
-      if (error?.code === '23P01') {
+      if (err?.code === '23P01') {
         toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date.");
-      } else if (error?.code === '23505') {
+      } else if (err?.code === '23505') {
         toast.error("A fee schedule already exists for this fund and date.");
       } else {
         toast.error("Failed to add fee schedule entry");
@@ -131,7 +98,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
     try {
       await feeScheduleService.deleteFeeEntry(id);
       toast.success("Fee entry deleted");
-      await fetchFeeSchedule();
+      await refetchFees();
       onUpdate?.();
     } catch (error) {
       console.error("Error deleting fee:", error);

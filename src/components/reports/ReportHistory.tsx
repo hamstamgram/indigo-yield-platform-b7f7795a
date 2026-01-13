@@ -1,9 +1,10 @@
 /**
  * Report History Component
  * Displays user's generated reports with download and management options
+ * Migrated to React Query for data fetching
  */
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   FileText,
@@ -27,10 +28,9 @@ import { toast } from "sonner";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { GeneratedReport, ReportType, ReportStatus } from "@/types/domains";
 import { logError } from "@/lib/logger";
+import { useReportHistory } from "@/hooks/data";
 
 export const ReportHistory: React.FC = () => {
-  const [reports, setReports] = useState<GeneratedReport[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<ReportStatus | "all">("all");
   const [filterType] = useState<ReportType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,27 +40,14 @@ export const ReportHistory: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStatus, filterType]);
+  // Build filters for React Query
+  const filters = useMemo(() => ({
+    status: filterStatus !== "all" ? filterStatus : undefined,
+    reportType: filterType !== "all" ? filterType : undefined,
+  }), [filterStatus, filterType]);
 
-  const loadReports = async () => {
-    setLoading(true);
-    try {
-      const filters: any = {};
-      if (filterStatus !== "all") filters.status = filterStatus;
-      if (filterType !== "all") filters.reportType = filterType;
-
-      const data = await ReportsApi.getUserReports(filters);
-      setReports(data);
-    } catch (error) {
-      logError("ReportHistory.loadReports", error, { filterStatus, filterType });
-      toast.error("Failed to load reports");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // React Query hook
+  const { data: reports = [], isLoading, refetch } = useReportHistory(filters);
 
   const handleDownload = async (reportId: string) => {
     setDownloadingId(reportId);
@@ -72,7 +59,7 @@ export const ReportHistory: React.FC = () => {
         toast.success("Download started");
 
         // Refresh reports to update download count
-        await loadReports();
+        await refetch();
       } else {
         throw new Error(result.error || "Download failed");
       }
@@ -97,7 +84,7 @@ export const ReportHistory: React.FC = () => {
 
       if (result.success) {
         toast.success("Report deleted successfully");
-        await loadReports();
+        await refetch();
       } else {
         throw new Error(result.error || "Delete failed");
       }
@@ -161,7 +148,7 @@ export const ReportHistory: React.FC = () => {
       .join(" ");
   };
 
-  const filteredReports = reports.filter((report) => {
+  const filteredReports = reports.filter((report: GeneratedReport) => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
@@ -213,14 +200,14 @@ export const ReportHistory: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" size="sm" onClick={loadReports}>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
               <Filter className="mr-2 h-4 w-4" />
               Refresh
             </Button>
           </div>
 
           {/* Reports Table */}
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
@@ -248,7 +235,7 @@ export const ReportHistory: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReports.map((report) => (
+                  {filteredReports.map((report: GeneratedReport) => (
                     <TableRow key={report.id}>
                       <TableCell>
                         <div>

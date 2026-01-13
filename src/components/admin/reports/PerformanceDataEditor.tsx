@@ -1,9 +1,10 @@
 /**
  * Performance Data Editor
  * Comprehensive editor for all 24 columns of investor_fund_performance
+ * Migrated to React Query for available funds
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -18,9 +19,9 @@ import {
   updatePerformanceData,
   createPerformanceRecord,
   deletePerformanceRecord,
-  getAvailableFunds,
   type PerformanceUpdateData,
 } from "@/services";
+import { useAvailableFunds } from "@/hooks/data";
 
 interface AssetData {
   asset_code: string;
@@ -93,12 +94,15 @@ export function PerformanceDataEditor({
   const [selectedAsset, setSelectedAsset] = useState<string>(assets[0]?.asset_code || "");
   const [formData, setFormData] = useState<Record<string, AssetData>>({});
   const [saving, setSaving] = useState(false);
-  const [availableFunds, setAvailableFunds] = useState<string[]>([]);
   const [showAddFund, setShowAddFund] = useState(false);
   const [newFundName, setNewFundName] = useState("");
   
   // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // React Query hook for available funds
+  const { data: availableFundsData = [] } = useAvailableFunds();
+  const availableFunds = useMemo(() => availableFundsData, [availableFundsData]);
 
   // Initialize form data from assets
   useEffect(() => {
@@ -110,12 +114,7 @@ export function PerformanceDataEditor({
     if (assets.length > 0 && !selectedAsset) {
       setSelectedAsset(assets[0].asset_code);
     }
-  }, [assets]);
-
-  // Load available funds
-  useEffect(() => {
-    getAvailableFunds().then(setAvailableFunds);
-  }, []);
+  }, [assets, selectedAsset]);
 
   const currentAsset = formData[selectedAsset];
 
