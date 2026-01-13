@@ -15,6 +15,7 @@ const AdminToolsPage = lazy(() => import("@/pages/admin/settings/AdminToolsPage"
 const AdminInvitesPage = lazy(() => import("@/pages/admin/settings/AdminInvitesPage"));
 const SystemHealthPage = lazy(() => import("@/pages/admin/system-health/SystemHealthPage"));
 const IntegrityDashboardPage = lazy(() => import("@/pages/admin/IntegrityDashboardPage"));
+const DebugFunctionsPage = lazy(() => import("@/pages/admin/DebugFunctionsPage"));
 
 export function SystemRoutes() {
   return (
@@ -95,6 +96,16 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <MaintenancePage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Debug Functions - Super Admin Only */}
+      <Route
+        path="/admin/debug-functions"
+        element={
+          <AdminRoute>
+            <DebugFunctionsPage />
           </AdminRoute>
         }
       />
