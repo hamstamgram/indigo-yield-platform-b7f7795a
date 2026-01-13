@@ -1,103 +1,48 @@
-import { useState, useEffect, useCallback } from "react";
+/**
+ * InvestorTransactionsTab - Displays transaction history for an investor
+ * Uses React Query for data fetching with real-time subscription
+ */
+
+import { useState } from "react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Badge, Button,
+  Badge, Button, Skeleton,
 } from "@/components/ui";
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
 import { useRealtimeSubscription } from "@/hooks";
-import { toast } from "sonner";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
-import { profileService, positionService } from "@/services/shared";
-import { transactionsV2Service } from "@/services/investor";
 import { formatAssetAmount } from "@/utils/assets";
-
-import type { Transaction } from "@/types/domains/transaction";
-
-interface InvestorInfo {
-  id: string;
-  name: string;
-  email: string;
-  fund_id: string;
-}
+import {
+  useInvestorTransactions,
+  useInvestorTransactionSummary,
+  useInvestorProfileWithFund,
+} from "@/hooks/data";
 
 interface InvestorTransactionsTabProps {
   investorId: string;
 }
 
 export default function InvestorTransactionsTab({ investorId }: InvestorTransactionsTabProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [investor, setInvestor] = useState<InvestorInfo | null>(null);
-  const [loading, setLoading] = useState(true);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [summary, setSummary] = useState({
-    totalCount: 0,
-    totalDeposits: 0,
-    totalWithdrawals: 0,
-    totalYield: 0,
-  });
 
-  const loadData = useCallback(async () => {
-    if (!investorId) return;
+  // React Query hooks
+  const {
+    data: transactions = [],
+    isLoading: txLoading,
+    refetch: refetchTransactions,
+  } = useInvestorTransactions(investorId, 100);
 
-    try {
-      setLoading(true);
+  const { data: investor, isLoading: profileLoading } = useInvestorProfileWithFund(investorId);
+  const { data: summary } = useInvestorTransactionSummary(investorId);
 
-      // Fetch investor profile info using service
-      const profileData = await profileService.getById(investorId);
-
-      if (!profileData) throw new Error("Profile not found");
-
-      // Get investor's primary fund from positions
-      const positions = await positionService.getByInvestor(investorId);
-      const primaryPosition = positions[0];
-
-      // Get default fund if no positions yet
-      const funds = await profileService.getActiveFunds();
-      const defaultFund = funds[0];
-
-      setInvestor({
-        id: investorId,
-        name: profileData.name,
-        email: profileData.email,
-        fund_id: primaryPosition?.fund_id || defaultFund?.id || "",
-      });
-
-      // Fetch transactions using service
-      const txData = await transactionsV2Service.getByInvestorId(investorId, { limit: 100 });
-      // Map to Transaction type - use amount as-is since we display with Number()
-      setTransactions(txData.map(tx => ({
-        ...tx,
-        amount: String(tx.amount),
-        created_by: null,
-        created_at: tx.created_at,
-      })) as unknown as Transaction[]);
-
-      // Calculate summary
-      const txSummary = await transactionsV2Service.getSummary(investorId);
-      setSummary({
-        totalCount: txSummary.transactionCount,
-        totalDeposits: txSummary.totalDeposits,
-        totalWithdrawals: txSummary.totalWithdrawals,
-        totalYield: txSummary.totalYield,
-      });
-    } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Failed to load transaction data");
-    } finally {
-      setLoading(false);
-    }
-  }, [investorId]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const isLoading = txLoading || profileLoading;
 
   // Real-time subscription
   useRealtimeSubscription({
     table: "transactions_v2",
     event: "*",
     filter: `investor_id=eq.${investorId}`,
-    onUpdate: loadData,
+    onUpdate: () => refetchTransactions(),
   });
 
   const getTransactionIcon = (type: string) => {
@@ -116,8 +61,25 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
     }
   };
 
-  if (loading) {
-    return <div className="p-6">Loading transaction data...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!investor) {
@@ -137,11 +99,12 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
         </Button>
       </div>
 
-
       <Card>
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
-          <CardDescription>Complete transaction history</CardDescription>
+          <CardDescription>
+            {summary ? `${summary.transactionCount} transactions` : "Complete transaction history"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -157,24 +120,10 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{txType}</span>
-                        <Badge variant="outline">{transaction.asset}</Badge>
+                        <Badge variant="outline">{transaction.fund?.code || "—"}</Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{new Date(transaction.tx_date).toLocaleString()}</span>
-                        {transaction.reference_id && (
-                          <>
-                            <span>•</span>
-                            <span>Ref: {transaction.reference_id}</span>
-                          </>
-                        )}
-                        {transaction.tx_hash && (
-                          <>
-                            <span>•</span>
-                            <span className="font-mono text-xs">
-                              {transaction.tx_hash.substring(0, 10)}...
-                            </span>
-                          </>
-                        )}
                       </div>
                       {transaction.notes && (
                         <p className="text-sm text-muted-foreground">{transaction.notes}</p>
@@ -184,7 +133,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                   <div className="text-right">
                     <div className="font-medium">
                       {txType === "WITHDRAWAL" ? "-" : ""}
-                      {formatAssetAmount(Number(transaction.amount), transaction.asset)}
+                      {formatAssetAmount(Number(transaction.amount), transaction.fund?.code || "USD")}
                     </div>
                   </div>
                 </div>
@@ -207,7 +156,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
           onOpenChange={setAddDialogOpen}
           investorId={investor.id}
           fundId={investor.fund_id}
-          onSuccess={loadData}
+          onSuccess={() => refetchTransactions()}
         />
       )}
     </div>

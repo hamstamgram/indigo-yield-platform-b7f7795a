@@ -152,3 +152,14 @@ export function useVoidTransaction() {
     },
   });
 }
+
+/**
+ * Get transaction summary for an investor (deposits, withdrawals, yield totals)
+ */
+export function useInvestorTransactionSummary(investorId: string | undefined) {
+  return useQuery({
+    queryKey: ["investor", "transactionSummary", investorId],
+    queryFn: () => transactionsV2Service.getSummary(investorId!),
+    enabled: !!investorId,
+  });
+}
