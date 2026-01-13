@@ -3,289 +3,55 @@
  * Consolidated fund management and yield distribution
  * With confirmation dialog for safety
  * 
- * Preview now uses backend RPC for exact parity with apply
+ * Refactored to use extracted components and hooks for maintainability
  */
 
-import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Card, CardContent, CardHeader, CardTitle,
-  Button, Input, Label, Badge, Skeleton, Switch, Calendar,
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+  Button, Badge, Skeleton,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Popover, PopoverContent, PopoverTrigger,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Checkbox,
 } from "@/components/ui";
 import {
   TrendingUp,
   Users,
   Plus,
-  Loader2,
-  CheckCircle,
-  ArrowRight,
   Coins,
   CalendarIcon,
   AlertTriangle,
-  Info,
-  Building2,
-  UserCheck,
-  ArrowRightLeft,
   Clock,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
-import { FundAUMEventsTable, OpenPeriodDialog } from "@/components/admin/yields";
+import { 
+  FundAUMEventsTable, 
+  OpenPeriodDialog, 
+  YieldInputForm, 
+  YieldPreviewResults, 
+  YieldConfirmDialog 
+} from "@/components/admin/yields";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
-import { toast } from "sonner";
-import { useAuth } from "@/services/auth";
-import {
-  previewYieldDistribution,
-  applyYieldDistribution,
-  type YieldCalculationResult,
-  type YieldDistribution,
-  type IBCredit,
-} from "@/services";
-import { useActiveFundsWithAUM } from "@/hooks";
 import { usePendingYieldEvents } from "@/hooks/data/admin/useYieldCrystallization";
 import { useAUMReconciliation } from "@/hooks/data/admin/useAUMReconciliation";
-import { cn } from "@/lib/utils";
-import { format, startOfMonth, endOfMonth, isWithinInterval, getMonth, getYear } from "date-fns";
-import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
-import { formatAUM, formatPercentage } from "@/utils/formatters";
-import { isSystemAccount as checkSystemAccount, INDIGO_FEES_ACCOUNT_ID } from "@/utils/accountUtils";
-
-// Fund type used in this component
-type Fund = NonNullable<ReturnType<typeof useActiveFundsWithAUM>["data"]>[number];
+import { getMonth, getYear } from "date-fns";
+import { useYieldOperationsState, type Fund } from "@/hooks/admin/useYieldOperationsState";
 
 function YieldOperationsContent() {
-  const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
-  const [showYieldDialog, setShowYieldDialog] = useState(false);
-  const [showOpenPeriodDialog, setShowOpenPeriodDialog] = useState(false);
-  const [newAUM, setNewAUM] = useState("");
-  const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [applyLoading, setApplyLoading] = useState(false);
-  
-  // Purpose selector state
-  const [yieldPurpose, setYieldPurpose] = useState<"reporting" | "transaction">("reporting");
-  const [aumDate, setAumDate] = useState<Date>(new Date());
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-
-  // Reporting month state (closure functionality removed)
-  const [reportingMonth, setReportingMonth] = useState<string>("");
-  
-
-  // Confirmation dialog state
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [confirmationText, setConfirmationText] = useState("");
-  
-  // Preview filter state
-  const [showSystemAccounts, setShowSystemAccounts] = useState(true);
-  const [showOnlyChanged, setShowOnlyChanged] = useState(false);
-  const [searchInvestor, setSearchInvestor] = useState("");
-  
-  // AUM Reconciliation acknowledgment
-  const [acknowledgeDiscrepancy, setAcknowledgeDiscrepancy] = useState(false);
-
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  
-  // Generate available months for selection
-  const getAvailableMonths = (): { value: string; label: string }[] => {
-    const months: { value: string; label: string }[] = [];
-    const now = new Date();
-    const startDate = new Date(2024, 0, 1); // January 2024
-    let current = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    while (current >= startDate) {
-      const value = current.toISOString().split("T")[0];
-      const label = current.toLocaleDateString("en-US", { year: "numeric", month: "long" });
-      months.push({ value, label });
-      current = new Date(current.getFullYear(), current.getMonth() - 1, 1);
-    }
-    return months;
-  };
-  const availableMonths = getAvailableMonths();
-
-  // Use the hook for funds data
-  const { data: funds = [], isLoading: loading, refetch: refetchFunds } = useActiveFundsWithAUM();
+  const ops = useYieldOperationsState();
   
   // Calculate pending yield events for selected fund/month
-  const reportingMonthDate = reportingMonth ? new Date(reportingMonth) : null;
+  const reportingMonthDate = ops.reportingMonth ? new Date(ops.reportingMonth) : null;
   const { data: pendingEvents } = usePendingYieldEvents(
-    selectedFund?.id || null,
+    ops.selectedFund?.id || null,
     reportingMonthDate ? getYear(reportingMonthDate) : new Date().getFullYear(),
     reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
   );
   
   // AUM Reconciliation check
-  const { data: reconciliation } = useAUMReconciliation(selectedFund?.id || null);
+  const { data: reconciliation } = useAUMReconciliation(ops.selectedFund?.id || null);
 
-  // Use centralized formatter from utils
-  const formatValue = (value: number, asset: string) => formatAUM(value, asset);
-
-  const openYieldDialog = (fund: Fund) => {
-    setSelectedFund(fund);
-    setNewAUM("");
-    setYieldPreview(null);
-    setYieldPurpose("reporting");
-    setAumDate(new Date());
-    setShowYieldDialog(true);
-    setConfirmationText("");
-    setShowSystemAccounts(true);
-    setShowOnlyChanged(false);
-    setSearchInvestor("");
-    setAcknowledgeDiscrepancy(false);
-    
-    // Default to current month
-    const currentMonthStart = startOfMonth(new Date()).toISOString().split("T")[0];
-    setReportingMonth(currentMonthStart);
-  };
-
-  // Handle reporting month change - auto-navigate calendar to end of selected month
-  const handleReportingMonthChange = (monthStart: string) => {
-    setReportingMonth(monthStart);
-    
-    // Auto-set calendar date to end of selected month (typical yield distribution date)
-    const selectedDate = new Date(monthStart + "T12:00:00");
-    const lastDayOfMonth = endOfMonth(selectedDate);
-    setAumDate(lastDayOfMonth);
-  };
-
-  // Validate effective date is within reporting month
-  // Use startOfDay for consistent timezone handling to avoid edge cases
-  const validateEffectiveDate = (): { valid: boolean; error?: string } => {
-    if (yieldPurpose !== "reporting" || !reportingMonth) {
-      return { valid: true };
-    }
-    
-    // Parse dates consistently - normalize to start of day to avoid timezone edge cases
-    const monthStart = startOfMonth(new Date(reportingMonth + "T12:00:00")); // Noon to avoid DST issues
-    const monthEnd = endOfMonth(monthStart);
-    
-    // Normalize aumDate to noon to avoid timezone boundary issues
-    const normalizedAumDate = new Date(aumDate);
-    normalizedAumDate.setHours(12, 0, 0, 0);
-    
-    if (!isWithinInterval(normalizedAumDate, { start: monthStart, end: monthEnd })) {
-      return {
-        valid: false,
-        error: `Effective date must be within ${format(monthStart, "MMMM yyyy")} (${format(monthStart, "MMM d")} - ${format(monthEnd, "MMM d")})`,
-      };
-    }
-    
-    return { valid: true };
-  };
-
-  const handlePreviewYield = async () => {
-    if (!selectedFund || !newAUM) return;
-
-    const newAUMValue = parseFloat(newAUM);
-    if (isNaN(newAUMValue) || newAUMValue <= 0) {
-      toast.error("Please enter a valid positive number.");
-      return;
-    }
-
-    if (newAUMValue <= selectedFund.total_aum) {
-      toast.error("New AUM must be greater than current AUM to distribute yield.");
-      return;
-    }
-
-    setPreviewLoading(true);
-    try {
-      const result = await previewYieldDistribution({
-        fundId: selectedFund.id,
-        targetDate: aumDate,
-        newTotalAUM: newAUMValue,
-        purpose: yieldPurpose,
-      });
-      setYieldPreview(result);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to preview yield.");
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
-  const handleConfirmApply = () => {
-    // Open confirmation dialog
-    setShowConfirmDialog(true);
-    setConfirmationText("");
-  };
-
-  const handleApplyYield = async () => {
-    if (!selectedFund || !newAUM || !user || !yieldPreview) return;
-
-    // Validate confirmation text
-    if (confirmationText !== "APPLY") {
-      toast.error("Please type APPLY to confirm.");
-      return;
-    }
-
-    setApplyLoading(true);
-    try {
-      await applyYieldDistribution(
-        {
-          fundId: selectedFund.id,
-          targetDate: aumDate,
-          newTotalAUM: parseFloat(newAUM),
-        },
-        user.id,
-        yieldPurpose
-      );
-
-      toast.success(
-        `Distributed ${formatValue(yieldPreview.grossYield, selectedFund.asset)} ${selectedFund.asset} to ${yieldPreview.investorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
-      );
-
-      setShowConfirmDialog(false);
-      setShowYieldDialog(false);
-      
-      // Comprehensive cache invalidation for all yield-related data
-      YIELD_RELATED_KEYS.forEach(key => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
-      
-      refetchFunds();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to apply yield.");
-    } finally {
-      setApplyLoading(false);
-    }
-  };
-  
-  // Filter distributions for display using centralized account utils
-  const getFilteredDistributions = (distributions: YieldDistribution[]) => {
-    return distributions.filter((d) => {
-      // Filter by system accounts using centralized check
-      if (!showSystemAccounts && checkSystemAccount(d)) {
-        return false;
-      }
-
-      // Filter by changed only
-      if (showOnlyChanged && d.wouldSkip) return false;
-
-      // Filter by search
-      if (searchInvestor) {
-        const search = searchInvestor.toLowerCase();
-        return d.investorName?.toLowerCase().includes(search) ||
-               d.investorId.toLowerCase().includes(search);
-      }
-
-      return true;
-    });
-  };
-  
-  // Use centralized system account check from utils
-  const isSystemAccount = (d: YieldDistribution) => checkSystemAccount(d);
-
-  if (loading) {
+  if (ops.loading) {
     return (
       <div className="container max-w-6xl mx-auto px-4 py-6">
         <Skeleton className="h-8 w-64 mb-2" />
@@ -317,7 +83,7 @@ function YieldOperationsContent() {
               <Coins className="h-8 w-8 text-primary/30" />
               <div>
                 <p className="text-xs text-muted-foreground uppercase">Active Funds</p>
-                <p className="text-2xl font-mono font-bold">{funds.length}</p>
+                <p className="text-2xl font-mono font-bold">{ops.funds.length}</p>
               </div>
             </div>
           </CardContent>
@@ -329,7 +95,7 @@ function YieldOperationsContent() {
               <div>
                 <p className="text-xs text-muted-foreground uppercase">Total Positions</p>
                 <p className="text-2xl font-mono font-bold">
-                  {funds.reduce((sum, f) => sum + f.investor_count, 0)}
+                  {ops.funds.reduce((sum, f) => sum + f.investor_count, 0)}
                 </p>
                 <p className="text-xs text-muted-foreground">Investor × fund combinations</p>
               </div>
@@ -340,139 +106,37 @@ function YieldOperationsContent() {
 
       {/* Funds Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {funds.map((fund) => (
-          <Card key={fund.id} className="group hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CryptoIcon symbol={fund.asset} className="h-10 w-10" />
-                  <div>
-                    <CardTitle className="text-lg">{fund.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{fund.code}</p>
-                  </div>
-                </div>
-                <Badge variant="outline">{fund.asset}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm">
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-mono font-semibold">
-                    {formatValue(fund.total_aum, fund.asset)}
-                  </span>
-                  <span className="text-muted-foreground">{fund.asset}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="h-4 w-4" />
-                  <span>{fund.investor_count}</span>
-                </div>
-              </div>
-
-              {/* Show warning if no AUM records */}
-              {fund.aum_record_count === 0 && (
-                <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  No AUM baseline - Open Period first
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                {/* Open Period button - shown when no AUM baseline exists */}
-                {fund.aum_record_count === 0 && (
-                  <Button
-                    onClick={() => {
-                      setSelectedFund(fund);
-                      setShowOpenPeriodDialog(true);
-                    }}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <CalendarIcon className="h-4 w-4 mr-2" />
-                    Open Period
-                  </Button>
-                )}
-                
-                <Button
-                  onClick={() => openYieldDialog(fund)}
-                  disabled={fund.investor_count === 0}
-                  className={fund.aum_record_count === 0 ? "flex-1" : "w-full"}
-                  variant={fund.investor_count > 0 ? "primary" : "secondary"}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Record Yield
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        {ops.funds.map((fund) => (
+          <FundCard 
+            key={fund.id} 
+            fund={fund} 
+            formatValue={ops.formatValue}
+            onOpenYieldDialog={() => ops.openYieldDialog(fund)}
+            onOpenPeriodDialog={() => {
+              ops.setSelectedFund(fund);
+              ops.setShowOpenPeriodDialog(true);
+            }}
+          />
         ))}
       </div>
 
       {/* AUM Checkpoints Section */}
-      {funds.length > 0 && (
-        <Collapsible>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Clock className="h-5 w-5 text-muted-foreground" />
-                    AUM Checkpoints
-                  </CardTitle>
-                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Label>Select Fund</Label>
-                  <Select
-                    value={selectedFund?.id || ""}
-                    onValueChange={(value) => {
-                      const fund = funds.find((f) => f.id === value);
-                      setSelectedFund(fund || null);
-                    }}
-                  >
-                    <SelectTrigger className="w-[250px]">
-                      <SelectValue placeholder="Choose a fund..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {funds.map((fund) => (
-                        <SelectItem key={fund.id} value={fund.id}>
-                          <div className="flex items-center gap-2">
-                            <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
-                            {fund.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {selectedFund ? (
-                  <FundAUMEventsTable
-                    fundId={selectedFund.id}
-                    formatValue={formatValue}
-                    asset={selectedFund.asset || ""}
-                  />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Select a fund to view AUM checkpoints
-                  </div>
-                )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+      {ops.funds.length > 0 && (
+        <AUMCheckpointsSection
+          funds={ops.funds}
+          selectedFund={ops.selectedFund}
+          setSelectedFund={ops.setSelectedFund}
+          formatValue={ops.formatValue}
+        />
       )}
 
       {/* Yield Distribution Dialog */}
-      <Dialog open={showYieldDialog} onOpenChange={setShowYieldDialog}>
+      <Dialog open={ops.showYieldDialog} onOpenChange={ops.setShowYieldDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              {selectedFund && <CryptoIcon symbol={selectedFund.asset} className="h-8 w-8" />}
-              Record Yield - {selectedFund?.name}
+              {ops.selectedFund && <CryptoIcon symbol={ops.selectedFund.asset} className="h-8 w-8" />}
+              Record Yield - {ops.selectedFund?.name}
             </DialogTitle>
             <DialogDescription>
               Enter the new total AUM to calculate and distribute yield.
@@ -480,616 +144,221 @@ function YieldOperationsContent() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Warning: No AUM History */}
-            {selectedFund && selectedFund.aum_record_count === 0 && (
-              <div className="flex items-start gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
-                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-medium text-amber-800 dark:text-amber-200">
-                    No AUM History for {selectedFund.name}
-                  </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    This fund has no historical AUM records. Before distributing yield, you should record AUM data
-                    via the <span className="font-medium">Daily Rates Management</span> page or by completing this form.
-                    The first yield distribution will establish the baseline.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 1: Period & Purpose */}
-            <div className="p-4 border rounded-lg bg-muted/20">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                    1
-                  </div>
-                  <h3 className="font-semibold">Choose Period & Purpose</h3>
-                </div>
-                
-              </div>
-
-              {/* Reporting Month Selector - Only for reporting purpose */}
-              {yieldPurpose === "reporting" && (
-                <div className="space-y-2 mb-4">
-                  <Label>Reporting Month</Label>
-                  <Select value={reportingMonth} onValueChange={handleReportingMonthChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select month to close" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableMonths.map((month) => (
-                        <SelectItem key={month.value} value={month.value}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Select the reporting month this yield applies to
-                  </p>
-                </div>
-              )}
-
-              {/* AUM Input */}
-              <div className="grid grid-cols-2 gap-6 mb-4">
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">Current AUM</Label>
-                  <div className="text-2xl font-mono font-semibold">
-                    {selectedFund && formatValue(selectedFund.total_aum, selectedFund.asset)}{" "}
-                    <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
-                  <Input
-                    id="new-aum"
-                    type="number"
-                    step="any"
-                    value={newAUM}
-                    onChange={(e) => setNewAUM(e.target.value)}
-                    placeholder={`Enter new total AUM`}
-                    className="font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Date Picker - Using Shadcn Calendar */}
-              <div className="space-y-2 mb-4">
-                <Label>Effective Date</Label>
-                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !aumDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={aumDate}
-                      onSelect={(date) => {
-                        if (date) {
-                          setAumDate(date);
-                          setDatePickerOpen(false);
-                        }
-                      }}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                      captionLayout="dropdown-buttons"
-                      fromYear={2024}
-                      toYear={new Date().getFullYear()}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Purpose Selector with Explainer */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Purpose</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div 
-                    className={cn(
-                      "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                      yieldPurpose === "reporting" 
-                        ? "border-green-500 ring-1 ring-green-500/20" 
-                        : "hover:border-green-500/50"
-                    )}
-                    onClick={() => setYieldPurpose("reporting")}
-                  >
-                    <div className={cn(
-                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                      yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
-                    )} />
-                    <div>
-                      <p className="font-medium text-sm">Reporting</p>
-                      <p className="text-xs text-muted-foreground">Month-end official yield</p>
-                    </div>
-                  </div>
-                  <div 
-                    className={cn(
-                      "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                      yieldPurpose === "transaction" 
-                        ? "border-orange-500 ring-1 ring-orange-500/20" 
-                        : "hover:border-orange-500/50"
-                    )}
-                    onClick={() => setYieldPurpose("transaction")}
-                  >
-                    <div className={cn(
-                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                      yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
-                    )} />
-                    <div>
-                      <p className="font-medium text-sm">Transaction</p>
-                      <p className="text-xs text-muted-foreground">Operational (withdrawals/top-ups)</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Purpose Explainer */}
-                <div className={cn(
-                  "flex items-start gap-2 p-3 rounded-md text-sm",
-                  yieldPurpose === "reporting" 
-                    ? "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400" 
-                    : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
-                )}>
-                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <div>
-                    {yieldPurpose === "reporting" ? (
-                      <>
-                        <strong>Visible to investors.</strong> Official month-end yield that appears on investor statements and dashboards.
-                      </>
-                    ) : (
-                      <>
-                        <strong>Internal only.</strong> Operational yield for processing withdrawals or top-ups. Not visible to investors.
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Effective Date Validation Warning */}
-            {yieldPurpose === "reporting" && reportingMonth && !validateEffectiveDate().valid && (
-              <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-sm">
-                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>{validateEffectiveDate().error}</span>
-              </div>
-            )}
-
-            {/* Pending Crystallization Events Info */}
-            {yieldPurpose === "reporting" && pendingEvents && pendingEvents.count > 0 && (
-              <div className="flex items-start gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
-                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-medium text-amber-800 dark:text-amber-200">
-                    {pendingEvents.count} pending yield event{pendingEvents.count !== 1 ? 's' : ''} from mid-month flows
-                  </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    These events were crystallized from deposits/withdrawals during this period. 
-                    They will become visible to investors after you apply this month-end yield.
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            {/* AUM Reconciliation Warning */}
-            {reconciliation?.has_warning && (
-              <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
-                <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-medium text-destructive">
-                    AUM Discrepancy Detected
-                  </p>
-                  <p className="text-sm text-destructive/80">
-                    Positions sum: {formatValue(reconciliation.positions_sum, selectedFund?.asset || "USD")} {selectedFund?.asset}
-                    <br />
-                    Recorded AUM: {formatValue(reconciliation.recorded_aum, selectedFund?.asset || "USD")} {selectedFund?.asset}
-                    <br />
-                    Difference: {reconciliation.discrepancy_pct.toFixed(2)}% (threshold: {reconciliation.tolerance_pct}%)
-                  </p>
-                  <p className="text-sm text-destructive font-medium">
-                    Review before applying yield to ensure accuracy.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Preview Button */}
-            <div className="p-4 border rounded-lg bg-muted/20">
-              <div className="flex items-center gap-2 mb-4">
-                <div className={cn(
-                  "h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold",
-                  yieldPreview ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                )}>
-                  2
-                </div>
-                <h3 className="font-semibold">Preview Distribution</h3>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={handlePreviewYield}
-                  disabled={
-                    !newAUM || 
-                    previewLoading || 
-                    (yieldPurpose === "reporting" && !validateEffectiveDate().valid)
-                  }
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  {previewLoading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <ArrowRight className="h-4 w-4 mr-2" />
-                  )}
-                  Preview Yield Distribution
-                </Button>
-                
-              </div>
-            </div>
+            <YieldInputForm
+              selectedFund={ops.selectedFund}
+              newAUM={ops.newAUM}
+              setNewAUM={ops.setNewAUM}
+              yieldPurpose={ops.yieldPurpose}
+              setYieldPurpose={ops.setYieldPurpose}
+              aumDate={ops.aumDate}
+              setAumDate={ops.setAumDate}
+              datePickerOpen={ops.datePickerOpen}
+              setDatePickerOpen={ops.setDatePickerOpen}
+              reportingMonth={ops.reportingMonth}
+              availableMonths={ops.getAvailableMonths()}
+              handleReportingMonthChange={ops.handleReportingMonthChange}
+              validateEffectiveDate={ops.validateEffectiveDate}
+              handlePreviewYield={ops.handlePreviewYield}
+              previewLoading={ops.previewLoading}
+              hasPreview={!!ops.yieldPreview}
+              formatValue={ops.formatValue}
+              reconciliation={reconciliation}
+              pendingEvents={pendingEvents}
+            />
 
             {/* Preview Results */}
-            {yieldPreview && (
-              <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                    3
-                  </div>
-                  <h3 className="font-semibold">Confirm & Apply</h3>
-                </div>
-                
-                {/* Idempotency Warnings */}
-                {yieldPreview.hasConflicts && (
-                  <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
-                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>Some transactions already exist.</strong> {yieldPreview.existingConflicts.length} existing reference(s) will be skipped.
-                    </div>
-                  </div>
-                )}
-
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                    <CardContent className="p-3 text-center">
-                      <p className="text-xs text-muted-foreground">Gross Yield</p>
-                      <p className="text-lg font-mono font-bold text-green-600">
-                        +{formatValue(yieldPreview.grossYield, selectedFund?.asset || "")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3 text-center">
-                      <p className="text-xs text-muted-foreground">Total Fees</p>
-                      <p className="text-lg font-mono font-semibold">
-                        {formatValue(yieldPreview.totalFees, selectedFund?.asset || "")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3 text-center">
-                      <p className="text-xs text-muted-foreground">IB Fees</p>
-                      <p className="text-lg font-mono font-semibold text-purple-600">
-                        {formatValue(yieldPreview.totalIbFees || 0, selectedFund?.asset || "")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="border-primary/30 bg-primary/5">
-                    <CardContent className="p-3 text-center">
-                      <p className="text-xs text-muted-foreground">Net Yield</p>
-                      <p className="text-lg font-mono font-bold text-primary">
-                        +{formatValue(yieldPreview.netYield, selectedFund?.asset || "")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {/* INDIGO FEES Credit Card */}
-                {yieldPreview.indigoFeesCredit > 0 && (
-                  <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium">INDIGO FEES Credit</span>
-                        </div>
-                        <span className="font-mono font-bold text-blue-600">
-                          +{formatValue(yieldPreview.indigoFeesCredit, selectedFund?.asset || "")} {selectedFund?.asset}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Platform fees collected after IB commissions
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-                
-                {/* IB Credits Summary */}
-                {yieldPreview.ibCredits && yieldPreview.ibCredits.length > 0 && (
-                  <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
-                    <CardHeader className="pb-2 pt-3 px-3">
-                      <div className="flex items-center gap-2">
-                        <UserCheck className="h-4 w-4 text-purple-600" />
-                        <span className="text-sm font-medium">IB Credits ({yieldPreview.ibCredits.length})</span>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-3 pb-3">
-                      <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {yieldPreview.ibCredits.map((ib, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
-                              <span className="truncate max-w-[150px]">{ib.ibInvestorName}</span>
-                              <span className="text-xs text-muted-foreground">({ib.ibPercentage}%)</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-purple-600">
-                                +{formatValue(ib.amount, selectedFund?.asset || "")}
-                              </span>
-                              {ib.wouldSkip && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <Badge variant="outline" className="text-xs">Skip</Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Already exists</TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Filter Controls */}
-                <div className="flex flex-wrap items-center gap-4 pt-2">
-                  <Input
-                    placeholder="Search investor..."
-                    value={searchInvestor}
-                    onChange={(e) => setSearchInvestor(e.target.value)}
-                    className="w-48"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="show-system"
-                      checked={showSystemAccounts}
-                      onCheckedChange={setShowSystemAccounts}
-                    />
-                    <Label htmlFor="show-system" className="text-sm">Show system accounts</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="show-changed"
-                      checked={showOnlyChanged}
-                      onCheckedChange={setShowOnlyChanged}
-                    />
-                    <Label htmlFor="show-changed" className="text-sm">Only new entries</Label>
-                  </div>
-                </div>
-
-                {/* Investor Breakdown */}
-                <div className="rounded-md border max-h-72 overflow-y-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Investor</TableHead>
-                        <TableHead className="text-right">Current</TableHead>
-                        <TableHead className="text-right">Gross</TableHead>
-                        <TableHead className="text-right">Fee %</TableHead>
-                        <TableHead className="text-right">Fee</TableHead>
-                        <TableHead className="text-right">Net</TableHead>
-                        <TableHead className="text-right">IB</TableHead>
-                        <TableHead className="text-right">Delta</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getFilteredDistributions(yieldPreview.distributions).map((inv) => (
-                        <TableRow 
-                          key={inv.investorId}
-                          className={cn(
-                            inv.wouldSkip && "opacity-50",
-                            isSystemAccount(inv) && "bg-blue-50/50 dark:bg-blue-950/20"
-                          )}
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {isSystemAccount(inv) && (
-                                <Building2 className="h-3 w-3 text-blue-600" />
-                              )}
-                              <div>
-                                <p className="font-medium text-sm truncate max-w-[120px]">{inv.investorName}</p>
-                                {inv.ibParentName && (
-                                  <p className="text-xs text-purple-600">IB: {inv.ibParentName}</p>
-                                )}
-                              </div>
-                              {inv.wouldSkip && (
-                                <Badge variant="outline" className="text-xs">Skip</Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs">
-                            {formatValue(inv.currentBalance, selectedFund?.asset || "")}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs text-green-600">
-                            +{formatValue(inv.grossYield, selectedFund?.asset || "")}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs">
-                            {inv.feePercentage}%
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                            {inv.feeAmount > 0 ? `-${formatValue(inv.feeAmount, selectedFund?.asset || "")}` : "—"}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs font-semibold">
-                            +{formatValue(inv.netYield, selectedFund?.asset || "")}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs text-purple-600">
-                            {inv.ibAmount > 0 ? `-${formatValue(inv.ibAmount, selectedFund?.asset || "")}` : "—"}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs font-bold text-primary">
-                            +{formatValue(inv.positionDelta, selectedFund?.asset || "")}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                
-                <p className="text-xs text-muted-foreground text-center">
-                  Showing {getFilteredDistributions(yieldPreview.distributions).length} of {yieldPreview.distributions.length} investors
-                </p>
-
-                {/* Apply Button - Opens Confirmation */}
-                <Button
-                  onClick={handleConfirmApply}
-                  disabled={applyLoading}
-                  className="w-full"
-                  size="lg"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Apply Yield to {yieldPreview.investorCount} Investors
-                </Button>
-              </div>
+            {ops.yieldPreview && (
+              <YieldPreviewResults
+                yieldPreview={ops.yieldPreview}
+                selectedFund={ops.selectedFund}
+                formatValue={ops.formatValue}
+                showSystemAccounts={ops.showSystemAccounts}
+                setShowSystemAccounts={ops.setShowSystemAccounts}
+                showOnlyChanged={ops.showOnlyChanged}
+                setShowOnlyChanged={ops.setShowOnlyChanged}
+                searchInvestor={ops.searchInvestor}
+                setSearchInvestor={ops.setSearchInvestor}
+                getFilteredDistributions={ops.getFilteredDistributions}
+                onConfirmApply={ops.handleConfirmApply}
+                applyLoading={ops.applyLoading}
+              />
             )}
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog - Typed Confirmation */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Confirm Yield Distribution
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4">
-                <p>You are about to distribute yield with the following details:</p>
-                
-                <div className="p-3 rounded-md bg-muted space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Fund:</span>
-                    <span className="font-medium">{selectedFund?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Purpose:</span>
-                    <Badge 
-                      variant="outline"
-                      className={yieldPurpose === "reporting" 
-                        ? "border-green-500 text-green-700" 
-                        : "border-orange-500 text-orange-700"
-                      }
-                    >
-                      {yieldPurpose === "reporting" ? "Reporting" : "Transaction"}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Effective Date:</span>
-                    <span className="font-medium">{format(aumDate, "PPP")}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Gross Yield:</span>
-                    <span className="font-mono font-medium text-green-600">
-                      +{formatValue(yieldPreview?.grossYield || 0, selectedFund?.asset || "")} {selectedFund?.asset}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Fees:</span>
-                    <span className="font-mono">{formatValue(yieldPreview?.totalFees || 0, selectedFund?.asset || "")} {selectedFund?.asset}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">IB Fees:</span>
-                    <span className="font-mono text-purple-600">{formatValue(yieldPreview?.totalIbFees || 0, selectedFund?.asset || "")} {selectedFund?.asset}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">INDIGO FEES Credit:</span>
-                    <span className="font-mono text-blue-600">{formatValue(yieldPreview?.indigoFeesCredit || 0, selectedFund?.asset || "")} {selectedFund?.asset}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Investors:</span>
-                    <span className="font-medium">{yieldPreview?.investorCount}</span>
-                  </div>
-                </div>
-
-                {yieldPurpose === "reporting" && (
-                  <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-sm">
-                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <span>
-                      <strong>This yield will be visible to investors</strong> on their statements and dashboards.
-                    </span>
-                  </div>
-                )}
-
-                {/* AUM Discrepancy Acknowledgment */}
-                {reconciliation?.has_warning && (
-                  <div className="space-y-2 p-3 rounded-md border border-destructive/50 bg-destructive/10">
-                    <Label className="flex items-center gap-2 text-sm cursor-pointer">
-                      <Checkbox 
-                        checked={acknowledgeDiscrepancy} 
-                        onCheckedChange={(checked) => setAcknowledgeDiscrepancy(checked === true)} 
-                      />
-                      <span className="text-destructive">
-                        I acknowledge the {reconciliation.discrepancy_pct.toFixed(2)}% AUM discrepancy and want to proceed
-                      </span>
-                    </Label>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-text">
-                    Type <span className="font-mono font-bold">APPLY</span> to confirm:
-                  </Label>
-                  <Input
-                    id="confirm-text"
-                    value={confirmationText}
-                    onChange={(e) => setConfirmationText(e.target.value.toUpperCase())}
-                    placeholder="APPLY"
-                    className="font-mono"
-                  />
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button
-              onClick={handleApplyYield}
-              disabled={
-                confirmationText !== "APPLY" || 
-                applyLoading || 
-                (reconciliation?.has_warning && !acknowledgeDiscrepancy)
-              }
-            >
-              {applyLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <CheckCircle className="h-4 w-4 mr-2" />
-              )}
-              Confirm & Apply
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Confirmation Dialog */}
+      <YieldConfirmDialog
+        open={ops.showConfirmDialog}
+        onOpenChange={ops.setShowConfirmDialog}
+        selectedFund={ops.selectedFund}
+        yieldPurpose={ops.yieldPurpose}
+        aumDate={ops.aumDate}
+        yieldPreview={ops.yieldPreview}
+        confirmationText={ops.confirmationText}
+        setConfirmationText={ops.setConfirmationText}
+        acknowledgeDiscrepancy={ops.acknowledgeDiscrepancy}
+        setAcknowledgeDiscrepancy={ops.setAcknowledgeDiscrepancy}
+        reconciliation={reconciliation}
+        formatValue={ops.formatValue}
+        onApply={ops.handleApplyYield}
+        applyLoading={ops.applyLoading}
+      />
 
       {/* Open Period Dialog */}
       <OpenPeriodDialog
-        open={showOpenPeriodDialog}
-        onOpenChange={setShowOpenPeriodDialog}
-        fund={selectedFund}
-        onSuccess={() => refetchFunds()}
+        open={ops.showOpenPeriodDialog}
+        onOpenChange={ops.setShowOpenPeriodDialog}
+        fund={ops.selectedFund}
+        onSuccess={() => ops.refetchFunds()}
       />
-
     </div>
+  );
+}
+
+// Sub-components for cleaner main component
+
+interface FundCardProps {
+  fund: Fund;
+  formatValue: (value: number, asset: string) => string;
+  onOpenYieldDialog: () => void;
+  onOpenPeriodDialog: () => void;
+}
+
+function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: FundCardProps) {
+  return (
+    <Card className="group hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CryptoIcon symbol={fund.asset} className="h-10 w-10" />
+            <div>
+              <CardTitle className="text-lg">{fund.name}</CardTitle>
+              <p className="text-sm text-muted-foreground">{fund.code}</p>
+            </div>
+          </div>
+          <Badge variant="outline">{fund.asset}</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm">
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <span className="font-mono font-semibold">
+              {formatValue(fund.total_aum, fund.asset)}
+            </span>
+            <span className="text-muted-foreground">{fund.asset}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            <span>{fund.investor_count}</span>
+          </div>
+        </div>
+
+        {/* Show warning if no AUM records */}
+        {fund.aum_record_count === 0 && (
+          <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            No AUM baseline - Open Period first
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          {/* Open Period button - shown when no AUM baseline exists */}
+          {fund.aum_record_count === 0 && (
+            <Button
+              onClick={onOpenPeriodDialog}
+              variant="outline"
+              className="flex-1"
+            >
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              Open Period
+            </Button>
+          )}
+          
+          <Button
+            onClick={onOpenYieldDialog}
+            disabled={fund.investor_count === 0}
+            className={fund.aum_record_count === 0 ? "flex-1" : "w-full"}
+            variant={fund.investor_count > 0 ? "primary" : "secondary"}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Record Yield
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface AUMCheckpointsSectionProps {
+  funds: Fund[];
+  selectedFund: Fund | null;
+  setSelectedFund: (fund: Fund | null) => void;
+  formatValue: (value: number, asset: string) => string;
+}
+
+function AUMCheckpointsSection({ 
+  funds, 
+  selectedFund, 
+  setSelectedFund, 
+  formatValue 
+}: AUMCheckpointsSectionProps) {
+  return (
+    <Collapsible>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                AUM Checkpoints
+              </CardTitle>
+              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">Select Fund</span>
+              <Select
+                value={selectedFund?.id || ""}
+                onValueChange={(value) => {
+                  const fund = funds.find((f) => f.id === value);
+                  setSelectedFund(fund || null);
+                }}
+              >
+                <SelectTrigger className="w-[250px]">
+                  <SelectValue placeholder="Choose a fund..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {funds.map((fund) => (
+                    <SelectItem key={fund.id} value={fund.id}>
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                        {fund.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedFund ? (
+              <FundAUMEventsTable
+                fundId={selectedFund.id}
+                formatValue={formatValue}
+                asset={selectedFund.asset || ""}
+              />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Select a fund to view AUM checkpoints
+              </div>
+            )}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
 
