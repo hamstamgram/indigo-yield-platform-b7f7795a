@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo, useCallback, memo } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalFullStatus } from "@/types/domains";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
 import {
@@ -59,14 +59,26 @@ const statusColors: Record<WithdrawalFullStatus, string> = {
   cancelled: "bg-gray-500/10 text-gray-600 border-gray-500/20",
 };
 
-export function WithdrawalsTable({
-  withdrawals,
-  isLoading,
-  filters,
-  onFiltersChange,
-  onRefresh,
-  funds = [],
-  pagination,
+// Memoized ActionsDropdown component to prevent re-renders
+interface ActionsDropdownProps {
+  withdrawal: Withdrawal;
+  onViewDetails?: (withdrawal: Withdrawal) => void;
+  onApprove?: (withdrawal: Withdrawal) => void;
+  onReject?: (withdrawal: Withdrawal) => void;
+  onStartProcessing?: (withdrawal: Withdrawal) => void;
+  onComplete?: (withdrawal: Withdrawal) => void;
+  onEdit?: (withdrawal: Withdrawal) => void;
+  onDelete?: (withdrawal: Withdrawal) => void;
+  onRouteToFees?: (withdrawal: Withdrawal) => void;
+}
+
+const canEdit = (status: WithdrawalFullStatus) => status === "pending" || status === "approved";
+const canDelete = (status: WithdrawalFullStatus) => status !== "completed";
+const canRouteToFees = (status: WithdrawalFullStatus) => 
+  status === "pending" || status === "approved" || status === "processing";
+
+const ActionsDropdown = memo(function ActionsDropdown({
+  withdrawal,
   onViewDetails,
   onApprove,
   onReject,
@@ -75,22 +87,8 @@ export function WithdrawalsTable({
   onEdit,
   onDelete,
   onRouteToFees,
-}: WithdrawalsTableProps) {
-  const canEdit = (status: WithdrawalFullStatus) => status === "pending" || status === "approved";
-  const canDelete = (status: WithdrawalFullStatus) => status !== "completed";
-  const canRouteToFees = (status: WithdrawalFullStatus) => 
-    status === "pending" || status === "approved" || status === "processing";
-
-  // Add sorting capability
-  const { sortConfig, requestSort, sortedData } = useSortableColumns(withdrawals, {
-    column: 'request_date',
-    direction: 'desc'
-  });
-
-  const displayedWithdrawals = useMemo(() => sortedData, [sortedData]);
-
-  // Actions dropdown for a withdrawal
-  const ActionsDropdown = ({ withdrawal }: { withdrawal: Withdrawal }) => (
+}: ActionsDropdownProps) {
+  return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm">
@@ -167,6 +165,60 @@ export function WithdrawalsTable({
       </DropdownMenuContent>
     </DropdownMenu>
   );
+});
+
+export const WithdrawalsTable = memo(function WithdrawalsTable({
+  withdrawals,
+  isLoading,
+  filters,
+  onFiltersChange,
+  onRefresh,
+  funds = [],
+  pagination,
+  onViewDetails,
+  onApprove,
+  onReject,
+  onStartProcessing,
+  onComplete,
+  onEdit,
+  onDelete,
+  onRouteToFees,
+}: WithdrawalsTableProps) {
+  // Add sorting capability
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(withdrawals, {
+    column: 'request_date',
+    direction: 'desc'
+  });
+
+  const displayedWithdrawals = useMemo(() => sortedData, [sortedData]);
+
+  // Memoize filter handlers
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onFiltersChange({ ...filters, search: e.target.value });
+  }, [filters, onFiltersChange]);
+
+  const handleStatusChange = useCallback((value: string) => {
+    onFiltersChange({ ...filters, status: value as WithdrawalFullStatus | "all" });
+  }, [filters, onFiltersChange]);
+
+  const handleFundChange = useCallback((value: string) => {
+    onFiltersChange({ ...filters, fund_id: value === "all" ? undefined : value });
+  }, [filters, onFiltersChange]);
+
+  // Render the memoized ActionsDropdown with all callbacks
+  const renderActionsDropdown = useCallback((withdrawal: Withdrawal) => (
+    <ActionsDropdown
+      withdrawal={withdrawal}
+      onViewDetails={onViewDetails}
+      onApprove={onApprove}
+      onReject={onReject}
+      onStartProcessing={onStartProcessing}
+      onComplete={onComplete}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onRouteToFees={onRouteToFees}
+    />
+  ), [onViewDetails, onApprove, onReject, onStartProcessing, onComplete, onEdit, onDelete, onRouteToFees]);
 
   // Define columns for ResponsiveTable
   const columns: ResponsiveTableColumn<Withdrawal>[] = [
@@ -215,7 +267,7 @@ export function WithdrawalsTable({
     },
     {
       header: "Actions",
-      cell: (w) => <ActionsDropdown withdrawal={w} />,
+      cell: (w) => renderActionsDropdown(w),
       className: "text-right",
     },
   ];
@@ -380,4 +432,4 @@ export function WithdrawalsTable({
       )}
     </div>
   );
-}
+});
