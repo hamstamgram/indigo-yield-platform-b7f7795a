@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { logError } from "@/lib/logger";
 
 // ============ Types ============
 
@@ -165,7 +166,7 @@ class IBService {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching commission summary:", error);
+      logError("ibService.getCommissionSummary", error, { ibId });
       return [];
     }
 
@@ -220,7 +221,7 @@ class IBService {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching top referrals:", error);
+      logError("ibService.getTopReferrals", error, { ibId });
       return [];
     }
 
@@ -271,7 +272,7 @@ class IBService {
       .eq("ib_parent_id", ibId);
 
     if (error) {
-      console.error("Error fetching referral count:", error);
+      logError("ibService.getReferralCount", error, { ibId });
       return 0;
     }
 
@@ -290,7 +291,7 @@ class IBService {
       .range(page * pageSize, (page + 1) * pageSize - 1);
 
     if (error) {
-      console.error("Error fetching referrals:", error);
+      logError("ibService.getReferrals", error, { ibId });
       return { referrals: [], total: 0 };
     }
 
@@ -348,7 +349,7 @@ class IBService {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching referrals:", error);
+      logError("ibService.getReferralsForDashboard", error, { ibId });
       return [];
     }
     
@@ -367,7 +368,7 @@ class IBService {
       .maybeSingle();
 
     if (error || !data) {
-      console.error("Error fetching referral:", error);
+      logError("ibService.getReferralDetail", error, { referralId, ibId });
       return null;
     }
 
@@ -390,7 +391,7 @@ class IBService {
       .eq("investor_id", investorId);
 
     if (error) {
-      console.error("Error fetching positions:", error);
+      logError("ibService.getReferralPositions", error, { investorId });
       return [];
     }
 

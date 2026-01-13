@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 // ============================================
 // Types
@@ -112,7 +113,7 @@ export async function getInvestorDocuments(userId: string): Promise<InvestorDocu
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching investor documents:", error);
+    logError("investorYieldHistory.getDocuments", error, { userId });
     throw error;
   }
 
@@ -136,7 +137,7 @@ export async function downloadDocument(storagePath: string): Promise<Blob> {
     .download(storagePath);
 
   if (error) {
-    console.error("Error downloading document:", error);
+    logError("investorYieldHistory.downloadDocument", error, { storagePath });
     throw error;
   }
 

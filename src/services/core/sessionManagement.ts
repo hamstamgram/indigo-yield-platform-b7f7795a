@@ -4,6 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { logError } from "@/lib/logger";
 
 type AccessEvent = Database["public"]["Enums"]["access_event"];
 
@@ -49,7 +50,7 @@ export async function getUserSessions(_userId: string): Promise<SessionInfo[]> {
       },
     ];
   } catch (error) {
-    console.error("Error getting user sessions:", error);
+    logError("session.getUserSessions", error);
     return [];
   }
 }
@@ -62,7 +63,7 @@ export async function revokeSession(_sessionId: string): Promise<boolean> {
     // Simplified implementation - actual revocation would be handled by auth service
     return true;
   } catch (error) {
-    console.error("Error revoking session:", error);
+    logError("session.revokeSession", error);
     return false;
   }
 }
@@ -91,7 +92,7 @@ export async function getSecurityEvents(userId: string, limit = 50): Promise<Sec
       details: {},
     }));
   } catch (error) {
-    console.error("Error getting security events:", error);
+    logError("session.getSecurityEvents", error, { userId });
     return [];
   }
 }
@@ -118,7 +119,7 @@ export async function logSecurityEvent(
 
     return !error;
   } catch (error) {
-    console.error("Error logging security event:", error);
+    logError("session.logSecurityEvent", error, { userId, eventType });
     return false;
   }
 }

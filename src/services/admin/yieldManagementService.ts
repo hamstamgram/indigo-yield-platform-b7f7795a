@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface VoidYieldResult {
   success: boolean;
@@ -65,7 +66,7 @@ export async function voidYieldRecord(
   });
 
   if (error) {
-    console.error("Error voiding yield record:", error);
+    logError("yieldManagement.voidRecord", error, { recordId });
     throw new Error(error.message || "Failed to void yield record");
   }
 
@@ -93,7 +94,7 @@ export async function voidYieldDistribution(
   });
 
   if (error) {
-    console.error("Error voiding yield distribution:", error);
+    logError("yieldManagement.voidDistribution", error, { distributionId });
     throw new Error(error.message || "Failed to void yield distribution");
   }
 
@@ -126,7 +127,7 @@ export async function updateYieldAum(
   });
 
   if (error) {
-    console.error("Error updating yield record:", error);
+    logError("yieldManagement.updateAum", error, { recordId, newTotalAum });
     throw new Error(error.message || "Failed to update yield record");
   }
 
@@ -154,7 +155,7 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
     .maybeSingle();
 
   if (error || !record) {
-    console.error("Error fetching yield details:", error);
+    logError("yieldManagement.getDetails", error, { recordId });
     return null;
   }
 
@@ -267,7 +268,7 @@ export async function getYieldVoidImpact(recordId: string): Promise<{
   });
 
   if (error) {
-    console.error("Error getting yield void impact:", error);
+    logError("yieldManagement.getVoidImpact", error, { recordId });
     throw new Error(error.message || "Failed to get yield void impact");
   }
 

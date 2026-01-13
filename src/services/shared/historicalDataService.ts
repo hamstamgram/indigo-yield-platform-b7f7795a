@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface HistoricalReportTemplate {
   id: string;
@@ -80,7 +81,7 @@ export async function getHistoricalReports(filters?: {
       updated_at: r.updated_at,
     }));
   } catch (error) {
-    console.error("Error fetching historical reports:", error);
+    logError("historicalData.getHistoricalReports", error);
     return [];
   }
 }
@@ -97,7 +98,7 @@ export async function getHistoricalData(entityId: string, type: "fund" | "invest
       .eq("is_voided", false)
       .order("aum_date", { ascending: false });
     if (error) {
-      console.error("Error fetching fund historical data:", error);
+      logError("historicalData.getHistoricalData.fund", error, { entityId });
       return [];
     }
     return data;
@@ -109,7 +110,7 @@ export async function getHistoricalData(entityId: string, type: "fund" | "invest
       .eq("investor_id", entityId)
       .order("period(period_end_date)", { ascending: false });
     if (error) {
-      console.error("Error fetching investor historical data:", error);
+      logError("historicalData.getHistoricalData.investor", error, { entityId });
       return [];
     }
     return data;
@@ -243,7 +244,7 @@ export async function generateMissingTemplates(options: BulkGenerateOptions): Pr
       errors,
     };
   } catch (error) {
-    console.error("Error generating templates:", error);
+    logError("historicalData.generateMissingTemplates", error);
     return {
       success: false,
       generated: 0,
@@ -280,7 +281,7 @@ export async function updateHistoricalReport(
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error("Error updating historical report:", error);
+    logError("historicalData.updateHistoricalReport", error, { id });
     return false;
   }
 }
@@ -295,7 +296,7 @@ export async function deleteHistoricalReports(ids: string[]): Promise<boolean> {
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error("Error deleting historical reports:", error);
+    logError("historicalData.deleteHistoricalReports", error);
     return false;
   }
 }
@@ -338,7 +339,7 @@ export async function getHistoricalDataSummary(): Promise<{
       assetCount: uniqueAssets.size,
     };
   } catch (error) {
-    console.error("Error getting historical data summary:", error);
+    logError("historicalData.getHistoricalDataSummary", error);
     return {
       totalReports: 0,
       latestMonth: null,

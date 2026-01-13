@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 // ============================================
 // Types
@@ -130,7 +131,7 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     .gt("shares", 0);
 
   if (error) {
-    console.error("Error fetching investor positions:", error);
+    logError("investorPosition.getInvestorPositions", error, { investorId });
     throw error;
   }
 
@@ -288,7 +289,7 @@ export async function fetchPendingInvites(): Promise<{
     .eq("used", false);
 
   if (error) {
-    console.error("Error fetching invites:", error);
+    logError("investorPosition.fetchPendingInvites", error);
     return [];
   }
 
@@ -423,7 +424,7 @@ export async function checkAdminStatus(): Promise<{ isAdmin: boolean | null }> {
     .maybeSingle();
 
   if (error) {
-    console.error("Error checking admin status:", error);
+    logError("investorPosition.checkAdminStatus", error);
     return { isAdmin: false };
   }
 

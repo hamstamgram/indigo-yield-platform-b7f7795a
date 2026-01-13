@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Fund, FundStatus } from "@/types/domains/fund";
 import { mapDbFundToFund } from "@/types/domains/fund";
 import type { InvestorPosition } from "@/types/domains/investor";
+import { logError } from "@/lib/logger";
 
 // Re-export types from canonical sources for backward compatibility
 export type { Fund } from "@/types/domains/fund";
@@ -35,7 +36,7 @@ export async function getAllFunds(): Promise<Fund[]> {
     .order("name");
 
   if (error) {
-    console.error("Error fetching funds:", error);
+    logError("fundView.getAllFunds", error);
     throw new Error(`Failed to fetch funds: ${error.message}`);
   }
   return (data || []).map(mapDbFundToFund);
@@ -54,7 +55,7 @@ export async function getActiveFundsForList(): Promise<
     .order("code");
 
   if (error) {
-    console.error("Error fetching active funds:", error);
+    logError("fundView.getActiveFundsForList", error);
     throw new Error(`Failed to fetch active funds: ${error.message}`);
   }
   return data || [];
@@ -72,7 +73,7 @@ export async function getActiveInvestorPositions(): Promise<
     .gt("current_value", 0);
 
   if (error) {
-    console.error("Error fetching investor positions:", error);
+    logError("fundView.getActiveInvestorPositions", error);
     throw new Error(`Failed to fetch investor positions: ${error.message}`);
   }
   return data || [];
@@ -88,7 +89,7 @@ export async function getFundById(fundId: string): Promise<Fund | null> {
     if (error) throw error;
     return data ? mapDbFundToFund(data) : null;
   } catch (error) {
-    console.error("Error fetching fund:", error);
+    logError("fundView.getFundById", error, { fundId });
     return null;
   }
 }
@@ -151,7 +152,7 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     .order("current_value", { ascending: false });
 
   if (error) {
-    console.error("Error fetching investor positions:", error);
+    logError("fundView.getInvestorPositions", error, { investorId });
     throw new Error(`Failed to fetch investor positions: ${error.message}`);
   }
   return (data as unknown as InvestorPositionWithFund[]) || [];
@@ -184,7 +185,7 @@ export async function getAvailableFundsForInvestor(investorId: string): Promise<
     .eq("status", "active");
 
   if (fundsError) {
-    console.error("Error fetching funds:", fundsError);
+    logError("fundView.getAvailableFundsForInvestor.funds", fundsError, { investorId });
     throw new Error(`Failed to fetch available funds: ${fundsError.message}`);
   }
 
@@ -195,7 +196,7 @@ export async function getAvailableFundsForInvestor(investorId: string): Promise<
     .eq("investor_id", investorId);
 
   if (positionsError) {
-    console.error("Error fetching positions:", positionsError);
+    logError("fundView.getAvailableFundsForInvestor.positions", positionsError, { investorId });
     throw new Error(`Failed to fetch investor positions: ${positionsError.message}`);
   }
 
@@ -243,7 +244,7 @@ export async function getFundPerformanceSummary(fundId: string) {
 
     return summary;
   } catch (error) {
-    console.error("Error fetching fund performance:", error);
+    logError("fundView.getFundPerformanceSummary", error, { fundId });
     return {
       totalInvestors: 0,
       totalAUM: 0,
