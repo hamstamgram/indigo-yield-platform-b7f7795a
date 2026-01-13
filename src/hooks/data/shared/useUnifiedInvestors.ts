@@ -7,12 +7,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  adminServiceV2,
+  adminInvestorService,
   assetService,
   getActiveFundsForList,
   getActiveInvestorPositions,
 } from "@/services";
-import type { InvestorSummaryV2 } from "@/services/admin/adminService";
+import type { AdminInvestorSummary } from "@/services/admin/adminService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { AssetRef as Asset } from "@/types/asset";
 
@@ -23,7 +23,7 @@ interface Fund {
   asset: string;
 }
 
-export interface EnrichedInvestor extends InvestorSummaryV2 {
+export interface EnrichedInvestor extends AdminInvestorSummary {
   fundsHeldCount: number;
   lastActivityDate: string | null;
   pendingWithdrawals: number;
@@ -33,7 +33,7 @@ export interface EnrichedInvestor extends InvestorSummaryV2 {
 }
 
 interface UnifiedInvestorsData {
-  investors: InvestorSummaryV2[];
+  investors: AdminInvestorSummary[];
   enrichedInvestors: EnrichedInvestor[];
   assets: Asset[];
   funds: Fund[];
@@ -44,7 +44,7 @@ interface UnifiedInvestorsData {
  * Fetch all enrichment data for investors in batch
  */
 async function enrichInvestors(
-  investorsData: InvestorSummaryV2[],
+  investorsData: AdminInvestorSummary[],
   posMap: Map<string, string[]>
 ): Promise<EnrichedInvestor[]> {
   const investorIds = investorsData.map(inv => inv.id);
@@ -144,7 +144,7 @@ export function useUnifiedInvestors() {
     queryFn: async () => {
       // Fetch base data in parallel
       const [investorsData, assetsData, fundsData, positionsData] = await Promise.all([
-        adminServiceV2.getAllInvestorsWithSummary(),
+        adminInvestorService.getAllInvestorsWithSummary(),
         assetService.getAssets({ is_active: true }),
         getActiveFundsForList(),
         getActiveInvestorPositions(),

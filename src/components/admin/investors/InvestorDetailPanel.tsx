@@ -17,14 +17,14 @@ import {
   Copy,
   Check,
 } from "lucide-react";
-import { InvestorSummaryV2, forceDeleteInvestorUser } from "@/services/admin";
+import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
 import { useAdminPendingWithdrawalsCount as usePendingWithdrawalsCount } from "@/hooks/data/admin";
 import { InvestorTabs } from "./InvestorTabs";
 import { toast } from "sonner";
 
 interface InvestorDetailPanelProps {
   investorId: string | null;
-  investorSummary: InvestorSummaryV2 | null;
+  investorSummary: AdminInvestorSummary | null;
   onClose: () => void;
   onDataChange?: () => void;
 }
