@@ -201,6 +201,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
                 alt="Indigo Yield Fund"
                 className="h-8 w-auto"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <button
