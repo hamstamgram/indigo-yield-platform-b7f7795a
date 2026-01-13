@@ -112,10 +112,10 @@ export async function addFundToInvestor(
 }
 
 /**
- * Get investor positions by investor ID
+ * Get investor positions by investor ID with nested fund data
  * Filters out zero-value positions (deleted or fully withdrawn)
  */
-export async function getInvestorPositions(investorId: string): Promise<InvestorPositionWithFund[]> {
+export async function getInvestorPositionsWithFunds(investorId: string): Promise<InvestorPositionWithFund[]> {
   const { data, error } = await supabase
     .from("investor_positions")
     .select(

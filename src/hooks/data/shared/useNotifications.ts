@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toNotification, toNotifications } from "@/lib/typeAdapters";
 import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
@@ -238,127 +239,83 @@ export function useNotifications(userId?: string) {
 }
 
 export function usePriceAlerts(userId?: string) {
-  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const queryKey = ["priceAlerts", userId];
 
-  const fetchAlerts = useCallback(async () => {
-    if (!userId) return;
+  const { data: alerts = [], isLoading: loading } = useQuery({
+    queryKey,
+    queryFn: () => notificationService.getPriceAlerts(userId!),
+    enabled: !!userId,
+    staleTime: 30 * 1000, // 30 seconds
+  });
 
-    try {
-      const { data, error } = await supabase
-        .from("price_alerts")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setAlerts((data as unknown as PriceAlert[]) || []);
-    } catch (error) {
-      logError("usePriceAlerts.fetchAlerts", error, { userId });
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    fetchAlerts();
-  }, [fetchAlerts]);
-
-  const createAlert = useCallback(
-    async (alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">) => {
-      if (!userId) return;
-
-      try {
-        const { data, error } = await supabase
-          .from("price_alerts")
-          .insert({ ...alert, user_id: userId })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setAlerts((prev) => [data as unknown as PriceAlert, ...prev]);
-        toast({
-          title: "Alert created",
-          description: `Price alert for ${alert.asset_code} set successfully.`,
-        });
-      } catch (error) {
-        logError("usePriceAlerts.createAlert", error, { userId });
-        toast({
-          title: "Error",
-          description: "Failed to create price alert.",
-          variant: "destructive",
-        });
-        throw error;
-      }
+  const createMutation = useMutation({
+    mutationFn: (alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">) =>
+      notificationService.createPriceAlert(userId!, alert),
+    onSuccess: (_, alert) => {
+      queryClient.invalidateQueries({ queryKey });
+      toast({
+        title: "Alert created",
+        description: `Price alert for ${alert.asset_code} set successfully.`,
+      });
     },
-    [userId, toast]
-  );
-
-  const updateAlert = useCallback(
-    async (alertId: string, updates: Partial<PriceAlert>) => {
-      try {
-        const { error } = await supabase
-          .from("price_alerts")
-          .update(updates)
-          .eq("id", alertId);
-
-        if (error) throw error;
-
-        setAlerts((prev) =>
-          prev.map((alert) => (alert.id === alertId ? { ...alert, ...updates } : alert))
-        );
-
-        toast({
-          title: "Alert updated",
-          description: "Price alert updated successfully.",
-        });
-      } catch (error) {
-        logError("usePriceAlerts.updateAlert", error, { alertId });
-        toast({
-          title: "Error",
-          description: "Failed to update price alert.",
-          variant: "destructive",
-        });
-        throw error;
-      }
+    onError: (error) => {
+      logError("usePriceAlerts.createAlert", error, { userId });
+      toast({
+        title: "Error",
+        description: "Failed to create price alert.",
+        variant: "destructive",
+      });
     },
-    [toast]
-  );
+  });
 
-  const deleteAlert = useCallback(
-    async (alertId: string) => {
-      try {
-        const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
-
-        if (error) throw error;
-
-        setAlerts((prev) => prev.filter((alert) => alert.id !== alertId));
-
-        toast({
-          title: "Alert deleted",
-          description: "Price alert removed successfully.",
-        });
-      } catch (error) {
-        logError("usePriceAlerts.deleteAlert", error, { alertId });
-        toast({
-          title: "Error",
-          description: "Failed to delete price alert.",
-          variant: "destructive",
-        });
-        throw error;
-      }
+  const updateMutation = useMutation({
+    mutationFn: ({ alertId, updates }: { alertId: string; updates: Partial<PriceAlert> }) =>
+      notificationService.updatePriceAlert(alertId, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      toast({
+        title: "Alert updated",
+        description: "Price alert updated successfully.",
+      });
     },
-    [toast]
-  );
+    onError: (error, { alertId }) => {
+      logError("usePriceAlerts.updateAlert", error, { alertId });
+      toast({
+        title: "Error",
+        description: "Failed to update price alert.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (alertId: string) => notificationService.deletePriceAlert(alertId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      toast({
+        title: "Alert deleted",
+        description: "Price alert removed successfully.",
+      });
+    },
+    onError: (error, alertId) => {
+      logError("usePriceAlerts.deleteAlert", error, { alertId });
+      toast({
+        title: "Error",
+        description: "Failed to delete price alert.",
+        variant: "destructive",
+      });
+    },
+  });
 
   return {
     alerts,
     loading,
-    createAlert,
-    updateAlert,
-    deleteAlert,
-    refreshAlerts: fetchAlerts,
+    createAlert: createMutation.mutateAsync,
+    updateAlert: (alertId: string, updates: Partial<PriceAlert>) =>
+      updateMutation.mutateAsync({ alertId, updates }),
+    deleteAlert: deleteMutation.mutateAsync,
+    refreshAlerts: () => queryClient.invalidateQueries({ queryKey }),
   };
 }

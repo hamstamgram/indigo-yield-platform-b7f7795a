@@ -76,7 +76,7 @@ export type { Notification } from "./notificationService";
 
 // Profile service
 export { profileService } from "./profileService";
-export type { ProfileSummary } from "./profileService";
+export type { ProfileSummary, TransactionInvestor } from "./profileService";
 
 // Fund daily AUM
 export { fundDailyAumService } from "./fundDailyAumService";
