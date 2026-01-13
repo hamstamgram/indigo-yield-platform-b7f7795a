@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { auditLogService } from "./auditLogService";
+import { logError } from "@/lib/logger";
 
 export interface ToolResult {
   success: boolean;
@@ -32,13 +33,13 @@ class AdminToolsService {
       // Use recalculate_all_aum which exists in DB (refresh_fund_aum_cache does not exist)
       const { error } = await supabase.rpc("recalculate_all_aum" as any);
       if (error) {
-        console.error("Error recalculating AUM:", error);
+        logError("adminTools.refreshAumCache", error);
         return { success: false, message: `AUM recalculation failed: ${error.message}` };
       }
       return { success: true, message: "AUM recalculation completed" };
     } catch (err) {
-      console.error("Exception during AUM recalculation:", err);
-      return { success: false, message: "AUM recalculation failed - see console for details" };
+      logError("adminTools.refreshAumCache.exception", err);
+      return { success: false, message: "AUM recalculation failed - see logs for details" };
     }
   }
 

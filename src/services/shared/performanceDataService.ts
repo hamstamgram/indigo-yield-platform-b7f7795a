@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface PerformanceData {
   id: string;
@@ -99,7 +100,7 @@ export async function updatePerformanceData(
 
     return { success: true };
   } catch (error: any) {
-    console.error("Error updating performance data:", error);
+    logError("performanceData.update", error, { recordId });
     return { success: false, error: error.message };
   }
 }
@@ -119,7 +120,7 @@ export async function getInvestorPerformanceByPeriod(
     .order("fund_name");
 
   if (error) {
-    console.error("Error fetching performance data:", error);
+    logError("performanceData.getByPeriod", error, { investorId, periodId });
     return [];
   }
 
@@ -152,7 +153,7 @@ export async function createPerformanceRecord(
 
     return { success: true, id: result.id };
   } catch (error: any) {
-    console.error("Error creating performance record:", error);
+    logError("performanceData.create", error, { investorId, periodId, fundName });
     return { success: false, error: error.message };
   }
 }
@@ -173,7 +174,7 @@ export async function deletePerformanceRecord(
 
     return { success: true };
   } catch (error: any) {
-    console.error("Error deleting performance record:", error);
+    logError("performanceData.delete", error, { recordId });
     return { success: false, error: error.message };
   }
 }
@@ -194,7 +195,7 @@ export async function getStatementPeriods(): Promise<Array<{
     .order("month", { ascending: false });
 
   if (error) {
-    console.error("Error fetching statement periods:", error);
+    logError("performanceData.getStatementPeriods", error);
     return [];
   }
 
@@ -211,7 +212,7 @@ export async function getAvailableFunds(): Promise<string[]> {
     .limit(100);
 
   if (error) {
-    console.error("Error fetching funds:", error);
+    logError("performanceData.getAvailableFunds", error);
     return ["BTC", "ETH", "SOL", "USDC", "USDT", "EURC"];
   }
 

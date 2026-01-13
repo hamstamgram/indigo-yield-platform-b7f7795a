@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface IBConfig {
   investorId: string;
@@ -35,7 +36,7 @@ export async function getInvestorIBConfig(investorId: string): Promise<IBConfig 
     .maybeSingle();
 
   if (error || !data) {
-    console.error("Error fetching IB config:", error);
+    logError("ib.getInvestorIBConfig", error, { investorId });
     return null;
   }
 
@@ -73,7 +74,7 @@ export async function updateInvestorIBConfig(
     .eq("id", investorId);
 
   if (error) {
-    console.error("Error updating IB config:", error);
+    logError("ib.updateInvestorIBConfig", error, { investorId });
     return { success: false, error: error.message };
   }
 
@@ -128,7 +129,7 @@ export async function recordIBAllocation(
     .single();
 
   if (error) {
-    console.error("Error recording IB allocation:", error);
+    logError("ib.recordIBAllocation", error, { ibInvestorId, sourceInvestorId });
     return { success: false, error: error.message };
   }
 
@@ -160,7 +161,7 @@ export async function getIBAllocationsForIB(
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching IB allocations:", error);
+    logError("ib.getIBAllocationsForIB", error, { ibInvestorId });
     return [];
   }
 
@@ -197,7 +198,7 @@ export async function getIBReferrals(ibInvestorId: string): Promise<
     .order("email");
 
   if (error) {
-    console.error("Error fetching IB referrals:", error);
+    logError("ib.getIBReferrals", error, { ibInvestorId });
     return [];
   }
 
@@ -227,7 +228,7 @@ export async function getAvailableIBParents(investorId: string): Promise<
     .eq("role", "ib");
 
   if (rolesError) {
-    console.error("Error fetching IB roles:", rolesError);
+    logError("ib.getAvailableIBParents.roles", rolesError, { investorId });
     return [];
   }
 
@@ -246,7 +247,7 @@ export async function getAvailableIBParents(investorId: string): Promise<
     .order("email");
 
   if (error) {
-    console.error("Error fetching available IB parents:", error);
+    logError("ib.getAvailableIBParents.profiles", error, { investorId });
     return [];
   }
 

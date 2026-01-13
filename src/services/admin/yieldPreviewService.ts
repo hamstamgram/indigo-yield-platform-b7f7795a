@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getFundPeriodSnapshot } from "@/services/operations/snapshotService";
+import { logError } from "@/lib/logger";
 
 import type {
   YieldCalculationInput,
@@ -123,7 +124,7 @@ export async function previewYieldDistribution(
   });
 
   if (error) {
-    console.error("Error previewing yield distribution:", error);
+    logError("yieldPreview.distribution", error, { fundId, targetDate: formatDate(targetDate) });
     throw new Error(`Failed to preview yield: ${error.message}`);
   }
 

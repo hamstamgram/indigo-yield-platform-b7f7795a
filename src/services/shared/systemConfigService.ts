@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-
+import { logError } from "@/lib/logger";
 export interface PlatformSettings {
   maintenance_mode: boolean;
   allow_new_registrations: boolean;
@@ -36,7 +36,7 @@ class SystemConfigService {
       .maybeSingle();
 
     if (error && error.code !== "PGRST116") {
-      console.error("Error fetching config:", error);
+      logError("systemConfig.getConfig", error, { key });
       return null;
     }
 

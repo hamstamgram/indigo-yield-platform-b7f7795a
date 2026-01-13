@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logWarn } from "@/lib/logger";
 
 export interface PersonalInfo {
   id: string;
@@ -153,7 +154,7 @@ export function loadLocalPreferences(): Record<string, unknown> | null {
     try {
       return JSON.parse(saved);
     } catch (e) {
-      console.warn("Failed to parse saved preferences");
+      logWarn("profileSettings.loadLocalPreferences", { error: "Failed to parse saved preferences" });
       return null;
     }
   }
