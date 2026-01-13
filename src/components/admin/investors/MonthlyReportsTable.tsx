@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import {
   Card, CardContent, CardHeader, CardTitle,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -14,12 +14,32 @@ import {
   type MonthlyReport,
 } from "@/hooks/data";
 
+// Memoized month options generator
+const getMonthOptions = () => {
+  const months = [];
+  const start = new Date("2024-06-01");
+  const end = new Date();
+
+  for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const value = `${year}-${month}-01`;
+    const label = `${d.toLocaleString("default", { month: "long" })} ${year}`;
+    months.push({ value, label });
+  }
+
+  return months.reverse();
+};
+
 interface MonthlyReportsTableProps {
   investorId: string;
   investorName: string;
 }
 
-const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, investorName }) => {
+const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function MonthlyReportsTable({ 
+  investorId, 
+  investorName 
+}) {
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -29,7 +49,24 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
   const createTemplateMutation = useCreateMonthlyTemplate();
   const updateFieldMutation = useUpdateMonthlyReportField();
 
-  const generateMonthlyTemplate = async () => {
+  // Memoize month options (static data)
+  const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  // Memoize reports grouped by month
+  const reportsByMonth = useMemo(() => 
+    reports.reduce(
+      (acc, report) => {
+        const month = report.report_month;
+        if (!acc[month]) acc[month] = [];
+        acc[month].push(report);
+        return acc;
+      },
+      {} as Record<string, MonthlyReport[]>
+    ),
+    [reports]
+  );
+
+  const generateMonthlyTemplate = useCallback(async () => {
     if (!selectedMonth) {
       return;
     }
@@ -41,14 +78,14 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
       month,
       assetCode: "USDT",
     });
-  };
+  }, [selectedMonth, investorId, createTemplateMutation]);
 
-  const handleCellEdit = (reportId: string, field: string, currentValue: number) => {
+  const handleCellEdit = useCallback((reportId: string, field: string, currentValue: number) => {
     setEditingCell(`${reportId}-${field}`);
     setEditValue(currentValue.toString());
-  };
+  }, []);
 
-  const saveCellEdit = async (reportId: string, field: string) => {
+  const saveCellEdit = useCallback(async (reportId: string, field: string) => {
     const numericValue = parseFloat(editValue);
     if (isNaN(numericValue)) {
       return;
@@ -67,28 +104,12 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
         },
       }
     );
-  };
+  }, [editValue, updateFieldMutation, investorId]);
 
-  const cancelEdit = () => {
+  const cancelEdit = useCallback(() => {
     setEditingCell(null);
     setEditValue("");
-  };
-
-  const getMonthOptions = () => {
-    const months = [];
-    const start = new Date("2024-06-01");
-    const end = new Date();
-
-    for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const value = `${year}-${month}-01`;
-      const label = `${d.toLocaleString("default", { month: "long" })} ${year}`;
-      months.push({ value, label });
-    }
-
-    return months.reverse();
-  };
+  }, []);
 
   const renderEditableCell = (
     report: MonthlyReport,
@@ -128,17 +149,6 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
     );
   };
 
-  // Group reports by month for display
-  const reportsByMonth = reports.reduce(
-    (acc, report) => {
-      const month = report.report_month;
-      if (!acc[month]) acc[month] = [];
-      acc[month].push(report);
-      return acc;
-    },
-    {} as Record<string, MonthlyReport[]>
-  );
-
   return (
     <Card>
       <CardHeader>
@@ -150,7 +160,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
                 <SelectValue placeholder="Select month to generate" />
               </SelectTrigger>
               <SelectContent>
-                {getMonthOptions().map((month) => (
+                {monthOptions.map((month) => (
                   <SelectItem key={month.value} value={month.value}>
                     {month.label}
                   </SelectItem>
@@ -240,6 +250,6 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
       </CardContent>
     </Card>
   );
-};
+});
 
 export default MonthlyReportsTable;

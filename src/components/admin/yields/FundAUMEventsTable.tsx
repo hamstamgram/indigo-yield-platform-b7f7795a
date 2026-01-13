@@ -1,12 +1,12 @@
 /**
  * FundAUMEventsTable Component
  * Displays the audit trail of AUM checkpoints from fund_aum_events
+ * Uses OptimizedTable with virtual scrolling for performance
  */
 
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Badge, Skeleton,
-} from "@/components/ui";
+import React, { useMemo, memo } from "react";
+import { Badge, Skeleton } from "@/components/ui";
+import { OptimizedTable, Column } from "@/components/ui/optimized-table";
 import { useFundAUMEvents, type FundAUMEvent } from "@/hooks/data/admin/useFundAUMEvents";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,11 @@ const TRIGGER_TYPE_COLORS: Record<string, string> = {
   manual: "bg-purple-500/20 text-purple-700 dark:text-purple-400",
 };
 
-export function FundAUMEventsTable({
+const getTriggerColor = (triggerType: string) => {
+  return TRIGGER_TYPE_COLORS[triggerType] || "bg-muted text-muted-foreground";
+};
+
+export const FundAUMEventsTable = memo(function FundAUMEventsTable({
   fundId,
   dateRange,
   includeVoided = false,
@@ -39,6 +43,56 @@ export function FundAUMEventsTable({
     includeVoided,
   });
 
+  // Memoize columns to prevent recreation on each render
+  const columns = useMemo<Column<FundAUMEvent>[]>(() => [
+    {
+      header: "Date/Time",
+      accessor: (event) => format(new Date(event.event_ts), "MMM d, yyyy HH:mm"),
+      width: "150px",
+      className: "font-mono text-sm",
+    },
+    {
+      header: "Trigger",
+      accessor: "trigger_type",
+      width: "100px",
+      cell: (value) => (
+        <Badge variant="outline" className={cn("text-xs", getTriggerColor(value as string))}>
+          {value}
+        </Badge>
+      ),
+    },
+    {
+      header: "Opening AUM",
+      accessor: (event) => formatValue(event.opening_aum, asset),
+      className: "text-right font-mono",
+    },
+    {
+      header: "Pre-Flow AUM",
+      accessor: (event) => formatValue(event.closing_aum, asset),
+      className: "text-right font-mono",
+    },
+    {
+      header: "Post-Flow AUM",
+      accessor: (event) => event.post_flow_aum != null ? formatValue(event.post_flow_aum, asset) : "—",
+      className: "text-right font-mono",
+    },
+    {
+      header: "Purpose",
+      accessor: "purpose",
+      width: "100px",
+      cell: (value) => (
+        <Badge variant="outline" className="text-xs">
+          {value}
+        </Badge>
+      ),
+    },
+    {
+      header: "Reference",
+      accessor: (event) => event.trigger_reference || "—",
+      className: "text-xs text-muted-foreground truncate max-w-[200px]",
+    },
+  ], [formatValue, asset]);
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -49,69 +103,22 @@ export function FundAUMEventsTable({
     );
   }
 
-  if (events.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No AUM events recorded for this fund.
-      </div>
-    );
-  }
-
-  const getTriggerColor = (triggerType: string) => {
-    return TRIGGER_TYPE_COLORS[triggerType] || "bg-muted text-muted-foreground";
-  };
-
   return (
     <div className="border rounded-lg overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[150px]">Date/Time</TableHead>
-            <TableHead className="w-[100px]">Trigger</TableHead>
-            <TableHead className="text-right">Opening AUM</TableHead>
-            <TableHead className="text-right">Pre-Flow AUM</TableHead>
-            <TableHead className="text-right">Post-Flow AUM</TableHead>
-            <TableHead className="w-[100px]">Purpose</TableHead>
-            <TableHead className="min-w-[150px]">Reference</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {events.map((event: FundAUMEvent) => (
-            <TableRow
-              key={event.id}
-              className={cn(event.is_voided && "opacity-50 line-through")}
-            >
-              <TableCell className="font-mono text-sm">
-                {format(new Date(event.event_ts), "MMM d, yyyy HH:mm")}
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className={cn("text-xs", getTriggerColor(event.trigger_type))}>
-                  {event.trigger_type}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right font-mono">
-                {formatValue(event.opening_aum, asset)}
-              </TableCell>
-              <TableCell className="text-right font-mono">
-                {formatValue(event.closing_aum, asset)}
-              </TableCell>
-              <TableCell className="text-right font-mono">
-                {event.post_flow_aum != null ? formatValue(event.post_flow_aum, asset) : "—"}
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className="text-xs">
-                  {event.purpose}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-xs text-muted-foreground truncate max-w-[200px]" title={event.trigger_reference || undefined}>
-                {event.trigger_reference || "—"}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <OptimizedTable
+        columns={columns}
+        data={events}
+        getRowKey={(event) => event.id}
+        enableVirtualScroll={events.length > 30}
+        rowHeight={48}
+        emptyState={
+          <div className="text-center py-8 text-muted-foreground">
+            No AUM events recorded for this fund.
+          </div>
+        }
+      />
     </div>
   );
-}
+});
 
 export default FundAUMEventsTable;

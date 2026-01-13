@@ -262,7 +262,7 @@ export function useCheckAuthSession() {
       const isAdmin = await authService.getUserAdminStatus(session.user.id);
       return { session, isAdmin };
     },
-    staleTime: 0,
+    staleTime: 60 * 1000, // 1 minute - session doesn't change frequently
   });
 }
 

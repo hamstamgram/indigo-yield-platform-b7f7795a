@@ -1,22 +1,150 @@
+import React, { useMemo, memo } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from "@/components/ui";
+import { OptimizedTable, Column } from "@/components/ui/optimized-table";
 import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets";
 import { Loader2, TrendingUp, Calendar } from "lucide-react";
 import { usePerformanceHistory } from "@/hooks/data/investor";
 import type { PerformanceHistoryRecord } from "@/services";
 
+// Pre-calculate rate of return for a report
+interface ProcessedReport extends PerformanceHistoryRecord {
+  rate: number;
+}
+
+const calculateRate = (report: PerformanceHistoryRecord): number => {
+  const netFlows = (report.additions || 0) - (report.withdrawals || 0);
+  const denominator = (report.opening_balance || 0) + netFlows / 2;
+  return denominator !== 0 ? ((report.yield_earned || 0) / denominator) * 100 : 0;
+};
+
+// Memoized asset section component
+const AssetSection = memo(function AssetSection({ 
+  assetCode, 
+  reports 
+}: { 
+  assetCode: string; 
+  reports: PerformanceHistoryRecord[];
+}) {
+  // Memoize processed reports with pre-calculated rates
+  const processedReports = useMemo<ProcessedReport[]>(() => 
+    reports.map((report) => ({
+      ...report,
+      rate: calculateRate(report),
+    })),
+    [reports]
+  );
+
+  // Memoize columns for this asset
+  const columns = useMemo<Column<ProcessedReport>[]>(() => [
+    {
+      header: "Month",
+      accessor: (report) => (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          {new Date(report.report_month).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+          })}
+        </div>
+      ),
+      width: "180px",
+      className: "font-medium",
+    },
+    {
+      header: "Opening Balance",
+      accessor: (report) => formatAssetAmount(report.opening_balance || 0, assetCode),
+      className: "text-right font-mono",
+    },
+    {
+      header: "Additions",
+      accessor: (report) => (
+        <span className="text-green-600">
+          {report.additions && report.additions > 0 ? "+" : ""}
+          {formatAssetAmount(report.additions || 0, assetCode)}
+        </span>
+      ),
+      className: "text-right font-mono",
+    },
+    {
+      header: "Withdrawals",
+      accessor: (report) => (
+        <span className="text-red-600">
+          {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
+          {formatAssetAmount(report.withdrawals || 0, assetCode)}
+        </span>
+      ),
+      className: "text-right font-mono",
+    },
+    {
+      header: "Yield Earned",
+      accessor: (report) => (
+        <span className="text-blue-600 font-semibold">
+          +{formatAssetAmount(report.yield_earned || 0, assetCode)}
+        </span>
+      ),
+      className: "text-right font-mono",
+    },
+    {
+      header: "Rate of Return",
+      accessor: (report) => `${report.rate.toFixed(2)}%`,
+      className: "text-right font-mono font-medium",
+    },
+    {
+      header: "Closing Balance",
+      accessor: (report) => formatAssetAmount(report.closing_balance || 0, assetCode),
+      className: "text-right font-mono font-bold bg-muted/10",
+    },
+  ], [assetCode]);
+
+  return (
+    <Card className="col-span-full overflow-hidden border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
+      <CardHeader className="bg-muted/5 pb-4">
+        <div className="flex items-center gap-3">
+          <img
+            src={getAssetLogo(assetCode)}
+            alt={assetCode}
+            className="h-8 w-8 object-contain"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+          <div>
+            <CardTitle className="text-xl font-bold text-primary">
+              {getAssetName(assetCode) || `${assetCode} Yield Fund`}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground font-mono">{assetCode}</p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="border-t">
+          <OptimizedTable
+            columns={columns}
+            data={processedReports}
+            getRowKey={(report) => report.id}
+            enableVirtualScroll={processedReports.length > 24}
+            rowHeight={52}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
 export default function MyPerformanceHistory() {
   const { data: groupedReports, isLoading, error } = usePerformanceHistory();
+
+  // Memoize sorted asset keys
+  const assetKeys = useMemo(() => 
+    Object.keys(groupedReports || {}).sort(),
+    [groupedReports]
+  );
 
   if (isLoading) {
     return (
@@ -38,8 +166,6 @@ export default function MyPerformanceHistory() {
     );
   }
 
-  const assetKeys = Object.keys(groupedReports || {}).sort();
-
   if (assetKeys.length === 0) {
     return (
       <Card className="col-span-full">
@@ -59,89 +185,11 @@ export default function MyPerformanceHistory() {
   return (
     <div className="space-y-8">
       {assetKeys.map((assetCode) => (
-        <Card
-          key={assetCode}
-          className="col-span-full overflow-hidden border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow"
-        >
-          <CardHeader className="bg-muted/5 pb-4">
-            <div className="flex items-center gap-3">
-              <img
-                src={getAssetLogo(assetCode)}
-                alt={assetCode}
-                className="h-8 w-8 object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-              <div>
-                <CardTitle className="text-xl font-bold text-primary">
-                  {getAssetName(assetCode) || `${assetCode} Yield Fund`}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground font-mono">{assetCode}</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="border-t">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/30">
-                    <TableHead className="w-[180px]">Month</TableHead>
-                    <TableHead className="text-right">Opening Balance</TableHead>
-                    <TableHead className="text-right">Additions</TableHead>
-                    <TableHead className="text-right">Withdrawals</TableHead>
-                    <TableHead className="text-right">Yield Earned</TableHead>
-                    <TableHead className="text-right">Rate of Return</TableHead>
-                    <TableHead className="text-right font-bold">Closing Balance</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {groupedReports![assetCode].map((report: PerformanceHistoryRecord) => {
-                    // Calculate Rate of Return (Simplified Modified Dietz)
-                    const netFlows = (report.additions || 0) - (report.withdrawals || 0);
-                    const denominator = (report.opening_balance || 0) + netFlows / 2;
-                    const rate =
-                      denominator !== 0 ? ((report.yield_earned || 0) / denominator) * 100 : 0;
-
-                    return (
-                      <TableRow key={report.id} className="hover:bg-muted/5">
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            {new Date(report.report_month).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                            })}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatAssetAmount(report.opening_balance || 0, assetCode)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-green-600">
-                          {report.additions && report.additions > 0 ? "+" : ""}
-                          {formatAssetAmount(report.additions || 0, assetCode)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-red-600">
-                          {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
-                          {formatAssetAmount(report.withdrawals || 0, assetCode)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-blue-600 font-semibold">
-                          +{formatAssetAmount(report.yield_earned || 0, assetCode)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono font-medium">
-                          {rate.toFixed(2)}%
-                        </TableCell>
-                        <TableCell className="text-right font-mono font-bold bg-muted/10">
-                          {formatAssetAmount(report.closing_balance || 0, assetCode)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <AssetSection 
+          key={assetCode} 
+          assetCode={assetCode} 
+          reports={groupedReports![assetCode]} 
+        />
       ))}
     </div>
   );
