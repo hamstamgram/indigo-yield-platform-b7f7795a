@@ -14,6 +14,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { logError } from "@/lib/logger";
 
 interface QueryErrorFallbackProps {
   error: Error;
@@ -88,7 +89,7 @@ export function QueryErrorBoundary({
             onReset?.();
           }}
           onError={(error) => {
-            console.error("[QueryErrorBoundary] Error caught:", error);
+            logError("QueryErrorBoundary", error);
             onError?.(error);
           }}
           fallbackRender={({ error, resetErrorBoundary }) => (

@@ -15,6 +15,7 @@ import { profileService, statementsService } from "@/services/shared";
 import { transactionsV2Service } from "@/services/investor";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
+import { logError, logDebug } from "@/lib/logger";
 
 export const StatementManager: React.FC = () => {
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
@@ -151,7 +152,7 @@ export const StatementManager: React.FC = () => {
       toast.success(`Generated ${count} draft statements`);
       invalidateAfterStatementOp(queryClient);
     } catch (error) {
-      console.error(error);
+      logError("StatementManager.generateDrafts", error, { selectedMonth });
       toast.error("Failed to generate drafts");
     } finally {
       setIsGenerating(false);
@@ -275,7 +276,7 @@ export const StatementManager: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        console.log("Preview:", draft.storage_path);
+                        logDebug("StatementManager.preview", { storagePath: draft.storage_path });
                       }}
                     >
                       <Download className="w-4 h-4" />

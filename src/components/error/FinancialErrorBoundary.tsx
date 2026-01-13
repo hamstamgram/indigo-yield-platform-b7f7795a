@@ -9,6 +9,7 @@ import { ShieldOff, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 interface FinancialErrorBoundaryProps {
   children: ReactNode;
@@ -97,13 +98,13 @@ export class FinancialErrorBoundary extends Component<
           timestamp: new Date().toISOString(),
         },
       });
-    } catch (logError) {
+    } catch (logErr) {
       // Silently fail - don't let logging errors cascade
-      console.error("Failed to log error:", logError);
+      logError("FinancialErrorBoundary.auditLogWrite", logErr);
     }
 
-    // Also log to console for development
-    console.error("FinancialErrorBoundary caught error:", error, errorInfo);
+    // Log the original error via structured logger
+    logError("FinancialErrorBoundary", error, { context, isSafeMode, errorId, componentStack: errorInfo.componentStack?.slice(0, 500) });
   }
 
   handleReload = () => {
