@@ -275,6 +275,9 @@ export {
 export { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 // Progress
+
+// QueryErrorBoundary
+export { QueryErrorBoundary, QueryErrorBoundaryCompact } from "./QueryErrorBoundary";
 export { Progress } from "./progress";
 
 // Radio Group
@@ -288,7 +291,13 @@ export { ResponsiveTable } from "./responsive-table";
 export type { ResponsiveTableColumn } from "./responsive-table";
 
 // Role Gate
-export { AdminOnly, AuthenticatedOnly, RoleGate, useRoleCheck, withRoleProtection } from "./RoleGate";
+export {
+  AdminOnly,
+  AuthenticatedOnly,
+  RoleGate,
+  useRoleCheck,
+  withRoleProtection,
+} from "./RoleGate";
 
 // Route Loading Fallback
 export {
