@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { type AssetSummaryDetailed, getAssetName } from "@/types/asset";
+import { logError } from "@/lib/logger";
 
 export const useAssetData = () => {
   const [loading, setLoading] = useState(true);
@@ -48,7 +49,7 @@ export const useAssetData = () => {
           .eq("investor_id", user.id);
 
         if (positionsError) {
-          console.error("Error fetching positions:", positionsError);
+          logError("useAssetData.fetchPositions", positionsError);
           throw positionsError;
         }
 
@@ -62,7 +63,7 @@ export const useAssetData = () => {
 
         if (ratesError && ratesError.code !== "PGRST116") {
           // PGRST116 = no rows returned (acceptable if no rates yet)
-          console.error("Error fetching daily rates:", ratesError);
+          logError("useAssetData.fetchDailyRates", ratesError);
           throw ratesError;
         }
 
@@ -135,7 +136,7 @@ export const useAssetData = () => {
           },
         ]);
       } catch (err: any) {
-        console.error("Error in fetchData:", err);
+        logError("useAssetData.fetchData", err);
         setError(err.message);
       } finally {
         setLoading(false);

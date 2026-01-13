@@ -13,6 +13,7 @@ import {
 } from "@/services/operations/snapshotService";
 import { yieldNotifications } from "@/services/notifications";
 import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
+import { logWarn, logError } from "@/lib/logger";
 
 import type {
   YieldCalculationInput,
@@ -79,7 +80,7 @@ export async function applyYieldDistribution(
     // Ensure snapshot exists (creates one if not)
     const snapshotResult = await ensureSnapshotExists(fundId, periodId, adminId);
     if (!snapshotResult.exists) {
-      console.warn("Could not create snapshot:", snapshotResult.error);
+      logWarn("applyYieldDistribution.snapshotCreate", { fundId, periodId, error: snapshotResult.error });
     } else if (snapshotResult.snapshotId) {
       const snapshot = await getFundPeriodSnapshot(fundId, periodId);
       if (snapshot) {
@@ -124,7 +125,7 @@ export async function applyYieldDistribution(
   });
 
   if (error) {
-    console.error("Error applying yield distribution:", error);
+    logError("applyYieldDistribution", error, { fundId, purpose });
     throw new Error(`Failed to apply yield: ${error.message}`);
   }
 
@@ -145,7 +146,7 @@ export async function applyYieldDistribution(
       adminId
     );
   } catch (finalizationError) {
-    console.warn("Yield finalization failed (non-fatal):", finalizationError);
+    logWarn("applyYieldDistribution.finalization", { fundId, error: finalizationError });
   }
 
   const result = data as any;
@@ -178,7 +179,7 @@ export async function applyYieldDistribution(
     }));
 
     yieldNotifications.onFundYieldDistributed(distributions)
-      .catch(err => console.error("Failed to send yield notifications:", err));
+      .catch(err => logError("sendYieldNotifications", err, { fundId }));
   }
   
   const yieldDistributions: YieldDistribution[] = [];

@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { LedgerTransaction } from "@/types/domains/transaction";
 import type { Database } from "@/integrations/supabase/types";
+import { logError, logDebug } from "@/lib/logger";
 
 // Re-export for backwards compatibility
 export type Transaction = LedgerTransaction;
@@ -75,21 +76,13 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
       const { data, error } = await dbQuery;
 
       if (error) {
-        console.error("[useInvestorLedger] Query failed:", {
-          investorId,
-          filters,
-          error: error.message,
-        });
+        logError("useInvestorLedger.query", error, { investorId, filters });
         throw new Error(`Failed to load transactions: ${error.message}`);
       }
 
       // Diagnostic logging for empty results
       if ((!data || data.length === 0) && process.env.NODE_ENV === "development") {
-        console.info("[useInvestorLedger] Empty result:", {
-          investorId,
-          filters,
-          showVoided: filters.showVoided ?? false,
-        });
+        logDebug("useInvestorLedger.emptyResult", { investorId, filters, showVoided: filters.showVoided ?? false });
       }
 
       // Map DB data to domain types, converting amount to string for precision

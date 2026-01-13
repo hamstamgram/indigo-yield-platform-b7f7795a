@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { logError } from "@/lib/logger";
 
 /**
  * Hook to check an investor's current balance in a fund
@@ -74,7 +75,7 @@ export function useAUMExists(fundId: string | undefined, txDate: string | undefi
         .maybeSingle();
 
       if (error) {
-        console.error("Error checking AUM:", error);
+        logError("checkAUMExists", error, { fundId, txDate });
         return null;
       }
       return !!data;

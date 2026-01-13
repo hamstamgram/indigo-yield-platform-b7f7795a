@@ -8,6 +8,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toDecimal } from "@/utils/financial";
+import { logError } from "@/lib/logger";
 
 export interface DepositWithYieldParams {
   investorId: string;
@@ -150,7 +151,7 @@ export async function processDepositWithYield(
     });
 
     if (depositError) {
-      console.error("Deposit error:", depositError);
+      logError("processDepositWithYield", depositError, { fundId, investorId });
       return { 
         success: false, 
         yieldDistributed: 0, 
@@ -170,7 +171,7 @@ export async function processDepositWithYield(
       transactionId: depositResult?.deposit_tx_id,
     };
   } catch (err) {
-    console.error("Deposit exception:", err);
+    logError("processDepositWithYield.exception", err, { fundId, investorId });
     return { 
       success: false, 
       yieldDistributed: 0, 

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 /**
  * Result of the available balance calculation
@@ -40,7 +41,7 @@ export function useAvailableBalance(
         .maybeSingle();
 
       if (positionError) {
-        console.error("[useAvailableBalance] Position fetch error:", positionError);
+        logError("useAvailableBalance.positionFetch", positionError, { investorId, fundId });
         throw positionError;
       }
 
@@ -53,7 +54,7 @@ export function useAvailableBalance(
         .in("status", ["pending", "approved", "processing"]);
 
       if (withdrawalError) {
-        console.error("[useAvailableBalance] Withdrawals fetch error:", withdrawalError);
+        logError("useAvailableBalance.withdrawalsFetch", withdrawalError, { investorId, fundId });
         throw withdrawalError;
       }
 

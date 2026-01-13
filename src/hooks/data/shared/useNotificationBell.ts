@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/services/auth";
+import { logError } from "@/lib/logger";
 
 export function useNotificationBell() {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ export function useNotificationBell() {
       if (error) throw error;
       setUnreadCount(data?.length || 0);
     } catch (error) {
-      console.error("Error loading unread count:", error);
+      logError("loadNotificationUnreadCount", error, { userId: user?.id });
     } finally {
       setLoading(false);
     }
