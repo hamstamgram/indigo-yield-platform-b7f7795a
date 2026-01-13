@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -9,8 +9,9 @@ import {
 } from "@/components/ui";
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validation/investment";
 import { type InvestmentFormData } from "@/types/domains";
-import { investmentService, profileService } from "@/services";
+import { investmentService } from "@/services";
 import { toast } from "sonner";
+import { useInvestors, useActiveFunds } from "@/hooks/data";
 
 interface CreateInvestmentDialogProps {
   open: boolean;
@@ -24,8 +25,20 @@ export function CreateInvestmentDialog({
   onSuccess,
 }: CreateInvestmentDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [investors, setInvestors] = useState<{ id: string; name: string; email: string }[]>([]);
-  const [funds, setFunds] = useState<{ id: string; name: string; code: string }[]>([]);
+
+  // React Query hooks
+  const { investors: investorsData = [] } = useInvestors();
+  const { data: fundsData = [] } = useActiveFunds();
+
+  // Transform data for selectors
+  const investors = useMemo(() => 
+    investorsData.map(p => ({
+      id: p.id,
+      name: p.email.split('@')[0], // Use email prefix as fallback name
+      email: p.email
+    })), [investorsData]);
+  
+  const funds = useMemo(() => fundsData, [fundsData]);
 
   const form = useForm<InvestmentFormValues>({
     resolver: zodResolver(investmentFormSchema),
@@ -34,32 +47,6 @@ export function CreateInvestmentDialog({
       transaction_type: "initial",
     },
   });
-
-  useEffect(() => {
-    if (open) {
-      loadInvestorsAndFunds();
-    }
-  }, [open]);
-
-  const loadInvestorsAndFunds = async () => {
-    try {
-      const [investorData, fundsData] = await Promise.all([
-        profileService.getActiveInvestors(),
-        profileService.getActiveFunds(),
-      ]);
-
-      setInvestors(investorData.map(p => ({
-        id: p.id,
-        name: p.name,
-        email: p.email
-      })));
-      
-      setFunds(fundsData);
-    } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Failed to load investors and funds");
-    }
-  };
 
   const onSubmit = async (values: InvestmentFormValues) => {
     setLoading(true);

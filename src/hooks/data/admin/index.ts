@@ -350,3 +350,9 @@ export {
   type AuditLogsData,
   type AuditLogStats,
 } from "./useAuditLogs";
+
+// useAdminInvestorWithdrawals (for InvestorWithdrawalsTab)
+export { useAdminInvestorWithdrawals } from "./useAdminInvestorWithdrawals";
+
+// useInvestorFeeSchedule (for InvestorFeeManager)
+export { useInvestorFeeSchedule, type FeeScheduleEntry } from "./useInvestorFeeSchedule";

@@ -1,15 +1,11 @@
 /**
  * Investor Withdrawals Tab
  * Shows withdrawal requests for a specific investor with inline approve/reject
- */
-
-/**
- * Investor Withdrawals Tab
- * Shows withdrawal requests for a specific investor with inline approve/reject
  * URL-persisted status filter
+ * Migrated to React Query for data fetching
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Card, CardContent, Button, Badge,
@@ -24,13 +20,12 @@ import {
   AlertTriangle,
   RefreshCw,
 } from "lucide-react";
-import { withdrawalService } from "@/services";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { ApproveWithdrawalDialog } from "@/components/admin/withdrawals/ApproveWithdrawalDialog";
 import { RejectWithdrawalDialog } from "@/components/admin/withdrawals/RejectWithdrawalDialog";
 import { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
 import { formatAssetAmount } from "@/utils/assets";
+import { useAdminInvestorWithdrawals } from "@/hooks/data";
 
 interface InvestorWithdrawalsTabProps {
   investorId: string;
@@ -49,15 +44,13 @@ const validStatuses: (WithdrawalFullStatus | "all")[] = ["all", "pending", "appr
 
 export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
   // URL-persisted status filter
   const statusParam = searchParams.get("wd_status") || "all";
-  const statusFilter: WithdrawalFullStatus | "all" = validStatuses.includes(statusParam as any) 
+  const statusFilter: WithdrawalFullStatus | "all" = validStatuses.includes(statusParam as WithdrawalFullStatus | "all") 
     ? (statusParam as WithdrawalFullStatus | "all") 
     : "all";
 
@@ -73,31 +66,16 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
     }, { replace: true });
   };
 
-  const loadWithdrawals = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Use existing withdrawal service with investor filter
-      const result = await withdrawalService.getWithdrawals({
-        status: statusFilter,
-      });
-      // Filter to this investor
-      const filtered = result.data.filter((w) => w.investor_id === investorId);
-      setWithdrawals(filtered);
-    } catch (error) {
-      console.error("Error loading withdrawals:", error);
-      toast.error("Failed to load withdrawals");
-    } finally {
-      setLoading(false);
-    }
-  }, [investorId, statusFilter]);
-
-  useEffect(() => {
-    loadWithdrawals();
-  }, [loadWithdrawals]);
+  // React Query hook for withdrawals
+  const { 
+    data: withdrawals = [], 
+    isLoading, 
+    refetch 
+  } = useAdminInvestorWithdrawals(investorId, statusFilter);
 
   const pendingCount = withdrawals.filter((w) => w.status === "pending").length;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -129,7 +107,7 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="ghost" size="icon" onClick={loadWithdrawals}>
+          <Button variant="ghost" size="icon" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -193,13 +171,13 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
             open={approveDialogOpen}
             onOpenChange={setApproveDialogOpen}
             withdrawal={selectedWithdrawal}
-            onSuccess={loadWithdrawals}
+            onSuccess={() => refetch()}
           />
           <RejectWithdrawalDialog
             open={rejectDialogOpen}
             onOpenChange={setRejectDialogOpen}
             withdrawal={selectedWithdrawal}
-            onSuccess={loadWithdrawals}
+            onSuccess={() => refetch()}
           />
         </>
       )}
