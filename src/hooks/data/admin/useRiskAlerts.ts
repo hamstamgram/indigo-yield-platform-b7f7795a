@@ -1,30 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { REFETCH_INTERVAL, QUERY_DEFAULTS } from "@/constants/queryConfig";
-
-export interface RiskAlert {
-  id: string;
-  fund_id: string | null;
-  investor_id: string | null;
-  alert_type: string;
-  severity: "low" | "medium" | "high" | "critical";
-  message: string;
-  details: Record<string, unknown> | null;
-  threshold_value: number | null;
-  actual_value: number | null;
-  acknowledged: boolean;
-  acknowledged_by: string | null;
-  acknowledged_at: string | null;
-  resolved: boolean;
-  resolved_by: string | null;
-  resolved_at: string | null;
-  resolution_notes: string | null;
-  created_at: string;
-  expires_at: string | null;
-  // Joined fields
-  fund_code?: string;
-  investor_name?: string;
-}
 
 export interface LiquidityRisk {
   fund_id: string;
@@ -76,42 +52,6 @@ export interface FundSummary {
   total_positions: number;
   latest_aum: number;
   latest_aum_date: string;
-}
-
-// Fetch risk alerts
-export function useRiskAlerts(unresolvedOnly = true) {
-  return useQuery({
-    queryKey: ["risk-alerts", unresolvedOnly],
-    queryFn: async () => {
-      let query = (supabase as any)
-        .from("risk_alerts")
-        .select(
-          `
-          *,
-          funds:fund_id (code),
-          profiles:investor_id (first_name, last_name)
-        `
-        )
-        .order("created_at", { ascending: false });
-
-      if (unresolvedOnly) {
-        query = query.eq("resolved", false);
-      }
-
-      const { data, error } = await query.limit(100);
-      if (error) throw error;
-
-      return (data || []).map((alert: any) => ({
-        ...alert,
-        fund_code: alert.funds?.code,
-        investor_name: alert.profiles
-          ? `${alert.profiles.first_name || ""} ${alert.profiles.last_name || ""}`.trim()
-          : null,
-      })) as RiskAlert[];
-    },
-    ...QUERY_DEFAULTS.riskMonitoring,
-    refetchInterval: REFETCH_INTERVAL.STANDARD,
-  });
 }
 
 // Fetch liquidity risk view
@@ -175,49 +115,6 @@ export function useFundSummaries() {
     },
     ...QUERY_DEFAULTS.dashboard,
     refetchInterval: REFETCH_INTERVAL.LOW,
-  });
-}
-
-// Acknowledge a risk alert
-export function useAcknowledgeAlert() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (alertId: string) => {
-      const { error } = await (supabase as any)
-        .from("risk_alerts")
-        .update({
-          acknowledged: true,
-          acknowledged_at: new Date().toISOString(),
-        })
-        .eq("id", alertId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["risk-alerts"] });
-    },
-  });
-}
-
-// Resolve a risk alert
-export function useResolveAlert() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ alertId, notes }: { alertId: string; notes: string }) => {
-      const { error } = await (supabase as any)
-        .from("risk_alerts")
-        .update({
-          resolved: true,
-          resolved_at: new Date().toISOString(),
-          resolution_notes: notes,
-        })
-        .eq("id", alertId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["risk-alerts"] });
-    },
   });
 }
 
