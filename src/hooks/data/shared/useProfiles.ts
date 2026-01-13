@@ -199,3 +199,73 @@ export function useUpdateProfile() {
     },
   });
 }
+
+/**
+ * Get investors for transaction selector (active, non-admin)
+ */
+export function useInvestorsForTransaction(enabled: boolean = true) {
+  return useQuery({
+    queryKey: ["investors", "forTransaction"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .eq("is_admin", false)
+        .order("last_name");
+
+      if (error) throw error;
+
+      return (data || []).map((p) => ({
+        id: p.id,
+        email: p.email,
+        displayName: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+        isSystemAccount: false,
+      }));
+    },
+    enabled,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+/**
+ * Get investor profile with their primary fund (for admin transactions tab)
+ */
+export function useInvestorProfileWithFund(investorId: string | undefined) {
+  return useQuery({
+    queryKey: ["investor", "profileWithFund", investorId],
+    queryFn: async () => {
+      // Get profile
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .eq("id", investorId!)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Get positions to find primary fund
+      const { data: positions } = await supabase
+        .from("investor_positions")
+        .select("fund_id")
+        .eq("investor_id", investorId!)
+        .limit(1);
+
+      // Get default fund if no position
+      const { data: funds } = await supabase
+        .from("funds")
+        .select("id")
+        .eq("status", "active")
+        .limit(1);
+
+      const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
+
+      return {
+        id: profile.id,
+        name,
+        email: profile.email,
+        fund_id: positions?.[0]?.fund_id || funds?.[0]?.id || "",
+      };
+    },
+    enabled: !!investorId,
+  });
+}

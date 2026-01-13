@@ -47,7 +47,7 @@ import {
 import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { useActiveFunds, useInvestorBalance, useTransactionHistory } from "@/hooks";
+import { useActiveFunds, useInvestorBalance, useTransactionHistory, useInvestorsForTransaction } from "@/hooks";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
@@ -120,10 +120,8 @@ export function AddTransactionDialog({
   onSuccess,
 }: AddTransactionDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [investors, setInvestors] = useState<InvestorOption[]>([]);
   const [selectedInvestorId, setSelectedInvestorId] = useState<string>("");
   const [investorSearchOpen, setInvestorSearchOpen] = useState(false);
-  const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
   const [investorError, setInvestorError] = useState<string | null>(null);
 
   // AUM form state (for inline recording as fallback)
@@ -131,6 +129,7 @@ export function AddTransactionDialog({
 
   const queryClient = useQueryClient();
   const { data: funds, isLoading: fundsLoading } = useActiveFunds();
+  const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorsForTransaction(open);
 
   const {
     register,
@@ -202,10 +201,9 @@ export function AddTransactionDialog({
     currentBalance !== undefined &&
     (currentBalance > 0 || hasTransactionHistory);
 
-  // Load investors when dialog opens
+  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
-      loadInvestors();
       // Set initial investor if provided
       if (investorId) {
         setSelectedInvestorId(investorId);
@@ -216,19 +214,6 @@ export function AddTransactionDialog({
       setAumValue("");
     }
   }, [open, investorId]);
-
-  const loadInvestors = async () => {
-    setIsLoadingInvestors(true);
-    try {
-      const options = await fetchInvestorsForSelector();
-      setInvestors(options);
-    } catch (error) {
-      logError("transaction.loadInvestors", error);
-      toast.error("Failed to load investors");
-    } finally {
-      setIsLoadingInvestors(false);
-    }
-  };
 
   const selectedInvestor = investors.find((i) => i.id === selectedInvestorId);
   const selectedFund = funds?.find((f) => f.id === selectedFundId);
