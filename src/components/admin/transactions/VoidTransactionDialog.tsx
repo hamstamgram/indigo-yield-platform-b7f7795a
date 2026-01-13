@@ -81,6 +81,7 @@ export function VoidTransactionDialog({
   const [confirmText, setConfirmText] = useState("");
   const [impact, setImpact] = useState<VoidImpact | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
+  const [acknowledgeNegative, setAcknowledgeNegative] = useState(false);
   const { voidMutation } = useTransactionMutations();
 
   // Fetch impact preview when dialog opens
@@ -136,6 +137,7 @@ export function VoidTransactionDialog({
     setReason("");
     setConfirmText("");
     setImpact(null);
+    setAcknowledgeNegative(false);
     onOpenChange(false);
   };
 
@@ -217,8 +219,17 @@ export function VoidTransactionDialog({
               {impact.would_go_negative && (
                 <Alert className="mt-2 border-destructive/50 bg-destructive/10">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <AlertDescription className="text-destructive">
-                    Warning: This would result in a negative balance!
+                  <AlertDescription className="text-destructive space-y-2">
+                    <p>Warning: This would result in a negative balance!</p>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={acknowledgeNegative}
+                        onChange={(e) => setAcknowledgeNegative(e.target.checked)}
+                        className="rounded border-destructive"
+                      />
+                      <span className="text-sm">I understand and want to proceed anyway</span>
+                    </label>
                   </AlertDescription>
                 </Alert>
               )}
@@ -294,7 +305,7 @@ export function VoidTransactionDialog({
               voidMutation.isPending ||
               confirmText !== "VOID" ||
               reason.trim().length < 3 ||
-              impact?.would_go_negative
+              (impact?.would_go_negative && !acknowledgeNegative)
             }
           >
             {voidMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
