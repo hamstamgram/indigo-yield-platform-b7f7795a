@@ -26,7 +26,7 @@ export function useLockedPeriods(fundId?: string) {
   return useQuery({
     queryKey: [...QUERY_KEYS.yieldRecords, "locked-periods", fundId],
     queryFn: async (): Promise<LockedPeriod[]> => {
-      let query = supabase
+      let query = (supabase as any)
         .from("fund_period_snapshot")
         .select(`
           id,

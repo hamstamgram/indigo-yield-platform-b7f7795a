@@ -53,7 +53,7 @@ export function useInvestorList() {
   return useQuery<InvestorListItem[], Error>({
     queryKey: QUERY_KEYS.investorsList,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("profiles")
         .select("id, email, first_name, last_name, status, is_admin, account_type, created_at")
         .eq("is_admin", false)
@@ -94,7 +94,7 @@ export function useInvestorQuickView(investorId: string) {
     queryKey: QUERY_KEYS.investorQuickView(investorId),
     queryFn: async () => {
       // Load positions from v_live_investor_balances view
-      const { data: positionsData } = await supabase
+      const { data: positionsData } = await (supabase as any)
         .from("v_live_investor_balances")
         .select("fund_id, fund_name, fund_code, shares, current_value")
         .eq("investor_id", investorId)
@@ -110,7 +110,7 @@ export function useInvestorQuickView(investorId: string) {
         .eq("status", "pending");
 
       // Load IB status
-      const { data: ibData } = await supabase
+      const { data: ibData } = await (supabase as any)
         .from("profiles")
         .select("ib_parent_id")
         .eq("id", investorId)
