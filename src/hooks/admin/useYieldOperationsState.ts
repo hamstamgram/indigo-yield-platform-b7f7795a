@@ -72,59 +72,59 @@ export function useYieldOperationsState() {
 
   // Setters
   const setSelectedFund = useCallback((fund: Fund | null) => {
-    setState(prev => ({ ...prev, selectedFund: fund }));
+    setState((prev) => ({ ...prev, selectedFund: fund }));
   }, []);
 
   const setShowYieldDialog = useCallback((show: boolean) => {
-    setState(prev => ({ ...prev, showYieldDialog: show }));
+    setState((prev) => ({ ...prev, showYieldDialog: show }));
   }, []);
 
   const setShowOpenPeriodDialog = useCallback((show: boolean) => {
-    setState(prev => ({ ...prev, showOpenPeriodDialog: show }));
+    setState((prev) => ({ ...prev, showOpenPeriodDialog: show }));
   }, []);
 
   const setNewAUM = useCallback((value: string) => {
-    setState(prev => ({ ...prev, newAUM: value }));
+    setState((prev) => ({ ...prev, newAUM: value }));
   }, []);
 
   const setYieldPurpose = useCallback((purpose: YieldPurpose) => {
-    setState(prev => ({ ...prev, yieldPurpose: purpose }));
+    setState((prev) => ({ ...prev, yieldPurpose: purpose }));
   }, []);
 
   const setAumDate = useCallback((date: Date) => {
-    setState(prev => ({ ...prev, aumDate: date }));
+    setState((prev) => ({ ...prev, aumDate: date }));
   }, []);
 
   const setDatePickerOpen = useCallback((open: boolean) => {
-    setState(prev => ({ ...prev, datePickerOpen: open }));
+    setState((prev) => ({ ...prev, datePickerOpen: open }));
   }, []);
 
   const setReportingMonth = useCallback((month: string) => {
-    setState(prev => ({ ...prev, reportingMonth: month }));
+    setState((prev) => ({ ...prev, reportingMonth: month }));
   }, []);
 
   const setShowConfirmDialog = useCallback((show: boolean) => {
-    setState(prev => ({ ...prev, showConfirmDialog: show }));
+    setState((prev) => ({ ...prev, showConfirmDialog: show }));
   }, []);
 
   const setConfirmationText = useCallback((text: string) => {
-    setState(prev => ({ ...prev, confirmationText: text }));
+    setState((prev) => ({ ...prev, confirmationText: text }));
   }, []);
 
   const setShowSystemAccounts = useCallback((show: boolean) => {
-    setState(prev => ({ ...prev, showSystemAccounts: show }));
+    setState((prev) => ({ ...prev, showSystemAccounts: show }));
   }, []);
 
   const setShowOnlyChanged = useCallback((show: boolean) => {
-    setState(prev => ({ ...prev, showOnlyChanged: show }));
+    setState((prev) => ({ ...prev, showOnlyChanged: show }));
   }, []);
 
   const setSearchInvestor = useCallback((search: string) => {
-    setState(prev => ({ ...prev, searchInvestor: search }));
+    setState((prev) => ({ ...prev, searchInvestor: search }));
   }, []);
 
   const setAcknowledgeDiscrepancy = useCallback((acknowledge: boolean) => {
-    setState(prev => ({ ...prev, acknowledgeDiscrepancy: acknowledge }));
+    setState((prev) => ({ ...prev, acknowledgeDiscrepancy: acknowledge }));
   }, []);
 
   // Generate available months for selection
@@ -133,7 +133,7 @@ export function useYieldOperationsState() {
     const now = new Date();
     const startDate = new Date(2024, 0, 1);
     let current = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+
     while (current >= startDate) {
       const value = current.toISOString().split("T")[0];
       const label = current.toLocaleDateString("en-US", { year: "numeric", month: "long" });
@@ -146,7 +146,7 @@ export function useYieldOperationsState() {
   // Open yield dialog with defaults
   const openYieldDialog = useCallback((fund: Fund) => {
     const currentMonthStart = startOfMonth(new Date()).toISOString().split("T")[0];
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       selectedFund: fund,
       newAUM: "",
@@ -167,7 +167,7 @@ export function useYieldOperationsState() {
   const handleReportingMonthChange = useCallback((monthStart: string) => {
     const selectedDate = new Date(monthStart + "T12:00:00");
     const lastDayOfMonth = endOfMonth(selectedDate);
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       reportingMonth: monthStart,
       aumDate: lastDayOfMonth,
@@ -179,20 +179,20 @@ export function useYieldOperationsState() {
     if (state.yieldPurpose !== "reporting" || !state.reportingMonth) {
       return { valid: true };
     }
-    
+
     const monthStart = startOfMonth(new Date(state.reportingMonth + "T12:00:00"));
     const monthEnd = endOfMonth(monthStart);
-    
+
     const normalizedAumDate = new Date(state.aumDate);
     normalizedAumDate.setHours(12, 0, 0, 0);
-    
+
     if (!isWithinInterval(normalizedAumDate, { start: monthStart, end: monthEnd })) {
       return {
         valid: false,
         error: `Effective date must be within ${format(monthStart, "MMMM yyyy")} (${format(monthStart, "MMM d")} - ${format(monthEnd, "MMM d")})`,
       };
     }
-    
+
     return { valid: true };
   }, [state.yieldPurpose, state.reportingMonth, state.aumDate]);
 
@@ -201,17 +201,20 @@ export function useYieldOperationsState() {
     if (!state.selectedFund || !state.newAUM) return;
 
     const newAUMValue = parseFloat(state.newAUM);
-    if (isNaN(newAUMValue) || newAUMValue <= 0) {
-      toast.error("Please enter a valid positive number.");
+    if (isNaN(newAUMValue) || newAUMValue < 0) {
+      toast.error("Please enter a valid non-negative number.");
       return;
     }
 
-    if (newAUMValue <= state.selectedFund.total_aum) {
-      toast.error("New AUM must be greater than current AUM to distribute yield.");
-      return;
+    // Allow zero or lower AUM (negative yield months are valid - no fees on losses)
+    // Show a warning but proceed with preview
+    if (newAUMValue < state.selectedFund.total_aum) {
+      toast.warning("New AUM is lower than current AUM. This represents a negative yield month.");
+    } else if (newAUMValue === state.selectedFund.total_aum) {
+      toast.info("New AUM equals current AUM. No yield to distribute.");
     }
 
-    setState(prev => ({ ...prev, previewLoading: true }));
+    setState((prev) => ({ ...prev, previewLoading: true }));
     try {
       const result = await previewYieldDistribution({
         fundId: state.selectedFund.id,
@@ -219,16 +222,16 @@ export function useYieldOperationsState() {
         newTotalAUM: newAUMValue,
         purpose: state.yieldPurpose,
       });
-      setState(prev => ({ ...prev, yieldPreview: result, previewLoading: false }));
+      setState((prev) => ({ ...prev, yieldPreview: result, previewLoading: false }));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to preview yield.");
-      setState(prev => ({ ...prev, previewLoading: false }));
+      setState((prev) => ({ ...prev, previewLoading: false }));
     }
   }, [state.selectedFund, state.newAUM, state.aumDate, state.yieldPurpose]);
 
   // Handle confirm apply
   const handleConfirmApply = useCallback(() => {
-    setState(prev => ({ ...prev, showConfirmDialog: true, confirmationText: "" }));
+    setState((prev) => ({ ...prev, showConfirmDialog: true, confirmationText: "" }));
   }, []);
 
   // Handle apply yield
@@ -240,7 +243,7 @@ export function useYieldOperationsState() {
       return;
     }
 
-    setState(prev => ({ ...prev, applyLoading: true }));
+    setState((prev) => ({ ...prev, applyLoading: true }));
     try {
       await applyYieldDistribution(
         {
@@ -257,37 +260,47 @@ export function useYieldOperationsState() {
         `Distributed ${formatAUM(state.yieldPreview.grossYield, asset)} ${asset} to ${state.yieldPreview.investorCount} investors (${state.yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
       );
 
-      setState(prev => ({ ...prev, showConfirmDialog: false, showYieldDialog: false, applyLoading: false }));
-      
+      setState((prev) => ({
+        ...prev,
+        showConfirmDialog: false,
+        showYieldDialog: false,
+        applyLoading: false,
+      }));
+
       // Comprehensive cache invalidation
-      YIELD_RELATED_KEYS.forEach(key => {
+      YIELD_RELATED_KEYS.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
       });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
-      
+
       refetchFunds();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to apply yield.");
-      setState(prev => ({ ...prev, applyLoading: false }));
+      setState((prev) => ({ ...prev, applyLoading: false }));
     }
   }, [state, user, queryClient, refetchFunds]);
 
   // Filter distributions for display
-  const getFilteredDistributions = useCallback((distributions: YieldDistribution[]) => {
-    return distributions.filter((d) => {
-      if (!state.showSystemAccounts && checkSystemAccount(d)) {
-        return false;
-      }
-      if (state.showOnlyChanged && d.wouldSkip) return false;
-      if (state.searchInvestor) {
-        const search = state.searchInvestor.toLowerCase();
-        return d.investorName?.toLowerCase().includes(search) ||
-               d.investorId.toLowerCase().includes(search);
-      }
-      return true;
-    });
-  }, [state.showSystemAccounts, state.showOnlyChanged, state.searchInvestor]);
+  const getFilteredDistributions = useCallback(
+    (distributions: YieldDistribution[]) => {
+      return distributions.filter((d) => {
+        if (!state.showSystemAccounts && checkSystemAccount(d)) {
+          return false;
+        }
+        if (state.showOnlyChanged && d.wouldSkip) return false;
+        if (state.searchInvestor) {
+          const search = state.searchInvestor.toLowerCase();
+          return (
+            d.investorName?.toLowerCase().includes(search) ||
+            d.investorId.toLowerCase().includes(search)
+          );
+        }
+        return true;
+      });
+    },
+    [state.showSystemAccounts, state.showOnlyChanged, state.searchInvestor]
+  );
 
   // Format value helper
   const formatValue = useCallback((value: number, asset: string) => formatAUM(value, asset), []);
@@ -298,7 +311,7 @@ export function useYieldOperationsState() {
     funds,
     loading,
     user,
-    
+
     // Setters
     setSelectedFund,
     setShowYieldDialog,
@@ -314,7 +327,7 @@ export function useYieldOperationsState() {
     setShowOnlyChanged,
     setSearchInvestor,
     setAcknowledgeDiscrepancy,
-    
+
     // Helpers
     getAvailableMonths,
     openYieldDialog,

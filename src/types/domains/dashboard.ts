@@ -39,7 +39,7 @@ export interface AdminKPI {
   inflows: number;
   outflows: number;
   net_new_money: number;
-  mgmt_fees_accrued: number;
+  mgmt_fees_accrued: number; // DEPRECATED: Always 0 per CFO policy - do not display
   perf_fees_accrued: number;
   lp_count: number;
   active_lp_count: number;

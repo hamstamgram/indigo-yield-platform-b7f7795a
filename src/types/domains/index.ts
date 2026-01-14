@@ -1,7 +1,7 @@
 /**
  * Domain Types - Central Export
  * CANONICAL SOURCE for all domain-specific type abstractions
- * 
+ *
  * Usage:
  * import { Investor, Transaction, Fund } from "@/types/domains";
  */
@@ -47,7 +47,7 @@ export * from "./yieldDistributionRecord";
 export * from "./deposit";
 
 // Withdrawal domain (excluding WithdrawalStatus which is in requests)
-export { 
+export {
   type WithdrawalFullStatus,
   type Withdrawal,
   type WithdrawalFilters,
@@ -84,6 +84,9 @@ export * from "./feeAllocation";
 
 // IB Allocation domain
 export * from "./ibAllocation";
+
+// Approval domain (2-person rule)
+export * from "./approval";
 
 // Database enums
 export * from "./enums";

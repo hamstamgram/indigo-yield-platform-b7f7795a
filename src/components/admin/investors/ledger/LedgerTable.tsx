@@ -17,15 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui";
-import {
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw,
-  MoreHorizontal,
-  Pencil,
-  Ban,
-  Lock,
-} from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, RefreshCw, MoreHorizontal, Ban, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { isFinancialGte } from "@/utils/financial";
@@ -33,7 +25,9 @@ import type { LedgerTransaction } from "./types";
 
 interface LedgerTableProps {
   transactions: LedgerTransaction[];
-  onEdit: (tx: LedgerTransaction) => void;
+  /** @deprecated Use onReissue instead */
+  onEdit?: (tx: LedgerTransaction) => void;
+  onReissue: (tx: LedgerTransaction) => void;
   onVoid: (tx: LedgerTransaction) => void;
 }
 
@@ -67,7 +61,9 @@ function getPurposeBadge(purpose: string | null) {
   );
 }
 
-export function LedgerTable({ transactions, onEdit, onVoid }: LedgerTableProps) {
+export function LedgerTable({ transactions, onEdit, onReissue, onVoid }: LedgerTableProps) {
+  // Use onReissue if provided, fall back to deprecated onEdit for backwards compatibility
+  const handleCorrection = onReissue || onEdit || (() => {});
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -130,9 +126,9 @@ export function LedgerTable({ transactions, onEdit, onVoid }: LedgerTableProps) 
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onEdit(tx)}>
-                        <Pencil className="h-3.5 w-3.5 mr-2" />
-                        Edit
+                      <DropdownMenuItem onClick={() => handleCorrection(tx)}>
+                        <RefreshCw className="h-3.5 w-3.5 mr-2" />
+                        Void & Reissue
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onVoid(tx)}

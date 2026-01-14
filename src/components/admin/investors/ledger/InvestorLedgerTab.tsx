@@ -2,7 +2,7 @@
  * Investor Ledger Tab (formerly Transactions Tab)
  * Shows transaction history with URL-persisted filters
  * Uses React Query for proper cache invalidation
- * 
+ *
  * This is the orchestrator component that composes:
  * - LedgerHeader: Title and action buttons
  * - LedgerFilters: Filter controls
@@ -15,7 +15,7 @@ import { toast } from "@/hooks";
 import { useUrlFilters, useInvestorLedger, useInvestorDefaultFund } from "@/hooks";
 import { useLedgerSubscription } from "@/hooks/data";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
-import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
+import { VoidAndReissueDialog } from "@/components/admin/transactions/VoidAndReissueDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 
 import { LedgerHeader } from "./LedgerHeader";
@@ -43,8 +43,8 @@ export function InvestorLedgerTab({
   const [showVoided, setShowVoided] = useState(false);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
 
-  // Edit and Void dialog state
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  // Void & Reissue and Void dialog state
+  const [reissueDialogOpen, setReissueDialogOpen] = useState(false);
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<SelectedTransaction | null>(null);
 
@@ -112,8 +112,8 @@ export function InvestorLedgerTab({
   // Calculate hidden transaction count
   const hiddenCount = unfilteredTransactions.length - transactions.length;
 
-  // Prepare transaction for edit/void dialog
-  const openEditDialog = useCallback(
+  // Prepare transaction for void & reissue dialog
+  const openReissueDialog = useCallback(
     (tx: LedgerTransaction) => {
       setSelectedTransaction({
         id: tx.id,
@@ -126,7 +126,7 @@ export function InvestorLedgerTab({
         txHash: tx.tx_hash || null,
         isSystemGenerated: tx.is_system_generated || false,
       });
-      setEditDialogOpen(true);
+      setReissueDialogOpen(true);
     },
     [investorName]
   );
@@ -199,7 +199,7 @@ export function InvestorLedgerTab({
       {showTable ? (
         <LedgerTable
           transactions={transactions as LedgerTransaction[]}
-          onEdit={openEditDialog}
+          onReissue={openReissueDialog}
           onVoid={openVoidDialog}
         />
       ) : (
@@ -219,10 +219,10 @@ export function InvestorLedgerTab({
         onSuccess={handleAddTxSuccess}
       />
 
-      {/* Edit Transaction Dialog */}
-      <EditTransactionDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
+      {/* Void & Reissue Transaction Dialog */}
+      <VoidAndReissueDialog
+        open={reissueDialogOpen}
+        onOpenChange={setReissueDialogOpen}
         transaction={selectedTransaction}
         onSuccess={handleEditVoidSuccess}
       />

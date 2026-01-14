@@ -9,19 +9,53 @@ import { useState, useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Input, Button, Badge,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-  TruncatedText, SortableTableHead,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Button,
+  Badge,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  TruncatedText,
+  SortableTableHead,
 } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
-import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, Lock } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  CreditCard,
+  Plus,
+  MoreHorizontal,
+  RefreshCw,
+  Ban,
+  Lock,
+} from "lucide-react";
 import { AdminGuard } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
-import { AddTransactionDialog, VoidTransactionDialog, EditTransactionDialog } from "@/components/admin";
+import {
+  AddTransactionDialog,
+  VoidTransactionDialog,
+  VoidAndReissueDialog,
+} from "@/components/admin";
 import { useSortableColumns } from "@/hooks";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data";
@@ -34,11 +68,11 @@ function TransactionHistoryContent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  
-  // Edit/Void dialog state
+
+  // Void/Reissue dialog state
   const [selectedTx, setSelectedTx] = useState<TransactionViewModel | null>(null);
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [reissueDialogOpen, setReissueDialogOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDisplayType, setSelectedDisplayType] = useState<string>("all");
@@ -59,17 +93,20 @@ function TransactionHistoryContent() {
     const action = searchParams.get("action");
     const investorId = searchParams.get("investorId") || "";
     const fundId = searchParams.get("fundId") || "";
-    
+
     if (action === "add") {
       setDialogInvestorId(investorId);
       setDialogFundId(fundId || (funds.length > 0 ? funds[0].id : ""));
       setAddDialogOpen(true);
       // Clear the action param after opening
-      setSearchParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        newParams.delete("action");
-        return newParams;
-      }, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.delete("action");
+          return newParams;
+        },
+        { replace: true }
+      );
     }
   }, [searchParams, funds, setSearchParams]);
 
@@ -129,40 +166,42 @@ function TransactionHistoryContent() {
       // Search filter
       if (searchTerm) {
         const search = searchTerm.toLowerCase();
-        const matchesSearch = 
+        const matchesSearch =
           tx.investorName.toLowerCase().includes(search) ||
           tx.investorEmail.toLowerCase().includes(search);
         if (!matchesSearch) return false;
       }
-      
+
       // Display type filter
       if (selectedDisplayType !== "all") {
         if (tx.displayType !== selectedDisplayType) return false;
       }
-      
+
       return true;
     });
   }, [transactions, searchTerm, selectedDisplayType]);
 
   // Sortable columns hook
   const { sortConfig, requestSort, sortedData } = useSortableColumns(filteredTransactions, {
-    column: 'txDate',
-    direction: 'desc',
+    column: "txDate",
+    direction: "desc",
   });
 
   const formatAmount = (amount: number, asset: string, type: string) => {
     const isNegative = type === "WITHDRAWAL" || type === "FEE";
     const sign = isNegative ? "-" : "+";
-    
+
     let formatted: string;
     if (asset === "BTC") formatted = amount.toFixed(8);
     else if (asset === "ETH" || asset === "SOL") formatted = amount.toFixed(6);
     else formatted = amount.toFixed(2);
-    
+
     return `${sign}${formatted}`;
   };
 
-  const getTypeBadgeVariant = (displayType: string): "default" | "destructive" | "secondary" | "outline" => {
+  const getTypeBadgeVariant = (
+    displayType: string
+  ): "default" | "destructive" | "secondary" | "outline" => {
     switch (displayType) {
       case "First Investment":
         return "default";
@@ -179,7 +218,11 @@ function TransactionHistoryContent() {
   };
 
   const handleAddTransactionSuccess = () => {
-    invalidateAfterTransaction(queryClient, dialogInvestorId || undefined, dialogFundId || undefined);
+    invalidateAfterTransaction(
+      queryClient,
+      dialogInvestorId || undefined,
+      dialogFundId || undefined
+    );
     setAddDialogOpen(false);
   };
 
@@ -195,7 +238,7 @@ function TransactionHistoryContent() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <PageHeader
         title="Transaction History"
         subtitle="Complete chronological ledger of all investor transactions"
         icon={CreditCard}
@@ -206,23 +249,34 @@ function TransactionHistoryContent() {
         <CardContent className="p-4 space-y-4">
           {/* Quick Date Filters */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={setThisMonth}>This Month</Button>
-            <Button variant="outline" size="sm" onClick={setLastMonth}>Last Month</Button>
-            <Button variant="outline" size="sm" onClick={setYTD}>YTD</Button>
-            <Button variant="ghost" size="sm" onClick={clearFilters}>Clear All</Button>
+            <Button variant="outline" size="sm" onClick={setThisMonth}>
+              This Month
+            </Button>
+            <Button variant="outline" size="sm" onClick={setLastMonth}>
+              Last Month
+            </Button>
+            <Button variant="outline" size="sm" onClick={setYTD}>
+              YTD
+            </Button>
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Clear All
+            </Button>
             <div className="ml-auto flex items-center gap-2">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
                   type="checkbox"
                   checked={showVoided}
-                  onChange={(e) => { setShowVoided(e.target.checked); setPage(0); }}
+                  onChange={(e) => {
+                    setShowVoided(e.target.checked);
+                    setPage(0);
+                  }}
                   className="rounded border-muted-foreground"
                 />
                 <span className="text-muted-foreground">Show voided</span>
               </label>
             </div>
           </div>
-          
+
           {/* Main Filters */}
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
@@ -236,20 +290,34 @@ function TransactionHistoryContent() {
                 />
               </div>
             </div>
-            
-            <Select value={selectedFund} onValueChange={(v) => { setSelectedFund(v); setPage(0); }}>
+
+            <Select
+              value={selectedFund}
+              onValueChange={(v) => {
+                setSelectedFund(v);
+                setPage(0);
+              }}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by fund" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Funds</SelectItem>
                 {funds.map((fund) => (
-                  <SelectItem key={fund.id} value={fund.id}>{fund.name}</SelectItem>
+                  <SelectItem key={fund.id} value={fund.id}>
+                    {fund.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            
-            <Select value={selectedType} onValueChange={(v) => { setSelectedType(v); setPage(0); }}>
+
+            <Select
+              value={selectedType}
+              onValueChange={(v) => {
+                setSelectedType(v);
+                setPage(0);
+              }}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Base type" />
               </SelectTrigger>
@@ -261,7 +329,7 @@ function TransactionHistoryContent() {
                 <SelectItem value="INTEREST">Interest/Yield</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Select value={selectedDisplayType} onValueChange={setSelectedDisplayType}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Category" />
@@ -276,18 +344,24 @@ function TransactionHistoryContent() {
                 <SelectItem value="Interest/Yield">Interest/Yield</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Input
               type="date"
               value={dateFrom}
-              onChange={(e) => { setDateFrom(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(0);
+              }}
               className="w-40"
               placeholder="From"
             />
             <Input
               type="date"
               value={dateTo}
-              onChange={(e) => { setDateTo(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(0);
+              }}
               className="w-40"
               placeholder="To"
             />
@@ -307,14 +381,14 @@ function TransactionHistoryContent() {
               Add Transaction
             </Button>
           </div>
-          
+
           {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setPage(p => Math.max(0, p - 1))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -322,10 +396,10 @@ function TransactionHistoryContent() {
               <span className="text-sm text-muted-foreground">
                 Page {page + 1} of {totalPages}
               </span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
               >
                 <ChevronRight className="h-4 w-4" />
@@ -414,7 +488,10 @@ function TransactionHistoryContent() {
                               <TruncatedText text={tx.investorName} className="max-w-[150px]" />
                               <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                             </span>
-                            <TruncatedText text={tx.investorEmail} className="text-xs text-muted-foreground block max-w-[160px]" />
+                            <TruncatedText
+                              text={tx.investorEmail}
+                              className="text-xs text-muted-foreground block max-w-[160px]"
+                            />
                           </button>
                         </TableCell>
                         <TableCell>
@@ -434,7 +511,10 @@ function TransactionHistoryContent() {
                               </Badge>
                             )}
                             {tx.visibilityScope === "admin_only" && (
-                              <Badge variant="outline" className="text-[10px] gap-0.5 text-muted-foreground border-muted-foreground/30">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] gap-0.5 text-muted-foreground border-muted-foreground/30"
+                              >
                                 <Lock className="h-2.5 w-2.5" />
                                 Admin
                               </Badge>
@@ -442,15 +522,23 @@ function TransactionHistoryContent() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          <span className={tx.isVoided ? "line-through text-muted-foreground" : (tx.type === "WITHDRAWAL" || tx.type === "FEE" ? "text-destructive" : "text-green-600")}>
+                          <span
+                            className={
+                              tx.isVoided
+                                ? "line-through text-muted-foreground"
+                                : tx.type === "WITHDRAWAL" || tx.type === "FEE"
+                                  ? "text-destructive"
+                                  : "text-green-600"
+                            }
+                          >
                             {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
                           </span>
                           <span className="text-muted-foreground ml-1">{tx.asset}</span>
                         </TableCell>
                         <TableCell className="max-w-[200px]">
-                          <TruncatedText 
-                            text={tx.notes || "—"} 
-                            className="text-muted-foreground" 
+                          <TruncatedText
+                            text={tx.notes || "—"}
+                            className="text-muted-foreground"
                             maxWidth="200px"
                           />
                         </TableCell>
@@ -466,12 +554,12 @@ function TransactionHistoryContent() {
                                 <DropdownMenuItem
                                   onClick={() => {
                                     setSelectedTx(tx);
-                                    setEditDialogOpen(true);
+                                    setReissueDialogOpen(true);
                                   }}
                                   disabled={tx.isSystemGenerated}
                                 >
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
+                                  <RefreshCw className="mr-2 h-4 w-4" />
+                                  Void & Reissue
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => {
@@ -498,21 +586,21 @@ function TransactionHistoryContent() {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Bottom Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setPage(p => Math.max(0, p - 1))}
+          <Button
+            variant="outline"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Previous
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+          <Button
+            variant="outline"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
           >
             Next
@@ -530,13 +618,17 @@ function TransactionHistoryContent() {
         onSuccess={handleAddTransactionSuccess}
       />
 
-      {/* Edit Transaction Modal */}
-      <EditTransactionDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
+      {/* Void & Reissue Transaction Modal */}
+      <VoidAndReissueDialog
+        open={reissueDialogOpen}
+        onOpenChange={setReissueDialogOpen}
         transaction={selectedTx}
         onSuccess={() => {
-          invalidateAfterTransaction(queryClient, selectedTx?.investorId, selectedTx?.fundId || undefined);
+          invalidateAfterTransaction(
+            queryClient,
+            selectedTx?.investorId,
+            selectedTx?.fundId || undefined
+          );
         }}
       />
 
@@ -546,7 +638,11 @@ function TransactionHistoryContent() {
         onOpenChange={setVoidDialogOpen}
         transaction={selectedTx}
         onSuccess={() => {
-          invalidateAfterTransaction(queryClient, selectedTx?.investorId, selectedTx?.fundId || undefined);
+          invalidateAfterTransaction(
+            queryClient,
+            selectedTx?.investorId,
+            selectedTx?.fundId || undefined
+          );
         }}
       />
     </div>

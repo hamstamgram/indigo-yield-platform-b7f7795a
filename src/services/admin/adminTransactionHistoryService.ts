@@ -11,6 +11,8 @@ import type {
   FundOption,
   UpdateTransactionParams,
   VoidTransactionParams,
+  VoidAndReissueParams,
+  VoidAndReissueResult,
 } from "@/types/domains/transaction";
 
 const PAGE_SIZE = 50;
@@ -104,8 +106,7 @@ async function fetchTransactions(
       id: tx.id,
       investorId: tx.investor_id,
       investorName: profile
-        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
-          profile.email
+        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
         : "Unknown",
       investorEmail: profile?.email || "",
       fundId: tx.fund_id,
@@ -148,10 +149,54 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   // DB signature: void_transaction(p_transaction_id uuid, p_reason text, p_actor_id uuid)
   const { error } = await supabase.rpc("void_transaction", {
     p_transaction_id: params.transactionId,
-    p_reason: params.reason,  // Fixed: was p_void_reason, DB expects p_reason
+    p_reason: params.reason, // Fixed: was p_void_reason, DB expects p_reason
   });
 
   if (error) throw error;
+}
+
+/**
+ * Void and reissue a transaction atomically via RPC
+ * This is the preferred method for correcting transactions while maintaining ledger immutability.
+ */
+async function voidAndReissueTransaction(
+  params: VoidAndReissueParams
+): Promise<VoidAndReissueResult> {
+  const { data, error } = await supabase.rpc("void_and_reissue_transaction", {
+    p_original_transaction_id: params.transactionId,
+    p_new_amount: params.newValues.amount,
+    p_new_tx_date: params.newValues.tx_date,
+    p_new_notes: params.newValues.notes || null,
+    p_reason: params.reason,
+  });
+
+  if (error) throw error;
+
+  // Handle typed response from RPC
+  if (data && typeof data === "object") {
+    const result = data as Record<string, unknown>;
+    if (result.success === false && result.error) {
+      // Typed error from RPC
+      const errorObj = result.error as Record<string, unknown>;
+      const err = new Error(errorObj.message as string);
+      (err as any).code = errorObj.code;
+      (err as any).details = errorObj.details;
+      throw err;
+    }
+    return {
+      success: true,
+      voided_transaction_id: (result.data as any)?.voided_transaction_id || params.transactionId,
+      new_transaction_id: (result.data as any)?.new_transaction_id || "",
+      message: result.message as string | undefined,
+    };
+  }
+
+  return {
+    success: true,
+    voided_transaction_id: params.transactionId,
+    new_transaction_id: "",
+    message: "Transaction corrected successfully",
+  };
 }
 
 export const adminTransactionHistoryService = {
@@ -159,4 +204,5 @@ export const adminTransactionHistoryService = {
   fetchTransactions,
   updateTransaction,
   voidTransaction,
+  voidAndReissueTransaction,
 };

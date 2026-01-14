@@ -16,15 +16,28 @@ export interface FundDailyAumRecord {
 class FundDailyAumService {
   /**
    * Get AUM record for a fund on a specific date
+   * @param fundId - Fund ID
+   * @param date - Date in YYYY-MM-DD format
+   * @param purpose - Optional purpose filter ('transaction' or 'reporting')
    */
-  async getByFundAndDate(fundId: string, date: string): Promise<FundDailyAumRecord | null> {
-    const { data, error } = await supabase
+  async getByFundAndDate(
+    fundId: string,
+    date: string,
+    purpose?: "transaction" | "reporting"
+  ): Promise<FundDailyAumRecord | null> {
+    let query = supabase
       .from("fund_daily_aum")
       .select("*")
       .eq("fund_id", fundId)
       .eq("aum_date", date)
-      .eq("is_voided", false)
-      .maybeSingle();
+      .eq("is_voided", false);
+
+    // Add purpose filter if specified (for fund_aum table compatibility)
+    if (purpose) {
+      query = query.eq("purpose", purpose);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) throw error;
     return data as FundDailyAumRecord | null;
@@ -69,7 +82,9 @@ class FundDailyAumService {
       .maybeSingle();
 
     if (existing) {
-      throw new Error("An AUM record already exists for this date. Void it first or choose a different date.");
+      throw new Error(
+        "An AUM record already exists for this date. Void it first or choose a different date."
+      );
     }
 
     const { error } = await supabase.from("fund_daily_aum").insert({
@@ -115,14 +130,12 @@ class FundDailyAumService {
 
       if (error) throw error;
     } else {
-      const { error } = await supabase
-        .from("fund_daily_aum")
-        .insert({
-          fund_id: params.fundId,
-          aum_date: params.date,
-          total_aum: params.totalAum,
-          source: params.source || "manual",
-        });
+      const { error } = await supabase.from("fund_daily_aum").insert({
+        fund_id: params.fundId,
+        aum_date: params.date,
+        total_aum: params.totalAum,
+        source: params.source || "manual",
+      });
 
       if (error) throw error;
     }

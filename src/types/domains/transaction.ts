@@ -296,7 +296,10 @@ export function formatTransactionType(type: TransactionType | string): string {
     ADJUSTMENT: "Adjustment",
     FIRST_INVESTMENT: "First Investment",
   };
-  return typeMap[type] || (typeof type === "string" ? type.charAt(0) + type.slice(1).toLowerCase() : String(type));
+  return (
+    typeMap[type] ||
+    (typeof type === "string" ? type.charAt(0) + type.slice(1).toLowerCase() : String(type))
+  );
 }
 
 /**
@@ -413,4 +416,36 @@ export interface UpdateTransactionParams {
 export interface VoidTransactionParams {
   transactionId: string;
   reason: string;
+}
+
+/**
+ * Parameters for void and reissue operation (atomic correction)
+ * This is the preferred method for correcting transactions while
+ * maintaining ledger immutability.
+ */
+export interface VoidAndReissueParams {
+  transactionId: string;
+  newValues: {
+    tx_date: string;
+    amount: number;
+    notes?: string | null;
+    tx_hash?: string | null;
+  };
+  reason: string;
+}
+
+/**
+ * Result of void and reissue operation
+ */
+export interface VoidAndReissueResult {
+  success: boolean;
+  voided_transaction_id: string;
+  new_transaction_id: string;
+  message?: string;
+  voided_at?: string;
+  new_transaction?: {
+    id: string;
+    amount: number;
+    tx_date: string;
+  };
 }

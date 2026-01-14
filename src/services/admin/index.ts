@@ -3,16 +3,35 @@
  */
 
 // Admin stats service (dashboard metrics)
-export { fetchAdminStats, getFundCountByStatus, getPendingWithdrawalCount, getRecentActivityCount } from "./adminStatsService";
+export {
+  fetchAdminStats,
+  getFundCountByStatus,
+  getPendingWithdrawalCount,
+  getRecentActivityCount,
+} from "./adminStatsService";
 export type { AdminStats } from "./adminStatsService";
 
 // Fund management (low-level functions - prefer shared/fundService for most uses)
-export { listFunds, getFund, createFund, updateFund, getFundKPIs, getLatestNav, getFundPerformance, checkFundUsage } from "./fundService";
+export {
+  listFunds,
+  getFund,
+  createFund,
+  updateFund,
+  getFundKPIs,
+  getLatestNav,
+  getFundPerformance,
+  checkFundUsage,
+} from "./fundService";
 export type { DailyNav, FundKPI } from "./fundService";
 
 // Admin investor operations (renamed from adminServiceV2)
 export { adminInvestorService, adminServiceV2 } from "./adminService";
-export type { AdminInvestorSummary, DashboardStats, InvestorSummaryV2, DashboardStatsV2 } from "./adminService";
+export type {
+  AdminInvestorSummary,
+  DashboardStats,
+  InvestorSummaryV2,
+  DashboardStatsV2,
+} from "./adminService";
 
 // Transaction management - use transactionService from @/services/shared
 // adminTransactionService is removed - use transactionService.createQuickTransaction instead
@@ -26,10 +45,10 @@ export * from "./yieldManagementService";
 export * from "./bulkOperationsService";
 
 // User management
-export { 
-  deleteInvestorUser, 
+export {
+  deleteInvestorUser,
   forceDeleteInvestorUser,
-  createOrFindInvestorUser 
+  createOrFindInvestorUser,
 } from "./userService";
 
 // Delivery management
@@ -45,11 +64,7 @@ export { requestsQueueService } from "./requestsQueueService";
 export { adminTransactionHistoryService } from "./adminTransactionHistoryService";
 
 // Dashboard widgets
-export {
-  fetchFundsWithAUM,
-  fetchRecentActivities,
-  fetchPendingItems,
-} from "./dashboardService";
+export { fetchFundsWithAUM, fetchRecentActivities, fetchPendingItems } from "./dashboardService";
 
 // Dashboard metrics (selective to avoid conflicts)
 export {
@@ -111,7 +126,11 @@ export * from "./reportQueryService";
 export * from "./statementAdminService";
 
 // Admin users service (new)
-export { adminUsersService, type AdminUserProfile, type AdminInviteParams } from "./adminUsersService";
+export {
+  adminUsersService,
+  type AdminUserProfile,
+  type AdminInviteParams,
+} from "./adminUsersService";
 
 // Action bar service (new)
 export { actionBarService, type PendingCounts } from "./actionBarService";
@@ -120,7 +139,12 @@ export { actionBarService, type PendingCounts } from "./actionBarService";
 export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";
 
 // Internal route service (new)
-export { internalRouteService, type InvestorPositionForRoute, type InternalRouteParams, type InternalRouteResult } from "./internalRouteService";
+export {
+  internalRouteService,
+  type InvestorPositionForRoute,
+  type InternalRouteParams,
+  type InternalRouteResult,
+} from "./internalRouteService";
 
 // Report recipients service (new)
 export { reportRecipientsService } from "./reportRecipientsService";
@@ -129,10 +153,20 @@ export { reportRecipientsService } from "./reportRecipientsService";
 export { ibUsersService, type IBUser } from "./ibUsersService";
 
 // Transaction form data service (new)
-export { transactionFormDataService, type TransactionFormInvestor, type TransactionFormFund, type BalanceCheckResult } from "./transactionFormDataService";
+export {
+  transactionFormDataService,
+  type TransactionFormInvestor,
+  type TransactionFormFund,
+  type BalanceCheckResult,
+} from "./transactionFormDataService";
 
 // Investor detail service (new)
-export { investorDetailService, type InvestorDetailData, type OpsIndicators, type InvestorPositionsData } from "./investorDetailService";
+export {
+  investorDetailService,
+  type InvestorDetailData,
+  type OpsIndicators,
+  type InvestorPositionsData,
+} from "./investorDetailService";
 export type { InvestorPosition as AdminInvestorPosition } from "./investorDetailService";
 
 // Admin invite service
@@ -185,3 +219,7 @@ export type {
   YieldEvent,
   YieldSnapshot,
 } from "./yieldCrystallizationService";
+
+// Approval service (2-person rule)
+export { approvalService } from "./approvalService";
+export type { ApprovalResponse } from "./approvalService";

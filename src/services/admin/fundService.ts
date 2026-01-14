@@ -57,11 +57,7 @@ export async function listFunds(): Promise<Fund[]> {
  * Get fund by ID
  */
 export async function getFund(fundId: string): Promise<Fund> {
-  const { data, error } = await supabase
-    .from("funds")
-    .select("*")
-    .eq("id", fundId)
-    .maybeSingle();
+  const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error(`Fund not found: ${fundId}`);
@@ -111,7 +107,7 @@ export async function createFundSimple(input: CreateFundInput): Promise<Fund> {
       inception_date: input.inception_date,
       status: "active",
       logo_url: input.logo_url || null,
-      mgmt_fee_bps: 200,
+      mgmt_fee_bps: 0, // CFO Policy: No management fees - frozen at DB level
       perf_fee_bps: 2000,
       min_investment: 0,
     })
@@ -289,7 +285,9 @@ export async function checkFundUsage(
 /**
  * Get active funds (minimal fields for dropdowns)
  */
-export async function getActiveFunds(): Promise<Array<{ id: string; code: string; name: string; asset: string }>> {
+export async function getActiveFunds(): Promise<
+  Array<{ id: string; code: string; name: string; asset: string }>
+> {
   const { data, error } = await supabase
     .from("funds")
     .select("id, code, name, asset")
@@ -305,11 +303,8 @@ export async function getActiveFunds(): Promise<Array<{ id: string; code: string
  */
 export async function getFundsByIds(fundIds: string[]) {
   if (!fundIds.length) return [];
-  
-  const { data, error } = await supabase
-    .from("funds")
-    .select("*")
-    .in("id", fundIds);
+
+  const { data, error } = await supabase.from("funds").select("*").in("id", fundIds);
 
   if (error) throw error;
   return data || [];
@@ -334,11 +329,7 @@ export async function getFundByAsset(asset: string) {
  * Check if fund code exists
  */
 export async function codeExists(code: string): Promise<boolean> {
-  const { data } = await supabase
-    .from("funds")
-    .select("id")
-    .eq("code", code)
-    .maybeSingle();
+  const { data } = await supabase.from("funds").select("id").eq("code", code).maybeSingle();
   return !!data;
 }
 
@@ -346,10 +337,7 @@ export async function codeExists(code: string): Promise<boolean> {
  * Deactivate fund (set status to inactive)
  */
 export async function deactivateFund(fundId: string): Promise<void> {
-  const { error } = await supabase
-    .from("funds")
-    .update({ status: "inactive" })
-    .eq("id", fundId);
+  const { error } = await supabase.from("funds").update({ status: "inactive" }).eq("id", fundId);
 
   if (error) throw error;
 }

@@ -1,11 +1,26 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Calendar,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Popover, PopoverContent, PopoverTrigger,
-  Alert, AlertDescription,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Calendar,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -49,17 +64,27 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     enabled: open,
   });
 
-  // Check if AUM exists for the selected fund on selected date
+  // Check if preflow AUM exists for the selected fund on selected date
   const { data: aumRecord, isLoading: isCheckingAum } = useQuery({
-    queryKey: selectedFundId && formattedDate 
-      ? QUERY_KEYS.fundAumCheck(selectedFundId, formattedDate) 
-      : ["fund-aum-check"],
+    queryKey:
+      selectedFundId && formattedDate
+        ? QUERY_KEYS.fundAumCheck(selectedFundId, formattedDate)
+        : ["fund-aum-check"],
     queryFn: async () => {
+      // Check for existing AUM record (any purpose - we can reuse it)
       return fundDailyAumService.getByFundAndDate(selectedFundId, formattedDate);
     },
     enabled: !!selectedFundId && open,
   });
 
+  // If existing AUM found, auto-populate the value
+  useEffect(() => {
+    if (aumRecord?.total_aum !== undefined && aumRecord.total_aum !== null) {
+      setAumValue(String(aumRecord.total_aum));
+    }
+  }, [aumRecord]);
+
+  const hasExistingAum = !!aumRecord?.total_aum;
   const needsAum = selectedFundId && !isCheckingAum && !aumRecord;
 
   // Create AUM mutation
@@ -256,23 +281,47 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             <div className="space-y-2">
               <Label htmlFor="aum_value" className="flex items-center gap-2">
                 Preflow AUM Snapshot ({selectedFund?.asset?.toUpperCase()}) *
-                <span className="text-xs text-muted-foreground font-normal">
-                  (Fund AUM before this deposit)
-                </span>
+                {hasExistingAum && (
+                  <span className="text-xs text-green-600 font-medium">
+                    (Using existing record)
+                  </span>
+                )}
               </Label>
-              <Input
-                id="aum_value"
-                type="number"
-                step="0.00000001"
-                min="0"
-                value={aumValue}
-                onChange={(e) => setAumValue(e.target.value)}
-                placeholder="Enter preflow AUM"
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                The authoritative fund AUM immediately before this deposit. Used for yield crystallization.
-              </p>
+              {isCheckingAum ? (
+                <div className="text-sm text-muted-foreground">Checking for existing AUM...</div>
+              ) : hasExistingAum ? (
+                <>
+                  <Input
+                    id="aum_value"
+                    type="number"
+                    step="0.00000001"
+                    min="0"
+                    value={aumValue}
+                    readOnly
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-green-600">
+                    An existing preflow AUM record was found for this date and will be reused.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Input
+                    id="aum_value"
+                    type="number"
+                    step="0.00000001"
+                    min="0"
+                    value={aumValue}
+                    onChange={(e) => setAumValue(e.target.value)}
+                    placeholder="Enter preflow AUM"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    No existing AUM record found. Enter the fund AUM immediately before this
+                    deposit.
+                  </p>
+                </>
+              )}
             </div>
           )}
 

@@ -5,11 +5,11 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  ensureSnapshotExists, 
-  lockPeriodSnapshot, 
+import {
+  ensureSnapshotExists,
+  lockPeriodSnapshot,
   isPeriodLocked,
-  getFundPeriodSnapshot
+  getFundPeriodSnapshot,
 } from "@/services/operations/snapshotService";
 import { yieldNotifications } from "@/services/notifications";
 import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
@@ -33,14 +33,14 @@ function formatDate(date: Date): string {
 async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
   const year = targetDate.getFullYear();
   const month = targetDate.getMonth() + 1;
-  
+
   const { data, error } = await supabase
     .from("statement_periods")
     .select("id")
     .eq("year", year)
     .eq("month", month)
     .maybeSingle();
-  
+
   if (error || !data) {
     const { data: nextPeriod } = await supabase
       .from("statement_periods")
@@ -70,18 +70,22 @@ export async function applyYieldDistribution(
   // Get or create period snapshot before applying yield
   const periodId = await getPeriodIdForDate(targetDate);
   let snapshotInfo: YieldCalculationResult["snapshotInfo"];
-  
+
   if (periodId) {
     // Check if period is already locked
     const isLocked = await isPeriodLocked(fundId, periodId);
     if (isLocked) {
       throw new Error("This period is locked. Yield has already been applied for this period.");
     }
-    
+
     // Ensure snapshot exists (creates one if not)
     const snapshotResult = await ensureSnapshotExists(fundId, periodId, adminId);
     if (!snapshotResult.exists) {
-      logWarn("applyYieldDistribution.snapshotCreate", { fundId, periodId, error: snapshotResult.error });
+      logWarn("applyYieldDistribution.snapshotCreate", {
+        fundId,
+        periodId,
+        error: snapshotResult.error,
+      });
     } else if (snapshotResult.snapshotId) {
       const snapshot = await getFundPeriodSnapshot(fundId, periodId);
       if (snapshot) {
@@ -107,10 +111,24 @@ export async function applyYieldDistribution(
   }
 
   const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
+  // Calculate gross yield - can be positive, zero, or negative
+  // Negative yield months are allowed (no fees charged on losses)
+  const grossYieldAmount = newTotalAUM - currentAUM;
 
+  // If no yield (or negative), still allow the operation but return early
+  // The DB will handle zero/negative yield correctly (no fees on losses)
   if (grossYieldAmount <= 0) {
-    throw new Error("New AUM must be greater than current AUM to distribute yield");
+    // For zero or negative months, we might want to record the loss but not distribute anything
+    // Return early with a message indicating no yield to distribute
+    return {
+      success: true,
+      message:
+        grossYieldAmount === 0
+          ? "No yield to distribute (AUM unchanged)"
+          : `Negative yield month: ${grossYieldAmount.toFixed(4)} loss recorded. No fees charged.`,
+      grossYieldAmount,
+      netYieldDistributed: 0,
+    };
   }
 
   // Calculate gross yield percentage from amount
@@ -140,12 +158,7 @@ export async function applyYieldDistribution(
 
   // Finalize yield visibility
   try {
-    await finalizeMonthYield(
-      fundId,
-      targetDate.getFullYear(),
-      targetDate.getMonth() + 1,
-      adminId
-    );
+    await finalizeMonthYield(fundId, targetDate.getFullYear(), targetDate.getMonth() + 1, adminId);
   } catch (finalizationError) {
     logWarn("applyYieldDistribution.finalization", { fundId, error: finalizationError });
   }
@@ -168,7 +181,7 @@ export async function applyYieldDistribution(
     .eq("is_voided", false);
 
   if (affectedInvestors?.length && fundInfo) {
-    const distributions = affectedInvestors.map(inv => ({
+    const distributions = affectedInvestors.map((inv) => ({
       userId: inv.investor_id,
       distributionId: `yield:${fundId}:${formatDate(targetDate)}:${inv.investor_id}`,
       fundId,
@@ -179,10 +192,11 @@ export async function applyYieldDistribution(
       yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : undefined,
     }));
 
-    yieldNotifications.onFundYieldDistributed(distributions)
-      .catch(err => logError("sendYieldNotifications", err, { fundId }));
+    yieldNotifications
+      .onFundYieldDistributed(distributions)
+      .catch((err) => logError("sendYieldNotifications", err, { fundId }));
   }
-  
+
   const yieldDistributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
     gross: grossYieldAmount,
