@@ -4,19 +4,22 @@
  */
 
 import {
-  Card, CardContent,
-  Button, Input, Label, Calendar,
-  Popover, PopoverContent, PopoverTrigger,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Card,
+  CardContent,
+  Button,
+  Input,
+  Label,
+  Calendar,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
-import {
-  ArrowRight,
-  CalendarIcon,
-  AlertTriangle,
-  Info,
-  Clock,
-  Loader2,
-} from "lucide-react";
+import { ArrowRight, CalendarIcon, AlertTriangle, Info, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { type YieldPurpose, type Fund } from "@/hooks/admin/useYieldOperationsState";
@@ -89,9 +92,9 @@ export function YieldInputForm({
               No AUM History for {selectedFund.name}
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              This fund has no historical AUM records. Before distributing yield, you should record AUM data
-              via the <span className="font-medium">Daily Rates Management</span> page or by completing this form.
-              The first yield distribution will establish the baseline.
+              This fund has no historical AUM records. Before distributing yield, you should record
+              AUM data via the <span className="font-medium">Daily Rates Management</span> page or
+              by completing this form. The first yield distribution will establish the baseline.
             </p>
           </div>
         </div>
@@ -193,60 +196,68 @@ export function YieldInputForm({
         <div className="space-y-3">
           <Label className="text-sm font-medium">Purpose</Label>
           <div className="grid grid-cols-2 gap-3">
-            <div 
+            <div
               className={cn(
                 "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                yieldPurpose === "reporting" 
-                  ? "border-green-500 ring-1 ring-green-500/20" 
+                yieldPurpose === "reporting"
+                  ? "border-green-500 ring-1 ring-green-500/20"
                   : "hover:border-green-500/50"
               )}
               onClick={() => setYieldPurpose("reporting")}
             >
-              <div className={cn(
-                "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
-              )} />
+              <div
+                className={cn(
+                  "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                  yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
+                )}
+              />
               <div>
                 <p className="font-medium text-sm">Reporting</p>
                 <p className="text-xs text-muted-foreground">Month-end official yield</p>
               </div>
             </div>
-            <div 
+            <div
               className={cn(
                 "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                yieldPurpose === "transaction" 
-                  ? "border-orange-500 ring-1 ring-orange-500/20" 
+                yieldPurpose === "transaction"
+                  ? "border-orange-500 ring-1 ring-orange-500/20"
                   : "hover:border-orange-500/50"
               )}
               onClick={() => setYieldPurpose("transaction")}
             >
-              <div className={cn(
-                "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
-              )} />
+              <div
+                className={cn(
+                  "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                  yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
+                )}
+              />
               <div>
                 <p className="font-medium text-sm">Transaction</p>
                 <p className="text-xs text-muted-foreground">Operational (withdrawals/top-ups)</p>
               </div>
             </div>
           </div>
-          
+
           {/* Purpose Explainer */}
-          <div className={cn(
-            "flex items-start gap-2 p-3 rounded-md text-sm",
-            yieldPurpose === "reporting" 
-              ? "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400" 
-              : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
-          )}>
+          <div
+            className={cn(
+              "flex items-start gap-2 p-3 rounded-md text-sm",
+              yieldPurpose === "reporting"
+                ? "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400"
+                : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
+            )}
+          >
             <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <div>
               {yieldPurpose === "reporting" ? (
                 <>
-                  <strong>Visible to investors.</strong> Official month-end yield that appears on investor statements and dashboards.
+                  <strong>Visible to investors.</strong> Official month-end yield that appears on
+                  investor statements and dashboards.
                 </>
               ) : (
                 <>
-                  <strong>Internal only.</strong> Operational yield for processing withdrawals or top-ups. Not visible to investors.
+                  <strong>Internal only.</strong> Operational yield for processing withdrawals or
+                  top-ups. Not visible to investors.
                 </>
               )}
             </div>
@@ -268,30 +279,36 @@ export function YieldInputForm({
           <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-medium text-amber-800 dark:text-amber-200">
-              {pendingEvents.count} pending yield event{pendingEvents.count !== 1 ? 's' : ''} from mid-month flows
+              {pendingEvents.count} pending yield event{pendingEvents.count !== 1 ? "s" : ""} from
+              mid-month flows
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              These events were crystallized from deposits/withdrawals during this period. 
-              They will become visible to investors after you apply this month-end yield.
+              These events were crystallized from deposits/withdrawals during this period. They will
+              become visible to investors after you apply this month-end yield.
             </p>
           </div>
         </div>
       )}
-      
+
       {/* AUM Reconciliation Warning */}
       {reconciliation?.has_warning && (
         <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
           <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-medium text-destructive">
-              AUM Discrepancy Detected
-            </p>
+            <p className="font-medium text-destructive">AUM Discrepancy Detected</p>
             <p className="text-sm text-destructive/80">
-              Positions sum: {formatValue(reconciliation.positions_sum, selectedFund?.asset || "USD")} {selectedFund?.asset}
+              Positions sum:{" "}
+              {formatValue(reconciliation.positions_sum, selectedFund?.asset || "USD")}{" "}
+              {selectedFund?.asset}
               <br />
-              Recorded AUM: {formatValue(reconciliation.recorded_aum, selectedFund?.asset || "USD")} {selectedFund?.asset}
+              Recorded AUM: {formatValue(
+                reconciliation.recorded_aum,
+                selectedFund?.asset || "USD"
+              )}{" "}
+              {selectedFund?.asset}
               <br />
-              Difference: {reconciliation.discrepancy_pct.toFixed(2)}% (threshold: {reconciliation.tolerance_pct}%)
+              Difference: {(reconciliation.discrepancy_pct ?? 0).toFixed(2)}% (threshold:{" "}
+              {reconciliation.tolerance_pct ?? 0.01}%)
             </p>
             <p className="text-sm text-destructive font-medium">
               Review before applying yield to ensure accuracy.
@@ -303,10 +320,12 @@ export function YieldInputForm({
       {/* Step 2: Preview Button */}
       <div className="p-4 border rounded-lg bg-muted/20">
         <div className="flex items-center gap-2 mb-4">
-          <div className={cn(
-            "h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold",
-            hasPreview ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-          )}>
+          <div
+            className={cn(
+              "h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold",
+              hasPreview ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            )}
+          >
             2
           </div>
           <h3 className="font-semibold">Preview Distribution</h3>
@@ -315,9 +334,7 @@ export function YieldInputForm({
         <Button
           onClick={handlePreviewYield}
           disabled={
-            !newAUM || 
-            previewLoading || 
-            (yieldPurpose === "reporting" && !validationResult.valid)
+            !newAUM || previewLoading || (yieldPurpose === "reporting" && !validationResult.valid)
           }
           variant="secondary"
           className="w-full"

@@ -7,9 +7,18 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, Loader2, Trash2, Users, FileX } from "lucide-react";
 import { logError } from "@/lib/logger";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-  Textarea, Label, Checkbox, Badge,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Textarea,
+  Label,
+  Checkbox,
+  Badge,
 } from "@/components/ui";
 import { format } from "date-fns";
 import type { YieldRecord } from "@/services";
@@ -96,10 +105,10 @@ export function VoidYieldDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-3">
             <p>
-              You are about to void this yield record. This will cascade void all related 
-              yield transactions and recalculate affected investor positions.
+              You are about to void this yield record. This will cascade void all related yield
+              transactions and recalculate affected investor positions.
             </p>
-            
+
             <div className="bg-muted rounded-lg p-3 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Fund:</span>
@@ -113,9 +122,7 @@ export function VoidYieldDialog({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">AUM:</span>
-                <span className="font-mono font-medium">
-                  {record.total_aum.toLocaleString()}
-                </span>
+                <span className="font-mono font-medium">{record.total_aum.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Purpose:</span>
@@ -134,13 +141,15 @@ export function VoidYieldDialog({
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm text-muted-foreground">Loading impact preview...</span>
             </div>
-          ) : impact?.success && ((impact.transactions_to_void ?? 0) > 0 || (impact.affected_investor_count ?? 0) > 0) ? (
+          ) : impact?.success &&
+            ((impact.transactions_to_void ?? 0) > 0 ||
+              (impact.affected_investor_count ?? 0) > 0) ? (
             <div className="space-y-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-md">
               <div className="text-sm font-medium flex items-center gap-2 text-amber-700">
                 <AlertTriangle className="h-4 w-4" />
                 Cascade Impact
               </div>
-              
+
               {(impact.transactions_to_void ?? 0) > 0 && (
                 <div className="flex items-center gap-2 text-sm">
                   <FileX className="h-4 w-4 text-muted-foreground" />
@@ -149,12 +158,13 @@ export function VoidYieldDialog({
                   </span>
                 </div>
               )}
-              
+
               {(impact.affected_investor_count ?? 0) > 0 && (
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    <strong>{impact.affected_investor_count}</strong> investor(s) will have positions recalculated
+                    <strong>{impact.affected_investor_count}</strong> investor(s) will have
+                    positions recalculated
                   </span>
                 </div>
               )}
@@ -167,7 +177,7 @@ export function VoidYieldDialog({
                       <div key={inv.investor_id} className="text-xs flex justify-between">
                         <span>{inv.investor_name}</span>
                         <span className="font-mono text-destructive">
-                          -{(inv.yield_amount - inv.fee_amount).toFixed(4)}
+                          -{((inv.yield_amount ?? 0) - (inv.fee_amount ?? 0)).toFixed(4)}
                         </span>
                       </div>
                     ))}
@@ -195,9 +205,7 @@ export function VoidYieldDialog({
               className="resize-none"
             />
             {reason.length > 0 && reason.length < 5 && (
-              <p className="text-xs text-destructive">
-                Reason must be at least 5 characters
-              </p>
+              <p className="text-xs text-destructive">Reason must be at least 5 characters</p>
             )}
           </div>
 
@@ -207,12 +215,9 @@ export function VoidYieldDialog({
               checked={confirmed}
               onCheckedChange={(checked) => setConfirmed(checked === true)}
             />
-            <label
-              htmlFor="confirm-void"
-              className="text-sm leading-tight cursor-pointer"
-            >
-              I understand this action will cascade void all related yield transactions
-              and recalculate affected investor positions.
+            <label htmlFor="confirm-void" className="text-sm leading-tight cursor-pointer">
+              I understand this action will cascade void all related yield transactions and
+              recalculate affected investor positions.
             </label>
           </div>
         </div>

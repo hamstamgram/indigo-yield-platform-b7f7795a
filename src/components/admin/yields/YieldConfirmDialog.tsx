@@ -4,9 +4,18 @@
  */
 
 import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
-  Button, Input, Label, Badge, Checkbox,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Checkbox,
 } from "@/components/ui";
 import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -73,9 +82,10 @@ export function YieldConfirmDialog({
                   <span className="text-muted-foreground">Purpose:</span>
                   <Badge
                     variant="outline"
-                    className={yieldPurpose === "reporting"
-                      ? "border-green-500 text-green-700"
-                      : "border-orange-500 text-orange-700"
+                    className={
+                      yieldPurpose === "reporting"
+                        ? "border-green-500 text-green-700"
+                        : "border-orange-500 text-orange-700"
                     }
                   >
                     {yieldPurpose === "reporting" ? "Reporting" : "Transaction"}
@@ -93,15 +103,21 @@ export function YieldConfirmDialog({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Fees:</span>
-                  <span className="font-mono">{formatValue(yieldPreview?.totalFees || 0, asset)} {asset}</span>
+                  <span className="font-mono">
+                    {formatValue(yieldPreview?.totalFees || 0, asset)} {asset}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">IB Fees:</span>
-                  <span className="font-mono text-purple-600">{formatValue(yieldPreview?.totalIbFees || 0, asset)} {asset}</span>
+                  <span className="font-mono text-purple-600">
+                    {formatValue(yieldPreview?.totalIbFees || 0, asset)} {asset}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">INDIGO FEES Credit:</span>
-                  <span className="font-mono text-blue-600">{formatValue(yieldPreview?.indigoFeesCredit || 0, asset)} {asset}</span>
+                  <span className="font-mono text-blue-600">
+                    {formatValue(yieldPreview?.indigoFeesCredit || 0, asset)} {asset}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Investors:</span>
@@ -113,7 +129,8 @@ export function YieldConfirmDialog({
                 <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-sm">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>
-                    <strong>This yield will be visible to investors</strong> on their statements and dashboards.
+                    <strong>This yield will be visible to investors</strong> on their statements and
+                    dashboards.
                   </span>
                 </div>
               )}
@@ -127,7 +144,8 @@ export function YieldConfirmDialog({
                       onCheckedChange={(checked) => setAcknowledgeDiscrepancy(checked === true)}
                     />
                     <span className="text-destructive">
-                      I acknowledge the {reconciliation.discrepancy_pct.toFixed(2)}% AUM discrepancy and want to proceed
+                      I acknowledge the {(reconciliation.discrepancy_pct ?? 0).toFixed(2)}% AUM
+                      discrepancy and want to proceed
                     </span>
                   </Label>
                 </div>
