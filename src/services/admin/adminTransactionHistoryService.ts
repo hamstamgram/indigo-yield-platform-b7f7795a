@@ -144,15 +144,32 @@ async function updateTransaction(params: UpdateTransactionParams): Promise<void>
 
 /**
  * Void a transaction via RPC
+ * Canonical signature: void_transaction(p_transaction_id uuid, p_void_reason text, p_admin_id uuid)
  */
 async function voidTransaction(params: VoidTransactionParams): Promise<void> {
-  // DB signature: void_transaction(p_transaction_id uuid, p_reason text, p_actor_id uuid)
-  const { error } = await supabase.rpc("void_transaction", {
-    p_transaction_id: params.transactionId,
-    p_reason: params.reason, // Fixed: was p_void_reason, DB expects p_reason
-  });
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user?.id) throw new Error("Authentication required");
 
-  if (error) throw error;
+  // Canonical DB signature: void_transaction(p_transaction_id, p_void_reason, p_admin_id)
+  const { data, error } = await supabase.rpc("void_transaction", {
+    p_transaction_id: params.transactionId,
+    p_void_reason: params.reason,
+    p_admin_id: user.id,
+  } as any);
+
+  if (error) {
+    throw new Error(error.message || "Failed to void transaction");
+  }
+
+  // Check RPC result for success
+  const result = data as any;
+  if (result && result.success === false) {
+    throw new Error(result.message || result.error_code || "Failed to void transaction");
+  }
 }
 
 /**
@@ -162,15 +179,46 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
 async function voidAndReissueTransaction(
   params: VoidAndReissueParams
 ): Promise<VoidAndReissueResult> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user?.id) throw new Error("Authentication required");
+
+  const notesParts = [params.newValues.notes || ""].filter(Boolean);
+  if (params.newValues.tx_hash) {
+    notesParts.push(`Tx hash: ${params.newValues.tx_hash}`);
+  }
+  const mergedNotes = notesParts.join("\n").trim() || null;
+
   const { data, error } = await supabase.rpc("void_and_reissue_transaction", {
-    p_original_transaction_id: params.transactionId,
+    p_original_tx_id: params.transactionId,
     p_new_amount: params.newValues.amount,
-    p_new_tx_date: params.newValues.tx_date,
-    p_new_notes: params.newValues.notes || null,
+    p_new_date: params.newValues.tx_date,
+    p_new_notes: mergedNotes,
+    p_closing_aum: params.closingAum,
+    p_admin_id: user.id,
     p_reason: params.reason,
   });
 
-  if (error) throw error;
+  if (error) {
+    // Fallback for legacy signatures (until migrations are applied)
+    const legacy = await supabase.rpc("void_and_reissue_transaction", {
+      p_original_transaction_id: params.transactionId,
+      p_new_amount: params.newValues.amount,
+      p_new_tx_date: params.newValues.tx_date,
+      p_new_notes: mergedNotes,
+      p_reason: params.reason,
+    } as any);
+    if (legacy.error) throw error;
+    return {
+      success: true,
+      voided_transaction_id: params.transactionId,
+      new_transaction_id: "",
+      message: "Transaction corrected successfully",
+    };
+  }
 
   // Handle typed response from RPC
   if (data && typeof data === "object") {
@@ -185,8 +233,12 @@ async function voidAndReissueTransaction(
     }
     return {
       success: true,
-      voided_transaction_id: (result.data as any)?.voided_transaction_id || params.transactionId,
-      new_transaction_id: (result.data as any)?.new_transaction_id || "",
+      voided_transaction_id:
+        (result.data as any)?.voided_transaction_id ||
+        (result as any)?.voided_transaction_id ||
+        params.transactionId,
+      new_transaction_id:
+        (result.data as any)?.new_transaction_id || (result as any)?.new_transaction_id || "",
       message: result.message as string | undefined,
     };
   }

@@ -50,12 +50,11 @@ export interface YieldDetails {
  * Void a yield record by AUM record ID (soft delete with audit trail)
  * Use this when voiding from the RecordedYieldsPage (AUM perspective)
  */
-export async function voidYieldRecord(
-  recordId: string,
-  reason: string
-): Promise<VoidYieldResult> {
+export async function voidYieldRecord(recordId: string, reason: string): Promise<VoidYieldResult> {
   // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     throw new Error("Not authenticated");
   }
@@ -83,7 +82,9 @@ export async function voidYieldDistribution(
   reason: string
 ): Promise<{ success: boolean; voided_count?: number; error?: string }> {
   // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     throw new Error("Not authenticated");
   }
@@ -114,7 +115,9 @@ export async function updateYieldAum(
   newTotalAum: number,
   reason: string
 ): Promise<UpdateYieldResult> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     throw new Error("Not authenticated");
   }
@@ -210,9 +213,11 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
  * Check if a yield record can be voided
  * Returns { canVoid: boolean, reason?: string }
  */
-export async function canVoidYieldRecord(recordId: string): Promise<{ canVoid: boolean; reason?: string }> {
+export async function canVoidYieldRecord(
+  recordId: string
+): Promise<{ canVoid: boolean; reason?: string }> {
   const details = await getYieldDetails(recordId);
-  
+
   if (!details) {
     return { canVoid: false, reason: "Record not found" };
   }
@@ -222,16 +227,18 @@ export async function canVoidYieldRecord(recordId: string): Promise<{ canVoid: b
   }
 
   // Additional checks could be added here (e.g., check if there are dependent corrections)
-  
+
   return { canVoid: true };
 }
 
 /**
  * Check if a yield record can be edited
  */
-export async function canEditYieldRecord(recordId: string): Promise<{ canEdit: boolean; reason?: string }> {
+export async function canEditYieldRecord(
+  recordId: string
+): Promise<{ canEdit: boolean; reason?: string }> {
   const details = await getYieldDetails(recordId);
-  
+
   if (!details) {
     return { canEdit: false, reason: "Record not found" };
   }
@@ -244,17 +251,20 @@ export async function canEditYieldRecord(recordId: string): Promise<{ canEdit: b
 }
 
 /**
- * Get void impact preview for a yield record
- * Shows what will happen before voiding (transactions, investors affected)
+ * Get void impact preview for a fund_daily_aum record
+ * Shows what will happen before voiding (distributions, transactions, investors affected)
  */
 export async function getYieldVoidImpact(recordId: string): Promise<{
   success: boolean;
   error?: string;
   record_id?: string;
   fund_id?: string;
+  fund_name?: string;
+  fund_asset?: string;
   aum_date?: string;
   total_aum?: number;
   purpose?: string;
+  distributions_to_void?: number;
   transactions_to_void?: number;
   affected_investors?: Array<{
     investor_id: string;
@@ -264,9 +274,13 @@ export async function getYieldVoidImpact(recordId: string): Promise<{
     fee_amount: number;
   }>;
   affected_investor_count?: number;
+  total_yield_amount?: number;
+  total_fee_amount?: number;
 }> {
-  const { data, error } = await (supabase.rpc as any)("get_void_yield_impact", {
-    p_distribution_id: recordId,
+  // Use the correct RPC that accepts fund_daily_aum record ID
+  // Note: get_void_aum_impact is typed after supabase types regeneration
+  const { data, error } = await (supabase.rpc as any)("get_void_aum_impact", {
+    p_record_id: recordId,
   });
 
   if (error) {
@@ -274,5 +288,5 @@ export async function getYieldVoidImpact(recordId: string): Promise<{
     throw new Error(error.message || "Failed to get yield void impact");
   }
 
-  return data;
+  return data as any;
 }

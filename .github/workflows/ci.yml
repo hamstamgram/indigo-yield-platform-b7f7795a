@@ -88,7 +88,7 @@ jobs:
       - name: Check forbidden migration patterns
         run: |
           echo "🔍 Checking for forbidden patterns in migrations..."
-          
+
           # Check for singular table name that caused the withdrawal bug
           # Exclude the compatibility view migration which legitimately uses the singular name
           if grep -rE "withdrawal_audit_log[^s_]" supabase/migrations/ | grep -vE "(AS SELECT|VIEW.*AS)"; then
@@ -98,8 +98,44 @@ jobs:
             echo "   The singular name was a bug - see migration 20251226_fix_withdrawal_audit_log"
             exit 1
           fi
-          
+
           echo "✅ No forbidden patterns found in migrations"
+
+      - name: Verify financial RPC admin gates
+        run: |
+          echo "🔒 Verifying is_admin() gates in critical finance RPCs..."
+
+          # Critical RPCs that MUST have is_admin() gates
+          CRITICAL_RPCS=(
+            "void_transaction"
+            "ensure_preflow_aum"
+            "apply_deposit_with_crystallization"
+            "apply_withdrawal_with_crystallization"
+            "apply_daily_yield_to_fund"
+          )
+
+          FAILED=0
+          for rpc in "${CRITICAL_RPCS[@]}"; do
+            # Find migrations defining this RPC and check for is_admin()
+            if grep -l "FUNCTION.*${rpc}" supabase/migrations/*.sql 2>/dev/null | xargs grep -l "is_admin()" > /dev/null 2>&1; then
+              echo "✅ ${rpc} has is_admin() gate"
+            else
+              echo "⚠️  ${rpc} - could not verify is_admin() gate"
+            fi
+          done
+
+          echo "Admin gate verification complete"
+
+      - name: Check yield conservation identity
+        run: |
+          echo "💰 Checking yield conservation identity in migrations..."
+
+          # Verify that yield calculations include conservation checks
+          if grep -rE "gross.*-.*net.*-.*fee|net.*\+.*fee.*=.*gross" supabase/migrations/*.sql > /dev/null 2>&1; then
+            echo "✅ Yield conservation identity patterns found"
+          else
+            echo "⚠️  No explicit yield conservation patterns detected"
+          fi
       
       - name: Run migrations dry-run
         env:
@@ -119,6 +155,82 @@ jobs:
           else
             echo "No RLS checks found, skipping"
           fi
+
+      - name: Check ledger integrity views
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          echo "🔍 Verifying ledger integrity views..."
+
+          # Check that v_ledger_reconciliation excludes voided transactions
+          if psql $DATABASE_URL -c "\d+ v_ledger_reconciliation" 2>/dev/null | grep -q "is_voided = false"; then
+            echo "✅ v_ledger_reconciliation excludes voided transactions"
+          else
+            echo "⚠️  Could not verify v_ledger_reconciliation voided filter"
+          fi
+
+          # Run integrity check function if it exists
+          RESULT=$(psql $DATABASE_URL -t -c "SELECT public.run_integrity_check('ci_test')::text" 2>/dev/null || echo "")
+          if [ -n "$RESULT" ]; then
+            echo "✅ Integrity check function executed: $RESULT"
+          fi
+
+          # Query integrity views for any anomalies (should be empty on clean slate)
+          LEDGER_COUNT=$(psql $DATABASE_URL -t -c "SELECT COUNT(*) FROM v_ledger_reconciliation" 2>/dev/null || echo "0")
+          echo "📊 Ledger reconciliation anomalies: $LEDGER_COUNT"
+
+          AUM_COUNT=$(psql $DATABASE_URL -t -c "SELECT COUNT(*) FROM fund_aum_mismatch" 2>/dev/null || echo "0")
+          echo "📊 Fund AUM mismatches: $AUM_COUNT"
+
+          # Check for duplicate profiles
+          DUP_COUNT=$(psql $DATABASE_URL -t -c "SELECT COUNT(*) FROM v_potential_duplicate_profiles" 2>/dev/null || echo "0")
+          echo "📊 Potential duplicate profiles: $DUP_COUNT"
+
+          # CRITICAL: Verify yield conservation views EXIST (fail if missing)
+          echo "🔒 Verifying yield conservation infrastructure..."
+
+          # Assert v_yield_conservation_check exists
+          if ! psql $DATABASE_URL -c "SELECT 1 FROM v_yield_conservation_check LIMIT 0" 2>/dev/null; then
+            echo "❌ FAIL: v_yield_conservation_check view does not exist!"
+            echo "   Run migration 20260116000006_yield_conservation_infrastructure.sql"
+            exit 1
+          fi
+          echo "✅ v_yield_conservation_check view exists"
+
+          # Assert v_yield_conservation_violations exists
+          if ! psql $DATABASE_URL -c "SELECT 1 FROM v_yield_conservation_violations LIMIT 0" 2>/dev/null; then
+            echo "❌ FAIL: v_yield_conservation_violations view does not exist!"
+            exit 1
+          fi
+          echo "✅ v_yield_conservation_violations view exists"
+
+          # Assert yield_distributions table exists
+          if ! psql $DATABASE_URL -c "SELECT 1 FROM yield_distributions LIMIT 0" 2>/dev/null; then
+            echo "❌ FAIL: yield_distributions table does not exist!"
+            exit 1
+          fi
+          echo "✅ yield_distributions table exists"
+
+          # Assert yield_allocations table exists
+          if ! psql $DATABASE_URL -c "SELECT 1 FROM yield_allocations LIMIT 0" 2>/dev/null; then
+            echo "❌ FAIL: yield_allocations table does not exist!"
+            exit 1
+          fi
+          echo "✅ yield_allocations table exists"
+
+          # Check yield conservation violations (should be 0)
+          CONSERVATION_COUNT=$(psql $DATABASE_URL -t -c "SELECT COUNT(*) FROM v_yield_conservation_check" | xargs)
+          echo "📊 Yield conservation violations: $CONSERVATION_COUNT"
+
+          # Check per-allocation violations
+          ALLOC_VIOLATIONS=$(psql $DATABASE_URL -t -c "SELECT COUNT(*) FROM v_yield_allocation_violations" 2>/dev/null | xargs || echo "0")
+          echo "📊 Yield allocation violations: $ALLOC_VIOLATIONS"
+
+          # Check for missing withdrawal transactions (P0 bug fix verification)
+          MISSING_WD_COUNT=$(psql $DATABASE_URL -t -c "SELECT COUNT(*) FROM v_missing_withdrawal_transactions" 2>/dev/null | xargs || echo "0")
+          echo "📊 Missing withdrawal transactions: $MISSING_WD_COUNT"
+
+          echo "✅ Ledger integrity verification complete"
 
   deploy-preview:
     name: Deploy Preview

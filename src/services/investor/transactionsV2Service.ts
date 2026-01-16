@@ -35,7 +35,10 @@ class TransactionsRecordService {
   /**
    * Get transactions by investor ID
    */
-  async getByInvestorId(investorId: string, filters?: TransactionFilters): Promise<TransactionRecord[]> {
+  async getByInvestorId(
+    investorId: string,
+    filters?: TransactionFilters
+  ): Promise<TransactionRecord[]> {
     let query = supabase
       .from("transactions_v2")
       .select("*")
@@ -92,16 +95,33 @@ class TransactionsRecordService {
    * - Recomputes investor position
    * - Writes audit log entry
    */
+  /**
+   * Void a transaction via RPC
+   * Canonical signature: void_transaction(p_transaction_id uuid, p_void_reason text, p_admin_id uuid)
+   */
   async voidTransaction(transactionId: string, reason: string): Promise<void> {
-    // DB signature: void_transaction(p_transaction_id uuid, p_reason text, p_actor_id uuid)
-    const { error } = await supabase.rpc("void_transaction", {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user?.id) throw new Error("Authentication required");
+
+    const { data, error } = await supabase.rpc("void_transaction", {
       p_transaction_id: transactionId,
-      p_reason: reason,  // Fixed: was p_void_reason, DB expects p_reason
-    });
+      p_void_reason: reason,
+      p_admin_id: user.id,
+    } as any);
 
     if (error) {
       logError("transactionsV2Service.voidTransaction", error, { transactionId });
       throw new Error(error.message || "Failed to void transaction");
+    }
+
+    // Check RPC result for success
+    const result = data as any;
+    if (result && result.success === false) {
+      throw new Error(result.message || result.error_code || "Failed to void transaction");
     }
   }
 
