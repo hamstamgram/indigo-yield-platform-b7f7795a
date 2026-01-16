@@ -60,6 +60,51 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
     severity: "warning",
     description: "Introducing broker allocations with consistency issues",
   },
+  // Crystallization checks (P0)
+  {
+    name: "Crystallization Gaps",
+    query: "SELECT * FROM v_crystallization_gaps WHERE gap_type = 'stale_crystallization' LIMIT 5",
+    severity: "critical",
+    description: "Positions with stale crystallization before transaction",
+  },
+  {
+    name: "Never Crystallized Positions",
+    query: "SELECT * FROM v_crystallization_gaps WHERE gap_type = 'never_crystallized' LIMIT 5",
+    severity: "warning",
+    description: "Positions that have never been crystallized",
+  },
+  {
+    name: "Transaction Source Audit",
+    query:
+      "SELECT * FROM v_transaction_sources WHERE source NOT IN ('rpc_canonical', 'crystallization', 'manual_admin', 'yield_distribution', 'system', 'migration') LIMIT 5",
+    severity: "warning",
+    description: "Transactions from unapproved sources",
+  },
+  {
+    name: "Ledger Position Reconciliation",
+    query: "SELECT * FROM v_ledger_reconciliation LIMIT 5",
+    severity: "critical",
+    description: "Position balances do not match ledger transactions",
+  },
+  {
+    name: "Missing Withdrawal Transactions",
+    query: "SELECT * FROM v_missing_withdrawal_transactions LIMIT 5",
+    severity: "critical",
+    description: "Completed withdrawals without ledger transactions",
+  },
+  {
+    name: "Potential Duplicate Profiles",
+    query:
+      "SELECT * FROM v_potential_duplicate_profiles WHERE duplicate_type = 'email_duplicate' LIMIT 5",
+    severity: "warning",
+    description: "Duplicate investor profiles detected by email",
+  },
+  {
+    name: "Yield Conservation Violations",
+    query: "SELECT * FROM v_yield_conservation_violations LIMIT 5",
+    severity: "critical",
+    description: "Yield distributions violating conservation identity",
+  },
 ];
 
 async function runIntegrityChecks(supabase: any): Promise<CheckResult[]> {
@@ -67,8 +112,11 @@ async function runIntegrityChecks(supabase: any): Promise<CheckResult[]> {
 
   for (const check of INTEGRITY_CHECKS) {
     try {
-      const { data, error } = await supabase.rpc("exec_sql", { sql: check.query }) as { data: any[] | null; error: any };
-      
+      const { data, error } = (await supabase.rpc("exec_sql", { sql: check.query })) as {
+        data: any[] | null;
+        error: any;
+      };
+
       if (error) {
         // Fallback: try direct query for views
         const viewName = check.query.match(/FROM\s+(\w+)/i)?.[1];
@@ -77,7 +125,7 @@ async function runIntegrityChecks(supabase: any): Promise<CheckResult[]> {
             .from(viewName)
             .select("*")
             .limit(5);
-          
+
           if (!viewError && viewData) {
             results.push({
               name: check.name,
@@ -90,7 +138,7 @@ async function runIntegrityChecks(supabase: any): Promise<CheckResult[]> {
             continue;
           }
         }
-        
+
         results.push({
           name: check.name,
           status: "fail",
@@ -174,11 +222,7 @@ async function sendSlackAlert(webhookUrl: string, results: CheckResult[]): Promi
   });
 }
 
-async function sendEmailAlert(
-  supabase: any,
-  email: string,
-  results: CheckResult[]
-): Promise<void> {
+async function sendEmailAlert(supabase: any, email: string, results: CheckResult[]): Promise<void> {
   const failures = results.filter((r) => r.status === "fail");
   if (failures.length === 0) return;
 
@@ -219,39 +263,72 @@ async function sendEmailAlert(
 async function logIntegrityCheck(
   supabase: any,
   results: CheckResult[],
-  triggeredBy: string = "scheduled"
-): Promise<void> {
+  triggeredBy: string = "scheduled",
+  runtimeMs: number = 0
+): Promise<{ runId: string | null }> {
   const failures = results.filter((r) => r.status === "fail");
-  
-  // Log to integrity_check_log table for dashboard widget
-  await supabase.from("integrity_check_log").insert({
-    total_checks: results.length,
-    passed: results.filter((r) => r.status === "pass").length,
-    failed: failures.length,
-    critical_failures: failures.filter((r) => r.severity === "critical").length,
-    triggered_by: triggeredBy,
-    results: results.map((r) => ({
-      name: r.name,
-      status: r.status,
-      severity: r.severity,
-      count: r.count,
-      description: r.description,
-    })),
-  });
-  
+  const criticalFailures = failures.filter((r) => r.severity === "critical");
+
+  // Map results to violations format for admin_integrity_runs
+  const violations = failures.map((r) => ({
+    view: r.name.toLowerCase().replace(/\s+/g, "_"),
+    count: r.count,
+    severity: r.severity,
+    description: r.description,
+    sample: r.sample || [],
+  }));
+
+  // Insert into admin_integrity_runs (P1 table)
+  const { data: runData, error: runError } = await supabase
+    .from("admin_integrity_runs")
+    .insert({
+      status: failures.length === 0 ? "pass" : "fail",
+      violations: violations,
+      runtime_ms: runtimeMs,
+      triggered_by: triggeredBy,
+      context: `edge_function:${triggeredBy}`,
+    })
+    .select("id")
+    .single();
+
+  const runId = runData?.id || null;
+
+  if (runError) {
+    console.error("Failed to log to admin_integrity_runs:", runError);
+  }
+
+  // If there are critical failures, create an alert
+  if (criticalFailures.length > 0 && runId) {
+    await supabase.from("admin_alerts").insert({
+      alert_type: "integrity_violation",
+      severity: "critical",
+      title: `Integrity Check Failed: ${criticalFailures.length} critical issues`,
+      message: criticalFailures.map((f) => f.name).join(", "),
+      metadata: {
+        total_failures: failures.length,
+        critical_failures: criticalFailures.length,
+        triggered_by: triggeredBy,
+      },
+      related_run_id: runId,
+    });
+  }
+
   // Also log to audit_log for audit trail
   await supabase.from("audit_log").insert({
     action: "integrity_check",
     entity: "system",
-    entity_id: null,
+    entity_id: runId,
     meta: {
       total_checks: results.length,
       passed: results.filter((r) => r.status === "pass").length,
       failed: failures.length,
-      critical_failures: failures.filter((r) => r.severity === "critical").length,
+      critical_failures: criticalFailures.length,
       triggered_by: triggeredBy,
+      run_id: runId,
     },
   });
+
+  return { runId };
 }
 
 Deno.serve(async (req) => {
@@ -273,15 +350,6 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Run all integrity checks
-    console.log("Running integrity checks...");
-    const results = await runIntegrityChecks(supabase);
-    
-    const failures = results.filter((r) => r.status === "fail");
-    const criticalFailures = failures.filter((r) => r.severity === "critical");
-
-    console.log(`Integrity check complete: ${failures.length} failures (${criticalFailures.length} critical)`);
-
     // Parse triggered_by from request body
     let triggeredBy = "scheduled";
     try {
@@ -291,8 +359,21 @@ Deno.serve(async (req) => {
       // No body or invalid JSON, use default
     }
 
-    // Log to integrity_check_log table
-    await logIntegrityCheck(supabase, results, triggeredBy);
+    // Run all integrity checks with timing
+    console.log("Running integrity checks...");
+    const startTime = Date.now();
+    const results = await runIntegrityChecks(supabase);
+    const runtimeMs = Date.now() - startTime;
+
+    const failures = results.filter((r) => r.status === "fail");
+    const criticalFailures = failures.filter((r) => r.severity === "critical");
+
+    console.log(
+      `Integrity check complete: ${failures.length} failures (${criticalFailures.length} critical) in ${runtimeMs}ms`
+    );
+
+    // Log to admin_integrity_runs table (P1)
+    const { runId } = await logIntegrityCheck(supabase, results, triggeredBy, runtimeMs);
 
     // Send alerts if there are failures
     if (failures.length > 0) {
@@ -311,14 +392,17 @@ Deno.serve(async (req) => {
 
       // Send alerts in background (fire and forget)
       if (alertPromises.length > 0) {
-        Promise.all(alertPromises).catch(err => console.error("Alert sending failed:", err));
+        Promise.all(alertPromises).catch((err) => console.error("Alert sending failed:", err));
       }
     }
 
     return new Response(
       JSON.stringify({
         success: true,
+        status: failures.length === 0 ? "pass" : "fail",
+        run_id: runId,
         timestamp: new Date().toISOString(),
+        runtime_ms: runtimeMs,
         summary: {
           total: results.length,
           passed: results.filter((r) => r.status === "pass").length,
@@ -328,7 +412,7 @@ Deno.serve(async (req) => {
         results,
       }),
       {
-        status: failures.length > 0 ? 200 : 200, // Always 200, check body for status
+        status: 200,
         headers: { ...headers, "Content-Type": "application/json" },
       }
     );

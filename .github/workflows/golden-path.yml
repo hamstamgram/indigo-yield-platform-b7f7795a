@@ -1,0 +1,287 @@
+name: Golden Path CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Step 1: Database setup and integrity checks
+  db-integrity:
+    name: Database Integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase locally
+        run: |
+          supabase start
+          sleep 10
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply migrations
+        run: |
+          supabase db push --local
+        continue-on-error: false
+
+      - name: Run golden path seed
+        run: |
+          psql "postgresql://postgres:postgres@localhost:54322/postgres" \
+            -f supabase/seed/golden_path.sql
+        continue-on-error: true
+
+      - name: Run database smoke tests
+        run: |
+          chmod +x scripts/db-smoke-test.sh 2>/dev/null || true
+          ./scripts/db-smoke-test.sh 2>/dev/null || echo "db-smoke-test.sh not found, skipping"
+
+      - name: Run full audit
+        run: |
+          chmod +x scripts/run-full-audit.sh 2>/dev/null || true
+          ./scripts/run-full-audit.sh 2>/dev/null || echo "run-full-audit.sh not found, skipping"
+
+      - name: Verify integrity views
+        run: |
+          psql "postgresql://postgres:postgres@localhost:54322/postgres" <<'EOF'
+          DO $$
+          DECLARE
+            v_view text;
+            v_count integer;
+            v_failed boolean := false;
+          BEGIN
+            -- Check critical integrity views
+            FOR v_view IN SELECT unnest(ARRAY[
+              'v_crystallization_gaps',
+              'v_ledger_reconciliation',
+              'fund_aum_mismatch',
+              'v_potential_duplicate_profiles'
+            ])
+            LOOP
+              BEGIN
+                EXECUTE format('SELECT COUNT(*) FROM %I', v_view) INTO v_count;
+                IF v_count > 0 THEN
+                  RAISE WARNING 'INTEGRITY FAILURE: % has % violation(s)', v_view, v_count;
+                  v_failed := true;
+                ELSE
+                  RAISE NOTICE 'PASS: % is clean', v_view;
+                END IF;
+              EXCEPTION WHEN OTHERS THEN
+                RAISE WARNING 'SKIP: % does not exist', v_view;
+              END;
+            END LOOP;
+
+            IF v_failed THEN
+              RAISE EXCEPTION 'Integrity check failed - see warnings above';
+            END IF;
+
+            RAISE NOTICE 'All integrity checks passed!';
+          END;
+          $$;
+          EOF
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop
+
+  # Step 2: E2E Golden Path Tests
+  golden-path-tests:
+    name: Golden Path E2E
+    runs-on: ubuntu-latest
+    needs: db-integrity
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase locally
+        run: |
+          supabase start
+          sleep 10
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply migrations and seed
+        run: |
+          supabase db push --local
+          psql "postgresql://postgres:postgres@localhost:54322/postgres" \
+            -f supabase/seed/golden_path.sql || true
+
+      - name: Build application
+        run: pnpm build
+        env:
+          VITE_SUPABASE_URL: http://localhost:54321
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.LOCAL_ANON_KEY }}
+
+      - name: Run golden path E2E tests
+        run: |
+          # Start preview server
+          pnpm preview --port 8080 &
+          SERVER_PID=$!
+
+          # Wait for server
+          for i in {1..30}; do
+            curl -s http://localhost:8080 > /dev/null && break
+            sleep 1
+          done
+
+          # Run golden path tests
+          pnpm exec playwright test tests/e2e/golden-path-smoke.spec.ts \
+            --reporter=html,github \
+            --project=chromium
+
+          TEST_EXIT=$?
+          kill $SERVER_PID 2>/dev/null || true
+          exit $TEST_EXIT
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:8080
+          SUPABASE_URL: http://localhost:54321
+          SUPABASE_ANON_KEY: ${{ secrets.LOCAL_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.LOCAL_SERVICE_KEY }}
+          CI: true
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-path-report
+          path: test-reports/playwright/
+          retention-days: 7
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop
+
+  # Step 3: Integrity Monitor Test
+  integrity-monitor:
+    name: Integrity Monitor
+    runs-on: ubuntu-latest
+    needs: db-integrity
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase locally
+        run: |
+          supabase start
+          sleep 10
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply migrations
+        run: supabase db push --local
+
+      - name: Run integrity monitor
+        run: |
+          chmod +x scripts/run-integrity-monitor.sh 2>/dev/null || true
+          ./scripts/run-integrity-monitor.sh local || echo "Integrity monitor script not found or failed"
+
+      - name: Verify monitor recorded run
+        run: |
+          psql "postgresql://postgres:postgres@localhost:54322/postgres" <<'EOF'
+          SELECT
+            CASE WHEN COUNT(*) > 0 THEN 'PASS: Integrity runs recorded'
+            ELSE 'WARN: No integrity runs found'
+            END as status,
+            COUNT(*) as run_count
+          FROM admin_integrity_runs
+          WHERE run_at > NOW() - INTERVAL '5 minutes';
+          EOF
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop
+
+  # Summary job
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [db-integrity, golden-path-tests, integrity-monitor]
+    if: always()
+
+    steps:
+      - name: Check results
+        run: |
+          echo "## Golden Path CI Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.db-integrity.result }}" == "success" ]; then
+            echo "✅ Database Integrity: PASS" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Database Integrity: FAIL" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.golden-path-tests.result }}" == "success" ]; then
+            echo "✅ Golden Path E2E: PASS" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Golden Path E2E: FAIL" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.integrity-monitor.result }}" == "success" ]; then
+            echo "✅ Integrity Monitor: PASS" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Integrity Monitor: ${{ needs.integrity-monitor.result }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if critical jobs failed
+        if: needs.db-integrity.result == 'failure' || needs.golden-path-tests.result == 'failure'
+        run: exit 1

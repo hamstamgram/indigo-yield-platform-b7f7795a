@@ -3,7 +3,7 @@
  */
 
 // useSystemAdmin
-export { 
+export {
   useResetHistory,
   usePositionResetPreview,
   useExecutePositionReset,
@@ -53,10 +53,10 @@ export {
 } from "../useAdminUsers";
 
 // useAdminInvites
-export { 
+export {
   useIsSuperAdmin,
-  useAdminInvites, 
-  useCreateAdminInvite, 
+  useAdminInvites,
+  useCreateAdminInvite,
   useSendAdminInvite,
   useDeleteAdminInvite,
   useCopyInviteLink,
@@ -70,3 +70,18 @@ export {
   useRevokeAdminInvite,
   type AdminInvite as AdminInviteItem,
 } from "../useAdminInvitesPage";
+
+// P1 Integrity Operations
+export {
+  useIntegrityRuns,
+  useAdminAlerts,
+  useRunIntegrityCheck,
+  useAcknowledgeAlert,
+  useCrystallizationDashboard,
+  useCrystallizationGaps,
+  useBatchCrystallizeFund,
+  useDuplicateProfiles,
+  useMergeDuplicateProfiles,
+  useBypassAttempts,
+  useLedgerReconciliation,
+} from "../useIntegrityOperations";

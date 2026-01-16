@@ -40,6 +40,8 @@ export type {
 export * from "./yieldDistributionService";
 export * from "./recordedYieldsService";
 export * from "./yieldManagementService";
+export { preflowAumService } from "./preflowAumService";
+export type { ExistingPreflowAum, EnsurePreflowAumResult, AumPurpose } from "./preflowAumService";
 
 // Bulk operations
 export * from "./bulkOperationsService";
@@ -56,6 +58,21 @@ export { deliveryService } from "./deliveryService";
 
 // Integrity management
 export { integrityService } from "./integrityService";
+
+// P1 Integrity Operations (admin_integrity_runs, crystallization, duplicates, bypass)
+export { integrityOperationsService } from "./integrityOperationsService";
+export type {
+  IntegrityRun,
+  IntegrityViolation,
+  AdminAlert,
+  IntegrityCheckResult,
+  CrystallizationDashboardRow,
+  CrystallizationGap,
+  DuplicateProfile,
+  BypassAttempt,
+  BatchCrystallizeResult,
+  MergeDuplicatesResult,
+} from "./integrityOperationsService";
 
 // Requests queue management
 export { requestsQueueService } from "./requestsQueueService";

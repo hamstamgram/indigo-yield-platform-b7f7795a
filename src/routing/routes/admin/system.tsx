@@ -15,7 +15,11 @@ const AdminToolsPage = lazy(() => import("@/pages/admin/settings/AdminToolsPage"
 const AdminInvitesPage = lazy(() => import("@/pages/admin/settings/AdminInvitesPage"));
 const SystemHealthPage = lazy(() => import("@/pages/admin/system-health/SystemHealthPage"));
 const IntegrityDashboardPage = lazy(() => import("@/pages/admin/IntegrityDashboardPage"));
-
+const CrystallizationDashboardPage = lazy(
+  () => import("@/pages/admin/CrystallizationDashboardPage")
+);
+const DuplicatesPage = lazy(() => import("@/pages/admin/DuplicatesPage"));
+const BypassAttemptsPage = lazy(() => import("@/pages/admin/BypassAttemptsPage"));
 
 export function SystemRoutes() {
   return (
@@ -80,6 +84,36 @@ export function SystemRoutes() {
         }
       />
 
+      {/* P1: Crystallization Dashboard */}
+      <Route
+        path="/admin/crystallization"
+        element={
+          <AdminRoute>
+            <CrystallizationDashboardPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* P1: Duplicate Profiles */}
+      <Route
+        path="/admin/duplicates"
+        element={
+          <AdminRoute>
+            <DuplicatesPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* P1: Bypass Attempts */}
+      <Route
+        path="/admin/bypass-attempts"
+        element={
+          <AdminRoute>
+            <BypassAttemptsPage />
+          </AdminRoute>
+        }
+      />
+
       {/* Audit logs */}
       <Route
         path="/admin/audit-logs"
@@ -99,7 +133,6 @@ export function SystemRoutes() {
           </AdminRoute>
         }
       />
-
 
       {/* Redirects for consolidated/removed pages */}
       <Route path="/admin/audit" element={<Navigate to="/admin/audit-logs" replace />} />
