@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -42,15 +42,27 @@ import { logError } from "@/lib/logger";
 import {
   createAdminTransaction,
   fetchInvestorsForSelector,
+  preflowAumService,
   type CreateTransactionParams,
 } from "@/services";
 import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { useActiveFunds, useInvestorBalance, useTransactionHistory, useInvestorsForTransaction } from "@/hooks";
+import {
+  useActiveFunds,
+  useInvestorBalance,
+  useTransactionHistory,
+  useInvestorsForTransaction,
+} from "@/hooks";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+
+interface ExistingPreflowAumUI {
+  closingAum: number;
+  eventTs: string;
+  createdByName?: string;
+}
 
 interface InvestorOption {
   id: string;
@@ -592,18 +604,14 @@ export function AddTransactionDialog({
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Input
-                  id="closing_aum"
-                  type="number"
-                  step="0.00000001"
-                  min="0"
-                  placeholder="Enter preflow AUM"
-                  {...register("closing_aum")}
-                  className={errors.closing_aum ? "border-destructive" : ""}
+                <PreflowAumInput
+                  fundId={selectedFundId}
+                  txDate={txDate}
+                  asset={selectedFund?.asset || "tokens"}
+                  register={register}
+                  setValue={setValue}
+                  errorMessage={errors.closing_aum?.message}
                 />
-                {errors.closing_aum && (
-                  <p className="text-sm text-destructive">{errors.closing_aum.message}</p>
-                )}
                 <p className="text-xs text-muted-foreground">
                   Fund AUM snapshot used for yield crystallization before this{" "}
                   {txnType?.toLowerCase() || "transaction"}.
@@ -663,3 +671,73 @@ export function AddTransactionDialog({
 }
 
 export default AddTransactionDialog;
+
+function PreflowAumInput(props: {
+  fundId: string;
+  txDate: string;
+  asset: string;
+  register: ReturnType<typeof useForm<TransactionFormData>>["register"];
+  setValue: ReturnType<typeof useForm<TransactionFormData>>["setValue"];
+  errorMessage?: string;
+}) {
+  const { fundId, txDate, asset, register, setValue, errorMessage } = props;
+  const requiresCheck = Boolean(fundId && txDate);
+
+  const { data: existing, isLoading } = useQuery({
+    queryKey: ["preflow-aum-existing", fundId, txDate],
+    queryFn: async (): Promise<ExistingPreflowAumUI | null> => {
+      const existingPreflow = await preflowAumService.getExisting(fundId, txDate, "transaction");
+      if (!existingPreflow) return null;
+      return {
+        closingAum: existingPreflow.closingAum,
+        eventTs: existingPreflow.eventTs,
+        createdByName: existingPreflow.createdBy?.name ?? undefined,
+      };
+    },
+    enabled: requiresCheck,
+    staleTime: 5_000,
+  });
+
+  useEffect(() => {
+    if (existing?.closingAum !== undefined) {
+      setValue("closing_aum", String(existing.closingAum), { shouldValidate: true });
+    }
+  }, [existing?.closingAum, setValue]);
+
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">Checking for existing preflow AUM…</div>;
+  }
+
+  if (existing) {
+    return (
+      <div className="space-y-2">
+        <Input
+          id="closing_aum"
+          type="number"
+          readOnly
+          value={String(existing.closingAum)}
+          className="bg-muted"
+        />
+        <p className="text-xs text-green-600">
+          Using existing preflow AUM recorded at {new Date(existing.eventTs).toLocaleString()}
+          {existing.createdByName ? ` by ${existing.createdByName}` : ""}.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <Input
+        id="closing_aum"
+        type="number"
+        step="0.00000001"
+        min="0"
+        placeholder={`Enter preflow AUM (${asset})`}
+        {...register("closing_aum")}
+        className={errorMessage ? "border-destructive" : ""}
+      />
+      {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+    </div>
+  );
+}

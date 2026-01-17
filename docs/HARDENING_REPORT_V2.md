@@ -20,7 +20,7 @@ This report documents the comprehensive hardening of the Indigo Yield Platform t
 | **D) Conservation** | `gross = net + fee` constraint on `investor_yield_events` | ✅ VERIFIED |
 | **E) Reconciliation** | `v_position_ledger_reconciliation` view + admin repair RPC | ✅ VERIFIED |
 | **F) Security** | `crystallize_yield_before_flow` restricted to `service_role` only | ✅ VERIFIED |
-| **G) Monitoring** | `run_comprehensive_health_check()` with 7 checks | ✅ VERIFIED |
+| **G) Monitoring** | `run_comprehensive_health_check()` with 12 checks | ✅ VERIFIED |
 
 ### Health Check Results (All PASS)
 
@@ -123,14 +123,19 @@ Key changes:
 
 ### 4.2 run_comprehensive_health_check (New Function)
 
-Returns 7 checks:
+Returns 12 checks (6 CRITICAL, 6 NON_CRITICAL):
 - YIELD_CONSERVATION (CRITICAL)
 - LEDGER_POSITION_MATCH (CRITICAL)
 - NATIVE_CURRENCY (CRITICAL)
 - NO_MANAGEMENT_FEE (CRITICAL)
 - EVENT_CONSERVATION (CRITICAL)
-- AUM_PURPOSE_CONSISTENCY (WARNING)
-- DUST_TOLERANCE (WARNING)
+- ECONOMIC_DATE_NOT_NULL (CRITICAL)
+- AS_OF_FILTERING (NON_CRITICAL)
+- AUM_PURPOSE_CONSISTENCY (NON_CRITICAL)
+- DUPLICATE_PREFLOW_AUM (NON_CRITICAL)
+- DUST_TOLERANCE (NON_CRITICAL)
+- VOID_CASCADE_INTEGRITY (NON_CRITICAL)
+- RECON_PACK_COVERAGE (NON_CRITICAL)
 
 ---
 
@@ -176,8 +181,8 @@ SELECT * FROM run_comprehensive_health_check();
 | NATIVE_CURRENCY | ACCOUNTING | PASS | 0 | CRITICAL |
 | NO_MANAGEMENT_FEE | POLICY | PASS | 0 | CRITICAL |
 | EVENT_CONSERVATION | ACCOUNTING | PASS | 0 | CRITICAL |
-| AUM_PURPOSE_CONSISTENCY | DATA_QUALITY | PASS | 0 | WARNING |
-| DUST_TOLERANCE | ACCOUNTING | PASS | 0 | WARNING |
+| AUM_PURPOSE_CONSISTENCY | DATA_QUALITY | PASS | 0 | NON_CRITICAL |
+| DUST_TOLERANCE | ACCOUNTING | PASS | 0 | NON_CRITICAL |
 
 ### Runbook: When Checks Fail
 
@@ -287,7 +292,7 @@ Example:
 - [x] D) Dust tolerance constraint on yield_distributions
 - [x] E) Position-ledger reconciliation view created
 - [x] F) crystallize restricted to service_role only
-- [x] G) run_comprehensive_health_check returns 7 PASS
+- [x] G) run_comprehensive_health_check returns 12 PASS (6 CRITICAL, 6 NON_CRITICAL)
 
 ### Frontend (UI)
 - [x] H) FundSelectionStep.tsx - Management Fee display REMOVED
@@ -316,12 +321,12 @@ NATIVE_CURRENCY:         PASS (0 violations) - CRITICAL
 NO_MANAGEMENT_FEE:       PASS (0 violations) - CRITICAL
 EVENT_CONSERVATION:      PASS (0 violations) - CRITICAL
 ECONOMIC_DATE_NOT_NULL:  PASS (0 violations) - CRITICAL
-AS_OF_FILTERING:         PASS (0 violations) - WARNING
-AUM_PURPOSE_CONSISTENCY: PASS (0 violations) - WARNING
-DUPLICATE_PREFLOW_AUM:   PASS (0 violations) - WARNING (cleaned)
-DUST_TOLERANCE:          PASS (0 violations) - WARNING
-VOID_CASCADE_INTEGRITY:  PASS (0 violations) - WARNING
-RECON_PACK_COVERAGE:     PASS (0 violations) - WARNING (new)
+AS_OF_FILTERING:         PASS (0 violations) - NON_CRITICAL
+AUM_PURPOSE_CONSISTENCY: PASS (0 violations) - NON_CRITICAL
+DUPLICATE_PREFLOW_AUM:   PASS (0 violations) - NON_CRITICAL (cleaned)
+DUST_TOLERANCE:          PASS (0 violations) - NON_CRITICAL
+VOID_CASCADE_INTEGRITY:  PASS (0 violations) - NON_CRITICAL
+RECON_PACK_COVERAGE:     PASS (0 violations) - NON_CRITICAL (new)
 ```
 
 ### Collaborator Enhancements (2026-01-14)
@@ -371,7 +376,7 @@ RECON_PACK_COVERAGE:     PASS (0 violations) - WARNING (new)
 - **Contents**: Opening/closing AUM, flows, yields, voids, dust, investor count
 
 ### PHASE 10: Complete Monitoring Suite
-- **12 health checks** (6 CRITICAL, 6 WARNING)
+- **12 health checks** (6 CRITICAL, 6 NON_CRITICAL)
 - **Legacy cleanup**: Duplicate preflow AUM voided
 - **New checks**: `AS_OF_FILTERING`, `ECONOMIC_DATE_NOT_NULL`, `RECON_PACK_COVERAGE`
 

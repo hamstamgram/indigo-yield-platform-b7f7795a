@@ -99,40 +99,28 @@ export async function applyYieldDistribution(
     }
   }
 
-  // Calculate the gross yield (new AUM - current AUM)
-  const { data: positions, error: posError } = await supabase
-    .from("investor_positions")
-    .select("current_value")
-    .eq("fund_id", fundId)
-    .gt("current_value", 0);
+  // IMPORTANT: Derive yield% using the backend preview RPC (AS-OF safe).
+  // This prevents "future deposits" from influencing past yield calculations.
+  const { data: preview, error: previewError } = await callRPC("preview_daily_yield_to_fund_v3", {
+    p_fund_id: fundId,
+    p_yield_date: formatDate(targetDate),
+    p_new_aum: newTotalAUM,
+    p_purpose: purpose,
+  });
 
-  if (posError) {
-    throw new Error(`Failed to fetch current positions: ${posError.message}`);
+  if (previewError) {
+    logError("applyYieldDistribution.preview", previewError, { fundId, purpose });
+    throw new Error(`Failed to preview yield: ${previewError.message}`);
   }
 
-  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  // Calculate gross yield - can be positive, zero, or negative
-  // Negative yield months are allowed (no fees charged on losses)
-  const grossYieldAmount = newTotalAUM - currentAUM;
-
-  // If no yield (or negative), still allow the operation but return early
-  // The DB will handle zero/negative yield correctly (no fees on losses)
-  if (grossYieldAmount <= 0) {
-    // For zero or negative months, we might want to record the loss but not distribute anything
-    // Return early with a message indicating no yield to distribute
-    return {
-      success: true,
-      message:
-        grossYieldAmount === 0
-          ? "No yield to distribute (AUM unchanged)"
-          : `Negative yield month: ${grossYieldAmount.toFixed(4)} loss recorded. No fees charged.`,
-      grossYieldAmount,
-      netYieldDistributed: 0,
-    };
+  const previewResult = preview as any;
+  if (!previewResult?.success) {
+    throw new Error(previewResult?.error || "Preview failed: Invalid response from server");
   }
 
-  // Calculate gross yield percentage from amount
-  const grossYieldPct = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
+  const currentAUM = Number(previewResult.currentAUM ?? 0);
+  const grossYieldPct = Number(previewResult.yieldPercentage ?? 0);
+  const grossYieldAmount = Number(previewResult.grossYield ?? newTotalAUM - currentAUM);
 
   // Use v3 apply function
   const { data, error } = await callRPC("apply_daily_yield_to_fund_v3", {
@@ -199,11 +187,11 @@ export async function applyYieldDistribution(
 
   const yieldDistributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
-    gross: grossYieldAmount,
-    fees: Number(result?.total_fees || 0),
-    ibFees: Number(result?.total_ib_fees || 0),
-    net: grossYieldAmount - Number(result?.total_fees || 0) - Number(result?.total_ib_fees || 0),
-    indigoCredit: Number(result?.total_fees || 0),
+    gross: Number(result?.gross_yield ?? result?.grossYield ?? grossYieldAmount),
+    fees: Number(result?.total_fees ?? result?.totalFees ?? 0),
+    ibFees: Number(result?.total_ib ?? result?.totalIbFees ?? 0),
+    net: Number(result?.net_yield ?? result?.netYield ?? 0),
+    indigoCredit: Number(result?.total_fees ?? result?.totalFees ?? 0),
   };
 
   return {
@@ -215,12 +203,14 @@ export async function applyYieldDistribution(
     purpose,
     currentAUM,
     newAUM: newTotalAUM,
-    grossYield: grossYieldAmount,
+    grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
-    yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0,
-    investorCount: Number(result?.investors_updated || 0),
+    yieldPercentage: grossYieldPct,
+    investorCount: Number(
+      result?.investor_count ?? result?.investorCount ?? result?.investors_updated ?? 0
+    ),
     distributions: yieldDistributions,
     ibCredits: [],
     indigoFeesCredit: totals.indigoCredit,

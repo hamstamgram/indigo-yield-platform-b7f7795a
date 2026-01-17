@@ -1,18 +1,43 @@
 import { useState } from "react";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Skeleton, Button, Input, Label,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+  Button,
+  Input,
+  Label,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { ChevronDown, ChevronUp, ArrowUpDown, Users, TrendingUp, Plus, CheckCircle, Loader2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ArrowUpDown,
+  Users,
+  TrendingUp,
+  Plus,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import {
   previewYieldDistribution,
   type YieldCalculationResult,
+  preflowAumService,
 } from "@/services";
 import {
   useActiveFundsWithAUM,
@@ -34,13 +59,16 @@ export default function MonthlyDataEntry() {
   const [newAUM, setNewAUM] = useState<string>("");
   const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [asOfCurrentAum, setAsOfCurrentAum] = useState<number | null>(null);
+  const [asOfCurrentAumLoading, setAsOfCurrentAumLoading] = useState(false);
 
   const { toast } = useToast();
   const { user } = useAuth();
 
   // React Query hooks
   const { data: funds = [], isLoading: loading, refetch: refetchFunds } = useActiveFundsWithAUM();
-  const { data: investors = [], isLoading: loadingInvestors } = useFundInvestorComposition(selectedFundId);
+  const { data: investors = [], isLoading: loadingInvestors } =
+    useFundInvestorComposition(selectedFundId);
   const applyYieldMutation = useApplyYieldDistribution();
 
   const handleSort = (field: SortField) => {
@@ -70,12 +98,29 @@ export default function MonthlyDataEntry() {
   };
 
   const selectedFund = funds.find((f) => f.id === selectedFundId);
+  const effectiveDate = new Date();
+  const effectiveDateIso = effectiveDate.toISOString().split("T")[0];
 
   // AUM Dialog handlers
   const handleOpenAUMDialog = () => {
     setNewAUM("");
     setYieldPreview(null);
+    setAsOfCurrentAum(null);
     setShowAUMDialog(true);
+
+    if (!selectedFundId) return;
+    setAsOfCurrentAumLoading(true);
+    preflowAumService
+      .getFundAumAsOf(selectedFundId, effectiveDateIso, "reporting")
+      .then((aum) => setAsOfCurrentAum(aum))
+      .catch((err) => {
+        logError("MonthlyDataEntry.asOfAum", err, {
+          fundId: selectedFundId,
+          effectiveDate: effectiveDateIso,
+        });
+        setAsOfCurrentAum(null);
+      })
+      .finally(() => setAsOfCurrentAumLoading(false));
   };
 
   const handlePreviewYield = async () => {
@@ -90,21 +135,14 @@ export default function MonthlyDataEntry() {
       });
       return;
     }
-
-    if (newAUMValue <= selectedFund.total_aum) {
-      toast({
-        title: "Invalid AUM",
-        description: "New AUM must be greater than current AUM to distribute yield.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Note: New AUM can be less than current AUM (negative yield month)
+    // Backend handles this correctly - no fees charged on losses
 
     setPreviewLoading(true);
     try {
       const result = await previewYieldDistribution({
         fundId: selectedFundId,
-        targetDate: new Date(),
+        targetDate: effectiveDate,
         newTotalAUM: newAUMValue,
       });
       setYieldPreview(result);
@@ -112,7 +150,8 @@ export default function MonthlyDataEntry() {
       logError("MonthlyDataEntry.handlePreviewYield", error, { fundId: selectedFundId });
       toast({
         title: "Preview Failed",
-        description: error instanceof Error ? error.message : "Failed to preview yield distribution.",
+        description:
+          error instanceof Error ? error.message : "Failed to preview yield distribution.",
         variant: "destructive",
       });
     } finally {
@@ -127,19 +166,25 @@ export default function MonthlyDataEntry() {
       {
         input: {
           fundId: selectedFundId,
-          targetDate: new Date(),
+          targetDate: effectiveDate,
           newTotalAUM: parseFloat(newAUM),
         },
       },
       {
         onSuccess: () => {
+          const gross = yieldPreview.grossYield;
+          const asset = selectedFund?.asset || "";
           toast({
             title: "Yield Distributed",
-            description: `Successfully distributed ${formatValue(yieldPreview.grossYield, selectedFund?.asset || "")} ${selectedFund?.asset} yield to ${yieldPreview.investorCount} investors.`,
+            description:
+              gross < 0
+                ? `Successfully applied a loss of ${formatValue(gross, asset)} ${asset} across ${yieldPreview.investorCount} investors (no performance fees on losses).`
+                : `Successfully distributed ${formatValue(gross, asset)} ${asset} to ${yieldPreview.investorCount} investors.`,
           });
           setShowAUMDialog(false);
           setYieldPreview(null);
           setNewAUM("");
+          setAsOfCurrentAum(null);
           refetchFunds();
         },
       }
@@ -253,9 +298,7 @@ export default function MonthlyDataEntry() {
                 ))}
               </div>
             ) : investors.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                No investors in this fund.
-              </p>
+              <p className="text-muted-foreground text-center py-8">No investors in this fund.</p>
             ) : (
               <div className="rounded-md border">
                 <Table>
@@ -321,9 +364,21 @@ export default function MonthlyDataEntry() {
             {/* AUM Input Section */}
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Current AUM</Label>
+                <Label className="text-muted-foreground">
+                  Current AUM (as-of {effectiveDateIso})
+                </Label>
                 <div className="text-2xl font-mono font-semibold">
-                  {formatValue(selectedFund?.total_aum || 0, selectedFund?.asset || "")} {selectedFund?.asset}
+                  {asOfCurrentAumLoading ? (
+                    <span className="text-muted-foreground">Loading…</span>
+                  ) : (
+                    <>
+                      {formatValue(
+                        yieldPreview?.currentAUM ?? asOfCurrentAum ?? selectedFund?.total_aum ?? 0,
+                        selectedFund?.asset || ""
+                      )}{" "}
+                      {selectedFund?.asset}
+                    </>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -360,6 +415,10 @@ export default function MonthlyDataEntry() {
             {/* Preview Results */}
             {yieldPreview && (
               <div className="space-y-4 border-t pt-4">
+                {/*
+                  Note: Negative yield months are allowed.
+                  Backend enforces performance fee = 0 on losses.
+                */}
                 {/* Summary Cards */}
                 <div className="grid grid-cols-4 gap-4">
                   <div className="rounded-lg bg-muted/50 p-3 text-center">
@@ -374,16 +433,36 @@ export default function MonthlyDataEntry() {
                       {formatValue(yieldPreview.newAUM, selectedFund?.asset || "")}
                     </div>
                   </div>
-                  <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                  <div
+                    className={cn(
+                      "rounded-lg p-3 text-center",
+                      yieldPreview.grossYield < 0 ? "bg-red-500/10" : "bg-green-500/10"
+                    )}
+                  >
                     <div className="text-xs text-muted-foreground">Gross Yield</div>
-                    <div className="font-mono font-semibold text-green-600">
-                      +{formatValue(yieldPreview.grossYield, selectedFund?.asset || "")}
+                    <div
+                      className={cn(
+                        "font-mono font-semibold",
+                        yieldPreview.grossYield < 0 ? "text-red-600" : "text-green-600"
+                      )}
+                    >
+                      {formatValue(yieldPreview.grossYield, selectedFund?.asset || "")}
                     </div>
                   </div>
-                  <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                  <div
+                    className={cn(
+                      "rounded-lg p-3 text-center",
+                      yieldPreview.yieldPercentage < 0 ? "bg-red-500/10" : "bg-green-500/10"
+                    )}
+                  >
                     <div className="text-xs text-muted-foreground">Yield %</div>
-                    <div className="font-mono font-semibold text-green-600">
-                      +{yieldPreview.yieldPercentage.toFixed(4)}%
+                    <div
+                      className={cn(
+                        "font-mono font-semibold",
+                        yieldPreview.yieldPercentage < 0 ? "text-red-600" : "text-green-600"
+                      )}
+                    >
+                      {yieldPreview.yieldPercentage.toFixed(4)}%
                     </div>
                   </div>
                 </div>

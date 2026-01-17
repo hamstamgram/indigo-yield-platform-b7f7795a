@@ -1,0 +1,96 @@
+import { callRPC } from "@/lib/supabase/typedRPC";
+import { profileService } from "@/services/shared/profileService";
+
+export type AumPurpose = "transaction" | "reporting";
+
+export interface ExistingPreflowAum {
+  aumEventId: string;
+  closingAum: number;
+  eventTs: string;
+  createdBy: { id: string; name: string } | null;
+}
+
+export interface EnsurePreflowAumResult {
+  success: boolean;
+  action: "reused_existing" | "created_new";
+  aumEventId: string;
+  closingAum: number;
+  message?: string;
+}
+
+export const preflowAumService = {
+  async getExisting(
+    fundId: string,
+    eventDate: string,
+    purpose: AumPurpose = "transaction"
+  ): Promise<ExistingPreflowAum | null> {
+    const { data, error } = await callRPC("get_existing_preflow_aum", {
+      p_fund_id: fundId,
+      p_event_date: eventDate,
+      p_purpose: purpose,
+    });
+
+    if (error) throw error;
+    const row = data?.[0];
+    if (!row?.aum_event_id) return null;
+
+    let createdBy: ExistingPreflowAum["createdBy"] = null;
+    const createdById = (row as unknown as { created_by?: string | null }).created_by;
+    if (createdById) {
+      const profile = await profileService.getById(createdById);
+      if (profile) {
+        createdBy = { id: profile.id, name: profile.name };
+      }
+    }
+
+    return {
+      aumEventId: row.aum_event_id,
+      closingAum: Number(row.closing_aum || 0),
+      eventTs: row.event_ts,
+      createdBy,
+    };
+  },
+
+  async ensure(
+    fundId: string,
+    date: string,
+    totalAum: number,
+    adminId: string,
+    purpose: AumPurpose = "transaction"
+  ): Promise<EnsurePreflowAumResult> {
+    const { data, error } = await callRPC("ensure_preflow_aum", {
+      p_fund_id: fundId,
+      p_date: date,
+      p_purpose: purpose,
+      p_total_aum: totalAum,
+      p_admin_id: adminId,
+    });
+
+    if (error) throw error;
+    const result = data as any;
+
+    return {
+      success: Boolean(result?.success),
+      action: (result?.action as EnsurePreflowAumResult["action"]) ?? "created_new",
+      aumEventId: String(result?.aum_event_id ?? ""),
+      closingAum: Number(result?.closing_aum ?? totalAum),
+      message: result?.message ? String(result.message) : undefined,
+    };
+  },
+
+  async getFundAumAsOf(
+    fundId: string,
+    asOfDate: string,
+    purpose: AumPurpose = "transaction"
+  ): Promise<number> {
+    const { data, error } = await callRPC("get_fund_aum_as_of", {
+      p_fund_id: fundId,
+      p_as_of_date: asOfDate,
+      p_purpose: purpose,
+    });
+
+    if (error) throw error;
+    const row = data?.[0];
+    return Number(row?.aum_value || 0);
+  },
+};

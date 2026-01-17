@@ -431,6 +431,8 @@ export interface VoidAndReissueParams {
     notes?: string | null;
     tx_hash?: string | null;
   };
+  /** Required closing AUM snapshot for the reissue date (native asset units) */
+  closingAum: number;
   reason: string;
 }
 

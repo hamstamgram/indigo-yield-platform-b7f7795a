@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useAuth } from "@/services/auth";
 import {
   getInvestorDocuments,
   downloadDocument,
@@ -15,13 +15,16 @@ import {
  * Hook for fetching investor documents
  */
 export function useInvestorDocuments() {
+  const { user, loading } = useAuth();
+
   return useQuery({
     queryKey: QUERY_KEYS.investorDocuments,
     queryFn: async (): Promise<InvestorDocument[]> => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       return getInvestorDocuments(user.id);
     },
+    // Wait for auth to be ready before fetching
+    enabled: !loading,
   });
 }
 
@@ -52,13 +55,16 @@ export function useDocumentDownload() {
  * Hook for fetching performance history grouped by asset
  */
 export function usePerformanceHistory() {
+  const { user, loading } = useAuth();
+
   return useQuery({
     queryKey: ["performance-history-grouped"],
     queryFn: async (): Promise<Record<string, PerformanceHistoryRecord[]>> => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       return performanceService.getPerformanceHistoryGrouped(user.id);
     },
+    // Wait for auth to be ready before fetching
+    enabled: !!user && !loading,
   });
 }
 
@@ -66,12 +72,15 @@ export function usePerformanceHistory() {
  * Hook for fetching pending transactions (deposits + withdrawals)
  */
 export function usePendingTransactions(searchTerm?: string) {
+  const { user, loading } = useAuth();
+
   return useQuery({
     queryKey: QUERY_KEYS.pendingTransactions(searchTerm),
     queryFn: async (): Promise<PendingTransaction[]> => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       return getPendingTransactions(user.id, searchTerm);
     },
+    // Wait for auth to be ready before fetching
+    enabled: !!user && !loading,
   });
 }

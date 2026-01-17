@@ -34,14 +34,14 @@ function formatDate(date: Date): string {
 async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
   const year = targetDate.getFullYear();
   const month = targetDate.getMonth() + 1;
-  
+
   const { data, error } = await supabase
     .from("statement_periods")
     .select("id")
     .eq("year", year)
     .eq("month", month)
     .maybeSingle();
-  
+
   if (error || !data) {
     const { data: nextPeriod } = await supabase
       .from("statement_periods")
@@ -73,7 +73,7 @@ export async function previewYieldDistribution(
   // Get snapshot info for display
   const periodId = await getPeriodIdForDate(targetDate);
   let snapshotInfo: YieldCalculationResult["snapshotInfo"];
-  
+
   if (periodId) {
     const snapshot = await getFundPeriodSnapshot(fundId, periodId);
     if (snapshot) {
@@ -86,26 +86,14 @@ export async function previewYieldDistribution(
     }
   }
 
-  // Get current positions for AUM calculation
-  const { data: positions, error: posError } = await supabase
-    .from("investor_positions")
-    .select("current_value")
-    .eq("fund_id", fundId)
-    .gt("current_value", 0);
-
-  if (posError) {
-    throw new Error(`Failed to fetch positions: ${posError.message}`);
-  }
-
-  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
-
-  if (grossYieldAmount <= 0) {
-    throw new Error(`New AUM (${newTotalAUM}) must be greater than current AUM (${currentAUM}) to distribute yield`);
-  }
+  // IMPORTANT: Do NOT derive "current AUM" from investor_positions.current_value here.
+  // The backend preview RPC computes AS-OF balances and returns an AS-OF currentAUM to prevent time-travel bugs.
+  const fallbackCurrentAUM = 0;
 
   // Get user ID
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     throw new Error("Authentication required");
   }
@@ -170,19 +158,21 @@ export async function previewYieldDistribution(
   }));
 
   // Extract totals from backend response
-  const totals: YieldTotals = result.totals ? {
-    gross: Number(result.totals.gross || 0),
-    fees: Number(result.totals.fees || 0),
-    ibFees: Number(result.totals.ibFees || 0),
-    net: Number(result.totals.net || 0),
-    indigoCredit: Number(result.totals.indigoCredit || 0),
-  } : {
-    gross: Number(result.grossYield || 0),
-    fees: Number(result.totalFees || 0),
-    ibFees: Number(result.totalIbFees || 0),
-    net: Number(result.netYield || 0),
-    indigoCredit: Number(result.indigoFeesCredit || 0),
-  };
+  const totals: YieldTotals = result.totals
+    ? {
+        gross: Number(result.totals.gross || 0),
+        fees: Number(result.totals.fees || 0),
+        ibFees: Number(result.totals.ibFees || 0),
+        net: Number(result.totals.net || 0),
+        indigoCredit: Number(result.totals.indigoCredit || 0),
+      }
+    : {
+        gross: Number(result.grossYield || 0),
+        fees: Number(result.totalFees || 0),
+        ibFees: Number(result.totalIbFees || 0),
+        net: Number(result.netYield || 0),
+        indigoCredit: Number(result.indigoFeesCredit || 0),
+      };
 
   return {
     success: true,
@@ -194,7 +184,7 @@ export async function previewYieldDistribution(
     effectiveDate: result.effectiveDate || formatDate(targetDate),
     purpose: result.purpose || purpose,
     isMonthEnd: Boolean(result.isMonthEnd),
-    currentAUM: Number(result.currentAUM || currentAUM),
+    currentAUM: Number(result.currentAUM || fallbackCurrentAUM),
     newAUM: Number(result.newAUM || newTotalAUM),
     grossYield: Number(result.grossYield || totals.gross),
     netYield: Number(result.netYield || totals.net),

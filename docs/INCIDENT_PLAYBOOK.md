@@ -102,7 +102,7 @@ This playbook provides step-by-step procedures for handling common operational i
 
 ### 2.4 PERIOD_LOCKED Failure
 
-**Severity:** WARNING
+**Severity:** NON_CRITICAL
 
 **Symptoms:**
 - Attempt to insert into a locked accounting period
@@ -127,7 +127,7 @@ This playbook provides step-by-step procedures for handling common operational i
 
 ### 2.5 DUPLICATE_PREFLOW_AUM Failure
 
-**Severity:** WARNING
+**Severity:** NON_CRITICAL
 
 **Symptoms:**
 - Multiple preflow AUM records for same fund/date
@@ -141,6 +141,39 @@ This playbook provides step-by-step procedures for handling common operational i
 **Resolution:**
 - Cleanup function automatically voids duplicates
 - Keeps the most recent record
+
+---
+
+### 2.6 RECON_PACK_COVERAGE Failure
+
+**Severity:** NON_CRITICAL
+
+**Symptoms:**
+- Locked period missing reconciliation pack
+- Period finalization blocked
+
+**Immediate Actions:**
+1. Identify missing packs:
+   ```sql
+   SELECT ap.fund_id, ap.period_start, ap.period_end
+   FROM accounting_periods ap
+   WHERE ap.is_locked = true
+     AND NOT EXISTS (
+       SELECT 1 FROM reconciliation_packs rp
+       WHERE rp.fund_id = ap.fund_id
+         AND rp.period_start = ap.period_start
+     );
+   ```
+
+**Resolution:**
+1. Generate the missing pack:
+   ```sql
+   SELECT generate_reconciliation_pack('<fund_id>', '<period_start>', '<period_end>', '<admin_id>');
+   ```
+2. If pack generation fails, investigate missing data
+3. Contact engineering if reconciliation cannot be completed
+
+**Escalation:** Finance team for review before finalizing
 
 ---
 
@@ -326,7 +359,7 @@ SELECT void_and_reissue_transaction(
 | Issue Type | First Contact | Escalation |
 |------------|---------------|------------|
 | Health Check CRITICAL | Engineering On-Call | CTO |
-| Health Check WARNING | Operations Lead | Engineering |
+| Health Check NON_CRITICAL | Operations Lead | Engineering |
 | Transaction Errors | Operations Team | Finance Team |
 | Yield Calculation | Finance Team | Engineering |
 | System Outage | Engineering On-Call | CTO + CEO |

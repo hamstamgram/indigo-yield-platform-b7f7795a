@@ -141,7 +141,10 @@ Due to rounding (10 decimal places), tiny differences may occur. These are:
 - Tracked in the `dust_amount` field
 - Allocated to the largest investor (by position size)
 - Recorded with `dust_receiver_id`
-- Enforced by DB constraint: |dust_amount| ≤ 0.01 base units per distribution
+- Enforced by DB trigger with **asset-aware tolerances**:
+  - Stablecoins (USDC, USDT, DAI): ≤ 0.0001
+  - ETH/BTC: ≤ 0.00000001
+  - Default: ≤ 0.01
 
 ---
 
@@ -168,7 +171,7 @@ The system **rejects** any deposit or withdrawal that doesn't use `purpose='tran
 ## 6. Reconciliation Reports
 
 ### Daily Health Check
-The system runs 11 automatic health checks that verify:
+The system runs 12 automatic health checks that verify:
 
 | Check | What It Validates | Severity |
 |-------|-------------------|----------|
@@ -178,11 +181,12 @@ The system runs 11 automatic health checks that verify:
 | NO_MANAGEMENT_FEE | mgmt_fee_bps = 0 on all funds | CRITICAL |
 | EVENT_CONSERVATION | Yield events satisfy gross = net + fee | CRITICAL |
 | ECONOMIC_DATE_NOT_NULL | All transactions have explicit tx_date | CRITICAL |
-| AS_OF_FILTERING | No backdated entries violating period rules | WARNING |
-| AUM_PURPOSE_CONSISTENCY | All AUM records have proper purpose | WARNING |
-| DUPLICATE_PREFLOW_AUM | No duplicate preflow entries | WARNING |
-| DUST_TOLERANCE | Dust amounts within asset-specific tolerance | WARNING |
-| VOID_CASCADE_INTEGRITY | Voided transactions properly cascade | WARNING |
+| AS_OF_FILTERING | No backdated entries violating period rules | NON_CRITICAL |
+| AUM_PURPOSE_CONSISTENCY | All AUM records have proper purpose | NON_CRITICAL |
+| DUPLICATE_PREFLOW_AUM | No duplicate preflow entries | NON_CRITICAL |
+| DUST_TOLERANCE | Dust amounts within asset-specific tolerance | NON_CRITICAL |
+| VOID_CASCADE_INTEGRITY | Voided transactions properly cascade | NON_CRITICAL |
+| RECON_PACK_COVERAGE | All finalized periods have reconciliation packs | NON_CRITICAL |
 
 ### Accessing Health Check Results
 ```sql

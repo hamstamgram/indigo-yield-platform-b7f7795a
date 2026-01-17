@@ -94,7 +94,7 @@ export function InvestorLedgerTab({
   const handleEditVoidSuccess = useCallback(() => {
     invalidateAll();
     onDataChange?.();
-    setEditDialogOpen(false);
+    setReissueDialogOpen(false);
     setVoidDialogOpen(false);
     setSelectedTransaction(null);
   }, [invalidateAll, onDataChange]);

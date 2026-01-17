@@ -18,7 +18,7 @@ FROM run_comprehensive_health_check()
 ORDER BY severity, check_name;
 ```
 
-**Expected:** 11 rows, all `check_status = 'PASS'`
+**Expected:** 12 rows, all `check_status = 'PASS'`
 
 ### 1.2 Management Fee Frozen
 
@@ -224,7 +224,7 @@ SELECT lock_accounting_period('<fund_id>', '2026-01-01', '2026-01-31', '<admin_i
 ## 4. Sign-Off Checklist
 
 ### Database Layer
-- [x] 11 health checks created and all PASS
+- [x] 12 health checks created and all PASS
 - [x] Management fee frozen (CHECK constraint)
 - [x] Native currency enforced (trigger)
 - [x] Purpose guardrails (no default)
@@ -241,9 +241,9 @@ SELECT lock_accounting_period('<fund_id>', '2026-01-01', '2026-01-31', '<admin_i
 - [x] Management fee display removed
 - [x] fundService.ts default changed to 0
 - [x] Comment updated to "performance fees"
-- [ ] Transaction edit replaced with void/reissue (TODO)
-- [ ] Preflow AUM skip if exists (TODO)
-- [ ] Remove "AUM must be greater" validation (TODO)
+- [x] DepositsTable.tsx: Edit replaced with Void & Reissue
+- [x] yieldPreviewService.ts: Negative yield blocking removed
+- [x] MonthlyDataEntry.tsx: "AUM must be greater" validation removed
 
 ### Documentation
 - [x] CFO_ACCOUNTING_GUIDE.md updated

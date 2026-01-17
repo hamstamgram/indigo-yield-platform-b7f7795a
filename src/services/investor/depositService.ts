@@ -92,7 +92,7 @@ export class DepositService {
 
   /**
    * Create deposit using crystallize-before-flow accounting.
-   * NOTE: This requires an authoritative closing AUM snapshot (p_closing_aum).
+   * NOTE: This requires an authoritative new total AUM snapshot (p_new_total_aum).
    */
   async createDeposit(formData: DepositFormData): Promise<Deposit> {
     const profileId = formData.user_id;
@@ -138,9 +138,9 @@ export class DepositService {
       p_fund_id: fund.id,
       p_investor_id: profileId,
       p_amount: amount,
-      p_closing_aum: Number(closingAum),
-      p_effective_date: txDate,
-      p_admin_id: null,
+      p_new_total_aum: Number(closingAum),
+      p_tx_date: txDate,
+      p_admin_id: profileId,
       p_notes: `Deposit - ${triggerReference}`,
       p_purpose: "transaction",
     });
@@ -156,13 +156,9 @@ export class DepositService {
     }
 
     // Send deposit notification (non-blocking)
-    depositNotifications.onConfirmed(
-      profileId,
-      result.deposit_tx_id,
-      amount,
-      assetSymbol,
-      fund?.name
-    ).catch(err => logError("depositService.notification", err, { profileId }));
+    depositNotifications
+      .onConfirmed(profileId, result.deposit_tx_id, amount, assetSymbol, fund?.name)
+      .catch((err) => logError("depositService.notification", err, { profileId }));
 
     return this.getDepositById(result.deposit_tx_id);
   }

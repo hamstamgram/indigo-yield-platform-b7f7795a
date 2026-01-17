@@ -33,6 +33,14 @@ declare -A FORBIDDEN_PATTERNS=(
   ["DELETE FROM transactions_v2"]="Never hard-delete financial records - use void_transaction RPC instead"
   ["UPDATE transactions_v2 SET notes"]="Don't update notes for voiding - use void_transaction RPC instead"
   ["investor_positions\.update.*notes"]="Don't modify notes for corrections - use proper void/recompute RPCs"
+  ["INSERT INTO transactions_v2.*VALUES"]="Direct INSERT into transactions_v2 bypasses crystallization - use apply_transaction_with_crystallization RPC"
+  ["SELECT.*FROM investors "]="Table 'investors' does not exist - use 'profiles' for investor data"
+  ["JOIN investors"]="Table 'investors' does not exist - use 'profiles' for investor data"
+  ["DROP FUNCTION.*apply_transaction_with_crystallization"]="Never drop the canonical transaction RPC"
+  ["DROP TRIGGER.*trg_enforce_transaction_via_rpc"]="Never drop the bypass enforcement trigger"
+  ["REVOKE.*ON FUNCTION apply_transaction_with_crystallization"]="Never revoke access to canonical transaction RPC"
+  ["source = 'direct'"]="Invalid tx_source value - use approved values: rpc_canonical, crystallization, manual_admin"
+  ["\.balance[^_]"]="Use 'current_value' not 'balance' - investor_positions column is 'current_value'"
 )
 
 # Check each pattern
@@ -62,7 +70,52 @@ if ! grep -rq "CREATE TABLE.*withdrawal_audit_logs" "$MIGRATIONS_DIR" 2>/dev/nul
   echo "   This may indicate missing migration files"
 fi
 
+# Additional check: Ensure critical RPCs are not being dropped
+echo ""
+echo "🔍 Checking for protected RPC drops..."
+
+PROTECTED_RPCS=(
+  "apply_transaction_with_crystallization"
+  "crystallize_yield_before_flow"
+  "void_transaction"
+  "recompute_investor_position"
+  "is_admin"
+)
+
+for rpc in "${PROTECTED_RPCS[@]}"; do
+  if grep -rqE "DROP FUNCTION.*$rpc" "$MIGRATIONS_DIR" 2>/dev/null; then
+    echo "❌ ERROR: Migration attempts to DROP protected RPC: $rpc"
+    grep -rlE "DROP FUNCTION.*$rpc" "$MIGRATIONS_DIR" | while read -r file; do
+      echo "   Found in: $file"
+    done
+    EXIT_CODE=1
+  fi
+done
+
+# Check for direct transaction inserts (bypassing canonical RPC)
+echo ""
+echo "🔍 Checking for direct transaction inserts..."
+
+# This pattern checks for INSERT INTO transactions_v2 that isn't inside a SECURITY DEFINER function context
+# We allow them only within the canonical RPC files
+BYPASS_FOUND=false
+for file in "$MIGRATIONS_DIR"/*.sql; do
+  if grep -qE "INSERT INTO transactions_v2" "$file" 2>/dev/null; then
+    # Check if it's within the canonical RPC definition
+    if ! grep -qE "(apply_transaction_with_crystallization|crystallize_yield_before_flow|admin_create_transaction|complete_withdrawal)" "$file" 2>/dev/null; then
+      echo "⚠️  WARNING: Direct INSERT INTO transactions_v2 found outside canonical RPC context"
+      echo "   File: $file"
+      BYPASS_FOUND=true
+    fi
+  fi
+done
+
+if [ "$BYPASS_FOUND" = true ]; then
+  echo "   Note: Direct inserts are blocked by trigger, but should use canonical RPC"
+fi
+
 if [ $EXIT_CODE -eq 0 ]; then
+  echo ""
   echo "✅ Migration pattern check passed - no forbidden patterns found"
 else
   echo ""

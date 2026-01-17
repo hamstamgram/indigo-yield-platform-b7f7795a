@@ -1,7 +1,7 @@
 /**
  * Portfolio Service
  * Handles all portfolio-related operations
- * 
+ *
  * IMPORTANT: Money movements must use crystallize-before-flow RPCs.
  */
 
@@ -56,22 +56,23 @@ export class PortfolioService extends ApiClient {
           .maybeSingle();
 
         // Use post_flow_aum if available, otherwise closing_aum
-        const closingAum = lastEvent?.post_flow_aum 
-          ? String(lastEvent.post_flow_aum) 
-          : lastEvent?.closing_aum 
-            ? String(lastEvent.closing_aum) 
+        const closingAum = lastEvent?.post_flow_aum
+          ? String(lastEvent.post_flow_aum)
+          : lastEvent?.closing_aum
+            ? String(lastEvent.closing_aum)
             : "0.0000000000";
 
         // Generate trigger reference for idempotency
         const triggerReference = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
+        const newTotalAum = Number(closingAum) + amount;
 
         const { data, error } = await callRPC("apply_deposit_with_crystallization", {
           p_fund_id: fund.id,
           p_investor_id: investorId,
           p_amount: amount,
-          p_closing_aum: Number(closingAum),
-          p_effective_date: today,
-          p_admin_id: null,
+          p_new_total_aum: newTotalAum,
+          p_tx_date: today,
+          p_admin_id: investorId,
           p_notes: `Initial position - ${triggerReference}`,
           p_purpose: "transaction",
         });
@@ -125,7 +126,8 @@ export class PortfolioService extends ApiClient {
         total_value: totalValue,
         total_cost_basis: totalCostBasis,
         total_unrealized_gain: totalUnrealizedGain,
-        total_unrealized_gain_percent: totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
+        total_unrealized_gain_percent:
+          totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
         total_realized_gain: totalRealizedGain,
         position_count: positions?.length || 0,
         last_updated: new Date().toISOString(),
@@ -239,7 +241,8 @@ export class PortfolioService extends ApiClient {
         total_value: totalValue,
         total_cost_basis: totalCostBasis,
         total_unrealized_gain: totalUnrealizedGain,
-        total_unrealized_gain_percent: totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
+        total_unrealized_gain_percent:
+          totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
         total_realized_gain: totalRealizedGain,
         position_count: positions.length,
         last_updated: new Date().toISOString(),

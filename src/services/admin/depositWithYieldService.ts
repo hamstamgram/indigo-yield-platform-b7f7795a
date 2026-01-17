@@ -1,6 +1,6 @@
 /**
  * Deposit with Yield Distribution Service
- * 
+ *
  * Implements crystallize-before-flow accounting:
  * - Crystallize yield up to the flow event using an authoritative AUM snapshot
  * - Apply the DEPOSIT afterwards (same DB transaction)
@@ -46,7 +46,7 @@ export interface DepositWithYieldResult {
 
 /**
  * Preview the yield that will be distributed before a deposit
- * 
+ *
  * Uses last fund_aum_events checkpoint as opening AUM, and (newTotalAum - depositAmount)
  * as the closing AUM snapshot for crystallization.
  */
@@ -104,7 +104,7 @@ export async function previewDepositYield(
 
 /**
  * Process a deposit with yield distribution
- * 
+ *
  * Steps:
  * 1. Compute crystallization closing snapshot = (newTotalAum - amount)
  * 2. Call apply_deposit_with_crystallization (crystallize first, then deposit)
@@ -116,9 +116,17 @@ export async function processDepositWithYield(
   void notes;
 
   // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { success: false, yieldDistributed: 0, yieldInvestorsAffected: 0, depositProcessed: false, error: "Not authenticated" };
+    return {
+      success: false,
+      yieldDistributed: 0,
+      yieldInvestorsAffected: 0,
+      depositProcessed: false,
+      error: "Not authenticated",
+    };
   }
 
   const amountDec = toDecimal(amount).abs();
@@ -136,28 +144,31 @@ export async function processDepositWithYield(
 
   try {
     const triggerReference = (txHash || `deposit_yield:${Date.now()}`).replace(/^DEP:/, "");
-    const closingAumBeforeDepositFixed = closingAumBeforeDeposit.toFixed(10);
     const amountFixed = amountDec.toFixed(10);
+    const newTotalAumFixed = newTotalAumDec.toFixed(10);
 
-    const { data: depositResult, error: depositError } = await callRPC("apply_deposit_with_crystallization", {
-      p_fund_id: fundId,
-      p_investor_id: investorId,
-      p_amount: Number(amountFixed),
-      p_closing_aum: Number(closingAumBeforeDepositFixed),
-      p_effective_date: txDate,
-      p_admin_id: user.id,
-      p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
-      p_purpose: "transaction",
-    });
+    const { data: depositResult, error: depositError } = await callRPC(
+      "apply_deposit_with_crystallization",
+      {
+        p_fund_id: fundId,
+        p_investor_id: investorId,
+        p_amount: Number(amountFixed),
+        p_new_total_aum: Number(newTotalAumFixed),
+        p_tx_date: txDate,
+        p_admin_id: user.id,
+        p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
+        p_purpose: "transaction",
+      }
+    );
 
     if (depositError) {
       logError("processDepositWithYield", depositError, { fundId, investorId });
-      return { 
-        success: false, 
-        yieldDistributed: 0, 
-        yieldInvestorsAffected: 0, 
-        depositProcessed: false, 
-        error: `Deposit failed: ${depositError.message}` 
+      return {
+        success: false,
+        yieldDistributed: 0,
+        yieldInvestorsAffected: 0,
+        depositProcessed: false,
+        error: `Deposit failed: ${depositError.message}`,
       };
     }
 
@@ -173,12 +184,12 @@ export async function processDepositWithYield(
     };
   } catch (err) {
     logError("processDepositWithYield.exception", err, { fundId, investorId });
-    return { 
-      success: false, 
-      yieldDistributed: 0, 
-      yieldInvestorsAffected: 0, 
-      depositProcessed: false, 
-      error: `Deposit exception: ${err}` 
+    return {
+      success: false,
+      yieldDistributed: 0,
+      yieldInvestorsAffected: 0,
+      depositProcessed: false,
+      error: `Deposit exception: ${err}`,
     };
   }
 }

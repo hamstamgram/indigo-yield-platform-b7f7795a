@@ -24,7 +24,8 @@ import {
 } from "@/components/ui";
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { depositService, fundDailyAumService, profileService } from "@/services";
+import { depositService, preflowAumService, profileService } from "@/services";
+import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/domains";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -71,20 +72,19 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
         ? QUERY_KEYS.fundAumCheck(selectedFundId, formattedDate)
         : ["fund-aum-check"],
     queryFn: async () => {
-      // Check for existing AUM record (any purpose - we can reuse it)
-      return fundDailyAumService.getByFundAndDate(selectedFundId, formattedDate);
+      return preflowAumService.getExisting(selectedFundId, formattedDate, "transaction");
     },
     enabled: !!selectedFundId && open,
   });
 
   // If existing AUM found, auto-populate the value
   useEffect(() => {
-    if (aumRecord?.total_aum !== undefined && aumRecord.total_aum !== null) {
-      setAumValue(String(aumRecord.total_aum));
+    if (aumRecord?.closingAum !== undefined && aumRecord.closingAum !== null) {
+      setAumValue(String(aumRecord.closingAum));
     }
   }, [aumRecord]);
 
-  const hasExistingAum = !!aumRecord?.total_aum;
+  const hasExistingAum = aumRecord?.closingAum !== null && aumRecord?.closingAum !== undefined;
   const needsAum = selectedFundId && !isCheckingAum && !aumRecord;
 
   // Create AUM mutation
@@ -93,12 +93,20 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       if (!selectedFundId || !aumValue) {
         throw new Error("Fund and AUM value are required");
       }
-      await fundDailyAumService.createAumRecord({
-        fundId: selectedFundId,
-        date: formattedDate,
-        totalAum: parseFloat(aumValue),
-        source: "manual_deposit_dialog",
-      });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user?.id) {
+        throw new Error("Authentication required");
+      }
+
+      await preflowAumService.ensure(
+        selectedFundId,
+        formattedDate,
+        Number(aumValue),
+        user.id,
+        "transaction"
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAum(selectedFundId) });
@@ -301,7 +309,11 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                     className="bg-muted"
                   />
                   <p className="text-xs text-green-600">
-                    An existing preflow AUM record was found for this date and will be reused.
+                    Using existing preflow AUM recorded at{" "}
+                    {aumRecord?.eventTs
+                      ? new Date(aumRecord.eventTs).toLocaleString()
+                      : "(unknown time)"}
+                    {aumRecord?.createdBy?.name ? ` by ${aumRecord.createdBy.name}` : ""}.
                   </p>
                 </>
               ) : (

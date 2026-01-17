@@ -151,6 +151,44 @@ run_check "apply_daily_yield_to_fund_v2 function" \
   "SELECT COUNT(*) FROM pg_proc WHERE proname = 'apply_daily_yield_to_fund_v2'" \
   "1" || ((FAILURES++))
 
+# Crystallization Architecture Checks (P0)
+echo ""
+echo "💎 Crystallization Architecture Checks:"
+run_check "apply_transaction_with_crystallization function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'apply_transaction_with_crystallization'" \
+  "1" || ((FAILURES++))
+
+run_check "crystallize_yield_before_flow function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'crystallize_yield_before_flow'" \
+  "1" || ((FAILURES++))
+
+run_check "v_crystallization_gaps view exists" \
+  "SELECT COUNT(*) FROM information_schema.views WHERE table_name = 'v_crystallization_gaps' AND table_schema = 'public'" \
+  "1" || ((FAILURES++))
+
+run_check "v_transaction_sources view exists" \
+  "SELECT COUNT(*) FROM information_schema.views WHERE table_name = 'v_transaction_sources' AND table_schema = 'public'" \
+  "1" || ((FAILURES++))
+
+run_check "transactions_v2_reference_id_unique index exists" \
+  "SELECT COUNT(*) FROM pg_indexes WHERE indexname = 'transactions_v2_reference_id_unique'" \
+  "1" || ((FAILURES++))
+
+# Check for crystallization gaps (should be 0 in a healthy system)
+echo ""
+echo "🔍 Crystallization Integrity Checks:"
+run_check "No stale crystallization gaps" \
+  "SELECT COUNT(*) FROM v_crystallization_gaps WHERE gap_type = 'stale_crystallization'" \
+  "0" || ((FAILURES++))
+
+# Note: 'never_crystallized' may be acceptable for new positions
+# Only flag as failure in CI if there are stale ones
+if [ "$CI_MODE" == "true" ]; then
+  run_check "No crystallization gaps at all (CI mode)" \
+    "SELECT COUNT(*) FROM v_crystallization_gaps" \
+    "0" || ((FAILURES++))
+fi
+
 # Summary
 echo ""
 echo "=============================================="

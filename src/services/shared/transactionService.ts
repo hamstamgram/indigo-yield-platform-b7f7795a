@@ -1,12 +1,12 @@
 /**
  * Transaction Service - Unified transaction operations
- * 
+ *
  * CANONICAL SOURCE for transaction creation and user transaction queries
  * Uses types from @/types/domains/transaction
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { 
+import type {
   Transaction as BaseTransaction,
   CreateTransactionUIParams,
 } from "@/types/domains/transaction";
@@ -17,7 +17,11 @@ import { callRPC } from "@/lib/supabase/typedRPC";
 export type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 
 // Extended transaction with investor name for display
-export interface Transaction extends Pick<BaseTransaction, 'id' | 'investor_id' | 'asset' | 'amount' | 'tx_date' | 'created_at' | 'notes'> {
+export interface Transaction
+  extends Pick<
+    BaseTransaction,
+    "id" | "investor_id" | "asset" | "amount" | "tx_date" | "created_at" | "notes"
+  > {
   type: string; // Relaxed to string to handle various transaction types from DB
   txn_type: string | null;
   investor_name?: string;
@@ -83,9 +87,10 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
 
     return (data || []).map((tx: TransactionRow) => {
       const profile = tx.profile;
-      const investor_name = profile?.first_name || profile?.last_name
-        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
-        : profile?.email || "Unknown";
+      const investor_name =
+        profile?.first_name || profile?.last_name
+          ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+          : profile?.email || "Unknown";
 
       return {
         id: tx.id,
@@ -145,13 +150,19 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
 // Default tx_subtype based on transaction type
 const getDefaultTxSubtype = (type: string): string => {
   switch (type) {
-    case "FIRST_INVESTMENT": return "first_investment";
-    case "DEPOSIT": return "deposit";
-    case "WITHDRAWAL": return "redemption";
-    case "FEE": return "fee_charge";
+    case "FIRST_INVESTMENT":
+      return "first_investment";
+    case "DEPOSIT":
+      return "deposit";
+    case "WITHDRAWAL":
+      return "redemption";
+    case "FEE":
+      return "fee_charge";
     case "INTEREST":
-    case "YIELD": return "yield_credit";
-    default: return "adjustment";
+    case "YIELD":
+      return "yield_credit";
+    default:
+      return "adjustment";
   }
 };
 
@@ -179,7 +190,7 @@ export async function createAdminTransaction(
 
     // Map FIRST_INVESTMENT to DEPOSIT for DB enum compliance
     const dbType = mapTypeForDb(params.type);
-    
+
     // For DEPOSIT/WITHDRAWAL, use crystallize-before-flow RPCs (no manual position writes).
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
       const note = params.notes || `${dbType} of ${params.amount} ${params.asset}`;
@@ -194,7 +205,8 @@ export async function createAdminTransaction(
 
       // Generate unique trigger reference client-side (idempotency key)
       const triggerReferenceRaw =
-        params.reference_id || `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
+        params.reference_id ||
+        `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
       const triggerReference = triggerReferenceRaw.replace(/^(DEP:|WDR:)/, "");
 
       const { data, error } =
@@ -203,8 +215,8 @@ export async function createAdminTransaction(
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
               p_amount: Number(params.amount),
-              p_closing_aum: Number(closingAum),
-              p_effective_date: params.tx_date,
+              p_new_total_aum: Number(closingAum),
+              p_tx_date: params.tx_date,
               p_admin_id: user.id,
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
               p_purpose: "transaction",
@@ -213,13 +225,13 @@ export async function createAdminTransaction(
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
               p_amount: Number(params.amount),
-              p_closing_aum: Number(closingAum),
-              p_effective_date: params.tx_date,
+              p_new_total_aum: Number(closingAum),
+              p_tx_date: params.tx_date,
               p_admin_id: user.id,
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
               p_purpose: "transaction",
             });
-      
+
       if (error) {
         logError(`createAdminTransaction.${dbType}`, error, { fundId: params.fund_id });
         // Surface the actual Postgres error message
@@ -234,26 +246,28 @@ export async function createAdminTransaction(
 
       return { success: true };
     }
-    
+
     // For other transaction types (YIELD, INTEREST, FEE), use direct insert
     const txSubtype = params.tx_subtype || getDefaultTxSubtype(params.type);
 
-    const { error } = await supabase.from("transactions_v2").insert([{
-      investor_id: params.investor_id,
-      fund_id: params.fund_id,
-      type: dbType as any,
-      tx_subtype: txSubtype,
-      asset: params.asset,
-      amount: Number(params.amount),
-      tx_date: params.tx_date,
-      value_date: params.tx_date,
-      reference_id: params.reference_id || null,
-      tx_hash: params.tx_hash || null,
-      notes: params.notes || null,
-      created_by: user.id,
-      approved_by: user.id,
-      approved_at: new Date().toISOString(),
-    }] as any);
+    const { error } = await supabase.from("transactions_v2").insert([
+      {
+        investor_id: params.investor_id,
+        fund_id: params.fund_id,
+        type: dbType as any,
+        tx_subtype: txSubtype,
+        asset: params.asset,
+        amount: Number(params.amount),
+        tx_date: params.tx_date,
+        value_date: params.tx_date,
+        reference_id: params.reference_id || null,
+        tx_hash: params.tx_hash || null,
+        notes: params.notes || null,
+        created_by: user.id,
+        approved_by: user.id,
+        approved_at: new Date().toISOString(),
+      },
+    ] as any);
 
     if (error) throw error;
 
@@ -283,11 +297,13 @@ export interface QuickTransactionParams {
 }
 
 export async function createQuickTransaction(params: QuickTransactionParams): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
   const note = params.description || `${params.type} transaction`;
-  
+
   const closingAum = params.closingAum;
   if (!closingAum) {
     throw new Error(
@@ -306,8 +322,8 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
           p_amount: Number(params.amount),
-          p_closing_aum: Number(closingAum),
-          p_effective_date: today,
+          p_new_total_aum: Number(closingAum),
+          p_tx_date: today,
           p_admin_id: user.id,
           p_notes: params.description || `${params.type} - ${triggerReference}`,
           p_purpose: "transaction",
@@ -316,8 +332,8 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
           p_amount: Number(params.amount),
-          p_closing_aum: Number(closingAum),
-          p_effective_date: today,
+          p_new_total_aum: Number(closingAum),
+          p_tx_date: today,
           p_admin_id: user.id,
           p_notes: params.description || `${params.type} - ${triggerReference}`,
           p_purpose: "transaction",

@@ -166,3 +166,111 @@ This document provides a summary of all operational flows in the platform with l
 | Position Check | `investor_position_ledger_mismatch` |
 | Yield Check | `yield_distribution_conservation_check` |
 | Investor KPIs | `v_investor_kpis` |
+
+---
+
+## Crystallization Architecture (P0 - 2026-01-16)
+
+### Overview
+
+The platform enforces "crystallize yield before every transaction" to ensure accurate position tracking. This means:
+1. Every balance-changing transaction must go through the canonical RPC
+2. Yield is crystallized (calculated and applied) before any deposit/withdrawal/adjustment
+3. Direct inserts to `transactions_v2` are blocked by trigger
+
+### Canonical Transaction Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    TRANSACTION REQUEST                           │
+│         (Deposit/Withdrawal/Fee/Adjustment)                      │
+└─────────────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           apply_transaction_with_crystallization()               │
+│  - Validate tx_type, amount, reference_id                        │
+│  - Acquire advisory lock on (investor_id, fund_id)               │
+│  - Check idempotency (reference_id already exists?)              │
+└─────────────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              IS CRYSTALLIZATION NEEDED?                          │
+│  - For DEPOSIT/WITHDRAWAL/ADJUSTMENT: YES                        │
+│  - Check: last_yield_crystallization_date < tx_date?             │
+└─────────────────────────────────────────────────────────────────┘
+                    │                       │
+                   YES                      NO
+                    ▼                       │
+┌─────────────────────────────────────┐    │
+│    crystallize_yield_before_flow()  │    │
+│  - Get current AUM                  │    │
+│  - Calculate yield for period       │    │
+│  - Distribute to all positions      │    │
+│  - Update last_crystal_date         │    │
+└─────────────────────────────────────┘    │
+                    │                       │
+                    └───────────┬───────────┘
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   APPLY TRANSACTION                              │
+│  - Insert into transactions_v2                                   │
+│  - Update investor_positions.current_value                       │
+│  - Update investor_positions.last_transaction_date               │
+│  - Update investor_positions.last_yield_crystallization_date     │
+└─────────────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    RETURN RESULT                                 │
+│  { success, tx_id, crystallized_yield_amount, balance_after }    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Crystallization RPCs
+
+| Function | Purpose | Security |
+|----------|---------|----------|
+| `apply_transaction_with_crystallization` | **CANONICAL RPC** - All transactions must use this | DEFINER |
+| `crystallize_yield_before_flow` | Core crystallization logic | DEFINER |
+| `batch_crystallize_fund` | Bulk crystallize all stale positions | DEFINER |
+| `is_crystallization_current` | Check if position needs crystallization | DEFINER |
+| `preview_crystallization` | Preview what crystallization would do | DEFINER |
+
+### Bypass Protection
+
+| Layer | Mechanism | Effect |
+|-------|-----------|--------|
+| Trigger | `trg_enforce_transaction_via_rpc` | Blocks direct INSERTs with invalid source |
+| Privilege | REVOKE INSERT on transactions_v2 | Prevents client-side inserts |
+| Audit | `transaction_bypass_attempts` table | Logs blocked attempts |
+| Index | `transactions_v2_reference_id_unique` | Enforces idempotency |
+
+### Integrity Views
+
+| View | Purpose | Expected |
+|------|---------|----------|
+| `v_crystallization_gaps` | Positions needing crystallization | 0 rows after batch_crystallize |
+| `v_crystallization_dashboard` | Per-fund crystallization summary | Monitor |
+| `v_transaction_sources` | Transaction source audit | All should be approved sources |
+| `check_transaction_sources()` | RPC to check sources | All should be OK |
+
+### Average Daily Balance (ADB) Yield Allocation
+
+For fair yield distribution to mid-month deposits:
+
+| Function | Purpose |
+|----------|---------|
+| `calc_avg_daily_balance` | Calculate time-weighted balance over period |
+| `preview_adb_yield` | Preview ADB-based yield allocation |
+| `apply_adb_yield_distribution` | Apply ADB-based yield with transactions |
+
+### Invariants
+
+| Invariant | Verification | Action if Violated |
+|-----------|--------------|-------------------|
+| Position = Ledger Sum | `v_ledger_reconciliation` | `recompute_investor_position` |
+| Yield Conservation | `v_yield_conservation_check` | Void and reapply |
+| No Stale Crystal | `v_crystallization_gaps` (stale) | Run `batch_crystallize_fund` |
+| All Tx via RPC | `v_transaction_sources` | Investigate bypass |

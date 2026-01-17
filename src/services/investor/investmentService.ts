@@ -6,13 +6,17 @@ import { callRPC } from "@/lib/supabase/typedRPC";
 export const investmentService = {
   /**
    * Create investment using crystallize-before-flow accounting.
-   * NOTE: Requires an authoritative closing AUM snapshot (p_closing_aum).
+   * NOTE: Requires an authoritative new total AUM snapshot (p_new_total_aum).
    */
   async createInvestment(data: InvestmentFormData) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    
+
+    if (!user?.id) {
+      throw new Error("Not authenticated");
+    }
+
     // Map transaction type
     const type = data.transaction_type === "redemption" ? "WITHDRAWAL" : "DEPOSIT";
     const amount = Math.abs(data.amount);
@@ -36,10 +40,11 @@ export const investmentService = {
     }
 
     const txDate = data.investment_date || new Date().toISOString().split("T")[0];
-    
+
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference =
-      data.reference_number || `investment:${data.fund_id}:${data.investor_id}:${txDate}:${crypto.randomUUID()}`;
+      data.reference_number ||
+      `investment:${data.fund_id}:${data.investor_id}:${txDate}:${crypto.randomUUID()}`;
 
     const { data: result, error } =
       type === "DEPOSIT"
@@ -47,9 +52,9 @@ export const investmentService = {
             p_fund_id: data.fund_id,
             p_investor_id: data.investor_id,
             p_amount: amount,
-            p_closing_aum: Number(closingAum),
-            p_effective_date: txDate,
-            p_admin_id: user?.id || null,
+            p_new_total_aum: Number(closingAum),
+            p_tx_date: txDate,
+            p_admin_id: user.id,
             p_notes: `Investment - ${triggerReference}`,
             p_purpose: "transaction",
           })
@@ -57,9 +62,9 @@ export const investmentService = {
             p_fund_id: data.fund_id,
             p_investor_id: data.investor_id,
             p_amount: amount,
-            p_closing_aum: Number(closingAum),
-            p_effective_date: txDate,
-            p_admin_id: user?.id || null,
+            p_new_total_aum: Number(closingAum),
+            p_tx_date: txDate,
+            p_admin_id: user.id,
             p_notes: `Redemption - ${triggerReference}`,
             p_purpose: "transaction",
           });

@@ -15,7 +15,7 @@ The Indigo Yield Platform has completed comprehensive finance-grade hardening ac
 
 | Area | Status | Evidence |
 |------|--------|----------|
-| **11 Health Checks** | ALL PASS | `SELECT * FROM run_comprehensive_health_check()` |
+| **12 Health Checks** | ALL PASS | `SELECT * FROM run_comprehensive_health_check()` |
 | **Zero Legacy Violations** | CLEAN | Duplicate preflow AUM cleaned (1→0) |
 | **Native Currency Only** | ENFORCED | Trigger prevents currency mismatch |
 | **No Management Fee** | FROZEN | CHECK constraint + UI removal |
@@ -115,7 +115,7 @@ The Indigo Yield Platform has completed comprehensive finance-grade hardening ac
 - Content: Opening/closing AUM, flows, yields, voids
 
 ### Phase 10: Monitoring Suite
-- 11 health checks (6 CRITICAL, 5 WARNING)
+- 12 health checks (6 CRITICAL, 6 NON_CRITICAL)
 - Legacy cleanup executed (1 duplicate voided)
 - All checks now PASS
 
@@ -132,13 +132,14 @@ NATIVE_CURRENCY          PASS      0           CRITICAL
 NO_MANAGEMENT_FEE        PASS      0           CRITICAL
 EVENT_CONSERVATION       PASS      0           CRITICAL
 ECONOMIC_DATE_NOT_NULL   PASS      0           CRITICAL
-AS_OF_FILTERING          PASS      0           WARNING
-AUM_PURPOSE_CONSISTENCY  PASS      0           WARNING
-DUPLICATE_PREFLOW_AUM    PASS      0           WARNING
-DUST_TOLERANCE           PASS      0           WARNING
-VOID_CASCADE_INTEGRITY   PASS      0           WARNING
+AS_OF_FILTERING          PASS      0           NON_CRITICAL
+AUM_PURPOSE_CONSISTENCY  PASS      0           NON_CRITICAL
+DUPLICATE_PREFLOW_AUM    PASS      0           NON_CRITICAL
+DUST_TOLERANCE           PASS      0           NON_CRITICAL
+VOID_CASCADE_INTEGRITY   PASS      0           NON_CRITICAL
+RECON_PACK_COVERAGE      PASS      0           NON_CRITICAL
 ─────────────────────────────────────────────────────────
-TOTAL: 11 checks, ALL PASS
+TOTAL: 12 checks, ALL PASS
 ```
 
 ---
@@ -151,9 +152,9 @@ TOTAL: 11 checks, ALL PASS
 | `fundService.ts` | Change `mgmt_fee_bps: 200` → `0` | ✅ DONE |
 | `accountUtils.ts` | Update comment → "performance fees" | ✅ DONE |
 | `dashboard.ts` | Mark `mgmt_fees_accrued` DEPRECATED | ✅ DONE |
-| Transaction modal | Replace "Edit" with "Void & Reissue" | 🔄 TODO |
-| AUM entry | Remove "must be greater" validation | 🔄 TODO |
-| Preflow AUM | Show existing if present, skip prompt | 🔄 TODO |
+| `DepositsTable.tsx` | Replace "Edit" with "Void & Reissue" | ✅ DONE |
+| `MonthlyDataEntry.tsx` | Remove "must be greater" validation | ✅ DONE |
+| `yieldPreviewService.ts` | Allow negative yield (no frontend block) | ✅ DONE |
 
 ---
 
@@ -178,7 +179,7 @@ TOTAL: 11 checks, ALL PASS
 ## 7. Sign-Off
 
 ### CTO Approval
-- [ ] All 11 health checks PASS
+- [ ] All 12 health checks PASS
 - [ ] Security hardening verified (service_role only)
 - [ ] Audit trail complete
 - [ ] Monitoring in place

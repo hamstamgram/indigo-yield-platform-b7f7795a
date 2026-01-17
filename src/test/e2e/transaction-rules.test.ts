@@ -49,12 +49,12 @@ describe("Transaction Type Rules", () => {
     it("should succeed when investor has no existing position (balance = 0)", async () => {
       // Mock position check returns no position
       mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
-      
+
       // Mock transaction insert succeeds
       mockRpc.mockResolvedValueOnce({ data: { id: "new-tx-id" }, error: null });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       // Check balance first (simulating frontend behavior)
       const position = await supabase
         .from("investor_positions")
@@ -64,7 +64,7 @@ describe("Transaction Type Rules", () => {
         .maybeSingle();
 
       expect(position.data).toBeNull(); // No position exists
-      
+
       // Create FIRST_INVESTMENT using correct RPC name
       const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
@@ -80,22 +80,22 @@ describe("Transaction Type Rules", () => {
 
     it("should fail when investor already has a position (balance > 0)", async () => {
       // Mock position check returns existing position
-      mockMaybeSingle.mockResolvedValueOnce({ 
-        data: { current_value: 5000 }, 
-        error: null 
+      mockMaybeSingle.mockResolvedValueOnce({
+        data: { current_value: 5000 },
+        error: null,
       });
-      
+
       // Mock transaction insert fails due to validation
-      mockRpc.mockResolvedValueOnce({ 
-        data: null, 
-        error: { 
-          message: "First Investment only allowed when balance is 0. Use Deposit.", 
-          code: "P0001" 
-        } 
+      mockRpc.mockResolvedValueOnce({
+        data: null,
+        error: {
+          message: "First Investment only allowed when balance is 0. Use Deposit.",
+          code: "P0001",
+        },
       });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       // Check balance first
       const position = await supabase
         .from("investor_positions")
@@ -105,7 +105,7 @@ describe("Transaction Type Rules", () => {
         .maybeSingle();
 
       expect(position.data?.current_value).toBeGreaterThan(0);
-      
+
       // Attempt FIRST_INVESTMENT should fail
       const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
@@ -124,18 +124,18 @@ describe("Transaction Type Rules", () => {
     it("should fail when investor has no existing position (balance = 0)", async () => {
       // Mock position check returns no position
       mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
-      
+
       // Mock transaction insert fails due to validation
-      mockRpc.mockResolvedValueOnce({ 
-        data: null, 
-        error: { 
-          message: "Top-up not allowed when balance is 0. Use First Investment.", 
-          code: "P0001" 
-        } 
+      mockRpc.mockResolvedValueOnce({
+        data: null,
+        error: {
+          message: "Top-up not allowed when balance is 0. Use First Investment.",
+          code: "P0001",
+        },
       });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       // Check balance first
       const position = await supabase
         .from("investor_positions")
@@ -145,7 +145,7 @@ describe("Transaction Type Rules", () => {
         .maybeSingle();
 
       expect(position.data).toBeNull();
-      
+
       // Attempt DEPOSIT should fail
       const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
@@ -161,16 +161,16 @@ describe("Transaction Type Rules", () => {
 
     it("should succeed when investor has existing position (balance > 0)", async () => {
       // Mock position check returns existing position
-      mockMaybeSingle.mockResolvedValueOnce({ 
-        data: { current_value: 5000 }, 
-        error: null 
+      mockMaybeSingle.mockResolvedValueOnce({
+        data: { current_value: 5000 },
+        error: null,
       });
-      
+
       // Mock transaction insert succeeds
       mockRpc.mockResolvedValueOnce({ data: { id: "new-tx-id" }, error: null });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       // Check balance first
       const position = await supabase
         .from("investor_positions")
@@ -180,7 +180,7 @@ describe("Transaction Type Rules", () => {
         .maybeSingle();
 
       expect(position.data?.current_value).toBeGreaterThan(0);
-      
+
       // Create DEPOSIT
       const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
@@ -199,18 +199,18 @@ describe("Transaction Type Rules", () => {
     it("should fail when AUM is missing for transaction date", async () => {
       // Mock AUM check returns no AUM
       mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
-      
+
       // Mock transaction insert fails due to missing AUM
-      mockRpc.mockResolvedValueOnce({ 
-        data: null, 
-        error: { 
-          message: "AUM missing for fund on 2025-01-01", 
-          code: "P0001" 
-        } 
+      mockRpc.mockResolvedValueOnce({
+        data: null,
+        error: {
+          message: "AUM missing for fund on 2025-01-01",
+          code: "P0001",
+        },
       });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       // Check AUM first
       const aum = await supabase
         .from("fund_daily_aum")
@@ -220,7 +220,7 @@ describe("Transaction Type Rules", () => {
         .maybeSingle();
 
       expect(aum.data).toBeNull();
-      
+
       // Attempt transaction should fail
       const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
@@ -236,22 +236,22 @@ describe("Transaction Type Rules", () => {
 
     it("should succeed when AUM exists for transaction date", async () => {
       // Mock AUM check returns existing AUM
-      mockMaybeSingle.mockResolvedValueOnce({ 
-        data: { id: "aum-id" }, 
-        error: null 
+      mockMaybeSingle.mockResolvedValueOnce({
+        data: { id: "aum-id" },
+        error: null,
       });
-      
+
       // Mock position check
-      mockMaybeSingle.mockResolvedValueOnce({ 
-        data: { current_value: 5000 }, 
-        error: null 
+      mockMaybeSingle.mockResolvedValueOnce({
+        data: { current_value: 5000 },
+        error: null,
       });
-      
+
       // Mock transaction insert succeeds
       mockRpc.mockResolvedValueOnce({ data: { id: "new-tx-id" }, error: null });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       // Check AUM first
       const aum = await supabase
         .from("fund_daily_aum")
@@ -261,7 +261,7 @@ describe("Transaction Type Rules", () => {
         .maybeSingle();
 
       expect(aum.data).not.toBeNull();
-      
+
       // Create transaction
       const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
@@ -283,22 +283,24 @@ describe("Transaction Void and Edit", () => {
 
   describe("void_transaction RPC", () => {
     it("should create a reversal transaction when voiding", async () => {
-      mockRpc.mockResolvedValueOnce({ 
-        data: { 
+      mockRpc.mockResolvedValueOnce({
+        data: {
           voided_tx_id: "original-tx-id",
-          reversal_tx_id: "reversal-tx-id" 
-        }, 
-        error: null 
+          reversal_tx_id: "reversal-tx-id",
+        },
+        error: null,
       });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       const result = await supabase.rpc("void_transaction", {
+        p_admin_id: "test-admin-id",
         p_transaction_id: "original-tx-id",
         p_reason: "Duplicate entry",
       });
 
       expect(mockRpc).toHaveBeenCalledWith("void_transaction", {
+        p_admin_id: "test-admin-id",
         p_transaction_id: "original-tx-id",
         p_reason: "Duplicate entry",
       });
@@ -307,18 +309,19 @@ describe("Transaction Void and Edit", () => {
 
     it("should recompute positions after void", async () => {
       // First call: void transaction
-      mockRpc.mockResolvedValueOnce({ 
-        data: { 
+      mockRpc.mockResolvedValueOnce({
+        data: {
           voided_tx_id: "original-tx-id",
           reversal_tx_id: "reversal-tx-id",
-          position_updated: true 
-        }, 
-        error: null 
+          position_updated: true,
+        },
+        error: null,
       });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       const result = await supabase.rpc("void_transaction", {
+        p_admin_id: "test-admin-id",
         p_transaction_id: "original-tx-id",
         p_reason: "Error correction",
       });
@@ -329,16 +332,16 @@ describe("Transaction Void and Edit", () => {
 
   describe("update_transaction RPC (edit)", () => {
     it("should void original and create replacement when editing", async () => {
-      mockRpc.mockResolvedValueOnce({ 
-        data: { 
+      mockRpc.mockResolvedValueOnce({
+        data: {
           voided_tx_id: "original-tx-id",
-          new_tx_id: "replacement-tx-id" 
-        }, 
-        error: null 
+          new_tx_id: "replacement-tx-id",
+        },
+        error: null,
       });
 
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       const result = await supabase.rpc("update_transaction", {
         p_transaction_id: "original-tx-id",
         p_reason: "Corrected amount",
