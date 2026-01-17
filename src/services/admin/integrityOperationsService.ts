@@ -133,7 +133,7 @@ export async function fetchIntegrityRuns(limit = 20): Promise<IntegrityRun[]> {
     id: row.id,
     run_at: row.run_at,
     status: row.status as "pass" | "fail",
-    violations: (row.violations as IntegrityViolation[]) || [],
+    violations: (row.violations as unknown as IntegrityViolation[]) || [],
     runtime_ms: row.runtime_ms,
     triggered_by: row.triggered_by,
     violation_count: row.violation_count || 0,

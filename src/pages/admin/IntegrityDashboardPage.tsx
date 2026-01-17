@@ -182,7 +182,7 @@ export default function IntegrityDashboardPage() {
             <span className="ml-2">{getStatusLabel(overallStatus)}</span>
           </Badge>
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             onClick={handleRunIntegrityCheck}
             disabled={runIntegrityCheck.isPending}

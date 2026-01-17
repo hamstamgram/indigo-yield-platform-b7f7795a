@@ -473,7 +473,7 @@ export default function CrystallizationDashboardPage() {
               Cancel
             </Button>
             <Button
-              variant={confirmDialog.dryRun ? "outline" : "default"}
+              variant={confirmDialog.dryRun ? "outline" : "primary"}
               onClick={executeBatchCrystallize}
               disabled={batchCrystallize.isPending}
             >
