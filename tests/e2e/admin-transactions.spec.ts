@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { login, handleCookieConsent, TEST_CREDENTIALS } from './helpers/auth';
 
 test.describe('Admin Transactions E2E', () => {
   test.beforeEach(async ({ page }) => {
+    await login(page, TEST_CREDENTIALS.admin);
+    await handleCookieConsent(page);
     await page.goto('/admin/transactions');
+    await page.waitForLoadState('networkidle');
   });
 
   test('should display transactions page with header', async ({ page }) => {

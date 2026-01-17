@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-01-17T15:21:17.902Z",
+  "supabaseUrl": "https://nkfimvovosdehmyyjubn.supabase.co",
+  "tests": {
+    "lp": [
+      {
+        "test": "LP can read own profile",
+        "passed": false,
+        "error": "Cannot coerce the result to a single JSON object",
+        "data": null
+      },
+      {
+        "test": "LP cannot read other profiles",
+        "passed": true,
+        "message": "Properly restricted"
+      },
+      {
+        "test": "LP cannot insert deposits",
+        "passed": true,
+        "error": "Could not find the table 'public.deposits' in the schema cache"
+      },
+      {
+        "test": "LP cannot insert withdrawals",
+        "passed": true,
+        "error": "Could not find the table 'public.withdrawals' in the schema cache"
+      },
+      {
+        "test": "LP can only read own statements",
+        "passed": true,
+        "message": "Found 0 statements"
+      }
+    ],
+    "admin": [],
+    "storage": [
+      {
+        "test": "Statements bucket not publicly listable",
+        "passed": true,
+        "message": "Found 0 items (potential issue)"
+      },
+      {
+        "test": "Documents bucket access control",
+        "passed": true,
+        "message": "Found 0 items"
+      }
+    ]
+  },
+  "summary": {
+    "total": 7,
+    "passed": 6,
+    "failed": 1
+  }
+}

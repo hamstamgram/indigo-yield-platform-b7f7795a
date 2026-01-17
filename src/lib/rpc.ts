@@ -155,7 +155,7 @@ function validateParams<T extends RPCFunctionName>(
   }
 
   // Enforce idempotency key for mutations
-  const isMutation = Object.values(CANONICAL_MUTATION_RPCS).includes(functionName as string);
+  const isMutation = Object.values(CANONICAL_MUTATION_RPCS).includes(functionName as any);
   if (isMutation && !("p_reference_id" in p) && !("p_notes" in p)) {
     // Allow if notes contain a reference
     console.warn(`[RPC] Mutation ${String(functionName)} called without explicit reference_id`);
@@ -178,7 +178,7 @@ async function call<T extends RPCFunctionName>(
     validateParams(functionName, params);
 
     // Log mutation calls
-    const isMutation = Object.values(CANONICAL_MUTATION_RPCS).includes(functionName as string);
+    const isMutation = Object.values(CANONICAL_MUTATION_RPCS).includes(functionName as any);
     if (isMutation) {
       logInfo(`rpc.mutation.${String(functionName)}`, {
         params: sanitizeParams(params),

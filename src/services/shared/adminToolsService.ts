@@ -34,7 +34,7 @@ class AdminToolsService {
 
     try {
       // Use recalculate_all_aum which exists in DB (refresh_fund_aum_cache does not exist)
-      const { error } = await rpc.call("recalculate_all_aum" as any);
+      const { error } = await rpc.callNoArgs("recalculate_all_aum" as any);
       if (error) {
         logError("adminTools.refreshAumCache", error);
         return { success: false, message: `AUM recalculation failed: ${error.message}` };
@@ -85,6 +85,8 @@ class AdminToolsService {
     return { success: true, message: "Performance cache refresh triggered" };
   }
 
+
+
   /**
    * Run a tool by ID
    */
@@ -96,6 +98,7 @@ class AdminToolsService {
         return this.runIntegrityChecks();
       case "refresh_performance":
         return this.refreshPerformanceCache();
+
       default:
         return { success: false, message: "Unknown tool" };
     }

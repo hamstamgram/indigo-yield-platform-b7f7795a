@@ -15,14 +15,14 @@ const TEST_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'test-password';
 
 async function testLPPermissions(supabase) {
   const tests = [];
-  
+
   // Test 1: LP can read own profile
   try {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .single();
-    
+
     tests.push({
       test: 'LP can read own profile',
       passed: !error,
@@ -42,7 +42,7 @@ async function testLPPermissions(supabase) {
     const { data, error } = await supabase
       .from('profiles')
       .select('*');
-    
+
     tests.push({
       test: 'LP cannot read other profiles',
       passed: error || (data && data.length <= 1),
@@ -65,7 +65,7 @@ async function testLPPermissions(supabase) {
         amount: 100,
         asset_code: 'USD'
       });
-    
+
     tests.push({
       test: 'LP cannot insert deposits',
       passed: !!error,
@@ -88,7 +88,7 @@ async function testLPPermissions(supabase) {
         amount: 100,
         asset_code: 'USD'
       });
-    
+
     tests.push({
       test: 'LP cannot insert withdrawals',
       passed: !!error,
@@ -107,7 +107,7 @@ async function testLPPermissions(supabase) {
     const { data, error } = await supabase
       .from('statements')
       .select('*');
-    
+
     tests.push({
       test: 'LP can only read own statements',
       passed: !error,
@@ -126,13 +126,13 @@ async function testLPPermissions(supabase) {
 
 async function testAdminPermissions(supabase) {
   const tests = [];
-  
+
   // Test 1: Admin can read all profiles
   try {
     const { data, error } = await supabase
       .from('profiles')
       .select('*');
-    
+
     tests.push({
       test: 'Admin can read all profiles',
       passed: !error && data?.length > 0,
@@ -158,7 +158,7 @@ async function testAdminPermissions(supabase) {
         status: 'pending'
       })
       .select();
-    
+
     tests.push({
       test: 'Admin can insert deposits',
       passed: !error,
@@ -186,13 +186,13 @@ async function testAdminPermissions(supabase) {
 
 async function testStoragePolicies(supabase) {
   const tests = [];
-  
+
   // Test 1: Statements bucket should not be publicly listable
   try {
     const { data, error } = await supabase.storage
       .from('statements')
       .list('');
-    
+
     tests.push({
       test: 'Statements bucket not publicly listable',
       passed: !!error || !data || data.length === 0,
@@ -211,7 +211,7 @@ async function testStoragePolicies(supabase) {
     const { data, error } = await supabase.storage
       .from('documents')
       .list('');
-    
+
     tests.push({
       test: 'Documents bucket access control',
       passed: !!error || !data || data.length === 0,
@@ -251,28 +251,43 @@ async function main() {
   // Initialize Supabase client (anon/LP context)
   const supabaseLp = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Sign in as LP
+  console.log('🔑 Signing in as test LP...');
+  const { data: authData, error: authError } = await supabaseLp.auth.signInWithPassword({
+    email: TEST_LP_EMAIL,
+    password: TEST_LP_PASSWORD
+  });
+
+  if (authError || !authData.session) {
+    console.error('❌ Authentication failed:', authError?.message);
+    console.log('⚠️  Skipping authenticated tests due to login failure.');
+    // We can still try successful tests if they don't require auth (but they usually do)
+  } else {
+    console.log('✅ Signed in successfully');
+  }
+
   console.log('📋 Testing LP Permissions...');
   results.tests.lp = await testLPPermissions(supabaseLp);
-  
+
   console.log('\n📋 Testing Storage Policies...');
   results.tests.storage = await testStoragePolicies(supabaseLp);
 
   // Note: Admin tests would require service role key or actual admin login
   console.log('\n⚠️  Admin tests skipped (requires service role key)');
-  
+
   // Calculate summary
   const allTests = [
     ...results.tests.lp,
     ...results.tests.storage
   ];
-  
+
   results.summary.total = allTests.length;
   results.summary.passed = allTests.filter(t => t.passed).length;
   results.summary.failed = allTests.filter(t => !t.passed).length;
 
   // Display results
   console.log('\n📊 Test Results:\n');
-  
+
   console.log('LP Permission Tests:');
   results.tests.lp.forEach(test => {
     const icon = test.passed ? '✅' : '❌';
@@ -301,7 +316,7 @@ async function main() {
   console.log(`\n💾 Results saved to ${outputPath}`);
 
   // Check for critical RLS issues
-  const criticalFailures = results.tests.lp.filter(t => 
+  const criticalFailures = results.tests.lp.filter(t =>
     t.test.includes('cannot') && !t.passed
   );
 

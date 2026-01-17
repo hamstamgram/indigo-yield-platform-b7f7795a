@@ -206,7 +206,7 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   // Canonical DB signature: void_transaction(p_transaction_id, p_void_reason, p_admin_id)
   const { data, error } = await rpc.call("void_transaction", {
     p_transaction_id: params.transactionId,
-    p_void_reason: params.reason,
+    p_reason: params.reason,
     p_admin_id: user.id,
   });
 
@@ -253,7 +253,7 @@ async function voidAndReissueTransaction(
 
   if (error) {
     // Fallback for legacy signatures (until migrations are applied)
-    const legacy = await rpc.call("void_and_reissue_transaction", {
+    const legacy = await rpc.call("void_and_reissue_transaction" as any, {
       p_original_transaction_id: params.transactionId,
       p_new_amount: params.newValues.amount,
       p_new_tx_date: params.newValues.tx_date,

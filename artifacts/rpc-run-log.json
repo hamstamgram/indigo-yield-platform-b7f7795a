@@ -1,0 +1,15 @@
+[
+  {
+    "rpc": "apply_deposit_with_crystallization",
+    "status": "FAIL",
+    "ref": "drift-verify-1768667210763"
+  },
+  {
+    "rpc": "apply_deposit_with_crystallization_idempotency",
+    "status": "FAIL (Expected skip or success re-report)"
+  },
+  {
+    "rpc": "check_aum_reconciliation",
+    "status": "FAIL"
+  }
+]

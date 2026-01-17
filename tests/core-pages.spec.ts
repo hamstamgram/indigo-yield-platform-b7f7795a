@@ -1,6 +1,6 @@
 import { test, expect, devices } from "@playwright/test";
 
-const BASE_URL = "http://localhost:8082";
+const BASE_URL = "http://localhost:8080";
 
 // Test on both desktop and mobile
 const testDevices = [

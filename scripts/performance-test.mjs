@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 // Configuration
 const CONFIG = {
-  baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+  baseUrl: process.env.BASE_URL || 'http://localhost:8080',
   pages: [
     { path: '/', name: 'Home' },
     { path: '/dashboard', name: 'Dashboard' },
