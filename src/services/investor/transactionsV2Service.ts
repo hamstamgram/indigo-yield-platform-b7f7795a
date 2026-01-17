@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import { logError } from "@/lib/logger";
 
 export interface TransactionRecord {
@@ -107,7 +108,7 @@ class TransactionsRecordService {
     if (userError) throw userError;
     if (!user?.id) throw new Error("Authentication required");
 
-    const { data, error } = await supabase.rpc("void_transaction", {
+    const { data, error } = await rpc.call("void_transaction", {
       p_transaction_id: transactionId,
       p_void_reason: reason,
       p_admin_id: user.id,
@@ -142,7 +143,7 @@ class TransactionsRecordService {
     related_records?: { type: string; count: number }[];
     is_system_generated?: boolean;
   }> {
-    const { data, error } = await supabase.rpc("get_void_transaction_impact", {
+    const { data, error } = await rpc.call("get_void_transaction_impact", {
       p_transaction_id: transactionId,
     });
 

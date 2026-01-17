@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 export interface StatementUpsertData {
   investor_id: string;
@@ -32,7 +33,7 @@ class StatementsService {
    * Upsert a statement record
    */
   async upsertStatement(data: StatementUpsertData): Promise<void> {
-    const { error } = await supabase.from("statements").upsert({
+    const { error } = await db.upsert("statements", {
       investor_id: data.investor_id,
       period_year: data.period_year,
       period_month: data.period_month,
@@ -45,7 +46,7 @@ class StatementsService {
       storage_path: data.storage_path || null,
     } as any);
 
-    if (error) throw error;
+    if (error) throw new Error(error.userMessage || error.message);
   }
 
   /**
@@ -58,16 +59,12 @@ class StatementsService {
     filename?: string
   ): Promise<string> {
     // If filename is provided, construct path from investorId + filename
-    const filePath = filename 
-      ? `${storagePathOrInvestorId}/${filename}`
-      : storagePathOrInvestorId;
-    
-    const { data, error } = await supabase.storage
-      .from("statements")
-      .upload(filePath, blob, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
+    const filePath = filename ? `${storagePathOrInvestorId}/${filename}` : storagePathOrInvestorId;
+
+    const { data, error } = await supabase.storage.from("statements").upload(filePath, blob, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
 
     if (error) throw error;
     return data?.path || filePath;
@@ -77,8 +74,10 @@ class StatementsService {
    * Create a document record for a statement
    */
   async createStatementDocument(params: CreateStatementDocumentParams): Promise<string> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const { data, error } = await supabase
       .from("documents")
       .insert({
@@ -102,7 +101,7 @@ class StatementsService {
    */
   async getStatementsByMonth(yearMonth: string): Promise<any[]> {
     const [year, month] = yearMonth.split("-").map(Number);
-    
+
     const { data, error } = await supabase
       .from("statements")
       .select("*, profile:profiles!statements_investor_id_fkey(first_name, last_name, email)")
@@ -111,13 +110,13 @@ class StatementsService {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    
+
     return (data || []).map((stmt) => {
       const profile = stmt.profile as any;
       return {
         ...stmt,
-        investor_name: profile 
-          ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email 
+        investor_name: profile
+          ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
           : "Unknown",
         period: `${year}-${String(month).padStart(2, "0")}`,
         status: stmt.storage_path ? "published" : "draft",
@@ -128,7 +127,10 @@ class StatementsService {
   /**
    * Get statement period by year and month
    */
-  async getStatementPeriod(year: number, month: number): Promise<{
+  async getStatementPeriod(
+    year: number,
+    month: number
+  ): Promise<{
     id: string;
     period_start_date: string;
     period_end_date: string;
@@ -143,10 +145,10 @@ class StatementsService {
 
     if (error) throw error;
     if (!data) return null;
-    
+
     // Compute period_start_date from year/month
     const periodStart = `${year}-${String(month).padStart(2, "0")}-01`;
-    
+
     return {
       id: data.id,
       period_start_date: periodStart,

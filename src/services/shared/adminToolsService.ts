@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import { auditLogService } from "./auditLogService";
 import { logError } from "@/lib/logger";
 
@@ -12,8 +13,10 @@ class AdminToolsService {
    * Log a tool execution to the audit log
    */
   async logToolExecution(toolId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     await auditLogService.logEvent({
       actorUserId: user?.id || "",
       action: "run_tool",
@@ -31,7 +34,7 @@ class AdminToolsService {
 
     try {
       // Use recalculate_all_aum which exists in DB (refresh_fund_aum_cache does not exist)
-      const { error } = await supabase.rpc("recalculate_all_aum" as any);
+      const { error } = await rpc.call("recalculate_all_aum" as any);
       if (error) {
         logError("adminTools.refreshAumCache", error);
         return { success: false, message: `AUM recalculation failed: ${error.message}` };
@@ -48,15 +51,15 @@ class AdminToolsService {
    */
   async runIntegrityChecks(): Promise<ToolResult> {
     await this.logToolExecution("integrity_check");
-    
+
     const checks: string[] = [];
-    
+
     // Check for duplicate investor positions
     const { data: dupPositions } = await supabase
       .from("investor_fund_performance")
       .select("investor_id, fund_name, period_id")
       .limit(1000);
-    
+
     if (dupPositions) {
       const seen = new Set();
       let dups = 0;
@@ -68,9 +71,9 @@ class AdminToolsService {
       checks.push(`Duplicate positions: ${dups}`);
     }
 
-    return { 
-      success: true, 
-      message: `Integrity checks completed. ${checks.join(", ") || "No issues found"}` 
+    return {
+      success: true,
+      message: `Integrity checks completed. ${checks.join(", ") || "No issues found"}`,
     };
   }
 

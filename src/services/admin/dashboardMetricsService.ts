@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import { format } from "date-fns";
 
 // ============================================================================
@@ -188,7 +189,7 @@ export async function getFinancialMetrics(): Promise<FinancialMetrics> {
 export async function getHistoricalFlowData(targetDate: Date): Promise<Map<string, FlowData>> {
   const formattedDate = format(targetDate, "yyyy-MM-dd");
 
-  const { data: snapshot, error } = await supabase.rpc("get_historical_nav", {
+  const { data: snapshot, error } = await rpc.call("get_historical_nav", {
     target_date: formattedDate,
   });
 
@@ -275,7 +276,7 @@ export async function getDeliveryStatus(
  * Retry a failed delivery
  */
 export async function retryDelivery(deliveryId: string): Promise<void> {
-  const { error } = await supabase.rpc("retry_delivery", {
+  const { error } = await rpc.call("retry_delivery", {
     p_delivery_id: deliveryId,
   });
   if (error) throw error;

@@ -8,6 +8,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 // ============ Types ============
 
@@ -107,7 +108,7 @@ export async function getResetHistory(): Promise<ResetLogEntry[]> {
   if (response.data?.success) {
     return response.data.history || [];
   }
-  
+
   throw new Error(response.error?.message || "Failed to fetch reset history");
 }
 
@@ -115,7 +116,9 @@ export async function getResetHistory(): Promise<ResetLogEntry[]> {
  * Get position reset preview data
  */
 export async function getPositionResetPreview(): Promise<PositionResetPreview> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session) {
     throw new Error("Not authenticated");
   }
@@ -131,7 +134,7 @@ export async function getPositionResetPreview(): Promise<PositionResetPreview> {
   if (response.data?.success) {
     return response.data.preview;
   }
-  
+
   throw new Error(response.data?.error || "Failed to fetch preview");
 }
 
@@ -140,9 +143,9 @@ export async function getPositionResetPreview(): Promise<PositionResetPreview> {
  */
 export async function executePositionReset(confirmationCode: string): Promise<PositionResetResult> {
   const response = await supabase.functions.invoke("reset-positions", {
-    body: { 
+    body: {
       action: "execute",
-      confirmationCode 
+      confirmationCode,
     },
   });
 
@@ -153,7 +156,7 @@ export async function executePositionReset(confirmationCode: string): Promise<Po
   if (response.data?.success) {
     return response.data.result;
   }
-  
+
   throw new Error(response.data?.error || "Reset failed");
 }
 
@@ -242,10 +245,10 @@ export async function removeAdminRole(userId: string): Promise<void> {
  * Update admin role using secure RPC function
  */
 export async function updateAdminRole(
-  userId: string, 
+  userId: string,
   newRole: "admin" | "super_admin"
 ): Promise<void> {
-  const { error } = await supabase.rpc("update_admin_role", {
+  const { error } = await rpc.call("update_admin_role", {
     p_target_user_id: userId,
     p_new_role: newRole,
   });
@@ -264,17 +267,17 @@ export async function createAdminInvite(
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { error } = await supabase
-    .from("admin_invites")
-    .insert({
-      email: email.toLowerCase().trim(),
-      invite_code: inviteCode,
-      expires_at: expiresAt.toISOString(),
-      created_by: user?.id,
-      intended_role: intendedRole,
-    });
+  const { error } = await supabase.from("admin_invites").insert({
+    email: email.toLowerCase().trim(),
+    invite_code: inviteCode,
+    expires_at: expiresAt.toISOString(),
+    created_by: user?.id,
+    intended_role: intendedRole,
+  });
 
   if (error) throw error;
 
@@ -299,10 +302,7 @@ export async function sendAdminInviteEmail(invite: {
 /**
  * Force reset user password
  */
-export async function forceResetUserPassword(
-  email: string, 
-  newPassword: string
-): Promise<void> {
+export async function forceResetUserPassword(email: string, newPassword: string): Promise<void> {
   const { error } = await supabase.functions.invoke("set-user-password", {
     body: { email, password: newPassword },
   });
@@ -397,11 +397,20 @@ async function queryIntegrityViews() {
   ]);
 
   return {
-    ledgerReconciliation: { count: ledgerReconciliation.count ?? 0, data: ledgerReconciliation.data },
+    ledgerReconciliation: {
+      count: ledgerReconciliation.count ?? 0,
+      data: ledgerReconciliation.data,
+    },
     fundAumMismatch: { count: fundAumMismatch.count ?? 0, data: fundAumMismatch.data },
-    orphanedTransactions: { count: orphanedTransactions.count ?? 0, data: orphanedTransactions.data },
+    orphanedTransactions: {
+      count: orphanedTransactions.count ?? 0,
+      data: orphanedTransactions.data,
+    },
     orphanedPositions: { count: orphanedPositions.count ?? 0, data: orphanedPositions.data },
-    feeCalculationOrphans: { count: feeCalculationOrphans.count ?? 0, data: feeCalculationOrphans.data },
+    feeCalculationOrphans: {
+      count: feeCalculationOrphans.count ?? 0,
+      data: feeCalculationOrphans.data,
+    },
     positionVariance: { count: positionVariance.count ?? 0, data: positionVariance.data },
   };
 }
@@ -412,12 +421,7 @@ async function queryIntegrityViews() {
  */
 export async function getDataIntegrityStatus(): Promise<IntegrityData> {
   // Query integrity views and last activity timestamps in parallel
-  const [
-    integrityViews,
-    lastYieldDist,
-    lastReport,
-    lastEmailWebhook,
-  ] = await Promise.all([
+  const [integrityViews, lastYieldDist, lastReport, lastEmailWebhook] = await Promise.all([
     queryIntegrityViews(),
 
     (supabase as any)
@@ -447,18 +451,20 @@ export async function getDataIntegrityStatus(): Promise<IntegrityData> {
       name: "Ledger Reconciliation",
       status: integrityViews.ledgerReconciliation.count === 0 ? "ok" : "error",
       count: integrityViews.ledgerReconciliation.count,
-      details: integrityViews.ledgerReconciliation.count === 0
-        ? "All positions match transaction sums"
-        : `${integrityViews.ledgerReconciliation.count} positions have variance > $0.01`,
+      details:
+        integrityViews.ledgerReconciliation.count === 0
+          ? "All positions match transaction sums"
+          : `${integrityViews.ledgerReconciliation.count} positions have variance > $0.01`,
       icon: "reconciliation",
     },
     {
       name: "Fund AUM Mismatch",
       status: integrityViews.fundAumMismatch.count === 0 ? "ok" : "warning",
       count: integrityViews.fundAumMismatch.count,
-      details: integrityViews.fundAumMismatch.count === 0
-        ? "Reported AUM matches position totals"
-        : `${integrityViews.fundAumMismatch.count} funds have AUM discrepancies`,
+      details:
+        integrityViews.fundAumMismatch.count === 0
+          ? "Reported AUM matches position totals"
+          : `${integrityViews.fundAumMismatch.count} funds have AUM discrepancies`,
       icon: "reconciliation",
     },
     {
@@ -486,9 +492,10 @@ export async function getDataIntegrityStatus(): Promise<IntegrityData> {
       name: "Position/Tx Variance",
       status: integrityViews.positionVariance.count === 0 ? "ok" : "error",
       count: integrityViews.positionVariance.count,
-      details: integrityViews.positionVariance.count === 0
-        ? "All position balances reconcile"
-        : `${integrityViews.positionVariance.count} positions need investigation`,
+      details:
+        integrityViews.positionVariance.count === 0
+          ? "All position balances reconcile"
+          : `${integrityViews.positionVariance.count} positions need investigation`,
       icon: "reconciliation",
     },
   ];
@@ -588,7 +595,9 @@ export async function getHealthTrend(days = 30): Promise<HealthTrendPoint[]> {
 
   const { data, error } = await (supabase as any)
     .from("system_health_snapshots")
-    .select("snapshot_at, total_anomalies, ledger_reconciliation_count, fund_aum_mismatch_count, orphaned_positions_count, orphaned_transactions_count")
+    .select(
+      "snapshot_at, total_anomalies, ledger_reconciliation_count, fund_aum_mismatch_count, orphaned_positions_count, orphaned_transactions_count"
+    )
     .gte("snapshot_at", startDate.toISOString())
     .order("snapshot_at", { ascending: true });
 
@@ -634,7 +643,8 @@ export async function getHealthSnapshots(
     orphaned_transactions_count: row.orphaned_transactions_count,
     fee_calculation_orphans_count: row.fee_calculation_orphans_count,
     position_variance_count: row.position_variance_count,
-    status: row.total_anomalies === 0 ? "healthy" : row.total_anomalies <= 5 ? "warning" : "critical",
+    status:
+      row.total_anomalies === 0 ? "healthy" : row.total_anomalies <= 5 ? "warning" : "critical",
   })) as HealthSnapshot[];
 
   return { snapshots, total: count || 0 };

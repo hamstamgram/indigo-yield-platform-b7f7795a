@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 export interface AUMReconciliationResult {
   success: boolean;
@@ -28,7 +29,7 @@ export async function checkAUMReconciliation(
   fundId: string,
   tolerancePct: number = 0.01
 ): Promise<AUMReconciliationResult> {
-  const { data, error } = await supabase.rpc("check_aum_reconciliation", {
+  const { data, error } = await rpc.call("check_aum_reconciliation", {
     p_fund_id: fundId,
     p_tolerance_pct: tolerancePct,
   });

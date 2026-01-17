@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 /**
  * Result from reconcile_fund_period RPC (matches actual DB return type)
@@ -61,7 +62,7 @@ export async function reconcileFundPeriod(
   startDate: string,
   endDate: string
 ): Promise<FundPeriodReconciliationResult[]> {
-  const { data, error } = await supabase.rpc("reconcile_fund_period", {
+  const { data, error } = await rpc.call("reconcile_fund_period", {
     p_fund_id: fundId,
     p_start_date: startDate,
     p_end_date: endDate,
@@ -81,7 +82,7 @@ export async function reconcileInvestorPosition(
   adminId: string,
   action: "check" | "recalculate" | "log" = "check"
 ): Promise<InvestorPositionReconciliationResult> {
-  const { data, error } = await supabase.rpc("reconcile_investor_position", {
+  const { data, error } = await rpc.call("reconcile_investor_position", {
     p_investor_id: investorId,
     p_fund_id: fundId,
     p_admin_id: adminId,
@@ -96,10 +97,8 @@ export async function reconcileInvestorPosition(
  * Get the impact of voiding a yield distribution
  * Shows affected investors, amounts, fees, etc.
  */
-export async function getVoidYieldImpact(
-  distributionId: string
-): Promise<VoidYieldImpactResult> {
-  const { data, error } = await supabase.rpc("get_void_yield_impact", {
+export async function getVoidYieldImpact(distributionId: string): Promise<VoidYieldImpactResult> {
+  const { data, error } = await rpc.call("get_void_yield_impact", {
     p_distribution_id: distributionId,
   });
 
@@ -111,11 +110,8 @@ export async function getVoidYieldImpact(
  * Force delete an investor and all related data
  * Only callable by super admins
  */
-export async function forceDeleteInvestor(
-  investorId: string,
-  adminId: string
-): Promise<boolean> {
-  const { data, error } = await supabase.rpc("force_delete_investor", {
+export async function forceDeleteInvestor(investorId: string, adminId: string): Promise<boolean> {
+  const { data, error } = await rpc.call("force_delete_investor", {
     p_investor_id: investorId,
     p_admin_id: adminId,
   });
@@ -167,7 +163,12 @@ export async function testAllFunctions(params: {
   // Test 2: reconcile_investor_position
   const startTime2 = performance.now();
   try {
-    const result = await reconcileInvestorPosition(params.investorId, params.fundId, params.adminId, "check");
+    const result = await reconcileInvestorPosition(
+      params.investorId,
+      params.fundId,
+      params.adminId,
+      "check"
+    );
     results.push({
       functionName: "reconcile_investor_position",
       success: true,

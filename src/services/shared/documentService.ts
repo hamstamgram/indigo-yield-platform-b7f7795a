@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import type { Document, DocumentFilter } from "@/types/domains/document";
 
 export interface CreateStatementDocumentParams {
@@ -201,10 +202,13 @@ export const documentService = {
     }
 
     // Delete database record
-    const { error: dbError } = await supabase.from("documents").delete().eq("id", docId);
+    const { success, error: dbError } = await db.delete("documents", {
+      column: "id",
+      value: docId,
+    });
 
-    if (dbError) {
-      throw dbError;
+    if (!success) {
+      throw new Error(dbError?.userMessage || "Failed to delete document");
     }
   },
 };

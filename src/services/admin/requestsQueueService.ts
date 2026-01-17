@@ -4,10 +4,11 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { 
-  WithdrawalRequest, 
-  ApproveWithdrawalParams, 
-  RejectWithdrawalParams 
+import { rpc } from "@/lib/rpc";
+import type {
+  WithdrawalRequest,
+  ApproveWithdrawalParams,
+  RejectWithdrawalParams,
 } from "@/types/domains/requests";
 
 export const requestsQueueService = {
@@ -17,11 +18,13 @@ export const requestsQueueService = {
   async fetchWithdrawalRequests(): Promise<WithdrawalRequest[]> {
     const { data, error } = await supabase
       .from("withdrawal_requests")
-      .select(`
+      .select(
+        `
         *,
         profile:profiles!withdrawal_requests_investor_id_fkey(first_name, last_name, email),
         funds!withdrawal_requests_fund_id_fkey(name, fund_class)
-      `)
+      `
+      )
       .order("request_date", { ascending: false });
 
     if (error) throw error;
@@ -32,7 +35,7 @@ export const requestsQueueService = {
    * Approve a withdrawal request via RPC
    */
   async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
-    const { error } = await supabase.rpc("approve_withdrawal", {
+    const { error } = await rpc.call("approve_withdrawal", {
       p_request_id: params.requestId,
       p_approved_amount: params.amount,
       p_admin_notes: params.notes,
@@ -45,7 +48,7 @@ export const requestsQueueService = {
    * Reject a withdrawal request via RPC
    */
   async rejectWithdrawal(params: RejectWithdrawalParams): Promise<void> {
-    const { error } = await supabase.rpc("reject_withdrawal", {
+    const { error } = await rpc.call("reject_withdrawal", {
       p_request_id: params.requestId,
       p_reason: params.reason,
       p_admin_notes: params.notes,

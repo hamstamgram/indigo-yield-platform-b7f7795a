@@ -3,6 +3,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import type { Database } from "@/integrations/supabase/types";
 import { logError } from "@/lib/logger";
 
@@ -109,7 +110,7 @@ export async function logSecurityEvent(
   _details: Record<string, any> = {}
 ): Promise<boolean> {
   try {
-    const { error } = await supabase.from("access_logs").insert({
+    const { success: insertSuccess } = await db.insert("access_logs", {
       user_id: userId,
       event: eventType as AccessEvent,
       ip: ipAddress,
@@ -117,7 +118,7 @@ export async function logSecurityEvent(
       success: success,
     });
 
-    return !error;
+    return insertSuccess;
   } catch (error) {
     logError("session.logSecurityEvent", error, { userId, eventType });
     return false;

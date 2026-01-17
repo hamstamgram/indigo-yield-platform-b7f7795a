@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 class IBManagementService {
   /**
@@ -41,12 +42,12 @@ class IBManagementService {
     }
 
     // Add IB role
-    const { error: roleError } = await supabase.from("user_roles").insert({
+    const { error: roleError } = await db.insert("user_roles", {
       user_id: userId,
       role: "ib",
     });
 
-    if (roleError) throw roleError;
+    if (roleError) throw new Error(roleError.userMessage);
 
     return { userId };
   }
@@ -62,7 +63,7 @@ class IBManagementService {
    * Assign IB role to a user by ID
    */
   async assignIBRoleToUser(userId: string): Promise<{ alreadyExists: boolean }> {
-    const { error } = await supabase.from("user_roles").insert({
+    const { error } = await db.insert("user_roles", {
       user_id: userId,
       role: "ib",
     });
@@ -71,7 +72,7 @@ class IBManagementService {
       if (error.code === "23505") {
         return { alreadyExists: true };
       }
-      throw error;
+      throw new Error(error.userMessage);
     }
 
     return { alreadyExists: false };
@@ -121,13 +122,15 @@ class IBManagementService {
   /**
    * Get profiles by IDs
    */
-  async getProfilesByIds(userIds: string[]): Promise<Array<{
-    id: string;
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-    created_at: string;
-  }>> {
+  async getProfilesByIds(userIds: string[]): Promise<
+    Array<{
+      id: string;
+      email: string;
+      first_name: string | null;
+      last_name: string | null;
+      created_at: string;
+    }>
+  > {
     if (!userIds.length) return [];
 
     const { data, error } = await supabase
@@ -142,10 +145,12 @@ class IBManagementService {
   /**
    * Get referrals by parent IDs (investors with ib_parent_id)
    */
-  async getReferralsByParentIds(parentIds: string[]): Promise<Array<{
-    id: string;
-    ib_parent_id: string;
-  }>> {
+  async getReferralsByParentIds(parentIds: string[]): Promise<
+    Array<{
+      id: string;
+      ib_parent_id: string;
+    }>
+  > {
     if (!parentIds.length) return [];
 
     const { data, error } = await supabase
@@ -160,12 +165,14 @@ class IBManagementService {
   /**
    * Get IB credits from transactions
    */
-  async getIBCredits(ibUserIds: string[]): Promise<Array<{
-    investor_id: string;
-    fund_id: string | null;
-    asset: string | null;
-    amount: number;
-  }>> {
+  async getIBCredits(ibUserIds: string[]): Promise<
+    Array<{
+      investor_id: string;
+      fund_id: string | null;
+      asset: string | null;
+      amount: number;
+    }>
+  > {
     if (!ibUserIds.length) return [];
 
     const { data, error } = await supabase
@@ -182,11 +189,13 @@ class IBManagementService {
   /**
    * Get IB allocations
    */
-  async getIBAllocations(ibUserIds: string[]): Promise<Array<{
-    ib_investor_id: string;
-    fund_id: string | null;
-    ib_fee_amount: number;
-  }>> {
+  async getIBAllocations(ibUserIds: string[]): Promise<
+    Array<{
+      ib_investor_id: string;
+      fund_id: string | null;
+      ib_fee_amount: number;
+    }>
+  > {
     if (!ibUserIds.length) return [];
 
     const { data, error } = await supabase

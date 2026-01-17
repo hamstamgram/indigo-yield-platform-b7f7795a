@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { db } from "@/lib/db";
 
 export interface HistoricalReportTemplate {
   id: string;
@@ -39,12 +40,14 @@ export async function getHistoricalReports(filters?: {
   try {
     let query = supabase
       .from("investor_fund_performance")
-      .select(`
+      .select(
+        `
         *,
         period:statement_periods (
           period_end_date
         )
-      `)
+      `
+      )
       .order("period(period_end_date)", { ascending: false });
 
     if (filters?.investorId) {
@@ -188,62 +191,77 @@ export async function generateMissingTemplates(options: BulkGenerateOptions): Pr
             // Need to resolve period_id first. This logic is complex for bulk generation without period_id map.
             // Simplified: Check if record exists for user+fund+date(approx)
             // We need to fetch all periods first.
-            
+
             // Optimization: Fetch all periods once
-            const { data: periods } = await supabase.from("statement_periods").select("id, year, month");
-            
+            const { data: periods } = await supabase
+              .from("statement_periods")
+              .select("id, year, month");
+
             const [yStr, mStr] = month.split("-");
             const pYear = parseInt(yStr);
             const pMonth = parseInt(mStr);
-            
-            let periodId = periods?.find(p => p.year === pYear && p.month === pMonth)?.id;
-            
+
+            let periodId = periods?.find((p) => p.year === pYear && p.month === pMonth)?.id;
+
             if (!periodId) {
-                // Create period if missing (bulk)
-                const date = new Date(pYear, pMonth - 1);
-                const endDate = new Date(pYear, pMonth, 0).toISOString().split('T')[0];
-                const { data: newPeriod } = await supabase.from("statement_periods").insert({
-                    year: pYear,
-                    month: pMonth,
-                    period_name: date.toLocaleString('default', { month: 'long', year: 'numeric' }),
-                    period_end_date: endDate,
-                    status: 'FINALIZED',
-                    created_by: (await supabase.auth.getUser()).data.user?.id
-                }).select("id").single();
+              // Create period if missing (bulk)
+              const date = new Date(pYear, pMonth - 1);
+              const endDate = new Date(pYear, pMonth, 0).toISOString().split("T")[0];
+              const { data: newPeriod, error: periodError } = await db.insert(
+                "statement_periods",
+                {
+                  year: pYear,
+                  month: pMonth,
+                  period_name: date.toLocaleString("default", { month: "long", year: "numeric" }),
+                  period_end_date: endDate,
+                  status: "FINALIZED",
+                  created_by: (await supabase.auth.getUser()).data.user?.id,
+                } as any,
+                { returning: true }
+              );
+
+              if (periodError) {
+                logError(
+                  "historicalData.createPeriod",
+                  new Error(periodError.userMessage || periodError.message),
+                  { year: pYear, month: pMonth }
+                );
+              } else {
                 periodId = newPeriod?.id;
+              }
             }
 
             if (periodId) {
-                const { data: existing } = await supabase
+              const { data: existing } = await supabase
+                .from("investor_fund_performance")
+                .select("id")
+                .eq("investor_id", investorId) // V2: investor_id = profiles.id
+                .eq("period_id", periodId)
+                .eq("fund_name", assetCode)
+                .maybeSingle();
+
+              if (!existing) {
+                const { error: insertError } = await supabase
                   .from("investor_fund_performance")
-                  .select("id")
-                  .eq("investor_id", investorId) // V2: investor_id = profiles.id
-                  .eq("period_id", periodId)
-                  .eq("fund_name", assetCode)
-                  .maybeSingle();
+                  .insert({
+                    investor_id: investorId, // V2: investor_id = profiles.id
+                    period_id: periodId,
+                    fund_name: assetCode,
+                    mtd_beginning_balance: 0,
+                    mtd_ending_balance: 0,
+                    mtd_additions: 0,
+                    mtd_redemptions: 0,
+                    mtd_net_income: 0,
+                  });
 
-                if (!existing) {
-                  const { error: insertError } = await supabase
-                    .from("investor_fund_performance")
-                    .insert({
-                      investor_id: investorId, // V2: investor_id = profiles.id
-                      period_id: periodId,
-                      fund_name: assetCode,
-                      mtd_beginning_balance: 0,
-                      mtd_ending_balance: 0,
-                      mtd_additions: 0,
-                      mtd_redemptions: 0,
-                      mtd_net_income: 0,
-                    });
-
-                  if (insertError) {
-                    errors.push(
-                      `Failed to create template for ${investorId}/${assetCode}/${month}: ${insertError.message}`
-                    );
-                  } else {
-                    generated++;
-                  }
+                if (insertError) {
+                  errors.push(
+                    `Failed to create template for ${investorId}/${assetCode}/${month}: ${insertError.message}`
+                  );
+                } else {
+                  generated++;
                 }
+              }
             }
           } catch (error) {
             errors.push(`Error processing ${investorId}/${assetCode}/${month}: ${error}`);
@@ -281,18 +299,25 @@ export async function updateHistoricalReport(
 ): Promise<boolean> {
   try {
     const v2Updates = {
-        mtd_beginning_balance: updates.opening_balance,
-        mtd_ending_balance: updates.closing_balance,
-        mtd_additions: updates.additions,
-        mtd_redemptions: updates.withdrawals,
-        mtd_net_income: updates.yield_earned
+      mtd_beginning_balance: updates.opening_balance,
+      mtd_ending_balance: updates.closing_balance,
+      mtd_additions: updates.additions,
+      mtd_redemptions: updates.withdrawals,
+      mtd_net_income: updates.yield_earned,
     };
     // Remove undefined keys
-    Object.keys(v2Updates).forEach(key => v2Updates[key as keyof typeof v2Updates] === undefined && delete v2Updates[key as keyof typeof v2Updates]);
+    Object.keys(v2Updates).forEach(
+      (key) =>
+        v2Updates[key as keyof typeof v2Updates] === undefined &&
+        delete v2Updates[key as keyof typeof v2Updates]
+    );
 
-    const { error } = await supabase.from("investor_fund_performance").update(v2Updates).eq("id", id);
+    const { error } = await db.update("investor_fund_performance", v2Updates as any, {
+      column: "id",
+      value: id,
+    });
 
-    if (error) throw error;
+    if (error) throw new Error(error.userMessage || error.message);
     return true;
   } catch (error) {
     logError("historicalData.updateHistoricalReport", error, { id });
@@ -305,9 +330,9 @@ export async function updateHistoricalReport(
  */
 export async function deleteHistoricalReports(ids: string[]): Promise<boolean> {
   try {
-    const { error } = await supabase.from("investor_fund_performance").delete().in("id", ids);
+    const { error } = await db.deleteIn("investor_fund_performance", "id", ids);
 
-    if (error) throw error;
+    if (error) throw new Error(error.userMessage || error.message);
     return true;
   } catch (error) {
     logError("historicalData.deleteHistoricalReports", error);
@@ -346,7 +371,10 @@ export async function getHistoricalDataSummary(): Promise<{
       investor_id: string;
       period?: { period_end_date: string } | null;
     }
-    const months = (summary as SummaryRow[]).map((r) => r.period?.period_end_date).filter(Boolean).sort();
+    const months = (summary as SummaryRow[])
+      .map((r) => r.period?.period_end_date)
+      .filter(Boolean)
+      .sort();
     const uniqueInvestors = new Set((summary as SummaryRow[]).map((r) => r.investor_id));
     const uniqueAssets = new Set((summary as SummaryRow[]).map((r) => r.fund_name));
 

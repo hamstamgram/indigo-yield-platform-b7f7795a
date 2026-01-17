@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { db } from "@/lib/db";
 export interface PlatformSettings {
   maintenance_mode: boolean;
   allow_new_registrations: boolean;
@@ -55,13 +56,13 @@ class SystemConfigService {
    * Upsert a config value
    */
   async upsertConfig<T = any>(key: string, value: T): Promise<void> {
-    const { error } = await supabase.from("system_config").upsert({
+    const { error } = await db.upsert("system_config", {
       key,
       value: value as any,
       updated_at: new Date().toISOString(),
-    });
+    } as any);
 
-    if (error) throw error;
+    if (error) throw new Error(error.userMessage || error.message);
   }
 
   /**

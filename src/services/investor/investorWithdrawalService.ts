@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 // ============================================
 // Types
@@ -89,7 +90,7 @@ export async function createWithdrawalRequest(
 
   const investorId = user.user.id;
 
-  const { data, error } = await supabase.rpc("create_withdrawal_request", {
+  const { data, error } = await rpc.call("create_withdrawal_request", {
     p_investor_id: investorId,
     p_fund_id: fundId,
     p_amount: amount,

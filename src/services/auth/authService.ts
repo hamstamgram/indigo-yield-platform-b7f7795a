@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import type { User, Session } from "@supabase/supabase-js";
 import type { SignInData, SignUpData, SignInResult, AuthResponse } from "./types";
 import type { Database } from "@/integrations/supabase/types";
@@ -11,7 +12,9 @@ import type { Database } from "@/integrations/supabase/types";
 /**
  * Sign in with email and password
  */
-export async function signIn(data: SignInData): Promise<AuthResponse<{ user: User; session: Session }>> {
+export async function signIn(
+  data: SignInData
+): Promise<AuthResponse<{ user: User; session: Session }>> {
   const { data: authData, error } = await supabase.auth.signInWithPassword({
     email: data.email,
     password: data.password,
@@ -40,7 +43,9 @@ export async function signInWithEmail(email: string, password: string): Promise<
 /**
  * Sign up a new user
  */
-export async function signUp(data: SignUpData): Promise<AuthResponse<{ user: User | null; session: Session | null }>> {
+export async function signUp(
+  data: SignUpData
+): Promise<AuthResponse<{ user: User | null; session: Session | null }>> {
   const redirectUrl = `${window.location.origin}/`;
 
   const { data: authData, error } = await supabase.auth.signUp({
@@ -84,7 +89,9 @@ export async function signInWithOAuth(
  * Get the current session
  */
 export async function getSession(): Promise<Session | null> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   return session;
 }
 
@@ -92,7 +99,9 @@ export async function getSession(): Promise<Session | null> {
  * Get the current user
  */
 export async function getUser(): Promise<User | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return user;
 }
 
@@ -136,20 +145,16 @@ export async function setSessionFromTokens(
  * Get user admin status
  */
 export async function getUserAdminStatus(userId: string): Promise<boolean> {
-  const { data: adminStatus } = await supabase
-    .rpc("get_user_admin_status", {
-      user_id: userId,
-    })
-    .returns<Database["public"]["Functions"]["get_user_admin_status"]["Returns"]>();
+  const { data: adminStatus } = await rpc.call("get_user_admin_status", {
+    user_id: userId,
+  });
   return adminStatus === true;
 }
 
 /**
  * Subscribe to auth state changes
  */
-export function onAuthStateChange(
-  callback: (user: User | null, session: Session | null) => void
-) {
+export function onAuthStateChange(callback: (user: User | null, session: Session | null) => void) {
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {

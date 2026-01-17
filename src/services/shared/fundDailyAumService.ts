@@ -1,9 +1,18 @@
 /**
  * Fund Daily AUM Service
  * Handles fund_daily_aum operations
+ *
+ * IMPORTANT: fund_daily_aum is a PROTECTED table.
+ * All mutations MUST go through canonical RPCs:
+ * - set_fund_daily_aum (for manual/baseline AUM setting)
+ * - crystallize_yield_before_flow (for pre-transaction snapshots)
+ * - ensure_preflow_aum (for automated pre-flow checks)
+ *
+ * Direct inserts/updates are BLOCKED by database triggers.
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 export interface FundDailyAumRecord {
   id?: string;
@@ -44,7 +53,7 @@ class FundDailyAumService {
   }
 
   /**
-   * Create a new AUM record
+   * Create a new AUM record using canonical RPC
    */
   async createAumRecord(params: {
     fundId: string;
@@ -52,18 +61,21 @@ class FundDailyAumService {
     totalAum: number;
     source?: string;
   }): Promise<void> {
-    const { error } = await supabase.from("fund_daily_aum").insert({
-      fund_id: params.fundId,
-      aum_date: params.date,
-      total_aum: params.totalAum,
-      source: params.source || "manual",
+    // Use canonical RPC - set_fund_daily_aum
+    const result = await rpc.call("set_fund_daily_aum", {
+      p_fund_id: params.fundId,
+      p_aum_date: params.date,
+      p_total_aum: params.totalAum,
+      p_nav_per_share: null,
     });
 
-    if (error) throw error;
+    if (result.error) {
+      throw new Error(result.error.userMessage);
+    }
   }
 
   /**
-   * Create a baseline AUM record for opening a period
+   * Create a baseline AUM record for opening a period using canonical RPC
    */
   async createBaselineAUM(params: {
     fundId: string;
@@ -87,21 +99,21 @@ class FundDailyAumService {
       );
     }
 
-    const { error } = await supabase.from("fund_daily_aum").insert({
-      fund_id: params.fundId,
-      aum_date: params.date,
-      total_aum: params.totalAum,
-      purpose: params.purpose,
-      source: "manual_baseline",
-      is_month_end: params.purpose === "reporting",
-      created_by: params.createdBy,
+    // Use canonical RPC - set_fund_daily_aum
+    const result = await rpc.call("set_fund_daily_aum", {
+      p_fund_id: params.fundId,
+      p_aum_date: params.date,
+      p_total_aum: params.totalAum,
+      p_nav_per_share: null,
     });
 
-    if (error) throw error;
+    if (result.error) {
+      throw new Error(result.error.userMessage);
+    }
   }
 
   /**
-   * Upsert AUM record (check-then-insert/update pattern for partial index compatibility)
+   * Upsert AUM record using canonical RPC (handles insert/update automatically)
    */
   async upsertAumRecord(params: {
     fundId: string;
@@ -109,35 +121,16 @@ class FundDailyAumService {
     totalAum: number;
     source?: string;
   }): Promise<void> {
-    // Check for existing active record (partial index workaround)
-    const { data: existing } = await supabase
-      .from("fund_daily_aum")
-      .select("id")
-      .eq("fund_id", params.fundId)
-      .eq("aum_date", params.date)
-      .eq("is_voided", false)
-      .maybeSingle();
+    // Use canonical RPC - set_fund_daily_aum handles upsert logic internally
+    const result = await rpc.call("set_fund_daily_aum", {
+      p_fund_id: params.fundId,
+      p_aum_date: params.date,
+      p_total_aum: params.totalAum,
+      p_nav_per_share: null,
+    });
 
-    if (existing) {
-      const { error } = await supabase
-        .from("fund_daily_aum")
-        .update({
-          total_aum: params.totalAum,
-          source: params.source || "manual",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existing.id);
-
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from("fund_daily_aum").insert({
-        fund_id: params.fundId,
-        aum_date: params.date,
-        total_aum: params.totalAum,
-        source: params.source || "manual",
-      });
-
-      if (error) throw error;
+    if (result.error) {
+      throw new Error(result.error.userMessage);
     }
   }
 }

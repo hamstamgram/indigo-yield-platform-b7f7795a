@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import {
   ReportEngineLazy,
   generatePDFReportLazy,
@@ -209,9 +210,17 @@ export class ReportsApi {
    */
   static async deleteReport(reportId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase.from("generated_reports").delete().eq("id", reportId);
+      const { success, error } = await db.delete("generated_reports", {
+        column: "id",
+        value: reportId,
+      });
 
-      if (error) throw error;
+      if (!success) {
+        return {
+          success: false,
+          error: error?.userMessage || "Failed to delete report",
+        };
+      }
       return { success: true };
     } catch (error) {
       console.error("Error deleting report:", error);

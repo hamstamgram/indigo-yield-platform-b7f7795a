@@ -1,10 +1,11 @@
 /**
  * Investor Portfolio Service
- * 
+ *
  * Handles investor portfolio data operations for investor-facing pages
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 export interface PortfolioPosition {
   investor_id: string;
@@ -39,7 +40,8 @@ export const investorPortfolioService = {
   async getPortfolioPositions(investorId: string): Promise<PortfolioPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(`
+      .select(
+        `
         investor_id,
         fund_id,
         shares,
@@ -51,7 +53,8 @@ export const investorPortfolioService = {
           code,
           asset
         )
-      `)
+      `
+      )
       .eq("investor_id", investorId);
 
     if (error) throw error;
@@ -72,7 +75,8 @@ export const investorPortfolioService = {
   async getWithdrawalFormPositions(investorId: string): Promise<WithdrawalFormPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(`
+      .select(
+        `
         fund_id,
         current_value,
         shares,
@@ -82,7 +86,8 @@ export const investorPortfolioService = {
           code,
           asset
         )
-      `)
+      `
+      )
       .eq("investor_id", investorId)
       .gt("current_value", 0);
 
@@ -103,7 +108,8 @@ export const investorPortfolioService = {
   async getWithdrawalsWithFunds(investorId: string): Promise<any[]> {
     const { data, error } = await supabase
       .from("withdrawal_requests")
-      .select(`
+      .select(
+        `
         *,
         funds:fund_id (
           name,
@@ -111,7 +117,8 @@ export const investorPortfolioService = {
           asset,
           fund_class
         )
-      `)
+      `
+      )
       .eq("investor_id", investorId)
       .order("request_date", { ascending: false });
 
@@ -139,7 +146,7 @@ export const investorPortfolioService = {
     type: string;
     notes?: string;
   }): Promise<void> {
-    const { error } = await supabase.rpc("create_withdrawal_request", {
+    const { error } = await rpc.call("create_withdrawal_request", {
       p_investor_id: params.investorId,
       p_fund_id: params.fundId,
       p_amount: params.amount,

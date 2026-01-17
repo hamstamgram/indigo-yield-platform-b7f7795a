@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 export interface FeeScheduleRow {
   fund_code: string;
@@ -49,7 +50,7 @@ class FeeScheduleService {
       .limit(limit);
 
     if (error) throw error;
-    return (data || []).map(row => ({
+    return (data || []).map((row) => ({
       id: row.id,
       fee_type: row.purpose,
       calculation_date: row.period_end,
@@ -72,7 +73,8 @@ class FeeScheduleService {
     const today = new Date().toISOString().split("T")[0];
 
     for (const fundId of fundIds) {
-      const { error } = await supabase.from("investor_fee_schedule").upsert(
+      const result = await db.upsert(
+        "investor_fee_schedule",
         {
           investor_id: investorId,
           fund_id: fundId,
@@ -81,7 +83,9 @@ class FeeScheduleService {
         },
         { onConflict: "investor_id,fund_id,effective_date" }
       );
-      if (error) throw error;
+      if (result.error) {
+        throw new Error(result.error.userMessage);
+      }
     }
   }
 
@@ -94,39 +98,42 @@ class FeeScheduleService {
     feePct: number;
     effectiveDate: string;
   }): Promise<void> {
-    const { error } = await supabase.from("investor_fee_schedule").insert({
+    const result = await db.insert("investor_fee_schedule", {
       investor_id: params.investorId,
       fund_id: params.fundId,
       fee_pct: params.feePct,
       effective_date: params.effectiveDate,
     });
 
-    if (error) throw error;
+    if (result.error) {
+      throw new Error(result.error.userMessage);
+    }
   }
 
   /**
    * Delete a fee schedule entry
    */
   async deleteFeeEntry(entryId: string): Promise<void> {
-    const { error } = await supabase
-      .from("investor_fee_schedule")
-      .delete()
-      .eq("id", entryId);
+    const result = await db.delete("investor_fee_schedule", { column: "id", value: entryId });
 
-    if (error) throw error;
+    if (result.error) {
+      throw new Error(result.error.userMessage);
+    }
   }
 
   /**
    * Get fee schedule with fund info
    */
-  async getFeeScheduleWithFunds(investorId: string): Promise<Array<{
-    id: string;
-    investor_id: string;
-    fund_id: string | null;
-    fee_pct: number;
-    effective_date: string;
-    fund?: { name: string } | null;
-  }>> {
+  async getFeeScheduleWithFunds(investorId: string): Promise<
+    Array<{
+      id: string;
+      investor_id: string;
+      fund_id: string | null;
+      fee_pct: number;
+      effective_date: string;
+      fund?: { name: string } | null;
+    }>
+  > {
     const { data, error } = await supabase
       .from("investor_fee_schedule")
       .select("*, fund:funds(name)")

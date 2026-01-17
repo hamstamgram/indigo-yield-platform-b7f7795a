@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import {
   Withdrawal,
   WithdrawalFilters,
@@ -10,7 +11,7 @@ import {
   CreateWithdrawalParams,
   UpdateWithdrawalParams,
   DeleteWithdrawalParams,
-  RouteToFeesParams
+  RouteToFeesParams,
 } from "@/types/domains";
 import { generateCorrelationId, createCorrelatedLogger } from "@/lib/correlationId";
 import type { Database } from "@/integrations/supabase/types";
@@ -42,7 +43,10 @@ export const withdrawalService = {
     // Build query with count
     let query = supabase
       .from("withdrawal_requests")
-      .select("*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email), fund:funds(name, code, asset)", { count: "exact" })
+      .select(
+        "*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email), fund:funds(name, code, asset)",
+        { count: "exact" }
+      )
       .order("request_date", { ascending: false })
       .range(from, to);
 
@@ -70,11 +74,12 @@ export const withdrawalService = {
         code?: string;
         asset?: string;
       } | null;
-      
-      const investor_name = profile?.first_name || profile?.last_name
-        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
-        : profile?.email || "Unknown";
-      
+
+      const investor_name =
+        profile?.first_name || profile?.last_name
+          ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+          : profile?.email || "Unknown";
+
       const { profile: _p, fund: _f, ...rest } = withdrawal;
       return {
         ...rest,
@@ -114,7 +119,9 @@ export const withdrawalService = {
   async getWithdrawalById(id: string): Promise<Withdrawal | null> {
     const { data, error } = await supabase
       .from("withdrawal_requests")
-      .select("*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email), fund:funds(name, code, asset)")
+      .select(
+        "*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email), fund:funds(name, code, asset)"
+      )
       .eq("id", id)
       .maybeSingle();
 
@@ -132,9 +139,10 @@ export const withdrawalService = {
       asset?: string;
     } | null;
 
-    const investor_name = profile?.first_name || profile?.last_name
-      ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
-      : profile?.email || "Unknown";
+    const investor_name =
+      profile?.first_name || profile?.last_name
+        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+        : profile?.email || "Unknown";
 
     const { profile: _p, fund: _f, ...rest } = data;
     return {
@@ -166,9 +174,10 @@ export const withdrawalService = {
         email?: string;
       } | null;
 
-      const actor_name = actor?.first_name || actor?.last_name
-        ? `${actor.first_name || ""} ${actor.last_name || ""}`.trim()
-        : actor?.email || "System";
+      const actor_name =
+        actor?.first_name || actor?.last_name
+          ? `${actor.first_name || ""} ${actor.last_name || ""}`.trim()
+          : actor?.email || "System";
 
       const { actor: _a, ...rest } = log;
       return {
@@ -215,7 +224,10 @@ export const withdrawalService = {
     const assetAmounts: Record<string, number> = {};
 
     data?.forEach((withdrawal) => {
-      const status = withdrawal.status as keyof Pick<WithdrawalStats, "pending" | "approved" | "processing" | "completed" | "rejected">;
+      const status = withdrawal.status as keyof Pick<
+        WithdrawalStats,
+        "pending" | "approved" | "processing" | "completed" | "rejected"
+      >;
       if (status in stats && typeof stats[status] === "number") {
         (stats[status] as number)++;
       }
@@ -243,28 +255,28 @@ export const withdrawalService = {
     adminNotes?: string,
     correlationId?: string
   ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId('wdr_appr');
+    const corrId = correlationId || generateCorrelationId("wdr_appr");
     const log = createCorrelatedLogger(corrId);
-    
-    log.info('Approving withdrawal', { withdrawalId, processedAmount });
-    
-    const { error } = await supabase
-      .rpc('approve_withdrawal', {
-        p_request_id: withdrawalId,
-        p_approved_amount: processedAmount,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-      })
-      .returns<Database["public"]["Functions"]["approve_withdrawal"]["Returns"]>();
+
+    log.info("Approving withdrawal", { withdrawalId, processedAmount });
+
+    const { error } = await rpc.call("approve_withdrawal", {
+      p_request_id: withdrawalId,
+      p_approved_amount: processedAmount,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
-      log.error('Error approving withdrawal', error);
+      log.error("Error approving withdrawal", error);
       const errorMessage = error.message || "Failed to approve withdrawal";
-      throw new Error(errorMessage.includes("Admin only") 
-        ? "You don't have admin privileges to approve withdrawals" 
-        : errorMessage);
+      throw new Error(
+        errorMessage.includes("Admin only")
+          ? "You don't have admin privileges to approve withdrawals"
+          : errorMessage
+      );
     }
-    
-    log.info('Withdrawal approved successfully');
+
+    log.info("Withdrawal approved successfully");
     return { correlationId: corrId };
   },
 
@@ -272,33 +284,33 @@ export const withdrawalService = {
    * Reject a withdrawal request using secure RPC with server-side admin check
    */
   async rejectWithdrawal(
-    withdrawalId: string, 
-    reason: string, 
+    withdrawalId: string,
+    reason: string,
     adminNotes?: string,
     correlationId?: string
   ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId('wdr_rej');
+    const corrId = correlationId || generateCorrelationId("wdr_rej");
     const log = createCorrelatedLogger(corrId);
-    
-    log.info('Rejecting withdrawal', { withdrawalId, reason });
-    
-    const { error } = await supabase
-      .rpc('reject_withdrawal', {
-        p_request_id: withdrawalId,
-        p_reason: reason,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-      })
-      .returns<Database["public"]["Functions"]["reject_withdrawal"]["Returns"]>();
+
+    log.info("Rejecting withdrawal", { withdrawalId, reason });
+
+    const { error } = await rpc.call("reject_withdrawal", {
+      p_request_id: withdrawalId,
+      p_reason: reason,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
-      log.error('Error rejecting withdrawal', error);
+      log.error("Error rejecting withdrawal", error);
       const errorMessage = error.message || "Failed to reject withdrawal";
-      throw new Error(errorMessage.includes("Admin only") 
-        ? "You don't have admin privileges to reject withdrawals" 
-        : errorMessage);
+      throw new Error(
+        errorMessage.includes("Admin only")
+          ? "You don't have admin privileges to reject withdrawals"
+          : errorMessage
+      );
     }
-    
-    log.info('Withdrawal rejected successfully');
+
+    log.info("Withdrawal rejected successfully");
     return { correlationId: corrId };
   },
 
@@ -311,32 +323,32 @@ export const withdrawalService = {
     adminNotes?: string,
     correlationId?: string
   ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId('wdr_proc');
+    const corrId = correlationId || generateCorrelationId("wdr_proc");
     const log = createCorrelatedLogger(corrId);
-    
-    log.info('Starting withdrawal processing', { withdrawalId, txHash });
-    
-    const { error } = await supabase
-      .rpc('start_processing_withdrawal', {
-        p_request_id: withdrawalId,
-        p_processed_amount: null,
-        p_tx_hash: txHash || null,
-        p_settlement_date: null,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-      })
-      .returns<Database["public"]["Functions"]["start_processing_withdrawal"]["Returns"]>();
+
+    log.info("Starting withdrawal processing", { withdrawalId, txHash });
+
+    const { error } = await rpc.call("start_processing_withdrawal", {
+      p_request_id: withdrawalId,
+      p_processed_amount: null,
+      p_tx_hash: txHash || null,
+      p_settlement_date: null,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
-      log.error('Error marking withdrawal as processing', error);
+      log.error("Error marking withdrawal as processing", error);
       const errorMessage = error.message || "Failed to start processing withdrawal";
-      throw new Error(errorMessage.includes("Admin only") 
-        ? "You don't have admin privileges to process withdrawals" 
-        : errorMessage.includes("approved") 
-          ? "Withdrawal must be approved before processing" 
-          : errorMessage);
+      throw new Error(
+        errorMessage.includes("Admin only")
+          ? "You don't have admin privileges to process withdrawals"
+          : errorMessage.includes("approved")
+            ? "Withdrawal must be approved before processing"
+            : errorMessage
+      );
     }
-    
-    log.info('Withdrawal marked as processing');
+
+    log.info("Withdrawal marked as processing");
     return { correlationId: corrId };
   },
 
@@ -346,36 +358,36 @@ export const withdrawalService = {
   async markAsCompleted(
     withdrawalId: string,
     closingAum: string,
-    txHash?: string, 
+    txHash?: string,
     adminNotes?: string,
     correlationId?: string
   ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId('wdr_comp');
+    const corrId = correlationId || generateCorrelationId("wdr_comp");
     const log = createCorrelatedLogger(corrId);
-    
-    log.info('Completing withdrawal', { withdrawalId, txHash });
-    
-    const { error } = await supabase
-      .rpc('complete_withdrawal', {
-        p_request_id: withdrawalId,
-        p_closing_aum: parseFloat(closingAum),
-        p_event_ts: new Date().toISOString(),
-        p_transaction_hash: txHash || null,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-      })
-      .returns<Database["public"]["Functions"]["complete_withdrawal"]["Returns"]>();
+
+    log.info("Completing withdrawal", { withdrawalId, txHash });
+
+    const { error } = await rpc.call("complete_withdrawal", {
+      p_request_id: withdrawalId,
+      p_closing_aum: parseFloat(closingAum),
+      p_event_ts: new Date().toISOString(),
+      p_transaction_hash: txHash || null,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
-      log.error('Error completing withdrawal', error);
+      log.error("Error completing withdrawal", error);
       const errorMessage = error.message || "Failed to complete withdrawal";
-      throw new Error(errorMessage.includes("Admin only") 
-        ? "You don't have admin privileges to complete withdrawals" 
-        : errorMessage.includes("processing") 
-          ? "Withdrawal must be in processing state before completing" 
-          : errorMessage);
+      throw new Error(
+        errorMessage.includes("Admin only")
+          ? "You don't have admin privileges to complete withdrawals"
+          : errorMessage.includes("processing")
+            ? "Withdrawal must be in processing state before completing"
+            : errorMessage
+      );
     }
-    
-    log.info('Withdrawal completed successfully');
+
+    log.info("Withdrawal completed successfully");
     return { correlationId: corrId };
   },
 
@@ -383,33 +395,33 @@ export const withdrawalService = {
    * Cancel a withdrawal request using secure RPC with server-side admin check
    */
   async cancelWithdrawal(
-    withdrawalId: string, 
-    reason: string, 
+    withdrawalId: string,
+    reason: string,
     adminNotes?: string,
     correlationId?: string
   ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId('wdr_canc');
+    const corrId = correlationId || generateCorrelationId("wdr_canc");
     const log = createCorrelatedLogger(corrId);
-    
-    log.info('Cancelling withdrawal', { withdrawalId, reason });
-    
-    const { error } = await supabase
-      .rpc('cancel_withdrawal_by_admin', {
-        p_request_id: withdrawalId,
-        p_reason: reason,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
-      })
-      .returns<Database["public"]["Functions"]["cancel_withdrawal_by_admin"]["Returns"]>();
+
+    log.info("Cancelling withdrawal", { withdrawalId, reason });
+
+    const { error } = await rpc.call("cancel_withdrawal_by_admin", {
+      p_request_id: withdrawalId,
+      p_reason: reason,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
-      log.error('Error cancelling withdrawal', error);
+      log.error("Error cancelling withdrawal", error);
       const errorMessage = error.message || "Failed to cancel withdrawal";
-      throw new Error(errorMessage.includes("Admin only") 
-        ? "You don't have admin privileges to cancel withdrawals" 
-        : errorMessage);
+      throw new Error(
+        errorMessage.includes("Admin only")
+          ? "You don't have admin privileges to cancel withdrawals"
+          : errorMessage
+      );
     }
-    
-    log.info('Withdrawal cancelled successfully');
+
+    log.info("Withdrawal cancelled successfully");
     return { correlationId: corrId };
   },
 
@@ -422,7 +434,8 @@ export const withdrawalService = {
   async fetchPositionsForWithdrawal(investorId: string): Promise<WithdrawalInvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(`
+      .select(
+        `
         fund_id,
         current_value,
         shares,
@@ -431,7 +444,8 @@ export const withdrawalService = {
           code,
           asset
         )
-      `)
+      `
+      )
       .eq("investor_id", investorId)
       .gt("current_value", 0);
 
@@ -449,15 +463,13 @@ export const withdrawalService = {
    * Create a new withdrawal request via RPC
    */
   async createWithdrawal(params: CreateWithdrawalParams): Promise<void> {
-    const { error } = await supabase
-      .rpc("create_withdrawal_request", {
-        p_investor_id: params.investorId,
-        p_fund_id: params.fundId,
-        p_amount: params.amount,
-        p_type: params.withdrawalType,
-        p_notes: params.notes || null,
-      })
-      .returns<Database["public"]["Functions"]["create_withdrawal_request"]["Returns"]>();
+    const { error } = await rpc.call("create_withdrawal_request", {
+      p_investor_id: params.investorId,
+      p_fund_id: params.fundId,
+      p_amount: params.amount,
+      p_type: params.withdrawalType,
+      p_notes: params.notes || null,
+    });
 
     if (error) throw error;
   },
@@ -466,12 +478,10 @@ export const withdrawalService = {
    * Route a withdrawal to INDIGO FEES account via RPC
    */
   async routeToFees(params: RouteToFeesParams): Promise<void> {
-    const { error } = await supabase
-      .rpc("route_withdrawal_to_fees", {
-        p_request_id: params.withdrawalId,
-        p_reason: params.reason || "Routed to INDIGO FEES",
-      })
-      .returns<Database["public"]["Functions"]["route_withdrawal_to_fees"]["Returns"]>();
+    const { error } = await rpc.call("route_withdrawal_to_fees", {
+      p_request_id: params.withdrawalId,
+      p_reason: params.reason || "Routed to INDIGO FEES",
+    });
 
     if (error) throw error;
   },
@@ -480,15 +490,13 @@ export const withdrawalService = {
    * Update an existing withdrawal request via RPC
    */
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
-    const { error } = await supabase
-      .rpc("update_withdrawal", {
-        p_withdrawal_id: params.withdrawalId,
-        p_requested_amount: params.requestedAmount,
-        p_withdrawal_type: params.withdrawalType,
-        p_notes: params.notes || null,
-        p_reason: params.reason,
-      })
-      .returns<Database["public"]["Functions"]["update_withdrawal"]["Returns"]>();
+    const { error } = await rpc.call("update_withdrawal", {
+      p_withdrawal_id: params.withdrawalId,
+      p_requested_amount: params.requestedAmount,
+      p_withdrawal_type: params.withdrawalType,
+      p_notes: params.notes || null,
+      p_reason: params.reason,
+    });
 
     if (error) throw error;
   },
@@ -497,13 +505,11 @@ export const withdrawalService = {
    * Delete or cancel a withdrawal request via RPC
    */
   async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
-    const { error } = await supabase
-      .rpc("delete_withdrawal", {
-        p_withdrawal_id: params.withdrawalId,
-        p_reason: params.reason,
-        p_hard_delete: params.hardDelete || false,
-      })
-      .returns<Database["public"]["Functions"]["delete_withdrawal"]["Returns"]>();
+    const { error } = await rpc.call("delete_withdrawal", {
+      p_withdrawal_id: params.withdrawalId,
+      p_reason: params.reason,
+      p_hard_delete: params.hardDelete || false,
+    });
 
     if (error) throw error;
   },
@@ -587,7 +593,9 @@ export const withdrawalService = {
     totpCode?: string;
   }): Promise<string> {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
     const investorId = user.id;
@@ -605,21 +613,18 @@ export const withdrawalService = {
       params.reason ? `Reason: ${params.reason}` : null,
       params.destinationAddress ? `Destination: ${params.destinationAddress}` : null,
       params.notes || null,
-    ].filter(Boolean).join('\n');
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     // Create withdrawal via RPC
-    const { data: requestId, error: rpcError } = await supabase
-      .rpc(
-        "create_withdrawal_request",
-        {
-          p_investor_id: investorId,
-          p_fund_id: params.fundId,
-          p_amount: params.amount,
-          p_type: "partial",
-          p_notes: combinedNotes || null,
-        }
-      )
-      .returns<Database["public"]["Functions"]["create_withdrawal_request"]["Returns"]>();
+    const { data: requestId, error: rpcError } = await rpc.call("create_withdrawal_request", {
+      p_investor_id: investorId,
+      p_fund_id: params.fundId,
+      p_amount: params.amount,
+      p_type: "partial",
+      p_notes: combinedNotes || null,
+    });
 
     if (rpcError) throw rpcError;
 

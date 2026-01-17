@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { toNotifications, type Notification } from "@/lib/typeAdapters";
 
@@ -60,10 +61,7 @@ class NotificationService {
    * Delete a notification
    */
   async deleteNotification(notificationId: string): Promise<void> {
-    const { error } = await supabase
-      .from("notifications")
-      .delete()
-      .eq("id", notificationId);
+    const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
 
     if (error) throw error;
   }
@@ -200,10 +198,7 @@ class NotificationService {
    * Update a price alert
    */
   async updatePriceAlert(alertId: string, updates: Partial<PriceAlert>): Promise<void> {
-    const { error } = await supabase
-      .from("price_alerts")
-      .update(updates)
-      .eq("id", alertId);
+    const { error } = await supabase.from("price_alerts").update(updates).eq("id", alertId);
 
     if (error) throw error;
   }
@@ -212,9 +207,9 @@ class NotificationService {
    * Delete a price alert
    */
   async deletePriceAlert(alertId: string): Promise<void> {
-    const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
+    const { error } = await db.delete("price_alerts", { column: "id", value: alertId });
 
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   }
 }
 

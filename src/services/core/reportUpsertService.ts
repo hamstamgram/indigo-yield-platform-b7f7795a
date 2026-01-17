@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { logError } from "@/lib/logger";
 
 export interface ExistingReport {
@@ -94,7 +95,7 @@ async function logReportChange(
   changeReason?: string,
   changeSummary?: Record<string, any>
 ): Promise<void> {
-  const { error } = await supabase.from("report_change_log").insert({
+  const { success, error } = await db.insert("report_change_log", {
     report_id: reportId,
     report_table: reportTable,
     changed_by: changedBy,
@@ -104,7 +105,7 @@ async function logReportChange(
     change_summary: changeSummary,
   });
 
-  if (error) {
+  if (!success) {
     logError("logReportChange", error, { reportId, reportTable });
     // Don't throw - audit logging should not block report generation
   }
@@ -133,8 +134,10 @@ export class DuplicateStatementError extends Error {
   public readonly createdAt: string;
 
   constructor(existingReport: ExistingReport, investorId: string, periodId: string) {
-    super(`Statement already exists for investor ${investorId} and period ${periodId}. Created at: ${existingReport.created_at}`);
-    this.name = 'DuplicateStatementError';
+    super(
+      `Statement already exists for investor ${investorId} and period ${periodId}. Created at: ${existingReport.created_at}`
+    );
+    this.name = "DuplicateStatementError";
     this.existingReportId = existingReport.id;
     this.investorId = investorId;
     this.periodId = periodId;
@@ -181,7 +184,7 @@ export async function strictInsertStatement(
 
   if (error) {
     // Handle unique constraint violation as well
-    if (error.code === '23505') {
+    if (error.code === "23505") {
       const checkAgain = await checkStatementExists(investorId, periodId);
       if (checkAgain.exists && checkAgain.report) {
         throw new DuplicateStatementError(checkAgain.report, investorId, periodId);
@@ -196,7 +199,7 @@ export async function strictInsertStatement(
 /**
  * Upsert a generated statement (creates or updates existing)
  * Returns the report ID and whether it was an update
- * 
+ *
  * @deprecated Use strictInsertStatement instead to enforce one-report-per-period rule.
  * This function is kept for backward compatibility but should not be used for new code.
  */

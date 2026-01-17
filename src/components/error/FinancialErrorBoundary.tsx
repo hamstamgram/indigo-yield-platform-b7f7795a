@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { db } from "@/lib/db";
 
 interface FinancialErrorBoundaryProps {
   children: ReactNode;
@@ -62,11 +63,10 @@ export class FinancialErrorBoundary extends Component<
     // Check if error is financial/ledger related
     const errorMessage = error.message.toLowerCase();
     const errorStack = (error.stack || "").toLowerCase();
-    
+
     const isFinancialError = FINANCIAL_ERROR_KEYWORDS.some(
       (keyword) =>
-        errorMessage.includes(keyword.toLowerCase()) ||
-        errorStack.includes(keyword.toLowerCase())
+        errorMessage.includes(keyword.toLowerCase()) || errorStack.includes(keyword.toLowerCase())
     );
 
     const errorId = Date.now().toString(36).toUpperCase();
@@ -85,7 +85,7 @@ export class FinancialErrorBoundary extends Component<
 
     // Log to audit_log (system_health_logs is not in types yet)
     try {
-      await supabase.from("audit_log").insert({
+      const { error: auditError } = await db.insert("audit_log", {
         action: "financial_error",
         entity: `${context}_dashboard`,
         entity_id: errorId,
@@ -97,14 +97,26 @@ export class FinancialErrorBoundary extends Component<
           safe_mode_activated: isSafeMode,
           timestamp: new Date().toISOString(),
         },
-      });
+      } as any);
+
+      if (auditError) {
+        logError(
+          "FinancialErrorBoundary.auditLogWrite",
+          new Error(auditError.userMessage || auditError.message)
+        );
+      }
     } catch (logErr) {
       // Silently fail - don't let logging errors cascade
       logError("FinancialErrorBoundary.auditLogWrite", logErr);
     }
 
     // Log the original error via structured logger
-    logError("FinancialErrorBoundary", error, { context, isSafeMode, errorId, componentStack: errorInfo.componentStack?.slice(0, 500) });
+    logError("FinancialErrorBoundary", error, {
+      context,
+      isSafeMode,
+      errorId,
+      componentStack: errorInfo.componentStack?.slice(0, 500),
+    });
   }
 
   handleReload = () => {
@@ -133,16 +145,14 @@ export class FinancialErrorBoundary extends Component<
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
                 <ShieldOff className="h-8 w-8 text-destructive" />
               </div>
-              <CardTitle className="text-xl text-destructive">
-                Safe Mode Activated
-              </CardTitle>
+              <CardTitle className="text-xl text-destructive">Safe Mode Activated</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-muted-foreground">
-                A financial calculation error was detected. Transactions are
-                temporarily disabled to protect data integrity.
+                A financial calculation error was detected. Transactions are temporarily disabled to
+                protect data integrity.
               </p>
-              
+
               <div className="bg-muted/50 rounded-md p-3 text-left">
                 <p className="text-xs text-muted-foreground mb-1">Error ID</p>
                 <code className="text-sm font-mono text-foreground">{errorId}</code>

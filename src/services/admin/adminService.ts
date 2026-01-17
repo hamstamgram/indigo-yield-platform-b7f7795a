@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { investorDataService } from "@/services/investor/investorDataService";
 import type { InvestorPositionDetail } from "@/services/investor/investorDataService";
 
@@ -132,16 +133,17 @@ class AdminInvestorService {
     notes?: string
   ): Promise<void> {
     try {
-      const { error } = await supabase
-        .from("withdrawal_requests")
-        .update({
+      const result = await db.update(
+        "withdrawal_requests",
+        {
           status,
           notes,
           updated_at: new Date().toISOString(),
-        })
-        .eq("id", requestId);
+        },
+        { column: "id", value: requestId }
+      );
 
-      if (error) throw error;
+      if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
       console.error("Error updating withdrawal status:", error);
       throw error;
@@ -161,12 +163,12 @@ class AdminInvestorService {
         updates.approved_amount = amount;
       }
 
-      const { error } = await supabase
-        .from("withdrawal_requests")
-        .update(updates)
-        .eq("id", requestId);
+      const result = await db.update("withdrawal_requests", updates, {
+        column: "id",
+        value: requestId,
+      });
 
-      if (error) throw error;
+      if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
       console.error("Error approving withdrawal:", error);
       throw error;
@@ -176,17 +178,18 @@ class AdminInvestorService {
   // Reject withdrawal request
   async rejectWithdrawal(requestId: string, reason?: string, notes?: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from("withdrawal_requests")
-        .update({
+      const result = await db.update(
+        "withdrawal_requests",
+        {
           status: "rejected" as WithdrawalStatus,
           rejection_reason: reason,
           notes,
           updated_at: new Date().toISOString(),
-        })
-        .eq("id", requestId);
+        },
+        { column: "id", value: requestId }
+      );
 
-      if (error) throw error;
+      if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
       console.error("Error rejecting withdrawal:", error);
       throw error;
@@ -218,12 +221,12 @@ class AdminInvestorService {
         updates.settlement_date = settlementDate;
       }
 
-      const { error } = await supabase
-        .from("withdrawal_requests")
-        .update(updates)
-        .eq("id", requestId);
+      const result = await db.update("withdrawal_requests", updates, {
+        column: "id",
+        value: requestId,
+      });
 
-      if (error) throw error;
+      if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
       console.error("Error processing withdrawal:", error);
       throw error;
@@ -298,21 +301,24 @@ class AdminInvestorService {
   }): Promise<string> {
     try {
       // Check if profile exists
-      const { data: existing } = await supabase.from("profiles").select("id").eq("email", investorData.email).maybeSingle();
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", investorData.email)
+        .maybeSingle();
       if (existing) throw new Error("Investor with this email already exists.");
 
-      // We cannot create a profile without an auth user easily via client SDK 
+      // We cannot create a profile without an auth user easily via client SDK
       // unless we use a specific edge function or if we are just mocking "invite".
       // But assuming this is an admin tool, we might need to use the admin invite function.
-      
+
       // For now, we assume this is inserting into the 'profiles' table if policies allow,
       // but typically profiles are created via Auth Triggers.
       // If we are migrating away from 'investors' table which was likely a manual entry table,
       // we should use the 'invite_user_by_email' or insert into profiles if we have a trigger handling auth.
-      
+
       // Updated logic: Update profile if exists, else error (must invite)
       throw new Error("To add an investor, please use the 'Invite Investor' feature.");
-      
     } catch (error) {
       console.error("Error creating investor:", error);
       throw error;
@@ -322,12 +328,9 @@ class AdminInvestorService {
   // Update investor status
   async updateInvestorStatus(investorId: string, status: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ status })
-        .eq("id", investorId);
+      const result = await db.update("profiles", { status }, { column: "id", value: investorId });
 
-      if (error) throw error;
+      if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
       console.error("Error updating investor status:", error);
       throw error;
@@ -339,9 +342,9 @@ class AdminInvestorService {
   // Bulk operations
   async bulkUpdateInvestors(investorIds: string[], updates: Record<string, any>): Promise<void> {
     try {
-      const { error } = await supabase.from("profiles").update(updates).in("id", investorIds);
+      const result = await db.updateIn("profiles", updates, "id", investorIds);
 
-      if (error) throw error;
+      if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
       console.error("Error in bulk update:", error);
       throw error;

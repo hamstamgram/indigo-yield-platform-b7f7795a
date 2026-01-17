@@ -11,7 +11,7 @@ import type {
   CreateTransactionUIParams,
 } from "@/types/domains/transaction";
 import { logError } from "@/lib/logger";
-import { callRPC } from "@/lib/supabase/typedRPC";
+import { rpc } from "@/lib/rpc";
 
 // Re-export the UI type for backwards compatibility (allows FIRST_INVESTMENT)
 export type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
@@ -209,9 +209,9 @@ export async function createAdminTransaction(
         `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
       const triggerReference = triggerReferenceRaw.replace(/^(DEP:|WDR:)/, "");
 
-      const { data, error } =
+      const result =
         dbType === "DEPOSIT"
-          ? await callRPC("apply_deposit_with_crystallization", {
+          ? await rpc.call("apply_deposit_with_crystallization", {
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
               p_amount: Number(params.amount),
@@ -221,7 +221,7 @@ export async function createAdminTransaction(
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
               p_purpose: "transaction",
             })
-          : await callRPC("apply_withdrawal_with_crystallization", {
+          : await rpc.call("apply_withdrawal_with_crystallization", {
               p_fund_id: params.fund_id,
               p_investor_id: params.investor_id,
               p_amount: Number(params.amount),
@@ -232,46 +232,37 @@ export async function createAdminTransaction(
               p_purpose: "transaction",
             });
 
-      if (error) {
-        logError(`createAdminTransaction.${dbType}`, error, { fundId: params.fund_id });
-        // Surface the actual Postgres error message
-        const errorMessage = error.message || "Failed to create transaction";
-        throw new Error(errorMessage);
+      if (result.error) {
+        logError(`createAdminTransaction.${dbType}`, result.error, { fundId: params.fund_id });
+        // Surface the user-friendly error message from gateway
+        throw new Error(result.error.userMessage);
       }
 
-      const result = data as unknown as { success?: boolean } | null;
-      if (!result?.success) {
+      const data = result.data as unknown as { success?: boolean } | null;
+      if (!data?.success) {
         throw new Error("Failed to create transaction");
       }
 
       return { success: true };
     }
 
-    // For other transaction types (YIELD, INTEREST, FEE), use direct insert
-    const txSubtype = params.tx_subtype || getDefaultTxSubtype(params.type);
+    // BLOCKED: transactions_v2 is a PROTECTED table
+    // Direct inserts for YIELD, INTEREST, FEE are violations of the canonical mutation pattern.
+    //
+    // CORRECT PATHWAYS:
+    // - YIELD/INTEREST: Use apply_daily_yield_to_fund_v3 RPC
+    // - FEE: Use fee allocation RPCs or admin_create_transaction for old transactions table
+    //
+    // This code path should not be reached. If you need to create these transaction types,
+    // use the appropriate canonical RPC or add the type to the allowlist in
+    // supabase/migrations/20260117100000_enforce_canonical_mutations.sql
 
-    const { error } = await supabase.from("transactions_v2").insert([
-      {
-        investor_id: params.investor_id,
-        fund_id: params.fund_id,
-        type: dbType as any,
-        tx_subtype: txSubtype,
-        asset: params.asset,
-        amount: Number(params.amount),
-        tx_date: params.tx_date,
-        value_date: params.tx_date,
-        reference_id: params.reference_id || null,
-        tx_hash: params.tx_hash || null,
-        notes: params.notes || null,
-        created_by: user.id,
-        approved_by: user.id,
-        approved_at: new Date().toISOString(),
-      },
-    ] as any);
-
-    if (error) throw error;
-
-    return { success: true };
+    throw new Error(
+      `Transaction type ${dbType} cannot be created through this service. ` +
+        `YIELD/INTEREST must use apply_daily_yield_to_fund_v3 RPC. ` +
+        `FEE must use fee allocation RPCs. ` +
+        `See docs/FLOW_MATRIX.md for canonical mutation pathways.`
+    );
   } catch (error) {
     logError("createAdminTransaction", error);
     return {
@@ -316,9 +307,9 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   // Generate unique trigger reference to prevent duplicates
   const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${crypto.randomUUID()}`;
 
-  const { data, error } =
+  const result =
     params.type === "DEPOSIT"
-      ? await callRPC("apply_deposit_with_crystallization", {
+      ? await rpc.call("apply_deposit_with_crystallization", {
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
           p_amount: Number(params.amount),
@@ -328,7 +319,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
           p_notes: params.description || `${params.type} - ${triggerReference}`,
           p_purpose: "transaction",
         })
-      : await callRPC("apply_withdrawal_with_crystallization", {
+      : await rpc.call("apply_withdrawal_with_crystallization", {
           p_fund_id: params.fundId,
           p_investor_id: params.investorId,
           p_amount: Number(params.amount),
@@ -339,13 +330,12 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
           p_purpose: "transaction",
         });
 
-  if (error) {
-    const errorMessage = error.message || "Failed to create transaction";
-    throw new Error(errorMessage);
+  if (result.error) {
+    throw new Error(result.error.userMessage);
   }
 
-  const result = data as unknown as { success?: boolean } | null;
-  if (!result?.success) {
+  const data = result.data as unknown as { success?: boolean } | null;
+  if (!data?.success) {
     throw new Error(`Failed to create ${params.type}`);
   }
 

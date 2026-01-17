@@ -5,12 +5,13 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 /**
  * Get investor performance records for a specific period
  */
 export async function getInvestorPerformanceForPeriod(
-  investorId: string, 
+  investorId: string,
   periodId: string
 ): Promise<any[]> {
   const { data, error } = await supabase
@@ -50,12 +51,14 @@ export async function getInvestorFeeSchedule(investorId: string): Promise<
 export async function getInvestorMonthlyReports(investorId: string): Promise<any[]> {
   const { data, error } = await (supabase as any)
     .from("investor_fund_performance")
-    .select(`
+    .select(
+      `
       *,
       period:statement_periods (
         period_end_date
       )
-    `)
+    `
+    )
     .eq("investor_id", investorId)
     .order("period(period_end_date)", { ascending: false })
     .order("fund_name", { ascending: true });
@@ -73,7 +76,9 @@ export async function createMonthlyReportTemplate(
   month: number,
   assetCode: string = "USDT"
 ): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Check if period exists
   let periodId: string;
@@ -108,7 +113,7 @@ export async function createMonthlyReportTemplate(
   }
 
   // Insert performance record
-  const { error } = await (supabase as any).from("investor_fund_performance").insert({
+  const result = await db.insert("investor_fund_performance", {
     investor_id: investorId,
     period_id: periodId,
     fund_name: assetCode,
@@ -119,7 +124,7 @@ export async function createMonthlyReportTemplate(
     mtd_net_income: 0,
   });
 
-  if (error) throw new Error(`Failed to create template: ${error.message}`);
+  if (result.error) throw new Error(`Failed to create template: ${result.error.userMessage}`);
 }
 
 /**

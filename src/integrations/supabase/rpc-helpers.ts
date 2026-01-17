@@ -3,10 +3,13 @@
  *
  * This file provides type-safe wrappers for Supabase RPC function calls.
  * All return types are automatically inferred from the Database schema.
+ *
+ * NOTE: This is a legacy wrapper that internally uses the canonical RPC gateway.
+ * For new code, prefer importing { rpc } from "@/lib/rpc" directly.
  */
 
 import type { Database } from "./types";
-import { supabase } from "./client";
+import { rpc } from "@/lib/rpc";
 
 // Extract RPC function types from Database schema
 type RpcFunctions = Database["public"]["Functions"];
@@ -33,8 +36,11 @@ export async function callRpc<T extends keyof RpcFunctions>(
   functionName: T,
   args: RpcArgs<T>
 ): Promise<{ data: RpcReturns<T> | null; error: any }> {
-  const { data, error } = await supabase.rpc(functionName, args as any);
-  return { data: data as RpcReturns<T> | null, error };
+  const result = await rpc.call(functionName, args as any);
+  return {
+    data: result.data as RpcReturns<T> | null,
+    error: result.error,
+  };
 }
 
 /**
@@ -53,13 +59,13 @@ export async function callRpcOrThrow<T extends keyof RpcFunctions>(
   functionName: T,
   args: RpcArgs<T>
 ): Promise<RpcReturns<T>> {
-  const { data, error } = await supabase.rpc(functionName, args as any);
+  const result = await rpc.call(functionName, args as any);
 
-  if (error) {
-    throw new Error(`RPC ${String(functionName)} failed: ${error.message}`);
+  if (result.error) {
+    throw new Error(`RPC ${String(functionName)} failed: ${result.error.message}`);
   }
 
-  return data as RpcReturns<T>;
+  return result.data as RpcReturns<T>;
 }
 
 /**

@@ -5,6 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 import { profileService } from "@/services/shared";
@@ -85,7 +86,9 @@ export function useCurrentProfile() {
   return useQuery({
     queryKey: QUERY_KEYS.currentProfile,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data, error } = await supabase
@@ -108,8 +111,10 @@ export function useIsSuperAdmin() {
   return useQuery<boolean>({
     queryKey: QUERY_KEYS.isSuperAdmin,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("is_super_admin");
-      if (error) throw error;
+      const { data, error, success } = await rpc.callNoArgs("is_super_admin");
+      if (!success || error) {
+        throw new Error(error?.userMessage || "Failed to check super admin status");
+      }
       return !!data;
     },
     staleTime: 5 * 60 * 1000,
@@ -124,13 +129,7 @@ export function useToggleAdminStatus() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({
-      userId,
-      currentStatus,
-    }: {
-      userId: string;
-      currentStatus: boolean;
-    }) => {
+    mutationFn: async ({ userId, currentStatus }: { userId: string; currentStatus: boolean }) => {
       const { error } = await supabase
         .from("profiles")
         .update({ is_admin: !currentStatus })
@@ -165,13 +164,7 @@ export function useUpdateProfile() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({
-      userId,
-      updates,
-    }: {
-      userId: string;
-      updates: Partial<UserProfile>;
-    }) => {
+    mutationFn: async ({ userId, updates }: { userId: string; updates: Partial<UserProfile> }) => {
       const { data, error } = await supabase
         .from("profiles")
         .update(updates)

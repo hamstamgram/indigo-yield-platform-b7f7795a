@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
+import { db } from "@/lib/db";
 
 export interface AdminInvite {
   id: string;
@@ -46,17 +47,19 @@ class AdminInviteService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const { error } = await supabase.from("admin_invites").insert({
+    const { error } = await db.insert("admin_invites", {
       email: email.toLowerCase().trim(),
       invite_code: inviteCode,
       expires_at: expiresAt.toISOString(),
       created_by: user?.id,
       intended_role: role,
-    });
+    } as any);
 
-    if (error) throw error;
+    if (error) throw new Error(error.userMessage || error.message);
     return { email, inviteCode };
   }
 
@@ -64,10 +67,7 @@ class AdminInviteService {
    * Delete/revoke an admin invite
    */
   async revoke(inviteId: string): Promise<void> {
-    const { error } = await supabase
-      .from("admin_invites")
-      .delete()
-      .eq("id", inviteId);
+    const { error } = await supabase.from("admin_invites").delete().eq("id", inviteId);
 
     if (error) throw error;
   }

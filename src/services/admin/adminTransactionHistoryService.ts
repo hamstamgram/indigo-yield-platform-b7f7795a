@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import type {
   AdminTransactionFilters,
   AdminTransactionResult,
@@ -181,13 +182,13 @@ async function fetchTransactions(
  * Update a transaction via RPC
  */
 async function updateTransaction(params: UpdateTransactionParams): Promise<void> {
-  const { error } = await supabase.rpc("update_transaction", {
+  const { error } = await rpc.call("update_transaction", {
     p_transaction_id: params.transactionId,
     p_updates: params.updates,
     p_reason: params.reason,
   });
 
-  if (error) throw error;
+  if (error) throw new Error(error.userMessage || error.message);
 }
 
 /**
@@ -203,15 +204,14 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   if (!user?.id) throw new Error("Authentication required");
 
   // Canonical DB signature: void_transaction(p_transaction_id, p_void_reason, p_admin_id)
-  // Note: Using type cast because actual DB function uses p_void_reason not p_reason
-  const { data, error } = await supabase.rpc("void_transaction", {
+  const { data, error } = await rpc.call("void_transaction", {
     p_transaction_id: params.transactionId,
     p_void_reason: params.reason,
     p_admin_id: user.id,
-  } as unknown as Parameters<typeof supabase.rpc<"void_transaction">>[1]);
+  });
 
   if (error) {
-    throw new Error(error.message || "Failed to void transaction");
+    throw new Error(error.userMessage || "Failed to void transaction");
   }
 
   // Check RPC result for success
@@ -241,7 +241,7 @@ async function voidAndReissueTransaction(
   }
   const mergedNotes = notesParts.join("\n").trim() || null;
 
-  const { data, error } = await supabase.rpc("void_and_reissue_transaction", {
+  const { data, error } = await rpc.call("void_and_reissue_transaction", {
     p_original_tx_id: params.transactionId,
     p_new_amount: params.newValues.amount,
     p_new_date: params.newValues.tx_date,
@@ -253,15 +253,14 @@ async function voidAndReissueTransaction(
 
   if (error) {
     // Fallback for legacy signatures (until migrations are applied)
-    // Note: Using type cast because legacy function has different param names
-    const legacy = await supabase.rpc("void_and_reissue_transaction", {
+    const legacy = await rpc.call("void_and_reissue_transaction", {
       p_original_transaction_id: params.transactionId,
       p_new_amount: params.newValues.amount,
       p_new_tx_date: params.newValues.tx_date,
       p_new_notes: mergedNotes,
       p_reason: params.reason,
-    } as unknown as Parameters<typeof supabase.rpc<"void_and_reissue_transaction">>[1]);
-    if (legacy.error) throw error;
+    });
+    if (legacy.error) throw new Error(error.userMessage || error.message);
     return {
       success: true,
       voided_transaction_id: params.transactionId,

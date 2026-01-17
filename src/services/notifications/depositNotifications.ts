@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 type DepositNotificationEvent = "pending" | "confirmed" | "failed";
 
@@ -12,7 +12,10 @@ interface DepositNotificationData {
   txHash?: string;
 }
 
-const eventConfig: Record<DepositNotificationEvent, { title: string; priority: "high" | "medium" | "low" }> = {
+const eventConfig: Record<
+  DepositNotificationEvent,
+  { title: string; priority: "high" | "medium" | "low" }
+> = {
   pending: {
     title: "Deposit Received",
     priority: "low",
@@ -27,7 +30,10 @@ const eventConfig: Record<DepositNotificationEvent, { title: string; priority: "
   },
 };
 
-const eventBodyTemplates: Record<DepositNotificationEvent, (data: DepositNotificationData) => string> = {
+const eventBodyTemplates: Record<
+  DepositNotificationEvent,
+  (data: DepositNotificationData) => string
+> = {
   pending: (data) =>
     `Your deposit of ${data.amount.toLocaleString()} ${data.asset}${data.fundName ? ` to ${data.fundName}` : ""} has been received and is pending confirmation.`,
   confirmed: (data) =>
@@ -48,23 +54,25 @@ export async function notifyDepositEvent(
   const body = eventBodyTemplates[event](data);
 
   try {
-    const { error } = await supabase.from("notifications").insert([{
-      user_id: userId,
-      type: "deposit" as const,
-      title: config.title,
-      body,
-      priority: config.priority,
-      data_jsonb: {
-        deposit_id: data.depositId,
-        transaction_id: data.transactionId,
-        amount: data.amount,
-        asset: data.asset,
-        fund_name: data.fundName,
-        event,
-        reason: data.reason,
-        tx_hash: data.txHash,
+    const { error } = await db.insertMany("notifications", [
+      {
+        user_id: userId,
+        type: "deposit" as const,
+        title: config.title,
+        body,
+        priority: config.priority,
+        data_jsonb: {
+          deposit_id: data.depositId,
+          transaction_id: data.transactionId,
+          amount: data.amount,
+          asset: data.asset,
+          fund_name: data.fundName,
+          event,
+          reason: data.reason,
+          tx_hash: data.txHash,
+        },
       },
-    }]);
+    ]);
 
     if (error) {
       console.error("Failed to create deposit notification:", error);
@@ -97,7 +105,13 @@ export const depositNotifications = {
     fundName?: string,
     transactionId?: string
   ): Promise<void> {
-    await notifyDepositEvent(userId, "confirmed", { depositId, amount, asset, fundName, transactionId });
+    await notifyDepositEvent(userId, "confirmed", {
+      depositId,
+      amount,
+      asset,
+      fundName,
+      transactionId,
+    });
   },
 
   async onFailed(

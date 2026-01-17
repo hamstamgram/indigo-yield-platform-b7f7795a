@@ -4,6 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
+import { db } from "@/lib/db";
 
 export type AumPurpose = "reporting" | "transaction";
 
@@ -52,7 +54,8 @@ export interface UpdateYieldRecordInput {
 export async function getYieldRecords(filters: YieldFilters = {}): Promise<YieldRecord[]> {
   let query = supabase
     .from("fund_daily_aum")
-    .select(`
+    .select(
+      `
       id,
       fund_id,
       aum_date,
@@ -69,7 +72,8 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
       is_voided,
       voided_at,
       void_reason
-    `)
+    `
+    )
     .eq("is_voided", false)
     .order("aum_date", { ascending: false })
     .order("created_at", { ascending: false });
@@ -147,8 +151,8 @@ export async function updateYieldRecord(
   editReason?: string
 ): Promise<YieldRecord> {
   // First, check if user is super admin
-  const { data: isSuperAdmin } = await supabase.rpc("is_super_admin");
-  if (!isSuperAdmin) {
+  const { data: isSuperAdmin, error: rpcError } = await rpc.callNoArgs("is_super_admin");
+  if (rpcError || !isSuperAdmin) {
     throw new Error("Only Super Admins can edit yield records");
   }
 
@@ -164,7 +168,7 @@ export async function updateYieldRecord(
   }
 
   // Log the edit to audit table
-  const { error: auditError } = await supabase.from("yield_edit_audit").insert({
+  const auditResult = await db.insert("yield_edit_audit", {
     record_id: recordId,
     record_type: "fund_daily_aum",
     edited_by: adminId,
@@ -173,8 +177,8 @@ export async function updateYieldRecord(
     edit_reason: editReason,
   });
 
-  if (auditError) {
-    console.error("Error logging yield edit:", auditError);
+  if (auditResult.error) {
+    console.error("Error logging yield edit:", auditResult.error);
     // Don't throw - audit should not block updates
   }
 
@@ -202,10 +206,12 @@ export async function updateYieldRecord(
 export async function getYieldEditHistory(recordId: string): Promise<any[]> {
   const { data, error } = await supabase
     .from("yield_edit_audit")
-    .select(`
+    .select(
+      `
       *,
       editor:profiles!yield_edit_audit_edited_by_fkey(first_name, last_name, email)
-    `)
+    `
+    )
     .eq("record_id", recordId)
     .order("edited_at", { ascending: false });
 
@@ -221,7 +227,7 @@ export async function getYieldEditHistory(recordId: string): Promise<any[]> {
  * Check if current user is a Super Admin (can edit yields)
  */
 export async function canEditYields(): Promise<boolean> {
-  const { data, error } = await supabase.rpc("is_super_admin");
+  const { data, error } = await rpc.callNoArgs("is_super_admin");
   if (error) {
     console.error("Error checking super admin status:", error);
     return false;

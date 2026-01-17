@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 class InviteService {
   /**
@@ -16,7 +17,7 @@ class InviteService {
     expiresAt: string;
     createdBy?: string;
   }): Promise<void> {
-    const { error } = await supabase.from("investor_invites").insert({
+    const { error } = await db.insert("investor_invites", {
       email: params.email,
       invite_code: params.inviteCode,
       created_by: params.createdBy,
@@ -24,7 +25,7 @@ class InviteService {
       investor_id: params.investorId,
     });
 
-    if (error) throw error;
+    if (error) throw new Error(error.userMessage);
   }
 }
 

@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { db } from "@/lib/db";
 
 export interface PerformanceData {
   id: string;
@@ -41,7 +42,9 @@ export interface PerformanceData {
   itd_rate_of_return: number;
 }
 
-export type PerformanceUpdateData = Partial<Omit<PerformanceData, 'id' | 'investor_id' | 'period_id' | 'fund_name'>>;
+export type PerformanceUpdateData = Partial<
+  Omit<PerformanceData, "id" | "investor_id" | "period_id" | "fund_name">
+>;
 
 /**
  * Update performance data for a specific record with audit trail
@@ -86,7 +89,7 @@ export async function updatePerformanceData(
     // Log to audit trail
     const { data: userData } = await supabase.auth.getUser();
     if (changedFields.length > 0) {
-      await supabase.from("data_edit_audit").insert({
+      const { error: auditError } = await db.insert("data_edit_audit", {
         table_name: "investor_fund_performance",
         record_id: recordId,
         operation: "UPDATE",
@@ -95,7 +98,15 @@ export async function updatePerformanceData(
         changed_fields: changedFields,
         edited_by: userData?.user?.id || null,
         edit_source: "admin_editor",
-      });
+      } as any);
+
+      if (auditError) {
+        logError(
+          "performanceData.auditLog",
+          new Error(auditError.userMessage || auditError.message),
+          { recordId }
+        );
+      }
     }
 
     return { success: true };
@@ -165,10 +176,7 @@ export async function deletePerformanceRecord(
   recordId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
-      .from("investor_fund_performance")
-      .delete()
-      .eq("id", recordId);
+    const { error } = await supabase.from("investor_fund_performance").delete().eq("id", recordId);
 
     if (error) throw error;
 
@@ -182,12 +190,14 @@ export async function deletePerformanceRecord(
 /**
  * Get all statement periods
  */
-export async function getStatementPeriods(): Promise<Array<{
-  id: string;
-  period_name: string;
-  year: number;
-  month: number;
-}>> {
+export async function getStatementPeriods(): Promise<
+  Array<{
+    id: string;
+    period_name: string;
+    year: number;
+    month: number;
+  }>
+> {
   const { data, error } = await supabase
     .from("statement_periods")
     .select("id, period_name, year, month")
@@ -216,6 +226,6 @@ export async function getAvailableFunds(): Promise<string[]> {
     return ["BTC", "ETH", "SOL", "USDC", "USDT", "EURC"];
   }
 
-  const uniqueFunds = [...new Set(data?.map(d => d.fund_name) || [])];
+  const uniqueFunds = [...new Set(data?.map((d) => d.fund_name) || [])];
   return uniqueFunds.length > 0 ? uniqueFunds : ["BTC", "ETH", "SOL", "USDC", "USDT", "EURC"];
 }

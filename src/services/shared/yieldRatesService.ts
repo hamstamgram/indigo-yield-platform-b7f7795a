@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 export interface Asset {
   id: number;
@@ -20,10 +21,7 @@ class YieldRatesService {
    * Fetch all assets
    */
   async getAssets(): Promise<Asset[]> {
-    const { data, error } = await supabase
-      .from("assets")
-      .select("id, symbol, name")
-      .order("name");
+    const { data, error } = await supabase.from("assets").select("id, symbol, name").order("name");
 
     if (error) throw error;
     return data || [];
@@ -46,10 +44,7 @@ class YieldRatesService {
    * Fetch yield rates with asset info for a specific date
    */
   async getEnrichedByDate(date: string): Promise<YieldRate[]> {
-    const [assets, rates] = await Promise.all([
-      this.getAssets(),
-      this.getByDate(date),
-    ]);
+    const [assets, rates] = await Promise.all([this.getAssets(), this.getByDate(date)]);
 
     if (rates.length > 0) {
       return rates.map((rate) => {
@@ -77,28 +72,35 @@ class YieldRatesService {
    * Update an existing yield rate
    */
   async update(id: string, dailyYieldPercentage: number): Promise<void> {
-    const { error } = await supabase
-      .from("yield_rates")
-      .update({ daily_yield_percentage: dailyYieldPercentage })
-      .eq("id", id);
+    const result = await db.update(
+      "yield_rates",
+      { daily_yield_percentage: dailyYieldPercentage },
+      { column: "id", value: id }
+    );
 
-    if (error) throw error;
+    if (result.error) {
+      throw new Error(result.error.userMessage);
+    }
   }
 
   /**
    * Insert a new yield rate
    */
   async insert(assetId: number, dailyYieldPercentage: number, date: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const { error } = await supabase.from("yield_rates").insert({
+    const result = await db.insert("yield_rates", {
       asset_id: assetId,
       daily_yield_percentage: dailyYieldPercentage,
       date,
-      entered_by: user?.id,
+      entered_by: user?.id || null,
     });
 
-    if (error) throw error;
+    if (result.error) {
+      throw new Error(result.error.userMessage);
+    }
   }
 
   /**

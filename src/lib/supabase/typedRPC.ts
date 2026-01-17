@@ -2,6 +2,10 @@
  * Typed RPC Helper for Supabase
  *
  * This utility provides type-safe RPC function calls to eliminate `as any` casts.
+ * Includes runtime validation for enum parameters to prevent database errors.
+ *
+ * NOTE: This is a legacy wrapper that internally uses the canonical RPC gateway.
+ * For new code, prefer importing { rpc } from "@/lib/rpc" directly.
  *
  * Usage:
  * ```typescript
@@ -15,57 +19,41 @@
  * ```
  */
 
-import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { rpc } from "@/lib/rpc";
 
 // Extract RPC function types from Database
-type RPCFunctions = Database['public']['Functions'];
+type RPCFunctions = Database["public"]["Functions"];
 
-// Type-safe RPC caller
+// Type-safe RPC caller with runtime enum validation
 export async function callRPC<T extends keyof RPCFunctions>(
   functionName: T,
-  args: RPCFunctions[T]['Args']
+  args: RPCFunctions[T]["Args"]
 ): Promise<{
-  data: RPCFunctions[T]['Returns'] | null;
+  data: RPCFunctions[T]["Returns"] | null;
   error: Error | null;
 }> {
-  try {
-    const { data, error } = await supabase.rpc(functionName, args);
+  const result = await rpc.call(functionName, args);
 
-    if (error) {
-      return { data: null, error };
-    }
-
-    return { data: data as RPCFunctions[T]['Returns'], error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error: error instanceof Error ? error : new Error(String(error))
-    };
-  }
+  return {
+    data: result.data as RPCFunctions[T]["Returns"] | null,
+    error: result.error ? new Error(result.error.message) : null,
+  };
 }
 
 // Type-safe RPC caller with no arguments (for functions that take no params)
 export async function callRPCNoArgs<T extends keyof RPCFunctions>(
   functionName: T
 ): Promise<{
-  data: RPCFunctions[T]['Returns'] | null;
+  data: RPCFunctions[T]["Returns"] | null;
   error: Error | null;
 }> {
-  try {
-    const { data, error } = await supabase.rpc(functionName);
+  const result = await rpc.callNoArgs(functionName);
 
-    if (error) {
-      return { data: null, error };
-    }
-
-    return { data: data as RPCFunctions[T]['Returns'], error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error: error instanceof Error ? error : new Error(String(error))
-    };
-  }
+  return {
+    data: result.data as RPCFunctions[T]["Returns"] | null,
+    error: result.error ? new Error(result.error.message) : null,
+  };
 }
 
 /**
@@ -104,5 +92,5 @@ export async function callRPCNoArgs<T extends keyof RPCFunctions>(
 
 // Export type helpers for advanced usage
 export type RPCFunctionNames = keyof RPCFunctions;
-export type RPCArgs<T extends RPCFunctionNames> = RPCFunctions[T]['Args'];
-export type RPCReturn<T extends RPCFunctionNames> = RPCFunctions[T]['Returns'];
+export type RPCArgs<T extends RPCFunctionNames> = RPCFunctions[T]["Args"];
+export type RPCReturn<T extends RPCFunctionNames> = RPCFunctions[T]["Returns"];

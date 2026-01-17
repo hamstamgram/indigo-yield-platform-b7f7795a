@@ -232,6 +232,139 @@ jobs:
 
           echo "✅ Ledger integrity verification complete"
 
+  contract-integrity:
+    name: Contract & Integrity Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify enum contracts
+        run: |
+          echo "🔍 Verifying enum contracts..."
+          pnpm contracts:verify || {
+            echo "❌ Enum contract verification failed!"
+            echo "   Regenerate contracts with: npm run contracts:generate"
+            exit 1
+          }
+          echo "✅ Enum contracts verified"
+
+      - name: SQL hygiene check
+        run: |
+          echo "🔍 Running SQL hygiene check..."
+          pnpm sql:hygiene || {
+            echo "❌ SQL hygiene check found issues!"
+            echo "   Review the issues above and fix them before merging."
+            exit 1
+          }
+          echo "✅ SQL hygiene check passed"
+
+      - name: Gateway usage enforcement
+        run: |
+          echo "🔒 Checking gateway usage enforcement..."
+          pnpm gateway:check || {
+            echo "❌ Gateway usage violations detected!"
+            echo "   All Supabase calls must go through canonical gateways:"
+            echo "   - RPC calls → src/lib/rpc.ts"
+            echo "   - Database mutations → src/lib/db.ts"
+            exit 1
+          }
+          echo "✅ Gateway usage check passed"
+
+      - name: Check for protected table mutations
+        run: |
+          echo "🔒 Checking for direct mutations to protected tables..."
+
+          # Protected tables that should ONLY be mutated via canonical RPCs
+          PROTECTED_TABLES=("transactions_v2" "yield_distributions" "fund_aum_events" "fund_daily_aum")
+
+          FOUND_VIOLATIONS=0
+          for table in "${PROTECTED_TABLES[@]}"; do
+            # Look for direct .insert(), .update(), .delete() on protected tables
+            # Exclude lib/rpc.ts and lib/db.ts which are allowed
+            MATCHES=$(grep -rn "from(['\"\`]${table}['\"\`]).*\.(insert|update|delete|upsert)" src/ \
+              --include="*.ts" --include="*.tsx" \
+              | grep -v "lib/rpc" | grep -v "lib/db" | grep -v "contracts" || true)
+
+            if [ -n "$MATCHES" ]; then
+              echo "❌ Found direct mutations to protected table: ${table}"
+              echo "$MATCHES"
+              FOUND_VIOLATIONS=1
+            fi
+          done
+
+          if [ $FOUND_VIOLATIONS -eq 1 ]; then
+            echo ""
+            echo "❌ FAIL: Found direct mutations to protected tables!"
+            echo "   Use canonical RPC functions instead:"
+            echo "   - transactions_v2: rpc.deposit(), rpc.withdrawal(), rpc.call('admin_create_transaction', ...)"
+            echo "   - yield_distributions: rpc.applyYield(), rpc.call('void_yield_distribution', ...)"
+            echo "   - fund_aum_events: Use crystallization RPCs"
+            echo "   - fund_daily_aum: rpc.call('set_fund_daily_aum', ...)"
+            exit 1
+          fi
+
+          echo "✅ No unauthorized mutations to protected tables found"
+
+      - name: Check for composite PK misuse
+        run: |
+          echo "🔍 Checking for composite PK misuse..."
+
+          # Tables with composite PKs (cannot use .select("id"))
+          COMPOSITE_PK_TABLES=("investor_positions")
+
+          FOUND_VIOLATIONS=0
+          for table in "${COMPOSITE_PK_TABLES[@]}"; do
+            # Look for .from("table")...select("id") patterns
+            MATCHES=$(grep -rn "from(['\"\`]${table}['\"\`]).*\.select(['\"\`].*id" src/ \
+              --include="*.ts" --include="*.tsx" || true)
+
+            if [ -n "$MATCHES" ]; then
+              echo "❌ Found potential .select('id') on composite PK table: ${table}"
+              echo "$MATCHES"
+              FOUND_VIOLATIONS=1
+            fi
+          done
+
+          if [ $FOUND_VIOLATIONS -eq 1 ]; then
+            echo ""
+            echo "❌ FAIL: Found .select('id') on tables with composite primary keys!"
+            echo "   investor_positions uses (investor_id, fund_id) as its PK."
+            echo "   Use .select('investor_id, fund_id') instead of .select('id')."
+            exit 1
+          fi
+
+          echo "✅ No composite PK misuse found"
+
+      - name: Check for FIRST_INVESTMENT enum usage
+        run: |
+          echo "🔍 Checking for invalid FIRST_INVESTMENT enum usage..."
+
+          # Look for FIRST_INVESTMENT being sent to database (not as UI-only value)
+          MATCHES=$(grep -rn "['\"\`]FIRST_INVESTMENT['\"\`]" src/ \
+            --include="*.ts" --include="*.tsx" \
+            | grep -v "contracts" | grep -v "mapUITypeToDb" | grep -v "// UI-only" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "⚠️  Found FIRST_INVESTMENT usage (review required):"
+            echo "$MATCHES"
+            echo ""
+            echo "Note: FIRST_INVESTMENT is UI-only. Use mapUITypeToDb() to convert to DEPOSIT."
+          fi
+
+          echo "✅ FIRST_INVESTMENT check complete"
+
   deploy-preview:
     name: Deploy Preview
     runs-on: ubuntu-latest

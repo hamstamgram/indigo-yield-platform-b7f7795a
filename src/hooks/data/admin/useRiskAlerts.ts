@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import { REFETCH_INTERVAL, QUERY_DEFAULTS } from "@/constants/queryConfig";
 
 export interface LiquidityRisk {
@@ -92,7 +93,10 @@ export function usePlatformMetrics() {
   return useQuery({
     queryKey: ["platform-metrics"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("mv_daily_platform_metrics").select("*").single();
+      const { data, error } = await (supabase as any)
+        .from("mv_daily_platform_metrics")
+        .select("*")
+        .single();
       if (error) throw error;
       return data as PlatformMetrics;
     },
@@ -123,11 +127,11 @@ export function useRefreshMaterializedViews() {
   return useMutation({
     mutationFn: async () => {
       // Refresh fund summary
-      await (supabase as any).rpc("refresh_materialized_view_concurrently", {
+      await rpc.call("refresh_materialized_view_concurrently", {
         view_name: "mv_fund_summary",
       });
       // Refresh platform metrics
-      await (supabase as any).rpc("refresh_materialized_view_concurrently", {
+      await rpc.call("refresh_materialized_view_concurrently", {
         view_name: "mv_daily_platform_metrics",
       });
     },

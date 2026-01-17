@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 export interface InvestorPositionForRoute {
   fund_id: string;
@@ -39,11 +40,13 @@ export async function fetchInvestorPositionsForRoute(
 ): Promise<InvestorPositionForRoute[]> {
   const { data, error } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       fund_id,
       current_value,
       funds!fk_investor_positions_fund ( id, name, asset )
-    `)
+    `
+    )
     .eq("investor_id", investorId)
     .gt("current_value", 0);
 
@@ -54,11 +57,15 @@ export async function fetchInvestorPositionsForRoute(
 /**
  * Execute internal route to INDIGO FEES account
  */
-export async function executeInternalRoute(params: InternalRouteParams): Promise<InternalRouteResult> {
-  const { data: { user } } = await supabase.auth.getUser();
+export async function executeInternalRoute(
+  params: InternalRouteParams
+): Promise<InternalRouteResult> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const { data, error } = await supabase.rpc("internal_route_to_fees", {
+  const { data, error } = await rpc.call("internal_route_to_fees", {
     p_from_investor_id: params.fromInvestorId,
     p_fund_id: params.fundId,
     p_amount: params.amount,

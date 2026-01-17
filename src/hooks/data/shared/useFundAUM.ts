@@ -6,6 +6,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import type { Database } from "@/integrations/supabase/types";
 
 export interface FundAUMData {
@@ -24,9 +25,11 @@ export interface FundAUMData {
 const QUERY_KEY = ["fund-aum-unified"];
 
 async function fetchFundsWithAUM(): Promise<FundAUMData[]> {
-  const { data, error } = await supabase.rpc("get_funds_with_aum");
+  const { data, error, success } = await rpc.callNoArgs("get_funds_with_aum");
 
-  if (error) throw error;
+  if (!success || error) {
+    throw new Error(error?.userMessage || "Failed to fetch funds with AUM");
+  }
 
   return (data || []).map((fund) => ({
     id: fund.fund_id,

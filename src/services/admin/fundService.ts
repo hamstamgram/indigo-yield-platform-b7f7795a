@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import type { Fund, FundRef } from "@/types/domains/fund";
 import { mapDbFundToFund, mapFundToDb } from "@/types/domains/fund";
 
@@ -73,15 +74,11 @@ export async function createFund(
   // Convert to DB format (string financial fields -> numbers)
   const dbRecord = mapFundToDb(fund);
 
-  const { data, error } = await supabase
-    .from("funds")
-    .insert(dbRecord as any)
-    .select()
-    .maybeSingle();
+  const result = await db.insert("funds", dbRecord as any);
 
-  if (error) throw error;
-  if (!data) throw new Error("Failed to create fund");
-  return mapDbFundToFund(data);
+  if (result.error) throw new Error(result.error.userMessage);
+  if (!result.data) throw new Error("Failed to create fund");
+  return mapDbFundToFund(result.data);
 }
 
 /**
@@ -97,25 +94,22 @@ export interface CreateFundInput {
 }
 
 export async function createFundSimple(input: CreateFundInput): Promise<Fund> {
-  const { data, error } = await supabase
-    .from("funds")
-    .insert({
-      code: input.code,
-      name: input.name,
-      asset: input.asset,
-      fund_class: input.asset,
-      inception_date: input.inception_date,
-      status: "active",
-      logo_url: input.logo_url || null,
-      mgmt_fee_bps: 0, // CFO Policy: No management fees - frozen at DB level
-      perf_fee_bps: 2000,
-      min_investment: 0,
-    })
-    .select()
-    .single();
+  const result = await db.insert("funds", {
+    code: input.code,
+    name: input.name,
+    asset: input.asset,
+    fund_class: input.asset,
+    inception_date: input.inception_date,
+    status: "active",
+    logo_url: input.logo_url || null,
+    mgmt_fee_bps: 0, // CFO Policy: No management fees - frozen at DB level
+    perf_fee_bps: 2000,
+    min_investment: 0,
+  });
 
-  if (error) throw error;
-  return mapDbFundToFund(data);
+  if (result.error) throw new Error(result.error.userMessage);
+  if (!result.data) throw new Error("Failed to create fund");
+  return mapDbFundToFund(result.data);
 }
 
 /**
@@ -125,16 +119,11 @@ export async function updateFund(fundId: string, updates: Partial<Fund>): Promis
   // Convert to DB format (string financial fields -> numbers)
   const dbUpdates = mapFundToDb(updates);
 
-  const { data, error } = await supabase
-    .from("funds")
-    .update(dbUpdates as any)
-    .eq("id", fundId)
-    .select()
-    .maybeSingle();
+  const result = await db.update("funds", dbUpdates as any, { column: "id", value: fundId });
 
-  if (error) throw error;
-  if (!data) throw new Error(`Fund not found: ${fundId}`);
-  return mapDbFundToFund(data);
+  if (result.error) throw new Error(result.error.userMessage);
+  if (!result.data || result.data.length === 0) throw new Error(`Fund not found: ${fundId}`);
+  return mapDbFundToFund(result.data[0]);
 }
 
 // Deprecated functions listDailyNav and upsertDailyNav have been removed.
@@ -337,9 +326,9 @@ export async function codeExists(code: string): Promise<boolean> {
  * Deactivate fund (set status to inactive)
  */
 export async function deactivateFund(fundId: string): Promise<void> {
-  const { error } = await supabase.from("funds").update({ status: "inactive" }).eq("id", fundId);
+  const result = await db.update("funds", { status: "inactive" }, { column: "id", value: fundId });
 
-  if (error) throw error;
+  if (result.error) throw new Error(result.error.userMessage);
 }
 
 /**

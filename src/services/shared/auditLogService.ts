@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 export interface AuditLogEntry {
   id: string;
@@ -277,7 +278,7 @@ class AuditLogService {
     newValues?: Record<string, any>;
   }): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase.from("audit_log").insert({
+      const { success, error } = await db.insert("audit_log", {
         actor_user: params.actorUserId,
         action: params.action,
         entity: params.entity,
@@ -287,7 +288,12 @@ class AuditLogService {
         new_values: params.newValues || null,
       });
 
-      if (error) throw error;
+      if (!success) {
+        return {
+          success: false,
+          error: error?.userMessage || "Failed to log audit event",
+        };
+      }
       return { success: true };
     } catch (error) {
       console.error("Error logging audit event:", error);

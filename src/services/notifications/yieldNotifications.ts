@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { logError } from "@/lib/logger";
 
 interface YieldNotificationData {
@@ -18,27 +18,29 @@ export async function notifyYieldDistributed(
   userId: string,
   data: YieldNotificationData
 ): Promise<void> {
-  const percentageText = data.yieldPercentage 
+  const percentageText = data.yieldPercentage
     ? ` (${(data.yieldPercentage * 100).toFixed(4)}%)`
     : "";
-    
+
   try {
-    const { error } = await supabase.from("notifications").insert([{
-      user_id: userId,
-      type: "yield" as const,
-      title: "Yield Distributed",
-      body: `You earned ${data.amount.toLocaleString()} ${data.asset}${percentageText} from ${data.fundName} for ${data.yieldDate}.`,
-      priority: "medium",
-      data_jsonb: {
-        distribution_id: data.distributionId,
-        fund_id: data.fundId,
-        fund_name: data.fundName,
-        amount: data.amount,
-        asset: data.asset,
-        yield_date: data.yieldDate,
-        yield_percentage: data.yieldPercentage,
+    const { error } = await db.insertMany("notifications", [
+      {
+        user_id: userId,
+        type: "yield" as const,
+        title: "Yield Distributed",
+        body: `You earned ${data.amount.toLocaleString()} ${data.asset}${percentageText} from ${data.fundName} for ${data.yieldDate}.`,
+        priority: "medium",
+        data_jsonb: {
+          distribution_id: data.distributionId,
+          fund_id: data.fundId,
+          fund_name: data.fundName,
+          amount: data.amount,
+          asset: data.asset,
+          yield_date: data.yieldDate,
+          yield_percentage: data.yieldPercentage,
+        },
       },
-    }]);
+    ]);
 
     if (error) {
       logError("notifyYieldDistributed", error, { userId });
@@ -90,7 +92,7 @@ export const yieldNotifications = {
     }>
   ): Promise<void> {
     // Insert all notifications in a single batch for efficiency
-    const notifications = distributions.map(d => ({
+    const notifications = distributions.map((d) => ({
       user_id: d.userId,
       type: "yield" as const,
       title: "Yield Distributed",
@@ -108,7 +110,7 @@ export const yieldNotifications = {
     }));
 
     try {
-      const { error } = await supabase.from("notifications").insert(notifications);
+      const { error } = await db.insertMany("notifications", notifications);
       if (error) {
         logError("onFundYieldDistributed", error);
       }

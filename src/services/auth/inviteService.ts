@@ -4,15 +4,13 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import type { InviteDetails, UserMetadata } from "./types";
 
 /**
  * Wait for profile to be created by database trigger
  */
-export async function waitForProfile(
-  userId: string,
-  maxAttempts = 10
-): Promise<boolean> {
+export async function waitForProfile(userId: string, maxAttempts = 10): Promise<boolean> {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -29,9 +27,7 @@ export async function waitForProfile(
 /**
  * Verify investor invite token
  */
-export async function verifyInvestorInvite(
-  inviteCode: string
-): Promise<InviteDetails> {
+export async function verifyInvestorInvite(inviteCode: string): Promise<InviteDetails> {
   const { data, error } = await supabase
     .from("investor_invites")
     .select("*")
@@ -59,9 +55,7 @@ export async function verifyInvestorInvite(
 /**
  * Verify admin invite token
  */
-export async function verifyAdminInvite(
-  inviteCode: string
-): Promise<InviteDetails> {
+export async function verifyAdminInvite(inviteCode: string): Promise<InviteDetails> {
   const { data, error } = await supabase
     .from("admin_invites")
     .select("*")
@@ -155,7 +149,7 @@ export async function acceptAdminInvite(
     .single();
 
   if (inviteError) throw inviteError;
-  
+
   const intendedRole = invite?.intended_role || "admin";
 
   // 2. Sign up the user
@@ -195,10 +189,12 @@ export async function acceptAdminInvite(
     .eq("id", userId);
 
   // 6. Insert role using intended_role from invite
-  await supabase.from("user_roles").insert({
+  const { error: roleError } = await db.insert("user_roles", {
     user_id: userId,
     role: intendedRole as "admin" | "ib" | "investor" | "moderator" | "super_admin" | "user",
   });
+
+  if (roleError) throw new Error(roleError.userMessage);
 
   return userId;
 }

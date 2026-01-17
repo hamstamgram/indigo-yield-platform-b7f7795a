@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
+import { db } from "@/lib/db";
 import type { Database } from "@/integrations/supabase/types";
 import {
   generateMonthlyStatementHTML,
@@ -12,11 +14,14 @@ type StatementPeriodUpdate = Database["public"]["Tables"]["statement_periods"]["
 type GeneratedStatement = Database["public"]["Tables"]["generated_statements"]["Row"];
 type GeneratedStatementInsert = Database["public"]["Tables"]["generated_statements"]["Insert"];
 type InvestorFundPerformanceRow = Database["public"]["Tables"]["investor_fund_performance"]["Row"];
-type InvestorFundPerformanceInsert = Database["public"]["Tables"]["investor_fund_performance"]["Insert"];
+type InvestorFundPerformanceInsert =
+  Database["public"]["Tables"]["investor_fund_performance"]["Insert"];
 type StatementEmailDelivery = Database["public"]["Tables"]["statement_email_delivery"]["Row"];
-type StatementEmailDeliveryInsert = Database["public"]["Tables"]["statement_email_delivery"]["Insert"];
+type StatementEmailDeliveryInsert =
+  Database["public"]["Tables"]["statement_email_delivery"]["Insert"];
 type AuditLogInsert = Database["public"]["Tables"]["audit_log"]["Insert"];
-type PeriodSummaryRpcReturn = Database["public"]["Functions"]["get_statement_period_summary"]["Returns"][0];
+type PeriodSummaryRpcReturn =
+  Database["public"]["Functions"]["get_statement_period_summary"]["Returns"][0];
 
 // Extended types for API responses
 export interface InvestorFundPerformance extends InvestorFundPerformanceRow {
@@ -82,15 +87,19 @@ export async function fetchStatementPeriods(): Promise<StatementPeriodWithStats[
         .then((summary) => ({ periodId: period.id, summary, error: null }))
         .catch(() => ({
           periodId: period.id,
-          summary: { total_investors: 0, statements_generated: 0, statements_sent: 0, total_funds: 0, statements_pending: 0 },
+          summary: {
+            total_investors: 0,
+            statements_generated: 0,
+            statements_sent: 0,
+            total_funds: 0,
+            statements_pending: 0,
+          },
           error: true,
         }))
     );
 
     const summaryResults = await Promise.all(summaryPromises);
-    const summaryMap = new Map(
-      summaryResults.map((r) => [r.periodId, r.summary])
-    );
+    const summaryMap = new Map(summaryResults.map((r) => [r.periodId, r.summary]));
 
     return data.map((period: StatementPeriod) => {
       const summary = summaryMap.get(period.id) || {
@@ -191,7 +200,8 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
       if (!profile) continue;
 
       const existing = investorMap.get(perf.investor_id);
-      const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Unknown";
+      const fullName =
+        [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Unknown";
       if (existing) {
         existing.fund_count++;
         existing.fund_names.push(perf.fund_name);
@@ -240,7 +250,10 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
     }
 
     // Get delivery status
-    type DeliverySummary = Pick<StatementEmailDelivery, "user_id" | "status" | "sent_at" | "statement_id">;
+    type DeliverySummary = Pick<
+      StatementEmailDelivery,
+      "user_id" | "status" | "sent_at" | "statement_id"
+    >;
     const { data: deliveries, error: delError } = await supabase
       .from("statement_email_delivery")
       .select("user_id, status, sent_at, statement_id")
@@ -294,7 +307,7 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
  */
 export async function fetchPeriodSummary(periodId: string): Promise<PeriodSummary> {
   try {
-    const { data, error } = await supabase.rpc("get_statement_period_summary", {
+    const { data, error } = await rpc.call("get_statement_period_summary", {
       p_period_id: periodId,
     });
 
@@ -353,7 +366,8 @@ export async function generateInvestorStatement(
 
     if (profileError) throw profileError;
 
-    const investorFullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Investor";
+    const investorFullName =
+      [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Investor";
 
     // V2: Fetch fund performance data using investor_id
     const { data: performances, error: perfError } = await supabase
@@ -499,7 +513,10 @@ export async function previewInvestorStatement(periodId: string, userId: string)
 /**
  * Send statement via email to an investor
  */
-export async function sendInvestorStatement(periodId: string, userId: string): Promise<{ recipients: string[] }> {
+export async function sendInvestorStatement(
+  periodId: string,
+  userId: string
+): Promise<{ recipients: string[] }> {
   try {
     // Get statement
     const { data: statement, error: stmtError } = await supabase
@@ -617,10 +634,7 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
       sent_at: new Date().toISOString(),
     };
 
-    await supabase
-      .from("statement_email_delivery")
-      .update(sentUpdate)
-      .eq("id", deliveryRecord.id);
+    await supabase.from("statement_email_delivery").update(sentUpdate).eq("id", deliveryRecord.id);
 
     return { recipients: recipientEmails };
   } catch (error) {
@@ -632,7 +646,10 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
 /**
  * Get report freshness status (whether report needs regeneration)
  */
-export async function getReportFreshness(periodId: string, userId: string): Promise<ReportFreshness> {
+export async function getReportFreshness(
+  periodId: string,
+  userId: string
+): Promise<ReportFreshness> {
   try {
     // Get generated_statements.created_at
     type StatementTimestamp = Pick<GeneratedStatement, "created_at">;
@@ -659,9 +676,8 @@ export async function getReportFreshness(periodId: string, userId: string): Prom
     const dataUpdatedAt = performances?.[0]?.updated_at || null;
 
     // Report is outdated if data was updated after generation
-    const isOutdated = generatedAt && dataUpdatedAt
-      ? new Date(dataUpdatedAt) > new Date(generatedAt)
-      : false;
+    const isOutdated =
+      generatedAt && dataUpdatedAt ? new Date(dataUpdatedAt) > new Date(generatedAt) : false;
 
     return { isOutdated, generatedAt, dataUpdatedAt };
   } catch (error) {
@@ -737,8 +753,10 @@ export async function finalizePeriod(periodId: string): Promise<void> {
       new_values: { status: "finalized" },
     };
 
-    await supabase.from("audit_log").insert(auditData);
-
+    const { success } = await db.insert("audit_log", auditData);
+    if (!success) {
+      console.warn("Failed to log audit event for period finalization");
+    }
   } catch (error) {
     console.error("Error finalizing period:", error);
     throw new Error("Failed to finalize period");

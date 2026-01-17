@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 export interface CorrectionSummary {
   fund_id: string;
@@ -164,7 +165,7 @@ export async function previewYieldCorrectionV2(
   purpose: string,
   newAum: number
 ): Promise<CorrectionPreview> {
-  const { data, error } = await supabase.rpc("preview_yield_correction_v2", {
+  const { data, error } = await rpc.call("preview_yield_correction_v2", {
     p_fund_id: fundId,
     p_period_start: periodStart,
     p_period_end: periodEnd,
@@ -192,7 +193,7 @@ export async function applyYieldCorrectionV2(
   reason: string,
   confirmation: string
 ): Promise<CorrectionResult> {
-  const { data, error } = await supabase.rpc("apply_yield_correction_v2", {
+  const { data, error } = await rpc.call("apply_yield_correction_v2", {
     p_fund_id: fundId,
     p_period_start: periodStart,
     p_period_end: periodEnd,
@@ -217,7 +218,7 @@ export async function rollbackYieldCorrection(
   correctionId: string,
   reason: string
 ): Promise<RollbackResult> {
-  const { data, error } = await (supabase.rpc as CallableFunction)("rollback_yield_correction", {
+  const { data, error } = await rpc.call("rollback_yield_correction", {
     p_correction_id: correctionId,
     p_reason: reason,
   });
@@ -233,10 +234,8 @@ export async function rollbackYieldCorrection(
 /**
  * Regenerate affected reports after a correction
  */
-export async function regenerateAffectedReports(
-  correctionId: string
-): Promise<RegenerateResult> {
-  const { data, error } = await (supabase.rpc as CallableFunction)("regenerate_reports_for_correction", {
+export async function regenerateAffectedReports(correctionId: string): Promise<RegenerateResult> {
+  const { data, error } = await rpc.call("regenerate_reports_for_correction", {
     p_correction_id: correctionId,
   });
 
@@ -256,7 +255,7 @@ export async function getYieldCorrectionHistory(
   dateFrom?: string,
   dateTo?: string
 ): Promise<CorrectionHistoryItem[]> {
-  const { data, error } = await supabase.rpc("get_yield_corrections", {
+  const { data, error } = await rpc.call("get_yield_corrections", {
     p_fund_id: fundId || null,
     p_date_from: dateFrom || null,
     p_date_to: dateTo || null,
@@ -344,9 +343,10 @@ export function exportInvestorImpactToCsv(
     ].join(",")
   );
 
-  const periodLabel = summary.period_start && summary.period_end
-    ? `${summary.period_start} to ${summary.period_end}`
-    : summary.effective_date || "N/A";
+  const periodLabel =
+    summary.period_start && summary.period_end
+      ? `${summary.period_start} to ${summary.period_end}`
+      : summary.effective_date || "N/A";
 
   return [
     `# Yield Correction Preview - ${summary.fund_name} (${summary.fund_asset})`,
@@ -387,9 +387,10 @@ export function exportTransactionDiffsToCsv(
     ].join(",")
   );
 
-  const periodLabel = summary.period_start && summary.period_end
-    ? `${summary.period_start} to ${summary.period_end}`
-    : summary.effective_date || "N/A";
+  const periodLabel =
+    summary.period_start && summary.period_end
+      ? `${summary.period_start} to ${summary.period_end}`
+      : summary.effective_date || "N/A";
 
   return [
     `# Transaction Diffs - ${summary.fund_name} (${summary.fund_asset})`,

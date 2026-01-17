@@ -1,6 +1,6 @@
 /**
  * Delivery Service
- * 
+ *
  * Encapsulates all Supabase operations for report delivery management.
  * This service handles:
  * - Fetching periods with statement counts
@@ -12,6 +12,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import type {
   DeliveryRecord,
   DeliveryStats,
@@ -83,7 +84,7 @@ export const deliveryService = {
   async fetchDeliveryStats(periodId: string): Promise<DeliveryStats | null> {
     if (!periodId) return null;
 
-    const { data, error } = await supabase.rpc("get_delivery_stats", {
+    const { data, error } = await rpc.call("get_delivery_stats", {
       p_period_id: periodId,
     });
 
@@ -94,18 +95,17 @@ export const deliveryService = {
   /**
    * Fetch delivery records for a period with optional filters
    */
-  async fetchDeliveries(
-    periodId: string,
-    filters: DeliveryFilters
-  ): Promise<DeliveryRecord[]> {
+  async fetchDeliveries(periodId: string, filters: DeliveryFilters): Promise<DeliveryRecord[]> {
     if (!periodId) return [];
 
     let query = supabase
       .from("statement_email_delivery")
-      .select(`
+      .select(
+        `
         *,
         profiles:investor_id (first_name, last_name, email)
-      `)
+      `
+      )
       .eq("period_id", periodId)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -152,11 +152,8 @@ export const deliveryService = {
   /**
    * Queue statement deliveries for a period
    */
-  async queueDeliveries(
-    periodId: string,
-    channel: string
-  ): Promise<QueueResult> {
-    const { data, error } = await supabase.rpc("queue_statement_deliveries", {
+  async queueDeliveries(periodId: string, channel: string): Promise<QueueResult> {
+    const { data, error } = await rpc.call("queue_statement_deliveries", {
       p_period_id: periodId,
       p_channel: channel,
     });
@@ -168,16 +165,10 @@ export const deliveryService = {
   /**
    * Send a single delivery via MailerSend edge function
    */
-  async sendViaMailerSend(
-    deliveryId: string,
-    deliveryMode: DeliveryMode
-  ): Promise<SendResult> {
-    const { data, error } = await supabase.functions.invoke(
-      "send-report-mailersend",
-      {
-        body: { delivery_id: deliveryId, delivery_mode: deliveryMode },
-      }
-    );
+  async sendViaMailerSend(deliveryId: string, deliveryMode: DeliveryMode): Promise<SendResult> {
+    const { data, error } = await supabase.functions.invoke("send-report-mailersend", {
+      body: { delivery_id: deliveryId, delivery_mode: deliveryMode },
+    });
 
     if (error) throw error;
     return data as SendResult;
@@ -187,7 +178,7 @@ export const deliveryService = {
    * Retry a failed delivery (re-queue for sending)
    */
   async retryDelivery(deliveryId: string): Promise<void> {
-    const { error } = await supabase.rpc("retry_delivery", {
+    const { error } = await rpc.call("retry_delivery", {
       p_delivery_id: deliveryId,
     });
 
@@ -198,7 +189,7 @@ export const deliveryService = {
    * Cancel a delivery
    */
   async cancelDelivery(deliveryId: string): Promise<void> {
-    const { error } = await supabase.rpc("cancel_delivery", {
+    const { error } = await rpc.call("cancel_delivery", {
       p_delivery_id: deliveryId,
     });
 
@@ -209,7 +200,7 @@ export const deliveryService = {
    * Mark a delivery as sent manually
    */
   async markSentManually(deliveryId: string, note: string): Promise<void> {
-    const { error } = await supabase.rpc("mark_sent_manually", {
+    const { error } = await rpc.call("mark_sent_manually", {
       p_delivery_id: deliveryId,
       p_note: note,
     });
@@ -221,12 +212,9 @@ export const deliveryService = {
    * Refresh delivery status from provider
    */
   async refreshDeliveryStatus(deliveryId: string): Promise<StatusRefreshResult> {
-    const { data, error } = await supabase.functions.invoke(
-      "refresh-delivery-status",
-      {
-        body: { delivery_id: deliveryId },
-      }
-    );
+    const { data, error } = await supabase.functions.invoke("refresh-delivery-status", {
+      body: { delivery_id: deliveryId },
+    });
 
     if (error) throw error;
     return data as StatusRefreshResult;
@@ -235,11 +223,8 @@ export const deliveryService = {
   /**
    * Requeue stuck "sending" deliveries
    */
-  async requeueStaleSending(
-    periodId: string,
-    minutes: number
-  ): Promise<RequeueResult> {
-    const { data, error } = await supabase.rpc("requeue_stale_sending", {
+  async requeueStaleSending(periodId: string, minutes: number): Promise<RequeueResult> {
+    const { data, error } = await rpc.call("requeue_stale_sending", {
       p_period_id: periodId,
       p_minutes: minutes,
     });
