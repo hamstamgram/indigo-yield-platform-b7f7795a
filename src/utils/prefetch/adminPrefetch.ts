@@ -8,7 +8,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { fetchAdminStats } from "@/services/admin/adminStatsService";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { transactionService } from "@/services/shared/transactionService";
-import { fundService } from "@/services/shared/fundService";
+import * as fundService from "@/services/admin/fundService";
 
 type PrefetchFn = (queryClient: QueryClient) => Promise<void>;
 
@@ -53,10 +53,7 @@ export const ADMIN_ROUTE_PREFETCH: Record<string, PrefetchFn> = {
 /**
  * High-priority routes to prefetch on admin page load
  */
-export const HIGH_PRIORITY_ADMIN_ROUTES = [
-  "/admin",
-  "/admin/transactions",
-];
+export const HIGH_PRIORITY_ADMIN_ROUTES = ["/admin", "/admin/transactions"];
 
 /**
  * Check if a route has a prefetch function defined

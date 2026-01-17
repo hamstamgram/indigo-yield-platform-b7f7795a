@@ -22,7 +22,7 @@ export { default as InvestorPositionsTab } from "./InvestorPositionsTab";
 export { default as InvestorTransactionsTab } from "./InvestorTransactionsTab";
 export { default as InvestorWithdrawalsTab } from "./InvestorWithdrawalsTab";
 export { InvestorActivityTab } from "./InvestorActivityTab";
-export { default as InvestorLedgerTab } from "./InvestorLedgerTab";
+export { InvestorLedgerTab } from "./ledger";
 export { default as InvestorReportsTab } from "./InvestorReportsTab";
 export { default as InvestorSettingsTab } from "./InvestorSettingsTab";
 

@@ -2,7 +2,7 @@
  * Investor Tabs - Unified tab system for drawer and full profile
  * Ensures consistent UI across both contexts with 6 standard tabs:
  * Overview, Ledger, Positions, Withdrawals, Reports, Settings
- * 
+ *
  * Refactored to use useInvestorDefaultFund data hook
  */
 
@@ -20,7 +20,7 @@ import {
   Settings,
 } from "lucide-react";
 import { InvestorOverviewTab } from "./InvestorOverviewTab";
-import { InvestorLedgerTab } from "./InvestorLedgerTab";
+import { InvestorLedgerTab } from "./ledger";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import { InvestorWithdrawalsTab } from "./InvestorWithdrawalsTab";
 import { InvestorReportsTab } from "./InvestorReportsTab";
@@ -44,8 +44,15 @@ export interface InvestorTabsProps {
   pendingWithdrawalsCount?: number;
 }
 
-const TAB_KEYS = ["overview", "transactions", "positions", "withdrawals", "reports", "settings"] as const;
-type TabKey = typeof TAB_KEYS[number];
+const TAB_KEYS = [
+  "overview",
+  "transactions",
+  "positions",
+  "withdrawals",
+  "reports",
+  "settings",
+] as const;
+type TabKey = (typeof TAB_KEYS)[number];
 
 export function InvestorTabs({
   investorId,
@@ -61,25 +68,33 @@ export function InvestorTabs({
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
-  
+
   // Use URL param for tab if available, otherwise default
   const tabParam = searchParams.get("tab");
-  const activeTab = TAB_KEYS.includes(tabParam as TabKey) ? tabParam as TabKey : defaultTab as TabKey;
+  const activeTab = TAB_KEYS.includes(tabParam as TabKey)
+    ? (tabParam as TabKey)
+    : (defaultTab as TabKey);
 
   // Fetch default fund for investor using data hook
   const { data: defaultFundId = "" } = useInvestorDefaultFund(investorId);
 
-  const handleTabChange = useCallback((value: string) => {
-    setSearchParams((prev) => {
-      const newParams = new URLSearchParams(prev);
-      if (value === "overview") {
-        newParams.delete("tab");
-      } else {
-        newParams.set("tab", value);
-      }
-      return newParams;
-    }, { replace: true });
-  }, [setSearchParams]);
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (value === "overview") {
+            newParams.delete("tab");
+          } else {
+            newParams.set("tab", value);
+          }
+          return newParams;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
 
   const handleOpenFullProfile = useCallback(() => {
     navigate(`/admin/investors/${investorId}`);
@@ -119,7 +134,10 @@ export function InvestorTabs({
           <ArrowDownToLine className={compact ? "h-3.5 w-3.5 mr-1" : "h-4 w-4 mr-1.5"} />
           <span className={compact ? "hidden sm:inline" : ""}>Withdrawals</span>
           {pendingWithdrawalsCount > 0 && (
-            <Badge variant="destructive" className="ml-1 h-4 px-1 text-[10px] min-w-4 justify-center">
+            <Badge
+              variant="destructive"
+              className="ml-1 h-4 px-1 text-[10px] min-w-4 justify-center"
+            >
               {pendingWithdrawalsCount}
             </Badge>
           )}
@@ -163,10 +181,7 @@ export function InvestorTabs({
       </TabsContent>
 
       <TabsContent value="reports" className="mt-0">
-        <InvestorReportsTab
-          investorId={investorId}
-          investorName={investorName}
-        />
+        <InvestorReportsTab investorId={investorId} investorName={investorName} />
       </TabsContent>
 
       <TabsContent value="settings" className="mt-0">
