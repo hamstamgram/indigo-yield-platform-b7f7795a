@@ -41,6 +41,7 @@
     "sql:hygiene": "ts-node scripts/sql-hygiene-check.ts",
     "gateway:check": "ts-node scripts/check-gateway-usage.ts",
     "integrity:check": "npm run contracts:verify && npm run sql:hygiene && npm run gateway:check",
+    "phase2:verify": "npx ts-node --esm scripts/verify-phase2-migration.ts",
     "db:smoke-test": "bash scripts/db-smoke-test.sh",
     "db:smoke-test:ci": "bash scripts/db-smoke-test.sh --ci",
     "audit:full": "bash scripts/run-full-audit.sh",
