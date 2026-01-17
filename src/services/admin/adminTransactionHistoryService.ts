@@ -8,6 +8,7 @@ import type {
   AdminTransactionFilters,
   AdminTransactionResult,
   TransactionViewModel,
+  TransactionType,
   FundOption,
   UpdateTransactionParams,
   VoidTransactionParams,
@@ -16,6 +17,53 @@ import type {
 } from "@/types/domains/transaction";
 
 const PAGE_SIZE = 50;
+
+/** Transaction row from query with profile join */
+interface TransactionRow {
+  id: string;
+  investor_id: string;
+  fund_id: string | null;
+  type: string;
+  tx_subtype?: string | null;
+  asset: string;
+  amount: number | string;
+  tx_date: string;
+  notes: string | null;
+  tx_hash: string | null;
+  created_at: string;
+  created_by: string | null;
+  visibility_scope: string | null;
+  is_voided: boolean | null;
+  is_system_generated: boolean | null;
+  profiles: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  } | null;
+}
+
+/** Extended error with code and details */
+interface ExtendedError extends Error {
+  code?: string;
+  details?: unknown;
+}
+
+/** RPC result structure */
+interface VoidReissueRPCResult {
+  success?: boolean;
+  error?: {
+    message?: string;
+    code?: string;
+    details?: unknown;
+  };
+  data?: {
+    voided_transaction_id?: string;
+    new_transaction_id?: string;
+  };
+  voided_transaction_id?: string;
+  new_transaction_id?: string;
+  message?: string;
+}
 
 // Display type mapping from tx_subtype to user-friendly labels
 const SUBTYPE_DISPLAY_MAP: Record<string, string> = {
@@ -86,7 +134,7 @@ async function fetchTransactions(
   const { data, error, count } = await query;
   if (error) throw error;
 
-  const transactions = (data || []).map((tx: any): TransactionViewModel => {
+  const transactions = ((data || []) as TransactionRow[]).map((tx): TransactionViewModel => {
     const profile = tx.profiles;
     const fund = funds.find((f) => f.id === tx.fund_id);
 
@@ -112,7 +160,7 @@ async function fetchTransactions(
       fundId: tx.fund_id,
       fundName: fund?.name || tx.asset,
       asset: tx.asset,
-      type: tx.type,
+      type: tx.type as TransactionType,
       displayType,
       amount: String(tx.amount),
       txDate: tx.tx_date,
@@ -155,18 +203,19 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   if (!user?.id) throw new Error("Authentication required");
 
   // Canonical DB signature: void_transaction(p_transaction_id, p_void_reason, p_admin_id)
+  // Note: Using type cast because actual DB function uses p_void_reason not p_reason
   const { data, error } = await supabase.rpc("void_transaction", {
     p_transaction_id: params.transactionId,
     p_void_reason: params.reason,
     p_admin_id: user.id,
-  } as any);
+  } as unknown as Parameters<typeof supabase.rpc<"void_transaction">>[1]);
 
   if (error) {
     throw new Error(error.message || "Failed to void transaction");
   }
 
   // Check RPC result for success
-  const result = data as any;
+  const result = data as { success?: boolean; message?: string; error_code?: string } | null;
   if (result && result.success === false) {
     throw new Error(result.message || result.error_code || "Failed to void transaction");
   }
@@ -204,13 +253,14 @@ async function voidAndReissueTransaction(
 
   if (error) {
     // Fallback for legacy signatures (until migrations are applied)
+    // Note: Using type cast because legacy function has different param names
     const legacy = await supabase.rpc("void_and_reissue_transaction", {
       p_original_transaction_id: params.transactionId,
       p_new_amount: params.newValues.amount,
       p_new_tx_date: params.newValues.tx_date,
       p_new_notes: mergedNotes,
       p_reason: params.reason,
-    } as any);
+    } as unknown as Parameters<typeof supabase.rpc<"void_and_reissue_transaction">>[1]);
     if (legacy.error) throw error;
     return {
       success: true,
@@ -226,20 +276,20 @@ async function voidAndReissueTransaction(
     if (result.success === false && result.error) {
       // Typed error from RPC
       const errorObj = result.error as Record<string, unknown>;
-      const err = new Error(errorObj.message as string);
-      (err as any).code = errorObj.code;
-      (err as any).details = errorObj.details;
+      const err = new Error(errorObj.message as string) as ExtendedError;
+      err.code = errorObj.code as string | undefined;
+      err.details = errorObj.details;
       throw err;
     }
+    const rpcResult = result as VoidReissueRPCResult;
     return {
       success: true,
       voided_transaction_id:
-        (result.data as any)?.voided_transaction_id ||
-        (result as any)?.voided_transaction_id ||
+        rpcResult.data?.voided_transaction_id ||
+        rpcResult.voided_transaction_id ||
         params.transactionId,
-      new_transaction_id:
-        (result.data as any)?.new_transaction_id || (result as any)?.new_transaction_id || "",
-      message: result.message as string | undefined,
+      new_transaction_id: rpcResult.data?.new_transaction_id || rpcResult.new_transaction_id || "",
+      message: rpcResult.message,
     };
   }
 

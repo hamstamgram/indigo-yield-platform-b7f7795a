@@ -1,6 +1,6 @@
 /**
  * Dashboard Metrics Service
- * 
+ *
  * Service layer for admin dashboard metrics and analytics.
  */
 
@@ -36,6 +36,30 @@ export interface FlowData {
   daily_outflows: number;
   net_flow_24h: number;
   aum: number;
+}
+
+/** RPC result from get_historical_nav */
+interface HistoricalNavItem {
+  fund_id?: string;
+  out_fund_id?: string;
+  daily_inflows?: number;
+  out_daily_inflows?: number;
+  daily_outflows?: number;
+  out_daily_outflows?: number;
+  net_flow_24h?: number;
+  out_net_flow_24h?: number;
+  aum?: number;
+  out_aum?: number;
+}
+
+/** Position with profile join result */
+interface PositionWithProfile {
+  current_value: number | null;
+  profile: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export interface InvestorComposition {
@@ -143,10 +167,7 @@ export async function getTransactionFlowMetrics(): Promise<FlowMetrics> {
  * Get combined financial metrics for performance dashboard
  */
 export async function getFinancialMetrics(): Promise<FinancialMetrics> {
-  const [history, flowMetrics] = await Promise.all([
-    getAUMHistory(),
-    getTransactionFlowMetrics(),
-  ]);
+  const [history, flowMetrics] = await Promise.all([getAUMHistory(), getTransactionFlowMetrics()]);
 
   return {
     totalAum: history[history.length - 1]?.aum || 0,
@@ -174,9 +195,10 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
   if (error) throw error;
 
   const flows = new Map<string, FlowData>();
-  (snapshot || []).forEach((item: any) => {
+  ((snapshot || []) as HistoricalNavItem[]).forEach((item) => {
     // RPC returns columns with out_ prefix
     const fundId = item.out_fund_id || item.fund_id;
+    if (!fundId) return; // Skip items without fund_id
     flows.set(fundId, {
       fund_id: fundId,
       daily_inflows: item.out_daily_inflows ?? item.daily_inflows ?? 0,
@@ -195,10 +217,12 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
 export async function getFundInvestorComposition(fundId: string): Promise<InvestorComposition[]> {
   const { data: positions, error } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       current_value,
       profile:profiles!fk_investor_positions_investor(first_name, last_name, email)
-    `)
+    `
+    )
     .eq("fund_id", fundId)
     .limit(100);
 
@@ -206,15 +230,17 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
 
   const totalValue = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
-  return positions?.map((p: any) => ({
-    investor_name:
-      `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
-      p.profile?.email ||
-      "Unknown",
-    email: p.profile?.email || "",
-    balance: p.current_value || 0,
-    ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
-  })) || [];
+  return (
+    (positions as PositionWithProfile[] | null)?.map((p) => ({
+      investor_name:
+        `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
+        p.profile?.email ||
+        "Unknown",
+      email: p.profile?.email || "",
+      balance: p.current_value || 0,
+      ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
+    })) || []
+  );
 }
 
 // ============================================================================
@@ -272,7 +298,7 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
   if (stmtError) throw stmtError;
 
   // Fetch profiles for investors with statements
-  const investorIds = [...new Set(statements?.map(s => s.investor_id) || [])];
+  const investorIds = [...new Set(statements?.map((s) => s.investor_id) || [])];
   const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, email")
@@ -281,7 +307,7 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
   if (profileError) throw profileError;
 
   // Create a map of investor_id -> profile
-  const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+  const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
   // Fetch delivery records for period
   const { data: deliveries, error: delError } = await supabase
@@ -292,12 +318,12 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
   if (delError) throw delError;
 
   // Process data
-  const investorsWithStatements = new Set(statements?.map(s => s.investor_id) || []);
+  const investorsWithStatements = new Set(statements?.map((s) => s.investor_id) || []);
 
   const investorsWithEmail: string[] = [];
   const investorsMissingEmail: { id: string; name: string }[] = [];
 
-  statements?.forEach(s => {
+  statements?.forEach((s) => {
     const profile = profileMap.get(s.investor_id);
     if (profile?.email) {
       investorsWithEmail.push(s.investor_id);
@@ -314,7 +340,7 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
     failed: 0,
   };
 
-  deliveries?.forEach(d => {
+  deliveries?.forEach((d) => {
     const status = d.status?.toLowerCase() || "queued";
     if (status === "queued") statusCounts.queued++;
     else if (status === "sent" || status === "delivered") statusCounts.sent++;
@@ -330,7 +356,7 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
     deliveries_sent: statusCounts.sent + statusCounts.delivered,
     deliveries_failed: statusCounts.failed,
     already_delivered: statusCounts.delivered,
-    missing_email_names: investorsMissingEmail.map(i => i.name),
+    missing_email_names: investorsMissingEmail.map((i) => i.name),
   };
 }
 
@@ -393,7 +419,8 @@ export async function getDeliveryExclusionBreakdown(periodId: string): Promise<E
   // Calculate derived values
   const alreadySent = statusCounts.sent + statusCounts.delivered;
   const noStatement = (totalInvestors || 0) - (statementsGenerated || 0);
-  const eligibleForDelivery = (statementsGenerated || 0) - alreadySent - missingEmail - statusCounts.cancelled;
+  const eligibleForDelivery =
+    (statementsGenerated || 0) - alreadySent - missingEmail - statusCounts.cancelled;
 
   return {
     totalInvestors: totalInvestors || 0,

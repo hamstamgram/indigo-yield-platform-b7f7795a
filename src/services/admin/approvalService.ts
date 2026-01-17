@@ -5,7 +5,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
 import { logError, logInfo } from "@/lib/logger";
+import type { Json } from "@/integrations/supabase/types";
 import type {
   PendingApproval,
   ApprovalHistoryItem,
@@ -17,12 +19,14 @@ import type {
 
 export interface ApprovalResponse {
   success: boolean;
-  data?: {
-    approval_id: string;
-    status: string;
-    message: string;
-    [key: string]: unknown;
-  };
+  data?: Record<string, unknown>;
+  error?: string;
+}
+
+/** RPC response wrapper type */
+interface RPCResponseWrapper {
+  success: boolean;
+  data?: Record<string, unknown>;
   error?: string;
 }
 
@@ -108,7 +112,7 @@ class ApprovalService {
       p_entity_id: input.entityId,
       p_requester_id: requesterId,
       p_reason: input.reason,
-      p_metadata: input.metadata || null,
+      p_metadata: (input.metadata ?? null) as unknown as Json,
       p_amount: input.amount || null,
       p_expiry_hours: input.expiryHours || 72,
     });
@@ -118,7 +122,7 @@ class ApprovalService {
       throw new Error(`Failed to request approval: ${error.message}`);
     }
 
-    const result = data as { success: boolean; data?: any; error?: string };
+    const result = data as unknown as RPCResponseWrapper;
 
     if (!result.success) {
       return { success: false, error: result.error || "Unknown error" };
@@ -151,7 +155,7 @@ class ApprovalService {
       throw new Error(`Failed to approve request: ${error.message}`);
     }
 
-    const result = data as { success: boolean; data?: any; error?: string };
+    const result = data as unknown as RPCResponseWrapper;
 
     if (!result.success) {
       return { success: false, error: result.error || "Approval failed" };
@@ -185,7 +189,7 @@ class ApprovalService {
       throw new Error(`Failed to reject request: ${error.message}`);
     }
 
-    const result = data as { success: boolean; data?: any; error?: string };
+    const result = data as unknown as RPCResponseWrapper;
 
     if (!result.success) {
       return { success: false, error: result.error || "Rejection failed" };
@@ -254,14 +258,14 @@ class ApprovalService {
       return null;
     }
 
-    return data?.value as ApprovalThresholds;
+    return data?.value as unknown as ApprovalThresholds;
   }
 
   /**
    * Run approval integrity checks
    */
   async checkIntegrity(): Promise<ApprovalIntegrityCheck[]> {
-    const { data, error } = await callRPC("check_approval_integrity", {});
+    const { data, error } = await callRPCNoArgs("check_approval_integrity");
 
     if (error) {
       logError("checkIntegrity", error);
@@ -275,7 +279,7 @@ class ApprovalService {
    * Cleanup expired approvals
    */
   async cleanupExpired(): Promise<{ expiredCount: number }> {
-    const { data, error } = await callRPC("cleanup_expired_approvals", {});
+    const { data, error } = await callRPCNoArgs("cleanup_expired_approvals");
 
     if (error) {
       logError("cleanupExpired", error);
@@ -309,7 +313,7 @@ class ApprovalService {
       throw new Error(`Failed to lock period: ${error.message}`);
     }
 
-    const result = data as { success: boolean; data?: any; error?: string };
+    const result = data as unknown as RPCResponseWrapper;
 
     if (!result.success) {
       return { success: false, error: result.error };
@@ -337,7 +341,7 @@ class ApprovalService {
       throw new Error(`Failed to void transaction: ${error.message}`);
     }
 
-    const result = data as { success: boolean; data?: any; error?: string };
+    const result = data as unknown as RPCResponseWrapper;
 
     if (!result.success) {
       return { success: false, error: result.error };
@@ -360,7 +364,7 @@ class ApprovalService {
       throw new Error(`Failed to finalize pack: ${error.message}`);
     }
 
-    const result = data as { success: boolean; data?: any; error?: string };
+    const result = data as unknown as RPCResponseWrapper;
 
     if (!result.success) {
       return { success: false, error: result.error };
@@ -373,7 +377,7 @@ class ApprovalService {
    * Get count of pending approvals for badge display
    */
   async getPendingCount(userId: string): Promise<number> {
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from("admin_approvals")
       .select("id", { count: "exact", head: true })
       .eq("approval_status", "pending")
@@ -384,7 +388,7 @@ class ApprovalService {
       return 0;
     }
 
-    return data?.length || 0;
+    return count ?? 0;
   }
 }
 

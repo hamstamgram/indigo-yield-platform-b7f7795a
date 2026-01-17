@@ -7,6 +7,18 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { FundDailyAUM } from "@/types/domains/yield";
 
+/** Position with fund join result */
+interface PositionWithFundJoin {
+  fund_id: string;
+  shares: number | null;
+  current_value: number | null;
+  funds: {
+    name: string;
+    asset: string;
+    status: string;
+  } | null;
+}
+
 function formatDate(date: Date): string {
   return date.toISOString().split("T")[0];
 }
@@ -86,12 +98,15 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
   const totalAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
   const lastUpdated =
-    positions?.reduce((latest, p) => {
-      if (!latest || (p.updated_at && p.updated_at > latest)) {
-        return p.updated_at;
-      }
-      return latest;
-    }, null as string | null) || null;
+    positions?.reduce(
+      (latest, p) => {
+        if (!latest || (p.updated_at && p.updated_at > latest)) {
+          return p.updated_at;
+        }
+        return latest;
+      },
+      null as string | null
+    ) || null;
 
   return {
     totalAUM,
@@ -140,7 +155,7 @@ export async function saveDraftAUMEntry(
 
     if (error) {
       console.error("Error updating AUM entry:", error);
-      if (error.code === '42501' || error.message?.includes('policy')) {
+      if (error.code === "42501" || error.message?.includes("policy")) {
         throw new Error("Permission denied: Admin access required to record AUM.");
       }
       throw new Error(`Failed to update AUM: ${error.message}`);
@@ -164,7 +179,7 @@ export async function saveDraftAUMEntry(
 
     if (error) {
       console.error("Error inserting AUM entry:", error);
-      if (error.code === '42501' || error.message?.includes('policy')) {
+      if (error.code === "42501" || error.message?.includes("policy")) {
         throw new Error("Permission denied: Admin access required to record AUM.");
       }
       throw new Error(`Failed to save AUM: ${error.message}`);
@@ -282,7 +297,10 @@ export async function getFundInvestorComposition(fundId: string): Promise<
     .from("transactions_v2")
     .select("investor_id, type, amount")
     .eq("fund_id", fundId)
-    .in("investor_id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"])
+    .in(
+      "investor_id",
+      investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"]
+    )
     .in("type", ["INTEREST", "FEE"])
     .gte("tx_date", mtdStart)
     .lte("tx_date", mtdEnd)
@@ -352,19 +370,21 @@ export async function getInvestorPositionsWithFunds(investorId: string): Promise
 > {
   const { data, error } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       fund_id,
       shares,
       current_value,
       funds!fk_investor_positions_fund(name, asset, status)
-    `)
+    `
+    )
     .eq("investor_id", investorId);
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
 
-  return (data || [])
-    .filter((p: any) => p.funds?.status === "active")
-    .map((p: any) => ({
+  return ((data || []) as PositionWithFundJoin[])
+    .filter((p) => p.funds?.status === "active")
+    .map((p) => ({
       fund_id: p.fund_id,
       fund_name: p.funds?.name || "Unknown",
       asset: p.funds?.asset || "USD",

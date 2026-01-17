@@ -6,6 +6,62 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 
+// ============================================================================
+// Internal Types for Query Results
+// ============================================================================
+
+/** Profile row from profiles table */
+interface ProfileRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  status?: string;
+}
+
+/** Performance item with period join */
+interface PerformanceItemRow {
+  id: string;
+  fund_name: string;
+  created_at: string;
+  period?: {
+    year: number;
+    month: number;
+    period_end_date: string;
+  } | null;
+}
+
+/** Full performance report row */
+interface PerformanceReportRow {
+  id: string;
+  investor_id: string;
+  fund_name: string;
+  mtd_beginning_balance: number | null;
+  mtd_additions: number | null;
+  mtd_redemptions: number | null;
+  mtd_net_income: number | null;
+  mtd_ending_balance: number | null;
+  mtd_rate_of_return: number | null;
+  qtd_beginning_balance: number | null;
+  qtd_additions: number | null;
+  qtd_redemptions: number | null;
+  qtd_net_income: number | null;
+  qtd_ending_balance: number | null;
+  qtd_rate_of_return: number | null;
+  ytd_beginning_balance: number | null;
+  ytd_additions: number | null;
+  ytd_redemptions: number | null;
+  ytd_net_income: number | null;
+  ytd_ending_balance: number | null;
+  ytd_rate_of_return: number | null;
+  itd_beginning_balance: number | null;
+  itd_additions: number | null;
+  itd_redemptions: number | null;
+  itd_net_income: number | null;
+  itd_ending_balance: number | null;
+  itd_rate_of_return: number | null;
+}
+
 export interface InvestorReportAsset {
   asset_code: string;
   opening_balance: number;
@@ -82,19 +138,23 @@ export interface PerformanceReportDetail {
 export async function fetchInvestorPerformanceReports(
   searchTerm?: string
 ): Promise<{ id: string; asset_code: string; report_month: string; created_at: string }[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("No user");
 
   const investorId = user.id;
 
   let query = supabase
     .from("investor_fund_performance")
-    .select(`
+    .select(
+      `
       id,
       fund_name,
       period:statement_periods(period_end_date, year, month),
       created_at
-    `)
+    `
+    )
     .eq("investor_id", investorId);
 
   if (searchTerm) {
@@ -102,16 +162,16 @@ export async function fetchInvestorPerformanceReports(
   }
 
   const { data, error } = await query.order("period(period_end_date)", { ascending: false });
-  
+
   if (error) {
     logError("fetchInvestorPerformanceReports", error);
     return [];
   }
 
-  return (data || []).map((item: any) => ({
+  return ((data || []) as PerformanceItemRow[]).map((item) => ({
     id: item.id,
     asset_code: item.fund_name,
-    report_month: `${item.period?.year}-${String(item.period?.month).padStart(2, '0')}`,
+    report_month: `${item.period?.year}-${String(item.period?.month).padStart(2, "0")}`,
     created_at: item.created_at,
   }));
 }
@@ -119,17 +179,21 @@ export async function fetchInvestorPerformanceReports(
 /**
  * Fetch performance report detail by ID
  */
-export async function fetchPerformanceReportById(id: string): Promise<PerformanceReportDetail | null> {
+export async function fetchPerformanceReportById(
+  id: string
+): Promise<PerformanceReportDetail | null> {
   if (!id) throw new Error("No ID provided");
 
   const { data, error } = await supabase
     .from("investor_fund_performance")
-    .select(`
+    .select(
+      `
       *,
       period:statement_periods (
         period_end_date
       )
-    `)
+    `
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -141,7 +205,7 @@ export async function fetchPerformanceReportById(id: string): Promise<Performanc
     asset_code: data.fund_name,
     report_month: data.period?.period_end_date,
     created_at: data.created_at,
-    updated_at: data.updated_at
+    updated_at: data.updated_at,
   };
 }
 
@@ -165,7 +229,7 @@ export async function fetchAdminInvestorReports(
   }
 
   // Fetch investor emails from investor_emails table
-  const investorIds = investors.map((inv: any) => inv.id);
+  const investorIds = (investors as ProfileRow[]).map((inv) => inv.id);
   const { data: investorEmailsData } = await supabase
     .from("investor_emails")
     .select("investor_id, email, is_primary, verified")
@@ -173,12 +237,14 @@ export async function fetchAdminInvestorReports(
 
   // Build email lookup, starting with profile email as fallback
   const emailsByInvestor: Record<string, InvestorReportEmail[]> = {};
-  investors.forEach((inv: any) => {
-    emailsByInvestor[inv.id] = [{
-      email: inv.email,
-      is_primary: true,
-      verified: true,
-    }];
+  (investors as ProfileRow[]).forEach((inv) => {
+    emailsByInvestor[inv.id] = [
+      {
+        email: inv.email,
+        is_primary: true,
+        verified: true,
+      },
+    ];
   });
 
   // Add additional emails from investor_emails table (if any)
@@ -207,17 +273,20 @@ export async function fetchAdminInvestorReports(
 
   if (!period) {
     // No period, return empty reports but with investor structures
-    const emptyInvestorReports: InvestorReportSummary[] = investors.map((investor: any) => ({
-      investor_id: investor.id,
-      investor_name: `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || "Unknown",
-      investor_email: investor.email,
-      investor_emails: emailsByInvestor[investor.id] || [],
-      assets: [],
-      total_value: 0,
-      total_yield: 0,
-      has_reports: false,
-      report_count: 0
-    }));
+    const emptyInvestorReports: InvestorReportSummary[] = (investors as ProfileRow[]).map(
+      (investor) => ({
+        investor_id: investor.id,
+        investor_name:
+          `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || "Unknown",
+        investor_email: investor.email,
+        investor_emails: emailsByInvestor[investor.id] || [],
+        assets: [],
+        total_value: 0,
+        total_yield: 0,
+        has_reports: false,
+        report_count: 0,
+      })
+    );
     return { reports: emptyInvestorReports, periodId: "" };
   }
 
@@ -231,8 +300,8 @@ export async function fetchAdminInvestorReports(
   if (reportsError) throw reportsError;
 
   // Group reports by investor
-  const reportsByInvestor = (monthlyReports || []).reduce(
-    (acc: Record<string, any[]>, report: any) => {
+  const reportsByInvestor = ((monthlyReports || []) as PerformanceReportRow[]).reduce(
+    (acc: Record<string, PerformanceReportRow[]>, report) => {
       const key = report.investor_id;
       if (!key) return acc;
       if (!acc[key]) {
@@ -245,11 +314,11 @@ export async function fetchAdminInvestorReports(
   );
 
   // Build investor report summaries
-  const investorReports: InvestorReportSummary[] = investors.map((investor: any) => {
+  const investorReports: InvestorReportSummary[] = (investors as ProfileRow[]).map((investor) => {
     const investorPerf = reportsByInvestor[investor.id] || [];
     const hasReports = investorPerf.length > 0;
 
-    const assets: InvestorReportAsset[] = investorPerf.map((report: any) => ({
+    const assets: InvestorReportAsset[] = investorPerf.map((report) => ({
       asset_code: report.fund_name,
       opening_balance: Number(report.mtd_beginning_balance) || 0,
       closing_balance: Number(report.mtd_ending_balance) || 0,
@@ -339,17 +408,47 @@ export async function fetchLatestPerformance(
   investorId: string,
   assetCode: string
 ): Promise<{
-  MTD: { beginning_balance: number; additions: number; withdrawals: number; net_income: number; ending_balance: number; rate_of_return: number };
-  QTD: { beginning_balance: number; additions: number; withdrawals: number; net_income: number; ending_balance: number; rate_of_return: number };
-  YTD: { beginning_balance: number; additions: number; withdrawals: number; net_income: number; ending_balance: number; rate_of_return: number };
-  ITD: { beginning_balance: number; additions: number; withdrawals: number; net_income: number; ending_balance: number; rate_of_return: number };
+  MTD: {
+    beginning_balance: number;
+    additions: number;
+    withdrawals: number;
+    net_income: number;
+    ending_balance: number;
+    rate_of_return: number;
+  };
+  QTD: {
+    beginning_balance: number;
+    additions: number;
+    withdrawals: number;
+    net_income: number;
+    ending_balance: number;
+    rate_of_return: number;
+  };
+  YTD: {
+    beginning_balance: number;
+    additions: number;
+    withdrawals: number;
+    net_income: number;
+    ending_balance: number;
+    rate_of_return: number;
+  };
+  ITD: {
+    beginning_balance: number;
+    additions: number;
+    withdrawals: number;
+    net_income: number;
+    ending_balance: number;
+    rate_of_return: number;
+  };
 } | null> {
   const { data: latestPerformance, error: perfError } = await (supabase as any)
     .from("investor_fund_performance")
-    .select(`
+    .select(
+      `
       *,
       period:statement_periods(period_end_date)
-    `)
+    `
+    )
     .eq("investor_id", investorId)
     .eq("fund_name", assetCode)
     .order("period(period_end_date)", { ascending: false })
@@ -401,7 +500,9 @@ export async function fetchLatestPerformance(
 /**
  * Fetch active investors for statement generation
  */
-export async function fetchActiveInvestorsForStatements(): Promise<{ id: string; name: string; email: string }[]> {
+export async function fetchActiveInvestorsForStatements(): Promise<
+  { id: string; name: string; email: string }[]
+> {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, email, status")
@@ -411,9 +512,9 @@ export async function fetchActiveInvestorsForStatements(): Promise<{ id: string;
 
   if (error) throw error;
 
-  return (data || []).map((p: any) => ({
+  return ((data || []) as ProfileRow[]).map((p) => ({
     id: p.id,
     name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-    email: p.email
+    email: p.email,
   }));
 }
