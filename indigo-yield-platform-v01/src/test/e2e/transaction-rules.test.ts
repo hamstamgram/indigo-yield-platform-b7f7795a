@@ -91,7 +91,7 @@ describe("P0 Gateway Fixes: Canonical RPC Functions", () => {
       });
       expect(result.error).toBeNull();
       expect(result.data).toEqual(mockExportData);
-      expect(result.data?.personal_info.user_id).toBe("test-user-id");
+      expect((result.data as any)?.personal_info.user_id).toBe("test-user-id");
     });
 
     it("should fail when user lacks permission to export data", async () => {
@@ -160,8 +160,8 @@ describe("P0 Gateway Fixes: Canonical RPC Functions", () => {
       expect(mockRpc).toHaveBeenCalledWith("get_kpi_metrics");
       expect(result.error).toBeNull();
       expect(result.data).toEqual(mockKPIData);
-      expect(result.data?.total_aum).toBe(1000000);
-      expect(result.data?.total_investors).toBe(25);
+      expect((result.data as any)?.total_aum).toBe(1000000);
+      expect((result.data as any)?.total_investors).toBe(25);
     });
 
     it("should fail when non-admin user attempts to access KPIs", async () => {
@@ -210,9 +210,9 @@ describe("P0 Gateway Fixes: Canonical RPC Functions", () => {
 
       expect(mockRpc).toHaveBeenCalledWith("run_integrity_monitoring");
       expect(result.error).toBeNull();
-      expect(result.data?.status).toBe("HEALTHY");
-      expect(result.data?.violations_count).toBe(0);
-      expect(result.data?.system_health_score).toBe(100);
+      expect((result.data as any)?.status).toBe("HEALTHY");
+      expect((result.data as any)?.violations_count).toBe(0);
+      expect((result.data as any)?.system_health_score).toBe(100);
     });
 
     it("should detect violations and return WARNING status", async () => {
@@ -241,9 +241,9 @@ describe("P0 Gateway Fixes: Canonical RPC Functions", () => {
       const result = await supabase.rpc("run_integrity_monitoring");
 
       expect(result.error).toBeNull();
-      expect(result.data?.status).toBe("WARNING");
-      expect(result.data?.violations_count).toBe(1);
-      expect(result.data?.warnings).toContain("AUM calculation mismatch detected");
+      expect((result.data as any)?.status).toBe("WARNING");
+      expect((result.data as any)?.violations_count).toBe(1);
+      expect((result.data as any)?.warnings).toContain("AUM calculation mismatch detected");
     });
 
     it("should fail when non-admin attempts to run monitoring", async () => {

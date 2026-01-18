@@ -19,6 +19,7 @@ export const CANONICAL_RPCS = [
   'export_investor_data',
   'get_kpi_metrics',
   'run_integrity_monitoring',
+  'validate_pre_yield_aum',
 
   // Transaction Operations
   'void_transaction',

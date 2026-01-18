@@ -140,13 +140,15 @@ export const calculateMonthlyFlows = async (): Promise<{ inflows: number; outflo
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     // Fetch separately to avoid excessive type instantiation
-    const inflowsData = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const inflowsData: { data: Array<{ amount: number }> | null; error: any } = await (supabase as any)
       .from("transactions_v2")
       .select("amount")
       .eq("transaction_type", "DEPOSIT")
       .gte("created_at", monthStart.toISOString());
 
-    const outflowsData = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const outflowsData: { data: Array<{ amount: number }> | null; error: any } = await (supabase as any)
       .from("transactions_v2")
       .select("amount")
       .eq("transaction_type", "WITHDRAWAL")
