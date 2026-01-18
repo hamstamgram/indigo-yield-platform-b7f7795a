@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import type { RPCResponse } from "@/contracts/rpcSignatures";
 
 export interface InvestorExportData {
@@ -18,7 +19,7 @@ class InvestorDataExportService {
   async exportInvestorData(userId: string): Promise<InvestorExportData> {
     try {
       // Use canonical RPC function for GDPR-compliant data export
-      const { data: canonicalData, error } = await supabase.rpc('export_investor_data', {
+      const { data: canonicalData, error } = await rpc.call('export_investor_data', {
         investor_id_param: userId
       });
 
@@ -98,12 +99,12 @@ class InvestorDataExportService {
    */
   async validateCanonicalRPC(): Promise<boolean> {
     try {
-      const { error } = await supabase.rpc('export_investor_data', {
+      const { error } = await rpc.call('export_investor_data', {
         investor_id_param: '00000000-0000-0000-0000-000000000000' // Test with invalid UUID
       });
 
       // If we get a specific error about user not found or permissions, RPC is working
-      return error?.message?.includes('not found') || error?.message?.includes('permissions');
+      return error?.message?.includes('not found') || error?.message?.includes('permissions') || false;
     } catch {
       return false;
     }

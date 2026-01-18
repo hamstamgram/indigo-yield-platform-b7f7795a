@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 import type { RPCResponse } from "@/contracts/rpcSignatures";
 
 export interface AssetKPI {
@@ -24,7 +25,7 @@ export interface AssetKPI {
 export const calculatePlatformKPIs = async (): Promise<RPCResponse<'get_kpi_metrics'> | null> => {
   try {
     // Use canonical RPC function for KPI calculations
-    const { data: kpiData, error } = await supabase.rpc('get_kpi_metrics');
+    const { data: kpiData, error } = await rpc.call('get_kpi_metrics', {});
 
     if (error) {
       console.error('Canonical KPI RPC failed:', error);
@@ -138,18 +139,18 @@ export const calculateMonthlyFlows = async (): Promise<{ inflows: number; outflo
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [inflowsData, outflowsData] = await Promise.all([
-      supabase
-        .from("transactions_v2")
-        .select("amount")
-        .eq("transaction_type", "DEPOSIT")
-        .gte("created_at", monthStart.toISOString()),
-      supabase
-        .from("transactions_v2")
-        .select("amount")
-        .eq("transaction_type", "WITHDRAWAL")
-        .gte("created_at", monthStart.toISOString())
-    ]);
+    // Fetch separately to avoid excessive type instantiation
+    const inflowsData = await supabase
+      .from("transactions_v2")
+      .select("amount")
+      .eq("transaction_type", "DEPOSIT")
+      .gte("created_at", monthStart.toISOString());
+
+    const outflowsData = await supabase
+      .from("transactions_v2")
+      .select("amount")
+      .eq("transaction_type", "WITHDRAWAL")
+      .gte("created_at", monthStart.toISOString());
 
     const inflows = inflowsData.data?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
     const outflows = outflowsData.data?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
