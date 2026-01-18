@@ -30,9 +30,9 @@ BEGIN
     -- Log the void status change
     INSERT INTO audit_log (
       action,
-      entity_type,
+      entity,
       entity_id,
-      details,
+      meta,
       created_at
     ) VALUES (
       CASE WHEN NEW.is_voided THEN 'TRANSACTION_VOIDED' ELSE 'TRANSACTION_UNVOIDED' END,
@@ -119,9 +119,9 @@ BEGIN
     IF v_old_aum IS NOT NULL AND ABS(v_old_aum - v_calculated_aum) > 1 THEN
       INSERT INTO audit_log (
         action,
-        entity_type,
+        entity,
         entity_id,
-        details,
+        meta,
         created_at
       ) VALUES (
         'AUM_SYNCED',
@@ -299,9 +299,9 @@ GRANT EXECUTE ON FUNCTION public.apply_daily_yield_with_validation TO authentica
 -- 6) Log migration
 INSERT INTO public.audit_log (
   action,
-  entity_type,
+  entity,
   entity_id,
-  details,
+  meta,
   created_at
 ) VALUES (
   'MIGRATION_APPLIED',
