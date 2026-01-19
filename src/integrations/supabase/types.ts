@@ -11282,10 +11282,19 @@ export type Database = {
         Returns: Json
       }
       cancel_delivery: { Args: { p_delivery_id: string }; Returns: Json }
-      cancel_withdrawal_by_admin: {
-        Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
-        Returns: boolean
-      }
+      cancel_withdrawal_by_admin:
+        | {
+            Args: { p_reason?: string; p_request_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_admin_notes?: string
+              p_reason: string
+              p_request_id: string
+            }
+            Returns: boolean
+          }
       check_all_funds_transaction_aum: {
         Args: { p_tx_date: string }
         Returns: {
@@ -12428,21 +12437,16 @@ export type Database = {
           }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
-      start_processing_withdrawal:
-        | {
-            Args: { p_admin_id?: string; p_request_id: string }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_processed_amount?: number
-              p_request_id: string
-              p_settlement_date?: string
-              p_tx_hash?: string
-            }
-            Returns: boolean
-          }
+      start_processing_withdrawal: {
+        Args: {
+          p_admin_notes?: string
+          p_processed_amount?: number
+          p_request_id: string
+          p_settlement_date?: string
+          p_tx_hash?: string
+        }
+        Returns: boolean
+      }
       sync_all_fund_aum: { Args: { p_target_date?: string }; Returns: Json }
       sync_aum_to_positions: {
         Args: {
@@ -12593,6 +12597,10 @@ export type Database = {
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
           p_tx_date: string
         }
+        Returns: boolean
+      }
+      validate_withdrawal_transition: {
+        Args: { p_current_status: string; p_new_status: string }
         Returns: boolean
       }
       validate_yield_distribution_prerequisites: {

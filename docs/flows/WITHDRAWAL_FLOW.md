@@ -1,188 +1,166 @@
-# Withdrawal Flow Documentation
+# Withdrawal Flow
 
-## Overview
+> **Status**: Active | **Last Updated**: 2026-01-19 | **P1-02 Consolidated**
 
-This document describes the canonical withdrawal flow, including state transitions, database operations, and audit trail requirements.
+This document defines the canonical withdrawal request lifecycle.
+
+---
 
 ## State Machine
 
+```mermaid
+stateDiagram-v2
+    [*] --> pending : create_withdrawal_request()
+    
+    pending --> approved : approve_withdrawal()
+    pending --> rejected : reject_withdrawal()
+    pending --> cancelled : cancel_withdrawal_by_admin()
+    
+    approved --> processing : start_processing_withdrawal()
+    approved --> cancelled : cancel_withdrawal_by_admin()
+    
+    processing --> completed : complete_withdrawal()
+    processing --> cancelled : cancel_withdrawal_by_admin()
+    
+    rejected --> [*]
+    completed --> [*]
+    cancelled --> [*]
 ```
-┌─────────────┐
-│   pending   │ ← Initial state when investor submits request
-└──────┬──────┘
-       │
-       ├──────────────────────────────────────┐
-       │                                      │
-       ▼                                      ▼
-┌─────────────┐                        ┌─────────────┐
-│  approved   │                        │  rejected   │ → Terminal
-└──────┬──────┘                        └─────────────┘
-       │
-       ▼
-┌─────────────┐
-│ processing  │
-└──────┬──────┘
-       │
-       ├──────────────────────────────────────┐
-       │                                      │
-       ▼                                      ▼
-┌─────────────┐                        ┌─────────────┐
-│  completed  │ → Terminal             │  cancelled  │ → Terminal
-└─────────────┘                        └─────────────┘
+
+## State Transition Validator
+
+A canonical helper function validates all transitions:
+
+```sql
+SELECT validate_withdrawal_transition('pending', 'approved');     -- true
+SELECT validate_withdrawal_transition('pending', 'processing');   -- false (must go through approved)
+SELECT validate_withdrawal_transition('processing', 'pending');   -- false (can't go back)
+SELECT validate_withdrawal_transition('processing', 'cancelled'); -- true
 ```
 
 ## Valid State Transitions
 
-| From State   | To State    | Actor  | RPC Function                        |
-|-------------|-------------|--------|-------------------------------------|
-| pending     | approved    | Admin  | `update_withdrawal_status`          |
-| pending     | rejected    | Admin  | `update_withdrawal_status`          |
-| pending     | cancelled   | Admin  | `cancel_withdrawal_by_admin`        |
-| approved    | processing  | Admin  | `update_withdrawal_status`          |
-| approved    | cancelled   | Admin  | `cancel_withdrawal_by_admin`        |
-| processing  | completed   | Admin  | `update_withdrawal_status`          |
-| processing  | cancelled   | Admin  | `cancel_withdrawal_by_admin`        |
+| From | To | Actor | RPC Function | Notes |
+|------|-----|-------|--------------|-------|
+| (new) | pending | Investor/Admin | `create_withdrawal_request()` | Validates available balance |
+| pending | approved | Admin | `approve_withdrawal()` | Uses advisory lock |
+| pending | rejected | Admin | `reject_withdrawal()` | Terminal state |
+| pending | cancelled | Admin | `cancel_withdrawal_by_admin()` | Terminal state |
+| approved | processing | Super Admin | `start_processing_withdrawal()` | Uses advisory lock |
+| approved | cancelled | Admin | `cancel_withdrawal_by_admin()` | Terminal state |
+| processing | completed | Super Admin | `complete_withdrawal()` | Ledger impact via crystallization |
+| processing | cancelled | Admin | `cancel_withdrawal_by_admin()` | No ledger impact |
 
 ## Database Tables
 
-### Primary Table: `withdrawal_requests`
+### withdrawal_requests
+Core withdrawal data table.
 
-| Column           | Type        | Description                          |
-|-----------------|-------------|--------------------------------------|
-| id              | UUID        | Primary key                          |
-| investor_id     | UUID        | FK to profiles                       |
-| fund_id         | UUID        | FK to funds                          |
-| amount          | NUMERIC     | Withdrawal amount                    |
-| currency        | TEXT        | Asset code (USDC, BTC, etc.)         |
-| status          | ENUM        | Current state (see state machine)    |
-| requested_at    | TIMESTAMPTZ | When request was created             |
-| processed_at    | TIMESTAMPTZ | When processing completed            |
-| processed_by    | UUID        | Admin who processed                  |
-| notes           | TEXT        | Admin notes                          |
-| wallet_address  | TEXT        | Destination wallet                   |
-| tx_hash         | TEXT        | Blockchain transaction hash          |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| investor_id | uuid | FK to profiles |
+| fund_id | uuid | FK to funds |
+| requested_amount | numeric | Original request amount |
+| processed_amount | numeric | Final processed amount (may differ) |
+| status | withdrawal_status | Current state |
+| withdrawal_type | text | 'partial' or 'full' |
+| notes | text | Investor notes |
+| admin_notes | text | Admin notes |
+| tx_hash | text | Blockchain transaction hash |
+| rejection_reason | text | Reason if rejected |
+| cancellation_reason | text | Reason if cancelled |
+| request_date | timestamp | When created |
+| processed_at | timestamp | When completed |
+| approved_by | uuid | Admin who approved |
+| rejected_by | uuid | Admin who rejected |
+| cancelled_by | uuid | Admin who cancelled |
 
-### Audit Table: `withdrawal_audit_logs` (PLURAL - CANONICAL NAME)
+### withdrawal_audit_logs (canonical)
+Audit trail for all withdrawal actions. **Note**: A view alias `withdrawal_audit_log` (singular) exists for compatibility.
 
-| Column           | Type        | Description                          |
-|-----------------|-------------|--------------------------------------|
-| id              | UUID        | Primary key                          |
-| withdrawal_id   | UUID        | FK to withdrawal_requests            |
-| action          | ENUM        | Action type (created, approved, etc.)|
-| old_status      | TEXT        | Previous status                      |
-| new_status      | TEXT        | New status                           |
-| performed_by    | UUID        | User who performed action            |
-| performed_at    | TIMESTAMPTZ | When action occurred                 |
-| notes           | TEXT        | Action notes                         |
-| metadata        | JSONB       | Additional context                   |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| request_id | uuid | FK to withdrawal_requests |
+| action | withdrawal_action | Action performed |
+| actor_id | uuid | Who performed action |
+| details | jsonb | Additional context |
+| created_at | timestamp | When action occurred |
 
-> ⚠️ **CRITICAL**: The canonical table name is `withdrawal_audit_logs` (PLURAL).
-> A compatibility view `withdrawal_audit_log` (singular) exists for backwards compatibility.
-> All new code MUST use the plural form.
+## RPC Functions Reference
 
-## RPC Functions
+### State Transition Functions
 
-### `cancel_withdrawal_by_admin(p_request_id UUID, p_reason TEXT)`
+| Function | Signature | Security | Description |
+|----------|-----------|----------|-------------|
+| `create_withdrawal_request` | `(p_investor_id, p_fund_id, p_amount, p_type, p_notes)` | Authenticated | Creates pending request |
+| `approve_withdrawal` | `(p_request_id, p_approved_amount, p_admin_notes)` | Admin | pending → approved |
+| `reject_withdrawal` | `(p_request_id, p_reason, p_admin_notes)` | Admin | pending → rejected |
+| `start_processing_withdrawal` | `(p_request_id, p_processed_amount, p_tx_hash, p_settlement_date, p_admin_notes)` | Super Admin | approved → processing |
+| `complete_withdrawal` | `(p_request_id, p_closing_aum, p_event_ts, p_transaction_hash, p_admin_notes)` | Super Admin | processing → completed |
+| `cancel_withdrawal_by_admin` | `(p_request_id, p_reason)` | Admin | pending/approved/processing → cancelled |
 
-Cancels a pending/approved/processing withdrawal request.
+### Helper Functions
 
-**Security**: SECURITY DEFINER with admin role check
-**Idempotency**: Safe to call multiple times (checks current status)
-
-```sql
--- Writes to:
--- 1. withdrawal_requests (status update)
--- 2. withdrawal_audit_logs (audit trail)
-
--- Atomicity: Single transaction
--- Returns: JSON with success status and message
-```
-
-### `delete_withdrawal(p_request_id UUID, p_reason TEXT, p_hard_delete BOOLEAN DEFAULT FALSE)`
-
-Deletes a withdrawal request (soft delete by default, hard delete if flag is set).
-
-**Security**: SECURITY DEFINER with admin role check
-**Soft delete**: Sets deleted_at timestamp, preserves audit trail
-**Hard delete**: Permanently removes request and audit trail (GDPR compliance)
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `validate_withdrawal_transition` | `(p_current_status, p_new_status)` | Returns boolean if transition is valid |
+| `acquire_withdrawal_lock` | `(p_request_id)` | Advisory lock for concurrency |
+| `log_withdrawal_action` | `(p_request_id, p_action, p_details)` | Inserts audit log entry |
+| `update_withdrawal` | `(p_withdrawal_id, p_requested_amount, p_withdrawal_type, p_notes, p_reason)` | Edit pending request |
+| `delete_withdrawal` | `(p_withdrawal_id, p_reason, p_hard_delete)` | Soft/hard delete |
+| `route_withdrawal_to_fees` | `(p_request_id, p_reason)` | Route to INDIGO FEES |
 
 ## Invariants
 
-1. **Audit Trail Completeness**: Every status change MUST create an audit log entry
-2. **No Orphan Audits**: Every audit log MUST reference a valid withdrawal_requests row (or be cascade-deleted)
-3. **Terminal State Immutability**: Completed/rejected/cancelled requests cannot transition to other states
-4. **Amount Conservation**: Withdrawal amount cannot change after creation
-5. **Position Validation**: Cannot withdraw more than current position balance
+1. **Audit Trail Complete**: Every status change MUST have a corresponding `withdrawal_audit_logs` entry
+2. **No Orphan Audits**: Every audit log MUST reference a valid `withdrawal_requests.id`
+3. **Terminal State Immutable**: Once in `rejected`, `completed`, or `cancelled`, status cannot change
+4. **Amount Conservation**: `processed_amount` ≤ `requested_amount` (enforced by RPC)
+5. **Ledger Impact Only on Complete**: Only `complete_withdrawal()` affects positions/transactions
 
 ## Frontend Cache Invalidation
 
-After any withdrawal operation, invalidate:
-
+After any withdrawal mutation:
 ```typescript
-queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
-queryClient.invalidateQueries({ queryKey: ['investor-positions'] });
-queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
+invalidateAfterWithdrawal(queryClient, investorId, fundId, withdrawalId);
 ```
+
+This invalidates: withdrawals, positions, transactions, and stats queries.
 
 ## Error Handling
 
 | Error Code | Description | Resolution |
-|-----------|-------------|------------|
-| `INSUFFICIENT_BALANCE` | Position balance too low | Check current balance |
+|------------|-------------|------------|
+| `WITHDRAWAL_NOT_FOUND` | Request ID doesn't exist | Verify ID |
 | `INVALID_STATE_TRANSITION` | Invalid status change | Check current status |
-| `WITHDRAWAL_NOT_FOUND` | Request doesn't exist | Verify withdrawal ID |
-| `UNAUTHORIZED` | Not admin or wrong investor | Check permissions |
-
-## Migration Safety
-
-### Forbidden Patterns
-
-The following patterns are checked by `scripts/check-migrations.sh`:
-
-- `withdrawal_audit_log[^s]` - Must use plural `withdrawal_audit_logs`
-- `FROM withdrawal_audit_log[^s]` - Query must use plural table
-- `INTO withdrawal_audit_log[^s]` - Insert must use plural table
-
-### Fresh DB Verification
-
-Run `scripts/db-smoke-test.sh` to verify:
-
-1. `withdrawal_audit_logs` table exists
-2. `withdrawal_audit_log` view exists (compatibility)
-3. All withdrawal RPC functions exist
-4. Integrity views return 0 mismatches
+| `WITHDRAWAL_LOCKED` | Concurrent operation in progress | Retry after delay |
+| `UNAUTHORIZED` | Missing required role | Check admin/super_admin status |
+| `INSUFFICIENT_BALANCE` | Amount exceeds available | Reduce amount |
 
 ## Testing Checklist
 
 ### Manual QA
-
-- [ ] Create withdrawal request as investor
-- [ ] Approve request as admin
-- [ ] Reject request as admin
-- [ ] Cancel pending request
-- [ ] Cancel approved request
-- [ ] Complete processing flow
-- [ ] Verify audit trail entries
-- [ ] Verify position updates after completion
+- [ ] Create withdrawal request
+- [ ] Approve withdrawal
+- [ ] Start processing
+- [ ] Complete withdrawal (verify ledger impact)
+- [ ] Cancel from pending state
+- [ ] Cancel from approved state
+- [ ] Cancel from processing state
+- [ ] Reject withdrawal
+- [ ] Verify audit logs for each action
 
 ### Database Assertions
-
-After each operation, verify:
-
 ```sql
--- No orphan audit logs
-SELECT COUNT(*) FROM withdrawal_audit_logs wal
-WHERE NOT EXISTS (
-  SELECT 1 FROM withdrawal_requests wr 
-  WHERE wr.id = wal.withdrawal_id
-);
--- Expected: 0
+-- All withdrawals have at least one audit entry
+SELECT w.id FROM withdrawal_requests w
+LEFT JOIN withdrawal_audit_logs a ON a.request_id = w.id
+WHERE a.id IS NULL;  -- Should return empty
 
--- Audit trail completeness
-SELECT wr.id, wr.status, COUNT(wal.id) as audit_count
-FROM withdrawal_requests wr
-LEFT JOIN withdrawal_audit_logs wal ON wal.withdrawal_id = wr.id
-GROUP BY wr.id, wr.status
-HAVING COUNT(wal.id) = 0;
--- Expected: 0 rows (every request has at least 1 audit entry)
+-- Test state transition validator
+SELECT 
+  validate_withdrawal_transition('pending', 'approved') as should_be_true,
+  validate_withdrawal_transition('completed', 'pending') as should_be_false;
 ```
