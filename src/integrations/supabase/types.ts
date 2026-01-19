@@ -2800,72 +2800,6 @@ export type Database = {
           },
         ]
       }
-      integrity_check_log: {
-        Row: {
-          checked_at: string
-          critical_failures: number
-          failed: number
-          id: string
-          passed: number
-          results: Json
-          total_checks: number
-          triggered_by: string | null
-        }
-        Insert: {
-          checked_at?: string
-          critical_failures: number
-          failed: number
-          id?: string
-          passed: number
-          results: Json
-          total_checks: number
-          triggered_by?: string | null
-        }
-        Update: {
-          checked_at?: string
-          critical_failures?: number
-          failed?: number
-          id?: string
-          passed?: number
-          results?: Json
-          total_checks?: number
-          triggered_by?: string | null
-        }
-        Relationships: []
-      }
-      integrity_monitoring_log: {
-        Row: {
-          alert_sent: boolean | null
-          check_timestamp: string | null
-          check_type: string
-          created_at: string | null
-          id: string
-          status: string
-          violation_details: Json | null
-          violations_found: number
-        }
-        Insert: {
-          alert_sent?: boolean | null
-          check_timestamp?: string | null
-          check_type: string
-          created_at?: string | null
-          id?: string
-          status: string
-          violation_details?: Json | null
-          violations_found: number
-        }
-        Update: {
-          alert_sent?: boolean | null
-          check_timestamp?: string | null
-          check_type?: string
-          created_at?: string | null
-          id?: string
-          status?: string
-          violation_details?: Json | null
-          violations_found?: number
-        }
-        Relationships: []
-      }
       investor_emails: {
         Row: {
           created_at: string | null
@@ -5907,51 +5841,6 @@ export type Database = {
             referencedColumns: ["investor_id"]
           },
         ]
-      }
-      system_health_snapshots: {
-        Row: {
-          details: Json | null
-          fee_calculation_orphans_count: number | null
-          fund_aum_mismatch_count: number | null
-          ledger_reconciliation_count: number | null
-          orphaned_positions_count: number | null
-          orphaned_transactions_count: number | null
-          position_variance_count: number | null
-          snapshot_at: string
-          snapshot_id: string
-          status: string | null
-          total_anomalies: number
-          triggered_by: string | null
-        }
-        Insert: {
-          details?: Json | null
-          fee_calculation_orphans_count?: number | null
-          fund_aum_mismatch_count?: number | null
-          ledger_reconciliation_count?: number | null
-          orphaned_positions_count?: number | null
-          orphaned_transactions_count?: number | null
-          position_variance_count?: number | null
-          snapshot_at?: string
-          snapshot_id?: string
-          status?: string | null
-          total_anomalies?: number
-          triggered_by?: string | null
-        }
-        Update: {
-          details?: Json | null
-          fee_calculation_orphans_count?: number | null
-          fund_aum_mismatch_count?: number | null
-          ledger_reconciliation_count?: number | null
-          orphaned_positions_count?: number | null
-          orphaned_transactions_count?: number | null
-          position_variance_count?: number | null
-          snapshot_at?: string
-          snapshot_id?: string
-          status?: string | null
-          total_anomalies?: number
-          triggered_by?: string | null
-        }
-        Relationships: []
       }
       temp_balance: {
         Row: {
@@ -11450,14 +11339,6 @@ export type Database = {
         Args: { p_action_type: string; p_actor_id: string }
         Returns: boolean
       }
-      check_system_integrity: {
-        Args: never
-        Returns: {
-          issue_count: number
-          status: string
-          view_name: string
-        }[]
-      }
       check_transaction_sources: {
         Args: never
         Returns: {
@@ -12517,12 +12398,10 @@ export type Database = {
           violation_count: number
         }[]
       }
-      run_data_integrity_check: { Args: never; Returns: Json }
       run_integrity_check: {
         Args: { p_scope_fund_id?: string; p_scope_investor_id?: string }
         Returns: Json
       }
-      run_integrity_monitoring: { Args: never; Returns: Json }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }
         Returns: number

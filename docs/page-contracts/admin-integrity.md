@@ -97,10 +97,7 @@ This page shows all integrity issues without filtering.
 ### React Query Keys
 ```typescript
 ['integrity-summary']
-['integrity-fund-aum']
-['integrity-positions']
-['integrity-yield']
-['integrity-orphans']
+['admin-integrity-runs']
 ```
 
 ### Invalidate After
@@ -108,6 +105,28 @@ This page shows all integrity issues without filtering.
 |-----------|-------------------|
 | Run integrity check | All integrity keys |
 | Any financial mutation | All integrity keys |
+
+---
+
+## Canonical Implementation
+
+### Edge Function
+- **Name**: `integrity-monitor`
+- **Storage**: `admin_integrity_runs` table
+- **Checks**: 14 comprehensive integrity checks
+
+### RPC Functions
+| Function | Purpose |
+|----------|---------|
+| `run_integrity_check(uuid, uuid)` | Scoped integrity check with fund/investor filter |
+| `assert_integrity_or_raise(uuid, uuid, text)` | Gating function for write operations |
+
+### Deprecated (Removed)
+- `check_system_integrity()` - merged into integrity-monitor
+- `run_data_integrity_check()` - merged into integrity-monitor
+- `run_integrity_monitoring()` - merged into integrity-monitor
+- `scheduled-integrity-check` edge function - replaced by integrity-monitor
+- `system_health_snapshots` table - replaced by admin_integrity_runs
 
 ---
 
@@ -134,6 +153,6 @@ This page shows all integrity issues without filtering.
 ### Health Indicators
 | Status | Condition |
 |--------|-----------|
-| ✅ Healthy | All views return 0 rows |
-| ⚠️ Warning | Any view returns 1-5 rows |
-| ❌ Critical | Any view returns >5 rows |
+| ✅ Healthy | All checks pass |
+| ⚠️ Warning | Any non-critical failures |
+| ❌ Critical | Any critical failures |
