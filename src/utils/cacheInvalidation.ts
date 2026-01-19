@@ -214,8 +214,8 @@ export function invalidateAfterTransaction(
   invalidateByGraph(queryClient, "transaction", { investorId, fundId });
 
   // Additional position key patterns for thorough invalidation
+  // Position invalidation - use investorPositions (canonical)
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.positions() });
 
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });

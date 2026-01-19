@@ -11,8 +11,8 @@ export * from "./accountUtils";
 // Asset utilities
 export * from "./assetUtils";
 export * from "./assetValidation";
-// Exclude formatAssetAmount from assets.ts - use formatters version instead
-export { formatSignedAssetAmount } from "./assets";
+// Asset formatting: formatAssetAmount (with symbol) from assets.ts is canonical
+export { formatAssetAmount, formatSignedAssetAmount } from "./assets";
 
 // Cache management
 export * from "./cacheInvalidation";
@@ -45,7 +45,8 @@ export {
   Decimal,
 } from "./financial";
 
-export * from "./kpiCalculations";
+// Note: kpiCalculations exports formatAssetValue - use formatters version for number-only formatting
+export { calculateTotalAUM, calculateInvestorCount, calculateAllKPIs, type AssetKPI } from "./kpiCalculations";
 
 // Statement calculations - exclude formatTokenAmount (use formatters version)
 export {

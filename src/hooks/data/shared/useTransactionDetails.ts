@@ -88,7 +88,7 @@ export function useTransactionFormData() {
  */
 export function useBalanceCheckForTransaction(investorId: string | undefined, fundId: string | undefined) {
   return useQuery<BalanceCheckResult, Error>({
-    queryKey: [...QUERY_KEYS.positions(investorId || ""), fundId, "balance-check"],
+    queryKey: [...QUERY_KEYS.investorPositions(investorId || ""), fundId, "balance-check"],
     queryFn: () => {
       if (!investorId || !fundId) throw new Error("Investor and fund required");
       return checkInvestorBalance(investorId, fundId);

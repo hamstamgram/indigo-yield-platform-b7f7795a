@@ -444,6 +444,52 @@ export async function updatePositionValue(
 /**
  * Check if current user is admin
  */
+// ============================================
+// Fund-Level Position Queries (for admin use)
+// ============================================
+
+/**
+ * Get all positions for a specific fund (for admin fund management)
+ * Returns positions with investor_id for fund-level aggregation
+ */
+export async function getPositionsByFund(fundId: string): Promise<(InvestorPositionDetail & { investorId: string })[]> {
+  const { data, error } = await supabase
+    .from("investor_positions")
+    .select(`
+      investor_id, fund_id, fund_class, shares, cost_basis, current_value,
+      unrealized_pnl, realized_pnl, last_transaction_date, updated_at,
+      funds (name, code, asset, fund_class)
+    `)
+    .eq("fund_id", fundId)
+    .gt("shares", 0);
+
+  if (error) {
+    logError("investorPosition.getPositionsByFund", error, { fundId });
+    throw error;
+  }
+
+  const totalValue = (data || []).reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+
+  return (data || []).map((fp: any) => ({
+    fundId: fp.fund_id,
+    fundName: fp.funds?.name || "Unknown Fund",
+    fundCode: fp.funds?.code || "N/A",
+    asset: fp.funds?.asset || "Unknown",
+    fundClass: fp.fund_class || fp.funds?.fund_class || "Standard",
+    shares: Number(fp.shares) || 0,
+    currentValue: Number(fp.current_value) || 0,
+    costBasis: Number(fp.cost_basis) || 0,
+    unrealizedPnl: Number(fp.unrealized_pnl) || 0,
+    realizedPnl: Number(fp.realized_pnl) || 0,
+    lastTransactionDate: fp.last_transaction_date || fp.updated_at,
+    allocationPercentage: totalValue > 0 ? (Number(fp.current_value) / totalValue) * 100 : 0,
+    investorId: fp.investor_id,
+  }));
+}
+
+/**
+ * Check if current user is admin
+ */
 export async function checkAdminStatus(): Promise<{ isAdmin: boolean | null }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { isAdmin: false };

@@ -86,7 +86,8 @@ export type { ProfileSummary, TransactionInvestor } from "./profileService";
 export { fundDailyAumService } from "./fundDailyAumService";
 export type { FundDailyAumRecord } from "./fundDailyAumService";
 
-// Position service
+// Position service - DEPRECATED: Use @/services/investor/investorPositionService instead
+// getPositionsByFund() and getPositionsByInvestor() are now in investorPositionService
 export { positionService } from "./positionService";
 export type { InvestorPosition, CreatePositionParams } from "./positionService";
 

@@ -50,9 +50,10 @@ export function formatAssetWithSymbol(amount: number, symbol: string): string {
 }
 
 /**
- * Format an asset amount without symbol (just the number)
+ * Format an asset value without symbol (just the number)
+ * For formatting WITH symbol, use formatAssetAmount from @/utils/assets
  */
-export function formatAssetAmount(amount: number, symbol: string): string {
+export function formatAssetValue(amount: number, symbol: string): string {
   const decimals = getAssetDecimals(symbol);
 
   return amount.toLocaleString("en-US", {

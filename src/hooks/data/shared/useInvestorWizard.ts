@@ -41,7 +41,7 @@ export function useCreateInvestorWizard() {
     onSuccess: () => {
       // Invalidate investor-related queries
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.positions() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
     },
     onError: (error) => {
       // Error toast is already shown via onProgress callback

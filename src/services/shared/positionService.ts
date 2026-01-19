@@ -1,6 +1,11 @@
 /**
  * Position Service
- * Handles investor_positions operations
+ * @deprecated Use @/services/investor/investorPositionService instead
+ * This service will be removed in the next major version.
+ * 
+ * Migration guide:
+ * - getPositionsByFund() -> import { getPositionsByFund } from "@/services/investor"
+ * - getPositionsByInvestor() -> import { getInvestorPositions } from "@/services/investor"
  */
 
 import { supabase } from "@/integrations/supabase/client";
