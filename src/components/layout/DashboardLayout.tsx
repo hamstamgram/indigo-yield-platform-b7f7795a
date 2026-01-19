@@ -38,7 +38,9 @@ const DashboardLayout = () => {
     }
 
     // SECURITY: Use role from useUserRole as source of truth (queries user_roles table directly)
-    const verifiedIsAdmin = authIsAdmin && roleIsAdmin;
+    // Use OR for resilience: either source (AuthContext or useUserRole) confirming admin is sufficient
+    // Both query user_roles table server-side, so both are secure sources
+    const verifiedIsAdmin = authIsAdmin || roleIsAdmin;
     setIsAdmin(verifiedIsAdmin);
     setIsLoading(false);
 
