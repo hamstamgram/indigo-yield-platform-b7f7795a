@@ -6,6 +6,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { getTodayString } from "@/utils/dateUtils";
 import type {
   Transaction as BaseTransaction,
   CreateTransactionUIParams,
@@ -301,7 +302,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
     );
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayString();
 
   // Generate unique trigger reference to prevent duplicates
   const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${crypto.randomUUID()}`;

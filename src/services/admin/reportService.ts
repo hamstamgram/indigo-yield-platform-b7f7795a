@@ -12,6 +12,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { InvestorRef } from "@/types/domains/investor";
+import { formatDateForDB, getMonthEndDate } from "@/utils/dateUtils";
 
 /**
  * Historical data summary statistics
@@ -215,8 +216,8 @@ export const reportService = {
       .select("*")
       .eq("investor_id", investorId)
       .eq("is_voided", false)
-      .gte("tx_date", dateRange.start.toISOString().split("T")[0])
-      .lte("tx_date", dateRange.end.toISOString().split("T")[0])
+      .gte("tx_date", formatDateForDB(dateRange.start))
+      .lte("tx_date", formatDateForDB(dateRange.end))
       .order("tx_date", { ascending: false })
       .order("id", { ascending: false });
 
@@ -235,8 +236,8 @@ export const reportService = {
         period:statement_periods(period_end_date, year, month)
       `)
       .eq("investor_id", investorId)
-      .gte("period.period_end_date", dateRange.start.toISOString().split("T")[0])
-      .lte("period.period_end_date", dateRange.end.toISOString().split("T")[0])
+      .gte("period.period_end_date", formatDateForDB(dateRange.start))
+      .lte("period.period_end_date", formatDateForDB(dateRange.end))
       .order("period(period_end_date)", { ascending: false })
       .limit(12);
 
@@ -321,7 +322,7 @@ export const reportService = {
             if (!periodId) {
               // Create period if missing
               const date = new Date(pYear, pMonth - 1);
-              const endDate = new Date(pYear, pMonth, 0).toISOString().split("T")[0];
+              const endDate = getMonthEndDate(pYear, pMonth);
               const { data: newPeriod } = await supabase
                 .from("statement_periods")
                 .insert({

@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getFundPeriodSnapshot } from "@/services/operations/snapshotService";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 import type {
   YieldCalculationInput,
@@ -24,9 +25,8 @@ function isValidUUID(value: string): boolean {
   return UUID_REGEX.test(value);
 }
 
-function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
+// Use canonical formatDateForDB from dateUtils - see src/utils/dateUtils.ts for why
+// toISOString().split("T")[0] is NOT timezone-safe
 
 /**
  * Get period ID for a given date
@@ -107,13 +107,13 @@ export async function previewYieldDistribution(
   // Call backend preview RPC
   const { data, error } = await callRPC("preview_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
-    p_yield_date: formatDate(targetDate),
+    p_yield_date: formatDateForDB(targetDate),
     p_new_aum: newTotalAUM,
     p_purpose: purpose,
   });
 
   if (error) {
-    logError("yieldPreview.distribution", error, { fundId, targetDate: formatDate(targetDate) });
+    logError("yieldPreview.distribution", error, { fundId, targetDate: formatDateForDB(targetDate) });
     throw new Error(`Failed to preview yield: ${error.message}`);
   }
 
@@ -181,7 +181,7 @@ export async function previewYieldDistribution(
     fundCode: result.fundCode || fund?.code || "",
     fundAsset: result.fundAsset || fund?.asset || "",
     yieldDate: targetDate,
-    effectiveDate: result.effectiveDate || formatDate(targetDate),
+    effectiveDate: result.effectiveDate || formatDateForDB(targetDate),
     purpose: result.purpose || purpose,
     isMonthEnd: Boolean(result.isMonthEnd),
     currentAUM: Number(result.currentAUM || fallbackCurrentAUM),

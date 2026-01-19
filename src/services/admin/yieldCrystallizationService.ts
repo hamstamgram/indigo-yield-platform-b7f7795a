@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 export interface CrystallizationResult {
   success: boolean;
@@ -144,10 +145,10 @@ export async function getYieldEventsForFund(
     .order("event_date", { ascending: false });
 
   if (options?.startDate) {
-    query = query.gte("event_date", options.startDate.toISOString().split("T")[0]);
+    query = query.gte("event_date", formatDateForDB(options.startDate));
   }
   if (options?.endDate) {
-    query = query.lte("event_date", options.endDate.toISOString().split("T")[0]);
+    query = query.lte("event_date", formatDateForDB(options.endDate));
   }
   if (options?.visibilityScope && options.visibilityScope !== "all") {
     query = query.eq("visibility_scope", options.visibilityScope);
@@ -185,10 +186,10 @@ export async function getYieldEventsForInvestor(
     query = query.eq("fund_id", options.fundId);
   }
   if (options?.startDate) {
-    query = query.gte("event_date", options.startDate.toISOString().split("T")[0]);
+    query = query.gte("event_date", formatDateForDB(options.startDate));
   }
   if (options?.endDate) {
-    query = query.lte("event_date", options.endDate.toISOString().split("T")[0]);
+    query = query.lte("event_date", formatDateForDB(options.endDate));
   }
   if (options?.visibilityScope && options.visibilityScope !== "all") {
     query = query.eq("visibility_scope", options.visibilityScope);
@@ -215,8 +216,8 @@ export async function getAggregatedYieldForPeriod(
   total_net_yield: number;
   crystallization_count: number;
 }[]> {
-  const startStr = periodStart.toISOString().split("T")[0];
-  const endStr = periodEnd.toISOString().split("T")[0];
+  const startStr = formatDateForDB(periodStart);
+  const endStr = formatDateForDB(periodEnd);
 
   let query = supabase
     .from("investor_yield_events")
@@ -300,8 +301,8 @@ export async function getPendingYieldEventsCount(
     .eq("fund_id", fundId)
     .eq("visibility_scope", "admin_only")
     .eq("is_voided", false)
-    .gte("event_date", periodStart.toISOString().split("T")[0])
-    .lte("event_date", periodEnd.toISOString().split("T")[0]);
+    .gte("event_date", formatDateForDB(periodStart))
+    .lte("event_date", formatDateForDB(periodEnd));
 
   if (error) throw error;
 
@@ -323,7 +324,7 @@ export async function crystallizeMonthEnd(
 ): Promise<CrystallizationResult> {
   const { data, error } = await callRPC("crystallize_month_end", {
     p_fund_id: fundId,
-    p_month_end_date: monthEndDate.toISOString().split("T")[0],
+    p_month_end_date: formatDateForDB(monthEndDate),
     p_closing_aum: Number(closingAum),
     p_admin_id: adminId,
   });

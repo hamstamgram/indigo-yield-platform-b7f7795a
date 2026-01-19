@@ -47,6 +47,7 @@ import {
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { getTodayString } from "@/utils/dateUtils";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import {
   useActiveFunds,
@@ -153,7 +154,7 @@ export function AddTransactionDialog({
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      tx_date: new Date().toISOString().split("T")[0],
+      tx_date: getTodayString(),
       fund_id: fundId || "",
       asset: "",
     },

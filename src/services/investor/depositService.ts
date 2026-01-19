@@ -3,6 +3,7 @@ import type { Deposit, DepositFormData, DepositFilters } from "@/types/domains";
 import { depositNotifications } from "@/services/notifications";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { getTodayString } from "@/utils/dateUtils";
 
 export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
@@ -122,7 +123,7 @@ export class DepositService {
     }
 
     const amount = Number(formData.amount);
-    const txDate = formData.tx_date || new Date().toISOString().split("T")[0];
+    const txDate = formData.tx_date || getTodayString();
 
     const closingAum = formData.closing_aum;
     if (!closingAum) {

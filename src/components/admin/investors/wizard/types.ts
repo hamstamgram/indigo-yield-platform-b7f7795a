@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getTodayString } from "@/utils/dateUtils";
 
 // Re-export asset utilities from canonical location for backwards compatibility
 export { ASSET_PRECISION, getAssetStep, getAssetPrecision } from "@/types/asset";
@@ -74,7 +75,7 @@ export const getDefaultWizardData = (): WizardFormData => ({
     link_fees: false,
   },
   positions: {},
-  positionsEffectiveDate: new Date().toISOString().split("T")[0], // Default to today
+  positionsEffectiveDate: getTodayString(), // Default to today
   reportEmails: [],
 });
 

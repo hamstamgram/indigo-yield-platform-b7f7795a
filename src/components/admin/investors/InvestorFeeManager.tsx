@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { feeScheduleService } from "@/services/shared";
 import { useInvestorFeeSchedule, useActiveFunds } from "@/hooks/data";
+import { getTodayString } from "@/utils/dateUtils";
 
 interface InvestorFeeManagerProps {
   investorId: string;
@@ -30,9 +31,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
   // Form state
   const [newFeeFundId, setNewFeeFundId] = useState<string>("all");
   const [newFeePercent, setNewFeePercent] = useState<string>("");
-  const [newFeeEffectiveDate, setNewFeeEffectiveDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+  const [newFeeEffectiveDate, setNewFeeEffectiveDate] = useState<string>(getTodayString());
   const [isAdding, setIsAdding] = useState(false);
 
   // React Query hooks
@@ -44,7 +43,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
   const { data: funds = [] } = useActiveFunds();
 
   const getCurrentFee = () => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayString();
     const activeFees = feeSchedule.filter((f) => f.effective_date <= today);
     return activeFees.length > 0 ? activeFees[0] : null;
   };
@@ -74,7 +73,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       toast.success(`Fee schedule saved: ${feeValue}% effective ${newFeeEffectiveDate}`);
       setNewFeePercent("");
       setNewFeeFundId("all");
-      setNewFeeEffectiveDate(new Date().toISOString().split("T")[0]);
+      setNewFeeEffectiveDate(getTodayString());
       
       await refetchFees();
       onUpdate?.();
