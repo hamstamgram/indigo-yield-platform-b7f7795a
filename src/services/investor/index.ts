@@ -3,6 +3,19 @@
  * All investor data operations go through investorDataService or specific sub-services
  */
 
+// Canonical investor lookup service (P1-04)
+export {
+  getInvestorById,
+  getInvestorsForList,
+  getInvestorRef,
+  getInvestorRefs,
+  investorExists,
+  getActiveInvestorCount as getActiveInvestorCountFromLookup,
+  type InvestorLookup,
+  type InvestorRef,
+  type InvestorListOptions,
+} from "./investorLookupService";
+
 // Unified investor data service (canonical source - facade pattern)
 export { 
   investorDataService, 

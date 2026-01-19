@@ -10656,27 +10656,6 @@ export type Database = {
       }
       get_admin_name: { Args: { admin_id: string }; Returns: string }
       get_all_dust_tolerances: { Args: never; Returns: Json }
-      get_all_investors_with_details: {
-        Args: never
-        Returns: {
-          created_at: string
-          email: string
-          first_name: string
-          id: string
-          last_name: string
-        }[]
-      }
-      get_all_non_admin_profiles: {
-        Args: never
-        Returns: {
-          created_at: string
-          email: string
-          fee_percentage: number
-          first_name: string
-          id: string
-          last_name: string
-        }[]
-      }
       get_all_positions_at_date: {
         Args: { p_fund_id: string; p_target_date: string }
         Returns: {
@@ -10819,17 +10798,6 @@ export type Database = {
           redemptions: number
         }[]
       }
-      get_investor_portfolio_summary: {
-        Args: { p_investor_id: string }
-        Returns: {
-          fund_count: number
-          last_updated: string
-          total_cost_basis: number
-          total_shares: number
-          total_value: number
-          unrealized_gain: number
-        }[]
-      }
       get_investor_position_as_of: {
         Args: { p_as_of_date: string; p_fund_id: string; p_investor_id: string }
         Returns: {
@@ -10923,18 +10891,6 @@ export type Database = {
           out_is_matched: boolean
           out_ledger_balance: number
           out_position_balance: number
-        }[]
-      }
-      get_profile_by_id: {
-        Args: { profile_id: string }
-        Returns: {
-          created_at: string
-          email: string
-          fee_percentage: number
-          first_name: string
-          id: string
-          is_admin: boolean
-          last_name: string
         }[]
       }
       get_report_statistics: {
