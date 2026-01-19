@@ -48,8 +48,22 @@ SELECT validate_withdrawal_transition('processing', 'cancelled'); -- true
 | pending | cancelled | Admin | `cancel_withdrawal_by_admin()` | Terminal state |
 | approved | processing | Super Admin | `start_processing_withdrawal()` | Uses advisory lock |
 | approved | cancelled | Admin | `cancel_withdrawal_by_admin()` | Terminal state |
-| processing | completed | Super Admin | `complete_withdrawal()` | Ledger impact via crystallization |
+| processing | completed | Super Admin | `complete_withdrawal()` | **MANDATORY crystallization** then ledger impact |
 | processing | cancelled | Admin | `cancel_withdrawal_by_admin()` | No ledger impact |
+
+## ⚠️ CRITICAL: Crystallization is MANDATORY
+
+Crystallization is **NOT optional** for withdrawal completion. The system enforces this via a database trigger:
+
+```sql
+-- Trigger: enforce_crystallization_before_flow
+-- Raises: EXCEPTION 'CRYSTALLIZATION_REQUIRED: Must crystallize yield before deposit/withdrawal'
+```
+
+The `complete_withdrawal()` RPC internally calls `apply_withdrawal_with_crystallization()` which:
+1. Captures pending yield at pre-withdrawal AUM
+2. Deducts the withdrawal amount from investor position
+3. Updates fund AUM to the provided closing value
 
 ## Database Tables
 

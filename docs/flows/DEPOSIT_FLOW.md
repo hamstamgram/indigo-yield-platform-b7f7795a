@@ -1,14 +1,30 @@
 # Deposit Flow
 
+> **Status**: Active | **Last Updated**: 2026-01-19
+
 ## Overview
 
 Admin creates deposits for investors, which update positions and fund AUM.
 Deposits use the crystallization pathway to properly account for any pending yield.
 
+## ⚠️ CRITICAL: Crystallization is MANDATORY
+
+Crystallization is **NOT optional**. The system enforces this via a database trigger:
+
+```sql
+-- Trigger: enforce_crystallization_before_flow
+-- Raises: EXCEPTION 'CRYSTALLIZATION_REQUIRED: Must crystallize yield before deposit/withdrawal'
+```
+
+**Why it's mandatory**:
+1. Ensures yield is captured at correct AUM before capital flows change the base
+2. Prevents yield dilution (deposits) or over-distribution (withdrawals)
+3. Maintains accounting invariant: `Position = Sum(Ledger)`
+
 ## RPC: `apply_deposit_with_crystallization`
 
 This is the **canonical** deposit pathway that:
-1. Crystallizes any pending yield for the investor before the deposit
+1. **MANDATORY**: Crystallizes any pending yield for the investor before the deposit
 2. Creates the deposit transaction in the ledger
 3. Updates investor position
 4. Updates fund AUM

@@ -38,16 +38,40 @@ The `ib_parent_id` column on `profiles` determines which IB receives the commiss
 
 ## Fee Calculation in Yield Distribution
 
-Both fees are calculated as percentages of **GROSS yield**:
+Both fees are calculated as **independent percentages of GROSS yield** (not cascading):
 
 ```
 gross_yield = new_aum - previous_aum
 
-platform_fee = gross_yield * (fee_pct / 100)
-ib_fee = gross_yield * (ib_percentage / 100)
+platform_fee = gross_yield × (fee_pct / 100)
+ib_fee       = gross_yield × (ib_percentage / 100)
 
 net_yield = gross_yield - platform_fee - ib_fee
 ```
+
+### ⚠️ CRITICAL: IB is NOT a percentage of the platform fee
+
+**CORRECT** (both fees from GROSS):
+```
+Gross Yield: 355 XRP
+Indigo Fee (18%): 355 × 0.18 = 63.90 XRP
+IB Fee (2%):      355 × 0.02 =  7.10 XRP
+Total Fees:                    71.00 XRP
+Net to Investor:              284.00 XRP
+```
+
+**WRONG** (IB as percentage of fee):
+```
+❌ IB Fee = Indigo Fee × (ib_pct / 100)  -- THIS IS INCORRECT
+```
+
+### Worked Example
+
+| Investor | Gross Yield | Indigo % | IB % | Indigo Credit | IB Credit | Net Yield |
+|----------|-------------|----------|------|---------------|-----------|-----------|
+| Alice    | 1,000 USDC  | 18%      | 0%   | 180 USDC      | 0 USDC    | 820 USDC  |
+| Bob      | 1,000 USDC  | 18%      | 2%   | 180 USDC      | 20 USDC   | 800 USDC  |
+| Charlie  | 500 USDC    | 15%      | 5%   | 75 USDC       | 25 USDC   | 400 USDC  |
 
 ## Database Functions
 
