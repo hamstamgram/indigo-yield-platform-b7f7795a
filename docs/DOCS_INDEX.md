@@ -57,6 +57,7 @@
 - [patterns/YIELD_FUNCTIONS.md](./patterns/YIELD_FUNCTIONS.md) - Yield distribution canonical RPCs
 - [patterns/TRANSACTION_FUNCTIONS.md](./patterns/TRANSACTION_FUNCTIONS.md) - Transaction mutation lifecycle
 - [patterns/ADMIN_FUNCTIONS.md](./patterns/ADMIN_FUNCTIONS.md) - Admin RBAC and guard patterns
+- [patterns/INVESTOR_FUNCTIONS.md](./patterns/INVESTOR_FUNCTIONS.md) - Investor lookup and position services
 
 ## Archived Documentation
 

@@ -1,0 +1,52 @@
+# Memory: architecture/phase3-investor-function-cleanup
+Updated: 2026-01-19
+
+## Summary
+
+Phase 3 investor function audit complete. Verified and dropped 7 dead RPC functions with no frontend callers, internal callers, RLS usage, or edge function usage.
+
+## Functions Dropped (7)
+
+| Function | Reason |
+|----------|--------|
+| `get_investor_period_summary` | No callers |
+| `get_investor_position_as_of` | No callers |
+| `get_investor_positions_by_class` | No callers |
+| `get_investor_yield_events_in_range` | No callers |
+| `preview_investor_balances` | No callers |
+| `get_position_at_date` | Only caller was being dropped |
+| `get_all_positions_at_date` | No callers |
+
+## Functions Retained (5)
+
+| Function | Reason |
+|----------|--------|
+| `force_delete_investor` | Used in admin UI (reconciliationService.ts) |
+| `can_access_investor` | RLS helper function |
+| `get_available_balance` | Used by `validate_withdrawal_request` trigger |
+| `can_withdraw` | Used by `create_withdrawal_request` RPC |
+| `get_position_reconciliation` | Admin reconciliation tool |
+
+## Contract Updates
+
+- Removed 7 functions from `RPC_FUNCTIONS` array
+- Removed 7 functions from `READ_ONLY_RPCS` array
+- Added P3 removal notes as comments
+
+## Documentation Created
+
+- `docs/patterns/INVESTOR_FUNCTIONS.md` - Canonical investor service reference
+
+## Verification Method
+
+1. Checked function existence in pg_proc
+2. Searched for internal callers via pg_get_functiondef
+3. Checked RLS policy usage via pg_policies
+4. Searched edge functions for RPC calls
+5. Searched frontend codebase for .rpc() calls
+
+## Cumulative Phase 1-3 Totals
+
+- **24 functions dropped** (4 Phase 1 + 13 Phase 2 + 7 Phase 3)
+- **5 documentation files created**
+- **~60 SQL functions documented**
