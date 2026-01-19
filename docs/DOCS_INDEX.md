@@ -14,6 +14,7 @@
 | 👨‍💼 Admin | [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) | Admin workflows and operations |
 | 🔧 Operations | [OPERATIONS_MANUAL.md](./OPERATIONS_MANUAL.md) | Day-to-day operational procedures |
 | 🚨 Incidents | [INCIDENT_PLAYBOOK.md](./INCIDENT_PLAYBOOK.md) | Incident response procedures |
+| 🧩 Patterns | [patterns/](./patterns/) | Function architecture and canonical RPCs |
 
 ## Detailed Documentation
 
@@ -50,6 +51,12 @@
 - [flows/](./flows/) - Mermaid flow diagrams
 - [page-contracts/](./page-contracts/) - Page-level contracts
 - [contracts/](./contracts/) - API contracts
+
+### Function Patterns
+- [patterns/FEE_FUNCTIONS.md](./patterns/FEE_FUNCTIONS.md) - Fee calculation and resolution hierarchy
+- [patterns/YIELD_FUNCTIONS.md](./patterns/YIELD_FUNCTIONS.md) - Yield distribution canonical RPCs
+- [patterns/TRANSACTION_FUNCTIONS.md](./patterns/TRANSACTION_FUNCTIONS.md) - Transaction mutation lifecycle
+- [patterns/ADMIN_FUNCTIONS.md](./patterns/ADMIN_FUNCTIONS.md) - Admin RBAC and guard patterns
 
 ## Archived Documentation
 
