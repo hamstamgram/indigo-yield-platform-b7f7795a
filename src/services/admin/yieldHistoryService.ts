@@ -26,6 +26,10 @@ function formatDate(date: Date): string {
 /**
  * Get historical AUM entries for a fund
  */
+/**
+ * Get historical AUM entries for a fund
+ * Performance: Limited to 500 rows to prevent timeouts
+ */
 export async function getFundAUMHistory(
   fundId: string,
   startDate?: Date,
@@ -36,7 +40,8 @@ export async function getFundAUMHistory(
     .select("*")
     .eq("fund_id", fundId)
     .eq("is_voided", false)
-    .order("aum_date", { ascending: false });
+    .order("aum_date", { ascending: false })
+    .limit(500); // P1 fix: Prevent timeout for large datasets
 
   if (startDate) {
     query = query.gte("aum_date", formatDate(startDate));
