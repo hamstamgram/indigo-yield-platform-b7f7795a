@@ -177,7 +177,7 @@ export function VoidYieldDialog({
                       <div key={inv.investor_id} className="text-xs flex justify-between">
                         <span>{inv.investor_name}</span>
                         <span className="font-mono text-destructive">
-                          -{((inv.yield_amount ?? 0) - (inv.fee_amount ?? 0)).toFixed(4)}
+                          -{(inv.yield_amount - inv.fee_amount).toFixed(4)}
                         </span>
                       </div>
                     ))}
