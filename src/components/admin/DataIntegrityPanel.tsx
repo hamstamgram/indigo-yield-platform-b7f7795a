@@ -3,6 +3,11 @@
  * Admin-only component showing reconciliation status, orphans, duplicates
  * Issue G: Data Integrity automation
  * Enhanced with position vs transaction reconciliation checks
+ * 
+ * REAL-TIME ARCHITECTURE:
+ * - Subscribes to admin_alerts table for live integrity alerts
+ * - Auto-updates when new alerts are created by database triggers
+ * - No polling needed - uses Supabase Realtime
  */
 
 import {
@@ -21,14 +26,38 @@ import {
   RefreshCw,
   Ban,
   Scale,
+  Bell,
+  Zap,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDataIntegrityStatus } from "@/hooks/data";
+import { useRealtimeAlerts } from "@/hooks/data/admin/useRealtimeAlerts";
+import { supabase } from "@/integrations/supabase/client";
 
 export function DataIntegrityPanel() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
   const { data, isLoading, refetch } = useDataIntegrityStatus();
+  
+  // Subscribe to real-time alerts
+  useRealtimeAlerts();
+  
+  // Track realtime connection status
+  useEffect(() => {
+    const channel = supabase
+      .channel('integrity-panel-status')
+      .on('presence', { event: 'sync' }, () => {
+        setRealtimeConnected(true);
+      })
+      .subscribe((status) => {
+        setRealtimeConnected(status === 'SUBSCRIBED');
+      });
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -102,6 +131,18 @@ export function DataIntegrityPanel() {
           <span className="flex items-center gap-2">
             <Database className="h-5 w-5" />
             Data Integrity
+            {/* Real-time indicator */}
+            <span 
+              className={`inline-flex items-center gap-1 text-xs font-normal px-2 py-0.5 rounded-full ${
+                realtimeConnected 
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+              }`}
+              title={realtimeConnected ? "Connected to real-time updates" : "Connecting..."}
+            >
+              <Zap className="h-3 w-3" />
+              Live
+            </span>
           </span>
           <div className="flex items-center gap-2">
             <Button

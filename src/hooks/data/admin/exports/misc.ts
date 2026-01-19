@@ -131,3 +131,9 @@ export {
   type AuditLogsData,
   type AuditLogStats,
 } from "../useAuditLogs";
+
+// useRealtimeAlerts
+export {
+  useRealtimeAlerts,
+  useUnacknowledgedAlertCount,
+} from "../useRealtimeAlerts";
