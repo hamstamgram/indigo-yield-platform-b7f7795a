@@ -441,9 +441,6 @@ export async function updatePositionValue(
   );
 }
 
-/**
- * Check if current user is admin
- */
 // ============================================
 // Fund-Level Position Queries (for admin use)
 // ============================================
@@ -451,6 +448,8 @@ export async function updatePositionValue(
 /**
  * Get all positions for a specific fund (for admin fund management)
  * Returns positions with investor_id for fund-level aggregation
+ * NOTE: Only includes account_type='investor' with shares > 0
+ * to match the RPC `get_funds_with_aum` filter pattern
  */
 export async function getPositionsByFund(fundId: string): Promise<(InvestorPositionDetail & { investorId: string })[]> {
   const { data, error } = await supabase
@@ -468,9 +467,28 @@ export async function getPositionsByFund(fundId: string): Promise<(InvestorPosit
     throw error;
   }
 
-  const totalValue = (data || []).reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+  // Fetch profiles to filter by account_type = 'investor'
+  const investorIds = [...new Set((data || []).map((p) => p.investor_id).filter(Boolean))];
+  if (investorIds.length === 0) return [];
 
-  return (data || []).map((fp: any) => ({
+  const { data: profiles, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, account_type")
+    .in("id", investorIds)
+    .eq("account_type", "investor");
+
+  if (profileError) {
+    logError("investorPosition.getPositionsByFund.profiles", profileError, { fundId });
+    throw profileError;
+  }
+
+  const investorSet = new Set(profiles?.map((p) => p.id) || []);
+
+  // Filter to investor accounts only
+  const investorPositions = (data || []).filter((pos) => investorSet.has(pos.investor_id));
+  const totalValue = investorPositions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+
+  return investorPositions.map((fp: any) => ({
     fundId: fp.fund_id,
     fundName: fp.funds?.name || "Unknown Fund",
     fundCode: fp.funds?.code || "N/A",

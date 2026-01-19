@@ -60,6 +60,7 @@ interface PositionWithProfile {
     first_name: string | null;
     last_name: string | null;
     email: string | null;
+    account_type: string | null;
   } | null;
 }
 
@@ -214,6 +215,8 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
 
 /**
  * Fetch investor composition for a fund
+ * NOTE: Only includes account_type='investor' with current_value > 0
+ * to match the RPC `get_funds_with_aum` filter pattern
  */
 export async function getFundInvestorComposition(fundId: string): Promise<InvestorComposition[]> {
   const { data: positions, error } = await supabase
@@ -221,27 +224,31 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
     .select(
       `
       current_value,
-      profile:profiles!fk_investor_positions_investor(first_name, last_name, email)
+      profile:profiles!fk_investor_positions_investor(first_name, last_name, email, account_type)
     `
     )
     .eq("fund_id", fundId)
+    .gt("current_value", 0) // Exclude zero-balance positions
     .limit(100);
 
   if (error) throw error;
 
-  const totalValue = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-
-  return (
-    (positions as PositionWithProfile[] | null)?.map((p) => ({
-      investor_name:
-        `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
-        p.profile?.email ||
-        "Unknown",
-      email: p.profile?.email || "",
-      balance: p.current_value || 0,
-      ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
-    })) || []
+  // Filter to investor accounts only (exclude fee accounts, IB accounts)
+  const investorPositions = ((positions as PositionWithProfile[] | null) || []).filter(
+    (p) => p.profile?.account_type === "investor"
   );
+
+  const totalValue = investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+
+  return investorPositions.map((p) => ({
+    investor_name:
+      `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
+      p.profile?.email ||
+      "Unknown",
+    email: p.profile?.email || "",
+    balance: p.current_value || 0,
+    ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
+  }));
 }
 
 // ============================================================================
