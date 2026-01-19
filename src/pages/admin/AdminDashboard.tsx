@@ -2,9 +2,10 @@
  * Admin Dashboard Page - "Command Center"
  * 3-column layout with pending actions, quick entry, and activity feed
  * Enhanced with CTO/CFO Risk Monitoring (2026-01-12)
+ * Real-time alert badge added (2026-01-19)
  */
 
-import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp, Shield, RefreshCw } from "lucide-react";
+import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp, Shield, RefreshCw, Bell } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
   TabsTrigger,
   QueryErrorBoundary,
   Button,
+  Badge,
 } from "@/components/ui";
 import { AdminGuard, FinancialSnapshot, TwoFactorWarningBanner } from "@/components/admin";
 import {
@@ -22,14 +24,21 @@ import {
   PlatformMetricsPanel,
 } from "@/components/admin/dashboard";
 import { useAdminStats } from "@/hooks";
+import { useUnacknowledgedAlertCount, useRealtimeAlerts } from "@/hooks/data/admin/useRealtimeAlerts";
 import { PageHeader } from "@/components/layout";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function AdminDashboardContent() {
   const { stats, loading } = useAdminStats();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Real-time alerts subscription and count
+  useRealtimeAlerts();
+  const { data: alertCount = 0 } = useUnacknowledgedAlertCount();
 
   const handleRefreshRiskData = async () => {
     setIsRefreshing(true);
@@ -39,6 +48,10 @@ function AdminDashboardContent() {
       queryClient.invalidateQueries({ queryKey: ["platform-metrics"] }),
     ]);
     setIsRefreshing(false);
+  };
+
+  const handleAlertClick = () => {
+    navigate("/admin/integrity");
   };
 
   if (loading) {
@@ -57,9 +70,31 @@ function AdminDashboardContent() {
         title="Command Center"
         subtitle="Platform overview and operational status"
         actions={
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-            System Operational
+          <div className="flex items-center gap-4">
+            {/* Alert Badge */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative"
+              onClick={handleAlertClick}
+              title="View integrity alerts"
+            >
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              {alertCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center"
+                >
+                  {alertCount > 99 ? "99+" : alertCount}
+                </Badge>
+              )}
+            </Button>
+            
+            {/* System Status */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+              System Operational
+            </div>
           </div>
         }
       />
