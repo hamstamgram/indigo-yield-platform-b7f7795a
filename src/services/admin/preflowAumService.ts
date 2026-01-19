@@ -89,8 +89,39 @@ export const preflowAumService = {
       p_purpose: purpose,
     });
 
-    if (error) throw error;
-    const row = data?.[0];
-    return Number(row?.aum_value || 0);
+    if (error) {
+      console.error("[preflowAumService] RPC error:", error);
+      throw error;
+    }
+    
+    // Runtime shape validation - RPC returns TABLE with rows
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      if (import.meta.env.DEV) {
+        console.warn("[preflowAumService] No AUM data found for:", { fundId, asOfDate, purpose });
+      }
+      return 0; // No historical AUM record found
+    }
+    
+    const row = data[0];
+    
+    // Validate expected shape
+    if (typeof row !== 'object' || row === null) {
+      console.error("[preflowAumService] Unexpected RPC return shape:", row);
+      throw new Error("Unexpected AUM data shape from backend");
+    }
+    
+    const aumValue = Number(row?.aum_value ?? 0);
+    
+    if (import.meta.env.DEV) {
+      console.log("[preflowAumService] AUM fetched:", {
+        fundId,
+        asOfDate,
+        purpose,
+        aumValue,
+        source: row?.aum_source,
+      });
+    }
+    
+    return aumValue;
   },
 };
