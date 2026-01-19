@@ -89,10 +89,11 @@ export async function voidYieldDistribution(
     throw new Error("Not authenticated");
   }
 
+  // Canonical signature: void_yield_distribution(p_distribution_id, p_admin_id, p_reason)
   const { data, error } = await callRPC("void_yield_distribution", {
     p_distribution_id: distributionId,
-    p_reason: reason,
     p_admin_id: user.id,
+    p_reason: reason,
   });
 
   if (error) {
