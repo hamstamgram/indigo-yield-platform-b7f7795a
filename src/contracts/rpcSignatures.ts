@@ -105,8 +105,9 @@ export const RPC_FUNCTIONS = [
   "update_investor_aum_percentages",
 
   // Investor Operations
+  // NOTE: P1-04 removed dead RPCs: get_all_investors_with_details, get_all_non_admin_profiles,
+  // get_profile_by_id, get_investor_portfolio_summary (never called from frontend)
   "get_investor_period_summary",
-  "get_investor_portfolio_summary",
   "get_investor_position_as_of",
   "get_investor_positions_by_class",
   "get_investor_yield_events_in_range",
@@ -115,8 +116,6 @@ export const RPC_FUNCTIONS = [
   "get_available_balance",
   "can_withdraw",
   "preview_investor_balances",
-  "get_all_investors_with_details",
-  "get_all_non_admin_profiles",
   "get_position_at_date",
   "get_all_positions_at_date",
   "get_position_reconciliation",
@@ -213,7 +212,7 @@ export const RPC_FUNCTIONS = [
   "update_admin_role",
   "update_user_profile_secure",
   "merge_duplicate_profiles",
-  "get_profile_by_id",
+  // P1-04 removed: get_profile_by_id (never called from frontend)
   "get_admin_name",
 
   // Audit & Logging
@@ -385,14 +384,12 @@ export const READ_ONLY_RPCS = [
   "get_fund_net_flows",
   "get_funds_with_aum",
   "get_investor_period_summary",
-  "get_investor_portfolio_summary",
+  // P1-04 removed: get_investor_portfolio_summary, get_all_investors_with_details, get_all_non_admin_profiles
   "get_investor_position_as_of",
   "get_investor_positions_by_class",
   "get_investor_yield_events_in_range",
   "get_available_balance",
   "can_withdraw",
-  "get_all_investors_with_details",
-  "get_all_non_admin_profiles",
   "get_position_at_date",
   "get_all_positions_at_date",
   "get_position_reconciliation",
@@ -420,7 +417,7 @@ export const READ_ONLY_RPCS = [
   "is_2fa_required",
   "is_valid_share_token",
   "can_execute_mfa_reset",
-  "get_profile_by_id",
+  // P1-04 removed: get_profile_by_id
   "get_admin_name",
   "is_period_locked",
   "is_import_enabled",
