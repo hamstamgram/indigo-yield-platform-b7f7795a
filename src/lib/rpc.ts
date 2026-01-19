@@ -221,6 +221,9 @@ async function call<T extends RPCFunctionName>(
   functionName: T,
   params: RPCFunctions[T]["Args"]
 ): Promise<RPCResult<RPCFunctions[T]["Returns"]>> {
+  const startTime = Date.now();
+  const requestId = Math.random().toString(36).slice(2, 10);
+  
   try {
     // Validate parameters
     validateParams(functionName, params);
@@ -234,6 +237,10 @@ async function call<T extends RPCFunctionName>(
       
       const allowed = await checkRateLimit(String(functionName), actorId);
       if (!allowed) {
+        logWarn(`rpc.rateLimit.blocked.${String(functionName)}`, {
+          requestId,
+          actorId,
+        });
         return {
           data: null,
           error: {
@@ -246,23 +253,36 @@ async function call<T extends RPCFunctionName>(
       }
 
       logInfo(`rpc.mutation.${String(functionName)}`, {
+        requestId,
         params: sanitizeParams(params),
       });
     }
 
     // Execute RPC
     const { data, error } = await supabase.rpc(functionName, params);
+    const durationMs = Date.now() - startTime;
 
     if (error) {
       const normalizedError = normalizeError(error, String(functionName));
       logError(`rpc.error.${String(functionName)}`, error, {
+        requestId,
         code: normalizedError.code,
+        durationMs,
       });
       return {
         data: null,
         error: normalizedError,
         success: false,
       };
+    }
+
+    // Log completion for mutations (helps with debugging and observability)
+    if (isMutation) {
+      logInfo(`rpc.complete.${String(functionName)}`, {
+        requestId,
+        success: true,
+        durationMs,
+      });
     }
 
     return {
@@ -272,7 +292,10 @@ async function call<T extends RPCFunctionName>(
     };
   } catch (err) {
     const normalizedError = normalizeError(err, String(functionName));
-    logError(`rpc.exception.${String(functionName)}`, err);
+    logError(`rpc.exception.${String(functionName)}`, err, {
+      requestId,
+      durationMs: Date.now() - startTime,
+    });
     return {
       data: null,
       error: normalizedError,
