@@ -5186,42 +5186,6 @@ export type Database = {
           },
         ]
       }
-      temp_balance: {
-        Row: {
-          bal: number | null
-        }
-        Insert: {
-          bal?: number | null
-        }
-        Update: {
-          bal?: number | null
-        }
-        Relationships: []
-      }
-      temp_fund: {
-        Row: {
-          id: string | null
-        }
-        Insert: {
-          id?: string | null
-        }
-        Update: {
-          id?: string | null
-        }
-        Relationships: []
-      }
-      temp_investor: {
-        Row: {
-          id: string | null
-        }
-        Insert: {
-          id?: string | null
-        }
-        Update: {
-          id?: string | null
-        }
-        Relationships: []
-      }
       transaction_bypass_attempts: {
         Row: {
           attempted_amount: number | null
