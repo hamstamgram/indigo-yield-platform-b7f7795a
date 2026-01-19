@@ -257,7 +257,7 @@ export const RPC_FUNCTIONS = [
   "process_yield_distribution_with_dust",
   "finalize_month_yield",
   // P2-02 removed: backfill_yield_summaries (never called from frontend)
-  "refresh_yield_materialized_views",
+  // P5 removed: refresh_yield_materialized_views (replaced by live views - real-time architecture upgrade)
   "get_yield_corrections",
   "rollback_yield_correction",
   "regenerate_reports_for_correction",
@@ -549,7 +549,7 @@ export const MUTATION_RPCS = [
   "process_yield_distribution",
   "process_yield_distribution_with_dust",
   "finalize_month_yield",
-  "refresh_yield_materialized_views",
+  // P5 removed: refresh_yield_materialized_views (replaced by live views)
   "rollback_yield_correction",
   "regenerate_reports_for_correction",
   "send_daily_rate_notifications",

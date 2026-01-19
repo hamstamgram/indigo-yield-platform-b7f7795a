@@ -483,6 +483,83 @@ The platform includes an automated integrity checking system:
 - `warning`: 1-5 anomalies
 - `critical`: >5 anomalies (triggers alert logging)
 
+## Real-Time Integrity Architecture (2026-01 Upgrade)
+
+The platform has migrated from batch-based reconciliation to a **real-time-first** integrity system.
+
+### Architecture Overview
+
+```mermaid
+graph TD
+    subgraph "Write Operation"
+        W[INSERT/UPDATE] --> T1[Alert Triggers]
+        W --> T2[Auto-Heal Triggers]
+    end
+    
+    subgraph "Alert Triggers"
+        T1 --> A[admin_alerts table]
+        A --> RT[Supabase Realtime]
+        RT --> HOOK[useRealtimeAlerts]
+        HOOK --> TOAST[Toast Notification]
+        HOOK --> BADGE[UI Badge Update]
+    end
+    
+    subgraph "Auto-Heal Triggers"
+        T2 --> SYNC[sync_aum_to_positions]
+        T2 --> RECOMP[recompute_investor_position]
+    end
+    
+    subgraph "Live Views (Read)"
+        READ[Dashboard Query] --> LV1[v_fund_summary_live]
+        READ --> LV2[v_daily_platform_metrics_live]
+    end
+```
+
+### Real-Time Alert Triggers
+
+| Trigger | Table | Detects |
+|---------|-------|---------|
+| `trg_alert_aum_position_mismatch` | `investor_positions` | Position change causing AUM drift |
+| `trg_alert_yield_conservation` | `yield_distributions` | Gross ≠ net + fees violation |
+| `trg_alert_ledger_drift` | `transactions_v2` | Ledger sum vs position mismatch |
+
+### Auto-Healing Triggers
+
+| Trigger | Table | Repairs |
+|---------|-------|---------|
+| `trg_auto_heal_aum` | `investor_positions` | Syncs fund_daily_aum to position totals |
+| `trg_auto_heal_position` | `transactions_v2` | Recomputes position from ledger |
+
+### Live Views (Replaced Materialized Views)
+
+| Live View | Replaces | Benefit |
+|-----------|----------|---------|
+| `v_fund_summary_live` | `mv_fund_summary` | Instant accuracy, no refresh needed |
+| `v_daily_platform_metrics_live` | `mv_daily_platform_metrics` | Real-time dashboard metrics |
+
+### Frontend Integration
+
+```typescript
+// Real-time alert subscription
+import { useRealtimeAlerts } from "@/hooks/data/admin/useRealtimeAlerts";
+
+// In admin dashboard:
+useRealtimeAlerts(); // Shows toast on new alerts, invalidates queries
+
+// Live metrics (no MV refresh needed)
+import { useLivePlatformMetrics } from "@/hooks/data/shared/useLivePlatformMetrics";
+const { metrics, fundSummaries } = useLivePlatformMetrics();
+```
+
+### Cron Jobs (Now Audit-Only)
+
+| Job | Previous Role | Current Role |
+|-----|---------------|--------------|
+| `nightly_aum_reconciliation` | Primary repair | Secondary verification |
+| `scheduled-integrity-check` | Batch detection | Historical audit trail |
+
+> **Key Benefit**: Issues are detected and fixed at write-time, not during nightly batch runs.
+
 ### Legacy Integrity Views
 
 | View | Purpose | Status |
