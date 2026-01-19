@@ -202,7 +202,8 @@ class IBManagementService {
       .from("ib_allocations")
       .select("ib_investor_id, fund_id, ib_fee_amount")
       .in("ib_investor_id", ibUserIds)
-      .eq("is_voided", false);
+      .eq("is_voided", false)
+      .limit(1000);
 
     if (error) throw error;
     return data || [];

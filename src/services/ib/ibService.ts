@@ -163,7 +163,7 @@ class IBService {
       query = query.gte("effective_date", format(startDate, "yyyy-MM-dd"));
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.limit(1000);
 
     if (error) {
       logError("ibService.getCommissionSummary", error, { ibId });
@@ -544,7 +544,8 @@ class IBService {
         funds:fund_id (asset)
       `)
       .eq("ib_investor_id", ibId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(500);
 
     if (error) {
       console.error("Error fetching allocations:", error);

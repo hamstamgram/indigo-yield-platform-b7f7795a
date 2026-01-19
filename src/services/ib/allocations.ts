@@ -210,7 +210,8 @@ class IBAllocationService {
       .select("*")
       .eq("ib_investor_id", ibInvestorId)
       .order("effective_date", { ascending: false })
-      .order("id", { ascending: false });
+      .order("id", { ascending: false })
+      .limit(500);
 
     if (startDate) {
       query = query.gte("effective_date", formatDateForDB(startDate));
