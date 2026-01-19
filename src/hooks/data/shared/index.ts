@@ -264,3 +264,12 @@ export { useReportHistory, type ReportHistoryFilters } from "./useReportHistory"
 
 // Available funds
 export { useAvailableFunds } from "./useAvailableFunds";
+
+// Live platform metrics (real-time, no MV refresh needed)
+export {
+  useLivePlatformMetrics,
+  useLiveFundSummary,
+  useAllLiveFundSummaries,
+  type LivePlatformMetrics,
+  type LiveFundSummary,
+} from "./useLivePlatformMetrics";
