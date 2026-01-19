@@ -22,9 +22,9 @@ export function useFundAumAsOf(
   asOfDate: string | null,
   purpose: AumPurpose = "reporting"
 ) {
-  return useQuery({
+  return useQuery<number | null>({
     queryKey: QUERY_KEYS.fundAumAsOf(fundId, asOfDate, purpose),
-    queryFn: async () => {
+    queryFn: async (): Promise<number | null> => {
       if (!fundId || !asOfDate) {
         throw new Error("fundId and asOfDate are required");
       }
@@ -43,6 +43,7 @@ export function useFundAumAsOf(
         console.log("[useFundAumAsOf] Result:", {
           asOfDate,
           aumValue: result,
+          hasData: result !== null,
         });
       }
       

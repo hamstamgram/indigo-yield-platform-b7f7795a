@@ -81,8 +81,8 @@ export const preflowAumService = {
   async getFundAumAsOf(
     fundId: string,
     asOfDate: string,
-    purpose: AumPurpose = "transaction"
-  ): Promise<number> {
+    purpose: AumPurpose = "reporting"
+  ): Promise<number | null> {
     const { data, error } = await callRPC("get_fund_aum_as_of", {
       p_fund_id: fundId,
       p_as_of_date: asOfDate,
@@ -94,12 +94,12 @@ export const preflowAumService = {
       throw error;
     }
     
-    // Runtime shape validation - RPC returns TABLE with rows
+    // Runtime shape validation - RPC returns TABLE with exactly 1 row
     if (!data || !Array.isArray(data) || data.length === 0) {
       if (import.meta.env.DEV) {
-        console.warn("[preflowAumService] No AUM data found for:", { fundId, asOfDate, purpose });
+        console.warn("[preflowAumService] Unexpected empty result:", { fundId, asOfDate, purpose });
       }
-      return 0; // No historical AUM record found
+      return null;
     }
     
     const row = data[0];
@@ -110,7 +110,22 @@ export const preflowAumService = {
       throw new Error("Unexpected AUM data shape from backend");
     }
     
-    const aumValue = Number(row?.aum_value ?? 0);
+    // Check if historical AUM actually exists
+    // RPC returns aum_source='no_data' when no fund_aum_events match
+    if (row.aum_source === 'no_data') {
+      if (import.meta.env.DEV) {
+        console.log("[preflowAumService] No historical AUM for:", { fundId, asOfDate, purpose });
+      }
+      return null; // Signal "no snapshot" to caller
+    }
+    
+    const aumValue = Number(row.aum_value ?? 0);
+    
+    // Validate numeric result
+    if (!Number.isFinite(aumValue)) {
+      console.error("[preflowAumService] Invalid AUM value:", row.aum_value);
+      throw new Error("Invalid AUM value from backend");
+    }
     
     if (import.meta.env.DEV) {
       console.log("[preflowAumService] AUM fetched:", {
@@ -118,7 +133,7 @@ export const preflowAumService = {
         asOfDate,
         purpose,
         aumValue,
-        source: row?.aum_source,
+        source: row.aum_source,
       });
     }
     
