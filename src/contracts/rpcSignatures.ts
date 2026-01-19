@@ -52,7 +52,7 @@ export const RPC_FUNCTIONS = [
   "preview_yield_correction_v2",
   "crystallize_yield_before_flow",
   "crystallize_month_end",
-  "crystallize_pending_movements",
+  // P2-02 removed: crystallize_pending_movements (unused, superseded by crystallize_yield_before_flow)
   "void_yield_distribution",
   "void_investor_yield_events_for_distribution",
 
@@ -260,7 +260,7 @@ export const RPC_FUNCTIONS = [
   "process_yield_distribution",
   "process_yield_distribution_with_dust",
   "finalize_month_yield",
-  "backfill_yield_summaries",
+  // P2-02 removed: backfill_yield_summaries (never called from frontend)
   "refresh_yield_materialized_views",
   "get_yield_corrections",
   "rollback_yield_correction",
@@ -473,7 +473,7 @@ export const MUTATION_RPCS = [
   "apply_yield_correction_v2",
   "crystallize_yield_before_flow",
   "crystallize_month_end",
-  "crystallize_pending_movements",
+  // P2-02 removed: crystallize_pending_movements (unused)
   "void_yield_distribution",
   "void_investor_yield_events_for_distribution",
   "admin_create_transaction",

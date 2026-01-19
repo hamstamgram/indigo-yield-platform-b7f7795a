@@ -5,13 +5,13 @@ Monthly yield distribution to investors with fee and IB allocation.
 
 ## RPCs
 
-### `preview_daily_yield_to_fund_v2`
+### `preview_daily_yield_to_fund_v3`
 **Reads**: investor_positions, profiles (fee%, IB relationships)
 **Returns**: JSON preview of allocations (no writes)
 
-### `apply_daily_yield_to_fund_v2`
+### `apply_daily_yield_to_fund_v3`
 **Preconditions**: Admin authenticated, fund active, valid date
-**Inputs**: fund_id, date, gross_amount, admin_id, purpose
+**Inputs**: fund_id, date, gross_yield_pct, admin_id, purpose (aum_purpose enum)
 **Writes**: yield_distributions, transactions_v2, fee_allocations, ib_allocations, investor_positions, fund_daily_aum
 **Idempotency**: reference_id unique on transactions_v2, distribution_id + investor_id unique on allocations
 **Postconditions**: Conservation (gross = net + fees), Position = Ledger
@@ -30,3 +30,6 @@ queryClient.invalidateQueries({ queryKey: ['ib-allocations'] });
 ```
 
 ## Status: ✅ PASS
+
+## Related Documentation
+- [YIELD_FUNCTIONS.md](../patterns/YIELD_FUNCTIONS.md) - Canonical function reference
