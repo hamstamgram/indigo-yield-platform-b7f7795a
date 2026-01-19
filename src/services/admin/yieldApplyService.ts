@@ -17,6 +17,24 @@ import { logWarn, logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
 
+/**
+ * Refresh a materialized view with retry logic for transient failures
+ */
+async function refreshWithRetry(viewName: string, maxRetries = 2): Promise<void> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await callRPC("refresh_materialized_view_concurrently", { view_name: viewName });
+      return;
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      // Wait 500ms before retry
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+}
+
 import type {
   YieldCalculationInput,
   YieldDistribution,
@@ -134,10 +152,11 @@ export async function applyYieldDistribution(
   }
 
   // Refresh materialized views to ensure dashboard data consistency
+  // Uses retry logic for transient failures
   try {
     await Promise.all([
-      callRPC("refresh_materialized_view_concurrently", { view_name: "mv_fund_summary" }),
-      callRPC("refresh_materialized_view_concurrently", { view_name: "mv_daily_platform_metrics" }),
+      refreshWithRetry("mv_fund_summary"),
+      refreshWithRetry("mv_daily_platform_metrics"),
     ]);
   } catch (mvError) {
     // Log but don't fail the operation

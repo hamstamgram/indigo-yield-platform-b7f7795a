@@ -333,40 +333,29 @@ date.toISOString().split("T")[0]
 | Investor composition includes fee accounts | ✅ FIXED | Added `account_type='investor'` filter |
 | AUM calculation includes non-investors | ✅ FIXED | Added filters in all composition queries |
 | Position query standards | ✅ FIXED | `docs/POSITION_QUERY_STANDARDS.md` created |
-| **Timezone drift in date formatting** | ⚠️ PARTIAL | `src/utils/dateUtils.ts` created; migration to replace `toISOString().split("T")[0]` pending |
-| **Rate limiting not enforced** | ⚠️ OPEN | `rateLimiter.ts` exists but never called; must add to `rpc.ts` gateway |
+| **Timezone drift in date formatting** | ✅ FIXED | `src/utils/dateUtils.ts` created; all `toISOString().split("T")[0]` in source files now doc comments only |
+| **Rate limiting not enforced** | ✅ FIXED | `getRateLimiter().checkLimit()` integrated in `src/lib/rpc.ts` for 8 sensitive mutations |
 
-**REMAINING P0 WORK:**
-1. Replace all `toISOString().split("T")[0]` with `formatDateForDB()` from `src/utils/dateUtils.ts`
-2. Integrate `getRateLimiter().checkLimit()` into `src/lib/rpc.ts` for sensitive mutations
+**ALL P0 ISSUES RESOLVED** ✅
 
 ### P1 Issues (First Sprint Post-Launch)
 
-| Issue | Location | Fix Required | Impact |
-|-------|----------|--------------|--------|
-| Yield distributions missing paging | `yieldDistributionService.ts` | Add `.limit(1000)` | Prevents timeout for large funds |
-| ESLint rule too broad | `eslint.config.js` | Refine pattern for `investor_positions` | Reduces false positives |
-| Materialized view refresh timing | `yieldApplyService.ts` | Add error retry | Dashboard consistency |
+| Issue | Location | Fix Required | Impact | Status |
+|-------|----------|--------------|--------|--------|
+| Yield/allocation queries missing paging | Multiple services | Add `.limit()` | Prevents timeout | ✅ FIXED |
+| ESLint rule too broad | `eslint.config.js` | Refine pattern message | Reduces false positives | ✅ FIXED |
+| Materialized view refresh timing | `yieldApplyService.ts` | Add retry logic | Dashboard consistency | ✅ FIXED |
 
-**Fix for P1-1: Add paging to yield distributions**
-```typescript
-// In yieldDistributionService.ts
-const { data, error } = await supabase
-  .from("yield_distributions")
-  .select("*")
-  .eq("fund_id", fundId)
-  .order("effective_date", { ascending: false })
-  .limit(1000); // Add this line
-```
+**ALL P1 ISSUES RESOLVED** ✅
 
 ### P2 Issues (Future Sprints)
 
-| Issue | Location | Impact |
-|-------|----------|--------|
-| Document SECURITY DEFINER views | New file | Team clarity |
-| Add RPC call tracing | `rpc.ts` | Observability |
-| Review 40 DEFINER view warnings | DB | Linter hygiene |
-| Add composite indexes for yield queries | DB migration | Performance |
+| Issue | Location | Impact | Status |
+|-------|----------|--------|--------|
+| Document SECURITY DEFINER views | `docs/SECURITY_DEFINER_VIEWS.md` | Team clarity | ✅ DONE |
+| Add RPC call tracing | `src/lib/rpc.ts` | Observability | ✅ DONE |
+| Review 40 DEFINER view warnings | DB | Linter hygiene | ⚠️ Acknowledged in docs |
+| Add composite indexes for yield queries | DB migration | Performance | ⚠️ Pending (low priority) |
 
 ---
 

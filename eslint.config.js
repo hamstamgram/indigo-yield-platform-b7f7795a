@@ -47,10 +47,11 @@ export default tseslint.config(
           "message": "Use data hooks from @/hooks/data instead of direct Supabase imports in components. See src/hooks/data/index.ts for available hooks."
         }]
       }],
-      // Warn about investor_positions queries - remind to filter by account_type
+      // Reminder about investor_positions queries - filter by account_type when appropriate
+      // This is an educational reminder, not a blocking error. Some queries intentionally include all account types.
       "no-restricted-syntax": ["warn", {
         "selector": "CallExpression[callee.property.name='from'][arguments.0.value='investor_positions']",
-        "message": "Position queries should filter by account_type='investor'. See docs/POSITION_QUERY_STANDARDS.md"
+        "message": "Reminder: Position queries should filter by account_type='investor' unless intentionally querying all account types. See docs/POSITION_QUERY_STANDARDS.md"
       }]
     },
   },
