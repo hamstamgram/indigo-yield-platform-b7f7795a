@@ -10601,13 +10601,6 @@ export type Database = {
       }
       get_admin_name: { Args: { admin_id: string }; Returns: string }
       get_all_dust_tolerances: { Args: never; Returns: Json }
-      get_all_positions_at_date: {
-        Args: { p_fund_id: string; p_target_date: string }
-        Returns: {
-          investor_id: string
-          position_value: number
-        }[]
-      }
       get_approval_threshold: { Args: { p_operation: string }; Returns: number }
       get_available_balance: {
         Args: { p_fund_id: string; p_investor_id: string }
@@ -10728,61 +10721,6 @@ export type Database = {
           out_net_flow_24h: number
         }[]
       }
-      get_investor_period_summary: {
-        Args: {
-          p_end_date: string
-          p_investor_id: string
-          p_start_date: string
-        }
-        Returns: {
-          additions: number
-          beginning_value: number
-          ending_value: number
-          net_income: number
-          rate_of_return: number
-          redemptions: number
-        }[]
-      }
-      get_investor_position_as_of: {
-        Args: { p_as_of_date: string; p_fund_id: string; p_investor_id: string }
-        Returns: {
-          as_of_date: string
-          fund_id: string
-          investor_id: string
-          net_position: number
-          total_deposits: number
-          total_withdrawals: number
-          total_yield: number
-        }[]
-      }
-      get_investor_positions_by_class: {
-        Args: { p_investor_id: string }
-        Returns: {
-          allocation_pct: number
-          fund_class: string
-          total_pnl: number
-          total_value: number
-        }[]
-      }
-      get_investor_yield_events_in_range: {
-        Args: {
-          p_end_date: string
-          p_fund_id: string
-          p_investor_id: string
-          p_start_date: string
-        }
-        Returns: {
-          event_date: string
-          event_id: string
-          fee_amount: number
-          fee_pct: number
-          fund_yield_pct: number
-          gross_yield: number
-          net_yield: number
-          reference_id: string
-          trigger_type: string
-        }[]
-      }
       get_kpi_metrics:
         | { Args: { metric_type: string; user_id?: string }; Returns: Json }
         | { Args: { p_date_range?: string }; Returns: Json }
@@ -10816,14 +10754,6 @@ export type Database = {
           requested_at: string
           requested_by: string
         }[]
-      }
-      get_position_at_date: {
-        Args: {
-          p_fund_id: string
-          p_investor_id: string
-          p_target_date: string
-        }
-        Returns: number
       }
       get_position_reconciliation: {
         Args: { p_as_of_date?: string; p_fund_id?: string }
@@ -11132,20 +11062,6 @@ export type Database = {
           p_yield_date: string
         }
         Returns: Json
-      }
-      preview_investor_balances: {
-        Args: { p_fund_id?: string }
-        Returns: {
-          account_type: string
-          allocation_pct: number
-          cost_basis: number
-          current_value: number
-          fund_code: string
-          fund_id: string
-          investor_id: string
-          investor_name: string
-          unrealized_pnl: number
-        }[]
       }
       preview_merge_duplicate_profiles: {
         Args: { p_keep_profile_id: string; p_merge_profile_id: string }

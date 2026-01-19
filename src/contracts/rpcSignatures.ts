@@ -107,17 +107,13 @@ export const RPC_FUNCTIONS = [
   // Investor Operations
   // NOTE: P1-04 removed dead RPCs: get_all_investors_with_details, get_all_non_admin_profiles,
   // get_profile_by_id, get_investor_portfolio_summary (never called from frontend)
-  "get_investor_period_summary",
-  "get_investor_position_as_of",
-  "get_investor_positions_by_class",
-  "get_investor_yield_events_in_range",
+  // NOTE: P3 removed dead RPCs: get_investor_period_summary, get_investor_position_as_of,
+  // get_investor_positions_by_class, get_investor_yield_events_in_range, preview_investor_balances,
+  // get_position_at_date, get_all_positions_at_date (no frontend/internal callers)
   "force_delete_investor",
   "can_access_investor",
   "get_available_balance",
   "can_withdraw",
-  "preview_investor_balances",
-  "get_position_at_date",
-  "get_all_positions_at_date",
   "get_position_reconciliation",
 
   // Approval System
@@ -383,15 +379,11 @@ export const READ_ONLY_RPCS = [
   "get_fund_nav_history",
   "get_fund_net_flows",
   "get_funds_with_aum",
-  "get_investor_period_summary",
   // P1-04 removed: get_investor_portfolio_summary, get_all_investors_with_details, get_all_non_admin_profiles
-  "get_investor_position_as_of",
-  "get_investor_positions_by_class",
-  "get_investor_yield_events_in_range",
+  // P3 removed: get_investor_period_summary, get_investor_position_as_of, get_investor_positions_by_class,
+  // get_investor_yield_events_in_range, preview_investor_balances, get_position_at_date, get_all_positions_at_date
   "get_available_balance",
   "can_withdraw",
-  "get_position_at_date",
-  "get_all_positions_at_date",
   "get_position_reconciliation",
   "get_pending_approval",
   "get_approval_threshold",
