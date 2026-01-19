@@ -14,23 +14,8 @@ import { logWarn, logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
 
-/**
- * Refresh a materialized view with retry logic for transient failures
- */
-async function refreshWithRetry(viewName: string, maxRetries = 2): Promise<void> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      await callRPC("refresh_materialized_view_concurrently", { view_name: viewName });
-      return;
-    } catch (error) {
-      if (attempt === maxRetries) {
-        throw error;
-      }
-      // Wait 500ms before retry
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
-}
+// NOTE: MV refresh removed - platform now uses live views (v_fund_summary_live, v_daily_platform_metrics_live)
+// that compute in real-time. No refresh needed.
 
 import type {
   YieldCalculationInput,
@@ -87,17 +72,7 @@ export async function applyYieldDistribution(
     throw new Error(`Failed to apply yield: ${error.message}`);
   }
 
-  // Refresh materialized views to ensure dashboard data consistency
-  // Uses retry logic for transient failures
-  try {
-    await Promise.all([
-      refreshWithRetry("mv_fund_summary"),
-      refreshWithRetry("mv_daily_platform_metrics"),
-    ]);
-  } catch (mvError) {
-    // Log but don't fail the operation
-    logWarn("applyYieldDistribution.mvRefresh", { fundId, error: mvError });
-  }
+  // NOTE: MV refresh removed - platform now uses live views that compute in real-time
 
   // Finalize yield visibility
   try {

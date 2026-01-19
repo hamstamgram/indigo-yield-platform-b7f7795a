@@ -164,36 +164,18 @@ function invalidateByGraph(
 
 // ============ Public API ============
 
-/**
- * Refresh materialized views after yield operations
- * FIX 4: Ensures MVs are synchronized with latest data
- */
-async function refreshYieldMaterializedViews(): Promise<void> {
-  try {
-    const { error } = await (supabase.rpc as CallableFunction)("refresh_yield_materialized_views");
-    if (error) {
-      console.warn("[CacheInvalidation] MV refresh failed:", error.message);
-    } else if (import.meta.env.DEV) {
-      console.log("[CacheInvalidation] MVs refreshed successfully");
-    }
-  } catch (err) {
-    // Non-fatal - log and continue
-    console.warn("[CacheInvalidation] MV refresh error:", err);
-  }
-}
+// NOTE: refreshYieldMaterializedViews() removed - platform now uses live views
+// (v_fund_summary_live, v_daily_platform_metrics_live) that compute in real-time.
+// No MV refresh needed.
 
 /**
  * Invalidate all yield-related queries after yield distribution operations
  * Use after: applyYieldDistribution, voidYieldDistribution, editYieldDistribution
  *
- * FIX 1: Returns Promise to allow awaiting invalidation completion
- * FIX 4: Also refreshes materialized views for consistency
+ * NOTE: MV refresh removed - platform now uses live views that compute in real-time
  */
 export async function invalidateAfterYieldOp(queryClient: QueryClient): Promise<void> {
   invalidateByGraph(queryClient, "yield");
-
-  // FIX 4: Refresh materialized views to sync with latest data
-  await refreshYieldMaterializedViews();
 
   // Force immediate refetch of critical AUM data
   await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumAll });

@@ -41,9 +41,9 @@ export function useLivePlatformMetrics() {
   return useQuery({
     queryKey: ['live-platform-metrics'],
     queryFn: async (): Promise<LivePlatformMetrics | null> => {
-      // Query the live view directly using raw SQL
+      // Query the live view (computes in real-time, no refresh needed)
       const { data, error } = await supabase
-        .from('mv_daily_platform_metrics')
+        .from('v_daily_platform_metrics_live' as any)
         .select('*')
         .limit(1)
         .maybeSingle();
@@ -68,9 +68,9 @@ export function useLiveFundSummary(fundId?: string) {
   return useQuery({
     queryKey: ['live-fund-summary', fundId],
     queryFn: async (): Promise<LiveFundSummary[]> => {
-      // Use mv_fund_summary as it has the same structure
+      // Use live view (computes in real-time, no refresh needed)
       const query = supabase
-        .from('mv_fund_summary')
+        .from('v_fund_summary_live' as any)
         .select('*');
       
       const { data, error } = fundId 

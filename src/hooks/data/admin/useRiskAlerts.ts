@@ -88,7 +88,11 @@ export function useConcentrationRisk() {
   });
 }
 
-// Fetch platform metrics from materialized view
+/**
+ * @deprecated Use useLivePlatformMetrics from '@/hooks/data/shared/useLivePlatformMetrics' instead.
+ * This hook queries a materialized view that requires manual refresh.
+ * The new live hook queries a real-time view that computes on-read.
+ */
 export function usePlatformMetrics() {
   return useQuery({
     queryKey: ["platform-metrics"],
@@ -105,7 +109,10 @@ export function usePlatformMetrics() {
   });
 }
 
-// Fetch fund summaries from materialized view
+/**
+ * @deprecated Use useLiveFundSummary from '@/hooks/data/shared/useLivePlatformMetrics' instead.
+ * This hook queries a materialized view that requires manual refresh.
+ */
 export function useFundSummaries() {
   return useQuery({
     queryKey: ["fund-summaries"],
@@ -122,18 +129,17 @@ export function useFundSummaries() {
   });
 }
 
-// Refresh materialized views
+/**
+ * @deprecated Materialized views are no longer used for live metrics.
+ * The platform now uses live views (v_fund_summary_live, v_daily_platform_metrics_live)
+ * that compute in real-time. This mutation is kept for backward compatibility only.
+ */
 export function useRefreshMaterializedViews() {
   return useMutation({
     mutationFn: async () => {
-      // Refresh fund summary
-      await rpc.call("refresh_materialized_view_concurrently", {
-        view_name: "mv_fund_summary",
-      });
-      // Refresh platform metrics
-      await rpc.call("refresh_materialized_view_concurrently", {
-        view_name: "mv_daily_platform_metrics",
-      });
+      console.warn('[DEPRECATED] useRefreshMaterializedViews called - platform now uses live views');
+      // No-op - MVs are not used for live metrics anymore
+      return { success: true };
     },
   });
 }
