@@ -34,11 +34,15 @@ export function useLoginMutation() {
     mutationFn: async (data: LoginData) => {
       const result = await authService.signIn(data);
       if (result.error) throw result.error;
-      return result.data;
+      
+      // Check admin status after successful login
+      const isAdmin = await authService.getUserAdminStatus(result.data.user.id);
+      return { ...result.data, isAdmin };
     },
-    onSuccess: () => {
+    onSuccess: ({ isAdmin }) => {
       toast.success("Welcome back!");
-      navigate("/dashboard");
+      // Redirect based on role
+      navigate(isAdmin ? "/admin" : "/dashboard", { replace: true });
     },
     onError: (error: Error) => {
       logError("useLoginMutation", error);
