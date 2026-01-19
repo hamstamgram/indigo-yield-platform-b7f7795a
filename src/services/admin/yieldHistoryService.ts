@@ -257,8 +257,10 @@ export async function getActiveFundsWithAUM(): Promise<
 
 /**
  * Get investor composition for a fund with MTD yield
+ * NOTE: Renamed to avoid conflict with dashboardMetricsService.getFundInvestorComposition
+ * which returns a simpler structure without MTD yield calculations.
  */
-export async function getFundInvestorComposition(fundId: string): Promise<
+export async function getFundInvestorCompositionWithYield(fundId: string): Promise<
   Array<{
     investor_id: string;
     investor_name: string;
