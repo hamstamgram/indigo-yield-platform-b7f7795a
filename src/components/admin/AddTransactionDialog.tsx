@@ -43,8 +43,8 @@ import {
   createAdminTransaction,
   fetchInvestorsForSelector,
   preflowAumService,
-  type CreateTransactionParams,
 } from "@/services";
+import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";

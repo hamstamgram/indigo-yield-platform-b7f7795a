@@ -12,9 +12,8 @@ import type {
 } from "@/types/domains/transaction";
 import { logError } from "@/lib/logger";
 import { rpc } from "@/lib/rpc";
-
-// Re-export the UI type for backwards compatibility (allows FIRST_INVESTMENT)
-export type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
+// Note: CreateTransactionParams should be imported from @/types/domains/transaction
+// (exported as CreateTransactionUIParams there)
 
 // Extended transaction with investor name for display
 export interface Transaction

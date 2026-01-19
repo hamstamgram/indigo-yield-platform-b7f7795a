@@ -38,11 +38,11 @@ export {
   createQuickTransaction,
   transactionService,
 } from "./transactionService";
+// Note: CreateTransactionParams should be imported from @/types/domains/transaction
 export type { 
   Transaction, 
   TransactionSummary, 
   QuickTransactionParams,
-  CreateTransactionParams,
 } from "./transactionService";
 // For canonical transaction types, import directly from @/types/domains/transaction
 
