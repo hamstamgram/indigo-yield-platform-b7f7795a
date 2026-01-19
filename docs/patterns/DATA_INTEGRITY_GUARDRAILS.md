@@ -144,6 +144,43 @@ LIMIT 20;
 
 ---
 
+## Real-Time Integrity Triggers (2026-01 Upgrade)
+
+The platform has been upgraded to a **real-time-first** integrity architecture. Database triggers now detect issues at write-time and either auto-heal or alert immediately.
+
+### Alert Triggers
+
+| Trigger | Table | Action |
+|---------|-------|--------|
+| `trg_alert_aum_position_mismatch` | `investor_positions` | Creates admin_alert when position changes cause AUM drift |
+| `trg_alert_yield_conservation` | `yield_distributions` | Creates admin_alert if gross ≠ net + fees |
+| `trg_alert_ledger_drift` | `transactions_v2` | Creates admin_alert if ledger sum drifts from positions |
+
+### Auto-Healing Triggers
+
+| Trigger | Table | Action |
+|---------|-------|--------|
+| `trg_auto_heal_aum` | `investor_positions` | Calls `sync_aum_to_positions()` to fix drift automatically |
+| `trg_auto_heal_position` | `transactions_v2` | Calls `recompute_investor_position()` if ledger mismatch detected |
+
+### Live Views (No MV Refresh Needed)
+
+| View | Replaces |
+|------|----------|
+| `v_fund_summary_live` | `mv_fund_summary` |
+| `v_daily_platform_metrics_live` | `mv_daily_platform_metrics` |
+
+These live views compute on-read, eliminating the need for MV refresh calls after yield operations.
+
+### Real-Time Alert Subscription
+
+The `useRealtimeAlerts` hook subscribes to the `admin_alerts` table via Supabase Realtime:
+- Toast notifications appear instantly on new alerts
+- Integrity dashboard auto-updates
+- No polling required
+
+---
+
 ## Adding New Guardrails
 
 1. Create the trigger function in a migration
