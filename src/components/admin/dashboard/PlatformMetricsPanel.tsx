@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { Users, Briefcase, TrendingUp, ArrowDownToLine, Activity } from "lucide-react";
-import { usePlatformMetrics } from "@/hooks/data/admin/useRiskAlerts";
+import { useLivePlatformMetrics } from "@/hooks/data/shared/useLivePlatformMetrics";
 import { formatDistanceToNow } from "date-fns";
 
 interface MetricCardProps {
@@ -27,7 +27,8 @@ function MetricCard({ title, value, icon: Icon, subtitle }: MetricCardProps) {
 }
 
 export function PlatformMetricsPanel() {
-  const { data: metrics, isLoading } = usePlatformMetrics();
+  // Use live view - computes in real-time, no MV refresh needed
+  const { data: metrics, isLoading } = useLivePlatformMetrics();
 
   if (isLoading) {
     return (
@@ -43,7 +44,7 @@ export function PlatformMetricsPanel() {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          No metrics available. Run: REFRESH MATERIALIZED VIEW mv_daily_platform_metrics;
+          No metrics available
         </CardContent>
       </Card>
     );
@@ -56,6 +57,9 @@ export function PlatformMetricsPanel() {
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-lg">Platform Overview</CardTitle>
+            <span className="text-[10px] font-medium bg-primary/20 text-primary px-1.5 py-0.5 rounded">
+              LIVE
+            </span>
           </div>
           {metrics.refreshed_at && (
             <span className="text-xs text-muted-foreground">
