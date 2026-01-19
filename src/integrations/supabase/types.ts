@@ -12633,16 +12633,26 @@ export type Database = {
         }
         Returns: Json
       }
-      upsert_fund_aum_after_yield: {
-        Args: {
-          p_actor_id: string
-          p_aum_date: string
-          p_fund_id: string
-          p_purpose: Database["public"]["Enums"]["aum_purpose"]
-          p_yield_amount: number
-        }
-        Returns: Json
-      }
+      upsert_fund_aum_after_yield:
+        | {
+            Args: {
+              p_aum_date: string
+              p_fund_id: string
+              p_source?: string
+              p_total_aum: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_actor_id: string
+              p_aum_date: string
+              p_fund_id: string
+              p_purpose: Database["public"]["Enums"]["aum_purpose"]
+              p_yield_amount: number
+            }
+            Returns: Json
+          }
       use_invite_code: {
         Args: { p_invite_code: string; p_user_id: string }
         Returns: boolean
