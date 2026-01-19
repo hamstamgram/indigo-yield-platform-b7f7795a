@@ -508,40 +508,32 @@ export async function getDataIntegrityStatus(): Promise<IntegrityData> {
   };
 }
 
-// ============ System Health Snapshots ============
+// ============ System Health via integrity-monitor ============
 
 export interface HealthSnapshot {
-  snapshot_id: string;
-  snapshot_at: string;
-  total_anomalies: number;
-  ledger_reconciliation_count: number;
-  fund_aum_mismatch_count: number;
-  orphaned_positions_count: number;
-  orphaned_transactions_count: number;
-  fee_calculation_orphans_count: number;
-  position_variance_count: number;
+  run_id: string;
+  run_at: string;
+  total_checks: number;
+  passed_checks: number;
+  failed_checks: number;
+  critical_failures: number;
   status: "healthy" | "warning" | "critical";
-}
-
-export interface HealthTrendPoint {
-  snapshot_date: string;
-  total_anomalies: number;
-  ledger_issues: number;
-  aum_mismatches: number;
-  orphaned_records: number;
+  violations: Record<string, unknown>[] | null;
 }
 
 /**
- * Trigger a manual integrity check
+ * Trigger a manual integrity check via the canonical integrity-monitor edge function
  */
 export async function runIntegrityCheck(triggeredBy = "manual"): Promise<{
   success: boolean;
-  snapshot_id?: string;
-  total_anomalies?: number;
+  run_id?: string;
+  total_checks?: number;
+  passed?: number;
+  failed?: number;
   status?: string;
   error?: string;
 }> {
-  const response = await supabase.functions.invoke("scheduled-integrity-check", {
+  const response = await supabase.functions.invoke("integrity-monitor", {
     body: { triggered_by: triggeredBy },
   });
 
@@ -549,17 +541,24 @@ export async function runIntegrityCheck(triggeredBy = "manual"): Promise<{
     throw new Error(response.error.message);
   }
 
-  return response.data;
+  return {
+    success: response.data?.status !== "error",
+    run_id: response.data?.run_id,
+    total_checks: response.data?.summary?.total,
+    passed: response.data?.summary?.passed,
+    failed: response.data?.summary?.failed,
+    status: response.data?.status,
+  };
 }
 
 /**
- * Get the latest health status snapshot
+ * Get the latest integrity run from admin_integrity_runs
  */
 export async function getLatestHealthStatus(): Promise<HealthSnapshot | null> {
-  const { data, error } = await (supabase as any)
-    .from("system_health_snapshots")
+  const { data, error } = await supabase
+    .from("admin_integrity_runs")
     .select("*")
-    .order("snapshot_at", { ascending: false })
+    .order("run_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -572,80 +571,55 @@ export async function getLatestHealthStatus(): Promise<HealthSnapshot | null> {
     return null;
   }
 
+  const violations = data.violations as Record<string, unknown>[] | null;
+  const failedCount = violations?.length || 0;
+  const criticalCount = violations?.filter((v: any) => v.severity === "critical").length || 0;
+
   return {
-    snapshot_id: data.snapshot_id,
-    snapshot_at: data.snapshot_at,
-    total_anomalies: data.total_anomalies,
-    ledger_reconciliation_count: data.ledger_reconciliation_count || 0,
-    fund_aum_mismatch_count: data.fund_aum_mismatch_count || 0,
-    orphaned_positions_count: data.orphaned_positions_count || 0,
-    orphaned_transactions_count: data.orphaned_transactions_count || 0,
-    fee_calculation_orphans_count: data.fee_calculation_orphans_count || 0,
-    position_variance_count: data.position_variance_count || 0,
-    status: data.status || "healthy",
-  } as HealthSnapshot;
+    run_id: data.id,
+    run_at: data.run_at,
+    total_checks: 14, // integrity-monitor runs 14 checks
+    passed_checks: 14 - failedCount,
+    failed_checks: failedCount,
+    critical_failures: criticalCount,
+    status: criticalCount > 0 ? "critical" : failedCount > 0 ? "warning" : "healthy",
+    violations: violations,
+  };
 }
 
 /**
- * Get health trend data for the last N days
- */
-export async function getHealthTrend(days = 30): Promise<HealthTrendPoint[]> {
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-
-  const { data, error } = await (supabase as any)
-    .from("system_health_snapshots")
-    .select(
-      "snapshot_at, total_anomalies, ledger_reconciliation_count, fund_aum_mismatch_count, orphaned_positions_count, orphaned_transactions_count"
-    )
-    .gte("snapshot_at", startDate.toISOString())
-    .order("snapshot_at", { ascending: true });
-
-  if (error) {
-    console.error("Failed to get health trend:", error);
-    return [];
-  }
-
-  return (data || []).map((row: any) => ({
-    snapshot_date: row.snapshot_at,
-    total_anomalies: row.total_anomalies || 0,
-    ledger_issues: row.ledger_reconciliation_count || 0,
-    aum_mismatches: row.fund_aum_mismatch_count || 0,
-    orphaned_records: (row.orphaned_positions_count || 0) + (row.orphaned_transactions_count || 0),
-  }));
-}
-
-/**
- * Get all health snapshots with pagination
+ * Get integrity run history from admin_integrity_runs
  */
 export async function getHealthSnapshots(
   limit = 50,
   offset = 0
 ): Promise<{ snapshots: HealthSnapshot[]; total: number }> {
-  // Use type assertion since system_health_snapshots may not be in generated types yet
-  const { data, error, count } = await (supabase as any)
-    .from("system_health_snapshots")
+  const { data, error, count } = await supabase
+    .from("admin_integrity_runs")
     .select("*", { count: "exact" })
-    .order("snapshot_at", { ascending: false })
+    .order("run_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) {
     throw error;
   }
 
-  const snapshots = (data || []).map((row: any) => ({
-    snapshot_id: row.id,
-    snapshot_at: row.snapshot_at,
-    total_anomalies: row.total_anomalies,
-    ledger_reconciliation_count: row.ledger_reconciliation_count,
-    fund_aum_mismatch_count: row.fund_aum_mismatch_count,
-    orphaned_positions_count: row.orphaned_positions_count,
-    orphaned_transactions_count: row.orphaned_transactions_count,
-    fee_calculation_orphans_count: row.fee_calculation_orphans_count,
-    position_variance_count: row.position_variance_count,
-    status:
-      row.total_anomalies === 0 ? "healthy" : row.total_anomalies <= 5 ? "warning" : "critical",
-  })) as HealthSnapshot[];
+  const snapshots = (data || []).map((row) => {
+    const violations = row.violations as Record<string, unknown>[] | null;
+    const failedCount = violations?.length || 0;
+    const criticalCount = violations?.filter((v: any) => v.severity === "critical").length || 0;
+
+    return {
+      run_id: row.id,
+      run_at: row.run_at,
+      total_checks: 14,
+      passed_checks: 14 - failedCount,
+      failed_checks: failedCount,
+      critical_failures: criticalCount,
+      status: criticalCount > 0 ? "critical" : failedCount > 0 ? "warning" : "healthy",
+      violations: violations,
+    } as HealthSnapshot;
+  });
 
   return { snapshots, total: count || 0 };
 }
