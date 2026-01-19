@@ -24,12 +24,7 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
     severity: "critical",
     description: "Transactions missing distribution links",
   },
-  {
-    name: "Period Orphans",
-    query: "SELECT * FROM v_period_orphans LIMIT 5",
-    severity: "critical",
-    description: "Statement periods with orphaned data",
-  },
+  // Note: v_period_orphans removed - fund_period_snapshot table no longer exists
   {
     name: "IB Allocation Orphans",
     query: "SELECT * FROM v_ib_allocation_orphans LIMIT 5",

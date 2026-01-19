@@ -5893,6 +5893,13 @@ export type Database = {
             foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
             columns: ["request_id"]
             isOneToOne: false
+            referencedRelation: "v_missing_withdrawal_transactions"
+            referencedColumns: ["request_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
             referencedRelation: "withdrawal_queue"
             referencedColumns: ["id"]
           },
@@ -7649,6 +7656,90 @@ export type Database = {
         }
         Relationships: []
       }
+      v_ib_allocation_orphans: {
+        Row: {
+          allocation_id: string | null
+          distribution_id: string | null
+          effective_date: string | null
+          ib_fee_amount: number | null
+          ib_investor_id: string | null
+          issue_type: string | null
+          payout_status: string | null
+          source_investor_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_check"
+            referencedColumns: ["distribution_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "v_yield_conservation_violations"
+            referencedColumns: ["distribution_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distribution_conservation_check"
+            referencedColumns: ["distribution_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       v_investor_kpis: {
         Row: {
           email: string | null
@@ -7895,6 +7986,98 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      v_missing_withdrawal_transactions: {
+        Row: {
+          fund_code: string | null
+          fund_id: string | null
+          investor_email: string | null
+          investor_id: string | null
+          processed_amount: number | null
+          request_date: string | null
+          request_id: string | null
+          settlement_date: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "mv_fund_summary"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_snapshot_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_status"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
           },
         ]
       }
@@ -8584,6 +8767,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "v_missing_withdrawal_transactions"
+            referencedColumns: ["request_id"]
           },
           {
             foreignKeyName: "withdrawal_audit_logs_request_id_fkey"

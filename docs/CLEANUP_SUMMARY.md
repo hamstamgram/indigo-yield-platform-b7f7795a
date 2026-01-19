@@ -100,7 +100,7 @@ A comprehensive 7-phase database cleanup reduced technical debt and improved pla
 
 ## Phase 5: View Consolidation
 
-**17 views dropped**
+**17 views dropped** (15 confirmed, 2 restored - see correction below)
 
 ### Diagnostic Views (6)
 | View | Reason |
@@ -130,6 +130,21 @@ A comprehensive 7-phase database cleanup reduced technical debt and improved pla
 | `v_stale_positions` | Replaced by integrity checks |
 | `v_orphan_transactions` | One-time cleanup complete |
 | `v_duplicate_yields` | One-time cleanup complete |
+
+### Phase 5 Correction (2026-01-19)
+
+**Restored 2 views** - incorrectly dropped as "no frontend callers":
+| View | Actual Usage |
+|------|--------------|
+| `v_ib_allocation_orphans` | `integrity-monitor` edge function |
+| `v_missing_withdrawal_transactions` | `integrity-monitor` edge function |
+
+**Cannot restore** (underlying table dropped):
+| View | Issue |
+|------|-------|
+| `v_period_orphans` | `fund_period_snapshot` table no longer exists |
+
+**Lesson learned**: Verify edge function dependencies, not just frontend callers.
 
 ---
 
