@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-19  
 **Base Document:** `docs/GO_LIVE_RPC_AUDIT.md`  
-**Status:** ✅ PROOF-GRADE COMPLETE
+**Status:** ⚠️ BLOCKED - P0 ISSUES IDENTIFIED (Timezone + Rate Limiting)
 
 ---
 
@@ -171,7 +171,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 | SEC-05 | Admin mutates locked period | `apply_daily_yield_to_fund_v3` | Call on locked period | `Period is locked` error | ✅ PASS |
 | SEC-06 | Admin unlocks period (regular) | `unlock_fund_period_snapshot` | Regular admin tries unlock | `Super Admin required` error | ✅ PASS |
 | SEC-07 | Super Admin unlocks without reason | `unlock_fund_period_snapshot` | Super admin, empty reason | `Reason required` error | ✅ PASS |
-| SEC-08 | Rate limit bypass | All mutations | Rapid repeated calls | Rate limited after threshold | ✅ PASS |
+| SEC-08 | Rate limit bypass | All mutations | Rapid repeated calls | **NOT ENFORCED** - `rateLimiter.ts` exists but is never called | ❌ FAIL - P0 |
 | SEC-09 | Token with invalid role | All admin RPCs | Tampered JWT | Auth fails before RPC | ✅ PASS |
 | SEC-10 | Unauthenticated call | All RPCs | No auth header | `401 Unauthorized` | ✅ PASS |
 
@@ -220,18 +220,38 @@ if (row.aum_source === 'no_data') {
 
 **UI Behavior:** When `null` is returned, the Yield Operations UI shows a warning: "No AUM data for selected period. Please record AUM first."
 
-### 3.3 Date Handling (Timezone Safety)
+### 3.3 Date Handling (Timezone Safety) - REVISED
 
 **Rule:** All dates are stored and transmitted as `YYYY-MM-DD` strings (date only, no timezone).
 
-**File:** `src/services/admin/yieldApplyService.ts` (line 26-28)
+**CANONICAL UTILITY:** `src/utils/dateUtils.ts`
+
 ```typescript
-function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
+import { format } from "date-fns";
+
+// ✅ CORRECT - Use for all database date operations
+export function formatDateForDB(date: Date): string {
+  return format(date, "yyyy-MM-dd");
+}
+
+export function getTodayString(): string {
+  const today = new Date();
+  today.setHours(12, 0, 0, 0); // Noon to avoid edge cases
+  return format(today, "yyyy-MM-dd");
 }
 ```
 
-**Verification:** This produces consistent dates regardless of browser timezone.
+**BANNED PATTERN:**
+```typescript
+// ❌ NEVER USE - causes timezone drift!
+// toISOString() converts to UTC, not local time
+// Example: User in PST at 11pm Jan 15 → returns "2026-01-16" (WRONG!)
+date.toISOString().split("T")[0]
+```
+
+**Migration Required:** All files using `toISOString().split("T")[0]` must be updated to use `formatDateForDB()` or `getTodayString()` from `src/utils/dateUtils.ts`.
+
+**Verification:** `formatDateForDB()` uses `date-fns format()` which respects local timezone.
 
 ### 3.4 Determinism Test Cases
 
@@ -313,8 +333,12 @@ function formatDate(date: Date): string {
 | Investor composition includes fee accounts | ✅ FIXED | Added `account_type='investor'` filter |
 | AUM calculation includes non-investors | ✅ FIXED | Added filters in all composition queries |
 | Position query standards | ✅ FIXED | `docs/POSITION_QUERY_STANDARDS.md` created |
+| **Timezone drift in date formatting** | ⚠️ PARTIAL | `src/utils/dateUtils.ts` created; migration to replace `toISOString().split("T")[0]` pending |
+| **Rate limiting not enforced** | ⚠️ OPEN | `rateLimiter.ts` exists but never called; must add to `rpc.ts` gateway |
 
-**No remaining P0 issues.**
+**REMAINING P0 WORK:**
+1. Replace all `toISOString().split("T")[0]` with `formatDateForDB()` from `src/utils/dateUtils.ts`
+2. Integrate `getRateLimiter().checkLimit()` into `src/lib/rpc.ts` for sensitive mutations
 
 ### P1 Issues (First Sprint Post-Launch)
 
@@ -383,16 +407,86 @@ const { data, error } = await supabase
 
 ---
 
+---
+
 ## Sign-Off
 
-| Role | Status | Date |
-|------|--------|------|
-| Backend Lead | ✅ Approved | 2026-01-19 |
-| Frontend Lead | ✅ Approved | 2026-01-19 |
-| Security Lead | ✅ Approved | 2026-01-19 |
-| Data Lead | ✅ Approved | 2026-01-19 |
-| Finance Lead | ✅ Approved | 2026-01-19 |
-| QA Lead | ✅ Approved | 2026-01-19 |
-| SRE Lead | ✅ Approved | 2026-01-19 |
+| Role | Status | Date | Blocker |
+|------|--------|------|---------|
+| Backend Lead | ⚠️ BLOCKED | 2026-01-19 | P0: Timezone + Rate limiting |
+| Frontend Lead | ⚠️ BLOCKED | 2026-01-19 | P0: Date utility migration |
+| Security Lead | ⚠️ BLOCKED | 2026-01-19 | P0: SEC-08 is FAIL |
+| Data Lead | ✅ Approved | 2026-01-19 | - |
+| Finance Lead | ✅ Approved | 2026-01-19 | - |
+| QA Lead | ⚠️ BLOCKED | 2026-01-19 | Missing TZ regression tests |
+| SRE Lead | ⚠️ BLOCKED | 2026-01-19 | Rate limiting not enforced |
 
-**PROOF-GRADE AUDIT:** ✅ **COMPLETE**
+**PROOF-GRADE AUDIT:** ❌ **BLOCKED** - See P0 issues above
+
+---
+
+## Appendix 5: Required Migrations
+
+### 5.1 Timezone Safety Migration
+
+**Files requiring update (replace `toISOString().split("T")[0]` with `formatDateForDB()`):**
+
+| Priority | File Pattern | Action |
+|----------|--------------|--------|
+| P0 | `*Service.ts` (yield, deposit, transaction) | Use `formatDateForDB()` for all tx_date/effective_date |
+| P0 | `AdminManualTransaction.tsx` | Use `getTodayString()` for default dates |
+| P1 | All other files with date formatting | Migrate to `src/utils/dateUtils.ts` utilities |
+
+**Import pattern:**
+```typescript
+import { formatDateForDB, getTodayString } from "@/utils/dateUtils";
+```
+
+### 5.2 Rate Limiting Integration
+
+**Location:** `src/lib/rpc.ts`
+
+**Required changes:**
+```typescript
+import { getRateLimiter, RATE_LIMITS } from "@/lib/security/rateLimiter";
+
+const RATE_LIMITED_RPCS: Record<string, typeof RATE_LIMITS.admin.bulk> = {
+  apply_deposit_with_crystallization: RATE_LIMITS.admin.default,
+  apply_withdrawal_with_crystallization: RATE_LIMITS.admin.default,
+  apply_daily_yield_to_fund_v3: RATE_LIMITS.admin.bulk,
+  approve_withdrawal: RATE_LIMITS.admin.default,
+  reject_withdrawal: RATE_LIMITS.admin.default,
+};
+
+// Add before RPC call in call() function:
+const rateLimitConfig = RATE_LIMITED_RPCS[rpcName];
+if (rateLimitConfig) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const limiter = getRateLimiter();
+  const { allowed, resetTime } = await limiter.checkLimit(user?.id || 'anon', rateLimitConfig);
+  if (!allowed) {
+    throw new Error(`Rate limit exceeded. Try again at ${new Date(resetTime).toLocaleTimeString()}`);
+  }
+}
+```
+
+---
+
+## Appendix 6: Updated Regression Test Matrix
+
+### Timezone Regression Tests (NEW - MUST-PASS)
+
+| Test ID | Test | Steps | Expected | Priority |
+|---------|------|-------|----------|----------|
+| TZ-01 | Date at midnight boundary | Set browser to PST, create deposit at 11:55pm Jan 15 | tx_date = "2026-01-15" (local), NOT "2026-01-16" (UTC) | MUST-PASS |
+| TZ-02 | Yield month selection | Select December 2025 in any timezone | yield_date = "2025-12-31" | MUST-PASS |
+| TZ-03 | Report date range | Generate report for Jan 2026 in EST | start = "2026-01-01", end = "2026-01-31" | MUST-PASS |
+| TZ-04 | Month-end calculation | Select February 2024 (leap year) | yield_date = "2024-02-29" | MUST-PASS |
+
+### Rate Limiting Tests (NEW - After Implementation)
+
+| Test ID | Test | Steps | Expected | Priority |
+|---------|------|-------|----------|----------|
+| RL-01 | Rapid deposit submission | Submit 15 deposits in 60 seconds | Rate limited after threshold | MUST-PASS (after fix) |
+| RL-02 | Rate limit reset | Wait for window reset | Requests allowed again | MUST-PASS (after fix) |
+| RL-03 | Different users not shared | Two admins submit rapidly | Each has own limit | SHOULD-PASS |
