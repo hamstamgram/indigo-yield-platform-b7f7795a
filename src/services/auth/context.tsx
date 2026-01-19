@@ -118,14 +118,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .maybeSingle();
 
       // Check admin role from user_roles table (SECURITY: Server-side role check)
-      const { data: adminRole, error: roleError } = await supabase
+      // NOTE: Use array query (not .maybeSingle()) because users can have multiple roles
+      const { data: adminRoles, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .in("role", ["admin", "super_admin"])
-        .maybeSingle();
+        .in("role", ["admin", "super_admin"]);
 
-      const isAdmin = !!adminRole;
+      // User is admin if they have ANY admin/super_admin role
+      const isAdmin = adminRoles && adminRoles.length > 0;
 
       // Try to get TOTP status
       let totpData: { enabled?: boolean; verified_at?: string | null } | null = null;
