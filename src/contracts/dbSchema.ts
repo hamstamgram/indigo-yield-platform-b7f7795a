@@ -169,25 +169,8 @@ export const DB_TABLES = {
     columns: ["id", "year", "month", "start_date", "end_date", "status", "created_at"] as const,
     rlsEnabled: true,
   },
-  fund_period_snapshots: {
-    name: "fund_period_snapshots" as const,
-    primaryKey: ["id"] as const,
-    columns: [
-      "id",
-      "fund_id",
-      "period_id",
-      "snapshot_date",
-      "total_aum",
-      "investor_count",
-      "total_yield",
-      "total_fees",
-      "is_locked",
-      "locked_at",
-      "locked_by",
-      "created_at",
-    ] as const,
-    rlsEnabled: true,
-  },
+  // Note: fund_period_snapshots removed in P1-03 (Unify AUM Snapshot Tables)
+  // The table was unused (0 rows) and has been dropped.
   investor_fee_schedules: {
     name: "investor_fee_schedules" as const,
     primaryKey: ["id"] as const,

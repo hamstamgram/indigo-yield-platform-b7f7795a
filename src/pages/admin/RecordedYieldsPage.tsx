@@ -5,19 +5,15 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { AdminGuard } from "@/components/admin";
-import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { canEditYields, type AumPurpose, type YieldFilters } from "@/services";
 import {
-  LockedPeriodBanner,
   YieldsFilterBar,
   YieldsTable,
-  LockedPeriodsTable,
   CorrectionHistoryDialog,
   YieldCorrectionPanel,
   VoidYieldDialog,
   EditYieldDialog,
-  UnlockPeriodDialog,
 } from "@/components/admin/yields";
 import {
   useRecordedYieldsData,
@@ -25,9 +21,7 @@ import {
   useRecordCorrectionHistory,
   useVoidYieldMutation,
   useUpdateYieldAum,
-  useLockedPeriods,
   type RecordedYieldRecord,
-  type LockedPeriod,
 } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
@@ -48,9 +42,7 @@ function RecordedYieldsContent() {
   const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<RecordedYieldRecord | null>(null);
   const [voidRecord, setVoidRecord] = useState<RecordedYieldRecord | null>(null);
   const [editAumRecord, setEditAumRecord] = useState<RecordedYieldRecord | null>(null);
-  const [unlockPeriod, setUnlockPeriod] = useState<LockedPeriod | null>(null);
 
-  const { isSuperAdmin } = useSuperAdmin();
   const queryClient = useQueryClient();
 
   // URL-persisted filters
@@ -72,9 +64,6 @@ function RecordedYieldsContent() {
 
   // Data fetching
   const { data: yields = [], isLoading } = useRecordedYieldsData(filters);
-  const { data: lockedPeriods = [], isLoading: isLoadingLockedPeriods } = useLockedPeriods(
-    filters.fundId === "all" ? undefined : filters.fundId
-  );
   const { data: correctionHistory = [] } = useYieldCorrectionHistory(
     filters.fundId === "all" ? undefined : filters.fundId
   );
@@ -102,11 +91,6 @@ function RecordedYieldsContent() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
-      {/* Locked Period Alert Banner - Super Admin Only */}
-      {isSuperAdmin && lockedPeriods.length > 0 && (
-        <LockedPeriodBanner periods={lockedPeriods} onUnlock={setUnlockPeriod} />
-      )}
-
       {/* Header */}
       <div>
         <h1 className="text-3xl font-display font-bold tracking-tight">Recorded Yields</h1>
@@ -135,15 +119,6 @@ function RecordedYieldsContent() {
         onViewHistory={() => {}}
         onViewCorrectionHistory={setCorrectionHistoryRecord}
       />
-
-      {/* Locked Periods Section - Super Admin Only */}
-      {isSuperAdmin && lockedPeriods.length > 0 && (
-        <LockedPeriodsTable
-          periods={lockedPeriods}
-          isLoading={isLoadingLockedPeriods}
-          onUnlock={setUnlockPeriod}
-        />
-      )}
 
       {/* Dialogs */}
       <CorrectionHistoryDialog
@@ -181,18 +156,6 @@ function RecordedYieldsContent() {
         }}
         isPending={editAumMutation.isPending}
       />
-
-      {unlockPeriod && (
-        <UnlockPeriodDialog
-          open={!!unlockPeriod}
-          onOpenChange={(open) => !open && setUnlockPeriod(null)}
-          fundId={unlockPeriod.fund_id}
-          fundName={unlockPeriod.fund_name}
-          periodId={unlockPeriod.period_id}
-          periodLabel={unlockPeriod.period_name}
-          onSuccess={() => invalidateAfterYieldOp(queryClient)}
-        />
-      )}
     </div>
   );
 }

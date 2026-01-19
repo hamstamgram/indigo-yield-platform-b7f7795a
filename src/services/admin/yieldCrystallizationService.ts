@@ -265,24 +265,8 @@ export async function getAggregatedYieldForPeriod(
   return Array.from(aggregated.values());
 }
 
-/**
- * Get fund yield snapshots
- */
-export async function getFundYieldSnapshots(
-  fundId: string,
-  limit = 30
-): Promise<YieldSnapshot[]> {
-  const { data, error } = await supabase
-    .from("fund_yield_snapshots")
-    .select("*")
-    .eq("fund_id", fundId)
-    .eq("is_voided", false)
-    .order("snapshot_date", { ascending: false })
-    .limit(limit);
-
-  if (error) throw error;
-  return (data || []) as YieldSnapshot[];
-}
+// Note: getFundYieldSnapshots removed in P1-03 (Unify AUM Snapshot Tables)
+// The fund_yield_snapshots table was unused (0 rows) and has been dropped.
 
 /**
  * Get pending (admin_only) yield events count for a fund in a period

@@ -22,5 +22,5 @@ export {
   useSendStatementEmail,
 } from "../useAdminStatementsPage";
 
-// useLockedPeriods
-export { useLockedPeriods, type LockedPeriod } from "../useLockedPeriods";
+// Note: useLockedPeriods removed in P1-03 (Unify AUM Snapshot Tables)
+// The fund_period_snapshot table was unused (0 rows) and has been dropped.

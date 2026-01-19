@@ -2,10 +2,12 @@
  * Yield Preview Service
  * Handles yield distribution preview calculations
  * Split from yieldDistributionService for better maintainability
+ * 
+ * Note: Period snapshot functionality removed in P1-03 (Unify AUM Snapshot Tables)
+ * The fund_period_snapshot table was unused (0 rows) and has been dropped.
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { getFundPeriodSnapshot } from "@/services/operations/snapshotService";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
@@ -29,34 +31,6 @@ function isValidUUID(value: string): boolean {
 // toISOString().split("T")[0] is NOT timezone-safe
 
 /**
- * Get period ID for a given date
- */
-async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
-  const year = targetDate.getFullYear();
-  const month = targetDate.getMonth() + 1;
-
-  const { data, error } = await supabase
-    .from("statement_periods")
-    .select("id")
-    .eq("year", year)
-    .eq("month", month)
-    .maybeSingle();
-
-  if (error || !data) {
-    const { data: nextPeriod } = await supabase
-      .from("statement_periods")
-      .select("id")
-      .or(`year.gt.${year},and(year.eq.${year},month.gte.${month})`)
-      .order("year", { ascending: true })
-      .order("month", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    return nextPeriod?.id || null;
-  }
-  return data.id;
-}
-
-/**
  * Preview yield distribution using backend RPC for exact parity with apply.
  * This is a read-only operation that returns computed distributions.
  */
@@ -68,22 +42,6 @@ export async function previewYieldDistribution(
   // Validate fundId is a valid UUID
   if (!fundId || !isValidUUID(fundId)) {
     throw new Error(`Invalid fund ID format: "${fundId}". Expected a valid UUID.`);
-  }
-
-  // Get snapshot info for display
-  const periodId = await getPeriodIdForDate(targetDate);
-  let snapshotInfo: YieldCalculationResult["snapshotInfo"];
-
-  if (periodId) {
-    const snapshot = await getFundPeriodSnapshot(fundId, periodId);
-    if (snapshot) {
-      snapshotInfo = {
-        snapshotId: snapshot.id,
-        snapshotDate: snapshot.snapshot_date,
-        isLocked: snapshot.is_locked,
-        periodId,
-      };
-    }
   }
 
   // IMPORTANT: Do NOT derive "current AUM" from investor_positions.current_value here.
@@ -200,6 +158,5 @@ export async function previewYieldDistribution(
     hasConflicts: Boolean(result.hasConflicts),
     totals,
     status: "preview",
-    snapshotInfo,
   };
 }

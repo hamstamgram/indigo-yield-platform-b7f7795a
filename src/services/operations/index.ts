@@ -12,5 +12,5 @@ export * from "./positionAdjustmentService";
 // Fee management
 export * from "./feeService";
 
-// Snapshot management
-export * from "./snapshotService";
+// Note: snapshotService removed in P1-03 (Unify AUM Snapshot Tables)
+// The fund_period_snapshot table was unused (0 rows) and has been dropped.

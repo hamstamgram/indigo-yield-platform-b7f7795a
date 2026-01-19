@@ -91,16 +91,6 @@ export type IsSuperAdminReturn = RpcReturns<"is_super_admin">; // boolean
 export type GetUserAdminStatusArgs = RpcArgs<"get_user_admin_status">;
 export type GetUserAdminStatusReturn = RpcReturns<"get_user_admin_status">; // boolean
 
-// Snapshot-related RPC types
-export type GenerateSnapshotArgs = RpcArgs<"generate_fund_period_snapshot">;
-export type GenerateSnapshotReturn = RpcReturns<"generate_fund_period_snapshot">; // string
-
-export type LockSnapshotArgs = RpcArgs<"lock_fund_period_snapshot">;
-export type LockSnapshotReturn = RpcReturns<"lock_fund_period_snapshot">; // boolean
-
-export type IsPeriodLockedArgs = RpcArgs<"is_period_locked">;
-export type IsPeriodLockedReturn = RpcReturns<"is_period_locked">; // boolean
-
 // Yield-related RPC types
 export type FinalizeMonthYieldArgs = RpcArgs<"finalize_month_yield">;
 export type FinalizeMonthYieldReturn = RpcReturns<"finalize_month_yield">; // Json
