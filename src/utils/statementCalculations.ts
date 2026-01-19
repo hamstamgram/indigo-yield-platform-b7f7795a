@@ -1,5 +1,6 @@
 import { profileService, fundService, transactionsV2Service } from "@/services";
 import { StatementTransaction } from "@/types/domains/transaction";
+import { getMonthEndDate } from "@/utils/dateUtils";
 
 // Re-export for backwards compatibility
 export type Transaction = StatementTransaction;
@@ -86,7 +87,7 @@ export async function computeStatement(
     // Calculate period dates
     const period_start = new Date(period_year, period_month - 1, 1);
     const period_end = new Date(period_year, period_month, 0, 23, 59, 59);
-    const period_end_str = period_end.toISOString().split("T")[0];
+    const period_end_str = getMonthEndDate(period_year, period_month);
 
     // Fetch all transactions for this investor up to the end of the period
     // using transactionsV2Service with deterministic ordering

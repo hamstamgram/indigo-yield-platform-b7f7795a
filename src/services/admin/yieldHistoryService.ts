@@ -6,7 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { FundDailyAUM } from "@/types/domains/yield";
-import { formatDateForDB } from "@/utils/dateUtils";
+import { formatDateForDB, getTodayString, getMonthStartDate } from "@/utils/dateUtils";
 
 /** Position with fund join result */
 interface PositionWithFundJoin {
@@ -337,8 +337,8 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
 
   // Calculate MTD period
   const now = new Date();
-  const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-  const mtdEnd = now.toISOString().split("T")[0];
+  const mtdStart = getMonthStartDate(now.getFullYear(), now.getMonth() + 1);
+  const mtdEnd = getTodayString();
 
   // Fetch MTD yield transactions for investor accounts only
   const investorIdList = [...investorProfileIds];

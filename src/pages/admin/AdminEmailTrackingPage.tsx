@@ -15,6 +15,7 @@
 
 import { useState } from "react";
 import { useEmailStats, useEmailDeliveries, type EmailFilters, type EmailDelivery } from "@/hooks/data";
+import { getTodayString } from "@/utils/dateUtils";
 import {
   Mail,
   Send,
@@ -98,7 +99,7 @@ export default function AdminEmailTrackingPage() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `email-deliveries-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `email-deliveries-${getTodayString()}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };

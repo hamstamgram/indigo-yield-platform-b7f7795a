@@ -5,6 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { auditLogService, type AuditLogFilters, type AuditLogEntry } from "@/services/shared";
+import { getTodayString } from "@/utils/dateUtils";
 
 export interface AuditLogStats {
   totalEntries: number;
@@ -95,7 +96,7 @@ export async function exportAuditLogsToCSV(filters: AuditLogFilters): Promise<nu
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `audit-logs-${new Date().toISOString().split("T")[0]}.csv`;
+  link.download = `audit-logs-${getTodayString()}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
