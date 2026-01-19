@@ -1,0 +1,20 @@
+# Memory: Phase 4 IB Function Cleanup
+
+## Summary
+Completed Phase 4 of the function audit, focusing on IB (Introducing Broker) related database functions.
+
+## Functions Dropped (2)
+- `check_duplicate_ib_allocations()` - No frontend/internal callers
+- `is_ib(uuid)` - No frontend/RLS/internal callers
+
+## Functions Retained (3 triggers)
+- `audit_ib_allocation_payout()` - Audits payout status changes
+- `sync_ib_account_type()` - Syncs account_type on IB role assignment
+- `validate_ib_parent_has_role()` - Validates IB parent references
+
+## Documentation Created
+- `docs/patterns/IB_FUNCTIONS.md` - IB trigger and service patterns
+
+## Cumulative Impact (Phases 1-4)
+- **26 functions dropped** total
+- **6 documentation files** created

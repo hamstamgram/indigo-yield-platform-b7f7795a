@@ -188,7 +188,7 @@ export const RPC_FUNCTIONS = [
   "has_role",
   "get_user_admin_status",
   "current_user_is_admin_or_owner",
-  "is_ib",
+  // P4 removed: is_ib (dead code, no frontend/RLS/internal callers)
   "is_2fa_required",
   "is_valid_share_token",
   "encrypt_totp_secret",
@@ -280,7 +280,7 @@ export const RPC_FUNCTIONS = [
   "refresh_materialized_view_concurrently",
 
   // Duplicate Checks
-  "check_duplicate_ib_allocations",
+  // P4 removed: check_duplicate_ib_allocations (dead code, no callers)
   "check_duplicate_transaction_refs",
 
   // Data Reset (Super Admin Only)
@@ -405,7 +405,7 @@ export const READ_ONLY_RPCS = [
   "has_role",
   "get_user_admin_status",
   "current_user_is_admin_or_owner",
-  "is_ib",
+  // P4 removed: is_ib (dead code)
   "is_2fa_required",
   "is_valid_share_token",
   "can_execute_mfa_reset",
@@ -441,7 +441,7 @@ export const READ_ONLY_RPCS = [
   "can_access_investor",
   "compute_correction_input_hash",
   "compute_jsonb_delta",
-  "check_duplicate_ib_allocations",
+  // P4 removed: check_duplicate_ib_allocations (dead code)
   "check_duplicate_transaction_refs",
   "test_profiles_access",
 ] as const;
