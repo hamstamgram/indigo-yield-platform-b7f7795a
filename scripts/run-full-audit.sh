@@ -156,6 +156,20 @@ else
 fi
 echo ""
 
+# 7. RPC Signature Alignment Check
+echo "=== Step 7: RPC Signature Check ==="
+if [ -f "$SCRIPT_DIR/pre-deploy-rpc-check.sh" ]; then
+  if $SCRIPT_DIR/pre-deploy-rpc-check.sh; then
+    echo -e "${GREEN}✅ RPC signature check passed${NC}"
+  else
+    echo -e "${RED}❌ RPC signature check failed${NC}"
+    ((FAILURES++))
+  fi
+else
+  echo -e "${YELLOW}⚠️  pre-deploy-rpc-check.sh not found, skipping${NC}"
+fi
+echo ""
+
 # Summary
 echo "=============================================="
 if [ $FAILURES -eq 0 ]; then
