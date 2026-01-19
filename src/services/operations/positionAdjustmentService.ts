@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toDecimal } from "@/utils/financial";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { getTodayString } from "@/utils/dateUtils";
 
 /**
  * Position Adjustment Service
@@ -35,7 +36,7 @@ export async function adjustPosition(
     p_note: note || "",
     p_admin_id: adminId,
     p_tx_type: type || "ADJUSTMENT",
-    p_tx_date: tx_date || new Date().toISOString().split('T')[0],
+    p_tx_date: tx_date || getTodayString(),
     p_reference_id: `adj:${fund_id}:${investor_id}:${Date.now()}`,
   });
   if (error) {

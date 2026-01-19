@@ -31,7 +31,8 @@ import { z } from "zod";
 import { TxTypeSchema, AumPurposeSchema, isValidTxType, mapUITypeToDb } from "@/contracts/dbEnums";
 import { RPC_FUNCTIONS, CANONICAL_MUTATION_RPCS } from "@/contracts/rpcSignatures";
 import { getUserFriendlyError } from "@/lib/errors";
-import { logError, logInfo } from "@/lib/logger";
+import { logError, logInfo, logWarn } from "@/lib/logger";
+import { getRateLimiter } from "@/lib/security/rateLimiter";
 
 // =============================================================================
 // TYPES
@@ -163,11 +164,58 @@ function validateParams<T extends RPCFunctionName>(
 }
 
 // =============================================================================
+// RATE LIMITING CONFIGURATION
+// =============================================================================
+
+/**
+ * Rate-limited RPCs with their thresholds
+ * Uses the client-side rate limiter as a first line of defense
+ * Server-side rate limiting (check_rate_limit_with_config) provides final enforcement
+ */
+const RATE_LIMITED_RPCS: Record<string, { windowMs: number; maxRequests: number; actionType: string }> = {
+  apply_deposit_with_crystallization: { windowMs: 60000, maxRequests: 10, actionType: "deposit" },
+  apply_withdrawal_with_crystallization: { windowMs: 60000, maxRequests: 10, actionType: "withdrawal" },
+  apply_daily_yield_to_fund_v3: { windowMs: 60000, maxRequests: 5, actionType: "yield_distribution" },
+  approve_withdrawal: { windowMs: 60000, maxRequests: 20, actionType: "withdrawal_approval" },
+  reject_withdrawal: { windowMs: 60000, maxRequests: 20, actionType: "withdrawal_approval" },
+  complete_withdrawal: { windowMs: 60000, maxRequests: 10, actionType: "withdrawal" },
+  admin_create_transaction: { windowMs: 60000, maxRequests: 30, actionType: "transaction" },
+  adjust_investor_position: { windowMs: 60000, maxRequests: 20, actionType: "position_adjustment" },
+};
+
+/**
+ * Check rate limit for a given RPC function
+ * Returns true if allowed, false if rate limited
+ */
+async function checkRateLimit(functionName: string, actorId?: string): Promise<boolean> {
+  const config = RATE_LIMITED_RPCS[functionName];
+  if (!config) return true; // Not rate limited
+
+  const identifier = actorId || "anonymous";
+  const limiter = getRateLimiter();
+  const result = await limiter.checkLimit(`rpc:${functionName}:${identifier}`, {
+    windowMs: config.windowMs,
+    maxRequests: config.maxRequests,
+    identifier: "user",
+  });
+
+  if (!result.allowed) {
+    logWarn(`rpc.rateLimit.${functionName}`, {
+      identifier,
+      remaining: result.remaining,
+      resetTime: result.resetTime,
+    });
+  }
+
+  return result.allowed;
+}
+
+// =============================================================================
 // RPC GATEWAY
 // =============================================================================
 
 /**
- * Call an RPC function with full type safety and validation
+ * Call an RPC function with full type safety, validation, and rate limiting
  */
 async function call<T extends RPCFunctionName>(
   functionName: T,
@@ -177,9 +225,26 @@ async function call<T extends RPCFunctionName>(
     // Validate parameters
     validateParams(functionName, params);
 
-    // Log mutation calls
+    // Check rate limiting for sensitive mutations
     const isMutation = Object.values(CANONICAL_MUTATION_RPCS).includes(functionName as any);
     if (isMutation) {
+      // Extract actor ID from params if available
+      const p = params as Record<string, unknown>;
+      const actorId = (p.p_admin_id || p.p_created_by || p.p_actor_id) as string | undefined;
+      
+      const allowed = await checkRateLimit(String(functionName), actorId);
+      if (!allowed) {
+        return {
+          data: null,
+          error: {
+            message: "Rate limit exceeded",
+            code: "RATE_LIMITED",
+            userMessage: "Too many requests. Please wait a moment before trying again.",
+          },
+          success: false,
+        };
+      }
+
       logInfo(`rpc.mutation.${String(functionName)}`, {
         params: sanitizeParams(params),
       });

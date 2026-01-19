@@ -15,6 +15,7 @@ import { yieldNotifications } from "@/services/notifications";
 import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
 import { logWarn, logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 import type {
   YieldCalculationInput,
@@ -22,10 +23,6 @@ import type {
   YieldTotals,
   YieldCalculationResult,
 } from "@/types/domains/yield";
-
-function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
 
 /**
  * Get period ID for a given date
@@ -103,7 +100,7 @@ export async function applyYieldDistribution(
   // This prevents "future deposits" from influencing past yield calculations.
   const { data: preview, error: previewError } = await callRPC("preview_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
-    p_yield_date: formatDate(targetDate),
+    p_yield_date: formatDateForDB(targetDate),
     p_new_aum: newTotalAUM,
     p_purpose: purpose,
   });
@@ -125,7 +122,7 @@ export async function applyYieldDistribution(
   // Use v3 apply function
   const { data, error } = await callRPC("apply_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
-    p_yield_date: formatDate(targetDate),
+    p_yield_date: formatDateForDB(targetDate),
     p_gross_yield_pct: grossYieldPct,
     p_created_by: adminId,
     p_purpose: purpose,
@@ -175,19 +172,19 @@ export async function applyYieldDistribution(
     .from("transactions_v2")
     .select("investor_id, amount")
     .eq("fund_id", fundId)
-    .eq("tx_date", formatDate(targetDate))
+    .eq("tx_date", formatDateForDB(targetDate))
     .in("type", ["INTEREST", "YIELD"])
     .eq("is_voided", false);
 
   if (affectedInvestors?.length && fundInfo) {
     const distributions = affectedInvestors.map((inv) => ({
       userId: inv.investor_id,
-      distributionId: `yield:${fundId}:${formatDate(targetDate)}:${inv.investor_id}`,
+      distributionId: `yield:${fundId}:${formatDateForDB(targetDate)}:${inv.investor_id}`,
       fundId,
       fundName: fundInfo.name,
       amount: Number(inv.amount),
       asset: fundInfo.asset,
-      yieldDate: formatDate(targetDate),
+      yieldDate: formatDateForDB(targetDate),
       yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : undefined,
     }));
 

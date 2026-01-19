@@ -27,6 +27,7 @@ import {
   useTransactionFormBalanceCheck,
 } from "@/hooks/data/admin";
 import { logError } from "@/lib/logger";
+import { getTodayString } from "@/utils/dateUtils";
 
 // Form Schema
 const transactionSchema = z.object({
@@ -62,7 +63,7 @@ export default function AdminManualTransaction() {
     defaultValues: {
       type: "DEPOSIT",
       amount: "",
-      txDate: new Date().toISOString().split("T")[0],
+      txDate: getTodayString(),
       newTotalAum: "",
       description: "",
       txHash: "",
@@ -228,7 +229,7 @@ export default function AdminManualTransaction() {
       form.reset({
         type: "DEPOSIT",
         amount: "",
-        txDate: new Date().toISOString().split("T")[0],
+        txDate: getTodayString(),
         newTotalAum: "",
         description: "",
         txHash: "",
