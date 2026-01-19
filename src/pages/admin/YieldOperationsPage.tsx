@@ -7,7 +7,7 @@
  */
 
 import {
-  Card, CardContent, CardHeader, CardTitle,
+  Card, CardContent, CardFooter, CardHeader, CardTitle,
   Button, Badge, Skeleton,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -229,7 +229,7 @@ interface FundCardProps {
 
 function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: FundCardProps) {
   return (
-    <Card className="group hover:shadow-md transition-shadow">
+    <Card className="group hover:shadow-md transition-shadow flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -242,7 +242,8 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
           <Badge variant="outline">{fund.asset}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      
+      <CardContent className="flex-1 space-y-3 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -257,20 +258,21 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
           </div>
         </div>
 
-        {/* Show warning if no AUM records */}
         {fund.aum_record_count === 0 && (
           <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
             <AlertTriangle className="h-3 w-3" />
             No AUM baseline - Open Period first
           </div>
         )}
+      </CardContent>
 
-        <div className="flex gap-2">
-          {/* Open Period button - shown when no AUM baseline exists */}
+      <CardFooter className="pt-0">
+        <div className="flex gap-2 w-full">
           {fund.aum_record_count === 0 && (
             <Button
               onClick={onOpenPeriodDialog}
               variant="outline"
+              size="sm"
               className="flex-1"
             >
               <CalendarIcon className="h-4 w-4 mr-2" />
@@ -281,6 +283,7 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
           <Button
             onClick={onOpenYieldDialog}
             disabled={fund.investor_count === 0}
+            size="sm"
             className={fund.aum_record_count === 0 ? "flex-1" : "w-full"}
             variant={fund.investor_count > 0 ? "primary" : "secondary"}
           >
@@ -288,7 +291,7 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
             Record Yield
           </Button>
         </div>
-      </CardContent>
+      </CardFooter>
     </Card>
   );
 }
