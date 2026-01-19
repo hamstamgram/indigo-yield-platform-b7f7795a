@@ -71,7 +71,7 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
   {
     name: "Transaction Source Audit",
     query:
-      "SELECT * FROM v_transaction_sources WHERE source NOT IN ('rpc_canonical', 'crystallization', 'manual_admin', 'yield_distribution', 'system', 'migration', 'reconciliation_fix', 'position_sync', 'import', 'correction') LIMIT 5",
+      "SELECT * FROM v_transaction_sources WHERE source::text NOT IN ('rpc_canonical', 'crystallization', 'manual_admin', 'yield_distribution', 'system', 'migration', 'fee_allocation', 'ib_allocation', 'internal_routing', 'investor_wizard', 'system_bootstrap', 'withdrawal_completion', 'yield_correction') LIMIT 5",
     severity: "warning",
     description: "Transactions from unapproved sources",
   },
