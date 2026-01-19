@@ -36,9 +36,10 @@ export interface AdminAlert {
   alert_type: string;
   severity: "info" | "warning" | "critical";
   title: string;
-  message: string | null; // DB column name
+  message: string | null;
+  description?: string; // Optional for display
   metadata: Record<string, unknown> | null;
-  related_run_id: string | null; // DB column name
+  related_run_id: string | null;
   created_at: string;
   acknowledged_at: string | null;
   acknowledged_by: string | null;
@@ -57,21 +58,21 @@ export interface CrystallizationDashboardRow {
   fund_code: string;
   fund_name: string;
   total_positions: number;
-  current_: number; // DB column name (crystallized count)
+  current_: number;
   stale: number;
   critical_stale: number;
   never_crystallized: number;
   aum_needing_crystallization: number;
-  total_aum_in_positions: number; // DB column name
+  total_aum_in_positions: number;
 }
 
 export interface CrystallizationGap {
   investor_id: string;
   fund_id: string;
-  investor_email: string; // DB column name
+  investor_email: string;
   fund_code: string;
-  last_yield_crystallization_date: string | null; // DB column name
-  days_behind: number; // DB column name
+  last_yield_crystallization_date: string | null;
+  days_behind: number;
   current_value: number;
   gap_type: string;
   cumulative_yield_earned: number;
@@ -93,11 +94,14 @@ export interface DuplicateProfile {
 export interface BypassAttempt {
   id: string;
   attempted_at: string;
-  operation_type: string;
-  table_name: string;
-  blocked_reason: string;
-  actor_id: string | null;
-  payload: Record<string, unknown> | null;
+  attempted_type: string;
+  attempted_source: string;
+  attempted_amount: number;
+  error_message: string;
+  investor_id: string;
+  fund_id: string;
+  user_id: string;
+  client_info: Record<string, unknown> | null;
 }
 
 export interface BatchCrystallizeResult {
