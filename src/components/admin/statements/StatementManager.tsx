@@ -16,6 +16,7 @@ import { transactionsV2Service } from "@/services/investor";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { logError, logDebug } from "@/lib/logger";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 export const StatementManager: React.FC = () => {
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
@@ -47,7 +48,7 @@ export const StatementManager: React.FC = () => {
       for (const investor of investors) {
         // Get transactions via service
         const txs = await transactionsV2Service.getByInvestorId(investor.id, {
-          endDate: endDate.toISOString().split("T")[0],
+          endDate: formatDateForDB(endDate),
         });
 
         if (!txs || txs.length === 0) continue;

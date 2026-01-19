@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { db } from "@/lib/db";
+import { getMonthEndDate } from "@/utils/dateUtils";
 
 export interface HistoricalReportTemplate {
   id: string;
@@ -206,7 +207,7 @@ export async function generateMissingTemplates(options: BulkGenerateOptions): Pr
             if (!periodId) {
               // Create period if missing (bulk)
               const date = new Date(pYear, pMonth - 1);
-              const endDate = new Date(pYear, pMonth, 0).toISOString().split("T")[0];
+              const endDate = getMonthEndDate(pYear, pMonth);
               const { data: newPeriod, error: periodError } = await db.insert(
                 "statement_periods",
                 {

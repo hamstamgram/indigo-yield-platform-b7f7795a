@@ -15,6 +15,7 @@ import {
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
+import { getMonthEndDate } from "@/utils/dateUtils";
 
 const MONTHS = [
   { value: "1", label: "January" },
@@ -76,7 +77,7 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
           month: params.month,
           year: params.year,
           start_date: reportMonth,
-          end_date: new Date(params.year, params.month, 0).toISOString().split("T")[0],
+          end_date: getMonthEndDate(params.year, params.month),
         },
         summary: {
           total_aum: reports?.reduce((sum, r) => sum + Number(r.closing_balance || 0), 0) || 0,
@@ -126,7 +127,7 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
         title: `Statement - ${monthLabel} ${params.year}`,
         storage_path: storagePath,
         period_start: `${params.year}-${params.month.toString().padStart(2, "0")}-01`,
-        period_end: new Date(params.year, params.month, 0).toISOString().split("T")[0],
+        period_end: getMonthEndDate(params.year, params.month),
       });
 
       return { statementData };

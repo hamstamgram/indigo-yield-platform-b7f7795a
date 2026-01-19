@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-
+import { getTodayString, formatDateForDB } from "@/utils/dateUtils";
 export interface OperationsMetrics {
   pendingApprovals: number;
   todaysTransactions: number;
@@ -42,7 +42,7 @@ export const operationsService = {
         supabase
           .from("transactions_v2")
           .select("id", { count: "exact", head: true })
-          .gte("tx_date", new Date().toISOString().split("T")[0])
+          .gte("tx_date", getTodayString())
           .eq("is_voided", false),
 
         // Active investors
@@ -111,9 +111,9 @@ export const operationsService = {
     try {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayDate = yesterday.toISOString().split("T")[0];
+      const yesterdayDate = formatDateForDB(yesterday);
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = getTodayString();
 
       const { count, error } = await supabase
         .from("transactions_v2")
