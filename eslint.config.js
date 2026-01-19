@@ -46,6 +46,11 @@ export default tseslint.config(
           "name": "@/integrations/supabase/client",
           "message": "Use data hooks from @/hooks/data instead of direct Supabase imports in components. See src/hooks/data/index.ts for available hooks."
         }]
+      }],
+      // Warn about investor_positions queries - remind to filter by account_type
+      "no-restricted-syntax": ["warn", {
+        "selector": "CallExpression[callee.property.name='from'][arguments.0.value='investor_positions']",
+        "message": "Position queries should filter by account_type='investor'. See docs/POSITION_QUERY_STANDARDS.md"
       }]
     },
   },
