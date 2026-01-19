@@ -193,7 +193,7 @@ async function updateTransaction(params: UpdateTransactionParams): Promise<void>
 
 /**
  * Void a transaction via RPC
- * Canonical signature: void_transaction(p_transaction_id uuid, p_void_reason text, p_admin_id uuid)
+ * Canonical signature: void_transaction(p_transaction_id uuid, p_admin_id uuid, p_reason text)
  */
 async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   const {
@@ -203,11 +203,11 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   if (userError) throw userError;
   if (!user?.id) throw new Error("Authentication required");
 
-  // Canonical DB signature: void_transaction(p_transaction_id, p_void_reason, p_admin_id)
+  // Canonical DB signature: void_transaction(p_transaction_id, p_admin_id, p_reason)
   const { data, error } = await rpc.call("void_transaction", {
     p_transaction_id: params.transactionId,
-    p_reason: params.reason,
     p_admin_id: user.id,
+    p_reason: params.reason,
   });
 
   if (error) {

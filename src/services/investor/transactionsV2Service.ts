@@ -98,7 +98,7 @@ class TransactionsRecordService {
    */
   /**
    * Void a transaction via RPC
-   * Canonical signature: void_transaction(p_transaction_id uuid, p_void_reason text, p_admin_id uuid)
+   * Canonical signature: void_transaction(p_transaction_id uuid, p_admin_id uuid, p_reason text)
    */
   async voidTransaction(transactionId: string, reason: string): Promise<void> {
     const {
@@ -110,9 +110,9 @@ class TransactionsRecordService {
 
     const { data, error } = await rpc.call("void_transaction", {
       p_transaction_id: transactionId,
-      p_void_reason: reason,
       p_admin_id: user.id,
-    } as any);
+      p_reason: reason,
+    });
 
     if (error) {
       logError("transactionsV2Service.voidTransaction", error, { transactionId });
