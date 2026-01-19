@@ -29,23 +29,27 @@ export function useFundAumAsOf(
         throw new Error("fundId and asOfDate are required");
       }
       
-      console.log("[useFundAumAsOf] Fetching AUM:", {
-        fundId,
-        asOfDate,
-        purpose,
-      });
+      if (import.meta.env.DEV) {
+        console.log("[useFundAumAsOf] Fetching AUM:", {
+          fundId,
+          asOfDate,
+          purpose,
+        });
+      }
       
       const result = await preflowAumService.getFundAumAsOf(fundId, asOfDate, purpose);
       
-      console.log("[useFundAumAsOf] Result:", {
-        asOfDate,
-        aumValue: result,
-      });
+      if (import.meta.env.DEV) {
+        console.log("[useFundAumAsOf] Result:", {
+          asOfDate,
+          aumValue: result,
+        });
+      }
       
       return result;
     },
     enabled: !!fundId && !!asOfDate,
     staleTime: 30_000, // 30 seconds - historical data doesn't change often
-    gcTime: 5 * 60_000, // 5 minutes cache
+    gcTime: 5 * 60_000, // 5 minutes cache (gcTime is correct for React Query v5)
   });
 }

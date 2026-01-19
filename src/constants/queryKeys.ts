@@ -470,6 +470,9 @@ export const YIELD_RELATED_KEYS = [
   QUERY_KEYS.feeAllocations(),
   QUERY_KEYS.ibAllocations(),
   QUERY_KEYS.fundDailyAum(),
+  // FIX: Add fundAumAsOf to ensure historical AUM is refreshed after yield ops
+  QUERY_KEYS.fundAumAsOf(),
+  QUERY_KEYS.activeFundsWithAUM,
 ];
 
 /**
