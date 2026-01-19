@@ -24,8 +24,10 @@ export * from "./performanceDataService";
 // Historical data
 export * from "./historicalDataService";
 
-// IB (Introducing Broker) management
-export * from "./ibService";
+// IB (Introducing Broker) - DEPRECATED: Use @/services/ib instead
+// Re-export from consolidated ib/ module for backward compatibility
+export * from "../ib/config";
+export * from "../ib/referrals";
 
 // Transaction service
 export { 
@@ -87,8 +89,8 @@ export type { FundDailyAumRecord } from "./fundDailyAumService";
 export { positionService } from "./positionService";
 export type { InvestorPosition, CreatePositionParams } from "./positionService";
 
-// IB management
-export { ibManagementService } from "./ibManagementService";
+// IB management - DEPRECATED: Use @/services/ib instead
+export { ibManagementService } from "../ib/management";
 
 // Note: transactionsV2Service should be imported from @/services/investor
 

@@ -7,6 +7,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 import type { Database } from "@/integrations/supabase/types";
 
 type AumPurpose = Database["public"]["Enums"]["aum_purpose"];
@@ -35,6 +36,38 @@ export interface InvestorIBConfig {
   ibPercentage: number | null;
 }
 
+export interface IBAllocation {
+  id: string;
+  periodId: string | null;
+  ibInvestorId: string;
+  sourceInvestorId: string;
+  fundId: string | null;
+  sourceNetIncome: number;
+  ibPercentage: number;
+  ibFeeAmount: number;
+  effectiveDate: string;
+  createdAt: string;
+}
+
+// ============ Pure Functions ============
+
+/**
+ * Calculate IB allocation for a given net income (pure function, no DB access)
+ */
+export function calculateIBAllocation(
+  netIncome: number,
+  ibPercentage: number
+): { ibFee: number; adjustedNetIncome: number } {
+  if (ibPercentage <= 0 || netIncome <= 0) {
+    return { ibFee: 0, adjustedNetIncome: netIncome };
+  }
+
+  const ibFee = netIncome * (ibPercentage / 100);
+  const adjustedNetIncome = netIncome - ibFee;
+
+  return { ibFee, adjustedNetIncome };
+}
+
 // ============ Service ============
 
 class IBAllocationService {
@@ -60,10 +93,10 @@ class IBAllocationService {
   }
 
   /**
-   * Calculate IB allocation for an investor's yield
+   * Calculate IB allocation for an investor's yield (async version with DB lookup)
    * Returns null if investor has no IB parent or no IB percentage configured
    */
-  async calculateIBAllocation(input: IBAllocationInput): Promise<IBAllocationResult | null> {
+  async calculateIBAllocationAsync(input: IBAllocationInput): Promise<IBAllocationResult | null> {
     const config = await this.getInvestorIBConfig(input.sourceInvestorId);
 
     if (!config.ibParentId || !config.ibPercentage || config.ibPercentage <= 0) {
@@ -84,7 +117,7 @@ class IBAllocationService {
   /**
    * Get all investors who have a specific IB as their parent
    */
-  async getIBReferrals(ibId: string): Promise<string[]> {
+  async getIBReferralIds(ibId: string): Promise<string[]> {
     const { data, error } = await supabase
       .from("profiles")
       .select("id")
@@ -123,6 +156,87 @@ class IBAllocationService {
     }
 
     return data || [];
+  }
+
+  /**
+   * Record an IB allocation in the database
+   */
+  async recordIBAllocation(
+    ibInvestorId: string,
+    sourceInvestorId: string,
+    sourceNetIncome: number,
+    ibPercentage: number,
+    ibFeeAmount: number,
+    effectiveDate: Date,
+    fundId?: string,
+    periodId?: string,
+    createdBy?: string
+  ): Promise<{ success: boolean; allocationId?: string; error?: string }> {
+    const { data, error } = await supabase
+      .from("ib_allocations")
+      .insert({
+        ib_investor_id: ibInvestorId,
+        source_investor_id: sourceInvestorId,
+        source_net_income: sourceNetIncome,
+        ib_percentage: ibPercentage,
+        ib_fee_amount: ibFeeAmount,
+        effective_date: effectiveDate.toISOString().split("T")[0],
+        fund_id: fundId || null,
+        period_id: periodId || null,
+        created_by: createdBy || null,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      logError("ib.recordIBAllocation", error, { ibInvestorId, sourceInvestorId });
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, allocationId: data.id };
+  }
+
+  /**
+   * Get all IB allocations for an IB (where they receive fees)
+   */
+  async getIBAllocationsForIB(
+    ibInvestorId: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<IBAllocation[]> {
+    let query = supabase
+      .from("ib_allocations")
+      .select("*")
+      .eq("ib_investor_id", ibInvestorId)
+      .order("effective_date", { ascending: false })
+      .order("id", { ascending: false });
+
+    if (startDate) {
+      query = query.gte("effective_date", startDate.toISOString().split("T")[0]);
+    }
+    if (endDate) {
+      query = query.lte("effective_date", endDate.toISOString().split("T")[0]);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      logError("ib.getIBAllocationsForIB", error, { ibInvestorId });
+      return [];
+    }
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      periodId: row.period_id,
+      ibInvestorId: row.ib_investor_id,
+      sourceInvestorId: row.source_investor_id,
+      fundId: row.fund_id,
+      sourceNetIncome: Number(row.source_net_income),
+      ibPercentage: Number(row.ib_percentage),
+      ibFeeAmount: Number(row.ib_fee_amount),
+      effectiveDate: row.effective_date,
+      createdAt: row.created_at,
+    }));
   }
 }
 
