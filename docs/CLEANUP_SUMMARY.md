@@ -299,19 +299,42 @@ A comprehensive 7-phase database cleanup reduced technical debt and improved pla
 
 ---
 
+## Phase 8: Data Integrity Fixes
+
+**Completed: 2026-01-19**
+
+### Issues Fixed
+
+| Issue | Action | Result |
+|-------|--------|--------|
+| Fund AUM Mismatch (4 funds) | `reconcile_fund_aum_with_positions()` RPC | ✅ Fixed |
+| Crystallization Gaps (17 positions) | `initialize_null_crystallization_dates()` RPC | ✅ Fixed |
+| Test Profiles (4 accounts) | `cleanup_test_profiles()` RPC | ✅ Deleted |
+
+### New Canonical RPCs Created
+
+| Function | Purpose |
+|----------|---------|
+| `reconcile_fund_aum_with_positions()` | Sync fund_daily_aum with investor_positions totals |
+| `initialize_null_crystallization_dates()` | Set crystallization date for never-crystallized positions |
+| `cleanup_test_profiles()` | Remove test/verification profiles with no value |
+
+### Remaining Items (Manual Review)
+
+- **Duplicate Profiles**: 2 groups require manual review (matthias@example.com / matthias@xventures.de)
+- **Transaction Source Audit**: False positive - `rpc_canonical` is an approved source
+
+### Integrity Check Results
+
+**Before**: 8/13 passing | **After**: 11/13 passing
+
+---
+
 ## Verification
 
-To verify cleanup integrity:
-
 ```bash
-# Check for remaining v1 function calls
-grep -r "calculate_management_fee\|calculate_performance_fee" src/
-
-# Check contract drift
-npx ts-node scripts/analyze-drift.ts
-
 # Run integrity monitor
-# Via admin dashboard or edge function
+curl -X POST https://[project].supabase.co/functions/v1/integrity-monitor -H "Authorization: Bearer $ANON_KEY"
 ```
 
 ---
