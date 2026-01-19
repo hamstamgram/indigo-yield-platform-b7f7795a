@@ -5,7 +5,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { fundService, positionService, auditLogService } from "@/services/shared";
+import { fundService } from "@/services/admin";
+import { positionService, auditLogService } from "@/services/shared";
 import { useAuth } from "@/services/auth";
 import type { FundStatus } from "@/types/domains/fund";
 

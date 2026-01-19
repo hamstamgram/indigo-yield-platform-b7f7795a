@@ -6,7 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
-import { fundService, auditLogService } from "@/services";
+import { fundService } from "@/services/admin";
+import { auditLogService } from "@/services/shared";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { Fund, FundStatus } from "@/types/domains/fund";
 import { logError } from "@/lib/logger";
