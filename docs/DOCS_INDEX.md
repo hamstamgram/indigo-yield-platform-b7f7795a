@@ -59,6 +59,7 @@
 - [patterns/ADMIN_FUNCTIONS.md](./patterns/ADMIN_FUNCTIONS.md) - Admin RBAC and guard patterns
 - [patterns/INVESTOR_FUNCTIONS.md](./patterns/INVESTOR_FUNCTIONS.md) - Investor lookup and position services
 - [patterns/IB_FUNCTIONS.md](./patterns/IB_FUNCTIONS.md) - IB trigger and service patterns
+- [patterns/VIEW_INVENTORY.md](./patterns/VIEW_INVENTORY.md) - Database view inventory and purpose
 
 ## Archived Documentation
 
