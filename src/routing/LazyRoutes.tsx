@@ -29,7 +29,7 @@ export const AdminUserManagement = lazy(() => import("@/pages/admin/AdminUserMan
 export const AdminWithdrawalsPage = lazy(() => import("@/pages/admin/AdminWithdrawalsPage"));
 
 export const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
-export const MonthlyDataEntry = lazy(() => import("@/pages/admin/MonthlyDataEntry"));
+// MonthlyDataEntry removed - duplicate of YieldOperationsPage (P1 cleanup 2026-01-19)
 
 // Admin Sub-pages
 export const InvestorManagement = lazy(() => import("@/pages/admin/investors/InvestorManagement"));
@@ -207,11 +207,7 @@ export const LazyInvestorReports = () => (
     <InvestorReports />
   </RouteSuspense>
 );
-export const LazyMonthlyDataEntry = () => (
-  <RouteSuspense type="admin">
-    <MonthlyDataEntry />
-  </RouteSuspense>
-);
+// LazyMonthlyDataEntry removed - duplicate of YieldOperationsPage (P1 cleanup 2026-01-19)
 
 // Admin Sub-pages
 export const LazyInvestorManagement = () => (

@@ -37,7 +37,9 @@ export {
   getCurrentFundAUM,
   saveDraftAUMEntry,
   getActiveFundsWithAUM,
-  getFundInvestorComposition,
+  getFundInvestorCompositionWithYield,
+  // Backwards compatible alias
+  getFundInvestorCompositionWithYield as getFundInvestorComposition,
   getStatementPeriodId,
   getInvestorPositionsWithFunds,
 } from "./yieldHistoryService";

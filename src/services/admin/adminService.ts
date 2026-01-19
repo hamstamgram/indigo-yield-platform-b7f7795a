@@ -126,112 +126,20 @@ class AdminInvestorService {
     }
   }
 
-  // Update withdrawal request status
-  async updateWithdrawalStatus(
-    requestId: string,
-    status: WithdrawalStatus,
-    notes?: string
-  ): Promise<void> {
-    try {
-      const result = await db.update(
-        "withdrawal_requests",
-        {
-          status,
-          notes,
-          updated_at: new Date().toISOString(),
-        },
-        { column: "id", value: requestId }
-      );
-
-      if (result.error) throw new Error(result.error.userMessage);
-    } catch (error) {
-      console.error("Error updating withdrawal status:", error);
-      throw error;
-    }
-  }
-
-  // Approve withdrawal request
-  async approveWithdrawal(requestId: string, amount?: number, notes?: string): Promise<void> {
-    try {
-      const updates: Record<string, any> = {
-        status: "approved" as WithdrawalStatus,
-        notes,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (amount !== undefined) {
-        updates.approved_amount = amount;
-      }
-
-      const result = await db.update("withdrawal_requests", updates, {
-        column: "id",
-        value: requestId,
-      });
-
-      if (result.error) throw new Error(result.error.userMessage);
-    } catch (error) {
-      console.error("Error approving withdrawal:", error);
-      throw error;
-    }
-  }
-
-  // Reject withdrawal request
-  async rejectWithdrawal(requestId: string, reason?: string, notes?: string): Promise<void> {
-    try {
-      const result = await db.update(
-        "withdrawal_requests",
-        {
-          status: "rejected" as WithdrawalStatus,
-          rejection_reason: reason,
-          notes,
-          updated_at: new Date().toISOString(),
-        },
-        { column: "id", value: requestId }
-      );
-
-      if (result.error) throw new Error(result.error.userMessage);
-    } catch (error) {
-      console.error("Error rejecting withdrawal:", error);
-      throw error;
-    }
-  }
-
-  // Start processing withdrawal request
-  async startProcessingWithdrawal(
-    requestId: string,
-    amount?: number,
-    txHash?: string,
-    settlementDate?: string,
-    notes?: string
-  ): Promise<void> {
-    try {
-      const updates: Record<string, any> = {
-        status: "processing" as WithdrawalStatus,
-        notes,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (amount !== undefined) {
-        updates.processed_amount = amount;
-      }
-      if (txHash) {
-        updates.transaction_hash = txHash;
-      }
-      if (settlementDate) {
-        updates.settlement_date = settlementDate;
-      }
-
-      const result = await db.update("withdrawal_requests", updates, {
-        column: "id",
-        value: requestId,
-      });
-
-      if (result.error) throw new Error(result.error.userMessage);
-    } catch (error) {
-      console.error("Error processing withdrawal:", error);
-      throw error;
-    }
-  }
+  // ============================================================================
+  // DEPRECATED METHODS REMOVED (P0 Security Fix - 2026-01-19)
+  // ============================================================================
+  // The following methods were removed because they bypassed RLS, audit logging,
+  // and validation by writing directly to the database:
+  //
+  // - updateWithdrawalStatus() - Use withdrawalService.updateWithdrawalStatus() instead
+  // - approveWithdrawal() - Use withdrawalService.approveWithdrawal() instead
+  // - rejectWithdrawal() - Use withdrawalService.rejectWithdrawal() instead
+  // - startProcessingWithdrawal() - Use withdrawalService.startProcessing() instead
+  //
+  // All withdrawal operations MUST go through the RPC layer via withdrawalService
+  // to ensure proper audit trails, RLS enforcement, and data integrity.
+  // ============================================================================
 
   // Get fund performance data
   async getFundPerformance(fundId?: string): Promise<any[]> {

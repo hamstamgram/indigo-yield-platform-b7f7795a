@@ -1,5 +1,15 @@
 /**
- * Fund Service - Enhanced fund management with investor allocation
+ * Fund View Service - Investor-facing fund queries
+ * 
+ * ARCHITECTURE NOTE (P1 Consolidation 2026-01-19):
+ * This service provides investor-facing fund queries with null-safe returns.
+ * For admin operations that should throw on not-found, use:
+ *   import { getFund, listFunds } from '@/services/admin/fundService'
+ * 
+ * Key differences from admin/fundService:
+ * - getFundById() returns null instead of throwing
+ * - getAllFunds() filters to active funds only
+ * - getActiveFundsForList() is equivalent to admin's getActiveFunds()
  */
 
 import { supabase } from "@/integrations/supabase/client";
