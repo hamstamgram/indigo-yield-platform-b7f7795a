@@ -136,6 +136,17 @@ export async function applyYieldDistribution(
     throw new Error(`Failed to apply yield: ${error.message}`);
   }
 
+  // Refresh materialized views to ensure dashboard data consistency
+  try {
+    await Promise.all([
+      callRPC("refresh_materialized_view_concurrently", { view_name: "mv_fund_summary" }),
+      callRPC("refresh_materialized_view_concurrently", { view_name: "mv_daily_platform_metrics" }),
+    ]);
+  } catch (mvError) {
+    // Log but don't fail the operation
+    logWarn("applyYieldDistribution.mvRefresh", { fundId, error: mvError });
+  }
+
   // Lock the snapshot after successful yield application
   if (periodId && snapshotInfo) {
     const lockResult = await lockPeriodSnapshot(fundId, periodId, adminId);
