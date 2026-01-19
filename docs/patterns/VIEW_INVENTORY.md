@@ -72,6 +72,17 @@
 
 ---
 
+## Integrity Monitor Views (2)
+
+| View | Purpose | Used By |
+|------|---------|---------|
+| `v_ib_allocation_orphans` | IB allocations with missing references | `integrity-monitor` edge function |
+| `v_missing_withdrawal_transactions` | Completed withdrawals missing ledger entries | `integrity-monitor` edge function |
+
+**Note**: These views are called by the `integrity-monitor` edge function, not directly by frontend code. Restored in Phase 5 correction (2026-01-19).
+
+---
+
 ## Workflow Views (2)
 
 | View | Purpose | Used By |
