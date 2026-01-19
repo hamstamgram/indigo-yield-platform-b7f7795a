@@ -9365,6 +9365,14 @@ export type Database = {
       }
       cleanup_duplicate_preflow_aum: { Args: never; Returns: Json }
       cleanup_expired_approvals: { Args: never; Returns: Json }
+      cleanup_test_profiles: {
+        Args: never
+        Returns: {
+          deleted_email: string
+          deleted_profile_id: string
+          reason: string
+        }[]
+      }
       complete_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -9806,6 +9814,14 @@ export type Database = {
         Args: { p_admin_id?: string; p_aum_date?: string; p_fund_id: string }
         Returns: Json
       }
+      initialize_null_crystallization_dates: {
+        Args: never
+        Returns: {
+          fund_id: string
+          investor_id: string
+          new_crystallization_date: string
+        }[]
+      }
       internal_route_to_fees: {
         Args: {
           p_admin_id: string
@@ -10100,6 +10116,16 @@ export type Database = {
           new_value: number
           old_shares: number
           old_value: number
+        }[]
+      }
+      reconcile_fund_aum_with_positions: {
+        Args: never
+        Returns: {
+          out_difference: number
+          out_fund_code: string
+          out_fund_id: string
+          out_new_aum: number
+          out_old_aum: number
         }[]
       }
       reconcile_fund_period: {
