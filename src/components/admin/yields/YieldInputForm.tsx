@@ -56,6 +56,9 @@ interface YieldInputFormProps {
   formatValue: (value: number, asset: string) => string;
   reconciliation?: ReconciliationData | null;
   pendingEvents?: PendingEvents | null;
+  // Historical AUM as-of the selected date
+  asOfAum: number | null;
+  asOfAumLoading: boolean;
 }
 
 export function YieldInputForm({
@@ -78,8 +81,14 @@ export function YieldInputForm({
   formatValue,
   reconciliation,
   pendingEvents,
+  asOfAum,
+  asOfAumLoading,
 }: YieldInputFormProps) {
   const validationResult = validateEffectiveDate();
+  
+  // Determine displayed AUM: prefer as-of AUM, fallback to current positions
+  const displayedAum = asOfAum ?? selectedFund?.total_aum ?? 0;
+  const isUsingHistoricalAum = asOfAum !== null && asOfAum !== undefined;
 
   return (
     <div className="space-y-6">
@@ -136,11 +145,28 @@ export function YieldInputForm({
         {/* AUM Input */}
         <div className="grid grid-cols-2 gap-6 mb-4">
           <div className="space-y-2">
-            <Label className="text-muted-foreground">Current AUM</Label>
-            <div className="text-2xl font-mono font-semibold">
-              {selectedFund && formatValue(selectedFund.total_aum, selectedFund.asset)}{" "}
-              <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
-            </div>
+            <Label className="text-muted-foreground">
+              {isUsingHistoricalAum 
+                ? `AUM as of ${reportingMonth ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy") : "selected month"}`
+                : "Current AUM"
+              }
+            </Label>
+            {asOfAumLoading ? (
+              <div className="flex items-center gap-2 text-2xl">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground">Loading...</span>
+              </div>
+            ) : (
+              <div className="text-2xl font-mono font-semibold">
+                {selectedFund && formatValue(displayedAum, selectedFund.asset)}{" "}
+                <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
+                {!isUsingHistoricalAum && selectedFund && (
+                  <span className="block text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    (current positions - no historical data)
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>

@@ -164,6 +164,8 @@ function YieldOperationsContent() {
               formatValue={ops.formatValue}
               reconciliation={reconciliation}
               pendingEvents={pendingEvents}
+              asOfAum={ops.asOfAum}
+              asOfAumLoading={ops.asOfAumLoading}
             />
 
             {/* Preview Results */}
