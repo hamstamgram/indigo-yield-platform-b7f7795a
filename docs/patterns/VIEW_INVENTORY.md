@@ -1,7 +1,8 @@
 # Database View Inventory
 
 **Last Updated:** 2026-01-19  
-**Phase 5 Cleanup:** Dropped 17 unused views
+**Phase 5 Cleanup:** Dropped 17 unused views  
+**Real-Time Upgrade:** Dropped 2 materialized views (replaced by live views)
 
 ---
 
@@ -9,7 +10,7 @@
 
 | Category | Count | Purpose |
 |----------|-------|---------|
-| Materialized Views | 2 | Cached aggregates for performance |
+| Live Metrics Views | 2 | Real-time computed aggregates |
 | Investor-Facing Views | 1 | Dashboard data |
 | Admin Integrity Views | 8 | Data integrity monitoring |
 | Risk Alert Views | 2 | Risk monitoring |
@@ -18,12 +19,12 @@
 
 ---
 
-## Materialized Views (2)
+## Live Metrics Views (2)
 
-| View | Purpose | Refresh | Used By |
-|------|---------|---------|---------|
-| `mv_fund_summary` | Fund aggregate statistics | Manual | `useRiskAlerts.ts` |
-| `mv_daily_platform_metrics` | Daily platform KPIs | Cron | `useRiskAlerts.ts` |
+| View | Purpose | Used By |
+|------|---------|---------|
+| `v_fund_summary_live` | Real-time fund aggregate statistics | `useLivePlatformMetrics.ts` |
+| `v_daily_platform_metrics_live` | Real-time platform KPIs | `useLivePlatformMetrics.ts` |
 
 ---
 
@@ -92,12 +93,14 @@
 
 ---
 
-## Dropped Views (Phase 5)
+## Dropped Views (Phase 5 + Real-Time Upgrade)
 
-The following 17 views were dropped as unused:
+The following 19 views were dropped:
 
 | View | Reason |
 |------|--------|
+| `mv_fund_summary` | Replaced by `v_fund_summary_live` (real-time upgrade) |
+| `mv_daily_platform_metrics` | Replaced by `v_daily_platform_metrics_live` (real-time upgrade) |
 | `v_security_definer_audit` | Diagnostic only, no callers |
 | `v_adb_verification` | No frontend callers |
 | `v_orphaned_user_roles` | No frontend callers |
