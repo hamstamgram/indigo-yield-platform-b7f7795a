@@ -9980,6 +9980,7 @@ export type Database = {
         }
         Returns: Json
       }
+      nightly_aum_reconciliation: { Args: never; Returns: Json }
       parse_platform_error: { Args: { p_error_message: string }; Returns: Json }
       preview_crystallization: {
         Args: {

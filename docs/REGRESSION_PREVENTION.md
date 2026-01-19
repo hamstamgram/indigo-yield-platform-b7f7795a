@@ -183,9 +183,43 @@ if (mismatches.data?.length > 0) {
    SELECT 'fund_aum' as check, COUNT(*) as issues FROM fund_aum_mismatch WHERE mismatch_abs > 0.01
    UNION ALL
    SELECT 'positions', COUNT(*) FROM investor_position_ledger_mismatch WHERE abs_diff > 0.01
-   UNION ALL
-   SELECT 'yield_conservation', COUNT(*) FROM yield_distribution_conservation_check WHERE NOT is_balanced;
-   ```
+    UNION ALL
+    SELECT 'yield_conservation', COUNT(*) FROM yield_distribution_conservation_check WHERE NOT is_balanced;
+    ```
+
+## Proactive Guardrails (Triggers)
+
+The following triggers prevent data integrity issues before they occur:
+
+### Position Crystallization Date
+
+**Trigger**: `trg_ensure_crystallization_date`
+
+Ensures every new investor position has `last_yield_crystallization_date` set to prevent "Never Crystallized" warnings.
+
+### Duplicate Profile Detection
+
+**Trigger**: `trg_check_duplicate_profile`
+
+- Blocks exact email duplicates (raises exception)
+- Logs name-based potential duplicates to `audit_log`
+
+### Test Profile Blocking
+
+**Trigger**: `trg_block_test_profiles`
+
+Blocks test account patterns (`verify-inv-*`, `test-investor-*`, etc.) in production. Override with:
+```sql
+SET app.allow_test_profiles = 'true';
+```
+
+### Nightly AUM Reconciliation
+
+**Function**: `nightly_aum_reconciliation()`
+
+Auto-fixes any fund AUM mismatches nightly. Can be scheduled via pg_cron.
+
+See `docs/patterns/DATA_INTEGRITY_GUARDRAILS.md` for full documentation.
 
 ## Adding New Guardrails
 
@@ -210,6 +244,12 @@ declare -A FORBIDDEN_PATTERNS=(
      "0" || ((FAILURES++))
    ```
 3. Document in this file
+
+### Adding a New Trigger Guardrail
+
+1. Create the trigger function in a migration
+2. Document in `docs/patterns/DATA_INTEGRITY_GUARDRAILS.md`
+3. Add reference to this file
 
 ### Adding a New RPC Function Check
 
