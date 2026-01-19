@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 // ============================================================================
 // Strict UUID Schema - Frontend Guard for Type-Safety
@@ -341,10 +342,10 @@ export const adminTransactionDbSchema = z.object({
   fund_id: data.fundId,
   amount: data.amount,
   type: data.type,
-  tx_date: typeof data.txDate === 'string' ? data.txDate : data.txDate.toISOString().split('T')[0],
+  tx_date: typeof data.txDate === 'string' ? data.txDate : formatDateForDB(data.txDate),
   value_date: data.valueDate 
-    ? (typeof data.valueDate === 'string' ? data.valueDate : data.valueDate.toISOString().split('T')[0])
-    : (typeof data.txDate === 'string' ? data.txDate : data.txDate.toISOString().split('T')[0]),
+    ? (typeof data.valueDate === 'string' ? data.valueDate : formatDateForDB(data.valueDate))
+    : (typeof data.txDate === 'string' ? data.txDate : formatDateForDB(data.txDate)),
   asset: data.asset,
   fund_class: data.fundClass,
   notes: data.notes,
@@ -403,7 +404,7 @@ export const yieldPreviewDbSchema = z.object({
   p_fund_id: data.fundId,
   p_target_date: typeof data.targetDate === 'string' 
     ? data.targetDate 
-    : data.targetDate.toISOString().split('T')[0],
+    : formatDateForDB(data.targetDate),
   p_purpose: data.purpose,
 }));
 
@@ -419,7 +420,7 @@ export const aumRecordDbSchema = z.object({
   fund_id: data.fundId,
   aum_date: typeof data.aumDate === 'string' 
     ? data.aumDate 
-    : data.aumDate.toISOString().split('T')[0],
+    : formatDateForDB(data.aumDate),
   total_aum: data.totalAum,
   purpose: data.purpose,
 }));

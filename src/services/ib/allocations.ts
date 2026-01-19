@@ -9,6 +9,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import type { Database } from "@/integrations/supabase/types";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 type AumPurpose = Database["public"]["Enums"]["aum_purpose"];
 
@@ -180,7 +181,7 @@ class IBAllocationService {
         source_net_income: sourceNetIncome,
         ib_percentage: ibPercentage,
         ib_fee_amount: ibFeeAmount,
-        effective_date: effectiveDate.toISOString().split("T")[0],
+        effective_date: formatDateForDB(effectiveDate),
         fund_id: fundId || null,
         period_id: periodId || null,
         created_by: createdBy || null,
@@ -212,10 +213,10 @@ class IBAllocationService {
       .order("id", { ascending: false });
 
     if (startDate) {
-      query = query.gte("effective_date", startDate.toISOString().split("T")[0]);
+      query = query.gte("effective_date", formatDateForDB(startDate));
     }
     if (endDate) {
-      query = query.lte("effective_date", endDate.toISOString().split("T")[0]);
+      query = query.lte("effective_date", formatDateForDB(endDate));
     }
 
     const { data, error } = await query;

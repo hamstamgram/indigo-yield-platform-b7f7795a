@@ -3,6 +3,7 @@ import { WizardFormData } from "@/components/admin/investors/wizard/types";
 import { addCsrfHeader } from "@/lib/security/csrf";
 import { logError, logWarn } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { getTodayString } from "@/utils/dateUtils";
 
 interface CreateIBResponse {
   success: boolean;
@@ -205,7 +206,7 @@ export async function createInvestorWithWizard(
       .insert({
         investor_id: investorId,
         fee_pct: fees.investor_fee_pct,
-        effective_date: new Date().toISOString().split("T")[0],
+        effective_date: getTodayString(),
       });
 
     if (feeError) {
@@ -218,7 +219,7 @@ export async function createInvestorWithWizard(
 
     if (positivePositions.length > 0) {
       // Get the effective date from wizard data (with fallback to today)
-      const effectiveDate = wizardData.positionsEffectiveDate || new Date().toISOString().split("T")[0];
+      const effectiveDate = wizardData.positionsEffectiveDate || getTodayString();
       
       // CRITICAL: Only select ACTIVE funds to prevent duplicate positions on deprecated funds
       const { data: allFunds } = await supabase
