@@ -12,10 +12,11 @@ export { documentService } from "./documentService";
 // Asset management
 export { assetService } from "./assetService";
 
-// Fund management (delegates to admin/fundService)
-export { fundService } from "./fundService";
+// Fund management - DEPRECATED: Use @/services/admin/fundService instead
+// Re-export from admin for backward compatibility
+export { fundService } from "../admin/fundService";
 // Note: Fund, FundRef, FundStatus should be imported from @/types/domains/fund
-// Note: FundKPI, DailyNav should be imported from @/services/admin/fundService
+// Note: FundKPI, DailyNav, CreateFundInput should be imported from @/services/admin/fundService
 
 // Performance services
 export * from "./performanceService";

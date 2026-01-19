@@ -11,7 +11,7 @@ export {
 } from "./adminStatsService";
 export type { AdminStats } from "./adminStatsService";
 
-// Fund management (low-level functions - prefer shared/fundService for most uses)
+// Fund management - canonical source for fund operations
 export {
   listFunds,
   getFund,
@@ -21,8 +21,16 @@ export {
   getLatestNav,
   getFundPerformance,
   checkFundUsage,
+  getActiveFunds,
+  getFundsByIds,
+  getFundByAsset,
+  codeExists,
+  deactivateFund,
+  updateFundStatus,
+  createFundSimple,
+  fundService,
 } from "./fundService";
-export type { DailyNav, FundKPI } from "./fundService";
+export type { DailyNav, FundKPI, CreateFundInput } from "./fundService";
 
 // Admin investor operations (renamed from adminServiceV2)
 export { adminInvestorService, adminServiceV2 } from "./adminService";
