@@ -48,7 +48,8 @@ class IBPayoutService {
           email
         )
       `)
-      .order("effective_date", { ascending: false });
+      .order("effective_date", { ascending: false })
+      .limit(1000);
 
     if (statusFilter !== "all") {
       query = query.eq("payout_status", statusFilter);
