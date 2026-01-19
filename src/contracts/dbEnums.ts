@@ -101,6 +101,20 @@ export const DB_TX_TYPE = {
 
 /**
  * UI transaction types - includes FIRST_INVESTMENT which is UI-only
+ * 
+ * IMPORTANT: FIRST_INVESTMENT does NOT exist in the database tx_type enum.
+ * It is a UI-only display type used to show "First Investment" in the interface.
+ * 
+ * When saving to the database:
+ * 1. Use mapUITypeToDb("FIRST_INVESTMENT") → returns "DEPOSIT"
+ * 2. Set tx_subtype = "first_investment" to preserve the context
+ * 
+ * This pattern allows the UI to show meaningful labels while maintaining
+ * database enum integrity. The verify-enum-contracts.ts script validates
+ * that TX_TYPE_VALUES matches the database exactly.
+ * 
+ * @see mapUITypeToDb() for the mapping function
+ * @see getDefaultSubtype() for tx_subtype determination
  */
 export const UI_TX_TYPE_VALUES = [...TX_TYPE_VALUES, "FIRST_INVESTMENT"] as const;
 

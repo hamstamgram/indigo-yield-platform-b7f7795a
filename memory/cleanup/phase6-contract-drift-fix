@@ -1,0 +1,51 @@
+# Phase 6: Contract Drift Fix - Completed
+
+## Date: 2026-01-19
+
+## Summary
+Fixed false positive drift detection caused by hardcoded snapshots in analyze-drift.ts.
+
+## Changes Made
+
+### P6-01: Fixed analyze-drift.ts
+- Rewrote script to dynamically import from actual contract files (dbEnums.ts, dbSchema.ts)
+- Removed hardcoded contractSnapshot with stale values
+- Script now parses TX_TYPE_VALUES and DB_TABLES from source files
+
+### P6-02: Updated Drift Report
+- Regenerated artifacts/contract-drift-report.md
+- Now shows "🟢 ZERO DRIFT" (was showing 2 false positives)
+
+### P6-03: Added FIRST_INVESTMENT Documentation
+- Added comprehensive JSDoc to UI_TX_TYPE_VALUES in dbEnums.ts
+- Documents that FIRST_INVESTMENT is UI-only, mapped to DEPOSIT
+- References mapUITypeToDb() and getDefaultSubtype() functions
+
+### P6-05: Updated Drift Report Artifact
+- Cleared false positive report
+- Added notes explaining the fix
+
+### P6-06: Updated dbSchema.ts Profiles Columns
+- Expanded profiles columns from 9 to 24 (matches actual DB schema)
+- Added: is_admin, totp_enabled, totp_verified, status, preferences,
+  onboarding_date, entity_type, kyc_status, ib_parent_id, ib_percentage,
+  account_type, is_system_account, include_in_reporting, last_activity_at,
+  fee_pct, ib_commission_source
+
+## Root Cause
+The original analyze-drift.ts had hardcoded snapshots:
+- `contractSnapshot.tables.profiles` included non-existent `is_test` column
+- `txTypesInContract` included UI-only `FIRST_INVESTMENT`
+
+These hardcoded values became stale and didn't reflect the actual contracts.
+
+## Files Modified
+- scripts/analyze-drift.ts (rewritten)
+- artifacts/contract-drift-report.md (regenerated)
+- src/contracts/dbEnums.ts (documentation added)
+- src/contracts/dbSchema.ts (profiles columns updated)
+
+## Verification
+- No database changes required
+- Contract enums in dbEnums.ts already matched DB exactly
+- The drift was in the detection script, not the contracts
