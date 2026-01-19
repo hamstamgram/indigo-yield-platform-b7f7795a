@@ -51,18 +51,15 @@ export default function DuplicatesPage() {
   const mergeDuplicates = useMergeDuplicateProfiles();
 
   const handleOpenMerge = (dup: {
-    profile_id_1: string;
-    profile_id_2: string;
-    email_1: string;
-    email_2: string;
-    name_1: string;
-    name_2: string;
+    profile_ids: string[];
+    emails: string[];
+    names: string[];
   }) => {
     setMergeDialog({
       open: true,
-      profile1: { id: dup.profile_id_1, email: dup.email_1, name: dup.name_1 },
-      profile2: { id: dup.profile_id_2, email: dup.email_2, name: dup.name_2 },
-      keepId: dup.profile_id_1, // Default to first profile
+      profile1: { id: dup.profile_ids[0] || "", email: dup.emails[0] || "", name: dup.names[0] || "" },
+      profile2: { id: dup.profile_ids[1] || "", email: dup.emails[1] || "", name: dup.names[1] || "" },
+      keepId: dup.profile_ids[0] || "", // Default to first profile
     });
   };
 
@@ -201,22 +198,22 @@ export default function DuplicatesPage() {
                 </TableHeader>
                 <TableBody>
                   {duplicates.map((dup, idx) => (
-                    <TableRow key={`${dup.profile_id_1}-${dup.profile_id_2}-${idx}`}>
+                    <TableRow key={`${dup.match_key}-${idx}`}>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{dup.name_1}</span>
-                          <span className="text-xs text-muted-foreground">{dup.email_1}</span>
+                          <span className="font-medium">{dup.names[0] || "N/A"}</span>
+                          <span className="text-xs text-muted-foreground">{dup.emails[0] || "N/A"}</span>
                           <span className="text-xs text-muted-foreground font-mono">
-                            {dup.profile_id_1.slice(0, 8)}...
+                            {(dup.profile_ids[0] || "").slice(0, 8)}...
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{dup.name_2}</span>
-                          <span className="text-xs text-muted-foreground">{dup.email_2}</span>
+                          <span className="font-medium">{dup.names[1] || "N/A"}</span>
+                          <span className="text-xs text-muted-foreground">{dup.emails[1] || "N/A"}</span>
                           <span className="text-xs text-muted-foreground font-mono">
-                            {dup.profile_id_2.slice(0, 8)}...
+                            {(dup.profile_ids[1] || "").slice(0, 8)}...
                           </span>
                         </div>
                       </TableCell>
@@ -226,8 +223,8 @@ export default function DuplicatesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getSimilarityBadge(dup.similarity_score)}>
-                          {dup.similarity_score}%
+                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                          {dup.profile_count} profiles
                         </Badge>
                       </TableCell>
                       <TableCell>

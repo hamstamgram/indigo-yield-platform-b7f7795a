@@ -104,7 +104,7 @@ export default function CrystallizationDashboardPage() {
     );
   };
 
-  const totalGaps = dashboardData?.reduce((sum, f) => sum + f.gap_count, 0) || 0;
+  const totalGaps = dashboardData?.reduce((sum, f) => sum + f.stale + f.critical_stale + f.never_crystallized, 0) || 0;
   const totalPositions = dashboardData?.reduce((sum, f) => sum + f.total_positions, 0) || 0;
 
   if (dashboardLoading) {
@@ -195,7 +195,7 @@ export default function CrystallizationDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {dashboardData?.reduce((sum, f) => sum + f.crystallized_count, 0) || 0}
+              {dashboardData?.reduce((sum, f) => sum + f.current_, 0) || 0}
             </div>
           </CardContent>
         </Card>
@@ -254,13 +254,13 @@ export default function CrystallizationDashboardPage() {
                       <TableCell className="text-right font-mono">{fund.total_positions}</TableCell>
                       <TableCell className="text-right">
                         <span className="text-green-600 dark:text-green-400 font-mono">
-                          {fund.crystallized_count}
+                          {fund.current_}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        {fund.gap_count > 0 ? (
+                        {(fund.stale + fund.critical_stale + fund.never_crystallized) > 0 ? (
                           <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                            {fund.gap_count}
+                            {fund.stale + fund.critical_stale + fund.never_crystallized}
                           </Badge>
                         ) : (
                           <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
@@ -269,20 +269,20 @@ export default function CrystallizationDashboardPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {fund.oldest_gap_days !== null ? (
-                          <span
-                            className={
-                              fund.oldest_gap_days > 30 ? "text-red-600 dark:text-red-400" : ""
-                            }
-                          >
-                            {fund.oldest_gap_days}d
+                        {fund.critical_stale > 0 ? (
+                          <span className="text-red-600 dark:text-red-400">
+                            {fund.critical_stale} critical
+                          </span>
+                        ) : fund.stale > 0 ? (
+                          <span className="text-yellow-600 dark:text-yellow-400">
+                            {fund.stale} stale
                           </span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <FinancialValue value={fund.total_aum} displayDecimals={0} />
+                        <FinancialValue value={fund.total_aum_in_positions} displayDecimals={0} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
@@ -292,7 +292,7 @@ export default function CrystallizationDashboardPage() {
                             onClick={() =>
                               handleBatchCrystallize(fund.fund_id, fund.fund_code, true)
                             }
-                            disabled={batchCrystallize.isPending || fund.gap_count === 0}
+                            disabled={batchCrystallize.isPending || (fund.stale + fund.critical_stale + fund.never_crystallized) === 0}
                             title="Preview batch crystallization"
                           >
                             <Eye className="h-4 w-4" />
@@ -303,7 +303,7 @@ export default function CrystallizationDashboardPage() {
                             onClick={() =>
                               handleBatchCrystallize(fund.fund_id, fund.fund_code, false)
                             }
-                            disabled={batchCrystallize.isPending || fund.gap_count === 0}
+                            disabled={batchCrystallize.isPending || (fund.stale + fund.critical_stale + fund.never_crystallized) === 0}
                             title="Execute batch crystallization"
                           >
                             <Play className="h-4 w-4" />
@@ -374,11 +374,11 @@ export default function CrystallizationDashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {gaps.map((gap, idx) => (
+                {gaps.map((gap, idx) => (
                     <TableRow key={`${gap.investor_id}-${gap.fund_id}-${idx}`}>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{gap.investor_name}</span>
+                          <span className="font-medium">{gap.investor_email}</span>
                           <span className="text-xs text-muted-foreground font-mono">
                             {gap.investor_id.slice(0, 8)}...
                           </span>
@@ -388,13 +388,13 @@ export default function CrystallizationDashboardPage() {
                         <Badge variant="outline">{gap.fund_code}</Badge>
                       </TableCell>
                       <TableCell>
-                        {gap.last_crystallization_date ? (
+                        {gap.last_yield_crystallization_date ? (
                           <div className="flex flex-col">
                             <span>
-                              {format(new Date(gap.last_crystallization_date), "MMM d, yyyy")}
+                              {format(new Date(gap.last_yield_crystallization_date), "MMM d, yyyy")}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(gap.last_crystallization_date), {
+                              {formatDistanceToNow(new Date(gap.last_yield_crystallization_date), {
                                 addSuffix: true,
                               })}
                             </span>
@@ -406,14 +406,14 @@ export default function CrystallizationDashboardPage() {
                       <TableCell className="text-right">
                         <span
                           className={
-                            gap.days_since_crystallization > 30
+                            gap.days_behind > 30
                               ? "text-red-600 dark:text-red-400 font-bold"
-                              : gap.days_since_crystallization > 7
+                              : gap.days_behind > 7
                                 ? "text-yellow-600 dark:text-yellow-400"
                                 : ""
                           }
                         >
-                          {gap.days_since_crystallization}d
+                          {gap.days_behind}d
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
