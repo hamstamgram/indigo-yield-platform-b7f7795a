@@ -10178,18 +10178,6 @@ export type Database = {
         Args: { p_requests: Json }
         Returns: Json
       }
-      admin_fix_opening_aum: {
-        Args: { p_distribution_id: string; p_opening_aum: number }
-        Returns: Json
-      }
-      admin_fix_position: {
-        Args: { p_fund_id: string; p_investor_id: string }
-        Returns: Json
-      }
-      admin_set_distribution_status: {
-        Args: { p_distribution_id: string; p_status: string }
-        Returns: Json
-      }
       apply_adb_yield_distribution: {
         Args: {
           p_admin_id: string

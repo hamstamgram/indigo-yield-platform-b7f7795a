@@ -85,7 +85,6 @@ All frontend RPC calls MUST go through this gateway. Features:
 | `reset_all_data_keep_profiles` | ⚠️ Super Admin Only | Protected by `is_super_admin()` check |
 | `reset_all_investor_positions` | ⚠️ Super Admin Only | Protected by `is_super_admin()` check |
 | `delete_transaction` | ⚠️ Internal Only | Not exposed in frontend; use `void_transaction` |
-| `handle_ledger_transaction` | ✅ Internal | Called by other RPCs only |
 | `internal_route_to_fees` | ✅ Internal | Called by yield distribution only |
 
 ### 1.5 Top 20 Risk Assessment
