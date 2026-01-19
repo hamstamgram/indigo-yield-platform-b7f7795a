@@ -1,13 +1,16 @@
 # SECURITY DEFINER Views Documentation
 
 **Last Updated:** 2026-01-19  
-**Status:** Intentional - All views are authorized for admin use
+**Status:** Intentional - All views are authorized for admin use  
+**Phase 5 Update:** Reduced from 40 to ~23 views after cleanup
 
 ---
 
 ## Overview
 
-These 40 views use `SECURITY DEFINER` to bypass Row Level Security (RLS) for admin integrity dashboards. This is **intentional** and **by design** to allow cross-investor data aggregation for system health monitoring.
+These ~23 views use `SECURITY DEFINER` to bypass Row Level Security (RLS) for admin integrity dashboards. This is **intentional** and **by design** to allow cross-investor data aggregation for system health monitoring.
+
+> **Note:** 17 unused SECURITY DEFINER views were dropped in Phase 5. See `docs/patterns/VIEW_INVENTORY.md` for the dropped view list.
 
 All SECURITY DEFINER views are:
 - **Read-only** (no mutations possible)
