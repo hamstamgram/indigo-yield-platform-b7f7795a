@@ -176,43 +176,43 @@ export default function BypassAttemptsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getOperationBadge(attempt.operation_type)}>
-                            {attempt.operation_type}
+                          <Badge className={getOperationBadge(attempt.attempted_type)}>
+                            {attempt.attempted_type}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <span className="flex items-center gap-1">
                             <Database className="h-3 w-3 text-muted-foreground" />
                             <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                              {attempt.table_name}
+                              {attempt.attempted_source}
                             </code>
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-red-600 dark:text-red-400">
-                            {attempt.blocked_reason}
+                            {attempt.error_message}
                           </span>
                         </TableCell>
                         <TableCell>
-                          {attempt.actor_id ? (
+                          {attempt.user_id ? (
                             <span className="flex items-center gap-1 text-xs">
                               <User className="h-3 w-3 text-muted-foreground" />
-                              <code className="font-mono">{attempt.actor_id.slice(0, 8)}...</code>
+                              <code className="font-mono">{attempt.user_id.slice(0, 8)}...</code>
                             </span>
                           ) : (
                             <span className="text-muted-foreground text-xs">System</span>
                           )}
                         </TableCell>
                       </TableRow>
-                      {expandedRows.has(attempt.id) && attempt.payload && (
+                      {expandedRows.has(attempt.id) && attempt.client_info && (
                         <TableRow>
                           <TableCell colSpan={5} className="bg-muted/30">
                             <div className="p-2">
                               <p className="text-xs font-medium text-muted-foreground mb-2">
-                                Payload (attempted data):
+                                Client Info:
                               </p>
                               <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-48">
-                                {JSON.stringify(attempt.payload, null, 2)}
+                                {JSON.stringify(attempt.client_info, null, 2)}
                               </pre>
                             </div>
                           </TableCell>
