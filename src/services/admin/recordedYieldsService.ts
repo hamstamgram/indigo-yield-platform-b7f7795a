@@ -51,6 +51,10 @@ export interface UpdateYieldRecordInput {
 /**
  * Fetch all yield records with optional filters
  */
+/**
+ * Fetch all yield records with optional filters
+ * Performance: Limited to 1000 rows to prevent timeouts on large datasets
+ */
 export async function getYieldRecords(filters: YieldFilters = {}): Promise<YieldRecord[]> {
   let query = supabase
     .from("fund_daily_aum")
@@ -76,7 +80,8 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
     )
     .eq("is_voided", false)
     .order("aum_date", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(1000); // P1 fix: Prevent timeout for large datasets
 
   if (filters.fundId && filters.fundId !== "all") {
     query = query.eq("fund_id", filters.fundId);
