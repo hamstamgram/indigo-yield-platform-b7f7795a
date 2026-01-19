@@ -10935,15 +10935,6 @@ export type Database = {
           total_ib_delta: number
         }[]
       }
-      handle_ledger_transaction: {
-        Args: {
-          p_amount: number
-          p_fund_id: string
-          p_investor_id: string
-          p_type: string
-        }
-        Returns: undefined
-      }
       has_finalized_recon_pack: {
         Args: {
           p_fund_id: string

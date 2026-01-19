@@ -278,7 +278,7 @@ export const RPC_FUNCTIONS = [
 
   // Internal Operations
   "internal_route_to_fees",
-  "handle_ledger_transaction",
+  // P2-03 removed: handle_ledger_transaction (deprecated, raises exception)
 
   // Materialized Views
   "refresh_materialized_view_concurrently",
