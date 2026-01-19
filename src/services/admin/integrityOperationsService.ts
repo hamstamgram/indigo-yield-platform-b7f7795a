@@ -19,6 +19,7 @@ export interface IntegrityRun {
   violations: IntegrityViolation[];
   runtime_ms: number | null;
   triggered_by: string;
+  // Computed from violations array
   violation_count: number;
   critical_count: number;
 }
@@ -35,9 +36,9 @@ export interface AdminAlert {
   alert_type: string;
   severity: "info" | "warning" | "critical";
   title: string;
-  description: string | null;
+  message: string | null; // DB column name
   metadata: Record<string, unknown> | null;
-  integrity_run_id: string | null;
+  related_run_id: string | null; // DB column name
   created_at: string;
   acknowledged_at: string | null;
   acknowledged_by: string | null;
@@ -56,31 +57,37 @@ export interface CrystallizationDashboardRow {
   fund_code: string;
   fund_name: string;
   total_positions: number;
-  crystallized_count: number;
-  gap_count: number;
-  oldest_gap_days: number | null;
-  total_aum: number;
+  current_: number; // DB column name (crystallized count)
+  stale: number;
+  critical_stale: number;
+  never_crystallized: number;
+  aum_needing_crystallization: number;
+  total_aum_in_positions: number; // DB column name
 }
 
 export interface CrystallizationGap {
   investor_id: string;
   fund_id: string;
-  investor_name: string;
+  investor_email: string; // DB column name
   fund_code: string;
-  last_crystallization_date: string | null;
-  days_since_crystallization: number;
+  last_yield_crystallization_date: string | null; // DB column name
+  days_behind: number; // DB column name
   current_value: number;
+  gap_type: string;
+  cumulative_yield_earned: number;
 }
 
 export interface DuplicateProfile {
-  profile_id_1: string;
-  profile_id_2: string;
-  email_1: string;
-  email_2: string;
-  name_1: string;
-  name_2: string;
   duplicate_type: string;
-  similarity_score: number;
+  emails: string[];
+  names: string[];
+  profile_ids: string[];
+  profile_count: number;
+  match_key: string;
+  first_created: string;
+  last_created: string;
+  total_funds_affected: number;
+  total_value_affected: number;
 }
 
 export interface BypassAttempt {
@@ -129,16 +136,20 @@ export async function fetchIntegrityRuns(limit = 20): Promise<IntegrityRun[]> {
     throw error;
   }
 
-  return (data || []).map((row) => ({
-    id: row.id,
-    run_at: row.run_at,
-    status: row.status as "pass" | "fail",
-    violations: (row.violations as unknown as IntegrityViolation[]) || [],
-    runtime_ms: row.runtime_ms,
-    triggered_by: row.triggered_by,
-    violation_count: row.violation_count || 0,
-    critical_count: row.critical_count || 0,
-  }));
+  return (data || []).map((row) => {
+    const violations = (row.violations as unknown as IntegrityViolation[]) || [];
+    return {
+      id: row.id,
+      run_at: row.run_at,
+      status: row.status as "pass" | "fail",
+      violations,
+      runtime_ms: row.runtime_ms,
+      triggered_by: row.triggered_by,
+      // Compute from violations array
+      violation_count: violations.length,
+      critical_count: violations.filter((v) => v.severity === "critical").length,
+    };
+  });
 }
 
 /**
@@ -165,7 +176,18 @@ export async function fetchAdminAlerts(
     throw error;
   }
 
-  return (data || []) as AdminAlert[];
+  return (data || []).map((row) => ({
+    id: row.id,
+    alert_type: row.alert_type,
+    severity: row.severity as "info" | "warning" | "critical",
+    title: row.title,
+    message: row.message,
+    metadata: row.metadata as Record<string, unknown> | null,
+    related_run_id: row.related_run_id,
+    created_at: row.created_at,
+    acknowledged_at: row.acknowledged_at,
+    acknowledged_by: row.acknowledged_by,
+  })) as AdminAlert[];
 }
 
 /**
@@ -219,7 +241,18 @@ export async function fetchCrystallizationDashboard(
     throw error;
   }
 
-  return (data || []) as CrystallizationDashboardRow[];
+  return (data || []).map((row) => ({
+    fund_id: row.fund_id,
+    fund_code: row.fund_code,
+    fund_name: row.fund_name,
+    total_positions: row.total_positions,
+    current_: row.current_,
+    stale: row.stale,
+    critical_stale: row.critical_stale,
+    never_crystallized: row.never_crystallized,
+    aum_needing_crystallization: row.aum_needing_crystallization,
+    total_aum_in_positions: row.total_aum_in_positions,
+  })) as CrystallizationDashboardRow[];
 }
 
 /**
@@ -232,7 +265,7 @@ export async function fetchCrystallizationGaps(
   let query = supabase
     .from("v_crystallization_gaps")
     .select("*")
-    .order("days_since_crystallization", { ascending: false })
+    .order("days_behind", { ascending: false })
     .limit(limit);
 
   if (fundId) {
@@ -246,7 +279,17 @@ export async function fetchCrystallizationGaps(
     throw error;
   }
 
-  return (data || []) as CrystallizationGap[];
+  return (data || []).map((row) => ({
+    investor_id: row.investor_id,
+    fund_id: row.fund_id,
+    investor_email: row.investor_email,
+    fund_code: row.fund_code,
+    last_yield_crystallization_date: row.last_yield_crystallization_date,
+    days_behind: row.days_behind,
+    current_value: row.current_value,
+    gap_type: row.gap_type,
+    cumulative_yield_earned: row.cumulative_yield_earned,
+  })) as CrystallizationGap[];
 }
 
 /**
@@ -256,14 +299,25 @@ export async function fetchDuplicateProfiles(): Promise<DuplicateProfile[]> {
   const { data, error } = await supabase
     .from("v_potential_duplicate_profiles")
     .select("*")
-    .order("similarity_score", { ascending: false });
+    .order("profile_count", { ascending: false });
 
   if (error) {
     logError("fetchDuplicateProfiles", error);
     throw error;
   }
 
-  return (data || []) as DuplicateProfile[];
+  return (data || []).map((row) => ({
+    duplicate_type: row.duplicate_type,
+    emails: row.emails,
+    names: row.names,
+    profile_ids: row.profile_ids,
+    profile_count: row.profile_count,
+    match_key: row.match_key,
+    first_created: row.first_created,
+    last_created: row.last_created,
+    total_funds_affected: row.total_funds_affected,
+    total_value_affected: row.total_value_affected,
+  })) as DuplicateProfile[];
 }
 
 /**

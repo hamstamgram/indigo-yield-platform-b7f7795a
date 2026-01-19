@@ -5953,6 +5953,42 @@ export type Database = {
         }
         Relationships: []
       }
+      temp_balance: {
+        Row: {
+          bal: number | null
+        }
+        Insert: {
+          bal?: number | null
+        }
+        Update: {
+          bal?: number | null
+        }
+        Relationships: []
+      }
+      temp_fund: {
+        Row: {
+          id: string | null
+        }
+        Insert: {
+          id?: string | null
+        }
+        Update: {
+          id?: string | null
+        }
+        Relationships: []
+      }
+      temp_investor: {
+        Row: {
+          id: string | null
+        }
+        Insert: {
+          id?: string | null
+        }
+        Update: {
+          id?: string | null
+        }
+        Relationships: []
+      }
       transaction_bypass_attempts: {
         Row: {
           attempted_amount: number | null
@@ -11125,6 +11161,10 @@ export type Database = {
         Args: { p_distribution_id: string; p_opening_aum: number }
         Returns: Json
       }
+      admin_fix_position: {
+        Args: { p_fund_id: string; p_investor_id: string }
+        Returns: Json
+      }
       admin_set_distribution_status: {
         Args: { p_distribution_id: string; p_status: string }
         Returns: Json
@@ -11166,12 +11206,12 @@ export type Database = {
         Args: {
           p_admin_id: string
           p_amount: number
+          p_closing_aum: number
+          p_effective_date: string
           p_fund_id: string
           p_investor_id: string
-          p_new_total_aum: number
           p_notes?: string
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_tx_date: string
         }
         Returns: Json
       }
@@ -11278,10 +11318,7 @@ export type Database = {
         Args: { p_admin_id?: string; p_dry_run?: boolean }
         Returns: Json
       }
-      batch_reconcile_all_positions: {
-        Args: { p_corrected_by?: string }
-        Returns: Json
-      }
+      batch_reconcile_all_positions: { Args: never; Returns: Json }
       build_error_response: {
         Args: { p_details?: Json; p_error_code: string }
         Returns: Json
@@ -12311,8 +12348,8 @@ export type Database = {
         Returns: Json
       }
       recompute_investor_position: {
-        Args: { p_fund_id?: string; p_investor_id: string }
-        Returns: undefined
+        Args: { p_fund_id: string; p_investor_id: string }
+        Returns: Json
       }
       recompute_investor_positions_for_investor: {
         Args: { p_investor_id: string }
@@ -12472,15 +12509,25 @@ export type Database = {
         Returns: number
       }
       set_canonical_rpc: { Args: { enabled?: boolean }; Returns: undefined }
-      set_fund_daily_aum: {
-        Args: {
-          p_aum_date: string
-          p_fund_id: string
-          p_nav_per_share?: number
-          p_total_aum: number
-        }
-        Returns: string
-      }
+      set_fund_daily_aum:
+        | {
+            Args: {
+              p_aum_date: string
+              p_fund_id: string
+              p_nav_per_share?: number
+              p_total_aum: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_aum_date: string
+              p_fund_id: string
+              p_purpose?: string
+              p_total_aum: number
+            }
+            Returns: Json
+          }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       start_processing_withdrawal:
@@ -12498,6 +12545,7 @@ export type Database = {
             }
             Returns: boolean
           }
+      sync_all_fund_aum: { Args: { p_target_date?: string }; Returns: Json }
       sync_aum_to_positions: {
         Args: {
           p_admin_id?: string
