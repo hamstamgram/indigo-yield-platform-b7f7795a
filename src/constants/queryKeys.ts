@@ -405,6 +405,11 @@ export const QUERY_KEYS = {
     fundId
       ? (["fundInvestorComposition", fundId] as const)
       : (["fundInvestorComposition"] as const),
+  /** Historical AUM as of a specific date - authoritative read path for yield ops */
+  fundAumAsOf: (fundId?: string | null, asOfDate?: string | null, purpose?: string) =>
+    fundId && asOfDate
+      ? (["fund-aum-as-of", fundId, asOfDate, purpose || "reporting"] as const)
+      : (["fund-aum-as-of"] as const),
 
   // ============ Investor Yield (Investor-facing) ============
   investorYieldEventsInvestor: (
