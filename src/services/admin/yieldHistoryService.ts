@@ -84,9 +84,10 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
   investorCount: number;
   lastUpdated: string | null;
 }> {
+  // Fetch positions with balance filter
   const { data: positions, error } = await supabase
     .from("investor_positions")
-    .select("current_value, updated_at")
+    .select("investor_id, current_value, updated_at")
     .eq("fund_id", fundId)
     .gt("current_value", 0);
 
@@ -95,10 +96,26 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
     throw new Error(`Failed to fetch current AUM: ${error.message}`);
   }
 
-  const totalAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  // Fetch investor profiles to filter by account_type
+  const investorIds = [...new Set((positions || []).map(p => p.investor_id))];
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, account_type")
+    .in("id", investorIds.length > 0 ? investorIds : ['none']);
+
+  const investorSet = new Set(
+    (profiles || [])
+      .filter(p => p.account_type === 'investor')
+      .map(p => p.id)
+  );
+
+  // Filter to investor accounts only
+  const investorPositions = (positions || []).filter(p => investorSet.has(p.investor_id));
+
+  const totalAUM = investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 
   const lastUpdated =
-    positions?.reduce(
+    investorPositions.reduce(
       (latest, p) => {
         if (!latest || (p.updated_at && p.updated_at > latest)) {
           return p.updated_at;
@@ -110,7 +127,7 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
 
   return {
     totalAUM,
-    investorCount: positions?.length || 0,
+    investorCount: investorPositions.length,
     lastUpdated,
   };
 }

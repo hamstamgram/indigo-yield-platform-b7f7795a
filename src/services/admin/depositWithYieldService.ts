@@ -195,12 +195,13 @@ export async function processDepositWithYield(
 }
 
 /**
- * Get current fund AUM from positions
+ * Get current fund AUM from positions (investor accounts only)
  */
 export async function getCurrentFundAum(fundId: string): Promise<number> {
+  // Fetch positions with balance filter
   const { data: positions, error } = await supabase
     .from("investor_positions")
-    .select("current_value")
+    .select("investor_id, current_value")
     .eq("fund_id", fundId)
     .gt("current_value", 0);
 
@@ -208,5 +209,21 @@ export async function getCurrentFundAum(fundId: string): Promise<number> {
     throw new Error(`Failed to fetch positions: ${error.message}`);
   }
 
-  return positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  // Fetch investor profiles to filter by account_type
+  const investorIds = [...new Set((positions || []).map(p => p.investor_id))];
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, account_type")
+    .in("id", investorIds.length > 0 ? investorIds : ['none']);
+
+  const investorSet = new Set(
+    (profiles || [])
+      .filter(p => p.account_type === 'investor')
+      .map(p => p.id)
+  );
+
+  // Filter to investor accounts only
+  const investorPositions = (positions || []).filter(p => investorSet.has(p.investor_id));
+
+  return investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 }
