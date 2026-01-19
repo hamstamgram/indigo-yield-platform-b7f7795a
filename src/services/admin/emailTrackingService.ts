@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { getTodayString } from "@/utils/dateUtils";
 
 // =====================================================
 // TYPES
@@ -94,7 +95,7 @@ export async function getEmailStats(filters?: EmailFilters): Promise<EmailStats>
     };
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayString();
 
   const stats: EmailStats = {
     totalSent: data?.length || 0,

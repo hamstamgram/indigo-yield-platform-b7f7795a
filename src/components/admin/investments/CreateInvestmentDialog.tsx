@@ -10,6 +10,7 @@ import {
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validation/investment";
 import { type InvestmentFormData } from "@/types/domains";
 import { investmentService } from "@/services";
+import { getTodayString } from "@/utils/dateUtils";
 import { toast } from "sonner";
 import { useInvestors, useActiveFunds } from "@/hooks/data";
 
@@ -43,7 +44,7 @@ export function CreateInvestmentDialog({
   const form = useForm<InvestmentFormValues>({
     resolver: zodResolver(investmentFormSchema),
     defaultValues: {
-      investment_date: new Date().toISOString().split("T")[0],
+      investment_date: getTodayString(),
       transaction_type: "initial",
     },
   });

@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { FundDailyAUM } from "@/types/domains/yield";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 /** Position with fund join result */
 interface PositionWithFundJoin {
@@ -19,9 +20,8 @@ interface PositionWithFundJoin {
   } | null;
 }
 
-function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
+// Use canonical formatDateForDB from dateUtils - see src/utils/dateUtils.ts for why
+// toISOString().split("T")[0] is NOT timezone-safe
 
 /**
  * Get historical AUM entries for a fund
@@ -44,10 +44,10 @@ export async function getFundAUMHistory(
     .limit(500); // P1 fix: Prevent timeout for large datasets
 
   if (startDate) {
-    query = query.gte("aum_date", formatDate(startDate));
+    query = query.gte("aum_date", formatDateForDB(startDate));
   }
   if (endDate) {
-    query = query.lte("aum_date", formatDate(endDate));
+    query = query.lte("aum_date", formatDateForDB(endDate));
   }
 
   const { data, error } = await query;
@@ -147,7 +147,7 @@ export async function saveDraftAUMEntry(
   notes?: string,
   adminId?: string
 ): Promise<FundDailyAUM> {
-  const dateStr = formatDate(recordDate);
+  const dateStr = formatDateForDB(recordDate);
   const purpose = "transaction";
 
   // Check for existing active record

@@ -10,6 +10,7 @@ import type { PortfolioPosition, PortfolioSummary, PortfolioData } from "@/types
 import { supabase } from "@/integrations/supabase/client";
 import { logError, logWarn } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { getTodayString } from "@/utils/dateUtils";
 
 // Helper to fetch funds (internal use)
 async function getAllFunds() {
@@ -31,7 +32,7 @@ export class PortfolioService extends ApiClient {
   ): Promise<boolean> {
     try {
       const funds = await getAllFunds();
-      const today = new Date().toISOString().split("T")[0];
+      const today = getTodayString();
 
       for (const [assetSymbolRaw, amountRaw] of Object.entries(balances || {})) {
         const amount = Number(amountRaw) || 0;

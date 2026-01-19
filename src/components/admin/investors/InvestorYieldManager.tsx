@@ -32,6 +32,7 @@ import {
   useInvestorPerformanceForPeriod,
   useInvestorFeeScheduleData,
 } from "@/hooks/data";
+import { getTodayString } from "@/utils/dateUtils";
 
 interface InvestorYieldManagerProps {
   investorId: string;
@@ -72,7 +73,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
 
   // Get fee for a specific fund
   const getFeeForFund = (fundId: string): number => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayString();
     // First try fund-specific fee
     const fundFee = feeSchedule.find(
       (f) => f.fund_id === fundId && f.effective_date <= today

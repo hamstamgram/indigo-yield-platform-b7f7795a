@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getTodayString } from "@/utils/dateUtils";
 
 export interface AssetKPI {
   assetCode: string;
@@ -22,7 +23,7 @@ export const calculateTotalAUM = async () => {
     const { data, error } = await supabase
       .from("daily_nav")
       .select("aum, fund_id")
-      .eq("nav_date", new Date().toISOString().split("T")[0]);
+      .eq("nav_date", getTodayString());
 
     if (error) throw error;
 

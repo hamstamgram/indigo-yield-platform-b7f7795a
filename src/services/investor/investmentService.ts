@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { type InvestmentFormData } from "@/types/domains";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { getTodayString } from "@/utils/dateUtils";
 
 export const investmentService = {
   /**
@@ -39,7 +40,7 @@ export const investmentService = {
       throw new Error(`Fund not found: ${data.fund_id}`);
     }
 
-    const txDate = data.investment_date || new Date().toISOString().split("T")[0];
+    const txDate = data.investment_date || getTodayString();
 
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference =

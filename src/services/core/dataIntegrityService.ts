@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { getTodayString } from "@/utils/dateUtils";
 
 export interface IntegrityIssue {
   type:
@@ -158,7 +159,7 @@ export const dataIntegrityService = {
       .from("transactions_v2")
       .select("id, investor_id, tx_date, amount")
       .eq("is_voided", false)
-      .gt("tx_date", new Date().toISOString().split("T")[0]);
+      .gt("tx_date", getTodayString());
 
     if (transactions) {
       futureTransactions.push(...transactions);

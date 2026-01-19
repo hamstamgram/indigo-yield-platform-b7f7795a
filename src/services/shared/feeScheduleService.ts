@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
+import { getTodayString } from "@/utils/dateUtils";
 
 export interface FeeScheduleRow {
   fund_code: string;
@@ -70,7 +71,7 @@ class FeeScheduleService {
       throw new Error("Invalid fee rate. Must be between 0% and 100%");
     }
 
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayString();
 
     for (const fundId of fundIds) {
       const result = await db.upsert(

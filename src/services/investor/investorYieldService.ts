@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { formatDateForDB } from "@/utils/dateUtils";
 
 export interface InvestorYieldEvent {
   id: string;
@@ -88,8 +89,8 @@ export async function getInvestorVisibleYield(
     const start = new Date(options.year, options.month - 1, 1);
     const end = new Date(options.year, options.month, 0);
     query = query
-      .gte("event_date", start.toISOString().split("T")[0])
-      .lte("event_date", end.toISOString().split("T")[0]);
+      .gte("event_date", formatDateForDB(start))
+      .lte("event_date", formatDateForDB(end));
   }
 
   if (options?.limit) {
@@ -127,8 +128,8 @@ export async function getInvestorYieldSummaryByFund(
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0);
     query = query
-      .gte("event_date", start.toISOString().split("T")[0])
-      .lte("event_date", end.toISOString().split("T")[0]);
+      .gte("event_date", formatDateForDB(start))
+      .lte("event_date", formatDateForDB(end));
   }
 
   const { data, error } = await query;

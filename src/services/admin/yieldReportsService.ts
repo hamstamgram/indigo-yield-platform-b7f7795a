@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
+import { getMonthEndDate } from "@/utils/dateUtils";
 
 /**
  * Get investor performance records for a specific period
@@ -94,7 +95,7 @@ export async function createMonthlyReportTemplate(
   } else {
     // Create period if it doesn't exist
     const date = new Date(year, month - 1);
-    const endDate = new Date(year, month, 0).toISOString().split("T")[0];
+    const endDate = getMonthEndDate(year, month);
     const { data: newPeriod, error: createError } = await supabase
       .from("statement_periods")
       .insert({

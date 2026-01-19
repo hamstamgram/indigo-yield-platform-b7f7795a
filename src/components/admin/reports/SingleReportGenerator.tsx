@@ -17,10 +17,11 @@ import {
   useInvestorReportData,
   useSendInvestorReport,
 } from "@/hooks/data";
+import { getTodayString } from "@/utils/dateUtils";
 
 export function SingleReportGenerator() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
-  const [reportDate, setReportDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [reportDate, setReportDate] = useState<string>(getTodayString());
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
