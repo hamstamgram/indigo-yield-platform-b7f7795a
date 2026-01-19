@@ -13,7 +13,8 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { createAdminTransaction, type CreateTransactionParams } from "@/services";
+import { createAdminTransaction } from "@/services";
+import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { processDepositWithYield, previewDepositYield, getCurrentFundAum, type YieldPreviewResult } from "@/services/admin/depositWithYieldService";
 import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
