@@ -11435,35 +11435,16 @@ export type Database = {
       }
       cleanup_duplicate_preflow_aum: { Args: never; Returns: Json }
       cleanup_expired_approvals: { Args: never; Returns: Json }
-      complete_withdrawal:
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_closing_aum: number
-              p_event_ts: string
-              p_request_id: string
-              p_transaction_hash?: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_closing_aum?: number
-              p_event_ts?: string
-              p_request_id: string
-              p_transaction_hash?: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_request_id: string
-              p_tx_hash?: string
-            }
-            Returns: boolean
-          }
+      complete_withdrawal: {
+        Args: {
+          p_admin_notes?: string
+          p_closing_aum: number
+          p_event_ts?: string
+          p_request_id: string
+          p_transaction_hash?: string
+        }
+        Returns: boolean
+      }
       compute_correction_input_hash: {
         Args: {
           p_fund_id: string
