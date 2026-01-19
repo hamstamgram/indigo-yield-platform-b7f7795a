@@ -191,6 +191,8 @@ export async function saveDraftAUMEntry(
 /**
  * Get active funds with AUM and record counts
  * Optimized: batch queries instead of N+1
+ * NOTE: Only includes account_type='investor' with current_value > 0
+ * to match the RPC `get_funds_with_aum` filter pattern
  */
 export async function getActiveFundsWithAUM(): Promise<
   Array<{
@@ -214,11 +216,25 @@ export async function getActiveFundsWithAUM(): Promise<
 
   const fundIds = fundsData.map((f) => f.id);
 
-  // Batch fetch all positions for all funds in a single query
+  // Batch fetch all positions for all funds with current_value > 0
   const { data: allPositions } = await supabase
     .from("investor_positions")
     .select("fund_id, current_value, investor_id")
-    .in("fund_id", fundIds);
+    .in("fund_id", fundIds)
+    .gt("current_value", 0); // Exclude zero-balance positions
+
+  // Fetch profiles to filter by account_type = 'investor'
+  const investorIds = [...new Set((allPositions || []).map((p) => p.investor_id).filter(Boolean))];
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, account_type")
+    .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"])
+    .eq("account_type", "investor");
+
+  const investorSet = new Set(profiles?.map((p) => p.id) || []);
+
+  // Filter positions to only include investor accounts
+  const investorPositions = (allPositions || []).filter((p) => investorSet.has(p.investor_id));
 
   // Batch fetch all AUM record counts
   const { data: aumRecords } = await supabase
@@ -227,8 +243,8 @@ export async function getActiveFundsWithAUM(): Promise<
     .in("fund_id", fundIds);
 
   // Build lookup maps
-  const positionsByFund = new Map<string, typeof allPositions>();
-  (allPositions || []).forEach((p) => {
+  const positionsByFund = new Map<string, typeof investorPositions>();
+  investorPositions.forEach((p) => {
     const existing = positionsByFund.get(p.fund_id) || [];
     existing.push(p);
     positionsByFund.set(p.fund_id, existing);
@@ -257,8 +273,8 @@ export async function getActiveFundsWithAUM(): Promise<
 
 /**
  * Get investor composition for a fund with MTD yield
- * NOTE: Renamed to avoid conflict with dashboardMetricsService.getFundInvestorComposition
- * which returns a simpler structure without MTD yield calculations.
+ * NOTE: Only includes account_type='investor' with current_value > 0
+ * to match the RPC `get_funds_with_aum` filter pattern
  */
 export async function getFundInvestorCompositionWithYield(fundId: string): Promise<
   Array<{
@@ -270,38 +286,47 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     mtd_yield: number;
   }>
 > {
-  // Get all positions for this fund
+  // Get positions for this fund with current_value > 0
   const { data: positions, error } = await supabase
     .from("investor_positions")
     .select("investor_id, current_value")
-    .eq("fund_id", fundId);
+    .eq("fund_id", fundId)
+    .gt("current_value", 0); // Exclude zero-balance positions
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
 
-  const totalAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
   const investorIds = [...new Set(positions?.map((p) => p.investor_id).filter(Boolean))];
 
-  // Get investor profiles
+  // Get investor profiles with account_type
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, email")
+    .select("id, first_name, last_name, email, account_type")
     .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"]);
 
-  const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
+  // Filter to investor accounts only (exclude fee accounts, IB accounts)
+  const investorProfiles = (profiles || []).filter((p) => p.account_type === "investor");
+  const investorProfileIds = new Set(investorProfiles.map((p) => p.id));
+  const profileMap = new Map(investorProfiles.map((p) => [p.id, p]));
+
+  // Filter positions to only include investor accounts
+  const investorPositions = (positions || []).filter((p) => investorProfileIds.has(p.investor_id));
+
+  const totalAUM = investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 
   // Calculate MTD period
   const now = new Date();
   const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
   const mtdEnd = now.toISOString().split("T")[0];
 
-  // Fetch MTD yield transactions
+  // Fetch MTD yield transactions for investor accounts only
+  const investorIdList = [...investorProfileIds];
   const { data: yieldTransactions } = await supabase
     .from("transactions_v2")
     .select("investor_id, type, amount")
     .eq("fund_id", fundId)
     .in(
       "investor_id",
-      investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"]
+      investorIdList.length > 0 ? investorIdList : ["00000000-0000-0000-0000-000000000000"]
     )
     .in("type", ["INTEREST", "FEE"])
     .gte("tx_date", mtdStart)
@@ -319,8 +344,8 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     }
   });
 
-  // Build investor positions list
-  return (positions || [])
+  // Build investor positions list (only investor accounts)
+  return investorPositions
     .filter((p) => p.investor_id)
     .map((p) => {
       const profile = profileMap.get(p.investor_id);
