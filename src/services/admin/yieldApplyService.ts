@@ -2,15 +2,12 @@
  * Yield Apply Service
  * Handles applying yield distributions to investor positions
  * Split from yieldDistributionService for better maintainability
+ * 
+ * Note: Period snapshot functionality removed in P1-03 (Unify AUM Snapshot Tables)
+ * The fund_period_snapshot table was unused (0 rows) and has been dropped.
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import {
-  ensureSnapshotExists,
-  lockPeriodSnapshot,
-  isPeriodLocked,
-  getFundPeriodSnapshot,
-} from "@/services/operations/snapshotService";
 import { yieldNotifications } from "@/services/notifications";
 import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
 import { logWarn, logError } from "@/lib/logger";
@@ -43,37 +40,8 @@ import type {
 } from "@/types/domains/yield";
 
 /**
- * Get period ID for a given date
- */
-async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
-  const year = targetDate.getFullYear();
-  const month = targetDate.getMonth() + 1;
-
-  const { data, error } = await supabase
-    .from("statement_periods")
-    .select("id")
-    .eq("year", year)
-    .eq("month", month)
-    .maybeSingle();
-
-  if (error || !data) {
-    const { data: nextPeriod } = await supabase
-      .from("statement_periods")
-      .select("id")
-      .or(`year.gt.${year},and(year.eq.${year},month.gte.${month})`)
-      .order("year", { ascending: true })
-      .order("month", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    return nextPeriod?.id || null;
-  }
-  return data.id;
-}
-
-/**
  * Apply yield distribution (calls RPC function)
  * This permanently updates investor positions and creates transactions.
- * Also generates and locks a snapshot for the period to preserve ownership percentages.
  */
 export async function applyYieldDistribution(
   input: YieldCalculationInput,
@@ -81,38 +49,6 @@ export async function applyYieldDistribution(
   purpose: "reporting" | "transaction" = "reporting"
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM } = input;
-
-  // Get or create period snapshot before applying yield
-  const periodId = await getPeriodIdForDate(targetDate);
-  let snapshotInfo: YieldCalculationResult["snapshotInfo"];
-
-  if (periodId) {
-    // Check if period is already locked
-    const isLocked = await isPeriodLocked(fundId, periodId);
-    if (isLocked) {
-      throw new Error("This period is locked. Yield has already been applied for this period.");
-    }
-
-    // Ensure snapshot exists (creates one if not)
-    const snapshotResult = await ensureSnapshotExists(fundId, periodId, adminId);
-    if (!snapshotResult.exists) {
-      logWarn("applyYieldDistribution.snapshotCreate", {
-        fundId,
-        periodId,
-        error: snapshotResult.error,
-      });
-    } else if (snapshotResult.snapshotId) {
-      const snapshot = await getFundPeriodSnapshot(fundId, periodId);
-      if (snapshot) {
-        snapshotInfo = {
-          snapshotId: snapshot.id,
-          snapshotDate: snapshot.snapshot_date,
-          isLocked: snapshot.is_locked,
-          periodId,
-        };
-      }
-    }
-  }
 
   // IMPORTANT: Derive yield% using the backend preview RPC (AS-OF safe).
   // This prevents "future deposits" from influencing past yield calculations.
@@ -161,14 +97,6 @@ export async function applyYieldDistribution(
   } catch (mvError) {
     // Log but don't fail the operation
     logWarn("applyYieldDistribution.mvRefresh", { fundId, error: mvError });
-  }
-
-  // Lock the snapshot after successful yield application
-  if (periodId && snapshotInfo) {
-    const lockResult = await lockPeriodSnapshot(fundId, periodId, adminId);
-    if (lockResult.success) {
-      snapshotInfo.isLocked = true;
-    }
   }
 
   // Finalize yield visibility
@@ -245,6 +173,5 @@ export async function applyYieldDistribution(
     hasConflicts: false,
     totals,
     status: "applied",
-    snapshotInfo,
   };
 }
