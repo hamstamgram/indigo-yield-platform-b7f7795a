@@ -11169,15 +11169,43 @@ export type Database = {
         Args: { p_distribution_id: string; p_status: string }
         Returns: Json
       }
-      apply_adb_yield_distribution: {
+      apply_adb_yield_distribution:
+        | {
+            Args: {
+              p_admin_id: string
+              p_dust_tolerance?: number
+              p_fund_id: string
+              p_gross_yield_amount: number
+              p_period_end: string
+              p_period_start: string
+              p_purpose?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_actor_id?: string
+              p_fund_id: string
+              p_new_aum: number
+              p_yield_date: string
+            }
+            Returns: Json
+          }
+      apply_daily_yield_to_fund: {
         Args: {
-          p_admin_id: string
-          p_dust_tolerance?: number
+          p_actor_id?: string
           p_fund_id: string
-          p_gross_yield_amount: number
-          p_period_end: string
-          p_period_start: string
-          p_purpose?: string
+          p_new_aum: number
+          p_yield_date: string
+        }
+        Returns: Json
+      }
+      apply_daily_yield_to_fund_v2: {
+        Args: {
+          p_actor_id?: string
+          p_fund_id: string
+          p_new_aum: number
+          p_yield_date: string
         }
         Returns: Json
       }
@@ -11191,17 +11219,27 @@ export type Database = {
         }
         Returns: Json
       }
-      apply_daily_yield_with_validation: {
-        Args: {
-          p_created_by: string
-          p_fund_id: string
-          p_gross_yield_pct: number
-          p_purpose?: string
-          p_skip_validation?: boolean
-          p_yield_date: string
-        }
-        Returns: Json
-      }
+      apply_daily_yield_with_validation:
+        | {
+            Args: {
+              p_created_by: string
+              p_fund_id: string
+              p_gross_yield_pct: number
+              p_purpose?: string
+              p_skip_validation?: boolean
+              p_yield_date: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_actor_id?: string
+              p_fund_id: string
+              p_new_aum: number
+              p_yield_date: string
+            }
+            Returns: Json
+          }
       apply_deposit_with_crystallization: {
         Args: {
           p_admin_id: string
