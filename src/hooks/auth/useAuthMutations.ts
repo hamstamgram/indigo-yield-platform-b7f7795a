@@ -32,20 +32,23 @@ export function useLoginMutation() {
 
   return useMutation({
     mutationFn: async (data: LoginData) => {
-      console.log("[useLoginMutation] Starting login...");
       const result = await authService.signIn(data);
       if (result.error) throw result.error;
       
-      console.log("[useLoginMutation] Login successful, checking admin status for user:", result.data.user.id);
       // Check admin status after successful login
-      const isAdmin = await authService.getUserAdminStatus(result.data.user.id);
-      console.log("[useLoginMutation] Admin status:", isAdmin);
+      let isAdmin = false;
+      try {
+        isAdmin = await authService.getUserAdminStatus(result.data.user.id);
+      } catch (adminCheckError) {
+        // If admin check fails, default to non-admin (safer for production)
+        logError("useLoginMutation:adminCheck", adminCheckError as Error);
+      }
+      
       return { ...result.data, isAdmin };
     },
     onSuccess: ({ isAdmin }) => {
-      console.log("[useLoginMutation] onSuccess - isAdmin:", isAdmin, "navigating to:", isAdmin ? "/admin" : "/dashboard");
       toast.success("Welcome back!");
-      // Redirect based on role
+      // Redirect based on role - DashboardLayout provides safety net if this fails
       navigate(isAdmin ? "/admin" : "/dashboard", { replace: true });
     },
     onError: (error: Error) => {

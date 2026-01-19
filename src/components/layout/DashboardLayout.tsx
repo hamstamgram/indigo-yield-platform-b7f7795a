@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks";
 import Sidebar from "./Sidebar";
@@ -16,7 +16,6 @@ const DashboardLayout = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
-  const hasRedirectedRef = useRef(false);
 
   const currentPath = location.pathname;
 
@@ -43,18 +42,16 @@ const DashboardLayout = () => {
     setIsAdmin(verifiedIsAdmin);
     setIsLoading(false);
 
-    // Deterministic redirect logic - only redirect once per mount
-    if (!hasRedirectedRef.current) {
-      if (currentPath === "/dashboard" && verifiedIsAdmin) {
-        // Admin on investor dashboard -> redirect to admin
-        hasRedirectedRef.current = true;
-        navigate("/admin", { replace: true });
-      } else if (isAdminRoute && !verifiedIsAdmin) {
-        // Non-admin trying to access admin routes -> redirect to dashboard
-        hasRedirectedRef.current = true;
-        console.warn("[DashboardLayout] Non-admin accessing admin route, redirecting");
-        navigate("/dashboard", { replace: true });
-      }
+    // PRODUCTION FIX: Always evaluate redirect conditions (no ref guard)
+    // This ensures admins on wrong page always get redirected
+    if (currentPath === "/dashboard" && verifiedIsAdmin) {
+      // Admin on investor dashboard -> redirect to admin
+      console.log("[DashboardLayout] Admin detected on /dashboard, redirecting to /admin");
+      navigate("/admin", { replace: true });
+    } else if (isAdminRoute && !verifiedIsAdmin) {
+      // Non-admin trying to access admin routes -> redirect to dashboard
+      console.warn("[DashboardLayout] Non-admin accessing admin route, redirecting to /dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [user, authLoading, roleLoading, authIsAdmin, roleIsAdmin, profile, navigate, currentPath, isAdminRoute]);
 
