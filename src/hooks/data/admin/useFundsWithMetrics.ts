@@ -6,7 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { fundService } from "@/services/admin";
-import { positionService, auditLogService } from "@/services/shared";
+import { auditLogService } from "@/services/shared";
+import { getPositionsByFund } from "@/services/investor";
 import { useAuth } from "@/services/auth";
 import type { FundStatus } from "@/types/domains/fund";
 
@@ -37,13 +38,13 @@ export function useFundsWithMetrics() {
 
       const fundsWithMetrics = await Promise.all(
         (fundsData || []).map(async (fund) => {
-          const positions = await positionService.getPositionsByFund(fund.id);
+          const positions = await getPositionsByFund(fund.id);
 
           const total_aum = positions?.reduce(
-            (sum, p) => sum + Number(p.current_value || 0),
+            (sum, p) => sum + Number(p.currentValue || 0),
             0
           ) || 0;
-          const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
+          const uniqueInvestors = new Set(positions?.map((p) => p.investorId) || []);
 
           return {
             ...fund,

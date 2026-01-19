@@ -298,8 +298,7 @@ export const QUERY_KEYS = {
   adminFeesOverview: ["admin", "fees-overview"] as const,
 
   // ============ Positions ============
-  positions: (investorId?: string) =>
-    investorId ? (["positions", investorId] as const) : (["positions"] as const),
+  // REMOVED: positions() - use investorPositions() instead (line 42-45)
 
   // ============ Yield Crystallization ============
   fundYieldEvents: (fundId?: string, options?: unknown) =>
