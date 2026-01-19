@@ -9,8 +9,5 @@ export type { OperationsMetrics, PendingBreakdown } from "./operationsService";
 // Position management
 export * from "./positionAdjustmentService";
 
-// Fee management
-export * from "./feeService";
-
+// Note: feeService removed in P2-01 (was unimplemented placeholder)
 // Note: snapshotService removed in P1-03 (Unify AUM Snapshot Tables)
-// The fund_period_snapshot table was unused (0 rows) and has been dropped.
