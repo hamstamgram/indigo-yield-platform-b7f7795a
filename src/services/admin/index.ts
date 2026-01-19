@@ -234,7 +234,6 @@ export {
   getYieldEventsForFund,
   getYieldEventsForInvestor,
   getAggregatedYieldForPeriod,
-  getFundYieldSnapshots,
   getPendingYieldEventsCount,
   crystallizeMonthEnd,
 } from "./yieldCrystallizationService";
