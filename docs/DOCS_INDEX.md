@@ -58,6 +58,7 @@
 - [patterns/TRANSACTION_FUNCTIONS.md](./patterns/TRANSACTION_FUNCTIONS.md) - Transaction mutation lifecycle
 - [patterns/ADMIN_FUNCTIONS.md](./patterns/ADMIN_FUNCTIONS.md) - Admin RBAC and guard patterns
 - [patterns/INVESTOR_FUNCTIONS.md](./patterns/INVESTOR_FUNCTIONS.md) - Investor lookup and position services
+- [patterns/IB_FUNCTIONS.md](./patterns/IB_FUNCTIONS.md) - IB trigger and service patterns
 
 ## Archived Documentation
 

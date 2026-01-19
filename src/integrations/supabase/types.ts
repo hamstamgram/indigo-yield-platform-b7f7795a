@@ -10413,7 +10413,6 @@ export type Database = {
         Args: { p_fund_id: string; p_tolerance_pct?: number }
         Returns: Json
       }
-      check_duplicate_ib_allocations: { Args: never; Returns: number }
       check_duplicate_transaction_refs: { Args: never; Returns: number }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
       check_rate_limit: {
@@ -10916,7 +10915,6 @@ export type Database = {
         }
         Returns: Json
       }
-      is_ib: { Args: { user_id?: string }; Returns: boolean }
       is_import_enabled: { Args: never; Returns: boolean }
       is_period_locked: {
         Args: { p_date: string; p_fund_id: string }
