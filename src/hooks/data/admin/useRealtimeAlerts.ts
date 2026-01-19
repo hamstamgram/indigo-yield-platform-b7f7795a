@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -64,6 +64,7 @@ export function useRealtimeAlerts() {
           
           // Invalidate alerts query to update UI
           queryClient.invalidateQueries({ queryKey: ['admin-alerts'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-alerts-count'] });
           
           // Invalidate integrity dashboard
           queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
@@ -82,14 +83,21 @@ export function useRealtimeAlerts() {
 
 /**
  * Hook to fetch unacknowledged alerts count
+ * Used for badge display in admin header
  */
 export function useUnacknowledgedAlertCount() {
-  const queryClient = useQueryClient();
-  
-  // This can be used by components to show badge count
-  // The actual count comes from the admin-alerts query
-  
-  return {
-    invalidate: () => queryClient.invalidateQueries({ queryKey: ['admin-alerts'] })
-  };
+  return useQuery({
+    queryKey: ['admin-alerts-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("admin_alerts")
+        .select("*", { count: "exact", head: true })
+        .is("acknowledged_at", null);
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    refetchInterval: 30000, // Background refresh every 30s
+    staleTime: 10000,
+  });
 }
