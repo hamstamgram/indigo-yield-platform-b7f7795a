@@ -52,8 +52,17 @@ export const operationsService = {
           .eq("status", "active")
           .eq("is_admin", false),
 
-        // Total AUM from investor positions
-        supabase.from("investor_positions").select("current_value").gt("current_value", 0),
+        // Total AUM from investor positions (investors only, not fees/IB)
+        supabase
+          .from("investor_positions")
+          .select("current_value, investor_id")
+          .gt("current_value", 0),
+        
+        // Get investor account profiles
+        supabase
+          .from("profiles")
+          .select("id")
+          .eq("account_type", "investor"),
       ]);
 
       const withdrawalsResult = results[0] as any;
@@ -62,13 +71,19 @@ export const operationsService = {
       const transactionsResult = results[3] as any;
       const investorsResult = results[4] as any;
       const aumResult = results[5] as any;
+      const investorProfilesResult = results[6] as any;
 
-      // Calculate total AUM
+      // Calculate total AUM (only for investor account types)
+      const investorIds = new Set(
+        (investorProfilesResult.data || []).map((p: any) => p.id)
+      );
       const totalAUM =
-        aumResult.data?.reduce(
-          (sum: number, position: any) => sum + (position.current_value || 0),
-          0
-        ) || 0;
+        aumResult.data
+          ?.filter((position: any) => investorIds.has(position.investor_id))
+          .reduce(
+            (sum: number, position: any) => sum + (position.current_value || 0),
+            0
+          ) || 0;
 
       const pendingWithdrawals = withdrawalsResult.count || 0;
       const pendingDeposits = depositsResult.count || 0;

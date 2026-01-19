@@ -186,18 +186,38 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
 }
 
 /**
- * Calculate total AUM across all investors
+ * Calculate total AUM across all investors (excludes fees/IB accounts)
  */
 export async function getTotalAUM(): Promise<number> {
-  const { data, error } = await supabase.from("investor_positions").select("current_value");
+  // Query positions with joined profiles to filter by account_type
+  const { data, error } = await supabase
+    .from("investor_positions")
+    .select("current_value, investor_id")
+    .gt("current_value", 0);
 
   if (error) throw error;
 
-  return data?.reduce((sum, pos) => sum + Number(pos.current_value), 0) || 0;
+  // Fetch investor profiles to filter by account_type
+  const investorIds = [...new Set(data?.map(p => p.investor_id) || [])];
+  if (investorIds.length === 0) return 0;
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, account_type")
+    .in("id", investorIds)
+    .eq("account_type", "investor");
+
+  if (profileError) throw profileError;
+
+  const investorSet = new Set(profiles?.map(p => p.id) || []);
+
+  // Only sum positions for investor account types
+  return data?.filter(pos => investorSet.has(pos.investor_id))
+    .reduce((sum, pos) => sum + Number(pos.current_value), 0) || 0;
 }
 
 /**
- * Get investor count with active positions
+ * Get investor count with active positions (excludes fees/IB accounts)
  */
 export async function getActiveInvestorCount(): Promise<number> {
   const { data, error } = await supabase
@@ -207,8 +227,19 @@ export async function getActiveInvestorCount(): Promise<number> {
 
   if (error) throw error;
 
-  const uniqueInvestors = new Set(data?.map((pos) => pos.investor_id));
-  return uniqueInvestors.size;
+  // Fetch profiles to filter by account_type = 'investor'
+  const investorIds = [...new Set(data?.map(p => p.investor_id) || [])];
+  if (investorIds.length === 0) return 0;
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .in("id", investorIds)
+    .eq("account_type", "investor");
+
+  if (profileError) throw profileError;
+
+  return profiles?.length || 0;
 }
 
 // ============================================
