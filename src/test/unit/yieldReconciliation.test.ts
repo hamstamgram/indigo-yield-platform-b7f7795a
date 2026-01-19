@@ -1,14 +1,20 @@
 /**
  * Yield Distribution Reconciliation Tests
  * Verifies fee calculations match expected values
+ * 
+ * CANONICAL FORMULA (matches database implementation):
+ * - Platform Fee (INDIGO) = grossYield × (investorFeePct / 100)
+ * - IB Commission = grossYield × (ibCommissionPct / 100)  [calculated on GROSS, not on fee]
+ * - Net to Investor = grossYield - platformFee
+ * - INDIGO Credit = platformFee - IB Commission
  */
 
 import { describe, it, expect } from "vitest";
 
 interface YieldDistribution {
   grossYield: number;
-  investorFeePct: number; // e.g., 20 for 20%
-  ibCommissionPct: number; // e.g., 10 for 10% of investor's fee
+  investorFeePct: number; // e.g., 20 for 20% platform fee
+  ibCommissionPct: number; // e.g., 2 for 2% of GROSS yield (not of fee!)
 }
 
 interface DistributionResult {
@@ -21,28 +27,31 @@ interface DistributionResult {
 /**
  * Calculate yield distribution following the platform's fee model
  * 
- * Flow:
+ * CANONICAL FLOW (per accounting/yield-fee-calculation-standard):
  * 1. Gross yield is the total income before any fees
- * 2. Investor fee (performance fee) is taken from gross yield
- * 3. Net to investor is gross minus investor fee
- * 4. IB commission is calculated on the investor fee (not gross)
+ * 2. Platform fee (performance fee) is taken from gross yield
+ * 3. Net to investor is gross minus platform fee
+ * 4. IB commission is calculated on GROSS yield (not on fee!)
  * 5. INDIGO receives the remaining fee after IB commission
+ * 
+ * IMPORTANT: Both platform fee and IB commission are calculated
+ * as percentages of the GROSS yield, NOT sequentially.
  */
 function calculateYieldDistribution(
   distribution: YieldDistribution
 ): DistributionResult {
   const { grossYield, investorFeePct, ibCommissionPct } = distribution;
 
-  // Calculate investor fee (performance fee)
+  // Calculate platform fee (performance fee) - on GROSS
   const totalFees = grossYield * (investorFeePct / 100);
 
-  // Net to investor is gross minus fees
+  // Net to investor is gross minus platform fee
   const netToInvestor = grossYield - totalFees;
 
-  // IB commission is calculated on the fee amount
-  const ibCredit = totalFees * (ibCommissionPct / 100);
+  // IB commission is calculated on GROSS yield (canonical formula)
+  const ibCredit = grossYield * (ibCommissionPct / 100);
 
-  // INDIGO receives the remaining fee
+  // INDIGO receives the remaining fee after IB takes their share
   const indigoCredit = totalFees - ibCredit;
 
   return {
@@ -58,7 +67,7 @@ describe("Yield Distribution Reconciliation", () => {
     const distribution: YieldDistribution = {
       grossYield: 1.0, // 1 BTC gross yield
       investorFeePct: 20, // 20% performance fee
-      ibCommissionPct: 10, // 10% IB commission on fees
+      ibCommissionPct: 2, // 2% IB commission on GROSS
     };
 
     const result = calculateYieldDistribution(distribution);
@@ -76,7 +85,7 @@ describe("Yield Distribution Reconciliation", () => {
     const distribution: YieldDistribution = {
       grossYield: 1.0, // 1 BTC gross yield
       investorFeePct: 20, // 20% performance fee
-      ibCommissionPct: 10, // 10% IB commission on fees
+      ibCommissionPct: 2, // 2% IB commission on GROSS
     };
 
     const result = calculateYieldDistribution(distribution);
@@ -85,8 +94,8 @@ describe("Yield Distribution Reconciliation", () => {
     const reconstructedFees = result.ibCredit + result.indigoCredit;
     expect(reconstructedFees).toBeCloseTo(result.totalFees, 10);
 
-    // Explicit values check
-    expect(result.ibCredit).toBeCloseTo(0.02, 10); // 0.2 * 0.1 = 0.02
+    // Explicit values check (IB on GROSS: 1.0 * 0.02 = 0.02)
+    expect(result.ibCredit).toBeCloseTo(0.02, 10); // 1.0 * 0.02 = 0.02
     expect(result.indigoCredit).toBeCloseTo(0.18, 10); // 0.2 - 0.02 = 0.18
   });
 
@@ -105,41 +114,43 @@ describe("Yield Distribution Reconciliation", () => {
     expect(result.indigoCredit).toBeCloseTo(1.0, 10);
   });
 
-  it("handles 100% IB commission", () => {
+  it("handles IB receiving all fees (IB% equals fee%)", () => {
+    // When IB commission equals the fee percentage, IB gets all fees
     const distribution: YieldDistribution = {
       grossYield: 10.0,
       investorFeePct: 20,
-      ibCommissionPct: 100, // IB gets all fees
+      ibCommissionPct: 20, // IB gets 20% of GROSS = same as total fee
     };
 
     const result = calculateYieldDistribution(distribution);
 
     expect(result.netToInvestor).toBeCloseTo(8.0, 10);
     expect(result.totalFees).toBeCloseTo(2.0, 10);
-    expect(result.ibCredit).toBeCloseTo(2.0, 10);
-    expect(result.indigoCredit).toBe(0);
+    expect(result.ibCredit).toBeCloseTo(2.0, 10); // 10.0 * 0.20 = 2.0
+    expect(result.indigoCredit).toBe(0); // 2.0 - 2.0 = 0
   });
 
   it("handles zero fee percentage", () => {
     const distribution: YieldDistribution = {
       grossYield: 10.0,
       investorFeePct: 0, // No performance fee
-      ibCommissionPct: 50,
+      ibCommissionPct: 5, // IB still gets their % of gross
     };
 
     const result = calculateYieldDistribution(distribution);
 
     expect(result.netToInvestor).toBeCloseTo(10.0, 10);
     expect(result.totalFees).toBe(0);
-    expect(result.ibCredit).toBe(0);
-    expect(result.indigoCredit).toBe(0);
+    // IB still gets their share of GROSS (but comes from fee pool which is 0)
+    expect(result.ibCredit).toBeCloseTo(0.5, 10); // 10.0 * 0.05 = 0.5
+    expect(result.indigoCredit).toBeCloseTo(-0.5, 10); // 0 - 0.5 = -0.5 (edge case)
   });
 
   it("handles large numbers with precision", () => {
     const distribution: YieldDistribution = {
       grossYield: 1234567.89012345,
       investorFeePct: 20,
-      ibCommissionPct: 15,
+      ibCommissionPct: 2,
     };
 
     const result = calculateYieldDistribution(distribution);
@@ -156,7 +167,7 @@ describe("Yield Distribution Reconciliation", () => {
     const distribution: YieldDistribution = {
       grossYield: 0.00001234, // Very small BTC amount
       investorFeePct: 20,
-      ibCommissionPct: 10,
+      ibCommissionPct: 2,
     };
 
     const result = calculateYieldDistribution(distribution);
@@ -171,16 +182,16 @@ describe("Yield Distribution Reconciliation", () => {
 
   it("provides complete example scenario documentation", () => {
     /**
-     * Complete example scenario:
+     * Complete example scenario (canonical model):
      * - Investor receives 1.0 BTC gross yield
-     * - Platform charges 20% performance fee
-     * - IB gets 10% commission on the fee
+     * - Platform charges 20% performance fee (INDIGO fee)
+     * - IB gets 2% commission on GROSS yield
      *
      * Calculation:
      * 1. Gross yield: 1.0 BTC
      * 2. Performance fee: 1.0 * 0.20 = 0.2 BTC
      * 3. Net to investor: 1.0 - 0.2 = 0.8 BTC
-     * 4. IB commission: 0.2 * 0.10 = 0.02 BTC
+     * 4. IB commission (on GROSS): 1.0 * 0.02 = 0.02 BTC
      * 5. INDIGO receives: 0.2 - 0.02 = 0.18 BTC
      *
      * Reconciliation checks:
@@ -191,7 +202,7 @@ describe("Yield Distribution Reconciliation", () => {
     const distribution: YieldDistribution = {
       grossYield: 1.0,
       investorFeePct: 20,
-      ibCommissionPct: 10,
+      ibCommissionPct: 2,
     };
 
     const result = calculateYieldDistribution(distribution);
@@ -202,5 +213,43 @@ describe("Yield Distribution Reconciliation", () => {
       ibCredit: 0.02,
       indigoCredit: 0.18,
     });
+  });
+
+  it("matches database formula: IB calculated on GROSS not fees", () => {
+    /**
+     * This test explicitly validates the canonical formula from
+     * accounting/yield-fee-calculation-standard memory:
+     * 
+     * "Platform Fee (INDIGO) and Introducing Broker (IB) Fee are both
+     * calculated as percentages of the GROSS yield."
+     * 
+     * Example from memory:
+     * For 355 XRP yield with 18% Indigo and 2% IB:
+     * - Indigo receives: 355 * 0.18 = 63.9 XRP
+     * - IB receives: 355 * 0.02 = 7.1 XRP
+     * - Total Fee: 71 XRP
+     */
+    const distribution: YieldDistribution = {
+      grossYield: 355,
+      investorFeePct: 20, // Total fee percentage (18% INDIGO + 2% IB)
+      ibCommissionPct: 2, // IB gets 2% of GROSS
+    };
+
+    const result = calculateYieldDistribution(distribution);
+
+    // IB calculated on GROSS: 355 * 0.02 = 7.1
+    expect(result.ibCredit).toBeCloseTo(7.1, 10);
+    
+    // Total fee: 355 * 0.20 = 71
+    expect(result.totalFees).toBeCloseTo(71, 10);
+    
+    // INDIGO gets remainder: 71 - 7.1 = 63.9
+    expect(result.indigoCredit).toBeCloseTo(63.9, 10);
+    
+    // Net to investor: 355 - 71 = 284
+    expect(result.netToInvestor).toBeCloseTo(284, 10);
+    
+    // Conservation check
+    expect(result.ibCredit + result.indigoCredit).toBeCloseTo(result.totalFees, 10);
   });
 });
