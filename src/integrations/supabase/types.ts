@@ -7274,6 +7274,103 @@ export type Database = {
           },
         ]
       }
+      v_cost_basis_mismatch: {
+        Row: {
+          computed_cost_basis: number | null
+          computed_current_value: number | null
+          computed_shares: number | null
+          cost_basis_variance: number | null
+          cost_basis_variance_pct: number | null
+          current_value_variance: number | null
+          fund_code: string | null
+          fund_id: string | null
+          investor_email: string | null
+          investor_id: string | null
+          investor_name: string | null
+          position_cost_basis: number | null
+          position_current_value: number | null
+          position_shares: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_snapshot_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_status"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_summary_live"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       v_crystallization_dashboard: {
         Row: {
           aum_needing_crystallization: number | null
@@ -9485,6 +9582,10 @@ export type Database = {
         Returns: string
       }
       compute_jsonb_delta: { Args: { p_new: Json; p_old: Json }; Returns: Json }
+      compute_position_from_ledger: {
+        Args: { p_as_of?: string; p_fund_id: string; p_investor_id: string }
+        Returns: Json
+      }
       create_admin_invite: { Args: { p_email: string }; Returns: string }
       create_daily_position_snapshot: {
         Args: { p_fund_id?: string; p_snapshot_date?: string }
@@ -9594,6 +9695,10 @@ export type Database = {
       finalize_statement_period: {
         Args: { p_admin_id: string; p_period_id: string }
         Returns: undefined
+      }
+      fix_cost_basis_anomalies: {
+        Args: { p_admin_id: string; p_dry_run?: boolean; p_reason?: string }
+        Returns: Json
       }
       fix_doubled_cost_basis: { Args: never; Returns: Json }
       force_delete_investor: {
@@ -10189,6 +10294,16 @@ export type Database = {
           redemptions: number
         }[]
       }
+      rebuild_position_from_ledger: {
+        Args: {
+          p_admin_id: string
+          p_dry_run?: boolean
+          p_fund_id: string
+          p_investor_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       recalculate_all_aum: { Args: never; Returns: Json }
       recalculate_fund_aum_for_date: {
         Args: {
@@ -10201,7 +10316,7 @@ export type Database = {
       }
       recompute_investor_position: {
         Args: { p_fund_id: string; p_investor_id: string }
-        Returns: Json
+        Returns: undefined
       }
       recompute_investor_positions_for_investor: {
         Args: { p_investor_id: string }
@@ -10364,6 +10479,7 @@ export type Database = {
         Args: { p_scope_fund_id?: string; p_scope_investor_id?: string }
         Returns: Json
       }
+      run_integrity_pack: { Args: never; Returns: Json }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }
         Returns: number
