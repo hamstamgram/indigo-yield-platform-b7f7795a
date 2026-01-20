@@ -62,7 +62,7 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
         tx_date,
         created_at,
         notes,
-        profile:profiles!transactions_v2_investor_id_fkey(first_name, last_name, email)
+        profile:profiles!fk_transactions_v2_investor(first_name, last_name, email)
       `
       )
       .eq("investor_id", investorId)

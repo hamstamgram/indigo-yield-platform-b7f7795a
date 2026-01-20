@@ -23,7 +23,12 @@
       "Skill(xlsx)",
       "mcp__filesystem__directory_tree",
       "mcp__MCP_DOCKER__mcp-config-set",
-      "mcp__MCP_DOCKER__browser_navigate"
+      "mcp__MCP_DOCKER__browser_navigate",
+      "mcp__MCP_DOCKER__browser_click",
+      "mcp__MCP_DOCKER__browser_take_screenshot",
+      "mcp__MCP_DOCKER__browser_wait_for",
+      "mcp__MCP_DOCKER__browser_type",
+      "mcp__MCP_DOCKER__browser_console_messages"
     ],
     "deny": [],
     "ask": []

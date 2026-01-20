@@ -106,7 +106,7 @@ async function fetchTransactions(
     .select(
       `
       id, investor_id, fund_id, type, tx_subtype, asset, amount, tx_date, notes, tx_hash, created_at, created_by, visibility_scope, is_voided, is_system_generated,
-      profiles!transactions_v2_investor_id_fkey (email, first_name, last_name)
+      profiles!fk_transactions_v2_investor (email, first_name, last_name)
     `,
       { count: "exact" }
     )

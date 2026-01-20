@@ -13,7 +13,7 @@ export class DepositService {
       .select(
         `
         *,
-        profile:profiles!transactions_v2_investor_id_fkey (
+        profile:profiles!fk_transactions_v2_investor (
           first_name,
           last_name,
           email
@@ -77,7 +77,7 @@ export class DepositService {
       .select(
         `
         *,
-        profile:profiles!transactions_v2_investor_id_fkey (
+        profile:profiles!fk_transactions_v2_investor (
           first_name,
           last_name,
           email
@@ -173,7 +173,7 @@ export class DepositService {
     // Fetch the deposit first
     const { data: existing, error: fetchError } = await supabase
       .from("transactions_v2")
-      .select("*, profile:profiles!transactions_v2_investor_id_fkey (first_name, last_name, email)")
+      .select("*, profile:profiles!fk_transactions_v2_investor (first_name, last_name, email)")
       .eq("id", id)
       .eq("type", "DEPOSIT")
       .maybeSingle();
@@ -217,7 +217,7 @@ export class DepositService {
     // Fetch the deposit first to verify it exists and is a DEPOSIT type
     const { data: existing, error: fetchError } = await supabase
       .from("transactions_v2")
-      .select("*, profile:profiles!transactions_v2_investor_id_fkey (first_name, last_name, email)")
+      .select("*, profile:profiles!fk_transactions_v2_investor (first_name, last_name, email)")
       .eq("id", id)
       .eq("type", "DEPOSIT")
       .maybeSingle();

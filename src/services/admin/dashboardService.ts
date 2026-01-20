@@ -52,14 +52,16 @@ export async function fetchRecentActivities(): Promise<ActivityItem[]> {
   // Fetch recent transactions
   const { data: transactions, error: txError } = await supabase
     .from("transactions_v2")
-    .select(`
+    .select(
+      `
       id,
       type,
       amount,
       asset,
       created_at,
-      profile:profiles!transactions_v2_investor_id_fkey(first_name, last_name, email)
-    `)
+      profile:profiles!fk_transactions_v2_investor(first_name, last_name, email)
+    `
+    )
     .eq("is_voided", false)
     .order("created_at", { ascending: false })
     .limit(10);
@@ -69,14 +71,16 @@ export async function fetchRecentActivities(): Promise<ActivityItem[]> {
   // Fetch recent withdrawal requests
   const { data: withdrawals, error: wdError } = await supabase
     .from("withdrawal_requests")
-    .select(`
+    .select(
+      `
       id,
       requested_amount,
       status,
       request_date,
       profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email),
       fund:funds(asset)
-    `)
+    `
+    )
     .order("request_date", { ascending: false })
     .limit(5);
 
@@ -151,13 +155,15 @@ export async function fetchPendingItems(): Promise<PendingItem[]> {
   // Fetch pending withdrawals
   const { data: withdrawals, error: wdError } = await supabase
     .from("withdrawal_requests")
-    .select(`
+    .select(
+      `
       id,
       requested_amount,
       request_date,
       profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email),
       fund:funds(asset, name)
-    `)
+    `
+    )
     .eq("status", "pending")
     .order("request_date", { ascending: false })
     .limit(5);
