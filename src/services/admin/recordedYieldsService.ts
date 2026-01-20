@@ -214,7 +214,7 @@ export async function getYieldEditHistory(recordId: string): Promise<any[]> {
     .select(
       `
       *,
-      editor:profiles!yield_edit_audit_edited_by_fkey(first_name, last_name, email)
+      editor:profiles!fk_yield_edit_audit_editor_profile(first_name, last_name, email)
     `
     )
     .eq("record_id", recordId)
