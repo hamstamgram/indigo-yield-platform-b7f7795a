@@ -21,7 +21,7 @@ export const requestsQueueService = {
       .select(
         `
         *,
-        profile:profiles!withdrawal_requests_investor_id_fkey(first_name, last_name, email),
+        profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email),
         funds!withdrawal_requests_fund_id_fkey(name, fund_class)
       `
       )

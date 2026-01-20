@@ -104,7 +104,7 @@ class StatementsService {
 
     const { data, error } = await supabase
       .from("statements")
-      .select("*, profile:profiles!statements_investor_id_fkey(first_name, last_name, email)")
+      .select("*, profile:profiles!fk_statements_investor_profile(first_name, last_name, email)")
       .eq("period_year", year)
       .eq("period_month", month)
       .order("created_at", { ascending: false });
