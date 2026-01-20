@@ -85,8 +85,8 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
       profile?: { first_name: string | null; last_name: string | null; email: string } | null;
     }
 
-    return (data || []).map((tx: TransactionRow) => {
-      const profile = tx.profile;
+    return (data || []).map((tx: any) => {
+      const profile = Array.isArray(tx.profile) ? tx.profile[0] : tx.profile;
       const investor_name =
         profile?.first_name || profile?.last_name
           ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
