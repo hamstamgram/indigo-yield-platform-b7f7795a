@@ -127,6 +127,12 @@ function normalizeError(error: unknown, functionName: string): RPCError {
 // =============================================================================
 
 /**
+ * RPC functions where p_type is NOT a tx_type enum
+ * These functions use p_type for other purposes (e.g., withdrawal type: FULL/PARTIAL)
+ */
+const NON_TX_TYPE_FUNCTIONS: string[] = ["create_withdrawal_request", "update_withdrawal_request"];
+
+/**
  * Validate RPC parameters before sending to database
  */
 function validateParams<T extends RPCFunctionName>(
@@ -135,8 +141,12 @@ function validateParams<T extends RPCFunctionName>(
 ): void {
   const p = params as Record<string, unknown>;
 
-  // Validate tx_type parameters
-  if ("p_type" in p && typeof p.p_type === "string") {
+  // Validate tx_type parameters (skip for functions where p_type means something else)
+  if (
+    "p_type" in p &&
+    typeof p.p_type === "string" &&
+    !NON_TX_TYPE_FUNCTIONS.includes(String(functionName))
+  ) {
     const result = TxTypeSchema.safeParse(p.p_type);
     if (!result.success) {
       const hint =
@@ -172,10 +182,21 @@ function validateParams<T extends RPCFunctionName>(
  * Uses the client-side rate limiter as a first line of defense
  * Server-side rate limiting (check_rate_limit_with_config) provides final enforcement
  */
-const RATE_LIMITED_RPCS: Record<string, { windowMs: number; maxRequests: number; actionType: string }> = {
+const RATE_LIMITED_RPCS: Record<
+  string,
+  { windowMs: number; maxRequests: number; actionType: string }
+> = {
   apply_deposit_with_crystallization: { windowMs: 60000, maxRequests: 10, actionType: "deposit" },
-  apply_withdrawal_with_crystallization: { windowMs: 60000, maxRequests: 10, actionType: "withdrawal" },
-  apply_daily_yield_to_fund_v3: { windowMs: 60000, maxRequests: 5, actionType: "yield_distribution" },
+  apply_withdrawal_with_crystallization: {
+    windowMs: 60000,
+    maxRequests: 10,
+    actionType: "withdrawal",
+  },
+  apply_daily_yield_to_fund_v3: {
+    windowMs: 60000,
+    maxRequests: 5,
+    actionType: "yield_distribution",
+  },
   approve_withdrawal: { windowMs: 60000, maxRequests: 20, actionType: "withdrawal_approval" },
   reject_withdrawal: { windowMs: 60000, maxRequests: 20, actionType: "withdrawal_approval" },
   complete_withdrawal: { windowMs: 60000, maxRequests: 10, actionType: "withdrawal" },
@@ -223,7 +244,7 @@ async function call<T extends RPCFunctionName>(
 ): Promise<RPCResult<RPCFunctions[T]["Returns"]>> {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).slice(2, 10);
-  
+
   try {
     // Validate parameters
     validateParams(functionName, params);
@@ -234,7 +255,7 @@ async function call<T extends RPCFunctionName>(
       // Extract actor ID from params if available
       const p = params as Record<string, unknown>;
       const actorId = (p.p_admin_id || p.p_created_by || p.p_actor_id) as string | undefined;
-      
+
       const allowed = await checkRateLimit(String(functionName), actorId);
       if (!allowed) {
         logWarn(`rpc.rateLimit.blocked.${String(functionName)}`, {

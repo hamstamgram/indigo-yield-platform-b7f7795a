@@ -153,16 +153,18 @@ export class DepositService {
     }
 
     const result = data as any;
-    if (!result?.success || !result?.deposit_tx_id) {
+    // RPC returns transaction_id (not deposit_tx_id)
+    const txId = result?.transaction_id || result?.deposit_tx_id;
+    if (!result?.success || !txId) {
       throw new Error("Failed to create deposit");
     }
 
     // Send deposit notification (non-blocking)
     depositNotifications
-      .onConfirmed(profileId, result.deposit_tx_id, amount, assetSymbol, fund?.name)
+      .onConfirmed(profileId, txId, amount, assetSymbol, fund?.name)
       .catch((err) => logError("depositService.notification", err, { profileId }));
 
-    return this.getDepositById(result.deposit_tx_id);
+    return this.getDepositById(txId);
   }
 
   /**
