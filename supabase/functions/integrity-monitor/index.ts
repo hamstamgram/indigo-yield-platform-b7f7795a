@@ -100,6 +100,12 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
     severity: "critical",
     description: "Yield distributions violating conservation identity",
   },
+  {
+    name: "Cost Basis Mismatch",
+    query: "SELECT * FROM v_cost_basis_mismatch LIMIT 5",
+    severity: "critical",
+    description: "Position cost_basis or current_value differs from ledger projection",
+  },
 ];
 
 async function runIntegrityChecks(supabase: any): Promise<CheckResult[]> {
