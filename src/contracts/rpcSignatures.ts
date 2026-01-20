@@ -48,6 +48,8 @@ export const RPC_FUNCTIONS = [
   // Canonical Mutations - YIELD
   "apply_daily_yield_to_fund_v3",
   "preview_daily_yield_to_fund_v3",
+  "apply_adb_yield_distribution_v3", // CFO-grade time-weighted (ADB) allocation
+  "preview_adb_yield_distribution_v3", // CFO-grade time-weighted (ADB) preview
   "apply_yield_correction_v2",
   "preview_yield_correction_v2",
   "crystallize_yield_before_flow",
@@ -312,8 +314,11 @@ export const CANONICAL_MUTATION_RPCS = {
   WITHDRAWAL: "apply_withdrawal_with_crystallization",
 
   // Yield - Use these instead of direct yield_distributions inserts
-  YIELD_APPLY: "apply_daily_yield_to_fund_v3",
-  YIELD_PREVIEW: "preview_daily_yield_to_fund_v3",
+  // Note: ADB (time-weighted) functions are the preferred method for CFO-grade accuracy
+  YIELD_APPLY: "apply_daily_yield_to_fund_v3", // Legacy pro-rata
+  YIELD_PREVIEW: "preview_daily_yield_to_fund_v3", // Legacy pro-rata
+  YIELD_APPLY_ADB: "apply_adb_yield_distribution_v3", // CFO-grade time-weighted
+  YIELD_PREVIEW_ADB: "preview_adb_yield_distribution_v3", // CFO-grade time-weighted
   YIELD_CORRECTION: "apply_yield_correction_v2",
 
   // Transaction Mutations
@@ -370,6 +375,7 @@ export const READ_ONLY_RPCS = [
   "verify_aum_purpose_usage",
   "verify_yield_distribution_balance",
   "preview_daily_yield_to_fund_v3",
+  "preview_adb_yield_distribution_v3", // CFO-grade time-weighted preview
   "preview_yield_correction_v2",
   "preview_investor_balances",
   "get_fund_aum_as_of",
@@ -462,6 +468,7 @@ export const MUTATION_RPCS = [
   "route_withdrawal_to_fees",
   "start_processing_withdrawal",
   "apply_daily_yield_to_fund_v3",
+  "apply_adb_yield_distribution_v3", // CFO-grade time-weighted apply
   "apply_yield_correction_v2",
   "crystallize_yield_before_flow",
   "crystallize_month_end",
@@ -576,6 +583,7 @@ export const IDEMPOTENT_RPCS = [
   "apply_deposit_with_crystallization",
   "apply_withdrawal_with_crystallization",
   "apply_daily_yield_to_fund_v3",
+  "apply_adb_yield_distribution_v3", // CFO-grade time-weighted (prevents duplicate periods)
   "admin_create_transaction",
   "admin_create_transactions_batch",
   "crystallize_yield_before_flow",

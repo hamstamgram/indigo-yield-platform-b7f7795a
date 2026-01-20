@@ -1,13 +1,28 @@
 /**
  * YieldPreviewResults - Displays yield distribution preview with investor breakdown
+ * Updated to support ADB (time-weighted) calculation with full transparency
  * Extracted from YieldOperationsPage for maintainability
  */
 
 import {
-  Card, CardContent, CardHeader,
-  Button, Input, Label, Badge, Switch,
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Card,
+  CardContent,
+  CardHeader,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Switch,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui";
 import {
   CheckCircle,
@@ -15,6 +30,8 @@ import {
   UserCheck,
   ArrowRightLeft,
   AlertTriangle,
+  Clock,
+  TrendingDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type YieldCalculationResult, type YieldDistribution } from "@/services";
@@ -60,24 +77,89 @@ export function YieldPreviewResults({
         <h3 className="font-semibold">Confirm & Apply</h3>
       </div>
 
+      {/* ADB Method Badge */}
+      {yieldPreview.calculationMethod === "adb_v3" && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800"
+            >
+              <Clock className="h-3 w-3 mr-1" />
+              Time-Weighted (ADB)
+            </Badge>
+            {yieldPreview.daysInPeriod && (
+              <span className="text-xs text-muted-foreground">
+                {yieldPreview.periodStart} to {yieldPreview.periodEnd} ({yieldPreview.daysInPeriod}{" "}
+                days)
+              </span>
+            )}
+          </div>
+          {yieldPreview.conservationCheck !== undefined && (
+            <Badge
+              variant={yieldPreview.conservationCheck ? "outline" : "destructive"}
+              className="text-xs"
+            >
+              {yieldPreview.conservationCheck ? "Conservation OK" : "Conservation Error"}
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {/* Loss Carryforward Summary */}
+      {yieldPreview.totalLossOffset !== undefined && yieldPreview.totalLossOffset > 0 && (
+        <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
+          <TrendingDown className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <div>
+            <strong>Loss carryforward applied.</strong>{" "}
+            {formatValue(yieldPreview.totalLossOffset, asset)} {asset} of prior losses offset
+            against this period&apos;s gains, reducing fees.
+          </div>
+        </div>
+      )}
+
       {/* Idempotency Warnings */}
       {yieldPreview.hasConflicts && (
         <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
           <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <div>
-            <strong>Some transactions already exist.</strong> {yieldPreview.existingConflicts.length} existing reference(s) will be skipped.
+            <strong>Some transactions already exist.</strong>{" "}
+            {yieldPreview.existingConflicts.length} existing reference(s) will be skipped.
           </div>
         </div>
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {/* Total ADB (for ADB method) */}
+        {yieldPreview.totalAdb !== undefined && yieldPreview.totalAdb > 0 && (
+          <Card className="border-slate-200 bg-slate-50 dark:bg-slate-950/20">
+            <CardContent className="p-3 text-center">
+              <p className="text-xs text-muted-foreground">Total ADB</p>
+              <p className="text-lg font-mono font-semibold">
+                {formatValue(yieldPreview.totalAdb, asset)}
+              </p>
+              <p className="text-xs text-muted-foreground">Time-weighted capital</p>
+            </CardContent>
+          </Card>
+        )}
         <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">Gross Yield</p>
-            <p className="text-lg font-mono font-bold text-green-600">
-              +{formatValue(yieldPreview.grossYield, asset)}
+            <p
+              className={cn(
+                "text-lg font-mono font-bold",
+                yieldPreview.grossYield >= 0 ? "text-green-600" : "text-red-600"
+              )}
+            >
+              {yieldPreview.grossYield >= 0 ? "+" : ""}
+              {formatValue(yieldPreview.grossYield, asset)}
             </p>
+            {yieldPreview.yieldRatePct !== undefined && (
+              <p className="text-xs text-muted-foreground">
+                {yieldPreview.yieldRatePct.toFixed(4)}%
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -99,8 +181,14 @@ export function YieldPreviewResults({
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">Net Yield</p>
-            <p className="text-lg font-mono font-bold text-primary">
-              +{formatValue(yieldPreview.netYield, asset)}
+            <p
+              className={cn(
+                "text-lg font-mono font-bold",
+                yieldPreview.netYield >= 0 ? "text-primary" : "text-red-600"
+              )}
+            >
+              {yieldPreview.netYield >= 0 ? "+" : ""}
+              {formatValue(yieldPreview.netYield, asset)}
             </p>
           </CardContent>
         </Card>
@@ -132,7 +220,9 @@ export function YieldPreviewResults({
           <CardHeader className="pb-2 pt-3 px-3">
             <div className="flex items-center gap-2">
               <UserCheck className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium">IB Credits ({yieldPreview.ibCredits.length})</span>
+              <span className="text-sm font-medium">
+                IB Credits ({yieldPreview.ibCredits.length})
+              </span>
             </div>
           </CardHeader>
           <CardContent className="px-3 pb-3">
@@ -152,7 +242,9 @@ export function YieldPreviewResults({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Badge variant="outline" className="text-xs">Skip</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              Skip
+                            </Badge>
                           </TooltipTrigger>
                           <TooltipContent>Already exists</TooltipContent>
                         </Tooltip>
@@ -180,7 +272,9 @@ export function YieldPreviewResults({
             checked={showSystemAccounts}
             onCheckedChange={setShowSystemAccounts}
           />
-          <Label htmlFor="show-system" className="text-sm">Show system accounts</Label>
+          <Label htmlFor="show-system" className="text-sm">
+            Show system accounts
+          </Label>
         </div>
         <div className="flex items-center gap-2">
           <Switch
@@ -188,7 +282,9 @@ export function YieldPreviewResults({
             checked={showOnlyChanged}
             onCheckedChange={setShowOnlyChanged}
           />
-          <Label htmlFor="show-changed" className="text-sm">Only new entries</Label>
+          <Label htmlFor="show-changed" className="text-sm">
+            Only new entries
+          </Label>
         </div>
       </div>
 
@@ -198,13 +294,25 @@ export function YieldPreviewResults({
           <TableHeader>
             <TableRow>
               <TableHead>Investor</TableHead>
-              <TableHead className="text-right">Current</TableHead>
+              {/* ADB columns */}
+              {yieldPreview.calculationMethod === "adb_v3" && (
+                <>
+                  <TableHead className="text-right">ADB</TableHead>
+                  <TableHead className="text-right">Weight</TableHead>
+                </>
+              )}
+              {yieldPreview.calculationMethod !== "adb_v3" && (
+                <TableHead className="text-right">Current</TableHead>
+              )}
               <TableHead className="text-right">Gross</TableHead>
+              {/* Loss offset column for ADB */}
+              {yieldPreview.calculationMethod === "adb_v3" && (
+                <TableHead className="text-right">Loss Offset</TableHead>
+              )}
               <TableHead className="text-right">Fee %</TableHead>
               <TableHead className="text-right">Fee</TableHead>
               <TableHead className="text-right">Net</TableHead>
               <TableHead className="text-right">IB</TableHead>
-              <TableHead className="text-right">Delta</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -213,45 +321,96 @@ export function YieldPreviewResults({
                 key={inv.investorId}
                 className={cn(
                   inv.wouldSkip && "opacity-50",
-                  checkSystemAccount(inv) && "bg-blue-50/50 dark:bg-blue-950/20"
+                  checkSystemAccount(inv) && "bg-blue-50/50 dark:bg-blue-950/20",
+                  (inv.carriedLoss || 0) > 0 && "bg-amber-50/30 dark:bg-amber-950/10"
                 )}
               >
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {checkSystemAccount(inv) && (
-                      <Building2 className="h-3 w-3 text-blue-600" />
-                    )}
+                    {checkSystemAccount(inv) && <Building2 className="h-3 w-3 text-blue-600" />}
                     <div>
-                      <p className="font-medium text-sm truncate max-w-[120px]">{inv.investorName}</p>
+                      <p className="font-medium text-sm truncate max-w-[120px]">
+                        {inv.investorName}
+                      </p>
                       {inv.ibParentName && (
                         <p className="text-xs text-purple-600">IB: {inv.ibParentName}</p>
                       )}
+                      {inv.hasIb && !inv.ibParentName && (
+                        <p className="text-xs text-purple-600">Has IB</p>
+                      )}
                     </div>
                     {inv.wouldSkip && (
-                      <Badge variant="outline" className="text-xs">Skip</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Skip
+                      </Badge>
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-right font-mono text-xs">
-                  {formatValue(inv.currentBalance, asset)}
+                {/* ADB columns */}
+                {yieldPreview.calculationMethod === "adb_v3" && (
+                  <>
+                    <TableCell className="text-right font-mono text-xs">
+                      {formatValue(inv.adb || inv.currentBalance, asset)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs text-blue-600">
+                      {((inv.adbWeight || inv.allocationPercentage / 100) * 100).toFixed(2)}%
+                    </TableCell>
+                  </>
+                )}
+                {yieldPreview.calculationMethod !== "adb_v3" && (
+                  <TableCell className="text-right font-mono text-xs">
+                    {formatValue(inv.currentBalance, asset)}
+                  </TableCell>
+                )}
+                <TableCell
+                  className={cn(
+                    "text-right font-mono text-xs",
+                    inv.grossYield >= 0 ? "text-green-600" : "text-red-600"
+                  )}
+                >
+                  {inv.grossYield >= 0 ? "+" : ""}
+                  {formatValue(inv.grossYield, asset)}
                 </TableCell>
-                <TableCell className="text-right font-mono text-xs text-green-600">
-                  +{formatValue(inv.grossYield, asset)}
-                </TableCell>
-                <TableCell className="text-right font-mono text-xs">
-                  {inv.feePercentage}%
-                </TableCell>
+                {/* Loss offset column for ADB */}
+                {yieldPreview.calculationMethod === "adb_v3" && (
+                  <TableCell className="text-right font-mono text-xs">
+                    {(inv.lossOffset || 0) > 0 ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <span className="text-amber-600">
+                              -{formatValue(inv.lossOffset || 0, asset)}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="text-xs">
+                              <p>Carried loss: {formatValue(inv.carriedLoss || 0, asset)}</p>
+                              <p>Offset applied: {formatValue(inv.lossOffset || 0, asset)}</p>
+                              <p>Taxable: {formatValue(inv.taxableGain || 0, asset)}</p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                )}
+                <TableCell className="text-right font-mono text-xs">{inv.feePercentage}%</TableCell>
                 <TableCell className="text-right font-mono text-xs text-muted-foreground">
                   {inv.feeAmount > 0 ? `-${formatValue(inv.feeAmount, asset)}` : "—"}
                 </TableCell>
-                <TableCell className="text-right font-mono text-xs font-semibold">
-                  +{formatValue(inv.netYield, asset)}
+                <TableCell
+                  className={cn(
+                    "text-right font-mono text-xs font-semibold",
+                    inv.netYield >= 0 ? "" : "text-red-600"
+                  )}
+                >
+                  {inv.netYield >= 0 ? "+" : ""}
+                  {formatValue(inv.netYield, asset)}
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs text-purple-600">
                   {inv.ibAmount > 0 ? `-${formatValue(inv.ibAmount, asset)}` : "—"}
-                </TableCell>
-                <TableCell className="text-right font-mono text-xs font-bold text-primary">
-                  +{formatValue(inv.positionDelta, asset)}
                 </TableCell>
               </TableRow>
             ))}
@@ -260,16 +419,12 @@ export function YieldPreviewResults({
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        Showing {getFilteredDistributions(yieldPreview.distributions).length} of {yieldPreview.distributions.length} investors
+        Showing {getFilteredDistributions(yieldPreview.distributions).length} of{" "}
+        {yieldPreview.distributions.length} investors
       </p>
 
       {/* Apply Button */}
-      <Button
-        onClick={onConfirmApply}
-        disabled={applyLoading}
-        className="w-full"
-        size="lg"
-      >
+      <Button onClick={onConfirmApply} disabled={applyLoading} className="w-full" size="lg">
         <CheckCircle className="h-4 w-4 mr-2" />
         Apply Yield to {yieldPreview.investorCount} Investors
       </Button>

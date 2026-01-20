@@ -9,6 +9,7 @@
 export interface YieldCalculationInput {
   fundId: string;
   targetDate: Date;
+  periodStart?: Date; // For ADB: defaults to start of month if not provided
   newTotalAUM: number;
   purpose?: "reporting" | "transaction";
 }
@@ -36,6 +37,13 @@ export interface YieldDistribution {
   // Idempotency
   referenceId: string;
   wouldSkip: boolean;
+  // ADB (Average Daily Balance) fields - for time-weighted yield calculation
+  adb?: number; // Investor's average daily balance for the period
+  adbWeight?: number; // Time-weighted allocation weight (0-1)
+  carriedLoss?: number; // Loss carryforward from previous periods
+  lossOffset?: number; // Amount of loss offset applied this period
+  taxableGain?: number; // Gain after loss offset (fee basis)
+  hasIb?: boolean; // Whether investor has an IB parent
 }
 
 /**
@@ -105,6 +113,17 @@ export interface YieldCalculationResult {
   totals: YieldTotals;
   status: "preview" | "applied";
   snapshotInfo?: YieldSnapshotInfo;
+  // ADB (Average Daily Balance) fields - for time-weighted yield calculation
+  periodStart?: string;
+  periodEnd?: string;
+  daysInPeriod?: number;
+  totalAdb?: number; // Total fund ADB across all investors
+  yieldRatePct?: number; // Yield as percentage of ADB
+  totalLossOffset?: number; // Total loss offset applied across all investors
+  dustAmount?: number; // Rounding residual
+  calculationMethod?: "pro_rata" | "adb_v3";
+  features?: string[]; // e.g., ['time_weighted', 'loss_carryforward']
+  conservationCheck?: boolean; // Whether gross = net + fees + ib + dust
 }
 
 /**
