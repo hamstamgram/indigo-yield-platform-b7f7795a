@@ -41,28 +41,51 @@ export default tseslint.config(
       "react/no-unknown-property": "off",
       "react/display-name": "off",
       // Warn against direct Supabase imports in components - use data hooks instead
-      "no-restricted-imports": ["warn", {
-        "paths": [{
-          "name": "@/integrations/supabase/client",
-          "message": "Use data hooks from @/hooks/data instead of direct Supabase imports in components. See src/hooks/data/index.ts for available hooks."
-        }]
-      }],
+      "no-restricted-imports": [
+        "warn",
+        {
+          paths: [
+            {
+              name: "@/integrations/supabase/client",
+              message:
+                "Use data hooks from @/hooks/data instead of direct Supabase imports in components. See src/hooks/data/index.ts for available hooks.",
+            },
+          ],
+        },
+      ],
       // Reminder about investor_positions queries - filter by account_type when appropriate
       // This is an educational reminder, not a blocking error. Some queries intentionally include all account types.
-      "no-restricted-syntax": ["warn", {
-        "selector": "CallExpression[callee.property.name='from'][arguments.0.value='investor_positions']",
-        "message": "Reminder: Position queries should filter by account_type='investor' unless intentionally querying all account types. See docs/POSITION_QUERY_STANDARDS.md"
-      }]
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector:
+            "CallExpression[callee.property.name='from'][arguments.0.value='investor_positions']",
+          message:
+            "Reminder: Position queries should filter by account_type='investor' unless intentionally querying all account types. See docs/POSITION_QUERY_STANDARDS.md",
+        },
+        {
+          selector: "CallExpression[callee.object.name='supabase'][callee.property.name='rpc']",
+          message:
+            "Direct supabase.rpc() calls are forbidden. Use the typed RPC wrapper from @/lib/rpc instead: import { rpc } from '@/lib/rpc'; await rpc.call('function_name', params);",
+        },
+      ],
     },
   },
   {
     files: ["backend/scripts/**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: "module"
+      sourceType: "module",
     },
     rules: {
       // No specific rules needed yet, just correct parsing
-    }
+    },
+  },
+  {
+    // Allow direct supabase.rpc() in the RPC wrapper itself
+    files: ["src/lib/rpc.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
   }
 );

@@ -2,32 +2,39 @@
  * Yield Operations Page
  * Consolidated fund management and yield distribution
  * With confirmation dialog for safety
- * 
+ *
  * Refactored to use extracted components and hooks for maintainability
  */
 
 import {
-  Card, CardContent, CardFooter, CardHeader, CardTitle,
-  Button, Badge, Skeleton,
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  Skeleton,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  QueryErrorBoundary,
 } from "@/components/ui";
-import {
-  TrendingUp,
-  Users,
-  Plus,
-  Coins,
-  CalendarIcon,
-  AlertTriangle,
-  Clock,
-} from "lucide-react";
+import { TrendingUp, Users, Plus, Coins, CalendarIcon, AlertTriangle, Clock } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
-import { 
-  FundAUMEventsTable, 
-  OpenPeriodDialog, 
-  YieldInputForm, 
-  YieldPreviewResults, 
-  YieldConfirmDialog 
+import {
+  FundAUMEventsTable,
+  OpenPeriodDialog,
+  YieldInputForm,
+  YieldPreviewResults,
+  YieldConfirmDialog,
 } from "@/components/admin/yields";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -39,7 +46,7 @@ import { useYieldOperationsState, type Fund } from "@/hooks/admin/useYieldOperat
 
 function YieldOperationsContent() {
   const ops = useYieldOperationsState();
-  
+
   // Calculate pending yield events for selected fund/month
   const reportingMonthDate = ops.reportingMonth ? new Date(ops.reportingMonth) : null;
   const { data: pendingEvents } = usePendingYieldEvents(
@@ -47,7 +54,7 @@ function YieldOperationsContent() {
     reportingMonthDate ? getYear(reportingMonthDate) : new Date().getFullYear(),
     reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
   );
-  
+
   // AUM Reconciliation check
   const { data: reconciliation } = useAUMReconciliation(ops.selectedFund?.id || null);
 
@@ -107,9 +114,9 @@ function YieldOperationsContent() {
       {/* Funds Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {ops.funds.map((fund) => (
-          <FundCard 
-            key={fund.id} 
-            fund={fund} 
+          <FundCard
+            key={fund.id}
+            fund={fund}
             formatValue={ops.formatValue}
             onOpenYieldDialog={() => ops.openYieldDialog(fund)}
             onOpenPeriodDialog={() => {
@@ -135,7 +142,9 @@ function YieldOperationsContent() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              {ops.selectedFund && <CryptoIcon symbol={ops.selectedFund.asset} className="h-8 w-8" />}
+              {ops.selectedFund && (
+                <CryptoIcon symbol={ops.selectedFund.asset} className="h-8 w-8" />
+              )}
               Record Yield - {ops.selectedFund?.name}
             </DialogTitle>
             <DialogDescription>
@@ -242,7 +251,7 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
           <Badge variant="outline">{fund.asset}</Badge>
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex-1 space-y-3 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
@@ -269,17 +278,12 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
       <CardFooter className="pt-0">
         <div className="flex gap-2 w-full">
           {fund.aum_record_count === 0 && (
-            <Button
-              onClick={onOpenPeriodDialog}
-              variant="outline"
-              size="sm"
-              className="flex-1"
-            >
+            <Button onClick={onOpenPeriodDialog} variant="outline" size="sm" className="flex-1">
               <CalendarIcon className="h-4 w-4 mr-2" />
               Open Period
             </Button>
           )}
-          
+
           <Button
             onClick={onOpenYieldDialog}
             disabled={fund.investor_count === 0}
@@ -303,11 +307,11 @@ interface AUMCheckpointsSectionProps {
   formatValue: (value: number, asset: string) => string;
 }
 
-function AUMCheckpointsSection({ 
-  funds, 
-  selectedFund, 
-  setSelectedFund, 
-  formatValue 
+function AUMCheckpointsSection({
+  funds,
+  selectedFund,
+  setSelectedFund,
+  formatValue,
 }: AUMCheckpointsSectionProps) {
   return (
     <Collapsible>
@@ -370,7 +374,9 @@ function AUMCheckpointsSection({
 export default function YieldOperationsPage() {
   return (
     <AdminGuard>
-      <YieldOperationsContent />
+      <QueryErrorBoundary>
+        <YieldOperationsContent />
+      </QueryErrorBoundary>
     </AdminGuard>
   );
 }

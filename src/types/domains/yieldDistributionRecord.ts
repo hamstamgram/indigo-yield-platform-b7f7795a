@@ -1,7 +1,7 @@
 /**
  * Yield Distribution Record Domain Types
  * CANONICAL SOURCE - Database record types for yield_distributions table
- * 
+ *
  * Note: This file contains types for the yield_distributions table which stores
  * FUND-LEVEL distribution summaries (batch records), not per-investor details.
  * Per-investor yield details are in fee_allocations and ib_allocations tables.
@@ -40,15 +40,24 @@ export interface YieldDistributionRecord {
   periodEnd: string | null;
   purpose: AumPurpose;
   distributionType: string;
-  openingAum: number | null;
-  closingAum: number | null;
-  previousAum: number | null;
-  recordedAum: number;
-  grossYield: number;
-  netYield: number | null;
-  totalFees: number | null;
-  totalIb: number | null;
-  yieldPercentage: number | null;
+  /** Opening AUM - string for NUMERIC(28,10) precision */
+  openingAum: string | null;
+  /** Closing AUM - string for NUMERIC(28,10) precision */
+  closingAum: string | null;
+  /** Previous AUM - string for NUMERIC(28,10) precision */
+  previousAum: string | null;
+  /** Recorded AUM - string for NUMERIC(28,10) precision */
+  recordedAum: string;
+  /** Gross yield - string for NUMERIC(28,10) precision */
+  grossYield: string;
+  /** Net yield - string for NUMERIC(28,10) precision */
+  netYield: string | null;
+  /** Total fees - string for NUMERIC(28,10) precision */
+  totalFees: string | null;
+  /** Total IB - string for NUMERIC(28,10) precision */
+  totalIb: string | null;
+  /** Yield percentage - string for decimal precision */
+  yieldPercentage: string | null;
   investorCount: number | null;
   isMonthEnd: boolean;
   referenceId: string | null;
@@ -77,10 +86,14 @@ export interface YieldDistributionWithFund extends YieldDistributionRecord {
  * Summary statistics for yield distributions
  */
 export interface YieldDistributionSummary {
-  totalGrossYield: number;
-  totalNetYield: number;
-  totalFees: number;
-  totalIbFees: number;
+  /** Total gross yield - string for NUMERIC(28,10) precision */
+  totalGrossYield: string;
+  /** Total net yield - string for NUMERIC(28,10) precision */
+  totalNetYield: string;
+  /** Total fees - string for NUMERIC(28,10) precision */
+  totalFees: string;
+  /** Total IB fees - string for NUMERIC(28,10) precision */
+  totalIbFees: string;
   distributionCount: number;
   investorCount: number;
 }
@@ -92,7 +105,9 @@ export interface YieldDistributionSummary {
 /**
  * Transform database row to domain type
  */
-export function transformYieldDistributionRecord(row: YieldDistributionRow): YieldDistributionRecord {
+export function transformYieldDistributionRecord(
+  row: YieldDistributionRow
+): YieldDistributionRecord {
   return {
     id: row.id,
     fundId: row.fund_id,
@@ -129,7 +144,9 @@ export function transformYieldDistributionRecord(row: YieldDistributionRow): Yie
 /**
  * Transform domain type back to database insert format
  */
-export function toYieldDistributionInsert(record: Partial<YieldDistributionRecord>): Partial<YieldDistributionInsert> {
+export function toYieldDistributionInsert(
+  record: Partial<YieldDistributionRecord>
+): Partial<YieldDistributionInsert> {
   return {
     fund_id: record.fundId,
     effective_date: record.effectiveDate,
@@ -151,7 +168,8 @@ export function toYieldDistributionInsert(record: Partial<YieldDistributionRecor
     reference_id: record.referenceId,
     aum_record_id: record.aumRecordId,
     parent_distribution_id: record.parentDistributionId,
-    summary_json: record.summaryJson as unknown as Database["public"]["Tables"]["yield_distributions"]["Insert"]["summary_json"],
+    summary_json:
+      record.summaryJson as unknown as Database["public"]["Tables"]["yield_distributions"]["Insert"]["summary_json"],
     reason: record.reason,
     status: record.status,
   };

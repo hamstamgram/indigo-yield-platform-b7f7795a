@@ -30,8 +30,10 @@ export interface ApprovalRequest {
   reason: string;
   rejection_reason?: string;
   metadata?: Record<string, unknown>;
-  threshold_value?: number;
-  actual_value?: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  threshold_value?: string;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  actual_value?: string;
   requested_at: string;
   resolved_at?: string;
   expires_at?: string;
@@ -48,8 +50,10 @@ export interface PendingApproval {
   requester_email: string;
   reason: string;
   metadata?: Record<string, unknown>;
-  actual_value?: number;
-  threshold_value?: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  actual_value?: string;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  threshold_value?: string;
   requested_at: string;
   expires_at?: string;
   expiry_status: ApprovalExpiryStatus;
@@ -68,7 +72,8 @@ export interface ApprovalHistoryItem {
   approver_name: string;
   reason: string;
   rejection_reason?: string;
-  actual_value?: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  actual_value?: string;
   requested_at: string;
   resolved_at?: string;
   approval_signature?: string;
@@ -81,13 +86,16 @@ export interface RequestApprovalInput {
   entityId: string;
   reason: string;
   metadata?: Record<string, unknown>;
-  amount?: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  amount?: string;
   expiryHours?: number;
 }
 
 export interface ApprovalThresholds {
-  withdrawal_amount: number;
-  deposit_amount: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  withdrawal_amount: string;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  deposit_amount: string;
   period_lock: number;
   period_unlock: number;
   staging_promotion: number;

@@ -38,9 +38,12 @@ export interface IBAllocation {
   effectiveDate: string;
   purpose: AumPurpose;
   source: string | null;
-  sourceNetIncome: number;
-  ibPercentage: number;
-  ibFeeAmount: number;
+  /** Source net income - string for NUMERIC(28,10) precision */
+  sourceNetIncome: string;
+  /** IB percentage - string for decimal precision */
+  ibPercentage: string;
+  /** IB fee amount - string for NUMERIC(28,10) precision */
+  ibFeeAmount: string;
   payoutStatus: string;
   payoutBatchId: string | null;
   paidAt: string | null;
@@ -67,7 +70,8 @@ export interface IBAllocationWithNames extends IBAllocation {
 export interface IBAllocationSummary {
   ibInvestorId: string;
   ibInvestorName: string;
-  totalAmount: number;
+  /** Total amount - string for NUMERIC(28,10) precision */
+  totalAmount: string;
   allocationCount: number;
   payoutStatus: string;
 }
@@ -110,7 +114,9 @@ export function transformIBAllocation(row: IBAllocationRow): IBAllocation {
 /**
  * Transform domain type back to database insert format
  */
-export function toIBAllocationInsert(allocation: Partial<IBAllocation>): Partial<IBAllocationInsert> {
+export function toIBAllocationInsert(
+  allocation: Partial<IBAllocation>
+): Partial<IBAllocationInsert> {
   return {
     ib_investor_id: allocation.ibInvestorId,
     source_investor_id: allocation.sourceInvestorId,

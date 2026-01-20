@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
   TruncatedText,
   SortableTableHead,
+  QueryErrorBoundary,
 } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
 import {
@@ -652,7 +653,9 @@ function TransactionHistoryContent() {
 export default function AdminTransactionsPage() {
   return (
     <AdminGuard>
-      <TransactionHistoryContent />
+      <QueryErrorBoundary>
+        <TransactionHistoryContent />
+      </QueryErrorBoundary>
     </AdminGuard>
   );
 }

@@ -11,8 +11,10 @@ export interface Investment {
   investor_id: string;
   fund_id: string;
   investment_date: string;
-  amount: number;
-  shares: number;
+  /** Financial amount - string for NUMERIC(28,10) precision */
+  amount: string;
+  /** Share count - string for decimal precision */
+  shares: string;
   status: InvestmentStatus;
   transaction_type: InvestmentTransactionType;
   reference_number?: string;
@@ -34,7 +36,8 @@ export interface InvestmentFormData {
   investor_id: string;
   fund_id: string;
   investment_date: string;
-  amount: number;
+  /** Financial amount - string for NUMERIC(28,10) precision */
+  amount: string;
   transaction_type: InvestmentTransactionType;
   /**
    * Authoritative AUM snapshot used for crystallize-before-flow accounting.

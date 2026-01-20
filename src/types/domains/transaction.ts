@@ -403,7 +403,8 @@ export interface UpdateTransactionParams {
   transactionId: string;
   updates: {
     tx_date?: string;
-    amount?: number;
+    /** @precision NUMERIC(28,10) - use string for precision */
+    amount?: string;
     notes?: string;
     tx_hash?: string;
   };
@@ -427,12 +428,13 @@ export interface VoidAndReissueParams {
   transactionId: string;
   newValues: {
     tx_date: string;
-    amount: number;
+    /** @precision NUMERIC(28,10) - use string for precision */
+    amount: string;
     notes?: string | null;
     tx_hash?: string | null;
   };
-  /** Required closing AUM snapshot for the reissue date (native asset units) */
-  closingAum: number;
+  /** Required closing AUM snapshot for the reissue date (native asset units) @precision NUMERIC(28,10) */
+  closingAum: string;
   reason: string;
 }
 
@@ -447,7 +449,8 @@ export interface VoidAndReissueResult {
   voided_at?: string;
   new_transaction?: {
     id: string;
-    amount: number;
+    /** @precision NUMERIC(28,10) - use string for precision */
+    amount: string;
     tx_date: string;
   };
 }

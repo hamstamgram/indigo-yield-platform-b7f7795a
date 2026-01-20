@@ -1,6 +1,63 @@
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 
+/**
+ * Sensitive fields that should be masked in audit logs to protect PII and secrets
+ */
+const SENSITIVE_FIELDS = [
+  "password",
+  "password_hash",
+  "api_key",
+  "secret",
+  "token",
+  "totp_secret",
+  "refresh_token",
+  "access_token",
+  "private_key",
+  "secret_key",
+  "ssn",
+  "social_security",
+  "tax_id",
+  "bank_account",
+  "routing_number",
+  "credit_card",
+  "card_number",
+  "cvv",
+  "pin",
+];
+
+/**
+ * Mask sensitive data in an object for safe logging
+ */
+function maskSensitiveData<T extends Record<string, any>>(obj: T | null | undefined): T | null {
+  if (!obj || typeof obj !== "object") return obj as T | null;
+
+  const masked = { ...obj } as T;
+
+  for (const key of Object.keys(masked)) {
+    const lowerKey = key.toLowerCase();
+
+    // Check if field name contains any sensitive field pattern
+    const isSensitive = SENSITIVE_FIELDS.some(
+      (field) => lowerKey.includes(field) || lowerKey === field
+    );
+
+    if (isSensitive) {
+      (masked as Record<string, any>)[key] = "[REDACTED]";
+    } else if (
+      typeof (masked as Record<string, any>)[key] === "object" &&
+      (masked as Record<string, any>)[key] !== null
+    ) {
+      // Recursively mask nested objects
+      (masked as Record<string, any>)[key] = maskSensitiveData(
+        (masked as Record<string, any>)[key]
+      );
+    }
+  }
+
+  return masked;
+}
+
 export interface AuditLogEntry {
   id: string;
   actor_user: string | null;
@@ -278,14 +335,19 @@ class AuditLogService {
     newValues?: Record<string, any>;
   }): Promise<{ success: boolean; error?: string }> {
     try {
+      // Mask sensitive fields before storing to protect PII and secrets
+      const maskedOldValues = maskSensitiveData(params.oldValues);
+      const maskedNewValues = maskSensitiveData(params.newValues);
+      const maskedMeta = maskSensitiveData(params.meta);
+
       const { success, error } = await db.insert("audit_log", {
         actor_user: params.actorUserId,
         action: params.action,
         entity: params.entity,
         entity_id: params.entityId || null,
-        meta: params.meta || null,
-        old_values: params.oldValues || null,
-        new_values: params.newValues || null,
+        meta: maskedMeta || null,
+        old_values: maskedOldValues || null,
+        new_values: maskedNewValues || null,
       });
 
       if (!success) {

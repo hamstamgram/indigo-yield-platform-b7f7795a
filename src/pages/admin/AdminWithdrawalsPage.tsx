@@ -1,5 +1,12 @@
 import { useState, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle, Button } from "@/components/ui";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  QueryErrorBoundary,
+} from "@/components/ui";
 import {
   WithdrawalStats as WithdrawalStatsComponent,
   WithdrawalsTable,
@@ -34,7 +41,7 @@ const URL_FILTER_OPTIONS = {
   defaults: { status: "all", page: "1" },
 };
 
-export default function AdminWithdrawalsPage() {
+function WithdrawalsPageContent() {
   const queryClient = useQueryClient();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -308,5 +315,13 @@ export default function AdminWithdrawalsPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function AdminWithdrawalsPage() {
+  return (
+    <QueryErrorBoundary>
+      <WithdrawalsPageContent />
+    </QueryErrorBoundary>
   );
 }

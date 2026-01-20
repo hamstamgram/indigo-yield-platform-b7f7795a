@@ -7,7 +7,8 @@ export interface BalanceAdjustment {
   id: string;
   user_id: string;
   fund_id?: string;
-  amount: number;
+  /** Adjustment amount - string for NUMERIC(28,10) precision */
+  amount: string;
   currency: string;
   reason: string;
   notes?: string;

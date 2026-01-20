@@ -7,7 +7,13 @@
 // Withdrawal Types
 // ============================================================================
 
-export type WithdrawalStatus = "pending" | "approved" | "rejected" | "completed" | "processing" | "cancelled";
+export type WithdrawalStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "completed"
+  | "processing"
+  | "cancelled";
 
 export interface WithdrawalRequestProfile {
   first_name?: string | null;
@@ -24,7 +30,8 @@ export interface WithdrawalRequest {
   id: string;
   investor_id: string;
   fund_id: string;
-  requested_amount: number;
+  /** Requested amount - string for NUMERIC(28,10) precision */
+  requested_amount: string;
   status: WithdrawalStatus;
   withdrawal_type: string;
   fund_class: string;
@@ -37,7 +44,8 @@ export interface WithdrawalRequest {
 
 export interface ApproveWithdrawalParams {
   requestId: string;
-  amount?: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  amount?: string;
   notes?: string;
 }
 
@@ -55,7 +63,8 @@ export interface DepositRequest {
   id: string;
   investor_id: string;
   fund_id?: string;
-  amount: number;
+  /** Deposit amount - string for NUMERIC(28,10) precision */
+  amount: string;
   status: string;
   asset_symbol?: string;
   transaction_hash?: string;

@@ -1,15 +1,18 @@
 /**
  * IB Allocation Service
  * Handles IB fee allocation calculations during yield distribution
- * 
+ *
  * This module is responsible for calculating the IB share of investor yields
  * and is primarily used by the yield distribution process.
+ *
+ * IMPORTANT: Uses Decimal.js for financial precision
  */
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import type { Database } from "@/integrations/supabase/types";
 import { formatDateForDB } from "@/utils/dateUtils";
+import { toDecimal } from "@/utils/financial";
 
 type AumPurpose = Database["public"]["Enums"]["aum_purpose"];
 
@@ -54,19 +57,27 @@ export interface IBAllocation {
 
 /**
  * Calculate IB allocation for a given net income (pure function, no DB access)
+ * Uses Decimal.js for financial precision to avoid floating-point errors
  */
 export function calculateIBAllocation(
-  netIncome: number,
-  ibPercentage: number
+  netIncome: number | string,
+  ibPercentage: number | string
 ): { ibFee: number; adjustedNetIncome: number } {
-  if (ibPercentage <= 0 || netIncome <= 0) {
-    return { ibFee: 0, adjustedNetIncome: netIncome };
+  const netIncomeDec = toDecimal(netIncome);
+  const ibPercentageDec = toDecimal(ibPercentage);
+
+  if (ibPercentageDec.lte(0) || netIncomeDec.lte(0)) {
+    return { ibFee: 0, adjustedNetIncome: netIncomeDec.toNumber() };
   }
 
-  const ibFee = netIncome * (ibPercentage / 100);
-  const adjustedNetIncome = netIncome - ibFee;
+  // Calculate IB fee: netIncome * (ibPercentage / 100)
+  const ibFeeDec = netIncomeDec.times(ibPercentageDec).dividedBy(100);
+  const adjustedNetIncomeDec = netIncomeDec.minus(ibFeeDec);
 
-  return { ibFee, adjustedNetIncome };
+  return {
+    ibFee: ibFeeDec.toNumber(),
+    adjustedNetIncome: adjustedNetIncomeDec.toNumber(),
+  };
 }
 
 // ============ Service ============
@@ -96,6 +107,7 @@ class IBAllocationService {
   /**
    * Calculate IB allocation for an investor's yield (async version with DB lookup)
    * Returns null if investor has no IB parent or no IB percentage configured
+   * Uses Decimal.js for financial precision
    */
   async calculateIBAllocationAsync(input: IBAllocationInput): Promise<IBAllocationResult | null> {
     const config = await this.getInvestorIBConfig(input.sourceInvestorId);
@@ -105,11 +117,14 @@ class IBAllocationService {
     }
 
     // IB fee is calculated as percentage of the source investor's net income
-    const ibFeeAmount = (input.sourceNetIncome * config.ibPercentage) / 100;
+    // Using Decimal.js for precision
+    const sourceNetIncomeDec = toDecimal(input.sourceNetIncome);
+    const ibPercentageDec = toDecimal(config.ibPercentage);
+    const ibFeeAmountDec = sourceNetIncomeDec.times(ibPercentageDec).dividedBy(100);
 
     return {
       ibInvestorId: config.ibParentId,
-      ibFeeAmount,
+      ibFeeAmount: ibFeeAmountDec.toNumber(),
       ibPercentage: config.ibPercentage,
       sourceNetIncome: input.sourceNetIncome,
     };
@@ -119,10 +134,7 @@ class IBAllocationService {
    * Get all investors who have a specific IB as their parent
    */
   async getIBReferralIds(ibId: string): Promise<string[]> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("ib_parent_id", ibId);
+    const { data, error } = await supabase.from("profiles").select("id").eq("ib_parent_id", ibId);
 
     if (error) {
       console.error("Error fetching IB referrals:", error);
@@ -138,7 +150,8 @@ class IBAllocationService {
   async getAllocationsForDistribution(distributionId: string): Promise<any[]> {
     const { data, error } = await supabase
       .from("ib_allocations")
-      .select(`
+      .select(
+        `
         id,
         ib_investor_id,
         source_investor_id,
@@ -147,7 +160,8 @@ class IBAllocationService {
         source_net_income,
         effective_date,
         payout_status
-      `)
+      `
+      )
       .eq("distribution_id", distributionId)
       .eq("is_voided", false);
 

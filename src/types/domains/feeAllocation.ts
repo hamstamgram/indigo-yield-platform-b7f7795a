@@ -29,9 +29,12 @@ export interface FeeAllocation {
   periodStart: string;
   periodEnd: string;
   purpose: AumPurpose;
-  baseNetIncome: number;
-  feePercentage: number;
-  feeAmount: number;
+  /** Base net income - string for NUMERIC(28,10) precision */
+  baseNetIncome: string;
+  /** Fee percentage - string for decimal precision */
+  feePercentage: string;
+  /** Fee amount - string for NUMERIC(28,10) precision */
+  feeAmount: string;
   debitTransactionId: string | null;
   creditTransactionId: string | null;
   isVoided: boolean;
@@ -77,7 +80,9 @@ export function transformFeeAllocation(row: FeeAllocationRow): FeeAllocation {
 /**
  * Transform domain type back to database insert format
  */
-export function toFeeAllocationInsert(allocation: Partial<FeeAllocation>): Partial<FeeAllocationInsert> {
+export function toFeeAllocationInsert(
+  allocation: Partial<FeeAllocation>
+): Partial<FeeAllocationInsert> {
   return {
     distribution_id: allocation.distributionId,
     fund_id: allocation.fundId,

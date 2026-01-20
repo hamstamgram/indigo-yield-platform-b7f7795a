@@ -22,38 +22,38 @@ export interface YieldEvent {
   fund_id: string;
   event_date: string;
   created_at: string;
-  
+
   // Trigger context
   trigger_type: YieldTriggerType;
   trigger_transaction_id: string | null;
-  
-  // AUM snapshot
-  fund_aum_before: number;
-  fund_aum_after: number;
-  
-  // Investor position snapshot
-  investor_balance: number;
-  investor_share_pct: number;
-  
-  // Yield calculation
-  fund_yield_pct: number;
-  gross_yield_amount: number;
-  
-  // Fee deductions
-  fee_pct: number;
-  fee_amount: number;
-  net_yield_amount: number;
-  
+
+  // AUM snapshot - strings for NUMERIC(28,10) precision
+  fund_aum_before: string;
+  fund_aum_after: string;
+
+  // Investor position snapshot - strings for precision
+  investor_balance: string;
+  investor_share_pct: string;
+
+  // Yield calculation - strings for NUMERIC(28,10) precision
+  fund_yield_pct: string;
+  gross_yield_amount: string;
+
+  // Fee deductions - strings for NUMERIC(28,10) precision
+  fee_pct: string;
+  fee_amount: string;
+  net_yield_amount: string;
+
   // Period tracking
   period_start: string;
   period_end: string;
   days_in_period: number;
-  
+
   // Visibility control
   visibility_scope: YieldVisibilityScope;
   made_visible_at: string | null;
   made_visible_by: string | null;
-  
+
   // Audit
   reference_id: string;
   is_voided: boolean;
@@ -69,24 +69,24 @@ export interface FundYieldSnapshot {
   id: string;
   fund_id: string;
   snapshot_date: string;
-  
-  // AUM values
-  opening_aum: number;
-  closing_aum: number;
-  
-  // Calculated yield
-  gross_yield_pct: number;
-  gross_yield_amount: number;
-  
+
+  // AUM values - strings for NUMERIC(28,10) precision
+  opening_aum: string;
+  closing_aum: string;
+
+  // Calculated yield - strings for NUMERIC(28,10) precision
+  gross_yield_pct: string;
+  gross_yield_amount: string;
+
   // Period info
   period_start: string;
   period_end: string;
   days_in_period: number;
-  
+
   // Trigger
   trigger_type: YieldTriggerType;
   trigger_reference: string | null;
-  
+
   // Audit
   is_voided: boolean;
   created_at: string;
@@ -105,12 +105,17 @@ export interface CrystallizationResult {
   trigger_date?: string;
   trigger_type?: string;
   period_start?: string;
-  previous_aum?: number;
-  current_aum?: number;
-  fund_yield_pct?: number;
-  gross_yield?: number;
+  /** Previous AUM - string for NUMERIC(28,10) precision */
+  previous_aum?: string;
+  /** Current AUM - string for NUMERIC(28,10) precision */
+  current_aum?: string;
+  /** Fund yield percentage - string for decimal precision */
+  fund_yield_pct?: string;
+  /** Gross yield - string for NUMERIC(28,10) precision */
+  gross_yield?: string;
   investors_processed?: number;
-  total_yield_distributed?: number;
+  /** Total yield distributed - string for NUMERIC(28,10) precision */
+  total_yield_distributed?: string;
 }
 
 /**
@@ -122,7 +127,8 @@ export interface FinalizationResult {
   period_start: string;
   period_end: string;
   events_made_visible: number;
-  total_yield_finalized: number;
+  /** Total yield finalized - string for NUMERIC(28,10) precision */
+  total_yield_finalized: string;
 }
 
 /**
@@ -130,9 +136,12 @@ export interface FinalizationResult {
  */
 export interface InvestorYieldAggregate {
   investor_id: string;
-  total_gross_yield: number;
-  total_fees: number;
-  total_net_yield: number;
+  /** Total gross yield - string for NUMERIC(28,10) precision */
+  total_gross_yield: string;
+  /** Total fees - string for NUMERIC(28,10) precision */
+  total_fees: string;
+  /** Total net yield - string for NUMERIC(28,10) precision */
+  total_net_yield: string;
   crystallization_count: number;
 }
 
@@ -141,5 +150,6 @@ export interface InvestorYieldAggregate {
  */
 export interface PendingYieldSummary {
   count: number;
-  totalYield: number;
+  /** Total yield - string for NUMERIC(28,10) precision */
+  totalYield: string;
 }

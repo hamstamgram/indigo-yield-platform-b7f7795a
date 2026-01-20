@@ -98,11 +98,6 @@ async function fetchTransactions(
   filters: AdminTransactionFilters,
   funds: FundOption[]
 ): Promise<AdminTransactionResult> {
-  console.log("[AdminTxService] fetchTransactions called", {
-    filters,
-    fundsCount: funds.length,
-  });
-
   const page = filters.page ?? 0;
   const pageSize = filters.pageSize ?? PAGE_SIZE;
 
@@ -138,13 +133,6 @@ async function fetchTransactions(
   }
 
   const { data, error, count } = await query;
-
-  console.log("[AdminTxService] Query result", {
-    dataLength: data?.length,
-    count,
-    error,
-    firstRow: data?.[0],
-  });
 
   if (error) throw error;
 

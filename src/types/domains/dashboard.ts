@@ -7,7 +7,8 @@ export interface FundWithAUM {
   id: string;
   name: string;
   asset: string;
-  currentAUM: number;
+  /** Current AUM - string for NUMERIC(28,10) precision */
+  currentAUM: string;
 }
 
 export interface ActivityItem {
@@ -17,7 +18,8 @@ export interface ActivityItem {
   description: string;
   timestamp: Date;
   metadata?: {
-    amount?: number;
+    /** Activity amount - string for NUMERIC(28,10) precision */
+    amount?: string;
     asset?: string;
     investorName?: string;
   };
@@ -35,15 +37,22 @@ export interface PendingItem {
 
 // Admin KPI Dashboard types
 export interface AdminKPI {
-  aum: number;
-  inflows: number;
-  outflows: number;
-  net_new_money: number;
-  mgmt_fees_accrued: number; // DEPRECATED: Always 0 per CFO policy - do not display
-  perf_fees_accrued: number;
+  /** Total AUM - string for NUMERIC(28,10) precision */
+  aum: string;
+  /** Total inflows - string for NUMERIC(28,10) precision */
+  inflows: string;
+  /** Total outflows - string for NUMERIC(28,10) precision */
+  outflows: string;
+  /** Net new money - string for NUMERIC(28,10) precision */
+  net_new_money: string;
+  /** Management fees accrued - DEPRECATED: Always 0 per CFO policy - do not display */
+  mgmt_fees_accrued: string;
+  /** Performance fees accrued - string for NUMERIC(28,10) precision */
+  perf_fees_accrued: string;
   lp_count: number;
   active_lp_count: number;
-  churn_rate: number;
+  /** Churn rate - string for decimal precision */
+  churn_rate: string;
   period_start: string;
   period_end: string;
 }

@@ -13,20 +13,31 @@ export interface PortfolioPosition {
   fund_class: string;
   asset_code: string;
   asset_name: string;
-  shares_held: number;
-  cost_basis: number;
-  current_value: number;
-  unrealized_gain: number;
-  unrealized_gain_percent: number;
-  percentage_of_portfolio: number;
+  /** Share count - string for NUMERIC precision */
+  shares_held: string;
+  /** Cost basis - string for NUMERIC(28,10) precision */
+  cost_basis: string;
+  /** Current value - string for NUMERIC(28,10) precision */
+  current_value: string;
+  /** Unrealized gain - string for NUMERIC(28,10) precision */
+  unrealized_gain: string;
+  /** Unrealized gain percent - string for decimal precision */
+  unrealized_gain_percent: string;
+  /** Portfolio allocation percentage - string for decimal precision */
+  percentage_of_portfolio: string;
 }
 
 export interface PortfolioSummary {
-  total_value: number;
-  total_cost_basis: number;
-  total_unrealized_gain: number;
-  total_unrealized_gain_percent: number;
-  total_realized_gain: number;
+  /** Total portfolio value - string for NUMERIC(28,10) precision */
+  total_value: string;
+  /** Total cost basis - string for NUMERIC(28,10) precision */
+  total_cost_basis: string;
+  /** Total unrealized gain - string for NUMERIC(28,10) precision */
+  total_unrealized_gain: string;
+  /** Total unrealized gain percent - string for decimal precision */
+  total_unrealized_gain_percent: string;
+  /** Total realized gain - string for NUMERIC(28,10) precision */
+  total_realized_gain: string;
   position_count: number;
   last_updated: string;
 }
@@ -34,16 +45,21 @@ export interface PortfolioSummary {
 export interface PortfolioAllocation {
   asset_code: AssetCode;
   asset_name: string;
-  value: number;
-  percentage: number;
+  /** Allocation value - string for NUMERIC(28,10) precision */
+  value: string;
+  /** Allocation percentage - string for decimal precision */
+  percentage: string;
   color: string;
 }
 
 export interface PortfolioPerformance {
   date: string;
-  value: number;
-  return_amount: number;
-  return_percent: number;
+  /** Portfolio value - string for NUMERIC(28,10) precision */
+  value: string;
+  /** Return amount - string for NUMERIC(28,10) precision */
+  return_amount: string;
+  /** Return percent - string for decimal precision */
+  return_percent: string;
 }
 
 export interface PortfolioData {
@@ -54,15 +70,24 @@ export interface PortfolioData {
 }
 
 export interface PerformanceMetrics {
-  mtd_return: number;
-  qtd_return: number;
-  ytd_return: number;
-  itd_return: number;
-  sharpe_ratio?: number;
-  volatility?: number;
-  max_drawdown?: number;
-  total_return?: number;
-  annualized_return?: number;
+  /** Month-to-date return - string for decimal precision */
+  mtd_return: string;
+  /** Quarter-to-date return - string for decimal precision */
+  qtd_return: string;
+  /** Year-to-date return - string for decimal precision */
+  ytd_return: string;
+  /** Inception-to-date return - string for decimal precision */
+  itd_return: string;
+  /** Sharpe ratio - string for decimal precision */
+  sharpe_ratio?: string;
+  /** Volatility - string for decimal precision */
+  volatility?: string;
+  /** Maximum drawdown - string for decimal precision */
+  max_drawdown?: string;
+  /** Total return - string for decimal precision */
+  total_return?: string;
+  /** Annualized return - string for decimal precision */
+  annualized_return?: string;
 }
 
 // Performance record from investor_performance table
@@ -71,26 +96,26 @@ export interface PerformanceRecord {
   period_id: string;
   investor_id: string;
   fund_name: string;
-  
-  // Month-to-Date
-  mtd_net_income: number;
-  mtd_ending_balance: number;
-  mtd_rate_of_return: number;
-  
-  // Quarter-to-Date
-  qtd_net_income: number;
-  qtd_ending_balance: number;
-  qtd_rate_of_return: number;
-  
-  // Year-to-Date
-  ytd_net_income: number;
-  ytd_ending_balance: number;
-  ytd_rate_of_return: number;
-  
-  // Inception-to-Date
-  itd_net_income?: number;
-  itd_ending_balance?: number;
-  itd_rate_of_return?: number;
+
+  // Month-to-Date - strings for NUMERIC precision
+  mtd_net_income: string;
+  mtd_ending_balance: string;
+  mtd_rate_of_return: string;
+
+  // Quarter-to-Date - strings for NUMERIC precision
+  qtd_net_income: string;
+  qtd_ending_balance: string;
+  qtd_rate_of_return: string;
+
+  // Year-to-Date - strings for NUMERIC precision
+  ytd_net_income: string;
+  ytd_ending_balance: string;
+  ytd_rate_of_return: string;
+
+  // Inception-to-Date - strings for NUMERIC precision
+  itd_net_income?: string;
+  itd_ending_balance?: string;
+  itd_rate_of_return?: string;
 
   // Joined Data
   period?: {
@@ -121,7 +146,9 @@ export interface PortfolioAnalytics {
 
 export interface AllocationData {
   asset: string;
-  value: number;
-  percentage: number;
+  /** Allocation value - string for NUMERIC(28,10) precision */
+  value: string;
+  /** Allocation percentage - string for decimal precision */
+  percentage: string;
   color: string;
 }

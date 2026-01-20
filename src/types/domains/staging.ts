@@ -11,7 +11,8 @@ export interface StagingTransaction {
   fund_id: string;
   investor_id: string;
   type: "DEPOSIT" | "WITHDRAWAL";
-  amount: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  amount: string;
   tx_date: string;
   asset: string;
   reference_id?: string;
@@ -40,7 +41,8 @@ export interface StagingBatch {
   valid_count: number;
   invalid_count: number;
   promoted_count: number;
-  total_amount: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  total_amount: string;
   imported_by: string;
   importer_name?: string;
   created_at: string;
@@ -75,9 +77,12 @@ export interface StagingPreviewReport {
   fund_name: string;
   fund_asset: string;
   transaction_count: number;
-  total_deposits: number;
-  total_withdrawals: number;
-  net_flow: number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  total_deposits: string;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  total_withdrawals: string;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  net_flow: string;
   unique_investors: number;
   date_range: {
     earliest: string;

@@ -10,7 +10,8 @@ export interface YieldCalculationInput {
   fundId: string;
   targetDate: Date;
   periodStart?: Date; // For ADB: defaults to start of month if not provided
-  newTotalAUM: number;
+  /** New total AUM - string for NUMERIC(28,10) precision */
+  newTotalAUM: string;
   purpose?: "reporting" | "transaction";
 }
 
@@ -21,28 +22,43 @@ export interface YieldDistribution {
   investorId: string;
   investorName: string;
   accountType?: string;
-  currentBalance: number;
-  allocationPercentage: number;
-  feePercentage: number;
-  grossYield: number;
-  feeAmount: number;
-  netYield: number;
-  newBalance: number;
-  positionDelta: number;
+  /** Current balance - string for NUMERIC(28,10) precision */
+  currentBalance: string;
+  /** Allocation percentage - string for decimal precision */
+  allocationPercentage: string;
+  /** Fee percentage - string for decimal precision */
+  feePercentage: string;
+  /** Gross yield - string for NUMERIC(28,10) precision */
+  grossYield: string;
+  /** Fee amount - string for NUMERIC(28,10) precision */
+  feeAmount: string;
+  /** Net yield - string for NUMERIC(28,10) precision */
+  netYield: string;
+  /** New balance - string for NUMERIC(28,10) precision */
+  newBalance: string;
+  /** Position delta - string for NUMERIC(28,10) precision */
+  positionDelta: string;
   // IB fields
   ibParentId?: string;
   ibParentName?: string;
-  ibPercentage: number;
-  ibAmount: number;
+  /** IB percentage - string for decimal precision */
+  ibPercentage: string;
+  /** IB amount - string for NUMERIC(28,10) precision */
+  ibAmount: string;
   // Idempotency
   referenceId: string;
   wouldSkip: boolean;
   // ADB (Average Daily Balance) fields - for time-weighted yield calculation
-  adb?: number; // Investor's average daily balance for the period
-  adbWeight?: number; // Time-weighted allocation weight (0-1)
-  carriedLoss?: number; // Loss carryforward from previous periods
-  lossOffset?: number; // Amount of loss offset applied this period
-  taxableGain?: number; // Gain after loss offset (fee basis)
+  /** Average daily balance - string for NUMERIC(28,10) precision */
+  adb?: string;
+  /** ADB weight - string for decimal precision (0-1) */
+  adbWeight?: string;
+  /** Carried loss - string for NUMERIC(28,10) precision */
+  carriedLoss?: string;
+  /** Loss offset - string for NUMERIC(28,10) precision */
+  lossOffset?: string;
+  /** Taxable gain - string for NUMERIC(28,10) precision */
+  taxableGain?: string;
   hasIb?: boolean; // Whether investor has an IB parent
 }
 
@@ -54,8 +70,10 @@ export interface IBCredit {
   ibInvestorName: string;
   sourceInvestorId: string;
   sourceInvestorName: string;
-  amount: number;
-  ibPercentage: number;
+  /** IB credit amount - string for NUMERIC(28,10) precision */
+  amount: string;
+  /** IB percentage - string for decimal precision */
+  ibPercentage: string;
   source: string;
   referenceId: string;
   wouldSkip: boolean;
@@ -65,11 +83,16 @@ export interface IBCredit {
  * Yield totals summary
  */
 export interface YieldTotals {
-  gross: number;
-  fees: number;
-  ibFees: number;
-  net: number;
-  indigoCredit: number;
+  /** Gross yield total - string for NUMERIC(28,10) precision */
+  gross: string;
+  /** Total fees - string for NUMERIC(28,10) precision */
+  fees: string;
+  /** Total IB fees - string for NUMERIC(28,10) precision */
+  ibFees: string;
+  /** Net yield total - string for NUMERIC(28,10) precision */
+  net: string;
+  /** Indigo credit total - string for NUMERIC(28,10) precision */
+  indigoCredit: string;
 }
 
 /**
@@ -96,17 +119,25 @@ export interface YieldCalculationResult {
   effectiveDate?: string;
   purpose?: string;
   isMonthEnd?: boolean;
-  currentAUM: number;
-  newAUM: number;
-  grossYield: number;
-  netYield: number;
-  totalFees: number;
-  totalIbFees: number;
-  yieldPercentage: number;
+  /** Current AUM - string for NUMERIC(28,10) precision */
+  currentAUM: string;
+  /** New AUM - string for NUMERIC(28,10) precision */
+  newAUM: string;
+  /** Gross yield - string for NUMERIC(28,10) precision */
+  grossYield: string;
+  /** Net yield - string for NUMERIC(28,10) precision */
+  netYield: string;
+  /** Total fees - string for NUMERIC(28,10) precision */
+  totalFees: string;
+  /** Total IB fees - string for NUMERIC(28,10) precision */
+  totalIbFees: string;
+  /** Yield percentage - string for decimal precision */
+  yieldPercentage: string;
   investorCount: number;
   distributions: YieldDistribution[];
   ibCredits: IBCredit[];
-  indigoFeesCredit: number;
+  /** Indigo fees credit - string for NUMERIC(28,10) precision */
+  indigoFeesCredit: string;
   indigoFeesId?: string;
   existingConflicts: string[];
   hasConflicts: boolean;
@@ -117,10 +148,14 @@ export interface YieldCalculationResult {
   periodStart?: string;
   periodEnd?: string;
   daysInPeriod?: number;
-  totalAdb?: number; // Total fund ADB across all investors
-  yieldRatePct?: number; // Yield as percentage of ADB
-  totalLossOffset?: number; // Total loss offset applied across all investors
-  dustAmount?: number; // Rounding residual
+  /** Total ADB - string for NUMERIC(28,10) precision */
+  totalAdb?: string;
+  /** Yield rate percentage - string for decimal precision */
+  yieldRatePct?: string;
+  /** Total loss offset - string for NUMERIC(28,10) precision */
+  totalLossOffset?: string;
+  /** Dust/rounding amount - string for NUMERIC(28,10) precision */
+  dustAmount?: string;
   calculationMethod?: "pro_rata" | "adb_v3";
   features?: string[]; // e.g., ['time_weighted', 'loss_carryforward']
   conservationCheck?: boolean; // Whether gross = net + fees + ib + dust
@@ -134,9 +169,12 @@ export interface FundDailyAUM {
   fund_id: string;
   aum_date: string;
   as_of_date?: string;
-  total_aum: number;
-  nav_per_share?: number | null;
-  total_shares?: number | null;
+  /** Total AUM - string for NUMERIC(28,10) precision */
+  total_aum: string;
+  /** NAV per share - string for NUMERIC precision */
+  nav_per_share?: string | null;
+  /** Total shares - string for NUMERIC precision */
+  total_shares?: string | null;
   source?: string | null;
   created_at?: string | null;
   updated_at?: string | null;

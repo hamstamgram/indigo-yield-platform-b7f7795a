@@ -58,13 +58,4 @@ if (!SUPABASE_ANON_KEY.startsWith("eyJ") || SUPABASE_ANON_KEY.split(".").length 
   throw new Error("Invalid Supabase Anon Key format. Must be a valid JWT token.");
 }
 
-// Log configuration in development (without exposing sensitive data)
-if (process.env.NODE_ENV === "development") {
-  console.log("✅ Supabase Configuration:", {
-    url: SUPABASE_URL,
-    keyPrefix: SUPABASE_ANON_KEY.substring(0, 20) + "...",
-    keyLength: SUPABASE_ANON_KEY.length,
-  });
-}
-
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);

@@ -1,12 +1,40 @@
 import { useState } from "react";
 import {
-  Button, Input, Label, Badge,
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-  Tabs, TabsContent, TabsList, TabsTrigger,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  QueryErrorBoundary,
 } from "@/components/ui";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
@@ -43,7 +71,9 @@ function AdminUserManagementContent() {
     if (!inviteEmail) return;
 
     try {
-      const { inviteCode, expiresAt } = await createInviteMutation.mutateAsync({ email: inviteEmail });
+      const { inviteCode, expiresAt } = await createInviteMutation.mutateAsync({
+        email: inviteEmail,
+      });
 
       // Try to send email
       try {
@@ -57,7 +87,8 @@ function AdminUserManagementContent() {
         });
       } catch {
         toast.error("Invite Created (Email Failed)", {
-          description: "The invite was created, but the email failed to send. You can manually share the code.",
+          description:
+            "The invite was created, but the email failed to send. You can manually share the code.",
         });
       }
 
@@ -259,7 +290,11 @@ function AdminUserManagementContent() {
                 />
               </div>
 
-              <Button onClick={handlePasswordReset} disabled={resetPasswordMutation.isPending} className="w-full">
+              <Button
+                onClick={handlePasswordReset}
+                disabled={resetPasswordMutation.isPending}
+                className="w-full"
+              >
                 {resetPasswordMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
@@ -299,7 +334,9 @@ function AdminUserManagementContent() {
 export default function AdminUserManagement() {
   return (
     <AdminGuard>
-      <AdminUserManagementContent />
+      <QueryErrorBoundary>
+        <AdminUserManagementContent />
+      </QueryErrorBoundary>
     </AdminGuard>
   );
 }

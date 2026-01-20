@@ -23,7 +23,13 @@ export type ReportType =
 export type ReportFormat = "pdf" | "excel" | "csv" | "json";
 
 // Report Status
-export type ReportStatus = "pending" | "queued" | "processing" | "completed" | "failed" | "cancelled";
+export type ReportStatus =
+  | "pending"
+  | "queued"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 // Report Frequency (for schedules)
 export type ReportFrequency = "daily" | "weekly" | "monthly" | "quarterly" | "annually" | "custom";
@@ -225,13 +231,20 @@ export interface ReportStyles {
 export interface HoldingData {
   assetCode: string;
   assetName: string;
-  quantity: number;
-  currentPrice: number;
-  currentValue: number;
-  allocationPercentage: number;
-  costBasis: number;
-  unrealizedGain: number;
-  unrealizedGainPercentage: number;
+  /** Quantity - string for NUMERIC precision */
+  quantity: string;
+  /** Current price - string for NUMERIC(28,10) precision */
+  currentPrice: string;
+  /** Current value - string for NUMERIC(28,10) precision */
+  currentValue: string;
+  /** Allocation percentage - string for decimal precision */
+  allocationPercentage: string;
+  /** Cost basis - string for NUMERIC(28,10) precision */
+  costBasis: string;
+  /** Unrealized gain - string for NUMERIC(28,10) precision */
+  unrealizedGain: string;
+  /** Unrealized gain percentage - string for decimal precision */
+  unrealizedGainPercentage: string;
 }
 
 // Transaction Data
@@ -239,8 +252,10 @@ export interface TransactionData {
   date: Date | string;
   type: string;
   assetCode: string;
-  amount: number;
-  value: number;
+  /** Transaction amount - string for NUMERIC(28,10) precision */
+  amount: string;
+  /** Transaction value - string for NUMERIC(28,10) precision */
+  value: string;
   is_voided: boolean;
   note?: string;
   txHash?: string;
@@ -251,11 +266,16 @@ export interface TransactionData {
 // Performance Period
 export interface PerformancePeriod {
   period: string;
-  beginValue: number;
-  endValue: number;
-  netCashFlow: number;
-  return: number;
-  returnPercentage: number;
+  /** Beginning value - string for NUMERIC(28,10) precision */
+  beginValue: string;
+  /** Ending value - string for NUMERIC(28,10) precision */
+  endValue: string;
+  /** Net cash flow - string for NUMERIC(28,10) precision */
+  netCashFlow: string;
+  /** Return amount - string for NUMERIC(28,10) precision */
+  return: string;
+  /** Return percentage - string for decimal precision */
+  returnPercentage: string;
 }
 
 // Report Data (complete report structure)
@@ -270,19 +290,32 @@ export interface ReportData {
     accountNumber?: string;
   };
   summary: {
-    beginningBalance?: number;
-    totalDeposits?: number;
-    totalWithdrawals?: number;
-    netIncome?: number;
-    totalFees?: number;
-    endingBalance?: number;
-    totalValue?: number;
-    totalReturn?: number;
-    returnPercentage?: number;
-    mtdReturn?: number;
-    qtdReturn?: number;
-    ytdReturn?: number;
-    itdReturn?: number;
+    /** Beginning balance - string for NUMERIC(28,10) precision */
+    beginningBalance?: string;
+    /** Total deposits - string for NUMERIC(28,10) precision */
+    totalDeposits?: string;
+    /** Total withdrawals - string for NUMERIC(28,10) precision */
+    totalWithdrawals?: string;
+    /** Net income - string for NUMERIC(28,10) precision */
+    netIncome?: string;
+    /** Total fees - string for NUMERIC(28,10) precision */
+    totalFees?: string;
+    /** Ending balance - string for NUMERIC(28,10) precision */
+    endingBalance?: string;
+    /** Total value - string for NUMERIC(28,10) precision */
+    totalValue?: string;
+    /** Total return - string for NUMERIC(28,10) precision */
+    totalReturn?: string;
+    /** Return percentage - string for decimal precision */
+    returnPercentage?: string;
+    /** MTD return - string for decimal precision */
+    mtdReturn?: string;
+    /** QTD return - string for decimal precision */
+    qtdReturn?: string;
+    /** YTD return - string for decimal precision */
+    ytdReturn?: string;
+    /** ITD return - string for decimal precision */
+    itdReturn?: string;
   };
   holdings?: HoldingData[];
   transactions?: TransactionData[];
@@ -291,7 +324,8 @@ export interface ReportData {
   };
   fees?: Array<{
     type: string;
-    amount: number;
+    /** Fee amount - string for NUMERIC(28,10) precision */
+    amount: string;
     description?: string;
   }>;
 }
@@ -343,30 +377,42 @@ export interface InvestorData {
 
 // CDN URLs for fund icons
 export const FUND_ICONS: Record<string, string> = {
-  "BTC YIELD FUND": "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  "ETH YIELD FUND": "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "USDC YIELD FUND": "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  "USDT YIELD FUND": "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  "SOL YIELD FUND": "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
-  "EURC YIELD FUND": "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
-  "XAUT YIELD FUND": "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
-  "XRP YIELD FUND": "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+  "BTC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+  "ETH YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+  "USDC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
+  "USDT YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  "SOL YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
+  "EURC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
+  "XAUT YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+  "XRP YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
 };
 
-export const LOGO_URL = "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
+export const LOGO_URL =
+  "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
 
 export const SOCIAL_ICONS = {
-  linkedin: "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
-  instagram: "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
-  twitter: "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
+  linkedin:
+    "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
+  instagram:
+    "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
+  twitter:
+    "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
 };
 
 /**
  * Returns color based on value - red for negative, green for positive
  */
 export const getValueColor = (value: string): string => {
-  if (value.startsWith('-') || value.startsWith('(')) {
-    return '#dc2626'; // Red
+  if (value.startsWith("-") || value.startsWith("(")) {
+    return "#dc2626"; // Red
   }
-  return '#16a34a'; // Green
+  return "#16a34a"; // Green
 };

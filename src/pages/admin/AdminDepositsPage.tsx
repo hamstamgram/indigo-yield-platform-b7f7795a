@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Button } from "@/components/ui";
+import { Button, QueryErrorBoundary } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { DepositStats, DepositsTable, CreateDepositDialog } from "@/components/admin";
 import type { DepositFilters } from "@/types/domains";
 
-export default function AdminDepositsPage() {
+function DepositsPageContent() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  
+
   // Shared filter state - lifted to parent for consistency between stats and table
   const [filters, setFilters] = useState<DepositFilters>({});
 
@@ -31,5 +31,13 @@ export default function AdminDepositsPage() {
 
       <CreateDepositDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
     </div>
+  );
+}
+
+export default function AdminDepositsPage() {
+  return (
+    <QueryErrorBoundary>
+      <DepositsPageContent />
+    </QueryErrorBoundary>
   );
 }
