@@ -181,6 +181,38 @@ The `useRealtimeAlerts` hook subscribes to the `admin_alerts` table via Supabase
 
 ---
 
+## Cost Basis Integrity System (2026-01 Addition)
+
+A comprehensive cost_basis protection system prevents data corruption:
+
+### Single Canonical Writer
+
+Only `recompute_investor_position()` can update `cost_basis`, `current_value`, and `shares` in `investor_positions`. All canonical RPCs insert into `transactions_v2` and rely on the `trg_recompute_position_on_tx` trigger.
+
+### Enforcement Guard
+
+| Trigger | Action |
+|---------|--------|
+| `trg_enforce_canonical_position_write` | Blocks direct writes unless `app.canonical_rpc` session flag is set |
+
+### Projection Functions
+
+| Function | Purpose |
+|----------|---------|
+| `compute_position_from_ledger(investor_id, fund_id, as_of)` | Read-only: computes what position should be |
+| `rebuild_position_from_ledger(investor_id, fund_id, admin_id, reason, dry_run)` | Write: repairs position with audit trail |
+| `fix_cost_basis_anomalies(admin_id, reason, dry_run)` | Batch: repairs all mismatched positions |
+
+### Integrity View
+
+| View | Purpose |
+|------|---------|
+| `v_cost_basis_mismatch` | Detects positions where stored values differ from ledger projection |
+
+See `docs/patterns/COST_BASIS_INTEGRITY.md` for full documentation.
+
+---
+
 ## Adding New Guardrails
 
 1. Create the trigger function in a migration
