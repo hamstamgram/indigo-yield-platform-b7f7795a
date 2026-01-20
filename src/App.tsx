@@ -11,6 +11,7 @@ import { queryClientConfig, setQueryClient } from "./utils/performance/caching";
 
 // UI Components
 import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 import { CookieConsent } from "./components/privacy/CookieConsent";
 import { InstallPrompt as SimpleInstallPrompt } from "./pwa/installPrompt";
 
@@ -75,9 +76,11 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <SecurityProvider>
           <AuthProvider>
-            <Router>
-              <AppContent />
-            </Router>
+            <TooltipProvider delayDuration={200}>
+              <Router>
+                <AppContent />
+              </Router>
+            </TooltipProvider>
           </AuthProvider>
         </SecurityProvider>
       </QueryClientProvider>

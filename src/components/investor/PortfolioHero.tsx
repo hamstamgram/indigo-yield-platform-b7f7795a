@@ -1,6 +1,10 @@
 import {
-  Card, CardContent, Skeleton,
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+  Card,
+  CardContent,
+  Skeleton,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui";
 import { TrendingUp, TrendingDown, Wallet, Calendar, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,9 +42,10 @@ export function PortfolioHero({
   isFinalizedData = false,
 }: PortfolioHeroProps) {
   // Calculate weighted average YTD return
-  const totalYtdReturn = assetBalances.length > 0
-    ? assetBalances.reduce((sum, a) => sum + (a.ytdReturn || 0), 0) / assetBalances.length
-    : 0;
+  const totalYtdReturn =
+    assetBalances.length > 0
+      ? assetBalances.reduce((sum, a) => sum + (a.ytdReturn || 0), 0) / assetBalances.length
+      : 0;
   const isPositive = totalYtdReturn >= 0;
 
   if (isLoading) {
@@ -61,10 +66,12 @@ export function PortfolioHero({
   }
 
   return (
-    <Card className={cn(
-      "overflow-hidden bg-gradient-to-br from-primary/5 via-background to-background border-primary/20",
-      className
-    )}>
+    <Card
+      className={cn(
+        "overflow-hidden bg-gradient-to-br from-primary/5 via-background to-background border-primary/20",
+        className
+      )}
+    >
       <CardContent className="p-6 md:p-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
           {/* Main Balances - Per Asset */}
@@ -73,45 +80,46 @@ export function PortfolioHero({
               <Wallet className="h-3 w-3" />
               Portfolio Balances
               {isFinalizedData && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs text-xs">
-                        This shows your finalized month-end balance. 
-                        Mid-month values are not displayed until the period is closed.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs text-xs">
+                      This shows your finalized month-end balance. Mid-month values are not
+                      displayed until the period is closed.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </p>
-            
+
             {assetBalances.length === 0 ? (
               <p className="text-muted-foreground text-sm">No active positions</p>
             ) : (
               <div className="flex flex-wrap gap-4">
                 {assetBalances.map((asset) => (
-                  <div 
-                    key={asset.symbol} 
+                  <div
+                    key={asset.symbol}
                     className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2"
                   >
-                    <img 
-                      src={getAssetLogo(asset.symbol)} 
+                    <img
+                      src={getAssetLogo(asset.symbol)}
                       alt={asset.symbol}
                       className="h-6 w-6 rounded-full"
                     />
                     <div>
                       <p className="text-lg md:text-xl font-display font-bold tracking-tight">
-                        {formatTokenAmount(asset.balance, asset.symbol)} {asset.symbol.toUpperCase()}
+                        {formatTokenAmount(asset.balance, asset.symbol)}{" "}
+                        {asset.symbol.toUpperCase()}
                       </p>
                       {asset.ytdReturn !== undefined && (
-                        <p className={cn(
-                          "text-xs font-mono",
-                          asset.ytdReturn >= 0 ? "text-green-600" : "text-red-600"
-                        )}>
+                        <p
+                          className={cn(
+                            "text-xs font-mono",
+                            asset.ytdReturn >= 0 ? "text-green-600" : "text-red-600"
+                          )}
+                        >
                           YTD {formatPct(asset.ytdReturn)}
                         </p>
                       )}
@@ -120,7 +128,7 @@ export function PortfolioHero({
                 ))}
               </div>
             )}
-            
+
             {lastUpdated && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
@@ -136,20 +144,26 @@ export function PortfolioHero({
               <div className="min-w-[120px]">
                 <p className="text-xs text-muted-foreground mb-1">Avg YTD Return</p>
                 <div className="flex items-center gap-2">
-                  <div className={cn(
-                    "p-1.5 rounded-full",
-                    isPositive ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"
-                  )}>
+                  <div
+                    className={cn(
+                      "p-1.5 rounded-full",
+                      isPositive
+                        ? "bg-green-100 dark:bg-green-900/30"
+                        : "bg-red-100 dark:bg-red-900/30"
+                    )}
+                  >
                     {isPositive ? (
                       <TrendingUp className="h-4 w-4 text-green-600" />
                     ) : (
                       <TrendingDown className="h-4 w-4 text-red-600" />
                     )}
                   </div>
-                  <span className={cn(
-                    "text-xl font-mono font-bold",
-                    isPositive ? "text-green-600" : "text-red-600"
-                  )}>
+                  <span
+                    className={cn(
+                      "text-xl font-mono font-bold",
+                      isPositive ? "text-green-600" : "text-red-600"
+                    )}
+                  >
                     {formatPct(totalYtdReturn)}
                   </span>
                 </div>
@@ -159,9 +173,7 @@ export function PortfolioHero({
             {/* Active Funds */}
             <div className="min-w-[100px]">
               <p className="text-xs text-muted-foreground mb-1">Active Funds</p>
-              <p className="text-xl font-mono font-bold">
-                {activeFunds}
-              </p>
+              <p className="text-xl font-mono font-bold">{activeFunds}</p>
             </div>
           </div>
         </div>

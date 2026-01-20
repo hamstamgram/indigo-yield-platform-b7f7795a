@@ -5,12 +5,7 @@
  */
 
 import Decimal from "decimal.js";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface FinancialValueProps {
@@ -42,8 +37,8 @@ const ASSET_DECIMALS: Record<string, number> = {
   XAUT: 4,
 };
 
-export function FinancialValue({ 
-  value, 
+export function FinancialValue({
+  value,
   asset = "",
   displayDecimals,
   className,
@@ -53,36 +48,33 @@ export function FinancialValue({
 }: FinancialValueProps) {
   // Handle null/undefined
   if (value === null || value === undefined) {
-    return (
-      <span className={cn("text-muted-foreground", className)}>
-        —
-      </span>
-    );
+    return <span className={cn("text-muted-foreground", className)}>—</span>;
   }
 
   // Use Decimal.js for precision
   const decimalValue = new Decimal(value);
-  
+
   // Determine display decimals: explicit > asset-specific > default 8
   const decimals = displayDecimals ?? ASSET_DECIMALS[asset?.toUpperCase()] ?? 8;
-  
+
   // Format for display
   const displayValue = decimalValue.toFixed(decimals);
   const fullPrecision = decimalValue.toFixed(10);
-  
+
   // Check if value is a micro-balance (exists but rounds to zero)
-  const isMicroBalance = decimalValue.abs().greaterThan(0) && 
+  const isMicroBalance =
+    decimalValue.abs().greaterThan(0) &&
     decimalValue.abs().lessThan(new Decimal(10).pow(-decimals));
-  
+
   // Check if values differ (for tooltip decision)
   const hasPrecisionLoss = displayValue !== fullPrecision.slice(0, displayValue.length);
-  
+
   // Determine color based on sign
-  const valueColor = colorize 
-    ? decimalValue.greaterThan(0) 
-      ? "text-green-600 dark:text-green-400" 
-      : decimalValue.lessThan(0) 
-        ? "text-red-600 dark:text-red-400" 
+  const valueColor = colorize
+    ? decimalValue.greaterThan(0)
+      ? "text-green-600 dark:text-green-400"
+      : decimalValue.lessThan(0)
+        ? "text-red-600 dark:text-red-400"
         : ""
     : "";
 
@@ -93,57 +85,49 @@ export function FinancialValue({
   // Micro-balance: show special indicator with tooltip
   if (isMicroBalance) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span 
-              className={cn(
-                "cursor-help underline decoration-dotted decoration-muted-foreground/50",
-                "font-mono text-muted-foreground",
-                className
-              )}
-            >
-              ~0{showAsset && asset ? ` ${asset}` : ""}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Micro-balance</p>
-              <p className="font-mono text-sm">{formattedFullValue}</p>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={cn(
+              "cursor-help underline decoration-dotted decoration-muted-foreground/50",
+              "font-mono text-muted-foreground",
+              className
+            )}
+          >
+            ~0{showAsset && asset ? ` ${asset}` : ""}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Micro-balance</p>
+            <p className="font-mono text-sm">{formattedFullValue}</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 
   // Regular value: show tooltip only if precision differs
   if (hasPrecisionLoss) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className={cn("font-mono cursor-help", valueColor, className)}>
-              {formattedValue}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Full precision</p>
-              <p className="font-mono text-sm">{formattedFullValue}</p>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={cn("font-mono cursor-help", valueColor, className)}>
+            {formattedValue}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Full precision</p>
+            <p className="font-mono text-sm">{formattedFullValue}</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 
   // No precision loss: simple display
-  return (
-    <span className={cn("font-mono", valueColor, className)}>
-      {formattedValue}
-    </span>
-  );
+  return <span className={cn("font-mono", valueColor, className)}>{formattedValue}</span>;
 }
 
 /**

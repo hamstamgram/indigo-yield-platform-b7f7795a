@@ -1,6 +1,6 @@
 /**
  * Investor Portal Hooks
- * 
+ *
  * React Query hooks for investor-facing portal functionality.
  */
 
@@ -50,7 +50,11 @@ export function useInvestorTransactionsList(
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", undefined),
+    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", {
+      searchTerm,
+      assetFilter,
+      typeFilter,
+    }),
     queryFn: () => getInvestorTransactionsList(user!.id, searchTerm, assetFilter, typeFilter),
     enabled: !!user,
   });
@@ -64,7 +68,9 @@ export function useMonthlyStatements(year: number, assetFilter?: string) {
   return useQuery({
     queryKey: QUERY_KEYS.monthlyStatements(year, assetFilter || "all"),
     queryFn: async () => {
-      const { data: { user: authUser } } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+      } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
       if (!authUser) throw new Error("No authenticated user");
       return getInvestorStatements(authUser.id, year, assetFilter);
     },
@@ -77,7 +83,9 @@ export function useStatementYears() {
   return useQuery({
     queryKey: QUERY_KEYS.statementYears,
     queryFn: async () => {
-      const { data: { user: authUser } } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+      } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
       if (!authUser) return [new Date().getFullYear()];
       return getStatementYears(authUser.id);
     },
@@ -90,7 +98,9 @@ export function useStatementAssets() {
   return useQuery({
     queryKey: QUERY_KEYS.statementAssets,
     queryFn: async () => {
-      const { data: { user: authUser } } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+      } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
       if (!authUser) return [];
       return getStatementAssets(authUser.id);
     },
@@ -99,8 +109,16 @@ export function useStatementAssets() {
 
 export function useDownloadStatement() {
   return useMutation({
-    mutationFn: async ({ periodYear, periodMonth }: { periodYear: number; periodMonth: number }) => {
-      const { data: { user } } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
+    mutationFn: async ({
+      periodYear,
+      periodMonth,
+    }: {
+      periodYear: number;
+      periodMonth: number;
+    }) => {
+      const {
+        data: { user },
+      } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       return getStatementHtmlContent(user.id, periodYear, periodMonth);
     },

@@ -38,7 +38,7 @@ export function useDepositStats(filters?: DepositFilters) {
  */
 export function useDeposits(filters?: DepositFilters) {
   return useQuery<Deposit[]>({
-    queryKey: QUERY_KEYS.deposits,
+    queryKey: [...QUERY_KEYS.deposits, filters],
     queryFn: () =>
       depositService.getDeposits({
         search: filters?.search,

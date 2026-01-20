@@ -34,16 +34,11 @@ import {
   AlertDescription,
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
-import {
-  createAdminTransaction,
-  fetchInvestorsForSelector,
-  preflowAumService,
-} from "@/services";
+import { createAdminTransaction, fetchInvestorsForSelector, preflowAumService } from "@/services";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -370,30 +365,26 @@ export function AddTransactionDialog({
                   {isLoadingInvestors ? (
                     <span className="text-muted-foreground">Loading investors...</span>
                   ) : selectedInvestor ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="flex items-center gap-1 min-w-0 max-w-[350px]">
-                            <span className="truncate font-medium">
-                              {selectedInvestor.displayName}
-                            </span>
-                            {selectedInvestor.displayName !== selectedInvestor.email && (
-                              <span className="text-muted-foreground text-xs truncate max-w-[150px]">
-                                ({selectedInvestor.email})
-                              </span>
-                            )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="flex items-center gap-1 min-w-0 max-w-[350px]">
+                          <span className="truncate font-medium">
+                            {selectedInvestor.displayName}
                           </span>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="max-w-[400px]">
-                          <p className="font-medium">{selectedInvestor.displayName}</p>
                           {selectedInvestor.displayName !== selectedInvestor.email && (
-                            <p className="text-sm text-muted-foreground">
-                              {selectedInvestor.email}
-                            </p>
+                            <span className="text-muted-foreground text-xs truncate max-w-[150px]">
+                              ({selectedInvestor.email})
+                            </span>
                           )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-[400px]">
+                        <p className="font-medium">{selectedInvestor.displayName}</p>
+                        {selectedInvestor.displayName !== selectedInvestor.email && (
+                          <p className="text-sm text-muted-foreground">{selectedInvestor.email}</p>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
                   ) : (
                     <span className="text-muted-foreground">Select investor...</span>
                   )}
@@ -590,20 +581,18 @@ export function AddTransactionDialog({
                   <Label htmlFor="closing_aum">
                     Preflow AUM Snapshot ({selectedFund?.asset || "tokens"}) *
                   </Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p>
-                          The authoritative fund AUM <strong>immediately before</strong> this
-                          transaction is applied. This is used to crystallize any accrued yield
-                          before the capital flow.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>
+                        The authoritative fund AUM <strong>immediately before</strong> this
+                        transaction is applied. This is used to crystallize any accrued yield before
+                        the capital flow.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <PreflowAumInput
                   fundId={selectedFundId}

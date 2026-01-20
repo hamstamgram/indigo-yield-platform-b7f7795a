@@ -3,10 +3,7 @@
  * Shows: Total AUM, Active funds, Pending withdrawals, Last report, IB linked, Fee schedule
  */
 
-import {
-  Badge,
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
-} from "@/components/ui";
+import { Badge, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui";
 import { Coins, Briefcase, Clock, FileText, Users, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +53,7 @@ export function InvestorKpiChips({
       label: "Pending Withdrawals",
       value: pendingWithdrawalsCount.toString(),
       icon: Clock,
-      variant: pendingWithdrawalsCount > 0 ? "destructive" as const : "secondary" as const,
+      variant: pendingWithdrawalsCount > 0 ? ("destructive" as const) : ("secondary" as const),
     },
     {
       label: "Last Report",
@@ -68,45 +65,37 @@ export function InvestorKpiChips({
       label: "IB Linked",
       value: hasIbLinked ? "Yes" : "No",
       icon: Users,
-      variant: hasIbLinked ? "default" as const : "outline" as const,
+      variant: hasIbLinked ? ("default" as const) : ("outline" as const),
     },
     {
       label: "Fee Schedule",
       value: hasFeeSchedule ? "Yes" : "No",
       icon: Percent,
-      variant: hasFeeSchedule ? "default" as const : "outline" as const,
+      variant: hasFeeSchedule ? ("default" as const) : ("outline" as const),
     },
   ];
 
   return (
-    <TooltipProvider>
-      <div className={cn(
-        "flex flex-wrap gap-2",
-        compact && "gap-1.5"
-      )}>
-        {chips.map((chip) => (
-          <Tooltip key={chip.label}>
-            <TooltipTrigger asChild>
-              <Badge 
-                variant={chip.variant}
-                className={cn(
-                  "flex items-center gap-1.5 cursor-default",
-                  compact ? "text-xs px-2 py-0.5" : "text-sm px-2.5 py-1"
-                )}
-              >
-                <chip.icon className={cn(
-                  "shrink-0",
-                  compact ? "h-3 w-3" : "h-3.5 w-3.5"
-                )} />
-                <span className="font-medium">{chip.value}</span>
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{chip.label}</p>
-            </TooltipContent>
-          </Tooltip>
-        ))}
-      </div>
-    </TooltipProvider>
+    <div className={cn("flex flex-wrap gap-2", compact && "gap-1.5")}>
+      {chips.map((chip) => (
+        <Tooltip key={chip.label}>
+          <TooltipTrigger asChild>
+            <Badge
+              variant={chip.variant}
+              className={cn(
+                "flex items-center gap-1.5 cursor-default",
+                compact ? "text-xs px-2 py-0.5" : "text-sm px-2.5 py-1"
+              )}
+            >
+              <chip.icon className={cn("shrink-0", compact ? "h-3 w-3" : "h-3.5 w-3.5")} />
+              <span className="font-medium">{chip.value}</span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{chip.label}</p>
+          </TooltipContent>
+        </Tooltip>
+      ))}
+    </div>
   );
 }

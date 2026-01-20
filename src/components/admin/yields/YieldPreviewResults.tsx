@@ -15,7 +15,6 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
   Table,
   TableBody,
@@ -239,16 +238,14 @@ export function YieldPreviewResults({
                       +{formatValue(ib.amount, asset)}
                     </span>
                     {ib.wouldSkip && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Badge variant="outline" className="text-xs">
-                              Skip
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>Already exists</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge variant="outline" className="text-xs">
+                            Skip
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>Already exists</TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 </div>
@@ -375,22 +372,20 @@ export function YieldPreviewResults({
                 {yieldPreview.calculationMethod === "adb_v3" && (
                   <TableCell className="text-right font-mono text-xs">
                     {(inv.lossOffset || 0) > 0 ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <span className="text-amber-600">
-                              -{formatValue(inv.lossOffset || 0, asset)}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="text-xs">
-                              <p>Carried loss: {formatValue(inv.carriedLoss || 0, asset)}</p>
-                              <p>Offset applied: {formatValue(inv.lossOffset || 0, asset)}</p>
-                              <p>Taxable: {formatValue(inv.taxableGain || 0, asset)}</p>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <span className="text-amber-600">
+                            -{formatValue(inv.lossOffset || 0, asset)}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="text-xs">
+                            <p>Carried loss: {formatValue(inv.carriedLoss || 0, asset)}</p>
+                            <p>Offset applied: {formatValue(inv.lossOffset || 0, asset)}</p>
+                            <p>Taxable: {formatValue(inv.taxableGain || 0, asset)}</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
