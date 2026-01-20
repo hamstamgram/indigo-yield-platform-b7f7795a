@@ -258,15 +258,31 @@ Only `recompute_investor_position()` can write position fields.
 ### 2. Trigger Enforcement
 `trg_enforce_canonical_position_write` blocks unauthorized writes.
 
-### 3. Idempotent Transactions
+### 3. Duplicate Writer Elimination (Jan 2026)
+
+All core transaction RPCs have been refactored to remove direct `investor_positions` writes:
+
+| Function | Status |
+|----------|--------|
+| `apply_deposit_with_crystallization` | ✅ No direct writes |
+| `apply_withdrawal_with_crystallization` | ✅ No direct writes |
+| `void_transaction` | ✅ No direct writes |
+| `void_yield_distribution` | ✅ No direct writes |
+| `admin_create_transaction` | ✅ No direct writes |
+
+Position updates are handled EXCLUSIVELY by the trigger chain:
+- `transactions_v2` INSERT → `trg_recompute_position_on_tx` → `recompute_investor_position()`
+- `transactions_v2` UPDATE (void) → `trg_recompute_on_void` → `recompute_investor_position()`
+
+### 4. Idempotent Transactions
 `reference_id` unique constraint prevents double-application.
 
-### 4. Integrity Monitoring
+### 5. Integrity Monitoring
 - `run_integrity_pack()` RPC for on-demand checks
 - `integrity-monitor` edge function for scheduled checks
 - `v_cost_basis_mismatch` view for quick visibility
 
-### 5. Audit Trail
+### 6. Audit Trail
 All repairs logged to `audit_log` with:
 - `action = 'cost_basis_repair'` or `'position_rebuild_from_ledger'`
 - Old and new values
@@ -326,4 +342,5 @@ SELECT * FROM v_cost_basis_mismatch WHERE investor_id = 'xxx';
 
 | Date | Change |
 |------|--------|
+| 2026-01-20 | Duplicate writer elimination: removed direct position writes from 5 core RPCs |
 | 2026-01-20 | Initial implementation: single canonical writer, enforcement guard, integrity view |
