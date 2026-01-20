@@ -30,6 +30,7 @@
 
 ### Finance & Accounting
 - [CFO_ACCOUNTING_GUIDE.md](./CFO_ACCOUNTING_GUIDE.md) - Accounting logic
+- [FINANCIAL_RULEBOOK.md](./FINANCIAL_RULEBOOK.md) - Canonical financial specifications
 - [FLOW_MATRIX.md](./FLOW_MATRIX.md) - Transaction flow matrix
 
 ### Operations
@@ -43,6 +44,7 @@
 
 ### QA & Release
 - [SIGN_OFF_PACK.md](./SIGN_OFF_PACK.md) - Go-live checklist
+- [GO_NOGO_CHECKLIST.md](./GO_NOGO_CHECKLIST.md) - Objective go/no-go gate criteria
 - [REGRESSION_PREVENTION.md](./REGRESSION_PREVENTION.md) - Regression prevention measures
 - [TEST_RUNBOOK.md](./TEST_RUNBOOK.md) - Test procedures
 - [PRODUCTION_DEPLOYMENT_CHECKLIST.md](./PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Deployment checklist
