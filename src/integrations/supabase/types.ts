@@ -1326,6 +1326,7 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
         }
         Insert: {
           closing_aum: number
@@ -1344,6 +1345,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Update: {
           closing_aum?: number
@@ -1362,8 +1364,31 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_fund_aum_events_voided_by_profile"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fund_aum_events_voided_by_profile"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fund_aum_events_voided_by_profile"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
       }
       fund_daily_aum: {
         Row: {
@@ -1386,6 +1411,7 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
         }
         Insert: {
           as_of_date?: string | null
@@ -1407,6 +1433,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Update: {
           as_of_date?: string | null
@@ -1428,8 +1455,30 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_fund_daily_aum_voided_by_profile"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fund_daily_aum_voided_by_profile"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fund_daily_aum_voided_by_profile"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
           {
             foreignKeyName: "fund_daily_aum_created_by_fkey"
             columns: ["created_by"]
@@ -10839,10 +10888,15 @@ export type Database = {
         }
         Returns: Json
       }
-      void_fund_daily_aum: {
-        Args: { p_admin_id: string; p_reason: string; p_record_id: string }
-        Returns: Json
-      }
+      void_fund_daily_aum:
+        | {
+            Args: { p_admin_id: string; p_reason: string; p_record_id: string }
+            Returns: Json
+          }
+        | {
+            Args: { p_admin_id: string; p_reason: string; p_record_id: string }
+            Returns: Json
+          }
       void_investor_yield_events_for_distribution: {
         Args: {
           p_admin_id: string
