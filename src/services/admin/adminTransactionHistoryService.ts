@@ -135,8 +135,8 @@ async function fetchTransactions(
   const { data, error, count } = await query;
   if (error) throw error;
 
-  const transactions = ((data || []) as TransactionRow[]).map((tx): TransactionViewModel => {
-    const profile = tx.profiles;
+  const transactions = (data || []).map((tx: any): TransactionViewModel => {
+    const profile = Array.isArray(tx.profiles) ? tx.profiles[0] : tx.profiles;
     const fund = funds.find((f) => f.id === tx.fund_id);
 
     // Use explicit tx_subtype for display - NO HEURISTICS!
