@@ -5,10 +5,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { adminTransactionHistoryService } from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import type {
-  AdminTransactionFilters,
-  FundOption,
-} from "@/types/domains/transaction";
+import type { AdminTransactionFilters, FundOption } from "@/types/domains/transaction";
 
 /**
  * Fetch active funds for filter dropdowns (admin context)
@@ -24,10 +21,7 @@ export function useAdminActiveFunds() {
 /**
  * Fetch paginated transactions with filters
  */
-export function useAdminTransactions(
-  filters: AdminTransactionFilters,
-  funds: FundOption[]
-) {
+export function useAdminTransactions(filters: AdminTransactionFilters, funds: FundOption[]) {
   return useQuery({
     queryKey: QUERY_KEYS.adminTransactionsHistory({
       selectedFund: filters.fundId || "all",
@@ -38,6 +32,7 @@ export function useAdminTransactions(
       showVoided: filters.showVoided || false,
     }),
     queryFn: () => adminTransactionHistoryService.fetchTransactions(filters, funds),
-    enabled: funds.length > 0 || filters.fundId === "all" || !filters.fundId,
+    // Always run query - let server handle filtering based on fundId
+    enabled: true,
   });
 }
