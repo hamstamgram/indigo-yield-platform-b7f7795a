@@ -22,6 +22,7 @@ import {
   LiquidityRiskPanel,
   ConcentrationRiskPanel,
   PlatformMetricsPanel,
+  QuickActionsBar,
 } from "@/components/admin/dashboard";
 import { useAdminStats } from "@/hooks";
 import { useUnacknowledgedAlertCount, useRealtimeAlerts } from "@/hooks/data/admin/useRealtimeAlerts";
@@ -98,6 +99,10 @@ function AdminDashboardContent() {
           </div>
         }
       />
+
+
+      {/* Quick Actions Bar */}
+      <QuickActionsBar />
 
       {/* Quick Stats Bar */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
