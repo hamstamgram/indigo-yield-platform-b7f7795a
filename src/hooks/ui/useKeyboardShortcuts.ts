@@ -57,11 +57,22 @@ export function useKeyboardShortcuts(shortcuts: ShortcutConfig[]) {
  * Pre-defined shortcut keys for consistency across the app
  */
 export const SHORTCUTS = {
+  // Global
   COMMAND_PALETTE: { key: "k", meta: true },
+  ESCAPE: { key: "Escape" },
+  
+  // Admin Quick Navigation (Cmd/Ctrl + Key)
   QUICK_INVESTOR: { key: "i", meta: true },
   QUICK_YIELD: { key: "y", meta: true },
   QUICK_REPORT: { key: "r", meta: true },
-  ESCAPE: { key: "Escape" },
+  QUICK_DEPOSITS: { key: "d", meta: true },
+  QUICK_WITHDRAWALS: { key: "w", meta: true },
+  
+  // G-Key Navigation (Press G then another key)
+  GO_DASHBOARD: { key: "g" }, // G then D handled in component
+  GO_INVESTORS: { key: "g" }, // G then I handled in component
+  GO_YIELDS: { key: "g" }, // G then Y handled in component
+  GO_WITHDRAWALS: { key: "g" }, // G then W handled in component
 } as const;
 
 /**

@@ -6,6 +6,7 @@
 export { FundSnapshotCard } from "./FundSnapshotCard";
 export { InvestorCompositionSheet } from "./InvestorCompositionSheet";
 export { PendingActionsPanel } from "./PendingActionsPanel";
+export { QuickActionsBar } from "./QuickActionsBar";
 export { QuickYieldEntry } from "./QuickYieldEntry";
 export { RecentActivityFeed } from "./RecentActivityFeed";
 

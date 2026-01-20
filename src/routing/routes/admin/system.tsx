@@ -8,6 +8,7 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const AdminSettingsNew = lazy(() => import("@/pages/admin/AdminSettings"));
+const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
 const MaintenancePage = lazy(() => import("@/pages/admin/MaintenancePage"));
 const AdminListPage = lazy(() => import("@/pages/admin/settings/AdminList"));
@@ -24,7 +25,17 @@ const BypassAttemptsPage = lazy(() => import("@/pages/admin/BypassAttemptsPage")
 export function SystemRoutes() {
   return (
     <>
-      {/* Settings */}
+      {/* Consolidated Settings Page */}
+      <Route
+        path="/admin/settings"
+        element={
+          <AdminRoute>
+            <AdminSettingsPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Legacy Settings */}
       <Route
         path="/admin/settings-platform"
         element={
