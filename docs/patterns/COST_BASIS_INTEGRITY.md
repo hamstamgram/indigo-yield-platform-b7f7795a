@@ -260,7 +260,7 @@ Only `recompute_investor_position()` can write position fields.
 
 ### 3. Duplicate Writer Elimination (Jan 2026)
 
-All core transaction RPCs have been refactored to remove direct `investor_positions` writes:
+**Phase 1 - Core RPCs:**
 
 | Function | Status |
 |----------|--------|
@@ -269,6 +269,23 @@ All core transaction RPCs have been refactored to remove direct `investor_positi
 | `void_transaction` | ✅ No direct writes |
 | `void_yield_distribution` | ✅ No direct writes |
 | `admin_create_transaction` | ✅ No direct writes |
+
+**Phase 2 - Remaining Functions:**
+
+| Function | Status |
+|----------|--------|
+| `add_fund_to_investor` | ✅ Creates shell only, trigger populates |
+| `adjust_investor_position` | ✅ Relies on trigger chain |
+| `admin_create_transactions_batch` | ✅ Relies on trigger chain |
+| `apply_transaction_with_crystallization` | ✅ Relies on trigger chain |
+| `fix_doubled_cost_basis` | ✅ Uses set_canonical_rpc() bypass |
+| `reconcile_all_positions` | ✅ Uses set_canonical_rpc() bypass |
+| `reconcile_investor_position` | ✅ Uses set_canonical_rpc() bypass |
+| `rollback_yield_correction` | ✅ Uses set_canonical_rpc() bypass |
+
+**Archived (Execute Revoked):**
+- `process_yield_distribution` - DEPRECATED
+- `process_yield_distribution_with_dust` - DEPRECATED
 
 Position updates are handled EXCLUSIVELY by the trigger chain:
 - `transactions_v2` INSERT → `trg_recompute_position_on_tx` → `recompute_investor_position()`
