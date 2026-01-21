@@ -20,7 +20,7 @@ export const investmentService = {
 
     // Map transaction type
     const type = data.transaction_type === "redemption" ? "WITHDRAWAL" : "DEPOSIT";
-    const amount = Math.abs(data.amount);
+    const amount = Math.abs(typeof data.amount === 'string' ? parseFloat(data.amount) : data.amount);
 
     const closingAum = data.closing_aum;
     if (!closingAum) {

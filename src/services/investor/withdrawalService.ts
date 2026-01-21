@@ -81,8 +81,14 @@ export const withdrawalService = {
           : profile?.email || "Unknown";
 
       const { profile: _p, fund: _f, ...rest } = withdrawal;
-      return {
+      // Convert number fields to strings for type compatibility
+      const typedRest = {
         ...rest,
+        requested_amount: String(rest.requested_amount),
+        processed_amount: rest.processed_amount != null ? String(rest.processed_amount) : null,
+      };
+      return {
+        ...typedRest,
         investor_name,
         investor_email: profile?.email || "",
         fund_name: fund?.name || "",
@@ -145,8 +151,14 @@ export const withdrawalService = {
         : profile?.email || "Unknown";
 
     const { profile: _p, fund: _f, ...rest } = data;
-    return {
+    // Convert number fields to strings for type compatibility
+    const typedRest = {
       ...rest,
+      requested_amount: String(rest.requested_amount),
+      processed_amount: rest.processed_amount != null ? String(rest.processed_amount) : null,
+    };
+    return {
+      ...typedRest,
       investor_name,
       investor_email: profile?.email || "",
       fund_name: fund?.name || "",
@@ -240,7 +252,7 @@ export const withdrawalService = {
 
     // Convert to array sorted by asset name
     stats.pending_by_asset = Object.entries(assetAmounts)
-      .map(([asset, amount]) => ({ asset, amount }))
+      .map(([asset, amount]) => ({ asset, amount: String(amount) }))
       .sort((a, b) => a.asset.localeCompare(b.asset));
 
     return stats;
@@ -453,8 +465,8 @@ export const withdrawalService = {
 
     return (data || []).map((p: any) => ({
       fund_id: p.fund_id,
-      current_value: Number(p.current_value) || 0,
-      shares: Number(p.shares) || 0,
+      current_value: String(p.current_value || 0),
+      shares: String(p.shares || 0),
       fund: p.funds || { name: "Unknown", code: "UNK", asset: "N/A" },
     }));
   },
@@ -466,7 +478,7 @@ export const withdrawalService = {
     const { error } = await rpc.call("create_withdrawal_request", {
       p_investor_id: params.investorId,
       p_fund_id: params.fundId,
-      p_amount: params.amount,
+      p_amount: typeof params.amount === 'string' ? parseFloat(params.amount) : params.amount,
       p_type: params.withdrawalType,
       p_notes: params.notes || null,
     });
@@ -492,7 +504,7 @@ export const withdrawalService = {
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
     const { error } = await rpc.call("update_withdrawal", {
       p_withdrawal_id: params.withdrawalId,
-      p_requested_amount: params.requestedAmount,
+      p_requested_amount: typeof params.requestedAmount === 'string' ? parseFloat(params.requestedAmount) : params.requestedAmount,
       p_withdrawal_type: params.withdrawalType,
       p_notes: params.notes || null,
       p_reason: params.reason,

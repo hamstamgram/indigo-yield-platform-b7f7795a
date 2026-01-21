@@ -56,7 +56,8 @@ export async function applyYieldDistribution(
     .eq("is_active", true);
 
   const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  const grossYieldAmount = newTotalAUM - currentAUM;
+  const newTotalAUMNum = typeof newTotalAUM === 'string' ? parseFloat(newTotalAUM) : newTotalAUM;
+  const grossYieldAmount = newTotalAUMNum - currentAUM;
 
   // Call ADB apply RPC (time-weighted allocation with loss carryforward)
   const { data, error } = await callRPC("apply_adb_yield_distribution_v3", {
@@ -127,11 +128,11 @@ export async function applyYieldDistribution(
 
   const yieldDistributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
-    gross: Number(result?.gross_yield ?? grossYieldAmount),
-    fees: Number(result?.total_fees ?? 0),
-    ibFees: Number(result?.total_ib ?? 0),
-    net: Number(result?.net_yield ?? 0),
-    indigoCredit: Number(result?.total_fees ?? 0),
+    gross: String(result?.gross_yield ?? grossYieldAmount),
+    fees: String(result?.total_fees ?? 0),
+    ibFees: String(result?.total_ib ?? 0),
+    net: String(result?.net_yield ?? 0),
+    indigoCredit: String(result?.total_fees ?? 0),
   };
 
   return {
@@ -141,13 +142,13 @@ export async function applyYieldDistribution(
     fundAsset: result?.fund_asset || fundInfo?.asset || "",
     yieldDate: targetDate,
     purpose,
-    currentAUM,
-    newAUM: newTotalAUM,
+    currentAUM: String(currentAUM),
+    newAUM: String(newTotalAUMNum),
     grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
-    yieldPercentage: Number(result?.yield_rate_pct ?? 0),
+    yieldPercentage: String(result?.yield_rate_pct ?? 0),
     investorCount: Number(result?.investor_count ?? 0),
     distributions: yieldDistributions,
     ibCredits: [],
@@ -160,10 +161,10 @@ export async function applyYieldDistribution(
     periodStart: formatDateForDB(periodStartDate),
     periodEnd: formatDateForDB(periodEndDate),
     daysInPeriod: Number(result?.days_in_period ?? 0),
-    totalAdb: Number(result?.total_adb ?? 0),
-    yieldRatePct: Number(result?.yield_rate_pct ?? 0),
-    totalLossOffset: Number(result?.total_loss_offset ?? 0),
-    dustAmount: Number(result?.dust_amount ?? 0),
+    totalAdb: String(result?.total_adb ?? 0),
+    yieldRatePct: String(result?.yield_rate_pct ?? 0),
+    totalLossOffset: String(result?.total_loss_offset ?? 0),
+    dustAmount: String(result?.dust_amount ?? 0),
     calculationMethod: "adb_v3",
     features: result?.features || ["time_weighted", "loss_carryforward"],
     conservationCheck: Boolean(result?.conservation_check),

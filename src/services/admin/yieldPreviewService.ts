@@ -80,7 +80,8 @@ export async function previewYieldDistribution(
     positionsResult.data?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
   // Calculate gross yield amount from AUM difference
-  const grossYieldAmount = newTotalAUM - currentAUM;
+  const newTotalAUMNum = typeof newTotalAUM === 'string' ? parseFloat(newTotalAUM) : newTotalAUM;
+  const grossYieldAmount = newTotalAUMNum - currentAUM;
 
   // Call ADB preview RPC (time-weighted allocation)
   const { data, error } = await callRPC("preview_adb_yield_distribution_v3", {
@@ -110,26 +111,26 @@ export async function previewYieldDistribution(
     investorId: d.investor_id,
     investorName: d.investor_name,
     accountType: undefined,
-    currentBalance: Number(d.adb || 0), // Use ADB as "current" context
-    allocationPercentage: Number(d.weight_pct || 0),
-    feePercentage: Number(d.fee_pct || 0),
-    grossYield: Number(d.gross_amount || 0),
-    feeAmount: Number(d.fee_amount || 0),
-    netYield: Number(d.net_amount || 0),
-    newBalance: 0, // Not applicable for preview
-    positionDelta: Number(d.net_amount || 0),
+    currentBalance: String(d.adb || 0), // Use ADB as "current" context
+    allocationPercentage: String(d.weight_pct || 0),
+    feePercentage: String(d.fee_pct || 0),
+    grossYield: String(d.gross_amount || 0),
+    feeAmount: String(d.fee_amount || 0),
+    netYield: String(d.net_amount || 0),
+    newBalance: "0", // Not applicable for preview
+    positionDelta: String(d.net_amount || 0),
     ibParentId: undefined,
     ibParentName: undefined,
-    ibPercentage: Number(d.ib_pct || 0),
-    ibAmount: Number(d.ib_amount || 0),
+    ibPercentage: String(d.ib_pct || 0),
+    ibAmount: String(d.ib_amount || 0),
     referenceId: "",
     wouldSkip: false,
     // ADB-specific fields
-    adb: Number(d.adb || 0),
-    adbWeight: Number(d.weight_pct || 0) / 100, // Convert % to decimal
-    carriedLoss: Number(d.carried_loss || 0),
-    lossOffset: Number(d.loss_offset || 0),
-    taxableGain: Number(d.taxable_gain || 0),
+    adb: String(d.adb || 0),
+    adbWeight: String(Number(d.weight_pct || 0) / 100), // Convert % to decimal
+    carriedLoss: String(d.carried_loss || 0),
+    lossOffset: String(d.loss_offset || 0),
+    taxableGain: String(d.taxable_gain || 0),
     hasIb: Boolean(d.has_ib),
   }));
 
@@ -138,11 +139,11 @@ export async function previewYieldDistribution(
 
   // Extract totals from ADB response
   const totals: YieldTotals = {
-    gross: Number(result.gross_yield || grossYieldAmount),
-    fees: Number(result.total_fees || 0),
-    ibFees: Number(result.total_ib || 0),
-    net: Number(result.net_yield || 0),
-    indigoCredit: Number(result.total_fees || 0), // Platform fees = INDIGO credit
+    gross: String(result.gross_yield || grossYieldAmount),
+    fees: String(result.total_fees || 0),
+    ibFees: String(result.total_ib || 0),
+    net: String(result.net_yield || 0),
+    indigoCredit: String(result.total_fees || 0), // Platform fees = INDIGO credit
   };
 
   return {
@@ -155,13 +156,13 @@ export async function previewYieldDistribution(
     effectiveDate: formatDateForDB(periodEndDate),
     purpose,
     isMonthEnd: false,
-    currentAUM,
-    newAUM: newTotalAUM,
-    grossYield: Number(result.gross_yield || grossYieldAmount),
-    netYield: Number(result.net_yield || totals.net),
-    totalFees: Number(result.total_fees || totals.fees),
-    totalIbFees: Number(result.total_ib || totals.ibFees),
-    yieldPercentage: Number(result.yield_rate_pct || 0),
+    currentAUM: String(currentAUM),
+    newAUM: String(newTotalAUMNum),
+    grossYield: String(result.gross_yield || grossYieldAmount),
+    netYield: String(result.net_yield ?? totals.net),
+    totalFees: String(result.total_fees ?? totals.fees),
+    totalIbFees: String(result.total_ib ?? totals.ibFees),
+    yieldPercentage: String(result.yield_rate_pct || 0),
     investorCount: Number(result.investor_count || distributions.length),
     distributions,
     ibCredits,
@@ -175,10 +176,10 @@ export async function previewYieldDistribution(
     periodStart: formatDateForDB(periodStartDate),
     periodEnd: formatDateForDB(periodEndDate),
     daysInPeriod: Number(result.days_in_period || 0),
-    totalAdb: Number(result.total_adb || 0),
-    yieldRatePct: Number(result.yield_rate_pct || 0),
-    totalLossOffset: Number(result.total_loss_offset || 0),
-    dustAmount: Number(result.dust_amount || 0),
+    totalAdb: String(result.total_adb || 0),
+    yieldRatePct: String(result.yield_rate_pct || 0),
+    totalLossOffset: String(result.total_loss_offset || 0),
+    dustAmount: String(result.dust_amount || 0),
     calculationMethod: "adb_v3",
     features: result.features || ["time_weighted", "loss_carryforward"],
     conservationCheck: Boolean(result.conservation_check),

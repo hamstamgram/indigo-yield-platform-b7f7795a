@@ -50,11 +50,7 @@ export function useInvestorTransactionsList(
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", {
-      searchTerm,
-      assetFilter,
-      typeFilter,
-    }),
+    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", searchTerm ? 100 : undefined),
     queryFn: () => getInvestorTransactionsList(user!.id, searchTerm, assetFilter, typeFilter),
     enabled: !!user,
   });

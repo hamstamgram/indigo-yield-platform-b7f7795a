@@ -91,7 +91,7 @@ export default function AdminRequestsQueuePage() {
 
   const handleApproveWithdrawal = () => {
     if (!selectedRequest) return;
-    const amount = approvalAmount ? parseFloat(approvalAmount) : undefined;
+    const amount = approvalAmount ? approvalAmount : undefined;
     approveMutation.mutate({
       requestId: selectedRequest.id,
       amount,
@@ -168,7 +168,7 @@ export default function AdminRequestsQueuePage() {
                           <div className="font-semibold">
                             ${typeof request.requested_amount === "number"
                               ? request.requested_amount.toLocaleString()
-                              : parseFloat(String(request.requested_amount)).toLocaleString()}
+                              : parseFloat(String(request.requested_amount || 0)).toLocaleString()}
                           </div>
                           <div className="text-sm text-muted-foreground">{request.funds.name}</div>
                         </div>
@@ -355,7 +355,7 @@ export default function AdminRequestsQueuePage() {
                             <DollarSign className="h-4 w-4" />
                             {typeof deposit.amount === "number"
                               ? deposit.amount.toLocaleString()
-                              : parseFloat(String(deposit.amount)).toLocaleString()}
+                              : parseFloat(String(deposit.amount || 0)).toLocaleString()}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {deposit.funds?.name || "N/A"}
