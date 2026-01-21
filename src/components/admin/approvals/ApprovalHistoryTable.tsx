@@ -108,8 +108,7 @@ export function ApprovalHistoryTable({ history }: ApprovalHistoryTableProps) {
                 <TableCell>
                   {item.actual_value ? (
                     <span className="font-mono">
-                      $
-                      {item.actual_value.toLocaleString(undefined, {
+                      ${Number(item.actual_value).toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}

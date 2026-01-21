@@ -94,8 +94,7 @@ export function RejectDialog({ open, onOpenChange, approval, onSuccess }: Reject
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Amount:</span>
                 <span className="font-medium">
-                  $
-                  {approval.actual_value.toLocaleString(undefined, {
+                  ${Number(approval.actual_value).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}

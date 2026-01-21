@@ -158,8 +158,9 @@ export function CreateWithdrawalDialog({
     const amount = Number(data.amount);
 
     // Check if amount exceeds AVAILABLE balance (position minus pending withdrawals)
-    const maxAmount =
+    const maxAmountRaw =
       availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? 0;
+    const maxAmount = typeof maxAmountRaw === 'string' ? Number(maxAmountRaw) : maxAmountRaw;
     if (amount > maxAmount) {
       const hasPending = availableBalanceData && availableBalanceData.pendingWithdrawals > 0;
       toast.error(
@@ -185,7 +186,7 @@ export function CreateWithdrawalDialog({
       {
         investorId: selectedInvestorId,
         fundId: selectedFundId,
-        amount,
+        amount: String(amount),
         withdrawalType: data.withdrawal_type,
         notes: data.notes,
       },

@@ -7,6 +7,7 @@ import { Download, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { PerformanceRecord } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
+import { toNum } from "@/utils/numeric";
 
 interface PerformanceReportTableProps {
   data: PerformanceRecord[];
@@ -38,9 +39,10 @@ export function PerformanceReportTable({
   }
 
   // Helper to format currency
-  const formatVal = (val: number, asset: string, showSign = false) => {
-    const absVal = Math.abs(val);
-    const sign = val > 0 ? "+" : val < 0 ? "-" : "";
+  const formatVal = (val: string | number, asset: string, showSign = false) => {
+    const numVal = toNum(val);
+    const absVal = Math.abs(numVal);
+    const sign = numVal > 0 ? "+" : numVal < 0 ? "-" : "";
     const formatted = absVal.toLocaleString("en-US", {
       minimumFractionDigits: 4,
       maximumFractionDigits: 4,
@@ -50,8 +52,8 @@ export function PerformanceReportTable({
     return showSign ? `${sign}${formatted}` : formatted;
   };
 
-  const formatPct = (val: number) => {
-    return `${(val * 100).toFixed(2)}%`;
+  const formatPct = (val: string | number) => {
+    return `${(toNum(val) * 100).toFixed(2)}%`;
   };
 
   return (
@@ -128,7 +130,7 @@ export function PerformanceReportTable({
         
         <TableBody>
           {data.map((record) => {
-            const isPositiveMTD = record.mtd_net_income >= 0;
+            const isPositiveMTD = toNum(record.mtd_net_income) >= 0;
             
             return (
               <TableRow key={record.id} className="hover:bg-muted/50 group">
@@ -161,41 +163,41 @@ export function PerformanceReportTable({
                 <TableCell className="text-right font-mono font-medium bg-blue-50/30 dark:bg-blue-900/5">
                   {formatVal(record.mtd_ending_balance, record.fund_name)}
                 </TableCell>
-                <TableCell className={cn("text-right font-mono border-r bg-blue-50/30 dark:bg-blue-900/5", record.mtd_rate_of_return >= 0 ? "text-green-600" : "text-red-600")}>
+                <TableCell className={cn("text-right font-mono border-r bg-blue-50/30 dark:bg-blue-900/5", toNum(record.mtd_rate_of_return) >= 0 ? "text-green-600" : "text-red-600")}>
                   {formatPct(record.mtd_rate_of_return)}
                 </TableCell>
 
                 {/* QTD Data */}
-                <TableCell className={cn("text-right font-mono text-muted-foreground", record.qtd_net_income >= 0 ? "text-green-600/70" : "text-red-600/70")}>
+                <TableCell className={cn("text-right font-mono text-muted-foreground", toNum(record.qtd_net_income) >= 0 ? "text-green-600/70" : "text-red-600/70")}>
                   {formatVal(record.qtd_net_income, record.fund_name, true)}
                 </TableCell>
                 <TableCell className="text-right font-mono text-muted-foreground">
                   {formatVal(record.qtd_ending_balance, record.fund_name)}
                 </TableCell>
-                <TableCell className={cn("text-right font-mono text-muted-foreground border-r", record.qtd_rate_of_return >= 0 ? "text-green-600/70" : "text-red-600/70")}>
+                <TableCell className={cn("text-right font-mono text-muted-foreground border-r", toNum(record.qtd_rate_of_return) >= 0 ? "text-green-600/70" : "text-red-600/70")}>
                   {formatPct(record.qtd_rate_of_return)}
                 </TableCell>
 
                 {/* YTD Data */}
-                <TableCell className={cn("text-right font-mono bg-yellow-50/30 dark:bg-yellow-900/5", record.ytd_net_income >= 0 ? "text-green-600" : "text-red-600")}>
+                <TableCell className={cn("text-right font-mono bg-yellow-50/30 dark:bg-yellow-900/5", toNum(record.ytd_net_income) >= 0 ? "text-green-600" : "text-red-600")}>
                   {formatVal(record.ytd_net_income, record.fund_name, true)}
                 </TableCell>
                 <TableCell className="text-right font-mono bg-yellow-50/30 dark:bg-yellow-900/5">
                   {formatVal(record.ytd_ending_balance, record.fund_name)}
                 </TableCell>
-                <TableCell className={cn("text-right font-mono border-r bg-yellow-50/30 dark:bg-yellow-900/5", record.ytd_rate_of_return >= 0 ? "text-green-600" : "text-red-600")}>
+                <TableCell className={cn("text-right font-mono border-r bg-yellow-50/30 dark:bg-yellow-900/5", toNum(record.ytd_rate_of_return) >= 0 ? "text-green-600" : "text-red-600")}>
                   {formatPct(record.ytd_rate_of_return)}
                 </TableCell>
 
                 {/* ITD Data */}
-                <TableCell className={cn("text-right font-mono bg-purple-50/30 dark:bg-purple-900/5", (record.itd_net_income || 0) >= 0 ? "text-green-600" : "text-red-600")}>
-                  {formatVal(record.itd_net_income || 0, record.fund_name, true)}
+                <TableCell className={cn("text-right font-mono bg-purple-50/30 dark:bg-purple-900/5", toNum(record.itd_net_income ?? 0) >= 0 ? "text-green-600" : "text-red-600")}>
+                  {formatVal(record.itd_net_income ?? "0", record.fund_name, true)}
                 </TableCell>
                 <TableCell className="text-right font-mono bg-purple-50/30 dark:bg-purple-900/5">
-                  {formatVal(record.itd_ending_balance || 0, record.fund_name)}
+                  {formatVal(record.itd_ending_balance ?? "0", record.fund_name)}
                 </TableCell>
-                <TableCell className={cn("text-right font-mono border-r bg-purple-50/30 dark:bg-purple-900/5", (record.itd_rate_of_return || 0) >= 0 ? "text-green-600" : "text-red-600")}>
-                  {formatPct(record.itd_rate_of_return || 0)}
+                <TableCell className={cn("text-right font-mono border-r bg-purple-50/30 dark:bg-purple-900/5", toNum(record.itd_rate_of_return ?? 0) >= 0 ? "text-green-600" : "text-red-600")}>
+                  {formatPct(record.itd_rate_of_return ?? "0")}
                 </TableCell>
 
                 {/* Action */}

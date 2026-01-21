@@ -258,7 +258,7 @@ export function VoidAndReissueDialog({
           notes: data.notes || null,
           tx_hash: data.tx_hash || null,
         },
-        closingAum,
+        closingAum: String(closingAum),
         reason: data.reason.trim(),
         investorId: transaction.investorId,
         fundId: transaction.fundId || undefined,

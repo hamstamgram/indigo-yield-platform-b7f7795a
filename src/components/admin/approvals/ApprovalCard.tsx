@@ -123,11 +123,10 @@ export function ApprovalCard({
               <span>Amount:</span>
             </div>
             <span className="font-medium text-lg">
-              $
-              {approval.actual_value.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+                    ${Number(approval.actual_value).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
             </span>
             {approval.threshold_value && (
               <span className="text-muted-foreground">

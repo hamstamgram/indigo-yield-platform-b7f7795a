@@ -347,8 +347,9 @@ export function useYieldOperationsState() {
       );
 
       const asset = state.selectedFund.asset;
+      const grossYieldNum = typeof state.yieldPreview.grossYield === 'string' ? parseFloat(state.yieldPreview.grossYield) : state.yieldPreview.grossYield;
       toast.success(
-        `Distributed ${formatAUM(state.yieldPreview.grossYield, asset)} ${asset} to ${state.yieldPreview.investorCount} investors (${state.yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
+        `Distributed ${formatAUM(grossYieldNum, asset)} ${asset} to ${state.yieldPreview.investorCount} investors (${state.yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
       );
 
       setState((prev) => ({

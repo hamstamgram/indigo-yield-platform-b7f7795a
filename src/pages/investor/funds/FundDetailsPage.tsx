@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@/componen
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useInvestorPerformance, useAssetMeta } from "@/hooks";
 import { Loader2, TrendingUp, Info } from "lucide-react";
+import { toNum } from "@/utils/numeric";
 
 export default function FundDetailsPage() {
   const { assetId } = useParams();
@@ -20,9 +21,9 @@ export default function FundDetailsPage() {
   }
 
   const latestRecord = performance?.[0];
-  const mtdYield = latestRecord?.mtd_rate_of_return || 0;
-  const ytdYield = latestRecord?.ytd_rate_of_return || 0;
-  const balance = latestRecord?.mtd_ending_balance || 0;
+  const mtdYield = toNum(latestRecord?.mtd_rate_of_return ?? 0);
+  const ytdYield = toNum(latestRecord?.ytd_rate_of_return ?? 0);
+  const balance = toNum(latestRecord?.mtd_ending_balance ?? 0);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-6xl">

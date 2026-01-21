@@ -20,6 +20,7 @@ import {
 import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import type { YieldCalculationResult } from "@/services";
+import { toNum } from "@/utils/numeric";
 
 interface ReconciliationData {
   has_warning: boolean;
@@ -98,25 +99,25 @@ export function YieldConfirmDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Gross Yield:</span>
                   <span className="font-mono font-medium text-green-600">
-                    +{formatValue(yieldPreview?.grossYield || 0, asset)} {asset}
+                    +{formatValue(toNum(yieldPreview?.grossYield ?? 0), asset)} {asset}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Fees:</span>
                   <span className="font-mono">
-                    {formatValue(yieldPreview?.totalFees || 0, asset)} {asset}
+                    {formatValue(toNum(yieldPreview?.totalFees ?? 0), asset)} {asset}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">IB Fees:</span>
                   <span className="font-mono text-purple-600">
-                    {formatValue(yieldPreview?.totalIbFees || 0, asset)} {asset}
+                    {formatValue(toNum(yieldPreview?.totalIbFees ?? 0), asset)} {asset}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">INDIGO FEES Credit:</span>
                   <span className="font-mono text-blue-600">
-                    {formatValue(yieldPreview?.indigoFeesCredit || 0, asset)} {asset}
+                    {formatValue(toNum(yieldPreview?.indigoFeesCredit ?? 0), asset)} {asset}
                   </span>
                 </div>
                 <div className="flex justify-between">
