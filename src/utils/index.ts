@@ -48,11 +48,11 @@ export {
 // Note: kpiCalculations exports formatAssetValue - use formatters version for number-only formatting
 export { calculateTotalAUM, calculateInvestorCount, calculateAllKPIs, type AssetKPI } from "./kpiCalculations";
 
-// Statement calculations - exclude formatTokenAmount (use formatters version)
+// Statement calculations
 export {
   type StatementData,
   type AssetStatement,
-  type Transaction,
+  type StatementTransaction,
   calculateRateOfReturn,
   computeStatement,
   formatPercent,

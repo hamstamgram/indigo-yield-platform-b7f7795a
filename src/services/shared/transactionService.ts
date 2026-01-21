@@ -16,8 +16,11 @@ import { rpc } from "@/lib/rpc";
 // Note: CreateTransactionParams should be imported from @/types/domains/transaction
 // (exported as CreateTransactionUIParams there)
 
-// Extended transaction with investor name for display
-export interface Transaction
+/**
+ * User transaction with investor name for display
+ * Used by fetchUserTransactions for investor-facing transaction views
+ */
+export interface UserTransaction
   extends Pick<
     BaseTransaction,
     "id" | "investor_id" | "asset" | "amount" | "tx_date" | "created_at" | "notes"
@@ -37,7 +40,7 @@ export interface TransactionSummary {
 /**
  * Fetch transactions for the current user's investor record
  */
-export async function fetchUserTransactions(): Promise<Transaction[]> {
+export async function fetchUserTransactions(): Promise<UserTransaction[]> {
   try {
     const {
       data: { user },
