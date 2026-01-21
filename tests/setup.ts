@@ -1,6 +1,7 @@
+// @ts-nocheck
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterEach, beforeAll, vi } from 'vitest';
+import { afterEach, beforeAll, vi, expect } from 'vitest';
 
 // Set test environment variables
 process.env.NODE_ENV = 'test';
@@ -106,12 +107,14 @@ expect.extend({
   },
 });
 
-// Extend Jest matchers
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeWithinRange(floor: number, ceiling: number): R;
-      toBeValidPercentage(): R;
-    }
+// Type declarations for custom matchers
+declare module 'vitest' {
+  interface Assertion<T = any> {
+    toBeWithinRange(floor: number, ceiling: number): T;
+    toBeValidPercentage(): T;
+  }
+  interface AsymmetricMatchersContaining {
+    toBeWithinRange(floor: number, ceiling: number): any;
+    toBeValidPercentage(): any;
   }
 }
