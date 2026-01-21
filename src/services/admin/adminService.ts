@@ -345,11 +345,3 @@ class AdminInvestorService {
 
 // Export singleton instance
 export const adminInvestorService = new AdminInvestorService();
-
-// Backwards-compatible aliases (deprecated - use new names)
-/** @deprecated Use AdminInvestorSummary instead */
-export type InvestorSummaryV2 = AdminInvestorSummary;
-/** @deprecated Use DashboardStats instead */
-export type DashboardStatsV2 = DashboardStats;
-/** @deprecated Use adminInvestorService instead */
-export const adminServiceV2 = adminInvestorService;

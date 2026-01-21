@@ -86,10 +86,11 @@ export type { ProfileSummary, TransactionInvestor } from "./profileService";
 export { fundDailyAumService } from "./fundDailyAumService";
 export type { FundDailyAumRecord } from "./fundDailyAumService";
 
-// Position service - DEPRECATED: Use @/services/investor/investorPositionService instead
-// getPositionsByFund() and getPositionsByInvestor() are now in investorPositionService
-export { positionService } from "./positionService";
-export type { InvestorPosition, CreatePositionParams } from "./positionService";
+// Position service - REMOVED: Use @/services/investor/investorPositionService instead
+// Migration guide:
+// - positionService.getPositionsByFund() -> import { getPositionsByFund } from "@/services/investor"
+// - positionService.getPositionsByInvestor() -> import { getInvestorPositions } from "@/services/investor"
+// - InvestorPosition type -> import from "@/types/domains/investor"
 
 // IB management - DEPRECATED: Use @/services/ib instead
 export { ibManagementService } from "../ib/management";

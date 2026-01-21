@@ -5,11 +5,11 @@ import EditableInvestorRow from "./EditableInvestorRow";
 import InvestorsTableHeader from "./InvestorsTableHeader";
 import { useIsMobile } from "@/hooks";
 import MobileInvestorCard from "./MobileInvestorCard";
-import { InvestorSummaryV2 } from "@/services/admin";
+import { AdminInvestorSummary } from "@/services/admin";
 import { AssetRef as Asset } from "@/types/asset";
 
 interface InvestorsTableProps {
-  investors: InvestorSummaryV2[];
+  investors: AdminInvestorSummary[];
   assets: Asset[];
   loading: boolean;
   searchTerm: string;
