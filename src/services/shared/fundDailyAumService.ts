@@ -66,7 +66,6 @@ class FundDailyAumService {
       p_fund_id: params.fundId,
       p_aum_date: params.date,
       p_total_aum: params.totalAum,
-      p_nav_per_share: null,
     });
 
     if (result.error) {
@@ -104,7 +103,6 @@ class FundDailyAumService {
       p_fund_id: params.fundId,
       p_aum_date: params.date,
       p_total_aum: params.totalAum,
-      p_nav_per_share: null,
     });
 
     if (result.error) {
@@ -126,7 +124,6 @@ class FundDailyAumService {
       p_fund_id: params.fundId,
       p_aum_date: params.date,
       p_total_aum: params.totalAum,
-      p_nav_per_share: null,
     });
 
     if (result.error) {
