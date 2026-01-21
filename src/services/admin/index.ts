@@ -1,17 +1,47 @@
 /**
- * Admin Services - Re-exports all admin-related services
+ * Admin Services - Barrel Export
+ * 
+ * Consolidated exports for all admin-related services.
+ * Organized by domain for better navigation.
  */
 
-// Admin stats service (dashboard metrics)
+// =============================================================================
+// DASHBOARD & STATS
+// =============================================================================
 export {
   fetchAdminStats,
   getFundCountByStatus,
   getPendingWithdrawalCount,
   getRecentActivityCount,
+  type AdminStats,
 } from "./adminStatsService";
-export type { AdminStats } from "./adminStatsService";
 
-// Fund management - canonical source for fund operations
+export {
+  fetchFundsWithAUM,
+  fetchRecentActivities,
+  fetchPendingItems,
+} from "./dashboardService";
+
+export {
+  getFinancialMetrics,
+  getHistoricalFlowData,
+  getDeliveryStatus,
+  retryDelivery,
+  getDeliveryDiagnostics,
+  getDeliveryExclusionBreakdown,
+  type FinancialMetrics,
+  type FlowData,
+  type InvestorComposition,
+  type DeliveryRecord,
+  type DeliveryDiagnostics,
+  type ExclusionBreakdown,
+} from "./dashboardMetricsService";
+
+export { actionBarService, type PendingCounts } from "./actionBarService";
+
+// =============================================================================
+// FUND MANAGEMENT
+// =============================================================================
 export {
   listFunds,
   getFund,
@@ -29,200 +59,36 @@ export {
   updateFundStatus,
   createFundSimple,
   fundService,
+  type DailyNav,
+  type FundKPI,
+  type CreateFundInput,
 } from "./fundService";
-export type { DailyNav, FundKPI, CreateFundInput } from "./fundService";
 
-// Admin investor operations
-export { adminInvestorService } from "./adminService";
-export type { AdminInvestorSummary, DashboardStats } from "./adminService";
+// =============================================================================
+// INVESTOR MANAGEMENT
+// =============================================================================
+export { adminInvestorService, type AdminInvestorSummary, type DashboardStats } from "./adminService";
+export * from "./investorSettingsService";
+export * from "./investorWizardService";
+export * from "./investorLifecycleService";
+export { updateFundPerformance, type PerformanceUpdateData as AdminPerformanceUpdateData } from "./investorPerformanceService";
+export { investorDetailService, type InvestorDetailData, type OpsIndicators, type InvestorPositionsData, type InvestorPosition as AdminInvestorPosition } from "./investorDetailService";
 
-// Transaction management - use transactionService from @/services/shared
-// adminTransactionService is removed - use transactionService.createQuickTransaction instead
+// =============================================================================
+// USER MANAGEMENT
+// =============================================================================
+export { deleteInvestorUser, forceDeleteInvestorUser, createOrFindInvestorUser } from "./userService";
+export { adminUsersService, type AdminUserProfile, type AdminInviteParams } from "./adminUsersService";
+export { adminInviteService, type AdminInvite } from "./adminInviteService";
 
-// Yield management (refactored into focused sub-services)
+// =============================================================================
+// YIELD MANAGEMENT
+// =============================================================================
 export * from "./yieldDistributionService";
 export * from "./recordedYieldsService";
 export * from "./yieldManagementService";
-export { preflowAumService } from "./preflowAumService";
-export type { ExistingPreflowAum, EnsurePreflowAumResult, AumPurpose } from "./preflowAumService";
-
-// Bulk operations
-export * from "./bulkOperationsService";
-
-// User management
-export {
-  deleteInvestorUser,
-  forceDeleteInvestorUser,
-  createOrFindInvestorUser,
-} from "./userService";
-
-// Delivery management
-export { deliveryService } from "./deliveryService";
-
-// Integrity management
-export { integrityService } from "./integrityService";
-
-// P1 Integrity Operations (admin_integrity_runs, crystallization, duplicates, bypass)
-export { integrityOperationsService } from "./integrityOperationsService";
-export type {
-  IntegrityRun,
-  IntegrityViolation,
-  AdminAlert,
-  IntegrityCheckResult,
-  CrystallizationDashboardRow,
-  CrystallizationGap,
-  DuplicateProfile,
-  BypassAttempt,
-  BatchCrystallizeResult,
-  MergeDuplicatesResult,
-} from "./integrityOperationsService";
-
-// Requests queue management
-export { requestsQueueService } from "./requestsQueueService";
-
-// Transaction history management
-export { adminTransactionHistoryService } from "./adminTransactionHistoryService";
-
-// Dashboard widgets
-export { fetchFundsWithAUM, fetchRecentActivities, fetchPendingItems } from "./dashboardService";
-
-// Dashboard metrics (selective to avoid conflicts)
-export {
-  getFinancialMetrics,
-  getHistoricalFlowData,
-  // getFundInvestorComposition excluded - conflicts with yieldDistributionService
-  getDeliveryStatus,
-  retryDelivery,
-  getDeliveryDiagnostics,
-  getDeliveryExclusionBreakdown,
-} from "./dashboardMetricsService";
-export type {
-  FinancialMetrics,
-  FlowData,
-  InvestorComposition,
-  DeliveryRecord,
-  DeliveryDiagnostics,
-  ExclusionBreakdown,
-} from "./dashboardMetricsService";
-
-// Operations hub (selective to avoid AuditLogEntry conflict)
-export {
-  getRecentAuditLogs,
-  setupOperationsRealtimeChannel,
-  removeOperationsChannel,
-} from "./operationsHubService";
-export type { AuditLogEntry as OperationsAuditLogEntry } from "./operationsHubService";
-
-// System admin
-export * from "./systemAdminService";
-
-// Email tracking
-export * from "./emailTrackingService";
-
-// Transaction details
-export * from "./transactionDetailsService";
-
-// Investor settings
-export * from "./investorSettingsService";
-
-// Investor wizard
-export * from "./investorWizardService";
-
-// Investor lifecycle management
-export * from "./investorLifecycleService";
-
-// Investor performance management
-// Note: PerformanceUpdateData renamed to avoid conflict with shared/performanceDataService
-export { updateFundPerformance } from "./investorPerformanceService";
-export type { PerformanceUpdateData as AdminPerformanceUpdateData } from "./investorPerformanceService";
-
-// IB payout management
-export * from "./ibPayoutService";
-
-// Report query service
-export * from "./reportQueryService";
-
-// Statement admin service
-export * from "./statementAdminService";
-
-// Admin users service (new)
-export {
-  adminUsersService,
-  type AdminUserProfile,
-  type AdminInviteParams,
-} from "./adminUsersService";
-
-// Action bar service (new)
-export { actionBarService, type PendingCounts } from "./actionBarService";
-
-// Command palette service (new)
-export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";
-
-// Internal route service (new)
-export {
-  internalRouteService,
-  type InvestorPositionForRoute,
-  type InternalRouteParams,
-  type InternalRouteResult,
-} from "./internalRouteService";
-
-// Report recipients service (new)
-export { reportRecipientsService } from "./reportRecipientsService";
-
-// IB users service (new)
-export { ibUsersService, type IBUser } from "./ibUsersService";
-
-// Transaction form data service (new)
-export {
-  transactionFormDataService,
-  type TransactionFormInvestor,
-  type TransactionFormFund,
-  type BalanceCheckResult,
-} from "./transactionFormDataService";
-
-// Investor detail service (new)
-export {
-  investorDetailService,
-  type InvestorDetailData,
-  type OpsIndicators,
-  type InvestorPositionsData,
-} from "./investorDetailService";
-export type { InvestorPosition as AdminInvestorPosition } from "./investorDetailService";
-
-// Admin invite service
-export { adminInviteService, type AdminInvite } from "./adminInviteService";
-
-// Fees service (selective to avoid Fund conflict)
-export {
-  getFeesOverviewData,
-  getActiveFunds as getFeesActiveFunds,
-  getFeeTransactions,
-  getIndigoFeesBalance,
-  getFeeAllocations,
-  getRoutingAuditEntries,
-  getYieldEarned,
-} from "./feesService";
-export type {
-  FeesOverviewData,
-  FeeRecord,
-  FeeAllocation,
-  RoutingAuditEntry,
-  RoutingSummary,
-  YieldEarned,
-  FeeSummary,
-} from "./feesService";
-// Note: Fund should be imported from @/types/domains/fund
-
-// Yield correction service
 export * from "./yieldCorrectionService";
 
-// Report service (selective export to avoid conflicts)
-export { reportService, type SendReportParams } from "./reportService";
-
-// Deposit with yield service
-export * from "./depositWithYieldService";
-
-// Yield crystallization service
 export {
   crystallizeYieldBeforeFlow,
   finalizeMonthYield,
@@ -231,14 +97,90 @@ export {
   getAggregatedYieldForPeriod,
   getPendingYieldEventsCount,
   crystallizeMonthEnd,
-} from "./yieldCrystallizationService";
-export type {
-  CrystallizationResult,
-  FinalizationResult,
-  YieldEvent,
-  YieldSnapshot,
+  type CrystallizationResult,
+  type FinalizationResult,
+  type YieldEvent,
+  type YieldSnapshot,
 } from "./yieldCrystallizationService";
 
-// Approval service (2-person rule)
-export { approvalService } from "./approvalService";
-export type { ApprovalResponse } from "./approvalService";
+export { preflowAumService, type ExistingPreflowAum, type EnsurePreflowAumResult, type AumPurpose } from "./preflowAumService";
+export * from "./depositWithYieldService";
+
+// =============================================================================
+// FEES MANAGEMENT
+// =============================================================================
+export {
+  getFeesOverviewData,
+  getActiveFunds as getFeesActiveFunds,
+  getFeeTransactions,
+  getIndigoFeesBalance,
+  getFeeAllocations,
+  getRoutingAuditEntries,
+  getYieldEarned,
+  type FeesOverviewData,
+  type FeeRecord,
+  type FeeAllocation,
+  type RoutingAuditEntry,
+  type RoutingSummary,
+  type YieldEarned,
+  type FeeSummary,
+} from "./feesService";
+
+// =============================================================================
+// TRANSACTIONS
+// =============================================================================
+export * from "./transactionDetailsService";
+export { transactionFormDataService, type TransactionFormInvestor, type TransactionFormFund, type BalanceCheckResult } from "./transactionFormDataService";
+export { internalRouteService, type InvestorPositionForRoute, type InternalRouteParams, type InternalRouteResult } from "./internalRouteService";
+export { adminTransactionHistoryService } from "./adminTransactionHistoryService";
+
+// =============================================================================
+// BULK OPERATIONS
+// =============================================================================
+export * from "./bulkOperationsService";
+
+// =============================================================================
+// REPORTS & STATEMENTS
+// =============================================================================
+export * from "./reportQueryService";
+export * from "./statementAdminService";
+export { reportService, type SendReportParams } from "./reportService";
+export { reportRecipientsService } from "./reportRecipientsService";
+
+// =============================================================================
+// IB MANAGEMENT
+// =============================================================================
+export * from "./ibPayoutService";
+export { ibUsersService, type IBUser } from "./ibUsersService";
+
+// =============================================================================
+// SYSTEM & INTEGRITY
+// =============================================================================
+export { deliveryService } from "./deliveryService";
+export { integrityService } from "./integrityService";
+export {
+  integrityOperationsService,
+  type IntegrityRun,
+  type IntegrityViolation,
+  type AdminAlert,
+  type IntegrityCheckResult,
+  type CrystallizationDashboardRow,
+  type CrystallizationGap,
+  type DuplicateProfile,
+  type BypassAttempt,
+  type BatchCrystallizeResult,
+  type MergeDuplicatesResult,
+} from "./integrityOperationsService";
+export { requestsQueueService } from "./requestsQueueService";
+export * from "./systemAdminService";
+export * from "./emailTrackingService";
+
+export {
+  getRecentAuditLogs,
+  setupOperationsRealtimeChannel,
+  removeOperationsChannel,
+  type AuditLogEntry as OperationsAuditLogEntry,
+} from "./operationsHubService";
+
+export { approvalService, type ApprovalResponse } from "./approvalService";
+export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";
