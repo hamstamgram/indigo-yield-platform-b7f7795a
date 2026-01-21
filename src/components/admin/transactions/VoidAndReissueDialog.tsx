@@ -254,7 +254,7 @@ export function VoidAndReissueDialog({
         transactionId: transaction.id,
         newValues: {
           tx_date: data.tx_date,
-          amount: parseFloat(data.amount),
+          amount: data.amount, // Keep as string for NUMERIC precision
           notes: data.notes || null,
           tx_hash: data.tx_hash || null,
         },

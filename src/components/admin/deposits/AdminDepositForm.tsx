@@ -78,7 +78,7 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
       await depositService.createDeposit({
         user_id: formData.investor_id,
         asset_symbol: assetSymbol,
-        amount: parseFloat(formData.amount),
+        amount: formData.amount, // Keep as string for NUMERIC precision
         transaction_hash: formData.tx_hash || undefined,
         tx_date: format(selectedDate, "yyyy-MM-dd"),
       });

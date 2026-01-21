@@ -9,10 +9,11 @@ interface WithdrawalStatsProps {
 }
 
 // Format amount based on asset type (4 decimals for crypto, 2 for stablecoins)
-function formatAssetAmount(amount: number, asset: string): string {
+function formatAssetAmount(amount: string | number, asset: string): string {
+  const numAmount = typeof amount === "string" ? parseFloat(amount) || 0 : amount;
   const stablecoins = ["USDT", "USDC", "EURC"];
   const decimals = stablecoins.includes(asset.toUpperCase()) ? 2 : 4;
-  return amount.toLocaleString(undefined, { 
+  return numAmount.toLocaleString(undefined, { 
     minimumFractionDigits: decimals, 
     maximumFractionDigits: decimals 
   });

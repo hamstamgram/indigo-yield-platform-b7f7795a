@@ -51,7 +51,7 @@ export function EditWithdrawalDialog({
   const isConfirmed = confirmText === "EDIT";
   const hasChanges =
     withdrawal &&
-    (parseFloat(requestedAmount) !== withdrawal.requested_amount ||
+    (requestedAmount !== String(withdrawal.requested_amount) ||
       withdrawalType !== withdrawal.withdrawal_type ||
       notes !== (withdrawal.notes || ""));
 
@@ -61,7 +61,7 @@ export function EditWithdrawalDialog({
     updateMutation.mutate(
       {
         withdrawalId: withdrawal.id,
-        requestedAmount: parseFloat(requestedAmount),
+        requestedAmount: requestedAmount, // Keep as string for precision
         withdrawalType,
         notes: notes || undefined,
         reason,
