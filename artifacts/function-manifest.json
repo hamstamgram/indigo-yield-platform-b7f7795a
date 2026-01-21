@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-01-21T20:10:00Z",
+  "summary": {
+    "totalDbFunctions": 457,
+    "triggerFunctions": 86,
+    "callableRpcFunctions": 371,
+    "frontendRpcCallSites": 175,
+    "parameterMismatches": 0,
+    "typeMismatches": 0,
+    "dataIntegrityViolations": 0
+  },
+  "criticalMutations": {
+    "deposits": {
+      "rpc": "apply_deposit_with_crystallization",
+      "signature": [
+        {"name": "p_fund_id", "type": "uuid", "position": 1},
+        {"name": "p_investor_id", "type": "uuid", "position": 2},
+        {"name": "p_amount", "type": "numeric", "position": 3},
+        {"name": "p_closing_aum", "type": "numeric", "position": 4},
+        {"name": "p_effective_date", "type": "date", "position": 5},
+        {"name": "p_admin_id", "type": "uuid", "position": 6},
+        {"name": "p_notes", "type": "text", "position": 7},
+        {"name": "p_purpose", "type": "text", "position": 8}
+      ],
+      "frontendCallSites": [
+        "src/services/investor/depositService.ts:139",
+        "src/services/core/PortfolioService.ts:70"
+      ],
+      "verified": true
+    },
+    "withdrawals": {
+      "rpc": "apply_withdrawal_with_crystallization",
+      "signature": [
+        {"name": "p_fund_id", "type": "uuid", "position": 1},
+        {"name": "p_investor_id", "type": "uuid", "position": 2},
+        {"name": "p_amount", "type": "numeric", "position": 3},
+        {"name": "p_new_total_aum", "type": "numeric", "position": 4},
+        {"name": "p_tx_date", "type": "date", "position": 5},
+        {"name": "p_admin_id", "type": "uuid", "position": 6},
+        {"name": "p_notes", "type": "text", "position": 7},
+        {"name": "p_purpose", "type": "text", "position": 8}
+      ],
+      "frontendCallSites": [
+        "src/lib/rpc.ts:424"
+      ],
+      "verified": true
+    },
+    "voidTransaction": {
+      "rpc": "void_transaction",
+      "signature": [
+        {"name": "p_transaction_id", "type": "uuid", "position": 1},
+        {"name": "p_admin_id", "type": "uuid", "position": 2},
+        {"name": "p_reason", "type": "text", "position": 3}
+      ],
+      "frontendCallSites": [
+        "src/services/investor/transactionsV2Service.ts:111",
+        "src/services/investor/depositService.ts:232"
+      ],
+      "verified": true
+    },
+    "yieldDistribution": {
+      "rpc": "apply_adb_yield_distribution_v3",
+      "signature": [
+        {"name": "p_fund_id", "type": "uuid", "position": 1},
+        {"name": "p_period_start", "type": "date", "position": 2},
+        {"name": "p_period_end", "type": "date", "position": 3},
+        {"name": "p_gross_yield_amount", "type": "numeric", "position": 4},
+        {"name": "p_admin_id", "type": "uuid", "position": 5},
+        {"name": "p_purpose", "type": "aum_purpose", "position": 6}
+      ],
+      "frontendCallSites": [
+        "src/services/admin/yieldApplyService.ts:63"
+      ],
+      "verified": true
+    },
+    "adjustPosition": {
+      "rpc": "adjust_investor_position",
+      "signature": [
+        {"name": "p_investor_id", "type": "uuid", "position": 1},
+        {"name": "p_fund_id", "type": "uuid", "position": 2},
+        {"name": "p_delta", "type": "numeric", "position": 3},
+        {"name": "p_note", "type": "text", "position": 4},
+        {"name": "p_admin_id", "type": "uuid", "position": 5},
+        {"name": "p_tx_type", "type": "text", "position": 6},
+        {"name": "p_tx_date", "type": "date", "position": 7},
+        {"name": "p_reference_id", "type": "text", "position": 8}
+      ],
+      "frontendCallSites": [
+        "src/services/operations/positionAdjustmentService.ts:32"
+      ],
+      "verified": true
+    },
+    "crystallizeYield": {
+      "rpc": "crystallize_yield_before_flow",
+      "signature": [
+        {"name": "p_fund_id", "type": "uuid", "position": 1},
+        {"name": "p_closing_aum", "type": "numeric", "position": 2},
+        {"name": "p_trigger_type", "type": "text", "position": 3},
+        {"name": "p_trigger_reference", "type": "text", "position": 4},
+        {"name": "p_event_ts", "type": "timestamptz", "position": 5},
+        {"name": "p_admin_id", "type": "uuid", "position": 6},
+        {"name": "p_purpose", "type": "aum_purpose", "position": 7}
+      ],
+      "frontendCallSites": [
+        "src/services/admin/yieldCrystallizationService.ts:87"
+      ],
+      "verified": true
+    }
+  },
+  "rpcGateway": {
+    "mainGateway": "src/lib/rpc.ts",
+    "typeWrapper": "src/lib/supabase/typedRPC.ts",
+    "contracts": "src/contracts/rpcSignatures.ts",
+    "features": [
+      "compile-time-type-safety",
+      "runtime-enum-validation",
+      "rate-limiting",
+      "error-normalization",
+      "audit-logging"
+    ]
+  },
+  "protectedTables": [
+    "transactions_v2",
+    "yield_distributions",
+    "fund_aum_events",
+    "fund_daily_aum",
+    "investor_positions"
+  ],
+  "integrityChecks": {
+    "yieldConservation": {"violations": 0, "query": "v_yield_conservation_check WHERE has_violation = true"},
+    "ledgerReconciliation": {"mismatches": 0, "query": "v_ledger_reconciliation WHERE abs(variance) > 0.01"},
+    "positionReconciliation": {"mismatches": 0, "query": "aum_position_reconciliation"}
+  },
+  "issues": {
+    "p0Critical": [],
+    "p1HighPriority": [
+      {
+        "id": "P1-01",
+        "issue": "Function overloads for adjust_investor_position",
+        "recommendation": "Document preferred overload"
+      }
+    ],
+    "p2LowPriority": [
+      {
+        "id": "P2-01",
+        "issue": "86 trigger functions undocumented",
+        "recommendation": "Add trigger documentation"
+      }
+    ]
+  }
+}
