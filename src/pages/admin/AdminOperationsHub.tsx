@@ -6,7 +6,7 @@ import {
   SystemStatus, 
   PendingItemsBreakdown 
 } from "@/components/admin";
-import { OperationsActivityFeed, type ActivityItem } from "@/components/admin/operations/OperationsActivityFeed";
+import { ActivityFeed, type ControlledActivityItem } from "@/components/common";
 import type { QuickLink } from "@/components/admin/operations/QuickLinksGrid";
 import {
   TrendingUp,
@@ -50,7 +50,7 @@ function AdminOperationsHubContent() {
   const { data: auditLogs, refetch: refetchAuditLogs } = useRecentAuditLogs(10);
 
   // Transform audit logs to activity items
-  const recentActivities: ActivityItem[] = (auditLogs || []).map((log: AuditLogEntry) => ({
+  const recentActivities: ControlledActivityItem[] = (auditLogs || []).map((log: AuditLogEntry) => ({
     id: log.id,
     type: log.action,
     title: `${log.action} on ${log.entity}`,
@@ -245,7 +245,12 @@ function AdminOperationsHubContent() {
           <SystemStatus systems={systemStatus} />
 
           {/* Recent Activity */}
-          <OperationsActivityFeed activities={recentActivities} maxHeight="500px" />
+          <ActivityFeed 
+            activities={recentActivities} 
+            title="Operations Activity"
+            description="Latest operations and system events"
+            maxHeight="500px" 
+          />
         </div>
       </div>
     </div>

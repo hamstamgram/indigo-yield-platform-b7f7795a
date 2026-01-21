@@ -33,8 +33,8 @@ export * from "./withdrawals";
 export * from "./deposits";
 export * from "./yields";
 export * from "./funds";
-// Operations components (OperationsActivityFeed renamed from RecentActivityFeed to avoid conflict with dashboard version)
-export { OperationsStats, PendingItemsBreakdown, QuickLinksGrid, SystemStatus, OperationsActivityFeed, type ActivityItem } from "./operations";
+// Operations components
+export { OperationsStats, PendingItemsBreakdown, QuickLinksGrid, SystemStatus } from "./operations";
 export * from "./reports";
 export * from "./transactions";
 export * from "./statements";
