@@ -223,19 +223,19 @@ The following critical tables are protected:
 
 No critical issues found. All RPC signatures align correctly.
 
-### P1 - High Priority (Cleanup Opportunities)
+### P1 - High Priority (RESOLVED ✅)
 
-| ID | Issue | Location | Recommendation |
-|----|-------|----------|----------------|
-| P1-01 | Function overloads | `adjust_investor_position` has 2 overloads | Document which is preferred |
-| P1-02 | Dead code | `refresh_fund_aum_cache` in operations_matrix.txt | Remove from docs |
+| ID | Issue | Location | Status |
+|----|-------|----------|--------|
+| P1-01 | Function overloads | `adjust_investor_position` has 2 overloads | ✅ Documented 8-param as canonical |
+| P1-02 | Dead code | `refresh_fund_aum_cache` in operations_matrix.txt | ✅ Already in `docs/_archive/` |
 
-### P2 - Low Priority (Documentation)
+### P2 - Low Priority (RESOLVED ✅)
 
-| ID | Issue | Location | Recommendation |
-|----|-------|----------|----------------|
-| P2-01 | 86 trigger functions | DB | Document which are essential vs. legacy |
-| P2-02 | Enum validation | rpc.ts | Add more enum types to validation (delivery_channel, etc.) |
+| ID | Issue | Location | Status |
+|----|-------|----------|--------|
+| P2-01 | 86 trigger functions | DB | Deferred (internal only) |
+| P2-02 | Enum validation | rpc.ts | ✅ Added `document_type`, `delivery_channel` |
 
 ---
 

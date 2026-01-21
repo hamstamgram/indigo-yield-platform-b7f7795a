@@ -28,7 +28,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 
 // Import contracts
-import { TxTypeSchema, AumPurposeSchema, isValidTxType, mapUITypeToDb } from "@/contracts/dbEnums";
+import { TxTypeSchema, AumPurposeSchema, DocumentTypeSchema, DeliveryChannelSchema, isValidTxType, mapUITypeToDb } from "@/contracts/dbEnums";
 import { RPC_FUNCTIONS, CANONICAL_MUTATION_RPCS } from "@/contracts/rpcSignatures";
 import { getUserFriendlyError } from "@/lib/errors";
 import { logError, logInfo, logWarn } from "@/lib/logger";
@@ -171,6 +171,22 @@ function validateParams<T extends RPCFunctionName>(
     const result = AumPurposeSchema.safeParse(p.p_purpose);
     if (!result.success) {
       throw new Error(`Invalid aum_purpose "${p.p_purpose}" for ${String(functionName)}.`);
+    }
+  }
+
+  // Validate document_type parameters
+  if ("p_document_type" in p && p.p_document_type != null) {
+    const result = DocumentTypeSchema.safeParse(p.p_document_type);
+    if (!result.success) {
+      throw new Error(`Invalid document_type "${p.p_document_type}" for ${String(functionName)}.`);
+    }
+  }
+
+  // Validate delivery_channel parameters
+  if ("p_channel" in p && p.p_channel != null) {
+    const result = DeliveryChannelSchema.safeParse(p.p_channel);
+    if (!result.success) {
+      throw new Error(`Invalid delivery_channel "${p.p_channel}" for ${String(functionName)}.`);
     }
   }
 

@@ -148,6 +148,50 @@ export const AumPurposeSchema = z.enum(AUM_PURPOSE_VALUES);
 export type AumPurpose = z.infer<typeof AumPurposeSchema>;
 
 // =============================================================================
+// DOCUMENT_TYPE ENUM
+// =============================================================================
+
+/**
+ * Valid document_type values from database
+ */
+export const DOCUMENT_TYPE_VALUES = [
+  "statement",
+  "tax_document",
+  "contract",
+  "report",
+  "other",
+] as const;
+
+/**
+ * Zod schema for document_type enum
+ */
+export const DocumentTypeSchema = z.enum(DOCUMENT_TYPE_VALUES);
+
+/**
+ * TypeScript type for document_type
+ */
+export type DocumentType = z.infer<typeof DocumentTypeSchema>;
+
+// =============================================================================
+// DELIVERY_CHANNEL ENUM
+// =============================================================================
+
+/**
+ * Valid delivery_channel values from database
+ */
+export const DELIVERY_CHANNEL_VALUES = ["email", "portal", "whatsapp"] as const;
+
+/**
+ * Zod schema for delivery_channel enum
+ */
+export const DeliveryChannelSchema = z.enum(DELIVERY_CHANNEL_VALUES);
+
+/**
+ * TypeScript type for delivery_channel
+ */
+export type DeliveryChannel = z.infer<typeof DeliveryChannelSchema>;
+
+// =============================================================================
 // TYPE MAPPING UTILITIES
 // =============================================================================
 
