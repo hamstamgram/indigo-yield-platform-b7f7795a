@@ -129,8 +129,17 @@ function normalizeError(error: unknown, functionName: string): RPCError {
 /**
  * RPC functions where p_type is NOT a tx_type enum
  * These functions use p_type for other purposes (e.g., withdrawal type: FULL/PARTIAL)
+ *
+ * IMPORTANT: Add any RPC function here that uses p_type for something other than tx_type.
+ * Currently, withdrawal functions use p_type for "full" | "partial" withdrawal type.
+ *
+ * Note: update_withdrawal uses p_withdrawal_type instead of p_type, so it doesn't need
+ * to be in this list, but we include it for safety in case the signature changes.
  */
-const NON_TX_TYPE_FUNCTIONS: string[] = ["create_withdrawal_request", "update_withdrawal_request"];
+const NON_TX_TYPE_FUNCTIONS: string[] = [
+  "create_withdrawal_request", // p_type = "full" | "partial"
+  "update_withdrawal", // Uses p_withdrawal_type but included for safety
+];
 
 /**
  * Validate RPC parameters before sending to database

@@ -1,19 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Textarea,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Popover, PopoverContent, PopoverTrigger,
-  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
-import { useInvestorOptions, usePositionsForWithdrawal, useAvailableBalance, useWithdrawalMutations } from "@/hooks/data";
+import {
+  useInvestorOptions,
+  usePositionsForWithdrawal,
+  useAvailableBalance,
+  useWithdrawalMutations,
+} from "@/hooks/data";
 
 const withdrawalSchema = z.object({
   amount: z
@@ -49,17 +73,21 @@ export function CreateWithdrawalDialog({
   const [selectedFundId, setSelectedFundId] = useState<string>("");
   const [investorError, setInvestorError] = useState<string | null>(null);
   const [fundError, setFundError] = useState<string | null>(null);
+  // Ref-based guard to prevent double-submission (works even before React re-renders)
+  const isSubmittingRef = useRef(false);
 
   // Data hooks
   const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorOptions(open);
-  const { data: positions = [], isLoading: isLoadingPositions } = usePositionsForWithdrawal(selectedInvestorId || null);
-  
+  const { data: positions = [], isLoading: isLoadingPositions } = usePositionsForWithdrawal(
+    selectedInvestorId || null
+  );
+
   // Available balance hook (accounts for pending withdrawals - security fix)
   const { data: availableBalanceData } = useAvailableBalance(
     selectedInvestorId || null,
     selectedFundId || null
   );
-  
+
   // Mutation hook
   const { createMutation } = useWithdrawalMutations();
 
@@ -107,6 +135,11 @@ export function CreateWithdrawalDialog({
   const selectedPosition = positions.find((p) => p.fund_id === selectedFundId);
 
   const onSubmit = async (data: WithdrawalFormData) => {
+    // Double-submission guard - check ref immediately (before React re-renders)
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     // Validate investor selection
     if (!selectedInvestorId) {
       setInvestorError("Please select an investor");
@@ -124,7 +157,8 @@ export function CreateWithdrawalDialog({
     const amount = Number(data.amount);
 
     // Check if amount exceeds AVAILABLE balance (position minus pending withdrawals)
-    const maxAmount = availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? 0;
+    const maxAmount =
+      availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? 0;
     if (amount > maxAmount) {
       const hasPending = availableBalanceData && availableBalanceData.pendingWithdrawals > 0;
       toast.error(
@@ -135,10 +169,7 @@ export function CreateWithdrawalDialog({
             )}, Pending: ${formatAssetAmount(
               availableBalanceData.pendingWithdrawals,
               selectedPosition?.fund.asset || "USD"
-            )}, Available: ${formatAssetAmount(
-              maxAmount,
-              selectedPosition?.fund.asset || "USD"
-            )}`
+            )}, Available: ${formatAssetAmount(maxAmount, selectedPosition?.fund.asset || "USD")}`
           : `Amount exceeds available balance: ${formatAssetAmount(
               maxAmount,
               selectedPosition?.fund.asset || "USD"
@@ -147,6 +178,8 @@ export function CreateWithdrawalDialog({
       return;
     }
 
+    // Set guard immediately before mutation
+    isSubmittingRef.current = true;
     createMutation.mutate(
       {
         investorId: selectedInvestorId,
@@ -160,8 +193,12 @@ export function CreateWithdrawalDialog({
           reset();
           setSelectedInvestorId("");
           setSelectedFundId("");
+          isSubmittingRef.current = false;
           onSuccess();
           onOpenChange(false);
+        },
+        onError: () => {
+          isSubmittingRef.current = false;
         },
       }
     );
@@ -173,6 +210,7 @@ export function CreateWithdrawalDialog({
     setSelectedFundId("");
     setInvestorError(null);
     setFundError(null);
+    isSubmittingRef.current = false;
     onOpenChange(false);
   };
 
@@ -196,10 +234,7 @@ export function CreateWithdrawalDialog({
                   variant="outline"
                   role="combobox"
                   aria-expanded={investorSearchOpen}
-                  className={cn(
-                    "w-full justify-between",
-                    investorError && "border-destructive"
-                  )}
+                  className={cn("w-full justify-between", investorError && "border-destructive")}
                   disabled={isLoadingInvestors}
                 >
                   {isLoadingInvestors ? (
@@ -277,10 +312,10 @@ export function CreateWithdrawalDialog({
                     isLoadingPositions
                       ? "Loading positions..."
                       : !selectedInvestorId
-                      ? "Select an investor first"
-                      : positions.length === 0
-                      ? "No positions with balance"
-                      : "Select fund position"
+                        ? "Select an investor first"
+                        : positions.length === 0
+                          ? "No positions with balance"
+                          : "Select fund position"
                   }
                 />
               </SelectTrigger>
@@ -362,12 +397,22 @@ export function CreateWithdrawalDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={createMutation.isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={createMutation.isPending}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={createMutation.isPending || isLoadingInvestors || isLoadingPositions || positions.length === 0}
+              disabled={
+                createMutation.isPending ||
+                isLoadingInvestors ||
+                isLoadingPositions ||
+                positions.length === 0
+              }
             >
               {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Withdrawal

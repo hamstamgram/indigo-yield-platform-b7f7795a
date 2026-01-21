@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -39,6 +39,8 @@ interface CreateDepositDialogProps {
 
 export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogProps) {
   const queryClient = useQueryClient();
+  // Ref-based guard to prevent double-submission (works even before React re-renders)
+  const isSubmittingRef = useRef(false);
   const [formData, setFormData] = useState<DepositFormData>({
     user_id: "",
     asset_symbol: "",
@@ -131,9 +133,11 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       invalidateAfterDeposit(queryClient, formData.user_id);
       onOpenChange(false);
       resetForm();
+      isSubmittingRef.current = false;
     },
     onError: (error: Error) => {
       toast.error(`Failed to create deposit: ${error.message}`);
+      isSubmittingRef.current = false;
     },
   });
 
@@ -147,6 +151,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     setSelectedFundId("");
     setAumValue("");
     setSelectedDate(new Date());
+    isSubmittingRef.current = false;
   };
 
   // Update asset_symbol and selectedFundId together when fund is selected
@@ -162,6 +167,11 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Double-submission guard - check ref immediately (before React re-renders)
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     if (!formData.user_id || !formData.asset_symbol || formData.amount <= 0) {
       toast.error("Please fill in all required fields");
       return;
@@ -173,6 +183,8 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       return;
     }
 
+    // Set guard immediately before mutation
+    isSubmittingRef.current = true;
     createMutation.mutate(formData);
   };
 
