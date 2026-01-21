@@ -88,55 +88,34 @@ rpc.call("apply_withdrawal_with_crystallization", {
 
 ## Yield Operations
 
+### adjust_investor_position (Preferred Overload)
+
+> **⚠️ Note**: This function has 2 overloads. The **8-parameter version** below is the canonical/preferred overload as it includes `p_reference_id` for idempotency.
+
+```typescript
+rpc.call("adjust_investor_position", {
+  p_investor_id: string,      // Required
+  p_fund_id: string,          // Required
+  p_delta: number,            // Required - positive or negative
+  p_note: string,             // Required
+  p_admin_id: string,         // Required
+  p_tx_type: string,          // Required - e.g., "ADJUSTMENT"
+  p_tx_date: string,          // Required
+  p_reference_id: string,     // Required for idempotency
+});
+```
+
+---
+
 ### apply_daily_yield_to_fund_v3
 
 ```typescript
 rpc.call("apply_daily_yield_to_fund_v3", {
   p_fund_id: string,
   p_yield_date: string,
-  p_gross_yield_amount: number,
-  p_admin_id: string,
-  p_notes: string | null,
-});
-```
-
-### preview_daily_yield_to_fund_v3
-
-```typescript
-rpc.call("preview_daily_yield_to_fund_v3", {
-  p_fund_id: string,
-  p_yield_date: string,
-  p_gross_yield_amount: number,
-});
-```
-
----
-
-## Transaction Operations
-
-### admin_create_transaction
-
-```typescript
-rpc.call("admin_create_transaction", {
-  p_investor_id: string,
-  p_fund_id: string,
-  p_tx_type: string,
-  p_amount: number,
-  p_tx_date: string,
-  p_notes: string | null,
-  p_reference_id: string | null,  // For idempotency
-});
-```
-
-### edit_transaction
-
-```typescript
-rpc.call("edit_transaction", {
-  p_transaction_id: string,
-  p_new_notes: string | null,
-  p_new_tx_date: string | null,
-  p_admin_id: string,
-  p_reason: string,
+  p_gross_yield_pct: number,
+  p_created_by: string | null,
+  p_purpose: string | null,
 });
 ```
 

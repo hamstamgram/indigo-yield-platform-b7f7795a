@@ -133,19 +133,19 @@
   },
   "issues": {
     "p0Critical": [],
-    "p1HighPriority": [
-      {
-        "id": "P1-01",
-        "issue": "Function overloads for adjust_investor_position",
-        "recommendation": "Document preferred overload"
-      }
-    ],
+    "p1HighPriority": [],
     "p2LowPriority": [
       {
         "id": "P2-01",
         "issue": "86 trigger functions undocumented",
-        "recommendation": "Add trigger documentation"
+        "status": "deferred",
+        "recommendation": "Internal triggers - document as needed"
       }
+    ],
+    "resolved": [
+      {"id": "P1-01", "issue": "adjust_investor_position overloads", "resolution": "Documented 8-param as canonical in RPC_SIGNATURES.md"},
+      {"id": "P1-02", "issue": "refresh_fund_aum_cache dead code", "resolution": "Already archived in docs/_archive/"},
+      {"id": "P2-02", "issue": "Enum validation incomplete", "resolution": "Added document_type, delivery_channel to rpc.ts"}
     ]
   }
 }
