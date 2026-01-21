@@ -184,9 +184,16 @@ class NotificationService {
     userId: string,
     alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">
   ): Promise<PriceAlert> {
+    const insertData = {
+      user_id: userId,
+      alert_type: alert.alert_type,
+      asset_code: alert.asset_code,
+      threshold_value: typeof alert.threshold_value === "string" ? parseFloat(alert.threshold_value) : alert.threshold_value,
+      is_active: alert.is_active,
+    };
     const { data, error } = await supabase
       .from("price_alerts")
-      .insert({ ...alert, user_id: userId })
+      .insert(insertData)
       .select()
       .single();
 
@@ -198,7 +205,13 @@ class NotificationService {
    * Update a price alert
    */
   async updatePriceAlert(alertId: string, updates: Partial<PriceAlert>): Promise<void> {
-    const { error } = await supabase.from("price_alerts").update(updates).eq("id", alertId);
+    const updateData: Record<string, unknown> = { ...updates };
+    if (updates.threshold_value !== undefined) {
+      updateData.threshold_value = typeof updates.threshold_value === "string" 
+        ? parseFloat(updates.threshold_value) 
+        : updates.threshold_value;
+    }
+    const { error } = await supabase.from("price_alerts").update(updateData).eq("id", alertId);
 
     if (error) throw error;
   }

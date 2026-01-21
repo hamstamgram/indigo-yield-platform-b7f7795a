@@ -253,39 +253,39 @@ export class PDFReportGenerator {
     const summaryData: [string, string][] = [];
 
     if (summary.beginningBalance !== undefined) {
-      summaryData.push(["Beginning Balance", this.formatCurrency(summary.beginningBalance)]);
+      summaryData.push(["Beginning Balance", this.formatCurrency(toNum(summary.beginningBalance))]);
     }
 
-    if (summary.totalDeposits !== undefined && summary.totalDeposits > 0) {
-      summaryData.push(["Total Deposits", this.formatCurrency(summary.totalDeposits)]);
+    if (summary.totalDeposits !== undefined && toNum(summary.totalDeposits) > 0) {
+      summaryData.push(["Total Deposits", this.formatCurrency(toNum(summary.totalDeposits))]);
     }
 
-    if (summary.totalWithdrawals !== undefined && summary.totalWithdrawals > 0) {
-      summaryData.push(["Total Withdrawals", this.formatCurrency(summary.totalWithdrawals)]);
+    if (summary.totalWithdrawals !== undefined && toNum(summary.totalWithdrawals) > 0) {
+      summaryData.push(["Total Withdrawals", this.formatCurrency(toNum(summary.totalWithdrawals))]);
     }
 
-    if (summary.netIncome !== undefined && summary.netIncome !== 0) {
-      summaryData.push(["Net Income", this.formatCurrency(summary.netIncome)]);
+    if (summary.netIncome !== undefined && toNum(summary.netIncome) !== 0) {
+      summaryData.push(["Net Income", this.formatCurrency(toNum(summary.netIncome))]);
     }
 
-    if (summary.totalFees !== undefined && summary.totalFees > 0) {
-      summaryData.push(["Total Fees", this.formatCurrency(summary.totalFees)]);
+    if (summary.totalFees !== undefined && toNum(summary.totalFees) > 0) {
+      summaryData.push(["Total Fees", this.formatCurrency(toNum(summary.totalFees))]);
     }
 
     if (summary.endingBalance !== undefined) {
-      summaryData.push(["Ending Balance", this.formatCurrency(summary.endingBalance)]);
+      summaryData.push(["Ending Balance", this.formatCurrency(toNum(summary.endingBalance))]);
     }
 
     if (summary.totalValue !== undefined) {
-      summaryData.push(["Current Value", this.formatCurrency(summary.totalValue)]);
+      summaryData.push(["Current Value", this.formatCurrency(toNum(summary.totalValue))]);
     }
 
     if (summary.totalReturn !== undefined) {
-      summaryData.push(["Total Return", this.formatCurrency(summary.totalReturn)]);
+      summaryData.push(["Total Return", this.formatCurrency(toNum(summary.totalReturn))]);
     }
 
     if (summary.returnPercentage !== undefined) {
-      summaryData.push(["Return %", this.formatPercentage(summary.returnPercentage)]);
+      summaryData.push(["Return %", this.formatPercentage(toNum(summary.returnPercentage))]);
     }
 
     // Create summary table
@@ -319,16 +319,16 @@ export class PDFReportGenerator {
       const performanceData: [string, string][] = [];
 
       if (summary.mtdReturn !== undefined) {
-        performanceData.push(["Month-to-Date", this.formatPercentage(summary.mtdReturn)]);
+        performanceData.push(["Month-to-Date", this.formatPercentage(toNum(summary.mtdReturn))]);
       }
       if (summary.qtdReturn !== undefined) {
-        performanceData.push(["Quarter-to-Date", this.formatPercentage(summary.qtdReturn)]);
+        performanceData.push(["Quarter-to-Date", this.formatPercentage(toNum(summary.qtdReturn))]);
       }
       if (summary.ytdReturn !== undefined) {
-        performanceData.push(["Year-to-Date", this.formatPercentage(summary.ytdReturn)]);
+        performanceData.push(["Year-to-Date", this.formatPercentage(toNum(summary.ytdReturn))]);
       }
       if (summary.itdReturn !== undefined) {
-        performanceData.push(["Inception-to-Date", this.formatPercentage(summary.itdReturn)]);
+        performanceData.push(["Inception-to-Date", this.formatPercentage(toNum(summary.itdReturn))]);
       }
 
       (this.doc as any).autoTable({
@@ -378,12 +378,12 @@ export class PDFReportGenerator {
     const tableData = data.holdings.map((h) => [
       "", // Placeholder for logo
       h.assetName,
-      this.formatNumber(h.quantity, 8),
-      this.formatCurrency(h.currentPrice, h.assetCode),
-      this.formatCurrency(h.currentValue, h.assetCode),
-      this.formatPercentage(h.allocationPercentage),
-      this.formatCurrency(h.unrealizedGain, h.assetCode),
-      this.formatPercentage(h.unrealizedGainPercentage),
+      this.formatNumber(toNum(h.quantity), 8),
+      this.formatCurrency(toNum(h.currentPrice), h.assetCode),
+      this.formatCurrency(toNum(h.currentValue), h.assetCode),
+      this.formatPercentage(toNum(h.allocationPercentage)),
+      this.formatCurrency(toNum(h.unrealizedGain), h.assetCode),
+      this.formatPercentage(toNum(h.unrealizedGainPercentage)),
     ]);
 
     (this.doc as any).autoTable({
@@ -453,8 +453,8 @@ export class PDFReportGenerator {
         t.date,
         t.type,
         t.assetCode,
-        this.formatNumber(t.amount, 8),
-        this.formatCurrency(t.value, t.assetCode),
+        this.formatNumber(toNum(t.amount), 8),
+        this.formatCurrency(toNum(t.value), t.assetCode),
         statusDisplay,
       ];
     });
@@ -518,11 +518,11 @@ export class PDFReportGenerator {
 
     const tableData = data.performance.periods.map((p) => [
       p.period,
-      this.formatCurrency(p.beginValue),
-      this.formatCurrency(p.endValue),
-      this.formatCurrency(p.netCashFlow),
-      this.formatCurrency(p.return),
-      this.formatPercentage(p.returnPercentage),
+      this.formatCurrency(toNum(p.beginValue)),
+      this.formatCurrency(toNum(p.endValue)),
+      this.formatCurrency(toNum(p.netCashFlow)),
+      this.formatCurrency(toNum(p.return)),
+      this.formatPercentage(toNum(p.returnPercentage)),
     ]);
 
     (this.doc as any).autoTable({
