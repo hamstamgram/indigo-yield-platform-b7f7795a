@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { usePendingTransactionDetails } from "@/hooks";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 export default function PendingTransactionDetailsPage() {
   const { type, id } = useParams<{ type: string; id: string }>();
@@ -63,9 +64,10 @@ export default function PendingTransactionDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Amount</p>
-              <p className="font-semibold text-lg">
-                {item.amount} {item.asset}
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-lg">{item.amount}</span>
+                <CryptoIcon symbol={item.asset} className="h-5 w-5" />
+              </div>
             </div>
             {item.transaction_hash && (
               <div className="col-span-2">

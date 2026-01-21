@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { WithdrawalStats } from "@/types/domains";
 import { AlertCircle, CheckCircle2, Clock, Coins, XCircle } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface WithdrawalStatsProps {
   stats: WithdrawalStats;
@@ -83,9 +84,11 @@ export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsPr
           ) : (
             <div className="space-y-1">
               {stats.pending_by_asset.map(({ asset, amount }) => (
-                <div key={asset} className="flex justify-between text-sm">
-                  <span className="font-medium text-muted-foreground">{asset}:</span>
-                  <span className="font-bold">{formatAssetAmount(amount, asset)}</span>
+                <div key={asset} className="flex justify-between items-center text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <CryptoIcon symbol={asset} className="h-4 w-4" />
+                  </div>
+                  <span className="font-bold font-mono">{formatAssetAmount(amount, asset)}</span>
                 </div>
               ))}
             </div>
