@@ -10225,13 +10225,14 @@ export type Database = {
       }
       apply_adb_yield_distribution: {
         Args: {
-          p_admin_id: string
+          p_admin_id?: string
           p_dust_tolerance?: number
           p_fund_id: string
           p_gross_yield_amount: number
           p_period_end: string
           p_period_start: string
           p_purpose?: string
+          p_recorded_aum?: number
         }
         Returns: Json
       }
@@ -10439,19 +10440,10 @@ export type Database = {
         Returns: Json
       }
       cancel_delivery: { Args: { p_delivery_id: string }; Returns: Json }
-      cancel_withdrawal_by_admin:
-        | {
-            Args: { p_reason?: string; p_request_id: string }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_reason: string
-              p_request_id: string
-            }
-            Returns: boolean
-          }
+      cancel_withdrawal_by_admin: {
+        Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
+        Returns: boolean
+      }
       check_all_funds_transaction_aum: {
         Args: { p_tx_date: string }
         Returns: {
@@ -10491,6 +10483,7 @@ export type Database = {
       }
       check_duplicate_transaction_refs: { Args: never; Returns: number }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
+      check_platform_data_integrity: { Args: never; Returns: Json }
       check_rate_limit: {
         Args: {
           p_action_type: string
@@ -10667,6 +10660,7 @@ export type Database = {
         Returns: Json
       }
       fix_doubled_cost_basis: { Args: never; Returns: Json }
+      fix_position_metadata: { Args: never; Returns: Json }
       force_delete_investor: {
         Args: { p_admin_id: string; p_investor_id: string }
         Returns: boolean
@@ -10822,6 +10816,18 @@ export type Database = {
           out_fund_name: string
           out_net_flow_24h: number
         }[]
+      }
+      get_investor_fee_pct: {
+        Args: {
+          p_effective_date: string
+          p_fund_id: string
+          p_investor_id: string
+        }
+        Returns: number
+      }
+      get_investor_ib_pct: {
+        Args: { p_fund_id: string; p_investor_id: string }
+        Returns: number
       }
       get_investor_remaining_loss: {
         Args: { p_fund_id: string; p_investor_id: string }
@@ -11048,6 +11054,15 @@ export type Database = {
       is_valid_share_token: { Args: { token_value: string }; Returns: boolean }
       is_within_edit_window: {
         Args: { p_created_at: string }
+        Returns: boolean
+      }
+      is_yield_period_closed: {
+        Args: {
+          p_fund_id: string
+          p_month: number
+          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+          p_year: number
+        }
         Returns: boolean
       }
       list_pending_staging_approvals: {
@@ -11377,17 +11392,15 @@ export type Database = {
           status: string
         }[]
       }
-      reconcile_investor_position:
-        | { Args: { p_fund_id: string; p_investor_id: string }; Returns: Json }
-        | {
-            Args: {
-              p_action?: string
-              p_admin_id: string
-              p_fund_id: string
-              p_investor_id: string
-            }
-            Returns: Json
-          }
+      reconcile_investor_position: {
+        Args: {
+          p_action?: string
+          p_admin_id: string
+          p_fund_id: string
+          p_investor_id: string
+        }
+        Returns: Json
+      }
       reconcile_investor_position_internal: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: undefined
@@ -11430,6 +11443,16 @@ export type Database = {
       reject_withdrawal: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
+      }
+      reopen_yield_period: {
+        Args: {
+          p_fund_id: string
+          p_month: number
+          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+          p_reason: string
+          p_year: number
+        }
+        Returns: Json
       }
       repair_all_positions: { Args: never; Returns: Json }
       replace_aum_snapshot: {
@@ -11520,25 +11543,17 @@ export type Database = {
         Returns: number
       }
       set_canonical_rpc: { Args: { enabled?: boolean }; Returns: undefined }
-      set_fund_daily_aum:
-        | {
-            Args: {
-              p_aum_date: string
-              p_fund_id: string
-              p_nav_per_share?: number
-              p_total_aum: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_aum_date: string
-              p_fund_id: string
-              p_purpose?: string
-              p_total_aum: number
-            }
-            Returns: Json
-          }
+      set_fund_daily_aum: {
+        Args: {
+          p_aum_date: string
+          p_fund_id: string
+          p_purpose?: string
+          p_skip_validation?: boolean
+          p_source?: string
+          p_total_aum: number
+        }
+        Returns: Json
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       start_processing_withdrawal: {
@@ -11766,15 +11781,10 @@ export type Database = {
         }
         Returns: Json
       }
-      void_fund_daily_aum:
-        | {
-            Args: { p_admin_id: string; p_reason: string; p_record_id: string }
-            Returns: Json
-          }
-        | {
-            Args: { p_admin_id: string; p_reason: string; p_record_id: string }
-            Returns: Json
-          }
+      void_fund_daily_aum: {
+        Args: { p_admin_id: string; p_reason: string; p_record_id: string }
+        Returns: Json
+      }
       void_investor_yield_events_for_distribution: {
         Args: {
           p_admin_id: string

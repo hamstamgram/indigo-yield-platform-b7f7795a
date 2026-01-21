@@ -23,10 +23,23 @@ export {
 } from "@/types/asset";
 
 /**
+ * Convert a value to number safely
+ * Handles string (from NUMERIC DB fields) and number types
+ */
+function toNum(value: string | number | null | undefined): number {
+  if (value === null || value === undefined || value === "") return 0;
+  if (typeof value === "number") return isNaN(value) ? 0 : value;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
  * Format an amount with the asset symbol
  * e.g. formatAssetAmount(1500.5, 'USDT') => "1,500.50 USDT"
+ * Accepts string or number for compatibility with NUMERIC DB fields
  */
-export function formatAssetAmount(amount: number, symbol: string): string {
+export function formatAssetAmount(amount: string | number, symbol: string): string {
+  const numAmount = toNum(amount);
   const config = getAssetConfig(symbol);
   const decimals = config?.decimals || 8;
   
@@ -55,7 +68,7 @@ export function formatAssetAmount(amount: number, symbol: string): string {
       displayDecimals = decimals;
   }
 
-  const formattedValue = amount.toLocaleString("en-US", {
+  const formattedValue = numAmount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: displayDecimals,
   });
@@ -67,10 +80,12 @@ export function formatAssetAmount(amount: number, symbol: string): string {
  * Format a signed amount with +/- prefix
  * e.g. formatSignedAssetAmount(-1500.5, 'USDT') => "-1,500.50 USDT"
  * e.g. formatSignedAssetAmount(1500.5, 'USDT') => "+1,500.50 USDT"
+ * Accepts string or number for compatibility with NUMERIC DB fields
  */
-export function formatSignedAssetAmount(amount: number, symbol: string): string {
-  const formatted = formatAssetAmount(Math.abs(amount), symbol);
-  if (amount < 0) return `-${formatted}`;
-  if (amount > 0) return `+${formatted}`;
+export function formatSignedAssetAmount(amount: string | number, symbol: string): string {
+  const numAmount = toNum(amount);
+  const formatted = formatAssetAmount(Math.abs(numAmount), symbol);
+  if (numAmount < 0) return `-${formatted}`;
+  if (numAmount > 0) return `+${formatted}`;
   return formatted;
 }

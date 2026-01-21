@@ -63,13 +63,15 @@ export function RecentActivityFeed() {
     }
   };
 
-  const formatAmount = (amount?: number, asset?: string) => {
-    if (!amount) return null;
+  const formatAmount = (amount?: string | number, asset?: string) => {
+    if (amount === undefined || amount === null || amount === "") return null;
+    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+    if (isNaN(numAmount)) return null;
     const formatted = new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 6,
-    }).format(Math.abs(amount));
-    return `${amount >= 0 ? "+" : "-"}${formatted} ${asset || ""}`;
+    }).format(Math.abs(numAmount));
+    return `${numAmount >= 0 ? "+" : "-"}${formatted} ${asset || ""}`;
   };
 
   return (

@@ -46,13 +46,18 @@ export function CreateInvestmentDialog({
     defaultValues: {
       investment_date: getTodayString(),
       transaction_type: "initial",
+      amount: "",
     },
   });
 
   const onSubmit = async (values: InvestmentFormValues) => {
     setLoading(true);
     try {
-      await investmentService.createInvestment(values as InvestmentFormData);
+      // Cast values to InvestmentFormData (types now match)
+      await investmentService.createInvestment({
+        ...values,
+        amount: values.amount, // Already a string from the form
+      } as InvestmentFormData);
       toast.success("Investment created successfully");
       form.reset();
       onOpenChange(false);

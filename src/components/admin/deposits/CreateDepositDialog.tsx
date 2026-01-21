@@ -46,7 +46,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
   const [formData, setFormData] = useState<DepositFormData>({
     user_id: "",
     asset_symbol: "",
-    amount: 0,
+    amount: "",
     transaction_hash: "",
   });
   const [selectedFundId, setSelectedFundId] = useState<string>("");
@@ -157,7 +157,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     setFormData({
       user_id: "",
       asset_symbol: "",
-      amount: 0,
+      amount: "",
       transaction_hash: "",
     });
     setSelectedFundId("");
@@ -184,7 +184,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       return;
     }
 
-    if (!formData.user_id || !formData.asset_symbol || formData.amount <= 0) {
+    if (!formData.user_id || !formData.asset_symbol || !formData.amount || parseFloat(formData.amount) <= 0) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -260,7 +260,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                 id="amount"
                 asset={formData.asset_symbol}
                 value={formData.amount || ""}
-                onChange={(val) => setFormData({ ...formData, amount: parseFloat(val) || 0 })}
+                onChange={(val) => setFormData({ ...formData, amount: val })}
                 min={0}
                 showFormatted
               />

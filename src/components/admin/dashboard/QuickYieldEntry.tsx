@@ -35,9 +35,14 @@ export function QuickYieldEntry() {
     const newAUMNum = parseFloat(newAUM);
     if (isNaN(newAUMNum)) return null;
 
-    const yieldAmount = newAUMNum - selectedFundData.currentAUM;
-    const yieldPct = selectedFundData.currentAUM > 0
-      ? (yieldAmount / selectedFundData.currentAUM) * 100
+    // Convert currentAUM from string to number for arithmetic
+    const currentAUMNum = typeof selectedFundData.currentAUM === "string" 
+      ? parseFloat(selectedFundData.currentAUM) || 0 
+      : selectedFundData.currentAUM || 0;
+
+    const yieldAmount = newAUMNum - currentAUMNum;
+    const yieldPct = currentAUMNum > 0
+      ? (yieldAmount / currentAUMNum) * 100
       : 0;
 
     return {
@@ -58,11 +63,12 @@ export function QuickYieldEntry() {
     navigate(`/admin/monthly-data-entry?fund=${selectedFund}&aum=${newAUM}`);
   };
 
-  const formatCrypto = (value: number, decimals: number = 4) => {
+  const formatCrypto = (value: string | number, decimals: number = 4) => {
+    const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
     return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
-    }).format(value);
+    }).format(numValue);
   };
 
   return (
