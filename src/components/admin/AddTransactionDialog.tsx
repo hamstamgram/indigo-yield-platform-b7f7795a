@@ -38,12 +38,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
-import {
-  createAdminTransaction,
-  fetchInvestorsForSelector,
-  preflowAumService,
-  fundService,
-} from "@/services";
+import { createAdminTransaction, fundService } from "@/services";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -58,12 +53,6 @@ import {
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-
-interface ExistingPreflowAumUI {
-  closingAum: number;
-  eventTs: string;
-  createdByName?: string;
-}
 
 interface InvestorOption {
   id: string;
@@ -678,24 +667,8 @@ function PreflowAumInput(props: {
   const { fundId, txDate, asset, register, setValue, errorMessage } = props;
   const requiresCheck = Boolean(fundId && txDate);
 
-  // Check for existing AUM record for this specific date
-  const { data: existing, isLoading: isLoadingExisting } = useQuery({
-    queryKey: ["preflow-aum-existing", fundId, txDate],
-    queryFn: async (): Promise<ExistingPreflowAumUI | null> => {
-      const existingPreflow = await preflowAumService.getExisting(fundId, txDate, "transaction");
-      if (!existingPreflow) return null;
-      return {
-        closingAum: existingPreflow.closingAum,
-        eventTs: existingPreflow.eventTs,
-        createdByName: existingPreflow.createdBy?.name ?? undefined,
-      };
-    },
-    enabled: requiresCheck,
-    staleTime: 5_000,
-  });
-
-  // Fetch LIVE AUM from positions to pre-populate when no existing record
-  const { data: liveNavData, isLoading: isLoadingLive } = useQuery({
+  // Fetch LIVE AUM from positions - always use this as the source of truth
+  const { data: liveNavData, isLoading } = useQuery({
     queryKey: ["fund-live-aum", fundId],
     queryFn: async () => {
       return fundService.getLatestNav(fundId);
@@ -704,38 +677,26 @@ function PreflowAumInput(props: {
     staleTime: 10_000,
   });
 
-  const hasExistingAum = existing?.closingAum !== undefined;
   const hasLiveAum = liveNavData?.aum !== undefined && liveNavData.aum !== null;
-  const isLoading = isLoadingExisting || isLoadingLive;
 
-  // Auto-populate AUM value:
-  // 1. If existing AUM record for this date exists, use that
-  // 2. Otherwise, pre-populate with live AUM from current positions
+  // Auto-populate AUM value with LIVE AUM from positions
   useEffect(() => {
-    if (existing?.closingAum !== undefined) {
-      setValue("closing_aum", String(existing.closingAum), { shouldValidate: true });
-    } else if (liveNavData?.aum !== undefined && liveNavData.aum !== null) {
-      // Pre-populate with live AUM from positions (user can edit)
+    if (liveNavData?.aum !== undefined && liveNavData.aum !== null) {
       setValue("closing_aum", String(liveNavData.aum), { shouldValidate: true });
     }
-  }, [existing?.closingAum, liveNavData?.aum, setValue]);
+  }, [liveNavData?.aum, setValue]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Checking for existing preflow AUM…</div>;
+    return <div className="text-sm text-muted-foreground">Loading current fund AUM…</div>;
   }
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        {hasExistingAum && (
-          <span className="text-xs text-green-600 font-medium">
-            (Existing record for this date)
-          </span>
-        )}
-        {!hasExistingAum && hasLiveAum && (
-          <span className="text-xs text-blue-600 font-medium">(Pre-filled with live AUM)</span>
-        )}
-      </div>
+      {hasLiveAum && (
+        <span className="text-xs text-blue-600 font-medium">
+          (Live: {Number(liveNavData.aum).toLocaleString()} {asset})
+        </span>
+      )}
       <Input
         id="closing_aum"
         type="number"
@@ -745,21 +706,9 @@ function PreflowAumInput(props: {
         {...register("closing_aum")}
         className={errorMessage ? "border-destructive" : ""}
       />
-      {hasExistingAum ? (
-        <p className="text-xs text-green-600">
-          Existing preflow AUM recorded at {new Date(existing.eventTs).toLocaleString()}
-          {existing.createdByName ? ` by ${existing.createdByName}` : ""}. You can edit if needed.
-        </p>
-      ) : hasLiveAum ? (
-        <p className="text-xs text-blue-600">
-          Pre-filled with current fund AUM ({Number(liveNavData.aum).toLocaleString()} {asset}).
-          Edit if the AUM at time of transaction was different.
-        </p>
-      ) : (
-        <p className="text-xs text-muted-foreground">
-          Enter the fund AUM immediately before this transaction.
-        </p>
-      )}
+      <p className="text-xs text-muted-foreground">
+        Fund AUM immediately before this transaction. Pre-filled with current positions total.
+      </p>
       {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
     </div>
   );

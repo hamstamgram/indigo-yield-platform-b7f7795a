@@ -88,17 +88,13 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     enabled: !!selectedFundId && open,
   });
 
-  // Auto-populate AUM value:
-  // 1. If existing AUM record for this date exists, use that
-  // 2. Otherwise, pre-populate with live AUM from current positions
+  // Auto-populate AUM value with LIVE AUM from positions
+  // Always prioritize live AUM - it's the current actual fund state
   useEffect(() => {
-    if (aumRecord?.closingAum !== undefined && aumRecord.closingAum !== null) {
-      setAumValue(String(aumRecord.closingAum));
-    } else if (liveNavData?.aum !== undefined && liveNavData.aum !== null) {
-      // Pre-populate with live AUM from positions (user can edit)
+    if (liveNavData?.aum !== undefined && liveNavData.aum !== null) {
       setAumValue(String(liveNavData.aum));
     }
-  }, [aumRecord, liveNavData]);
+  }, [liveNavData]);
 
   const hasExistingAum = aumRecord?.closingAum !== null && aumRecord?.closingAum !== undefined;
   const needsAum = selectedFundId && !isCheckingAum && !aumRecord;
@@ -315,53 +311,25 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             <div className="space-y-2">
               <Label htmlFor="aum_value" className="flex items-center gap-2">
                 Preflow AUM Snapshot ({selectedFund?.asset?.toUpperCase()}) *
-                {hasExistingAum && (
-                  <span className="text-xs text-green-600 font-medium">
-                    (Existing record for this date)
-                  </span>
-                )}
-                {!hasExistingAum && liveNavData?.aum && (
+                {liveNavData?.aum !== undefined && liveNavData.aum !== null && (
                   <span className="text-xs text-blue-600 font-medium">
-                    (Pre-filled with live AUM)
+                    (Live: {Number(liveNavData.aum).toLocaleString()})
                   </span>
                 )}
               </Label>
-              {isCheckingAum ? (
-                <div className="text-sm text-muted-foreground">Checking for existing AUM...</div>
-              ) : (
-                <>
-                  <Input
-                    id="aum_value"
-                    type="number"
-                    step="0.00000001"
-                    min="0"
-                    value={aumValue}
-                    onChange={(e) => setAumValue(e.target.value)}
-                    placeholder="Enter preflow AUM"
-                    required
-                  />
-                  {hasExistingAum ? (
-                    <p className="text-xs text-green-600">
-                      Existing preflow AUM recorded at{" "}
-                      {aumRecord?.eventTs
-                        ? new Date(aumRecord.eventTs).toLocaleString()
-                        : "(unknown time)"}
-                      {aumRecord?.createdBy?.name ? ` by ${aumRecord.createdBy.name}` : ""}. You can
-                      edit if needed.
-                    </p>
-                  ) : liveNavData?.aum ? (
-                    <p className="text-xs text-blue-600">
-                      Pre-filled with current fund AUM ({Number(liveNavData.aum).toLocaleString()}{" "}
-                      {selectedFund?.asset?.toUpperCase()}). Edit if the AUM at time of deposit was
-                      different.
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      Enter the fund AUM immediately before this deposit.
-                    </p>
-                  )}
-                </>
-              )}
+              <Input
+                id="aum_value"
+                type="number"
+                step="0.00000001"
+                min="0"
+                value={aumValue}
+                onChange={(e) => setAumValue(e.target.value)}
+                placeholder="Enter preflow AUM"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Fund AUM immediately before this deposit. Pre-filled with current positions total.
+              </p>
             </div>
           )}
 
