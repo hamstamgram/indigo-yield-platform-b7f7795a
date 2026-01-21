@@ -24,7 +24,7 @@ import {
 } from "@/components/ui";
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { depositService, preflowAumService, profileService } from "@/services";
+import { depositService, preflowAumService, profileService, fundService } from "@/services";
 import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/domains";
 import { format } from "date-fns";
@@ -79,12 +79,26 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     enabled: !!selectedFundId && open,
   });
 
-  // If existing AUM found, auto-populate the value
+  // Fetch LIVE AUM from positions to pre-populate when no existing record
+  const { data: liveNavData } = useQuery({
+    queryKey: selectedFundId ? ["fund-live-aum", selectedFundId] : ["fund-live-aum"],
+    queryFn: async () => {
+      return fundService.getLatestNav(selectedFundId);
+    },
+    enabled: !!selectedFundId && open,
+  });
+
+  // Auto-populate AUM value:
+  // 1. If existing AUM record for this date exists, use that
+  // 2. Otherwise, pre-populate with live AUM from current positions
   useEffect(() => {
     if (aumRecord?.closingAum !== undefined && aumRecord.closingAum !== null) {
       setAumValue(String(aumRecord.closingAum));
+    } else if (liveNavData?.aum !== undefined && liveNavData.aum !== null) {
+      // Pre-populate with live AUM from positions (user can edit)
+      setAumValue(String(liveNavData.aum));
     }
-  }, [aumRecord]);
+  }, [aumRecord, liveNavData]);
 
   const hasExistingAum = aumRecord?.closingAum !== null && aumRecord?.closingAum !== undefined;
   const needsAum = selectedFundId && !isCheckingAum && !aumRecord;
@@ -303,31 +317,17 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                 Preflow AUM Snapshot ({selectedFund?.asset?.toUpperCase()}) *
                 {hasExistingAum && (
                   <span className="text-xs text-green-600 font-medium">
-                    (Using existing record)
+                    (Existing record for this date)
+                  </span>
+                )}
+                {!hasExistingAum && liveNavData?.aum && (
+                  <span className="text-xs text-blue-600 font-medium">
+                    (Pre-filled with live AUM)
                   </span>
                 )}
               </Label>
               {isCheckingAum ? (
                 <div className="text-sm text-muted-foreground">Checking for existing AUM...</div>
-              ) : hasExistingAum ? (
-                <>
-                  <Input
-                    id="aum_value"
-                    type="number"
-                    step="0.00000001"
-                    min="0"
-                    value={aumValue}
-                    readOnly
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-green-600">
-                    Using existing preflow AUM recorded at{" "}
-                    {aumRecord?.eventTs
-                      ? new Date(aumRecord.eventTs).toLocaleString()
-                      : "(unknown time)"}
-                    {aumRecord?.createdBy?.name ? ` by ${aumRecord.createdBy.name}` : ""}.
-                  </p>
-                </>
               ) : (
                 <>
                   <Input
@@ -340,10 +340,26 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                     placeholder="Enter preflow AUM"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
-                    No existing AUM record found. Enter the fund AUM immediately before this
-                    deposit.
-                  </p>
+                  {hasExistingAum ? (
+                    <p className="text-xs text-green-600">
+                      Existing preflow AUM recorded at{" "}
+                      {aumRecord?.eventTs
+                        ? new Date(aumRecord.eventTs).toLocaleString()
+                        : "(unknown time)"}
+                      {aumRecord?.createdBy?.name ? ` by ${aumRecord.createdBy.name}` : ""}. You can
+                      edit if needed.
+                    </p>
+                  ) : liveNavData?.aum ? (
+                    <p className="text-xs text-blue-600">
+                      Pre-filled with current fund AUM ({Number(liveNavData.aum).toLocaleString()}{" "}
+                      {selectedFund?.asset?.toUpperCase()}). Edit if the AUM at time of deposit was
+                      different.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Enter the fund AUM immediately before this deposit.
+                    </p>
+                  )}
                 </>
               )}
             </div>
