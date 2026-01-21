@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { InvestorSummaryV2 } from "@/services/admin";
+import { AdminInvestorSummary } from "@/services/admin";
 
 /**
  * A hook for searching and filtering investors
@@ -8,11 +8,11 @@ import { InvestorSummaryV2 } from "@/services/admin";
  * @returns Search state and filtered investors
  */
 export const useInvestorSearch = (
-  investors: InvestorSummaryV2[],
+  investors: AdminInvestorSummary[],
   initialSearchTerm: string = ""
 ) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [filteredInvestors, setFilteredInvestors] = useState<InvestorSummaryV2[]>(investors);
+  const [filteredInvestors, setFilteredInvestors] = useState<AdminInvestorSummary[]>(investors);
 
   // Handle search
   useEffect(() => {

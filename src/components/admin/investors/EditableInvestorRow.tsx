@@ -6,13 +6,13 @@ import {
 } from "@/components/ui";
 import { Trash2 } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
-import type { InvestorSummaryV2 } from "@/services";
+import type { AdminInvestorSummary } from "@/services/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import InviteInvestorDialog from "./InviteInvestorDialog";
 
 interface EditableInvestorRowProps {
-  investor: InvestorSummaryV2;
+  investor: AdminInvestorSummary;
   assets: Asset[];
   onSendEmail: (email: string) => void;
   onDelete?: (investorId: string) => void;

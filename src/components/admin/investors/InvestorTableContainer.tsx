@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import SearchBar from "./SearchBar";
 import InvestorsTable from "./InvestorsTable";
 import { AssetRef as Asset } from "@/types/asset";
-import type { InvestorSummaryV2 } from "@/services";
+import type { AdminInvestorSummary } from "@/services/admin";
 
 interface InvestorTableContainerProps {
-  investors: InvestorSummaryV2[];
+  investors: AdminInvestorSummary[];
   assets: Asset[];
   loading: boolean;
   searchTerm: string;

@@ -12,12 +12,12 @@ import { Send, Save } from "lucide-react";
 import { useToast } from "@/hooks";
 import { useUpdateInvestorStatus } from "@/hooks/data";
 import { AssetRef as Asset } from "@/types/asset";
-import type { InvestorSummaryV2 } from "@/services";
+import type { AdminInvestorSummary } from "@/services/admin";
 import FundAssetDropdown from "./FundAssetDropdown";
 import { FinancialValue } from "@/components/common/FinancialValue";
 
 interface MobileInvestorCardProps {
-  investor: InvestorSummaryV2;
+  investor: AdminInvestorSummary;
   assets: Asset[];
   onSendEmail: (email: string) => void;
   onSaveSuccess: () => void;
@@ -36,7 +36,7 @@ const MobileInvestorCard = ({
 
   // Update fee state when investor prop changes
   useEffect(() => {
-    setFee("20.0"); // Default fee since InvestorSummaryV2 doesn't have fee_percentage
+    setFee("20.0"); // Default fee since AdminInvestorSummary doesn't have fee_percentage
   }, [investor]);
 
   // Create state for each asset balance
