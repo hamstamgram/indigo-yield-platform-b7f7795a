@@ -221,7 +221,7 @@ function FundManagementContent() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-mono">{fund.asset}</span>
+                        <CryptoIcon symbol={fund.asset} className="h-5 w-5" />
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>

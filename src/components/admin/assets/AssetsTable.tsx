@@ -9,6 +9,7 @@ import { EditAssetDialog } from "./EditAssetDialog";
 import { AssetPriceDialog } from "./AssetPriceDialog";
 import type { Asset } from "@/types/asset";
 import { format } from "date-fns";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 export function AssetsTable() {
   const [search, setSearch] = useState("");
@@ -60,7 +61,12 @@ export function AssetsTable() {
               ) : (
                 assets?.map((asset: Asset) => (
                   <TableRow key={asset.asset_id}>
-                    <TableCell className="font-mono font-semibold">{asset.symbol}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={asset.symbol} className="h-5 w-5" />
+                        <span className="font-mono font-semibold">{asset.symbol}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{asset.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{asset.kind}</Badge>

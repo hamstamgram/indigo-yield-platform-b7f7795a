@@ -523,18 +523,20 @@ function TransactionHistoryContent() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          <span
-                            className={
-                              tx.isVoided
-                                ? "line-through text-muted-foreground"
-                                : tx.type === "WITHDRAWAL" || tx.type === "FEE"
-                                  ? "text-destructive"
-                                  : "text-green-600"
-                            }
-                          >
-                            {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
-                          </span>
-                          <span className="text-muted-foreground ml-1">{tx.asset}</span>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <span
+                              className={
+                                tx.isVoided
+                                  ? "line-through text-muted-foreground"
+                                  : tx.type === "WITHDRAWAL" || tx.type === "FEE"
+                                    ? "text-destructive"
+                                    : "text-green-600"
+                              }
+                            >
+                              {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
+                            </span>
+                            <CryptoIcon symbol={tx.asset} className="h-4 w-4" />
+                          </div>
                         </TableCell>
                         <TableCell className="max-w-[200px]">
                           <TruncatedText

@@ -17,6 +17,7 @@ import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Coins, CheckCircle, Loader2, DollarSign } from "lucide-react";
 import { useIBAllocationsForPayout, useMarkAllocationsAsPaid } from "@/hooks/data/admin";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 export default function IBPayoutsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("pending");
@@ -180,7 +181,7 @@ export default function IBPayoutsPage() {
                     <TableCell>{comm.sourceInvestorName}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline">{comm.asset}</Badge>
+                        <CryptoIcon symbol={comm.asset} className="h-5 w-5" />
                         <span className="text-sm">{comm.fundName}</span>
                       </div>
                     </TableCell>

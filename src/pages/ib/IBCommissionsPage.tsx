@@ -14,6 +14,7 @@ import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Coins, Download, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useIBCommissions } from "@/hooks/data/shared";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 const PAGE_SIZE = 20;
 
@@ -204,7 +205,7 @@ export default function IBCommissionsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline">{comm.asset}</Badge>
+                          <CryptoIcon symbol={comm.asset} className="h-5 w-5" />
                           <span>{comm.fundName}</span>
                         </div>
                       </TableCell>

@@ -5,6 +5,7 @@ import {
 } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { useTransactionById } from "@/hooks/data";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 export default function TransactionDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -76,9 +77,10 @@ export default function TransactionDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Amount</p>
-              <p className="font-semibold text-lg">
-                {item.amount} {item.asset}
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-lg">{item.amount}</span>
+                <CryptoIcon symbol={item.asset} className="h-5 w-5" />
+              </div>
             </div>
             {item.tx_hash && (
               <div className="col-span-2">

@@ -6,6 +6,7 @@ import {
   ResponsiveTable, EmptyState,
 } from "@/components/ui";
 import { Search, Filter, Receipt } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { useInvestorTransactionsList } from "@/hooks/data";
 
 export default function TransactionsPage() {
@@ -29,11 +30,14 @@ export default function TransactionsPage() {
     {
       header: "Amount",
       cell: (item: any) => (
-        <span
-          className={item.amount > 0 ? "text-green-600 font-mono" : "text-foreground font-mono"}
-        >
-          {item.amount} {item.asset}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span
+            className={item.amount > 0 ? "text-green-600 font-mono" : "text-foreground font-mono"}
+          >
+            {item.amount}
+          </span>
+          <CryptoIcon symbol={item.asset} className="h-4 w-4" />
+        </div>
       ),
     },
     {

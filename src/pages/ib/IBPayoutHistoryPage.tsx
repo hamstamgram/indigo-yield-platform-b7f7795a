@@ -13,6 +13,7 @@ import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Wallet, ChevronLeft, ChevronRight } from "lucide-react";
 import { useIBPayoutHistory } from "@/hooks/data/shared";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 const PAGE_SIZE = 20;
 
@@ -78,7 +79,7 @@ export default function IBPayoutHistoryPage() {
                       </TableCell>
                       <TableCell>{payout.fundName}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{payout.asset}</Badge>
+                        <CryptoIcon symbol={payout.asset} className="h-5 w-5" />
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {formatAssetAmount(payout.amount, payout.asset)}
