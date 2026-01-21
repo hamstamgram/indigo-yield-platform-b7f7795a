@@ -10,6 +10,14 @@ import { ReportData, ReportStyles } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
 import { formatAssetWithSymbol } from "@/utils/formatters";
 
+/** Convert string or number to number for calculations */
+const toNum = (value: string | number | undefined | null): number => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return value;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
 // Extend jsPDF type to include autoTable
 declare module "jspdf" {
   interface jsPDF {

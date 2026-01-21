@@ -113,7 +113,7 @@ class ApprovalService {
       p_requester_id: requesterId,
       p_reason: input.reason,
       p_metadata: (input.metadata ?? null) as unknown as Json,
-      p_amount: input.amount || null,
+      p_amount: input.amount ? (typeof input.amount === 'string' ? parseFloat(input.amount) : input.amount) : null,
       p_expiry_hours: input.expiryHours || 72,
     });
 

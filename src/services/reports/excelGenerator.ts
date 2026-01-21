@@ -13,6 +13,14 @@ import {
   PerformancePeriod,
 } from "@/types/domains";
 
+/** Convert string or number to number for calculations */
+const toNum = (value: string | number | undefined | null): number => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return value;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
 interface ExcelGenerationOptions {
   includeCharts?: boolean;
   includeFormulas?: boolean;
@@ -153,30 +161,30 @@ export class ExcelReportGenerator {
 
     const summary = data.summary;
     if (summary.beginningBalance !== undefined) {
-      this.addCurrencyRow(sheet, "Beginning Balance", summary.beginningBalance);
+      this.addCurrencyRow(sheet, "Beginning Balance", toNum(summary.beginningBalance));
     }
-    if (summary.totalDeposits !== undefined && summary.totalDeposits > 0) {
-      this.addCurrencyRow(sheet, "Total Deposits", summary.totalDeposits, "positive");
+    if (summary.totalDeposits !== undefined && toNum(summary.totalDeposits) > 0) {
+      this.addCurrencyRow(sheet, "Total Deposits", toNum(summary.totalDeposits), "positive");
     }
-    if (summary.totalWithdrawals !== undefined && summary.totalWithdrawals > 0) {
-      this.addCurrencyRow(sheet, "Total Withdrawals", summary.totalWithdrawals, "negative");
+    if (summary.totalWithdrawals !== undefined && toNum(summary.totalWithdrawals) > 0) {
+      this.addCurrencyRow(sheet, "Total Withdrawals", toNum(summary.totalWithdrawals), "negative");
     }
-    if (summary.netIncome !== undefined && summary.netIncome !== 0) {
+    if (summary.netIncome !== undefined && toNum(summary.netIncome) !== 0) {
       this.addCurrencyRow(
         sheet,
         "Net Income",
-        summary.netIncome,
-        summary.netIncome >= 0 ? "positive" : "negative"
+        toNum(summary.netIncome),
+        toNum(summary.netIncome) >= 0 ? "positive" : "negative"
       );
     }
-    if (summary.totalFees !== undefined && summary.totalFees > 0) {
-      this.addCurrencyRow(sheet, "Total Fees", summary.totalFees, "negative");
+    if (summary.totalFees !== undefined && toNum(summary.totalFees) > 0) {
+      this.addCurrencyRow(sheet, "Total Fees", toNum(summary.totalFees), "negative");
     }
     if (summary.endingBalance !== undefined) {
-      this.addCurrencyRow(sheet, "Ending Balance", summary.endingBalance, "bold");
+      this.addCurrencyRow(sheet, "Ending Balance", toNum(summary.endingBalance), "bold");
     }
     if (summary.totalValue !== undefined) {
-      this.addCurrencyRow(sheet, "Current Value", summary.totalValue, "bold");
+      this.addCurrencyRow(sheet, "Current Value", toNum(summary.totalValue), "bold");
     }
 
     sheet.addRow([]); // Empty row
@@ -185,16 +193,16 @@ export class ExcelReportGenerator {
       this.addCurrencyRow(
         sheet,
         "Total Return",
-        summary.totalReturn,
-        summary.totalReturn >= 0 ? "positive" : "negative"
+        toNum(summary.totalReturn),
+        toNum(summary.totalReturn) >= 0 ? "positive" : "negative"
       );
     }
     if (summary.returnPercentage !== undefined) {
       this.addPercentageRow(
         sheet,
         "Return %",
-        summary.returnPercentage,
-        summary.returnPercentage >= 0 ? "positive" : "negative"
+        toNum(summary.returnPercentage),
+        toNum(summary.returnPercentage) >= 0 ? "positive" : "negative"
       );
     }
 
@@ -213,32 +221,32 @@ export class ExcelReportGenerator {
         this.addPercentageRow(
           sheet,
           "Month-to-Date",
-          summary.mtdReturn,
-          summary.mtdReturn >= 0 ? "positive" : "negative"
+          toNum(summary.mtdReturn),
+          toNum(summary.mtdReturn) >= 0 ? "positive" : "negative"
         );
       }
       if (summary.qtdReturn !== undefined) {
         this.addPercentageRow(
           sheet,
           "Quarter-to-Date",
-          summary.qtdReturn,
-          summary.qtdReturn >= 0 ? "positive" : "negative"
+          toNum(summary.qtdReturn),
+          toNum(summary.qtdReturn) >= 0 ? "positive" : "negative"
         );
       }
       if (summary.ytdReturn !== undefined) {
         this.addPercentageRow(
           sheet,
           "Year-to-Date",
-          summary.ytdReturn,
-          summary.ytdReturn >= 0 ? "positive" : "negative"
+          toNum(summary.ytdReturn),
+          toNum(summary.ytdReturn) >= 0 ? "positive" : "negative"
         );
       }
       if (summary.itdReturn !== undefined) {
         this.addPercentageRow(
           sheet,
           "Inception-to-Date",
-          summary.itdReturn,
-          summary.itdReturn >= 0 ? "positive" : "negative"
+          toNum(summary.itdReturn),
+          toNum(summary.itdReturn) >= 0 ? "positive" : "negative"
         );
       }
     }
@@ -285,13 +293,13 @@ export class ExcelReportGenerator {
       const row = sheet.addRow([
         holding.assetCode,
         holding.assetName,
-        holding.quantity,
-        holding.currentPrice,
-        holding.currentValue,
-        holding.allocationPercentage / 100,
-        holding.costBasis,
-        holding.unrealizedGain,
-        holding.unrealizedGainPercentage / 100,
+        toNum(holding.quantity),
+        toNum(holding.currentPrice),
+        toNum(holding.currentValue),
+        toNum(holding.allocationPercentage) / 100,
+        toNum(holding.costBasis),
+        toNum(holding.unrealizedGain),
+        toNum(holding.unrealizedGainPercentage) / 100,
       ]);
 
       // Format numbers
@@ -304,7 +312,7 @@ export class ExcelReportGenerator {
       row.getCell(9).numFmt = "0.00%"; // Gain %
 
       // Color code gains/losses
-      if (holding.unrealizedGain >= 0) {
+      if (toNum(holding.unrealizedGain) >= 0) {
         row.getCell(8).font = { color: { argb: "FF16a34a" } }; // green-600
         row.getCell(9).font = { color: { argb: "FF16a34a" } };
       } else {
@@ -453,11 +461,11 @@ export class ExcelReportGenerator {
     periods.forEach((period) => {
       const row = sheet.addRow([
         period.period,
-        period.beginValue,
-        period.endValue,
-        period.netCashFlow,
-        period.return,
-        period.returnPercentage / 100,
+        toNum(period.beginValue),
+        toNum(period.endValue),
+        toNum(period.netCashFlow),
+        toNum(period.return),
+        toNum(period.returnPercentage) / 100,
       ]);
 
       // Format numbers
@@ -468,7 +476,7 @@ export class ExcelReportGenerator {
       row.getCell(6).numFmt = "0.00%"; // Return %
 
       // Color code return
-      if (period.return >= 0) {
+      if (toNum(period.return) >= 0) {
         row.getCell(5).font = { color: { argb: "FF16a34a" } };
         row.getCell(6).font = { color: { argb: "FF16a34a" } };
       } else {

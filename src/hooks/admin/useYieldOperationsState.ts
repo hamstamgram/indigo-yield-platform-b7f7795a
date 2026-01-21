@@ -310,7 +310,7 @@ export function useYieldOperationsState() {
       const result = await previewYieldDistribution({
         fundId: state.selectedFund.id,
         targetDate: state.aumDate,
-        newTotalAUM: newAUMValue,
+        newTotalAUM: String(newAUMValue),
         purpose: state.yieldPurpose,
       });
       setState((prev) => ({ ...prev, yieldPreview: result, previewLoading: false }));
@@ -340,7 +340,7 @@ export function useYieldOperationsState() {
         {
           fundId: state.selectedFund.id,
           targetDate: state.aumDate,
-          newTotalAUM: parseFloat(state.newAUM),
+          newTotalAUM: state.newAUM,
         },
         user.id,
         state.yieldPurpose

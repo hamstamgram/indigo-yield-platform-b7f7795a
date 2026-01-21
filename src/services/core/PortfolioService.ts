@@ -124,12 +124,12 @@ export class PortfolioService extends ApiClient {
       }
 
       const summary: PortfolioSummary = {
-        total_value: totalValue,
-        total_cost_basis: totalCostBasis,
-        total_unrealized_gain: totalUnrealizedGain,
+        total_value: String(totalValue),
+        total_cost_basis: String(totalCostBasis),
+        total_unrealized_gain: String(totalUnrealizedGain),
         total_unrealized_gain_percent:
-          totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
-        total_realized_gain: totalRealizedGain,
+          String(totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0),
+        total_realized_gain: String(totalRealizedGain),
         position_count: positions?.length || 0,
         last_updated: new Date().toISOString(),
       };
@@ -169,15 +169,16 @@ export class PortfolioService extends ApiClient {
         fund_class: pos.fund_class || pos.funds?.fund_class || "Standard",
         asset_code: pos.funds?.asset || "UNKNOWN",
         asset_name: pos.funds?.name || "Unknown",
-        shares_held: Number(pos.shares) || 0,
-        cost_basis: Number(pos.cost_basis) || 0,
-        current_value: Number(pos.current_value) || 0,
-        unrealized_gain: Number(pos.unrealized_pnl) || 0,
-        unrealized_gain_percent:
+        shares_held: String(pos.shares || 0),
+        cost_basis: String(pos.cost_basis || 0),
+        current_value: String(pos.current_value || 0),
+        unrealized_gain: String(pos.unrealized_pnl || 0),
+        unrealized_gain_percent: String(
           Number(pos.cost_basis) > 0
             ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
-            : 0,
-        percentage_of_portfolio: Number(pos.aum_percentage) || 0,
+            : 0
+        ),
+        percentage_of_portfolio: String(pos.aum_percentage || 0),
       }));
 
       return { data: positions, error: null };
@@ -227,24 +228,25 @@ export class PortfolioService extends ApiClient {
         fund_class: pos.fund_class || pos.funds?.fund_class || "Standard",
         asset_code: pos.funds?.asset || "UNKNOWN",
         asset_name: pos.funds?.name || "Unknown",
-        shares_held: Number(pos.shares) || 0,
-        cost_basis: Number(pos.cost_basis) || 0,
-        current_value: Number(pos.current_value) || 0,
-        unrealized_gain: Number(pos.unrealized_pnl) || 0,
-        unrealized_gain_percent:
+        shares_held: String(pos.shares || 0),
+        cost_basis: String(pos.cost_basis || 0),
+        current_value: String(pos.current_value || 0),
+        unrealized_gain: String(pos.unrealized_pnl || 0),
+        unrealized_gain_percent: String(
           Number(pos.cost_basis) > 0
             ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
-            : 0,
-        percentage_of_portfolio: Number(pos.aum_percentage) || 0,
+            : 0
+        ),
+        percentage_of_portfolio: String(pos.aum_percentage || 0),
       }));
 
       const summary: PortfolioSummary = {
-        total_value: totalValue,
-        total_cost_basis: totalCostBasis,
-        total_unrealized_gain: totalUnrealizedGain,
+        total_value: String(totalValue),
+        total_cost_basis: String(totalCostBasis),
+        total_unrealized_gain: String(totalUnrealizedGain),
         total_unrealized_gain_percent:
-          totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
-        total_realized_gain: totalRealizedGain,
+          String(totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0),
+        total_realized_gain: String(totalRealizedGain),
         position_count: positions.length,
         last_updated: new Date().toISOString(),
       };
