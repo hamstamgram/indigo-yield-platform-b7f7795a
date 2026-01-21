@@ -32,7 +32,7 @@ export { useInvestorInvite } from "./useInvestorInvite";
 // Ledger hooks
 export {
   useInvestorLedger,
-  type Transaction,
+  type LedgerTransaction,
 } from "./useInvestorLedger";
 
 // Overview hooks

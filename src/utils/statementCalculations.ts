@@ -2,8 +2,8 @@ import { profileService, fundService, transactionsV2Service } from "@/services";
 import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";
 
-// Re-export for backwards compatibility
-export type Transaction = StatementTransaction;
+// Re-export StatementTransaction as the canonical type for statement views
+export type { StatementTransaction } from "@/types/domains/transaction";
 
 export interface StatementData {
   investor_id: string;
@@ -38,7 +38,7 @@ export interface AssetStatement {
   interest: number;
   fees: number;
   end_balance: number;
-  transactions: Transaction[];
+  transactions: StatementTransaction[];
 }
 
 /**
@@ -150,7 +150,7 @@ export async function computeStatement(
         }
       } else {
         // Transaction is within this period
-        let type: Transaction["type"] = "deposit";
+        let type: StatementTransaction["type"] = "deposit";
         if (tx.type === "DEPOSIT") {
           assetStat.deposits += amount;
           type = "deposit";

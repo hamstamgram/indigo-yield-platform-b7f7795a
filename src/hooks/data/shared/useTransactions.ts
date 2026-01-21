@@ -12,10 +12,10 @@ import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { Database } from "@/integrations/supabase/types";
 
-import type { TransactionWithFund } from "@/types/domains/transaction";
+import { TransactionWithFund } from "@/types/domains/transaction";
 
-// Re-export for backwards compatibility
-export type Transaction = TransactionWithFund;
+// Re-export TransactionWithFund as the canonical type for transaction queries with fund data
+export type { TransactionWithFund } from "@/types/domains/transaction";
 
 export interface TransactionFilters {
   investorId?: string;
@@ -29,7 +29,7 @@ export interface TransactionFilters {
 /**
  * Fetch transactions with filters
  */
-async function fetchTransactions(filters: TransactionFilters): Promise<Transaction[]> {
+async function fetchTransactions(filters: TransactionFilters): Promise<TransactionWithFund[]> {
   let query = supabase
     .from("transactions_v2")
     .select(`
@@ -77,7 +77,7 @@ async function fetchTransactions(filters: TransactionFilters): Promise<Transacti
   
   return (data || []).map((tx: any) => ({
     ...tx,
-    fund: tx.funds as Transaction["fund"]
+    fund: tx.funds as TransactionWithFund["fund"]
   }));
 }
 
@@ -85,7 +85,7 @@ async function fetchTransactions(filters: TransactionFilters): Promise<Transacti
  * Hook to fetch transactions with optional filters
  */
 export function useTransactions(filters: TransactionFilters = {}) {
-  return useQuery<Transaction[], Error>({
+  return useQuery<TransactionWithFund[], Error>({
     queryKey: QUERY_KEYS.transactions(filters),
     queryFn: () => fetchTransactions(filters),
     enabled: !filters.investorId || !!filters.investorId, // Always enabled unless investorId is explicitly required
@@ -96,7 +96,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
  * Hook to fetch transactions for a specific investor
  */
 export function useInvestorTransactions(investorId: string, limit?: number) {
-  return useQuery<Transaction[], Error>({
+  return useQuery<TransactionWithFund[], Error>({
     queryKey: QUERY_KEYS.investorTransactions(investorId, limit),
     queryFn: () => fetchTransactions({ investorId, limit }),
     enabled: !!investorId,

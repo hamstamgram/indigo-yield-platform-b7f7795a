@@ -6,8 +6,8 @@ import { LedgerTransaction } from "@/types/domains/transaction";
 import type { Database } from "@/integrations/supabase/types";
 import { logError, logDebug } from "@/lib/logger";
 
-// Re-export for backwards compatibility
-export type Transaction = LedgerTransaction;
+// Re-export LedgerTransaction as the canonical type for ledger views
+export type { LedgerTransaction } from "@/types/domains/transaction";
 
 interface LedgerFilters {
   txType?: string;
@@ -26,7 +26,7 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
 
   const queryKey = ["investor-ledger", investorId, filters];
 
-  const query = useQuery<Transaction[], Error>({
+  const query = useQuery<LedgerTransaction[], Error>({
     queryKey,
     queryFn: async () => {
       // Build query with optional voided filter
@@ -89,7 +89,7 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
       return (data || []).map((tx) => ({
         ...tx,
         amount: String(tx.amount ?? "0"),
-      })) as Transaction[];
+      })) as LedgerTransaction[];
     },
     enabled: !!investorId,
     staleTime: 30000, // 30 seconds
