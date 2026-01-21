@@ -22,6 +22,12 @@ const DashboardLayout = () => {
   // Determine if path is admin route
   const isAdminRoute = currentPath.startsWith("/admin") || currentPath === "/admin-operations";
 
+  // Determine if path is investor route (for admin redirect)
+  const isInvestorRoute =
+    currentPath === "/investor" ||
+    currentPath.startsWith("/investor/") ||
+    currentPath === "/dashboard";
+
   // Get auth status from both context AND useUserRole hook for double verification
   const { user, loading: authLoading, isAdmin: authIsAdmin, profile } = useAuth();
   const { isAdmin: roleIsAdmin, isLoading: roleLoading } = useUserRole();
@@ -29,7 +35,7 @@ const DashboardLayout = () => {
   useEffect(() => {
     // Wait for both auth context AND role check to complete
     const isFullyLoaded = !authLoading && !roleLoading && profile !== null;
-    
+
     if (!isFullyLoaded) return;
 
     if (!user) {
@@ -46,16 +52,27 @@ const DashboardLayout = () => {
 
     // PRODUCTION FIX: Always evaluate redirect conditions (no ref guard)
     // This ensures admins on wrong page always get redirected
-    if (currentPath === "/dashboard" && verifiedIsAdmin) {
-      // Admin on investor dashboard -> redirect to admin
-      console.log("[DashboardLayout] Admin detected on /dashboard, redirecting to /admin");
+    if (isInvestorRoute && verifiedIsAdmin) {
+      // Admin on investor routes -> redirect to admin dashboard
+      console.log("[DashboardLayout] Admin detected on investor route, redirecting to /admin");
       navigate("/admin", { replace: true });
     } else if (isAdminRoute && !verifiedIsAdmin) {
-      // Non-admin trying to access admin routes -> redirect to dashboard
-      console.warn("[DashboardLayout] Non-admin accessing admin route, redirecting to /dashboard");
-      navigate("/dashboard", { replace: true });
+      // Non-admin trying to access admin routes -> redirect to investor portal
+      console.warn("[DashboardLayout] Non-admin accessing admin route, redirecting to /investor");
+      navigate("/investor", { replace: true });
     }
-  }, [user, authLoading, roleLoading, authIsAdmin, roleIsAdmin, profile, navigate, currentPath, isAdminRoute]);
+  }, [
+    user,
+    authLoading,
+    roleLoading,
+    authIsAdmin,
+    roleIsAdmin,
+    profile,
+    navigate,
+    currentPath,
+    isAdminRoute,
+    isInvestorRoute,
+  ]);
 
   // Set sidebar open state based on screen size
   useEffect(() => {

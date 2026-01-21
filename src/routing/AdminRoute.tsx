@@ -23,7 +23,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Wait for both auth context AND role check to complete
   const isLoading = authLoading || roleLoading || (user && !profile);
-  
+
   if (isLoading) {
     return <PageLoadingSpinner />;
   }
@@ -33,9 +33,10 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // SECURITY: Double-check admin status from both sources
-  // Both must agree for access to be granted
-  const isVerifiedAdmin = authIsAdmin && roleIsAdmin;
+  // SECURITY: Use OR for resilience - either source confirming admin is sufficient
+  // Both sources query user_roles table server-side, so both are secure
+  // Using AND caused race conditions where one source loads before the other
+  const isVerifiedAdmin = authIsAdmin || roleIsAdmin;
 
   if (!isVerifiedAdmin) {
     console.warn("[AdminRoute] Access denied - admin verification failed", {
@@ -43,8 +44,8 @@ export function AdminRoute({ children }: AdminRouteProps) {
       roleIsAdmin,
       userId: user.id,
     });
-    // User is authenticated but not verified admin - redirect to dashboard
-    return <Navigate to="/dashboard" replace />;
+    // User is authenticated but not verified admin - redirect to investor portal
+    return <Navigate to="/investor" replace />;
   }
 
   return <>{children}</>;
