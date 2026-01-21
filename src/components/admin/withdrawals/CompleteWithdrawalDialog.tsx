@@ -1,15 +1,25 @@
 import { useState, useEffect } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Textarea,
-  Alert, AlertDescription,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { withdrawalService } from "@/services";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatAssetAmount } from "@/utils/assets";
+import { NumericInput } from "@/components/common/NumericInput";
 
 interface CompleteWithdrawalDialogProps {
   open: boolean;
@@ -44,12 +54,12 @@ export function CompleteWithdrawalDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isConfirmed) {
       toast.error("Please type COMPLETE to confirm");
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -95,19 +105,24 @@ export function CompleteWithdrawalDialog({
               <div>
                 <Label className="text-sm font-medium">Amount to Deduct</Label>
                 <p className="text-sm font-medium text-foreground">
-                  {formatAssetAmount(withdrawal.processed_amount || withdrawal.requested_amount, withdrawal.fund_class || "UNITS")}
+                  {formatAssetAmount(
+                    withdrawal.processed_amount || withdrawal.requested_amount,
+                    withdrawal.fund_class || "UNITS"
+                  )}
                 </p>
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="closingAum">Closing AUM Snapshot (Before Withdrawal) *</Label>
-              <Input
+              <NumericInput
                 id="closingAum"
-                type="text"
+                asset={withdrawal.fund_class || ""}
                 value={closingAum}
-                onChange={(e) => setClosingAum(e.target.value)}
-                placeholder="e.g. 1000000.0000000000"
+                onChange={setClosingAum}
+                placeholder="Enter closing AUM"
+                min={0}
+                showFormatted
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Authoritative AUM snapshot used to crystallize yield before posting the withdrawal.
@@ -127,7 +142,7 @@ export function CompleteWithdrawalDialog({
                 Blockchain transaction hash for the withdrawal
               </p>
             </div>
-            
+
             <div>
               <Label htmlFor="adminNotes">Admin Notes (Optional)</Label>
               <Textarea
@@ -138,7 +153,7 @@ export function CompleteWithdrawalDialog({
                 rows={2}
               />
             </div>
-            
+
             {/* Warning and Typed Confirmation */}
             <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -154,7 +169,7 @@ export function CompleteWithdrawalDialog({
                 </p>
               </AlertDescription>
             </Alert>
-            
+
             <div>
               <Label htmlFor="confirmText">Type COMPLETE to confirm *</Label>
               <Input
@@ -177,8 +192,8 @@ export function CompleteWithdrawalDialog({
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitting || !isConfirmed}
               className="bg-green-600 hover:bg-green-700"
             >

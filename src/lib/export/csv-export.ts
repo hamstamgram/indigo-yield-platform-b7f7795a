@@ -4,6 +4,7 @@
  */
 
 import { format } from "date-fns";
+import { formatAUM, formatPercentage } from "@/utils/formatters";
 
 export interface ExportColumn {
   key: string;

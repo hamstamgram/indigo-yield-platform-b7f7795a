@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   Button,
-  Input,
   Label,
   Calendar,
   Popover,
@@ -19,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
+import { NumericInput } from "@/components/common/NumericInput";
 import { ArrowRight, CalendarIcon, AlertTriangle, Info, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -85,7 +85,7 @@ export function YieldInputForm({
   asOfAumLoading,
 }: YieldInputFormProps) {
   const validationResult = validateEffectiveDate();
-  
+
   // Determine displayed AUM: prefer as-of AUM, fallback to current positions
   const displayedAum = asOfAum ?? selectedFund?.total_aum ?? 0;
   const isUsingHistoricalAum = asOfAum !== null && asOfAum !== undefined;
@@ -146,10 +146,9 @@ export function YieldInputForm({
         <div className="grid grid-cols-2 gap-6 mb-4">
           <div className="space-y-2">
             <Label className="text-muted-foreground">
-              {isUsingHistoricalAum 
+              {isUsingHistoricalAum
                 ? `AUM as of ${reportingMonth ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy") : "selected month"}`
-                : "Current AUM"
-              }
+                : "Current AUM"}
             </Label>
             {asOfAumLoading ? (
               <div className="flex items-center gap-2 text-2xl">
@@ -170,14 +169,13 @@ export function YieldInputForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
-            <Input
+            <NumericInput
               id="new-aum"
-              type="number"
-              step="any"
+              asset={selectedFund?.asset}
               value={newAUM}
-              onChange={(e) => setNewAUM(e.target.value)}
+              onChange={setNewAUM}
               placeholder="Enter new total AUM"
-              className="font-mono"
+              showFormatted
             />
           </div>
         </div>

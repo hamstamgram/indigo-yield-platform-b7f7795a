@@ -6,12 +6,22 @@
 import { useState, useEffect } from "react";
 import { Loader2, Pencil, ArrowRight } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Textarea, Label, Badge,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Textarea,
+  Label,
+  Badge,
 } from "@/components/ui";
 import { format } from "date-fns";
 import type { YieldRecord } from "@/services";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { NumericInput } from "@/components/common/NumericInput";
+import { FormattedNumber, PercentageValue } from "@/components/common/FormattedNumber";
 
 interface EditYieldDialogProps {
   record: YieldRecord | null;
@@ -96,19 +106,23 @@ export function EditYieldDialog({
             <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
               <div className="bg-muted/50 rounded-lg p-3 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Current</p>
-                <p className="font-mono font-medium">
-                  {record.total_aum.toLocaleString(undefined, { maximumFractionDigits: 8 })}
+                <p className="font-medium">
+                  <FormattedNumber
+                    value={record.total_aum}
+                    asset={record.fund_asset || ""}
+                    type="aum"
+                  />
                 </p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
               <div>
-                <Input
-                  type="number"
-                  step="any"
+                <NumericInput
+                  asset={record.fund_asset || ""}
                   value={newAum}
-                  onChange={(e) => setNewAum(e.target.value)}
+                  onChange={setNewAum}
                   placeholder="New AUM"
-                  className="font-mono text-center"
+                  className="text-center"
+                  showFormatted
                 />
               </div>
             </div>
@@ -116,13 +130,20 @@ export function EditYieldDialog({
 
           {/* Delta Preview */}
           {hasChanged && isValidAum && (
-            <div className={`rounded-lg p-3 ${delta >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}>
+            <div
+              className={`rounded-lg p-3 ${delta >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}
+            >
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Change:</span>
-                <span className={`font-mono font-medium ${delta >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
-                  {delta >= 0 ? "+" : ""}{delta.toLocaleString(undefined, { maximumFractionDigits: 8 })}
-                  {" "}
-                  ({deltaPercent >= 0 ? "+" : ""}{deltaPercent.toFixed(2)}%)
+                <span className="font-medium">
+                  <FormattedNumber
+                    value={delta}
+                    asset={record.fund_asset || ""}
+                    type="aum"
+                    colorize
+                    showSign
+                  />{" "}
+                  (<PercentageValue value={deltaPercent} colorize showSign />)
                 </span>
               </div>
             </div>
@@ -142,9 +163,7 @@ export function EditYieldDialog({
               className="resize-none"
             />
             {reason.length > 0 && reason.length < 5 && (
-              <p className="text-xs text-destructive">
-                Reason must be at least 5 characters
-              </p>
+              <p className="text-xs text-destructive">Reason must be at least 5 characters</p>
             )}
           </div>
         </div>

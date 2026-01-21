@@ -31,6 +31,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterDeposit } from "@/utils/cacheInvalidation";
+import { NumericInput } from "@/components/common/NumericInput";
+import { FormattedNumber } from "@/components/common/FormattedNumber";
 
 interface CreateDepositDialogProps {
   open: boolean;
@@ -254,14 +256,13 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
 
             <div className="space-y-2">
               <Label htmlFor="amount">Amount *</Label>
-              <Input
+              <NumericInput
                 id="amount"
-                type="number"
-                step="0.00000001"
-                min="0"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
-                required
+                asset={formData.asset_symbol}
+                value={formData.amount || ""}
+                onChange={(val) => setFormData({ ...formData, amount: parseFloat(val) || 0 })}
+                min={0}
+                showFormatted
               />
             </div>
           </div>
@@ -313,19 +314,24 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                 Preflow AUM Snapshot ({selectedFund?.asset?.toUpperCase()}) *
                 {liveNavData?.aum !== undefined && liveNavData.aum !== null && (
                   <span className="text-xs text-blue-600 font-medium">
-                    (Live: {Number(liveNavData.aum).toLocaleString()})
+                    (Live:{" "}
+                    <FormattedNumber
+                      value={liveNavData.aum}
+                      asset={selectedFund?.asset || ""}
+                      type="aum"
+                    />
+                    )
                   </span>
                 )}
               </Label>
-              <Input
+              <NumericInput
                 id="aum_value"
-                type="number"
-                step="0.00000001"
-                min="0"
+                asset={selectedFund?.asset || ""}
                 value={aumValue}
-                onChange={(e) => setAumValue(e.target.value)}
+                onChange={setAumValue}
                 placeholder="Enter preflow AUM"
-                required
+                min={0}
+                showFormatted
               />
               <p className="text-xs text-muted-foreground">
                 Fund AUM immediately before this deposit. Pre-filled with current positions total.

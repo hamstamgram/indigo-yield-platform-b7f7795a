@@ -23,6 +23,7 @@ import {
 import { format } from "date-fns";
 import type { YieldRecord } from "@/services";
 import { getYieldVoidImpact } from "@/services/admin/yieldManagementService";
+import { FormattedNumber } from "@/components/common/FormattedNumber";
 
 interface VoidYieldDialogProps {
   record: YieldRecord | null;
@@ -122,7 +123,13 @@ export function VoidYieldDialog({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">AUM:</span>
-                <span className="font-mono font-medium">{record.total_aum.toLocaleString()}</span>
+                <span className="font-medium">
+                  <FormattedNumber
+                    value={record.total_aum}
+                    asset={record.fund_asset || ""}
+                    type="aum"
+                  />
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Purpose:</span>
@@ -176,9 +183,11 @@ export function VoidYieldDialog({
                     {impact.affected_investors.slice(0, 5).map((inv) => (
                       <div key={inv.investor_id} className="text-xs flex justify-between">
                         <span>{inv.investor_name}</span>
-                        <span className="font-mono text-destructive">
-                          -{(inv.yield_amount - inv.fee_amount).toFixed(4)}
-                        </span>
+                        <FormattedNumber
+                          value={-(inv.yield_amount - inv.fee_amount)}
+                          type="number"
+                          className="text-destructive"
+                        />
                       </div>
                     ))}
                     {impact.affected_investors.length > 5 && (

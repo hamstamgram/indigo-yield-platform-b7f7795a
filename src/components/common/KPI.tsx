@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { LucideIcon } from "lucide-react";
+import { formatAUM, formatPercentage } from "@/utils/formatters";
+import { getAssetPrecision } from "@/types/asset";
 
 interface KPIProps {
   title: string;
@@ -36,21 +38,16 @@ export default function KPI({
     switch (format) {
       case "currency":
         // DEPRECATED: Use "token" format with asset prop instead
-        // Keeping for backward compatibility but prefer token format
+        // Falls through to default formatting with 2 decimals for backward compatibility
         return new Intl.NumberFormat("en-US", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         }).format(numVal);
       case "token":
-        // Native token formatting - the correct approach for this platform
-        const decimals = asset === "BTC" ? 8 : asset === "ETH" ? 6 : 2;
-        const formatted = new Intl.NumberFormat("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: decimals,
-        }).format(numVal);
-        return asset ? `${formatted} ${asset}` : formatted;
+        // Native token formatting using centralized formatters
+        return formatAUM(numVal, asset || "USD", { showSymbol: !!asset });
       case "percentage":
-        return `${numVal.toFixed(2)}%`;
+        return formatPercentage(numVal);
       default:
         return new Intl.NumberFormat("en-US").format(numVal);
     }

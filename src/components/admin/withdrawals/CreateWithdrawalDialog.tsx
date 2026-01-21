@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
+import { NumericInput } from "@/components/common/NumericInput";
 import {
   useInvestorOptions,
   usePositionsForWithdrawal,
@@ -351,14 +352,15 @@ export function CreateWithdrawalDialog({
             <Label htmlFor="amount">
               Amount ({selectedPosition?.fund.asset || "Select fund"}) *
             </Label>
-            <Input
+            <NumericInput
               id="amount"
-              type="number"
-              step="0.00000001"
-              placeholder="0.00"
-              {...register("amount")}
-              className={errors.amount ? "border-destructive" : ""}
+              asset={selectedPosition?.fund.asset || ""}
+              value={watch("amount") || ""}
+              onChange={(val) => setValue("amount", val, { shouldValidate: true })}
+              placeholder="Enter amount"
               disabled={!selectedFundId}
+              showFormatted
+              className={errors.amount ? "border-destructive" : ""}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
           </div>

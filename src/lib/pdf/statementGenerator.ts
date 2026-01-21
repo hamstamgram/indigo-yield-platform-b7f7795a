@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
+import { formatAUM, formatPercentage } from "@/utils/formatters";
 
 // Fund icons and branding URLs (same as shared template)
 const FUND_ICONS: Record<string, string> = {
@@ -14,8 +15,10 @@ const FUND_ICONS: Record<string, string> = {
   XAUT: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
 };
 
-const COMPANY_LOGO = "https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png";
-const FOOTER_LOGO = "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
+const COMPANY_LOGO =
+  "https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png";
+const FOOTER_LOGO =
+  "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
 
 export interface FundPerformanceData {
   fund_name: string;
@@ -107,16 +110,16 @@ const loadImage = (url: string): Promise<string> => {
 const formatValue = (val: number | null | undefined, decimals = 4): string => {
   if (val === null || val === undefined || isNaN(val)) return "-";
   if (val === 0) return "0.0000";
-  return val.toLocaleString("en-US", {
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  });
+  }).format(val);
 };
 
 const formatPercent = (val: number | null | undefined): string => {
   if (val === null || val === undefined || isNaN(val)) return "-";
-  const prefix = val >= 0 ? "+" : "";
-  return `${prefix}${val.toFixed(2)}%`;
+  // Use centralized formatter with sign prefix
+  return formatPercentage(val, 2, true);
 };
 
 const getAssetFromFundName = (fundName: string): string => {
@@ -137,7 +140,7 @@ const getFundDisplayName = (fundName: string): string => {
 
 export const generatePDF = async (data: LegacyStatementData | StatementData): Promise<Blob> => {
   // Check if this is the new format with funds array
-  if ('funds' in data && Array.isArray(data.funds)) {
+  if ("funds" in data && Array.isArray(data.funds)) {
     return generateModernPDF(data as StatementData);
   }
   // Fall back to legacy format
@@ -161,7 +164,7 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
   // --- Header with Logo ---
   doc.setFillColor(...headerBg);
   doc.rect(margin, yPos, pageWidth - 2 * margin, 20, "F");
-  
+
   try {
     const logoData = await loadImage(COMPANY_LOGO);
     if (logoData) {
@@ -283,7 +286,12 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
         itd: formatValue(fund.itd_net_income),
         isHighlight: true,
         colorValues: true,
-        values: [fund.mtd_net_income, fund.qtd_net_income, fund.ytd_net_income, fund.itd_net_income],
+        values: [
+          fund.mtd_net_income,
+          fund.qtd_net_income,
+          fund.ytd_net_income,
+          fund.itd_net_income,
+        ],
       },
       {
         label: "Ending Balance",
@@ -301,7 +309,12 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
         itd: formatPercent(fund.itd_rate_of_return),
         isHighlight: true,
         colorValues: true,
-        values: [fund.mtd_rate_of_return, fund.qtd_rate_of_return, fund.ytd_rate_of_return, fund.itd_rate_of_return],
+        values: [
+          fund.mtd_rate_of_return,
+          fund.qtd_rate_of_return,
+          fund.ytd_rate_of_return,
+          fund.itd_rate_of_return,
+        ],
       },
     ];
 
@@ -335,7 +348,9 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
         } else {
           doc.setTextColor(...textDark);
         }
-        doc.text(valueStrings[i], colStarts[i + 1] + colWidths[i + 1] - 2, rowY, { align: "right" });
+        doc.text(valueStrings[i], colStarts[i + 1] + colWidths[i + 1] - 2, rowY, {
+          align: "right",
+        });
       }
 
       // Draw line before "Ending Balance"
@@ -382,7 +397,9 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, pageHeight - 10);
 
     // Copyright
-    doc.text("© 2025 Indigo Fund. All rights reserved.", pageWidth / 2, pageHeight - 10, { align: "center" });
+    doc.text("© 2025 Indigo Fund. All rights reserved.", pageWidth / 2, pageHeight - 10, {
+      align: "center",
+    });
   }
 
   return doc.output("blob");
