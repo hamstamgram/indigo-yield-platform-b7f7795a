@@ -27,14 +27,12 @@ function FeesOverviewContent() {
 
   const [selectedFund, setSelectedFund] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("overview");
-  
-  // Date filtering
-  const [dateFrom, setDateFrom] = useState<string>(() => 
-    format(startOfMonth(subMonths(new Date(), 3)), "yyyy-MM-dd")
+
+  // Date filtering - default to 24 months to capture historical data
+  const [dateFrom, setDateFrom] = useState<string>(() =>
+    format(startOfMonth(subMonths(new Date(), 24)), "yyyy-MM-dd")
   );
-  const [dateTo, setDateTo] = useState<string>(() => 
-    format(endOfMonth(new Date()), "yyyy-MM-dd")
-  );
+  const [dateTo, setDateTo] = useState<string>(() => format(endOfMonth(new Date()), "yyyy-MM-dd"));
 
   // Extract data with defaults
   const fees = data?.fees || [];

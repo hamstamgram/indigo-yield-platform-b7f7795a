@@ -5,12 +5,18 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Tabs, TabsList, TabsTrigger,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Tabs,
+  TabsList,
+  TabsTrigger,
   PageLoadingSpinner,
 } from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
 import { BarChart3, Users, Coins, TrendingUp } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   useIBCommissionSummary,
   useIBTopReferrals,
@@ -22,14 +28,14 @@ import type { CommissionSummary } from "@/services/ib/ibService";
 // Helper to format commission totals for display
 const formatCommissionTotals = (summary: CommissionSummary[]): string => {
   if (!summary || summary.length === 0) return "No commissions";
-  return summary.map(s => formatAssetAmount(s.totalAmount, s.asset)).join(", ");
+  return summary.map((s) => formatAssetAmount(s.totalAmount, s.asset)).join(", ");
 };
 
 const formatPendingTotals = (summary: CommissionSummary[]): string => {
   if (!summary || summary.length === 0) return "No pending";
-  const pending = summary.filter(s => s.pendingAmount > 0);
+  const pending = summary.filter((s) => s.pendingAmount > 0);
   if (pending.length === 0) return "All paid";
-  return pending.map(s => formatAssetAmount(s.pendingAmount, s.asset)).join(", ");
+  return pending.map((s) => formatAssetAmount(s.pendingAmount, s.asset)).join(", ");
 };
 
 export default function IBOverviewPage() {
@@ -113,15 +119,22 @@ export default function IBOverviewPage() {
           {commissionSummary && commissionSummary.length > 0 ? (
             <div className="space-y-4">
               {commissionSummary.map((summary) => (
-                <div key={summary.asset} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{summary.asset}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Pending: {formatAssetAmount(summary.pendingAmount, summary.asset)}
-                    </p>
+                <div
+                  key={summary.asset}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <CryptoIcon symbol={summary.asset} className="h-8 w-8" />
+                    <div>
+                      <p className="font-medium">{summary.asset}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Pending: {formatAssetAmount(summary.pendingAmount, summary.asset)}
+                      </p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold">
+                    <p className="text-lg font-bold flex items-center justify-end gap-2">
+                      <CryptoIcon symbol={summary.asset} className="h-5 w-5" />
                       {formatAssetAmount(summary.totalAmount, summary.asset)}
                     </p>
                     <p className="text-sm text-green-600">
@@ -151,14 +164,21 @@ export default function IBOverviewPage() {
           {topReferrals && topReferrals.length > 0 ? (
             <div className="space-y-2">
               {topReferrals.map((referral, index) => (
-                <div key={referral.investorId} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={referral.investorId}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <span className="text-muted-foreground font-medium">#{index + 1}</span>
                     <span className="font-medium">{referral.investorName}</span>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-end">
                     {Object.entries(referral.totalCommissions).map(([asset, amount]) => (
-                      <span key={asset} className="text-sm font-medium bg-muted px-2 py-1 rounded">
+                      <span
+                        key={asset}
+                        className="text-sm font-medium bg-muted px-2 py-1 rounded flex items-center gap-1.5"
+                      >
+                        <CryptoIcon symbol={asset} className="h-4 w-4" />
                         {formatAssetAmount(amount, asset)}
                       </span>
                     ))}

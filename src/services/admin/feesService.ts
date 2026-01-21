@@ -118,7 +118,8 @@ export async function getActiveFunds(): Promise<FundRef[]> {
 export async function getFeeTransactions(): Promise<FeeRecord[]> {
   const { data: feeTxData, error: feeTxError } = await supabase
     .from("transactions_v2")
-    .select(`
+    .select(
+      `
       id,
       investor_id,
       fund_id,
@@ -130,7 +131,8 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       visibility_scope,
       created_at,
       is_voided
-    `)
+    `
+    )
     .in("type", ["FEE", "FEE_CREDIT", "IB_CREDIT", "INTERNAL_WITHDRAWAL", "INTERNAL_CREDIT"])
     .eq("is_voided", false)
     .order("created_at", { ascending: false })
@@ -143,22 +145,16 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
   }
 
   // Enrich with investor and fund details
-  const investorIds = [...new Set(feeTxData.map(t => t.investor_id))];
-  const fundIds = [...new Set(feeTxData.map(t => t.fund_id))];
+  const investorIds = [...new Set(feeTxData.map((t) => t.investor_id))];
+  const fundIds = [...new Set(feeTxData.map((t) => t.fund_id))];
 
   const [investorResult, fundResult] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, email, first_name, last_name")
-      .in("id", investorIds),
-    supabase
-      .from("funds")
-      .select("id, name, asset")
-      .in("id", fundIds),
+    supabase.from("profiles").select("id, email, first_name, last_name").in("id", investorIds),
+    supabase.from("funds").select("id, name, asset").in("id", fundIds),
   ]);
 
-  const investorMap = new Map((investorResult.data || []).map(p => [p.id, p]));
-  const fundMap = new Map((fundResult.data || []).map(f => [f.id, f]));
+  const investorMap = new Map((investorResult.data || []).map((p) => [p.id, p]));
+  const fundMap = new Map((fundResult.data || []).map((f) => [f.id, f]));
 
   return feeTxData.map((tx) => {
     const investor = investorMap.get(tx.investor_id);
@@ -218,7 +214,7 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
   }
 
   // Get fund assets separately to avoid FK ambiguity
-  const fundIds = indigoPositions.map(p => p.fund_id);
+  const fundIds = indigoPositions.map((p) => p.fund_id);
   const { data: fundsData, error: fundsError } = await supabase
     .from("funds")
     .select("id, asset")
@@ -226,7 +222,7 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
 
   if (fundsError) throw fundsError;
 
-  const fundAssetMap = new Map((fundsData || []).map(f => [f.id, f.asset]));
+  const fundAssetMap = new Map((fundsData || []).map((f) => [f.id, f.asset]));
 
   const balances: Record<string, number> = {};
   indigoPositions.forEach((p) => {
@@ -239,62 +235,79 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
 }
 
 /**
- * Load fee allocations (audit trail) with investor and fund enrichment
+ * Load fee allocations (audit trail) from platform_fee_ledger
+ * This table contains the actual fee records created during yield distributions
  */
 export async function getFeeAllocations(): Promise<FeeAllocation[]> {
-  const { data: allocationsData, error } = await supabase
-    .from("fee_allocations")
-    .select(`
+  // Query platform_fee_ledger which has the actual fee records
+  const { data: ledgerData, error } = await supabase
+    .from("platform_fee_ledger")
+    .select(
+      `
       id,
-      distribution_id,
+      yield_distribution_id,
       fund_id,
       investor_id,
-      period_start,
-      period_end,
-      purpose,
-      base_net_income,
+      investor_name,
+      gross_yield_amount,
       fee_percentage,
       fee_amount,
-      created_at
-    `)
+      effective_date,
+      asset,
+      created_at,
+      is_voided
+    `
+    )
+    .eq("is_voided", false)
     .order("created_at", { ascending: false })
-    .limit(200);
+    .limit(500);
 
   if (error) throw error;
 
-  if (!allocationsData || allocationsData.length === 0) {
+  if (!ledgerData || ledgerData.length === 0) {
     return [];
   }
 
-  // Enrich with investor and fund names
-  const investorIds = [...new Set(allocationsData.map(a => a.investor_id))];
-  const fundIds = [...new Set(allocationsData.map(a => a.fund_id))];
+  // Enrich with investor emails and fund names
+  const investorIds = [...new Set(ledgerData.map((a) => a.investor_id))];
+  const fundIds = [...new Set(ledgerData.map((a) => a.fund_id))];
 
-  const [profileResult, fundResult] = await Promise.all([
+  const [profileResult, fundResult, distributionResult] = await Promise.all([
+    supabase.from("profiles").select("id, email, first_name, last_name").in("id", investorIds),
+    supabase.from("funds").select("id, name, asset").in("id", fundIds),
     supabase
-      .from("profiles")
-      .select("id, email, first_name, last_name")
-      .in("id", investorIds),
-    supabase
-      .from("funds")
-      .select("id, name, asset")
-      .in("id", fundIds),
+      .from("yield_distributions")
+      .select("id, period_start, period_end, purpose")
+      .in("id", ledgerData.map((l) => l.yield_distribution_id).filter(Boolean)),
   ]);
 
-  const profileMap = new Map((profileResult.data || []).map(p => [p.id, p]));
-  const fundMap = new Map((fundResult.data || []).map(f => [f.id, f]));
+  const profileMap = new Map((profileResult.data || []).map((p) => [p.id, p]));
+  const fundMap = new Map((fundResult.data || []).map((f) => [f.id, f]));
+  const distributionMap = new Map((distributionResult.data || []).map((d) => [d.id, d]));
 
-  return allocationsData.map(a => {
+  return ledgerData.map((a) => {
     const profile = profileMap.get(a.investor_id);
     const fund = fundMap.get(a.fund_id);
+    const distribution = distributionMap.get(a.yield_distribution_id);
     return {
-      ...a,
-      investor_name: profile 
-        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email 
-        : "Unknown",
+      id: a.id,
+      distribution_id: a.yield_distribution_id || "",
+      fund_id: a.fund_id,
+      investor_id: a.investor_id,
+      period_start: distribution?.period_start || a.effective_date,
+      period_end: distribution?.period_end || a.effective_date,
+      purpose: distribution?.purpose || "reporting",
+      base_net_income: Number(a.gross_yield_amount || 0),
+      fee_percentage: Number(a.fee_percentage || 0),
+      fee_amount: Number(a.fee_amount || 0),
+      created_at: a.created_at,
+      investor_name:
+        a.investor_name || profile
+          ? `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email
+          : "Unknown",
       investor_email: profile?.email || "",
       fund_name: fund?.name || "Unknown",
-      fund_asset: fund?.asset || "",
+      fund_asset: a.asset || fund?.asset || "",
     };
   });
 }
@@ -329,14 +342,14 @@ export async function getRoutingAuditEntries(): Promise<{
   }
 
   // Enrich with actor profiles
-  const actorIds = [...new Set(routingAuditData.map(r => r.actor_user).filter(Boolean))];
-  
+  const actorIds = [...new Set(routingAuditData.map((r) => r.actor_user).filter(Boolean))];
+
   const { data: actorProfiles } = await supabase
     .from("profiles")
     .select("id, email, first_name, last_name")
     .in("id", actorIds);
 
-  const actorMap = new Map((actorProfiles || []).map(p => [p.id, p]));
+  const actorMap = new Map((actorProfiles || []).map((p) => [p.id, p]));
 
   const enrichedEntries: RoutingAuditEntry[] = routingAuditData.map((entry: any) => ({
     id: entry.id,
@@ -377,13 +390,14 @@ export async function getRoutingAuditEntries(): Promise<{
 
 /**
  * Load yield earned by INDIGO FEES account
+ * Note: Yield transactions can be type YIELD or INTEREST
  */
 export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
   const { data: yieldTxs, error } = await supabase
     .from("transactions_v2")
     .select("fund_id, amount, type")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-    .eq("type", "INTEREST")
+    .in("type", ["YIELD", "INTEREST"])
     .eq("is_voided", false);
 
   if (error) throw error;
@@ -393,7 +407,7 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
   }
 
   const yieldByFund = new Map<string, { total: number; count: number }>();
-  yieldTxs.forEach(tx => {
+  yieldTxs.forEach((tx) => {
     const existing = yieldByFund.get(tx.fund_id) || { total: 0, count: 0 };
     existing.total += Number(tx.amount || 0);
     existing.count += 1;
@@ -402,7 +416,7 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
 
   const yieldData: YieldEarned[] = [];
   yieldByFund.forEach((data, fundId) => {
-    const fund = funds.find(f => f.id === fundId);
+    const fund = funds.find((f) => f.id === fundId);
     if (fund) {
       yieldData.push({
         fundId,
@@ -425,13 +439,7 @@ export async function getFeesOverviewData(): Promise<FeesOverviewData> {
   const funds = await getActiveFunds();
 
   // Load remaining data in parallel
-  const [
-    fees,
-    indigoFeesBalance,
-    feeAllocations,
-    routingData,
-    yieldEarned,
-  ] = await Promise.all([
+  const [fees, indigoFeesBalance, feeAllocations, routingData, yieldEarned] = await Promise.all([
     getFeeTransactions(),
     getIndigoFeesBalance(),
     getFeeAllocations(),
