@@ -35,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { type YieldCalculationResult, type YieldDistribution } from "@/services";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
+import { toNum } from "@/utils/numeric";
 
 interface YieldPreviewResultsProps {
   yieldPreview: YieldCalculationResult;
@@ -106,12 +107,12 @@ export function YieldPreviewResults({
       )}
 
       {/* Loss Carryforward Summary */}
-      {yieldPreview.totalLossOffset !== undefined && yieldPreview.totalLossOffset > 0 && (
+      {yieldPreview.totalLossOffset !== undefined && toNum(yieldPreview.totalLossOffset) > 0 && (
         <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
           <TrendingDown className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <div>
             <strong>Loss carryforward applied.</strong>{" "}
-            {formatValue(yieldPreview.totalLossOffset, asset)} {asset} of prior losses offset
+            {formatValue(toNum(yieldPreview.totalLossOffset), asset)} {asset} of prior losses offset
             against this period&apos;s gains, reducing fees.
           </div>
         </div>
@@ -131,12 +132,12 @@ export function YieldPreviewResults({
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {/* Total ADB (for ADB method) */}
-        {yieldPreview.totalAdb !== undefined && yieldPreview.totalAdb > 0 && (
+        {yieldPreview.totalAdb !== undefined && toNum(yieldPreview.totalAdb) > 0 && (
           <Card className="border-slate-200 bg-slate-50 dark:bg-slate-950/20">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Total ADB</p>
               <p className="text-lg font-mono font-semibold">
-                {formatValue(yieldPreview.totalAdb, asset)}
+                {formatValue(toNum(yieldPreview.totalAdb), asset)}
               </p>
               <p className="text-xs text-muted-foreground">Time-weighted capital</p>
             </CardContent>
@@ -148,15 +149,15 @@ export function YieldPreviewResults({
             <p
               className={cn(
                 "text-lg font-mono font-bold",
-                yieldPreview.grossYield >= 0 ? "text-green-600" : "text-red-600"
+                toNum(yieldPreview.grossYield) >= 0 ? "text-green-600" : "text-red-600"
               )}
             >
-              {yieldPreview.grossYield >= 0 ? "+" : ""}
-              {formatValue(yieldPreview.grossYield, asset)}
+              {toNum(yieldPreview.grossYield) >= 0 ? "+" : ""}
+              {formatValue(toNum(yieldPreview.grossYield), asset)}
             </p>
             {yieldPreview.yieldRatePct !== undefined && (
               <p className="text-xs text-muted-foreground">
-                {yieldPreview.yieldRatePct.toFixed(4)}%
+                {toNum(yieldPreview.yieldRatePct).toFixed(4)}%
               </p>
             )}
           </CardContent>
@@ -165,7 +166,7 @@ export function YieldPreviewResults({
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">Total Fees</p>
             <p className="text-lg font-mono font-semibold">
-              {formatValue(yieldPreview.totalFees, asset)}
+              {formatValue(toNum(yieldPreview.totalFees), asset)}
             </p>
           </CardContent>
         </Card>
@@ -173,7 +174,7 @@ export function YieldPreviewResults({
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">IB Fees</p>
             <p className="text-lg font-mono font-semibold text-purple-600">
-              {formatValue(yieldPreview.totalIbFees || 0, asset)}
+              {formatValue(toNum(yieldPreview.totalIbFees ?? 0), asset)}
             </p>
           </CardContent>
         </Card>
@@ -183,18 +184,18 @@ export function YieldPreviewResults({
             <p
               className={cn(
                 "text-lg font-mono font-bold",
-                yieldPreview.netYield >= 0 ? "text-primary" : "text-red-600"
+                toNum(yieldPreview.netYield) >= 0 ? "text-primary" : "text-red-600"
               )}
             >
-              {yieldPreview.netYield >= 0 ? "+" : ""}
-              {formatValue(yieldPreview.netYield, asset)}
+              {toNum(yieldPreview.netYield) >= 0 ? "+" : ""}
+              {formatValue(toNum(yieldPreview.netYield), asset)}
             </p>
           </CardContent>
         </Card>
       </div>
 
       {/* INDIGO FEES Credit Card */}
-      {yieldPreview.indigoFeesCredit > 0 && (
+      {toNum(yieldPreview.indigoFeesCredit) > 0 && (
         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
@@ -203,7 +204,7 @@ export function YieldPreviewResults({
                 <span className="text-sm font-medium">INDIGO FEES Credit</span>
               </div>
               <span className="font-mono font-bold text-blue-600">
-                +{formatValue(yieldPreview.indigoFeesCredit, asset)} {asset}
+                +{formatValue(toNum(yieldPreview.indigoFeesCredit), asset)} {asset}
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -235,7 +236,7 @@ export function YieldPreviewResults({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-purple-600">
-                      +{formatValue(ib.amount, asset)}
+                      +{formatValue(toNum(ib.amount), asset)}
                     </span>
                     {ib.wouldSkip && (
                       <Tooltip>
@@ -319,7 +320,7 @@ export function YieldPreviewResults({
                 className={cn(
                   inv.wouldSkip && "opacity-50",
                   checkSystemAccount(inv) && "bg-blue-50/50 dark:bg-blue-950/20",
-                  (inv.carriedLoss || 0) > 0 && "bg-amber-50/30 dark:bg-amber-950/10"
+                  toNum(inv.carriedLoss ?? 0) > 0 && "bg-amber-50/30 dark:bg-amber-950/10"
                 )}
               >
                 <TableCell>
@@ -347,42 +348,42 @@ export function YieldPreviewResults({
                 {yieldPreview.calculationMethod === "adb_v3" && (
                   <>
                     <TableCell className="text-right font-mono text-xs">
-                      {formatValue(inv.adb || inv.currentBalance, asset)}
+                      {formatValue(toNum(inv.adb ?? inv.currentBalance), asset)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs text-blue-600">
-                      {((inv.adbWeight || inv.allocationPercentage / 100) * 100).toFixed(2)}%
+                      {((toNum(inv.adbWeight ?? 0) || toNum(inv.allocationPercentage) / 100) * 100).toFixed(2)}%
                     </TableCell>
                   </>
                 )}
                 {yieldPreview.calculationMethod !== "adb_v3" && (
                   <TableCell className="text-right font-mono text-xs">
-                    {formatValue(inv.currentBalance, asset)}
+                    {formatValue(toNum(inv.currentBalance), asset)}
                   </TableCell>
                 )}
                 <TableCell
                   className={cn(
                     "text-right font-mono text-xs",
-                    inv.grossYield >= 0 ? "text-green-600" : "text-red-600"
+                    toNum(inv.grossYield) >= 0 ? "text-green-600" : "text-red-600"
                   )}
                 >
-                  {inv.grossYield >= 0 ? "+" : ""}
-                  {formatValue(inv.grossYield, asset)}
+                  {toNum(inv.grossYield) >= 0 ? "+" : ""}
+                  {formatValue(toNum(inv.grossYield), asset)}
                 </TableCell>
                 {/* Loss offset column for ADB */}
                 {yieldPreview.calculationMethod === "adb_v3" && (
                   <TableCell className="text-right font-mono text-xs">
-                    {(inv.lossOffset || 0) > 0 ? (
+                    {toNum(inv.lossOffset ?? 0) > 0 ? (
                       <Tooltip>
                         <TooltipTrigger>
                           <span className="text-amber-600">
-                            -{formatValue(inv.lossOffset || 0, asset)}
+                            -{formatValue(toNum(inv.lossOffset ?? 0), asset)}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
                           <div className="text-xs">
-                            <p>Carried loss: {formatValue(inv.carriedLoss || 0, asset)}</p>
-                            <p>Offset applied: {formatValue(inv.lossOffset || 0, asset)}</p>
-                            <p>Taxable: {formatValue(inv.taxableGain || 0, asset)}</p>
+                            <p>Carried loss: {formatValue(toNum(inv.carriedLoss ?? 0), asset)}</p>
+                            <p>Offset applied: {formatValue(toNum(inv.lossOffset ?? 0), asset)}</p>
+                            <p>Taxable: {formatValue(toNum(inv.taxableGain ?? 0), asset)}</p>
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -393,19 +394,19 @@ export function YieldPreviewResults({
                 )}
                 <TableCell className="text-right font-mono text-xs">{inv.feePercentage}%</TableCell>
                 <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                  {inv.feeAmount > 0 ? `-${formatValue(inv.feeAmount, asset)}` : "—"}
+                  {toNum(inv.feeAmount) > 0 ? `-${formatValue(toNum(inv.feeAmount), asset)}` : "—"}
                 </TableCell>
                 <TableCell
                   className={cn(
                     "text-right font-mono text-xs font-semibold",
-                    inv.netYield >= 0 ? "" : "text-red-600"
+                    toNum(inv.netYield) >= 0 ? "" : "text-red-600"
                   )}
                 >
-                  {inv.netYield >= 0 ? "+" : ""}
-                  {formatValue(inv.netYield, asset)}
+                  {toNum(inv.netYield) >= 0 ? "+" : ""}
+                  {formatValue(toNum(inv.netYield), asset)}
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs text-purple-600">
-                  {inv.ibAmount > 0 ? `-${formatValue(inv.ibAmount, asset)}` : "—"}
+                  {toNum(inv.ibAmount) > 0 ? `-${formatValue(toNum(inv.ibAmount), asset)}` : "—"}
                 </TableCell>
               </TableRow>
             ))}

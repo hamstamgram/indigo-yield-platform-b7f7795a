@@ -169,15 +169,17 @@ export interface FundDailyAUM {
   fund_id: string;
   aum_date: string;
   as_of_date?: string;
-  /** Total AUM - string for NUMERIC(28,10) precision */
-  total_aum: string;
-  /** NAV per share - string for NUMERIC precision */
-  nav_per_share?: string | null;
-  /** Total shares - string for NUMERIC precision */
-  total_shares?: string | null;
+  /** Total AUM - may come as number from DB */
+  total_aum: string | number;
+  /** NAV per share - may come as number from DB */
+  nav_per_share?: string | number | null;
+  /** Total shares - may come as number from DB */
+  total_shares?: string | number | null;
   source?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  is_voided?: boolean;
+  purpose?: "reporting" | "transaction";
 }
 
 /**

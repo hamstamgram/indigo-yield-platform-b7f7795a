@@ -50,10 +50,10 @@ export interface PendingApproval {
   requester_email: string;
   reason: string;
   metadata?: Record<string, unknown>;
-  /** @precision NUMERIC(28,10) - use string for precision */
-  actual_value?: string;
-  /** @precision NUMERIC(28,10) - use string for precision */
-  threshold_value?: string;
+  /** @precision NUMERIC(28,10) - may come as number from DB */
+  actual_value?: string | number | null;
+  /** @precision NUMERIC(28,10) - may come as number from DB */
+  threshold_value?: string | number | null;
   requested_at: string;
   expires_at?: string;
   expiry_status: ApprovalExpiryStatus;
@@ -72,8 +72,8 @@ export interface ApprovalHistoryItem {
   approver_name: string;
   reason: string;
   rejection_reason?: string;
-  /** @precision NUMERIC(28,10) - use string for precision */
-  actual_value?: string;
+  /** @precision NUMERIC(28,10) - may come as number from DB */
+  actual_value?: string | number | null;
   requested_at: string;
   resolved_at?: string;
   approval_signature?: string;

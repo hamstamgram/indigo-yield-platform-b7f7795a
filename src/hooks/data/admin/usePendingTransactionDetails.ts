@@ -11,7 +11,7 @@ export interface PendingTransactionDetail {
   id: string;
   type: "DEPOSIT" | "WITHDRAWAL";
   status: string;
-  amount: number;
+  amount: string | number;
   asset: string;
   created_at?: string;
   transaction_hash?: string;
