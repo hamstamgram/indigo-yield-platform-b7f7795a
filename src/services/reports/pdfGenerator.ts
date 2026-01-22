@@ -284,7 +284,7 @@ export class PDFReportGenerator {
     }
 
     // Create summary table
-    (this.doc as any).autoTable({
+    this.doc.autoTable({
       startY: this.currentY,
       head: [],
       body: summaryData,
@@ -326,7 +326,7 @@ export class PDFReportGenerator {
         performanceData.push(["Inception-to-Date", this.formatPercentage(toNum(summary.itdReturn))]);
       }
 
-      (this.doc as any).autoTable({
+      this.doc.autoTable({
         startY: this.currentY,
         head: [],
         body: performanceData,
@@ -381,7 +381,7 @@ export class PDFReportGenerator {
       this.formatPercentage(toNum(h.unrealizedGainPercentage)),
     ]);
 
-    (this.doc as any).autoTable({
+    this.doc.autoTable({
       startY: this.currentY,
       head: [
         ["", "Asset", "Quantity", "Price", "Value", "Allocation", "Unrealized Gain", "Gain %"],
@@ -411,11 +411,11 @@ export class PDFReportGenerator {
         7: { halign: "right", cellWidth: 60 },
       },
       margin: { left: this.margin, right: this.margin },
-      didDrawCell: (data: any) => {
-        if (data.section === "body" && data.column.index === 0) {
-          const logoBase64 = logos[data.row.index];
+      didDrawCell: (hookData: AutoTableCellHookData) => {
+        if (hookData.section === "body" && hookData.column.index === 0) {
+          const logoBase64 = logos[hookData.row.index];
           if (logoBase64) {
-            this.doc.addImage(logoBase64, "PNG", data.cell.x + 2, data.cell.y + 2, 20, 20);
+            this.doc.addImage(logoBase64, "PNG", hookData.cell.x + 2, hookData.cell.y + 2, 20, 20);
           }
         }
       },
@@ -454,7 +454,7 @@ export class PDFReportGenerator {
       ];
     });
 
-    (this.doc as any).autoTable({
+    this.doc.autoTable({
       startY: this.currentY,
       head: [["Date", "Type", "Asset", "Amount", "Value", "Status"]],
       body: tableData,
@@ -478,9 +478,9 @@ export class PDFReportGenerator {
         5: { cellWidth: 70 },
       },
       margin: { left: this.margin, right: this.margin },
-      didDrawPage: (data: any) => {
+      didDrawPage: (hookData: AutoTablePageHookData) => {
         // Reset currentY for continuation on next page
-        this.currentY = data.cursor?.y || this.margin;
+        this.currentY = hookData.cursor?.y || this.margin;
       },
     });
 
@@ -520,7 +520,7 @@ export class PDFReportGenerator {
       this.formatPercentage(toNum(p.returnPercentage)),
     ]);
 
-    (this.doc as any).autoTable({
+    this.doc.autoTable({
       startY: this.currentY,
       head: [["Period", "Begin Value", "End Value", "Cash Flow", "Return", "Return %"]],
       body: tableData,
