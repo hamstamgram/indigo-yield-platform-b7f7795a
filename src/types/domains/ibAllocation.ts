@@ -14,6 +14,103 @@ export type IBAllocationInsert = Database["public"]["Tables"]["ib_allocations"][
 export type IBAllocationUpdate = Database["public"]["Tables"]["ib_allocations"]["Update"];
 
 // ============================================================================
+// Join Types - Used for typed Supabase query results with relations
+// ============================================================================
+
+/**
+ * Profile reference for IB allocation joins
+ */
+export interface IBProfileRef {
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+}
+
+/**
+ * Fund reference for IB allocation joins
+ */
+export interface IBFundRef {
+  name: string;
+  asset: string;
+}
+
+/**
+ * Minimal fund reference (asset only)
+ */
+export interface IBFundAssetRef {
+  asset: string;
+}
+
+/**
+ * IB allocation with joined profile and fund data
+ * Used by ibPayoutService.getAllocationsForPayout()
+ */
+export interface IBAllocationWithJoins {
+  id: string;
+  ib_investor_id: string;
+  source_investor_id: string;
+  ib_fee_amount: number;
+  effective_date: string;
+  period_start: string | null;
+  period_end: string | null;
+  payout_status: string | null;
+  funds: IBFundRef | null;
+  ib_profile: IBProfileRef | null;
+  source_profile: IBProfileRef | null;
+}
+
+/**
+ * IB allocation row for commission queries
+ */
+export interface IBAllocationCommissionRow {
+  id: string;
+  ib_fee_amount: number;
+  ib_percentage: number;
+  source_net_income: number;
+  effective_date: string;
+  period_start: string | null;
+  period_end: string | null;
+  payout_status: string | null;
+  paid_at: string | null;
+  source_investor_id: string;
+  funds: IBFundRef | null;
+  profiles: IBProfileRef | null;
+}
+
+/**
+ * Position with fund join for IB service
+ */
+export interface PositionWithFundAsset {
+  investor_id: string;
+  fund_id: string;
+  current_value: number;
+  funds: IBFundAssetRef | null;
+}
+
+/**
+ * Position with full fund join
+ */
+export interface PositionWithFundFull {
+  fund_id: string;
+  current_value: number;
+  cost_basis: number;
+  funds: { name: string; asset: string } | null;
+}
+
+/**
+ * Withdrawal with fund join
+ */
+export interface WithdrawalWithFund {
+  id: string;
+  requested_amount: number;
+  processed_amount: number | null;
+  status: string;
+  request_date: string;
+  processed_at: string | null;
+  funds: IBFundRef | null;
+}
+
+// ============================================================================
 // Local type alias (not exported to avoid conflicts)
 // ============================================================================
 

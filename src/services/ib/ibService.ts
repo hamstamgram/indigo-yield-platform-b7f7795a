@@ -6,8 +6,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
-
-// ============ Types ============
+import type {
+  IBProfileRef,
+  IBFundRef,
+  IBAllocationCommissionRow,
+  PositionWithFundAsset,
+  PositionWithFundFull,
+  WithdrawalWithFund,
+} from "@/types/domains/ibAllocation";
 
 export interface CommissionSummary {
   asset: string;
@@ -313,13 +319,14 @@ class IBService {
 
     const referralIds = profiles?.map((p) => p.id) || [];
     
-    let positionsData: any[] = [];
+    // Typed positions with fund join
+    let positionsData: PositionWithFundAsset[] = [];
     if (referralIds.length > 0) {
       const { data: positions } = await supabase
         .from("investor_positions")
         .select("investor_id, fund_id, current_value, funds!inner(asset)")
         .in("investor_id", referralIds);
-      positionsData = positions || [];
+      positionsData = (positions || []) as unknown as PositionWithFundAsset[];
     }
 
     const referrals: Referral[] = (profiles || []).map((profile) => {
@@ -329,7 +336,7 @@ class IBService {
       const activeFundIds = new Set<string>();
       
       for (const pos of investorPositions) {
-        const asset = (pos.funds as any)?.asset;
+        const asset = pos.funds?.asset;
         const currentValue = Number(pos.current_value);
         if (!asset) continue;
         if (currentValue > 0) {
@@ -491,9 +498,9 @@ class IBService {
       return { commissions: [], total: 0, assets: [] };
     }
 
-    const commissions: Commission[] = (allocations || []).map((alloc) => {
-      const fund = alloc.funds as any;
-      const profile = alloc.profiles as any;
+    const commissions: Commission[] = ((allocations || []) as unknown as IBAllocationCommissionRow[]).map((alloc) => {
+      const fund: IBFundRef | null = alloc.funds;
+      const profile: IBProfileRef | null = alloc.profiles;
       const investorName = profile
         ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
         : "Unknown";
@@ -510,8 +517,8 @@ class IBService {
         sourceNetIncome: Number(alloc.source_net_income),
         ibPercentage: Number(alloc.ib_percentage),
         ibFeeAmount: Number(alloc.ib_fee_amount),
-        payoutStatus: ((alloc as any).payout_status || 'pending') as 'pending' | 'paid',
-        paidAt: (alloc as any).paid_at || null,
+        payoutStatus: (alloc.payout_status || 'pending') as 'pending' | 'paid',
+        paidAt: alloc.paid_at || null,
       };
     });
 
@@ -552,10 +559,25 @@ class IBService {
       return [];
     }
 
-    return (data || []).map((a) => ({
+    // Type the allocation results
+    interface AllocationJoinRow {
+      id: string;
+      fund_id: string | null;
+      source_investor_id: string;
+      period_start: string | null;
+      period_end: string | null;
+      source_net_income: number;
+      ib_percentage: number;
+      ib_fee_amount: number;
+      source: string | null;
+      created_at: string | null;
+      funds: { asset: string } | null;
+    }
+
+    return ((data || []) as unknown as AllocationJoinRow[]).map((a) => ({
       id: a.id,
       fundId: a.fund_id || "",
-      fundAsset: (a.funds as any)?.asset || "USDT",
+      fundAsset: a.funds?.asset || "USDT",
       sourceInvestorId: a.source_investor_id,
       periodStart: a.period_start || "",
       periodEnd: a.period_end || "",
@@ -587,10 +609,13 @@ class IBService {
       return [];
     }
 
-    return (data || []).map((p) => ({
+    // Type the position results
+    const typedPositions = (data || []) as unknown as PositionWithFundFull[];
+
+    return typedPositions.map((p) => ({
       fundId: p.fund_id,
-      fundName: (p.funds as any)?.name || p.fund_id,
-      asset: (p.funds as any)?.asset || "USDT",
+      fundName: p.funds?.name || p.fund_id,
+      asset: p.funds?.asset || "USDT",
       currentValue: Number(p.current_value || 0),
     }));
   }
@@ -619,8 +644,11 @@ class IBService {
       return { payouts: [], total: 0 };
     }
 
-    const payouts: Payout[] = (withdrawals || []).map((w) => {
-      const fund = w.funds as any;
+    // Type the withdrawal results
+    const typedWithdrawals = (withdrawals || []) as unknown as WithdrawalWithFund[];
+
+    const payouts: Payout[] = typedWithdrawals.map((w) => {
+      const fund: IBFundRef | null = w.funds;
       return {
         id: w.id,
         amount: Number(w.processed_amount || w.requested_amount),

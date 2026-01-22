@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toDecimal } from "@/utils/financial";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import type { FundAumEventCheckpoint, DepositCrystallizationResult } from "@/types/domains/fund";
 
 export interface DepositWithYieldParams {
   investorId: string;
@@ -73,13 +74,18 @@ export async function previewDepositYield(
     throw new Error("Invalid AUM inputs: newTotalAum must be >= depositAmount");
   }
 
-  const { data: lastCheckpoint } = await (supabase.from as any)("fund_aum_events")
+  // Query fund_aum_events - table exists in schema but not in generated types
+  const { data: lastCheckpointRaw } = await supabase
+    .from("fund_aum_events")
     .select("closing_aum, post_flow_aum, event_ts")
     .eq("fund_id", fundId)
     .eq("is_voided", false)
     .order("event_ts", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Type the result
+  const lastCheckpoint = lastCheckpointRaw as FundAumEventCheckpoint | null;
 
   // Use post_flow_aum if available (for accurate yield calculation), otherwise closing_aum
   const openingAumDec = lastCheckpoint?.post_flow_aum
@@ -172,13 +178,14 @@ export async function processDepositWithYield(
       };
     }
 
-    const result = depositResult as any;
+    // Type the RPC result properly using unknown intermediate
+    const result = depositResult as unknown as DepositCrystallizationResult | null;
     const grossYield = Number(result?.crystallization?.gross_yield || 0);
 
     return {
       success: true,
       yieldDistributed: grossYield,
-      yieldInvestorsAffected: 0,
+      yieldInvestorsAffected: result?.crystallization?.investors_affected || 0,
       depositProcessed: true,
       transactionId: result?.deposit_tx_id,
     };

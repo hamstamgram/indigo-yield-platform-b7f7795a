@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { ReportData, ReportStyles } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
 import { formatAssetWithSymbol } from "@/utils/formatters";
+import type { AutoTableCellHookData, AutoTablePageHookData } from "@/types/jspdf-autotable";
 
 /** Convert string or number to number for calculations */
 const toNum = (value: string | number | undefined | null): number => {
@@ -18,13 +19,7 @@ const toNum = (value: string | number | undefined | null): number => {
   return isNaN(parsed) ? 0 : parsed;
 };
 
-// Extend jsPDF type to include autoTable
-declare module "jspdf" {
-  interface jsPDF {
-    autoTable: typeof autoTable;
-    lastAutoTable?: { finalY: number };
-  }
-}
+// Note: jsPDF autoTable types are declared in src/types/jspdf-autotable.d.ts
 
 interface PDFGenerationOptions {
   includeCharts?: boolean;
