@@ -253,3 +253,30 @@ export interface Benchmark {
   ret_itd?: string;
   created_at: string;
 }
+
+// ============================================================================
+// Join Types - Used for typed Supabase query results
+// ============================================================================
+
+/**
+ * Fund AUM event checkpoint - used for yield calculations
+ * Typed result from fund_aum_events queries
+ */
+export interface FundAumEventCheckpoint {
+  closing_aum: number | null;
+  post_flow_aum: number | null;
+  event_ts: string;
+}
+
+/**
+ * RPC result for deposit with crystallization
+ */
+export interface DepositCrystallizationResult {
+  success: boolean;
+  deposit_tx_id: string;
+  crystallization?: {
+    gross_yield: number;
+    net_yield: number;
+    investors_affected: number;
+  };
+}

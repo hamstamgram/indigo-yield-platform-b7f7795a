@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getTodayString, formatDateForDB } from "@/utils/dateUtils";
+
 export interface OperationsMetrics {
   pendingApprovals: number;
   todaysTransactions: number;
@@ -14,6 +15,12 @@ export interface PendingBreakdown {
   deposits: number;
   withdrawals: number;
   investments: number;
+}
+
+/** Typed count result for Supabase queries */
+interface CountQueryResult {
+  count: number | null;
+  error: { message: string } | null;
 }
 
 export const operationsService = {
@@ -31,12 +38,12 @@ export const operationsService = {
           .in("status", ["pending", "approved"]),
 
         // Pending deposits - transactions_v2 doesn't have status column, deposits are immediately confirmed
-        // Return 0 as all deposits in transactions_v2 are already completed
-        Promise.resolve({ count: 0 } as any),
+        // Return typed result with 0 count
+        Promise.resolve({ count: 0, error: null } as CountQueryResult),
 
         // Pending investments - Note: "INVESTMENT" type doesn't exist, investments are tracked via DEPOSIT
-        // Return 0 for now as there's no separate investment tracking
-        Promise.resolve({ count: 0 } as any),
+        // Return typed result with 0 count
+        Promise.resolve({ count: 0, error: null } as CountQueryResult),
 
         // Today's transactions
         supabase

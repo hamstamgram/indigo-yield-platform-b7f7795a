@@ -4,6 +4,11 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import type { 
+  IBAllocationWithJoins, 
+  IBProfileRef, 
+  IBFundRef 
+} from "@/types/domains/ibAllocation";
 
 export interface PendingCommission {
   id: string;
@@ -62,10 +67,13 @@ class IBPayoutService {
       return [];
     }
 
-    return (allocations || []).map((alloc): PendingCommission => {
-      const fund = alloc.funds as any;
-      const ibProfile = alloc.ib_profile as any;
-      const sourceProfile = alloc.source_profile as any;
+    // Type the allocations properly
+    const typedAllocations = allocations as unknown as IBAllocationWithJoins[];
+
+    return (typedAllocations || []).map((alloc): PendingCommission => {
+      const fund: IBFundRef | null = alloc.funds;
+      const ibProfile: IBProfileRef | null = alloc.ib_profile;
+      const sourceProfile: IBProfileRef | null = alloc.source_profile;
 
       const ibName = ibProfile
         ? `${ibProfile.first_name || ""} ${ibProfile.last_name || ""}`.trim() || ibProfile.email
@@ -86,7 +94,7 @@ class IBPayoutService {
         effectiveDate: alloc.effective_date,
         periodStart: alloc.period_start,
         periodEnd: alloc.period_end,
-        payoutStatus: ((alloc as any).payout_status || 'pending') as 'pending' | 'paid',
+        payoutStatus: (alloc.payout_status || 'pending') as 'pending' | 'paid',
       };
     });
   }

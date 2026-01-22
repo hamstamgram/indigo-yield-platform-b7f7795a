@@ -9,6 +9,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc";
+import type { IntegrityViolation, LastActivityRow } from "@/types/domains/integrity";
 
 // ============ Types ============
 
@@ -421,30 +422,35 @@ async function queryIntegrityViews() {
  */
 export async function getDataIntegrityStatus(): Promise<IntegrityData> {
   // Query integrity views and last activity timestamps in parallel
-  const [integrityViews, lastYieldDist, lastReport, lastEmailWebhook] = await Promise.all([
+  const [integrityViews, lastYieldDistResult, lastReportResult, lastEmailWebhookResult] = await Promise.all([
     queryIntegrityViews(),
 
-    (supabase as any)
+    supabase
       .from("daily_nav")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
 
-    (supabase as any)
+    supabase
       .from("generated_reports")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
 
-    (supabase as any)
+    supabase
       .from("statement_email_delivery")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
   ]);
+
+  // Type the results
+  const lastYieldDist = lastYieldDistResult.data as LastActivityRow | null;
+  const lastReport = lastReportResult.data as LastActivityRow | null;
+  const lastEmailWebhook = lastEmailWebhookResult.data as LastActivityRow | null;
 
   const checks: IntegrityCheck[] = [
     {
@@ -502,9 +508,9 @@ export async function getDataIntegrityStatus(): Promise<IntegrityData> {
 
   return {
     checks,
-    lastYieldRun: lastYieldDist.data?.created_at || null,
-    lastReportRun: lastReport.data?.created_at || null,
-    lastEmailEvent: lastEmailWebhook.data?.created_at || null,
+    lastYieldRun: lastYieldDist?.created_at || null,
+    lastReportRun: lastReport?.created_at || null,
+    lastEmailEvent: lastEmailWebhook?.created_at || null,
   };
 }
 
@@ -518,7 +524,7 @@ export interface HealthSnapshot {
   failed_checks: number;
   critical_failures: number;
   status: "healthy" | "warning" | "critical";
-  violations: Record<string, unknown>[] | null;
+  violations: IntegrityViolation[] | null;
 }
 
 /**
@@ -571,9 +577,10 @@ export async function getLatestHealthStatus(): Promise<HealthSnapshot | null> {
     return null;
   }
 
-  const violations = data.violations as Record<string, unknown>[] | null;
+  // Cast through unknown for JSON field
+  const violations = data.violations as unknown as IntegrityViolation[] | null;
   const failedCount = violations?.length || 0;
-  const criticalCount = violations?.filter((v: any) => v.severity === "critical").length || 0;
+  const criticalCount = violations?.filter((v) => v.severity === "critical").length || 0;
 
   return {
     run_id: data.id,
@@ -604,10 +611,11 @@ export async function getHealthSnapshots(
     throw error;
   }
 
-  const snapshots = (data || []).map((row) => {
-    const violations = row.violations as Record<string, unknown>[] | null;
+  const snapshots: HealthSnapshot[] = (data || []).map((row) => {
+    // Cast through unknown for JSON field
+    const violations = row.violations as unknown as IntegrityViolation[] | null;
     const failedCount = violations?.length || 0;
-    const criticalCount = violations?.filter((v: any) => v.severity === "critical").length || 0;
+    const criticalCount = violations?.filter((v) => v.severity === "critical").length || 0;
 
     return {
       run_id: row.id,
@@ -618,7 +626,7 @@ export async function getHealthSnapshots(
       critical_failures: criticalCount,
       status: criticalCount > 0 ? "critical" : failedCount > 0 ? "warning" : "healthy",
       violations: violations,
-    } as HealthSnapshot;
+    };
   });
 
   return { snapshots, total: count || 0 };
