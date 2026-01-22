@@ -11890,8 +11890,6 @@ export type Database = {
         }
         Returns: Json
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       start_processing_withdrawal: {
         Args: {
           p_admin_notes?: string
