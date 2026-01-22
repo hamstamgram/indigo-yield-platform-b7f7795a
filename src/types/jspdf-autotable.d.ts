@@ -12,10 +12,13 @@ declare module "jspdf" {
   }
 }
 
+/** Cell value types that jspdf-autotable can render */
+export type AutoTableCellValue = string | number | boolean | Date | null | undefined;
+
 export interface AutoTableOptions {
   startY?: number;
-  head?: (string | number)[][];
-  body?: (string | number | null | undefined)[][];
+  head?: AutoTableCellValue[][];
+  body?: AutoTableCellValue[][];
   theme?: "plain" | "grid" | "striped";
   styles?: AutoTableStyles;
   headStyles?: AutoTableStyles;
