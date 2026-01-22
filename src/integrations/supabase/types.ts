@@ -10661,10 +10661,12 @@ export type Database = {
       }
       fix_doubled_cost_basis: { Args: never; Returns: Json }
       fix_position_metadata: { Args: never; Returns: Json }
-      force_delete_investor: {
-        Args: { p_admin_id: string; p_investor_id: string }
-        Returns: boolean
-      }
+      force_delete_investor:
+        | { Args: { p_investor_id: string }; Returns: Json }
+        | {
+            Args: { p_admin_id: string; p_investor_id: string }
+            Returns: boolean
+          }
       fund_period_return: {
         Args: { d1: string; d2: string; f: string; net?: boolean }
         Returns: number
