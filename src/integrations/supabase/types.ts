@@ -119,6 +119,13 @@ export type Database = {
             foreignKeyName: "accounting_periods_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "accounting_periods_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -370,6 +377,13 @@ export type Database = {
             foreignKeyName: "admin_integrity_runs_scope_fund_id_fkey"
             columns: ["scope_fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "admin_integrity_runs_scope_fund_id_fkey"
+            columns: ["scope_fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -610,6 +624,13 @@ export type Database = {
             foreignKeyName: "correction_runs_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "correction_runs_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -740,6 +761,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_nav_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "daily_nav_fund_id_fkey"
@@ -1233,6 +1261,13 @@ export type Database = {
             foreignKeyName: "fk_fee_allocations_fund_v2"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_fund_v2"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -1525,6 +1560,13 @@ export type Database = {
             foreignKeyName: "fund_daily_aum_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -1705,6 +1747,13 @@ export type Database = {
             foreignKeyName: "fk_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -1777,6 +1826,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
@@ -1948,6 +2004,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_generated_reports_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_generated_reports_fund"
@@ -2356,6 +2419,13 @@ export type Database = {
             foreignKeyName: "ib_allocations_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -2570,6 +2640,13 @@ export type Database = {
             foreignKeyName: "ib_commission_ledger_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "ib_commission_ledger_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -2762,6 +2839,13 @@ export type Database = {
             foreignKeyName: "investor_daily_balance_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -2920,6 +3004,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_fee_schedule_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "investor_fee_schedule_fund_id_fkey"
@@ -3363,6 +3454,13 @@ export type Database = {
             foreignKeyName: "investor_loss_carryforward_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_loss_carryforward_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -3527,6 +3625,13 @@ export type Database = {
             foreignKeyName: "investor_position_snapshots_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_position_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -3663,6 +3768,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -3918,6 +4030,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_yield_events_fund"
@@ -4433,6 +4552,13 @@ export type Database = {
             foreignKeyName: "platform_fee_ledger_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "platform_fee_ledger_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -4647,6 +4773,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "position_reconciliation_log_fund_id_fkey"
@@ -5080,6 +5213,13 @@ export type Database = {
             foreignKeyName: "reconciliation_packs_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "reconciliation_packs_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -5293,6 +5433,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_alerts_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "risk_alerts_fund_id_fkey"
@@ -5949,6 +6096,13 @@ export type Database = {
             foreignKeyName: "transaction_import_staging_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "transaction_import_staging_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -6145,6 +6299,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_transactions_v2_fund"
@@ -6780,6 +6941,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -6916,6 +7084,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "yield_allocations_fund_id_fkey"
@@ -7247,6 +7422,13 @@ export type Database = {
             foreignKeyName: "fk_yield_distributions_fund_new"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -7469,6 +7651,13 @@ export type Database = {
             foreignKeyName: "fk_fund_sanity"
             columns: ["fund_id"]
             isOneToOne: true
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fund_sanity"
+            columns: ["fund_id"]
+            isOneToOne: true
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -7520,6 +7709,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_rate_sanity_config_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: true
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "yield_rate_sanity_config_fund_id_fkey"
@@ -7741,6 +7937,13 @@ export type Database = {
             foreignKeyName: "fk_investor_positions_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -7824,6 +8027,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -7934,6 +8144,18 @@ export type Database = {
         }
         Relationships: []
       }
+      v_aum_position_mismatch: {
+        Row: {
+          asset: string | null
+          fund_id: string | null
+          fund_name: string | null
+          has_mismatch: boolean | null
+          latest_nav_aum: number | null
+          mismatch_amount: number | null
+          sum_positions: number | null
+        }
+        Relationships: []
+      }
       v_aum_snapshot_health: {
         Row: {
           active_positions: number | null
@@ -7983,6 +8205,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -8074,6 +8303,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -8171,6 +8407,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -8280,6 +8523,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -8552,6 +8802,13 @@ export type Database = {
             foreignKeyName: "fk_fee_allocations_fund_v2"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_fund_v2"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -8746,6 +9003,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_fund_v2"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_fee_allocations_fund_v2"
@@ -8976,6 +9240,13 @@ export type Database = {
             foreignKeyName: "fk_investor_positions_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -9062,6 +9333,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -9228,6 +9506,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -9294,6 +9579,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -9408,6 +9700,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -9543,13 +9842,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fk_statements_investor_profile"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_statements_investor_profile"
             columns: ["investor_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -9559,7 +9851,7 @@ export type Database = {
             foreignKeyName: "fk_statements_investor_profile"
             columns: ["investor_id"]
             isOneToOne: false
-            referencedRelation: "profiles_display"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -9572,13 +9864,20 @@ export type Database = {
           {
             foreignKeyName: "fk_statements_investor_profile"
             columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_statements_investor_profile"
+            columns: ["investor_profile_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "fk_statements_investor_profile"
-            columns: ["investor_profile_id"]
+            columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
@@ -9646,6 +9945,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_transactions_v2_fund"
@@ -9784,6 +10090,13 @@ export type Database = {
             foreignKeyName: "fk_yield_distributions_fund_new"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -9862,6 +10175,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_yield_distributions_fund_new"
@@ -10029,6 +10349,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_aum_snapshot_health"
             referencedColumns: ["fund_id"]
           },
@@ -10097,6 +10424,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_aum_position_mismatch"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_yield_distributions_fund_new"
@@ -10836,7 +11170,7 @@ export type Database = {
         Returns: number
       }
       get_kpi_metrics:
-        | { Args: { metric_type: string; user_id?: string }; Returns: Json }
+        | { Args: { metric_type: string; user_id: string }; Returns: Json }
         | { Args: { p_date_range?: string }; Returns: Json }
       get_latest_health_status: {
         Args: never
