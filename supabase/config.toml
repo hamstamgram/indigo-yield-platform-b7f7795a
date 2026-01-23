@@ -60,8 +60,9 @@ verify_jwt = false
 verify_jwt = false
 
 # Protected functions (JWT required)
+# JWT verification handled in code to provide better error messages
 [functions.admin-user-management]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-admin-invite]
 verify_jwt = true
