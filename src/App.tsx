@@ -1,3 +1,4 @@
+// Build trigger: 2026-01-23T07:45:00Z
 import { BrowserRouter as Router, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { initPostHog } from "./utils/analytics/posthog";
