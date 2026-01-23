@@ -52,11 +52,12 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
   // Memoize month options (static data)
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
-  // Memoize reports grouped by month
+  // Memoize reports grouped by period end date
   const reportsByMonth = useMemo(() => 
     reports.reduce(
       (acc, report) => {
-        const month = report.report_month;
+        // Use period_end_date from joined period, fallback to period_id
+        const month = report.period?.period_end_date || report.period_id;
         if (!acc[month]) acc[month] = [];
         acc[month].push(report);
         return acc;
@@ -111,9 +112,12 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
     setEditValue("");
   }, []);
 
+  // V2 column name mapping for editable fields
+  type EditableField = 'mtd_beginning_balance' | 'mtd_additions' | 'mtd_redemptions' | 'mtd_net_income' | 'mtd_ending_balance';
+  
   const renderEditableCell = (
     report: MonthlyReport,
-    field: keyof MonthlyReport,
+    field: EditableField,
     value: number | null
   ) => {
     const cellKey = `${report.id}-${field}`;
@@ -127,12 +131,12 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
             onChange={(e) => setEditValue(e.target.value)}
             className="h-8 w-20"
             onKeyDown={(e) => {
-              if (e.key === "Enter") saveCellEdit(report.id, field as string);
+              if (e.key === "Enter") saveCellEdit(report.id, field);
               if (e.key === "Escape") cancelEdit();
             }}
             autoFocus
           />
-          <Button size="sm" onClick={() => saveCellEdit(report.id, field as string)}>
+          <Button size="sm" onClick={() => saveCellEdit(report.id, field)}>
             <Save className="h-3 w-3" />
           </Button>
         </div>
@@ -142,9 +146,9 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
     return (
       <div
         className="cursor-pointer hover:bg-muted p-1 rounded"
-        onClick={() => handleCellEdit(report.id, field as string, value || 0)}
+        onClick={() => handleCellEdit(report.id, field, value || 0)}
       >
-        {formatTokenBalance(value || 0, report.asset_code)}
+        {formatTokenBalance(value || 0, report.fund_name)}
       </div>
     );
   };
@@ -191,43 +195,39 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Asset</TableHead>
+                        <TableHead>Fund</TableHead>
                         <TableHead>Opening Balance</TableHead>
                         <TableHead>Additions</TableHead>
-                        <TableHead>Withdrawals</TableHead>
-                        <TableHead>Yield Earned</TableHead>
-                        <TableHead>Closing Balance</TableHead>
-                        <TableHead>Manual AUM</TableHead>
+                        <TableHead>Redemptions</TableHead>
+                        <TableHead>Net Income</TableHead>
+                        <TableHead>Ending Balance</TableHead>
+                        <TableHead>Rate of Return</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {monthReports.map((report) => (
                         <TableRow key={report.id}>
                           <TableCell>
-                            <Badge variant="outline">{report.asset_code}</Badge>
+                            <Badge variant="outline">{report.fund_name}</Badge>
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, "opening_balance", report.opening_balance)}
+                            {renderEditableCell(report, "mtd_beginning_balance", report.mtd_beginning_balance)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, "additions", report.additions)}
+                            {renderEditableCell(report, "mtd_additions", report.mtd_additions)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, "withdrawals", report.withdrawals)}
+                            {renderEditableCell(report, "mtd_redemptions", report.mtd_redemptions)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, "yield_earned", report.yield_earned)}
+                            {renderEditableCell(report, "mtd_net_income", report.mtd_net_income)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, "closing_balance", report.closing_balance)}
+                            {renderEditableCell(report, "mtd_ending_balance", report.mtd_ending_balance)}
                           </TableCell>
                           <TableCell>
-                            {report.aum_manual_override ? (
-                              renderEditableCell(
-                                report,
-                                "aum_manual_override",
-                                report.aum_manual_override
-                              )
+                            {report.mtd_rate_of_return != null ? (
+                              <span className="font-mono">{report.mtd_rate_of_return.toFixed(2)}%</span>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}

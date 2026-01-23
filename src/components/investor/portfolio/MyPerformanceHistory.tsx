@@ -16,6 +16,16 @@ interface ProcessedReport extends PerformanceHistoryRecord {
   rate: number;
 }
 
+/**
+ * Rate of Return Calculation: Modified Dietz Method
+ * 
+ * Formula: RoR = (Net Income / (Opening Balance + Net Flows / 2)) × 100
+ * 
+ * This approximates time-weighted return by assuming cash flows occur
+ * mid-period. Industry-standard for monthly investor statements.
+ * 
+ * @see https://en.wikipedia.org/wiki/Modified_Dietz_method
+ */
 const calculateRate = (report: PerformanceHistoryRecord): number => {
   const netFlows = (report.additions || 0) - (report.withdrawals || 0);
   const denominator = (report.opening_balance || 0) + netFlows / 2;

@@ -67,7 +67,15 @@ export const preflowAumService = {
     });
 
     if (error) throw error;
-    const result = data as any;
+    
+    // RPC returns a single JSONB object, not an array
+    const result = data as {
+      success?: boolean;
+      action?: string;
+      aum_event_id?: string;
+      closing_aum?: number;
+      message?: string;
+    } | null;
 
     return {
       success: Boolean(result?.success),

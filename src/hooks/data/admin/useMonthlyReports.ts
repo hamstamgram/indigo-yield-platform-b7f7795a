@@ -12,21 +12,19 @@ import {
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
+/** Monthly report from investor_fund_performance with joined period */
 export interface MonthlyReport {
   id: string;
   investor_id: string;
-  report_month: string;
-  asset_code: string;
-  opening_balance: number | null;
-  closing_balance: number | null;
-  additions: number | null;
-  withdrawals: number | null;
-  yield_earned: number | null;
-  aum_manual_override: number | null;
-  entry_date: string | null;
-  exit_date: string | null;
-  updated_at: string;
-  edited_by: string | null;
+  period_id: string;
+  fund_name: string;
+  mtd_beginning_balance: number | null;
+  mtd_additions: number | null;
+  mtd_redemptions: number | null;
+  mtd_net_income: number | null;
+  mtd_ending_balance: number | null;
+  mtd_rate_of_return: number | null;
+  period: { period_end_date: string } | null;
 }
 
 /**
@@ -35,7 +33,7 @@ export interface MonthlyReport {
 export function useInvestorMonthlyReports(investorId: string) {
   return useQuery<MonthlyReport[]>({
     queryKey: QUERY_KEYS.investorMonthlyReports(investorId),
-    queryFn: () => getInvestorMonthlyReports(investorId) as Promise<MonthlyReport[]>,
+    queryFn: () => getInvestorMonthlyReports(investorId),
     enabled: !!investorId,
   });
 }
