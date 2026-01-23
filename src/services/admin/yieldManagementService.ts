@@ -23,6 +23,45 @@ export interface UpdateYieldResult {
   updated_at: string;
 }
 
+/**
+ * RPC result type for update_fund_daily_aum_with_recalc
+ */
+interface RecalcYieldRPCResult {
+  success: boolean;
+  error?: string;
+  record_id?: string;
+  old_aum?: number;
+  new_aum?: number;
+  updated_at?: string;
+}
+
+/**
+ * RPC result type for get_void_aum_impact
+ */
+export interface VoidAumImpactResult {
+  success: boolean;
+  error?: string;
+  record_id?: string;
+  fund_id?: string;
+  fund_name?: string;
+  fund_asset?: string;
+  aum_date?: string;
+  total_aum?: number;
+  purpose?: string;
+  distributions_to_void?: number;
+  transactions_to_void?: number;
+  affected_investors?: Array<{
+    investor_id: string;
+    investor_name: string;
+    current_position: number;
+    yield_amount: number;
+    fee_amount: number;
+  }>;
+  affected_investor_count?: number;
+  total_yield_amount?: number;
+  total_fee_amount?: number;
+}
+
 export interface YieldDetails {
   id: string;
   fund_id: string;
@@ -136,7 +175,7 @@ export async function updateYieldAum(
     throw new Error(error.message || "Failed to update yield record");
   }
 
-  const result = data as any;
+  const result = data as unknown as RecalcYieldRPCResult;
   if (!result?.success) {
     throw new Error(result?.error || "Failed to recalculate yield");
   }
@@ -255,39 +294,17 @@ export async function canEditYieldRecord(
  * Get void impact preview for a fund_daily_aum record
  * Shows what will happen before voiding (distributions, transactions, investors affected)
  */
-export async function getYieldVoidImpact(recordId: string): Promise<{
-  success: boolean;
-  error?: string;
-  record_id?: string;
-  fund_id?: string;
-  fund_name?: string;
-  fund_asset?: string;
-  aum_date?: string;
-  total_aum?: number;
-  purpose?: string;
-  distributions_to_void?: number;
-  transactions_to_void?: number;
-  affected_investors?: Array<{
-    investor_id: string;
-    investor_name: string;
-    current_position: number;
-    yield_amount: number;
-    fee_amount: number;
-  }>;
-  affected_investor_count?: number;
-  total_yield_amount?: number;
-  total_fee_amount?: number;
-}> {
+export async function getYieldVoidImpact(recordId: string): Promise<VoidAumImpactResult> {
   // Use the correct RPC that accepts fund_daily_aum record ID
-  // Note: get_void_aum_impact is typed after supabase types regeneration
-  const { data, error } = await (supabase.rpc as any)("get_void_aum_impact", {
+  // Note: get_void_aum_impact may not be in generated types yet - using direct rpc call
+  const { data, error } = await supabase.rpc("get_void_aum_impact" as never, {
     p_record_id: recordId,
-  });
+  } as never);
 
   if (error) {
     logError("yieldManagement.getVoidImpact", error, { recordId });
     throw new Error(error.message || "Failed to get yield void impact");
   }
 
-  return data as any;
+  return data as unknown as VoidAumImpactResult;
 }
