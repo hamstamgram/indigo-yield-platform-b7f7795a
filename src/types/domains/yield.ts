@@ -219,18 +219,23 @@ export interface ADBYieldRPCResult {
 }
 
 /**
- * Individual investor allocation from ADB RPC
+ * Individual investor allocation from ADB RPC (preview_adb_yield_distribution_v3)
+ * Field names match the actual JSONB keys returned by the PostgreSQL function.
  */
 export interface ADBAllocationItem {
   investor_id: string;
+  investor_email?: string;
   investor_name: string;
+  account_type?: string;
   adb: number;
-  weight_pct: number;
+  adb_share_pct: number; // Percentage weight (0-100) based on ADB
   fee_pct: number;
-  gross_amount: number;
+  gross_yield: number; // Gross yield amount allocated to this investor
   fee_amount: number;
-  net_amount: number;
-  ib_pct?: number;
+  net_yield: number; // Net yield after fees
+  ib_parent_id?: string;
+  ib_parent_name?: string;
+  ib_rate?: number; // IB commission rate percentage
   ib_amount?: number;
   carried_loss?: number;
   loss_offset?: number;

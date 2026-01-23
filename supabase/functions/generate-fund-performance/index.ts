@@ -15,7 +15,7 @@ interface RequestBody {
  * CANONICAL FORMULA (Source of Truth):
  * net_income = ending_balance - beginning_balance - additions + redemptions
  * rate_of_return = net_income / beginning_balance (0 if beginning_balance <= 0)
- * 
+ *
  * Edge Cases:
  * - First investment mid-month: beginning_balance = 0, rate_of_return = 0
  * - Full exit mid-month: ending_balance = 0 (calculated correctly)
@@ -29,12 +29,12 @@ function calculatePerformanceMetrics(
 ): { netIncome: number; rateOfReturn: number } {
   // CORRECT formula per audit requirements:
   const netIncome = endingBalance - beginningBalance - additions + redemptions;
-  
+
   // Avoid divide by zero - return 0% if no beginning balance
   if (beginningBalance <= 0) {
     return { netIncome, rateOfReturn: 0 };
   }
-  
+
   const rateOfReturn = (netIncome / beginningBalance) * 100;
   return { netIncome, rateOfReturn };
 }
@@ -49,15 +49,15 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    
+
     // Extract authorization header to verify the caller
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       console.error("No authorization header provided");
-      return new Response(
-        JSON.stringify({ error: "Authorization required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Authorization required" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Create a client with the user's token to verify their identity
@@ -66,26 +66,37 @@ Deno.serve(async (req) => {
     });
 
     // Get the authenticated user
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await userClient.auth.getUser();
     if (userError || !user) {
       console.error("Auth error:", userError);
-      return new Response(
-        JSON.stringify({ error: "Invalid or expired token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Use service role client for admin check via profiles.is_admin
     // This is consistent with other admin functions and works for users with multiple roles
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
+
     const adminCheck = await checkAdminAccess(supabase, user.id);
-    
+
     if (!adminCheck.isAdmin) {
-      console.error("Admin check failed:", adminCheck.error || "User is not admin", 
-        "User:", user.email, "ID:", user.id);
-      return createAdminDeniedResponse(corsHeaders, 
-        "You must be an administrator to generate performance reports");
+      console.error(
+        "Admin check failed:",
+        adminCheck.error || "User is not admin",
+        "User:",
+        user.email,
+        "ID:",
+        user.id
+      );
+      return createAdminDeniedResponse(
+        corsHeaders,
+        "You must be an administrator to generate performance reports"
+      );
     }
 
     console.log(`Admin ${adminCheck.email} generating performance data`);
@@ -93,29 +104,32 @@ Deno.serve(async (req) => {
     const { periodYear, periodMonth }: RequestBody = await req.json();
 
     if (!periodYear || !periodMonth) {
-      return new Response(
-        JSON.stringify({ error: "periodYear and periodMonth are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "periodYear and periodMonth are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log(`Generating performance for ${periodYear}-${periodMonth}`);
 
     // Step 1: Get or create the statement period
-    let { data: period, error: periodError } = await supabase
+    const periodResult = await supabase
       .from("statement_periods")
       .select("id")
       .eq("year", periodYear)
       .eq("month", periodMonth)
       .maybeSingle();
 
-    if (periodError) throw periodError;
+    if (periodResult.error) throw periodResult.error;
+    let period = periodResult.data;
 
     if (!period) {
       // Create the period
       const periodEndDate = new Date(periodYear, periodMonth, 0); // Last day of month
-      const periodName = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" })
-        .format(new Date(periodYear, periodMonth - 1));
+      const periodName = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        year: "numeric",
+      }).format(new Date(periodYear, periodMonth - 1));
 
       const { data: newPeriod, error: createError } = await supabase
         .from("statement_periods")
@@ -139,7 +153,8 @@ Deno.serve(async (req) => {
     // Step 2: Get all investors with positions
     const { data: positions, error: positionsError } = await supabase
       .from("investor_positions")
-      .select(`
+      .select(
+        `
         investor_id,
         fund_id,
         current_value,
@@ -149,39 +164,39 @@ Deno.serve(async (req) => {
           asset,
           status
         )
-      `)
+      `
+      )
       .gt("current_value", 0);
 
     if (positionsError) throw positionsError;
 
     // Filter only active funds
-    const activePositions = (positions || []).filter(
-      (p: any) => p.funds?.status === "active"
-    );
+    const activePositions = (positions || []).filter((p: any) => p.funds?.status === "active");
 
     console.log(`Found ${activePositions.length} active positions`);
 
     // Step 3: Calculate date ranges
     const mtdStart = new Date(periodYear, periodMonth - 1, 1);
     const mtdEnd = new Date(periodYear, periodMonth, 0);
-    
+
     // QTD: Start of current quarter
     const currentQuarter = Math.floor((periodMonth - 1) / 3);
     const qtdStart = new Date(periodYear, currentQuarter * 3, 1);
-    
+
     // YTD: Start of year
     const ytdStart = new Date(periodYear, 0, 1);
 
     // Step 4: Get transactions for calculations
-    // IMPORTANT: Only include 'reporting' purpose transactions for statement calculations
-    // This ensures transaction-purpose yield entries don't appear in investor statements
-    // FIX: Changed from .or("purpose.is.null,purpose.eq.reporting") to strictly filter reporting only
-    // Legacy transactions without purpose should be migrated, not implicitly included
+    // Include ALL non-voided transactions for accurate statement calculations.
+    // The purpose filter was causing deposits (which have no purpose or purpose='transaction')
+    // to be invisible, misclassifying all position value as Net Income.
+    // The sumByType helper already filters by transaction type (DEPOSIT, WITHDRAWAL, etc.)
+    // so there's no risk of double-counting across different purposes.
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
       .select("*")
       .lte("tx_date", mtdEnd.toISOString().split("T")[0])
-      .eq("purpose", "reporting") // STRICT: Only reporting purpose transactions
+      .eq("is_voided", false) // Only include non-voided transactions
       .order("tx_date", { ascending: true });
 
     if (txError) throw txError;
@@ -205,10 +220,13 @@ Deno.serve(async (req) => {
     // Calculate metrics for each investor + asset combination
     for (const [key, posGroup] of groupedPositions.entries()) {
       const [investorId, fundAsset] = key.split(":");
-      
+
       // Current ending balance (sum of all positions for this asset)
-      const currentBalance = posGroup.reduce((sum: number, p: any) => sum + Number(p.current_value), 0);
-      
+      const currentBalance = posGroup.reduce(
+        (sum: number, p: any) => sum + Number(p.current_value),
+        0
+      );
+
       // Get transactions for this investor + asset
       const investorTxs = (transactions || []).filter(
         (tx: any) => tx.investor_id === investorId && tx.asset === fundAsset
@@ -241,7 +259,7 @@ Deno.serve(async (req) => {
       const mtdBeginning = calculateBeginningBalance(investorTxs, mtdStart);
       const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
       const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
-      
+
       // CORRECT FORMULA: net_income = ending - beginning - additions + redemptions
       const mtdMetrics = calculatePerformanceMetrics(
         currentBalance,
@@ -254,7 +272,7 @@ Deno.serve(async (req) => {
       const qtdBeginning = calculateBeginningBalance(investorTxs, qtdStart);
       const qtdAdditions = sumByType(investorTxs, qtdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
       const qtdRedemptions = sumByType(investorTxs, qtdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
-      
+
       const qtdMetrics = calculatePerformanceMetrics(
         currentBalance,
         qtdBeginning,
@@ -266,7 +284,7 @@ Deno.serve(async (req) => {
       const ytdBeginning = calculateBeginningBalance(investorTxs, ytdStart);
       const ytdAdditions = sumByType(investorTxs, ytdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
       const ytdRedemptions = sumByType(investorTxs, ytdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
-      
+
       const ytdMetrics = calculatePerformanceMetrics(
         currentBalance,
         ytdBeginning,
@@ -278,15 +296,18 @@ Deno.serve(async (req) => {
       // ITD beginning is always 0 (inception)
       const itdBeginning = 0;
       const itdAdditions = sumByType(investorTxs, new Date(0), mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
-      const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
-      
+      const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, [
+        "WITHDRAWAL",
+        "REDEMPTION",
+      ]);
+
       const itdMetrics = calculatePerformanceMetrics(
         currentBalance,
         itdBeginning,
         itdAdditions,
         itdRedemptions
       );
-      
+
       // Special case for ITD: use total principal as denominator since beginning is 0
       const totalPrincipal = itdAdditions - itdRedemptions;
       const itdRoR = totalPrincipal > 0 ? (itdMetrics.netIncome / totalPrincipal) * 100 : 0;
@@ -295,7 +316,7 @@ Deno.serve(async (req) => {
         period_id: periodId,
         investor_id: investorId,
         fund_name: fundAsset,
-        purpose: 'reporting', // Always 'reporting' for statement generation
+        purpose: "reporting", // Always 'reporting' for statement generation
         // MTD
         mtd_beginning_balance: Math.round(mtdBeginning * 100) / 100,
         mtd_additions: Math.round(mtdAdditions * 100) / 100,
@@ -335,15 +356,15 @@ Deno.serve(async (req) => {
       const { error: upsertError } = await supabase
         .from("investor_fund_performance")
         .upsert(performanceRecords, {
-          onConflict: 'period_id,investor_id,fund_name,purpose', // Include purpose in conflict key
-          ignoreDuplicates: false // Update existing records
+          onConflict: "period_id,investor_id,fund_name,purpose", // Include purpose in conflict key
+          ignoreDuplicates: false, // Update existing records
         });
 
       if (upsertError) {
         console.error("Upsert error:", upsertError);
         throw upsertError;
       }
-      
+
       console.log(`Successfully upserted ${performanceRecords.length} records`);
     }
 
@@ -369,50 +390,54 @@ Deno.serve(async (req) => {
       throw profilesError;
     }
 
-    const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+    const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
 
     // Generate HTML for each investor and upsert to generated_statements
     const periodEndDate = new Date(periodYear, periodMonth, 0);
-    const reportDate = new Intl.DateTimeFormat("en-US", { 
-      month: "long", 
-      day: "numeric", 
-      year: "numeric" 
+    const reportDate = new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     }).format(periodEndDate);
 
     let statementsGenerated = 0;
 
     for (const [investorId, records] of investorPerformanceMap.entries()) {
       const profile = profileMap.get(investorId);
-      const investorName = profile?.first_name && profile?.last_name 
-        ? `${profile.first_name} ${profile.last_name}` 
-        : profile?.email || "Investor";
-      
+      const investorName =
+        profile?.first_name && profile?.last_name
+          ? `${profile.first_name} ${profile.last_name}`
+          : profile?.email || "Investor";
+
       // Build fund data for HTML generation
       const fundNames: string[] = [];
-      const fundsHtml = records.map((record, index) => {
-        fundNames.push(record.fund_name);
-        const currency = record.fund_name.split(" ")[0]; // Extract currency from fund name
-        
-        return generateFundBlockHtml(record, currency, index > 0);
-      }).join("");
+      const fundsHtml = records
+        .map((record, index) => {
+          fundNames.push(record.fund_name);
+          const currency = record.fund_name.split(" ")[0]; // Extract currency from fund name
+
+          return generateFundBlockHtml(record, currency, index > 0);
+        })
+        .join("");
 
       // Generate full HTML statement
       const htmlContent = generateStatementHtml(investorName, reportDate, fundsHtml);
 
       // Upsert into generated_statements
-      const { error: statementError } = await supabase
-        .from("generated_statements")
-        .upsert({
+      const { error: statementError } = await supabase.from("generated_statements").upsert(
+        {
           investor_id: investorId,
           user_id: investorId,
           period_id: periodId,
           fund_names: fundNames,
           html_content: htmlContent,
           generated_by: user.id,
-        }, {
-          onConflict: 'investor_id,period_id',
-          ignoreDuplicates: false
-        });
+        },
+        {
+          onConflict: "investor_id,period_id",
+          ignoreDuplicates: false,
+        }
+      );
 
       if (statementError) {
         console.error(`Failed to upsert statement for investor ${investorId}:`, statementError);
@@ -446,29 +471,44 @@ Deno.serve(async (req) => {
 // Helper functions for HTML generation
 
 const FUND_ICONS: Record<string, string> = {
-  "BTC YIELD FUND": "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  "ETH YIELD FUND": "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "USDC YIELD FUND": "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  "USDT YIELD FUND": "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  "SOL YIELD FUND": "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
-  "EURC YIELD FUND": "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
-  "XAUT YIELD FUND": "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
-  "XRP YIELD FUND": "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+  "BTC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+  "ETH YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+  "USDC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
+  "USDT YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  "SOL YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
+  "EURC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
+  "XAUT YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+  "XRP YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
 };
 
-const LOGO_URL = "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
+const LOGO_URL =
+  "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
 
 const SOCIAL_ICONS = {
-  linkedin: "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
-  instagram: "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
-  twitter: "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
+  linkedin:
+    "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
+  instagram:
+    "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
+  twitter:
+    "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
 };
 
 function formatNumber(value: number, decimals: number = 2): string {
   if (value < 0) {
-    return `(${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })})`;
+    return `(${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })})`;
   }
-  return value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 }
 
 function formatPercent(value: number): string {
@@ -479,13 +519,13 @@ function formatPercent(value: number): string {
 }
 
 function getValueColor(value: number): string {
-  return value < 0 ? '#dc2626' : '#16a34a';
+  return value < 0 ? "#dc2626" : "#16a34a";
 }
 
 function generateFundBlockHtml(record: any, currency: string, hasSpacer: boolean): string {
   const fundName = `${currency} YIELD FUND`;
   const iconUrl = FUND_ICONS[fundName] || FUND_ICONS["USDC YIELD FUND"];
-  const spacer = hasSpacer ? '<tr><td style="height:16px;"></td></tr>' : '';
+  const spacer = hasSpacer ? '<tr><td style="height:16px;"></td></tr>' : "";
 
   return `${spacer}
     <tr>
@@ -565,9 +605,13 @@ function generateFundBlockHtml(record: any, currency: string, hasSpacer: boolean
     </tr>`;
 }
 
-function generateStatementHtml(investorName: string, reportDate: string, fundsHtml: string): string {
+function generateStatementHtml(
+  investorName: string,
+  reportDate: string,
+  fundsHtml: string
+): string {
   const currentYear = new Date().getFullYear();
-  
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

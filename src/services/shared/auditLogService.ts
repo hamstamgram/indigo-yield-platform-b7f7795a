@@ -185,7 +185,18 @@ class AuditLogService {
    */
   async getAuditLogSummary(filters: AuditLogFilters = {}): Promise<AuditLogSummary> {
     try {
-      let query = supabase.from("audit_log").select("action, entity, actor_user");
+      // Use a proper count query to get the true total (not limited by default 1000 row cap)
+      let countQuery = supabase.from("audit_log").select("*", { count: "exact", head: true });
+      if (filters.startDate) {
+        countQuery = countQuery.gte("created_at", filters.startDate);
+      }
+      if (filters.endDate) {
+        countQuery = countQuery.lte("created_at", filters.endDate);
+      }
+      const { count: totalCount } = await countQuery;
+
+      // Fetch breakdown data (action/entity/actor counts) - use a reasonable limit
+      let query = supabase.from("audit_log").select("action, entity, actor_user").limit(10000);
 
       if (filters.startDate) {
         query = query.gte("created_at", filters.startDate);
@@ -237,7 +248,7 @@ class AuditLogService {
       });
 
       return {
-        totalEntries: data?.length || 0,
+        totalEntries: totalCount ?? data?.length ?? 0,
         actionCounts,
         entityCounts,
         topActors,

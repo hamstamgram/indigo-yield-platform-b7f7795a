@@ -2,10 +2,12 @@
 const ALLOWED_ORIGINS = [
   "https://indigo-yield-platform.vercel.app",
   "https://indigo-yield-platform-v01.vercel.app",
+  "https://indigo-yield-platform-v01.lovable.app",
   "https://app.indigofund.com",
   "https://www.indigofund.com",
   "http://localhost:3000",
   "http://localhost:5173", // Vite dev server
+  "http://localhost:8080", // Vite dev server (alt port)
 ];
 
 // Static CORS headers (used when origin is not dynamic)
@@ -21,9 +23,8 @@ export const corsHeaders = {
  * @returns CORS headers with validated origin or default
  */
 export function getCorsHeaders(requestOrigin?: string | null): Record<string, string> {
-  const origin = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)
-    ? requestOrigin
-    : ALLOWED_ORIGINS[0];
+  const origin =
+    requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
 
   return {
     "Access-Control-Allow-Origin": origin,

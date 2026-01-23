@@ -213,7 +213,8 @@ export async function acknowledgeAlert(alertId: string, userId: string): Promise
 }
 
 /**
- * Run integrity check via RPC
+ * Run integrity check via RPC.
+ * After a successful check with 0 violations, auto-resolves stale integrity alerts.
  */
 export async function runIntegrityCheck(): Promise<IntegrityCheckResult> {
   const { data, error } = await callRPC("run_integrity_check", {});
@@ -223,7 +224,37 @@ export async function runIntegrityCheck(): Promise<IntegrityCheckResult> {
     throw new Error(error.message);
   }
 
-  return data as unknown as IntegrityCheckResult;
+  const result = data as unknown as IntegrityCheckResult;
+
+  // Auto-resolve stale integrity alerts when check passes with 0 violations
+  if (result && (result.total_violations === 0 || result.violations_count === 0)) {
+    await autoResolveStaleAlerts();
+  }
+
+  return result;
+}
+
+/**
+ * Auto-resolve (acknowledge) all unacknowledged integrity_violation alerts.
+ * Called after a successful integrity check confirms no current violations.
+ */
+async function autoResolveStaleAlerts(): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("admin_alerts")
+      .update({
+        acknowledged_at: new Date().toISOString(),
+        acknowledged_by: "system_auto_resolve",
+      })
+      .eq("alert_type", "integrity_violation")
+      .is("acknowledged_at", null);
+
+    if (error) {
+      logError("autoResolveStaleAlerts", error);
+    }
+  } catch (err) {
+    logError("autoResolveStaleAlerts.exception", err);
+  }
 }
 
 /**

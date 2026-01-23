@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: ["host.docker.internal", "localhost"],
     headers: {
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
@@ -15,7 +16,8 @@ export default defineConfig(({ mode }) => ({
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
       "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none';",
+      "Content-Security-Policy":
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none';",
     },
   },
   preview: {
@@ -28,18 +30,20 @@ export default defineConfig(({ mode }) => ({
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
       "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none';",
+      "Content-Security-Policy":
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none';",
     },
   },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    process.env.ANALYZE === "true" && visualizer({
-      open: true,
-      filename: "dist/stats.html",
-      gzipSize: true,
-      brotliSize: true,
-    }),
+    process.env.ANALYZE === "true" &&
+      visualizer({
+        open: true,
+        filename: "dist/stats.html",
+        gzipSize: true,
+        brotliSize: true,
+      }),
   ].filter(Boolean),
   resolve: {
     alias: {

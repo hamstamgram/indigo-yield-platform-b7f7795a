@@ -422,30 +422,31 @@ async function queryIntegrityViews() {
  */
 export async function getDataIntegrityStatus(): Promise<IntegrityData> {
   // Query integrity views and last activity timestamps in parallel
-  const [integrityViews, lastYieldDistResult, lastReportResult, lastEmailWebhookResult] = await Promise.all([
-    queryIntegrityViews(),
+  const [integrityViews, lastYieldDistResult, lastReportResult, lastEmailWebhookResult] =
+    await Promise.all([
+      queryIntegrityViews(),
 
-    supabase
-      .from("daily_nav")
-      .select("created_at")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      supabase
+        .from("yield_distributions")
+        .select("created_at")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
 
-    supabase
-      .from("generated_reports")
-      .select("created_at")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      supabase
+        .from("generated_statements")
+        .select("created_at")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
 
-    supabase
-      .from("statement_email_delivery")
-      .select("created_at")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+      supabase
+        .from("statement_email_delivery")
+        .select("created_at")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
   // Type the results
   const lastYieldDist = lastYieldDistResult.data as LastActivityRow | null;

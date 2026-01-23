@@ -82,7 +82,7 @@ export async function previewYieldDistribution(
     positionsResult.data?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
   // Calculate gross yield amount from AUM difference
-  const newTotalAUMNum = typeof newTotalAUM === 'string' ? parseFloat(newTotalAUM) : newTotalAUM;
+  const newTotalAUMNum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
   const grossYieldAmount = newTotalAUMNum - currentAUM;
 
   // Call ADB preview RPC (time-weighted allocation)
@@ -109,32 +109,35 @@ export async function previewYieldDistribution(
   }
 
   // Map distributions from ADB backend format
-  const distributions: YieldDistribution[] = (result.allocations || []).map((d: ADBAllocationItem) => ({
-    investorId: d.investor_id,
-    investorName: d.investor_name,
-    accountType: undefined,
-    currentBalance: String(d.adb || 0), // Use ADB as "current" context
-    allocationPercentage: String(d.weight_pct || 0),
-    feePercentage: String(d.fee_pct || 0),
-    grossYield: String(d.gross_amount || 0),
-    feeAmount: String(d.fee_amount || 0),
-    netYield: String(d.net_amount || 0),
-    newBalance: "0", // Not applicable for preview
-    positionDelta: String(d.net_amount || 0),
-    ibParentId: undefined,
-    ibParentName: undefined,
-    ibPercentage: String(d.ib_pct || 0),
-    ibAmount: String(d.ib_amount || 0),
-    referenceId: "",
-    wouldSkip: false,
-    // ADB-specific fields
-    adb: String(d.adb || 0),
-    adbWeight: String(Number(d.weight_pct || 0) / 100), // Convert % to decimal
-    carriedLoss: String(d.carried_loss || 0),
-    lossOffset: String(d.loss_offset || 0),
-    taxableGain: String(d.taxable_gain || 0),
-    hasIb: Boolean(d.has_ib),
-  }));
+  // Field names match the RPC's JSONB output: adb_share_pct, gross_yield, net_yield, ib_rate
+  const distributions: YieldDistribution[] = (result.allocations || []).map(
+    (d: ADBAllocationItem) => ({
+      investorId: d.investor_id,
+      investorName: d.investor_name,
+      accountType: d.account_type,
+      currentBalance: String(d.adb || 0), // Use ADB as "current" context
+      allocationPercentage: String(d.adb_share_pct || 0),
+      feePercentage: String(d.fee_pct || 0),
+      grossYield: String(d.gross_yield || 0),
+      feeAmount: String(d.fee_amount || 0),
+      netYield: String(d.net_yield || 0),
+      newBalance: "0", // Not applicable for preview
+      positionDelta: String(d.net_yield || 0),
+      ibParentId: d.ib_parent_id,
+      ibParentName: d.ib_parent_name,
+      ibPercentage: String(d.ib_rate || 0),
+      ibAmount: String(d.ib_amount || 0),
+      referenceId: "",
+      wouldSkip: false,
+      // ADB-specific fields
+      adb: String(d.adb || 0),
+      adbWeight: String(Number(d.adb_share_pct || 0) / 100), // Convert % to decimal
+      carriedLoss: String(d.carried_loss || 0),
+      lossOffset: String(d.loss_offset || 0),
+      taxableGain: String(d.taxable_gain || 0),
+      hasIb: Boolean(d.ib_parent_id && (d.ib_rate || 0) > 0),
+    })
+  );
 
   // IB credits are computed separately in ADB model
   const ibCredits: IBCredit[] = [];
