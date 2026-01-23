@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-  Textarea, Label,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Textarea,
+  Label,
 } from "@/components/ui";
 import { Loader2, ArrowRightLeft } from "lucide-react";
 import { useWithdrawalMutations } from "@/hooks/data";
+import { useAuth } from "@/services/auth";
 
 interface RouteToFeesDialogProps {
   open: boolean;
@@ -22,15 +30,17 @@ export function RouteToFeesDialog({
   onSuccess,
 }: RouteToFeesDialogProps) {
   const [adminNotes, setAdminNotes] = useState("");
+  const { user } = useAuth();
 
   const { routeToFeesMutation } = useWithdrawalMutations();
 
   const handleSubmit = async () => {
-    if (!withdrawal) return;
+    if (!withdrawal || !user?.id) return;
 
     routeToFeesMutation.mutate(
       {
         withdrawalId: withdrawal.id,
+        actorId: user.id,
         reason: adminNotes || "Routed to INDIGO FEES",
         investorId: withdrawal.investor_id,
         fundId: withdrawal.fund_id,
@@ -60,7 +70,8 @@ export function RouteToFeesDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="text-left space-y-3">
             <p>
-              This will create <strong>admin-only</strong> internal transactions to route this withdrawal to the INDIGO FEES account.
+              This will create <strong>admin-only</strong> internal transactions to route this
+              withdrawal to the INDIGO FEES account.
             </p>
             <div className="bg-muted rounded-md p-3 space-y-1 text-sm">
               <p>
@@ -79,7 +90,8 @@ export function RouteToFeesDialog({
               </p>
             </div>
             <p className="text-xs text-muted-foreground">
-              This creates paired INTERNAL_WITHDRAWAL and INTERNAL_CREDIT transactions that are hidden from investors.
+              This creates paired INTERNAL_WITHDRAWAL and INTERNAL_CREDIT transactions that are
+              hidden from investors.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>

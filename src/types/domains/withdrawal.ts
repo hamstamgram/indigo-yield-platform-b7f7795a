@@ -140,5 +140,6 @@ export interface DeleteWithdrawalParams {
 
 export interface RouteToFeesParams {
   withdrawalId: string;
+  actorId: string;
   reason?: string;
 }

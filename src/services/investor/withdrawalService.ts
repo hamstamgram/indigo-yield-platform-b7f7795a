@@ -478,7 +478,7 @@ export const withdrawalService = {
     const { error } = await rpc.call("create_withdrawal_request", {
       p_investor_id: params.investorId,
       p_fund_id: params.fundId,
-      p_amount: typeof params.amount === 'string' ? parseFloat(params.amount) : params.amount,
+      p_amount: typeof params.amount === "string" ? parseFloat(params.amount) : params.amount,
       p_type: params.withdrawalType,
       p_notes: params.notes || null,
     });
@@ -488,10 +488,12 @@ export const withdrawalService = {
 
   /**
    * Route a withdrawal to INDIGO FEES account via RPC
+   * Requires super_admin role - actorId is used for authorization check
    */
   async routeToFees(params: RouteToFeesParams): Promise<void> {
     const { error } = await rpc.call("route_withdrawal_to_fees", {
       p_request_id: params.withdrawalId,
+      p_actor_id: params.actorId,
       p_reason: params.reason || "Routed to INDIGO FEES",
     });
 
@@ -504,7 +506,10 @@ export const withdrawalService = {
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
     const { error } = await rpc.call("update_withdrawal", {
       p_withdrawal_id: params.withdrawalId,
-      p_requested_amount: typeof params.requestedAmount === 'string' ? parseFloat(params.requestedAmount) : params.requestedAmount,
+      p_requested_amount:
+        typeof params.requestedAmount === "string"
+          ? parseFloat(params.requestedAmount)
+          : params.requestedAmount,
       p_withdrawal_type: params.withdrawalType,
       p_notes: params.notes || null,
       p_reason: params.reason,
