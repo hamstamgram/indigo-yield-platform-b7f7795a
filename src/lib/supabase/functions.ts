@@ -14,6 +14,15 @@ export async function invokeFunction<T = any>(
   }
 ): Promise<{ data: T | null; error: Error | null }> {
   try {
+    // Verify session before invoking protected functions
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { 
+        data: null, 
+        error: new Error("Session expired. Please log in again.") 
+      };
+    }
+
     const { data, error } = await supabase.functions.invoke<T>(functionName, {
       body,
       headers: addCsrfHeader(options?.headers || {}),
@@ -21,6 +30,15 @@ export async function invokeFunction<T = any>(
 
     if (error) {
       console.error(`Function ${functionName} error:`, error);
+      
+      // Improve error message for network failures
+      if (error.message?.includes("Failed to send") || error.message?.includes("fetch")) {
+        return { 
+          data: null, 
+          error: new Error(`Unable to reach ${functionName}. Please check your connection.`) 
+        };
+      }
+      
       return { data: null, error };
     }
 

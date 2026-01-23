@@ -39,20 +39,32 @@ secret = ""
 redirect_uri = ""
 url = ""
 
+# Edge Functions Configuration
+# Public functions (no JWT required)
 [functions.get-crypto-prices]
 verify_jwt = false
-
-[functions.send-admin-invite]
-verify_jwt = true
-
-[functions.admin-user-management]
-verify_jwt = true
 
 [functions.set-user-password]
 verify_jwt = false
 
 [functions.setup-test-users]
 verify_jwt = false
+
+[functions.mailersend-webhook]
+verify_jwt = false
+
+[functions.integrity-monitor]
+verify_jwt = false
+
+[functions.status]
+verify_jwt = false
+
+# Protected functions (JWT required)
+[functions.admin-user-management]
+verify_jwt = true
+
+[functions.send-admin-invite]
+verify_jwt = true
 
 [functions.generate-fund-performance]
 verify_jwt = true
@@ -66,11 +78,65 @@ verify_jwt = true
 [functions.send-report-mailersend]
 verify_jwt = true
 
-[functions.mailersend-webhook]
-verify_jwt = false
-
 [functions.refresh-delivery-status]
 verify_jwt = true
 
-[functions.integrity-monitor]
-verify_jwt = false
+[functions.mfa-totp-status]
+verify_jwt = true
+
+[functions.mfa-totp-initiate]
+verify_jwt = true
+
+[functions.mfa-totp-verify]
+verify_jwt = true
+
+[functions.mfa-totp-disable]
+verify_jwt = true
+
+[functions.bootstrap-system-users]
+verify_jwt = true
+
+[functions.ef_register_session]
+verify_jwt = true
+
+[functions.ef_send_notification]
+verify_jwt = true
+
+[functions.excel_export]
+verify_jwt = true
+
+[functions.excel_import]
+verify_jwt = true
+
+[functions.generate-monthly-statements]
+verify_jwt = true
+
+[functions.generate-report]
+verify_jwt = true
+
+[functions.generate-tax-documents]
+verify_jwt = true
+
+[functions.investor-audit]
+verify_jwt = true
+
+[functions.parity_check]
+verify_jwt = true
+
+[functions.process-withdrawal]
+verify_jwt = true
+
+[functions.seed-master-users]
+verify_jwt = true
+
+[functions.send-email]
+verify_jwt = true
+
+[functions.send-investor-report]
+verify_jwt = true
+
+[functions.send-notification-email]
+verify_jwt = true
+
+[functions.session-cleanup]
+verify_jwt = true
