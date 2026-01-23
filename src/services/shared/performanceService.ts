@@ -1,3 +1,45 @@
+/**
+ * Performance Service
+ *
+ * @module performanceService
+ * @description
+ * Provides read access to investor performance data from the `investor_fund_performance`
+ * table. This service supports the investor dashboard, performance history, and
+ * admin reporting features.
+ *
+ * ## Rate of Return Storage
+ * The database stores pre-calculated RoR values for each time horizon:
+ * - `mtd_rate_of_return` - Month-to-date
+ * - `qtd_rate_of_return` - Quarter-to-date
+ * - `ytd_rate_of_return` - Year-to-date
+ * - `itd_rate_of_return` - Inception-to-date
+ *
+ * ## Calculation Methodology: Modified Dietz Method
+ * Rate of Return is calculated using the Modified Dietz approximation:
+ *
+ * ```
+ * RoR = (Net Income / (Beginning Balance + (Additions - Redemptions) / 2)) × 100
+ * ```
+ *
+ * This formula:
+ * - Approximates time-weighted returns without requiring daily valuations
+ * - Assumes cash flows occur at the midpoint of the period
+ * - Is the industry standard for monthly investor statements
+ * - Provides more accurate results than simple RoR when cash flows are significant
+ *
+ * ## Balance Equation Invariant
+ * For data integrity, the following equation must always hold:
+ *
+ * ```
+ * ending_balance = beginning_balance + additions - redemptions + net_income
+ * ```
+ *
+ * This invariant is validated by the E2E test suite.
+ *
+ * @see https://en.wikipedia.org/wiki/Modified_Dietz_method
+ * @see docs/FINANCIAL_RULEBOOK.md for canonical formulas
+ * @see tests/sql/performance_balance_e2e.sql for balance equation validation
+ */
 import { supabase } from "@/integrations/supabase/client";
 import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
 import { logError } from "@/lib/logger";
