@@ -1,12 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
 import { addCsrfHeader } from "@/lib/security/csrf";
-import { User } from "@supabase/supabase-js";
+
+/**
+ * Helper to verify session and throw a user-friendly error if expired
+ */
+async function requireSession(): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error("Your session has expired. Please log in again to continue.");
+  }
+}
 
 export const createOrFindInvestorUser = async (
   values: InvestorFormValues
 ): Promise<string | null> => {
   try {
+    // Verify session before making the call
+    await requireSession();
     // Generate a complex password that meets Supabase requirements
     const generateStrongPassword = () => {
       const lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -117,6 +128,9 @@ export const createOrFindInvestorUser = async (
 
 export const deleteInvestorUser = async (userId: string): Promise<void> => {
   try {
+    // Verify session before making the call
+    await requireSession();
+
     const { data, error } = await supabase.functions.invoke("admin-user-management", {
       body: {
         action: "deleteUser",
@@ -127,6 +141,12 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
 
     if (error) {
       console.error("Error deleting user via Edge Function:", error);
+      
+      // Handle network/connection errors
+      if (error.message?.includes("Failed to send") || error.message?.includes("fetch")) {
+        throw new Error("Unable to connect to the server. Please check your internet connection and try again.");
+      }
+      
       let errorMessage = "Failed to delete user";
       try {
         if (error.context && typeof error.context.json === 'function') {
@@ -153,6 +173,9 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
 
 export const forceDeleteInvestorUser = async (userId: string): Promise<void> => {
   try {
+    // Verify session before making the call
+    await requireSession();
+
     const { data, error } = await supabase.functions.invoke("admin-user-management", {
       body: {
         action: "forceDeleteUser",
@@ -163,6 +186,12 @@ export const forceDeleteInvestorUser = async (userId: string): Promise<void> => 
 
     if (error) {
       console.error("Error force deleting user via Edge Function:", error);
+      
+      // Handle network/connection errors
+      if (error.message?.includes("Failed to send") || error.message?.includes("fetch")) {
+        throw new Error("Unable to connect to the server. Please check your internet connection and try again.");
+      }
+      
       let errorMessage = "Failed to force delete user";
       try {
         if (error.context && typeof error.context.json === 'function') {
