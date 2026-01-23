@@ -23,6 +23,8 @@ import type {
   IBCredit,
   YieldTotals,
   YieldCalculationResult,
+  ADBYieldRPCResult,
+  ADBAllocationItem,
 } from "@/types/domains/yield";
 
 // UUID validation regex
@@ -100,14 +102,14 @@ export async function previewYieldDistribution(
     throw new Error(`Failed to preview yield: ${error.message}`);
   }
 
-  const result = data as any;
+  const result = data as unknown as ADBYieldRPCResult;
 
   if (!result || !result.success) {
     throw new Error(result?.error || "Preview failed: Invalid response from server");
   }
 
   // Map distributions from ADB backend format
-  const distributions: YieldDistribution[] = (result.allocations || []).map((d: any) => ({
+  const distributions: YieldDistribution[] = (result.allocations || []).map((d: ADBAllocationItem) => ({
     investorId: d.investor_id,
     investorName: d.investor_name,
     accountType: undefined,

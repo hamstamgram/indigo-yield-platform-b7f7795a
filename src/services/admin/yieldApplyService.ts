@@ -27,6 +27,7 @@ import type {
   YieldDistribution,
   YieldTotals,
   YieldCalculationResult,
+  ADBYieldRPCResult,
 } from "@/types/domains/yield";
 
 /**
@@ -79,7 +80,7 @@ export async function applyYieldDistribution(
     throw new Error(`Failed to apply yield: ${error.message}`);
   }
 
-  const result = data as any;
+  const result = data as unknown as ADBYieldRPCResult;
 
   if (!result || !result.success) {
     throw new Error(result?.error || "Apply failed: Invalid response from server");

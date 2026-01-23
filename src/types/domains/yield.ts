@@ -191,3 +191,81 @@ export type YieldPurpose = "reporting" | "transaction";
  * Status of yield distribution
  */
 export type YieldStatus = "preview" | "applied";
+
+/**
+ * ADB (Average Daily Balance) Yield Distribution RPC Result
+ * Type-safe interface for apply_adb_yield_distribution_v3 and preview_adb_yield_distribution_v3 results
+ */
+export interface ADBYieldRPCResult {
+  success: boolean;
+  error?: string;
+  fund_id?: string;
+  fund_code?: string;
+  fund_asset?: string;
+  gross_yield?: number;
+  net_yield?: number;
+  total_fees?: number;
+  total_ib?: number;
+  investor_count?: number;
+  yield_rate_pct?: number;
+  days_in_period?: number;
+  total_adb?: number;
+  total_loss_offset?: number;
+  dust_amount?: number;
+  features?: string[];
+  conservation_check?: boolean;
+  // Preview-specific fields
+  allocations?: ADBAllocationItem[];
+}
+
+/**
+ * Individual investor allocation from ADB RPC
+ */
+export interface ADBAllocationItem {
+  investor_id: string;
+  investor_name: string;
+  adb: number;
+  weight_pct: number;
+  fee_pct: number;
+  gross_amount: number;
+  fee_amount: number;
+  net_amount: number;
+  ib_pct?: number;
+  ib_amount?: number;
+  carried_loss?: number;
+  loss_offset?: number;
+  taxable_gain?: number;
+  has_ib?: boolean;
+}
+
+/**
+ * Supabase join result type for investor_fund_performance with statement_periods
+ * Note: Uses string | null for numeric fields to match Supabase JSON return types
+ */
+export interface PerformanceWithPeriod {
+  id: string;
+  investor_id: string;
+  fund_name: string;
+  period_id: string;
+  mtd_beginning_balance: string | number | null;
+  mtd_ending_balance: string | number | null;
+  mtd_additions: string | number | null;
+  mtd_redemptions: string | number | null;
+  mtd_net_income: string | number | null;
+  mtd_rate_of_return: string | number | null;
+  qtd_net_income: string | number | null;
+  qtd_ending_balance: string | number | null;
+  qtd_rate_of_return: string | number | null;
+  ytd_net_income: string | number | null;
+  ytd_ending_balance: string | number | null;
+  ytd_rate_of_return: string | number | null;
+  itd_net_income: string | number | null;
+  itd_ending_balance: string | number | null;
+  itd_rate_of_return: string | number | null;
+  period: {
+    period_name?: string;
+    period_end_date?: string;
+    year?: number;
+    month?: number;
+  } | null;
+}
