@@ -18,13 +18,51 @@ interface ProcessedReport extends PerformanceHistoryRecord {
 
 /**
  * Rate of Return Calculation: Modified Dietz Method
- * 
- * Formula: RoR = (Net Income / (Opening Balance + Net Flows / 2)) × 100
- * 
- * This approximates time-weighted return by assuming cash flows occur
- * mid-period. Industry-standard for monthly investor statements.
- * 
+ *
+ * @description
+ * Calculates the monthly rate of return using the Modified Dietz approximation,
+ * which adjusts for cash flows by assuming they occur mid-period.
+ *
+ * ## Formula
+ * ```
+ * RoR = (Net Income / Adjusted Capital) × 100
+ *
+ * Where:
+ *   Net Income       = yield_earned (interest/dividends for the period)
+ *   Net Flows        = additions - withdrawals
+ *   Adjusted Capital = opening_balance + (net_flows / 2)
+ * ```
+ *
+ * ## Why Modified Dietz?
+ * - Industry-standard for monthly investor statements
+ * - Approximates time-weighted return without daily valuations
+ * - Assumes cash flows occur at the midpoint of the period
+ * - More accurate than simple RoR when significant deposits/withdrawals occur
+ *
+ * ## Edge Cases
+ * - If adjusted capital is zero or negative, returns 0% to avoid division errors
+ * - New investors mid-month: opening_balance = 0, so denominator = additions / 2
+ *
+ * ## Relationship to Database
+ * The database column `mtd_rate_of_return` in `investor_fund_performance` stores
+ * a pre-calculated value. This client-side calculation is used for:
+ * - Displaying rates in the performance history table
+ * - Ensuring consistency when database values are not yet available
+ *
+ * ## Dual Formula Note
+ * There are two RoR formulas used in the system:
+ * 1. **Modified Dietz (this component)**: `RoR = net_income / (begin + net_flows/2)`
+ * 2. **Simple RoR (statementCalculations.ts)**: `RoR = net_income / beginning_balance`
+ *
+ * Both are valid. Modified Dietz is more accurate when cash flows are significant
+ * relative to the balance.
+ *
  * @see https://en.wikipedia.org/wiki/Modified_Dietz_method
+ * @see docs/FINANCIAL_RULEBOOK.md for canonical formulas
+ * @see tests/sql/performance_balance_e2e.sql for balance equation validation
+ *
+ * @param report - The performance record containing balance and flow data
+ * @returns Rate of return as a percentage (e.g., 2.5 for 2.5%)
  */
 const calculateRate = (report: PerformanceHistoryRecord): number => {
   const netFlows = (report.additions || 0) - (report.withdrawals || 0);
