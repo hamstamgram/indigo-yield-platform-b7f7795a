@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
 import { logError } from "@/lib/logger";
+import type { PerformanceWithPeriod } from "@/types/domains/yield";
 
 export const performanceService = {
   /**
@@ -32,8 +33,8 @@ export const performanceService = {
       throw error;
     }
 
-    // Cast to unknown first to break deep type instantiation chain from Supabase inference
-    const rawData = data as unknown as any[];
+    // Cast to typed interface to break deep type instantiation chain from Supabase inference
+    const rawData = data as unknown as PerformanceWithPeriod[];
 
     // Sort by period_end_date descending
     const sortedData = rawData.sort((a, b) => {
@@ -42,7 +43,31 @@ export const performanceService = {
       return dateB - dateA;
     });
 
-    return sortedData as PerformanceRecord[];
+    // Map to PerformanceRecord (convert nullable numbers to strings)
+    return sortedData.map((r): PerformanceRecord => ({
+      id: r.id,
+      period_id: r.period_id,
+      investor_id: r.investor_id,
+      fund_name: r.fund_name,
+      mtd_net_income: String(r.mtd_net_income ?? 0),
+      mtd_ending_balance: String(r.mtd_ending_balance ?? 0),
+      mtd_rate_of_return: String(r.mtd_rate_of_return ?? 0),
+      qtd_net_income: String(r.qtd_net_income ?? 0),
+      qtd_ending_balance: String(r.qtd_ending_balance ?? 0),
+      qtd_rate_of_return: String(r.qtd_rate_of_return ?? 0),
+      ytd_net_income: String(r.ytd_net_income ?? 0),
+      ytd_ending_balance: String(r.ytd_ending_balance ?? 0),
+      ytd_rate_of_return: String(r.ytd_rate_of_return ?? 0),
+      itd_net_income: r.itd_net_income != null ? String(r.itd_net_income) : undefined,
+      itd_ending_balance: r.itd_ending_balance != null ? String(r.itd_ending_balance) : undefined,
+      itd_rate_of_return: r.itd_rate_of_return != null ? String(r.itd_rate_of_return) : undefined,
+      period: r.period ? {
+        period_name: r.period.period_name || "",
+        period_end_date: r.period.period_end_date || "",
+        year: r.period.year || 0,
+        month: r.period.month || 0,
+      } : undefined,
+    }));
   },
 
   /**
@@ -201,10 +226,11 @@ export const performanceService = {
       throw error;
     }
 
-    // Map to MonthlyReport format
-    const reports = (data || []).map((r: any) => ({
+    // Map to MonthlyReport format using typed interface
+    const typedData = (data || []) as unknown as PerformanceWithPeriod[];
+    const reports = typedData.map((r) => ({
       id: r.id,
-      report_month: r.period?.period_end_date,
+      report_month: r.period?.period_end_date || "",
       asset_code: r.fund_name,
       opening_balance: Number(r.mtd_beginning_balance || 0),
       closing_balance: Number(r.mtd_ending_balance || 0),
