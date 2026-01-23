@@ -441,25 +441,58 @@ export async function fetchLatestPerformance(
     rate_of_return: number;
   };
 } | null> {
-  const { data: latestPerformance, error: perfError } = await (supabase as any)
+  // Note: Supabase JS v2 doesn't fully support order() on relation fields in TypeScript,
+  // so we fetch without ordering and sort client-side for type safety
+  const { data: allPerformance, error: perfError } = await supabase
     .from("investor_fund_performance")
     .select(
       `
-      *,
+      id,
+      fund_name,
+      mtd_beginning_balance,
+      mtd_additions,
+      mtd_redemptions,
+      mtd_net_income,
+      mtd_ending_balance,
+      mtd_rate_of_return,
+      qtd_beginning_balance,
+      qtd_additions,
+      qtd_redemptions,
+      qtd_net_income,
+      qtd_ending_balance,
+      qtd_rate_of_return,
+      ytd_beginning_balance,
+      ytd_additions,
+      ytd_redemptions,
+      ytd_net_income,
+      ytd_ending_balance,
+      ytd_rate_of_return,
+      itd_beginning_balance,
+      itd_additions,
+      itd_redemptions,
+      itd_net_income,
+      itd_ending_balance,
+      itd_rate_of_return,
       period:statement_periods(period_end_date)
     `
     )
     .eq("investor_id", investorId)
-    .eq("fund_name", assetCode)
-    .order("period(period_end_date)", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .eq("fund_name", assetCode);
 
   if (perfError) {
     logError("fetchLatestPerformance", perfError, { investorId, assetCode });
     return null;
   }
-  if (!latestPerformance) return null;
+  if (!allPerformance || allPerformance.length === 0) return null;
+
+  // Sort by period_end_date descending and take the latest
+  type PerformanceWithPeriod = (typeof allPerformance)[number];
+  const sorted = [...allPerformance].sort((a, b) => {
+    const dateA = (a.period as { period_end_date: string } | null)?.period_end_date || "";
+    const dateB = (b.period as { period_end_date: string } | null)?.period_end_date || "";
+    return dateB.localeCompare(dateA);
+  });
+  const latestPerformance = sorted[0] as PerformanceWithPeriod;
 
   return {
     MTD: {
@@ -487,12 +520,12 @@ export async function fetchLatestPerformance(
       rate_of_return: Number(latestPerformance.ytd_rate_of_return || 0) * 100,
     },
     ITD: {
-      beginning_balance: 0,
-      additions: 0,
-      withdrawals: 0,
-      net_income: 0,
-      ending_balance: 0,
-      rate_of_return: 0,
+      beginning_balance: Number(latestPerformance.itd_beginning_balance || 0),
+      additions: Number(latestPerformance.itd_additions || 0),
+      withdrawals: Number(latestPerformance.itd_redemptions || 0),
+      net_income: Number(latestPerformance.itd_net_income || 0),
+      ending_balance: Number(latestPerformance.itd_ending_balance || 0),
+      rate_of_return: Number(latestPerformance.itd_rate_of_return || 0) * 100,
     },
   };
 }
