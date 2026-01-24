@@ -19,100 +19,75 @@
 @layer base {
   :root {
     /* ============================================
-       COLOR PALETTE: "Yield Spectrum"
+       COLOR PALETTE: "Yield Spectrum" (Refined)
        ============================================ */
 
-    /* Brand Core - Deep Indigo */
-    /* Using specific HSL values for richer gradients */
+    /* Brand Core - Deep Indigo to Abyss */
     --indigo-brand: 231 48% 48%; /* #3F51B5 */
-    --indigo-deep: 231 53% 35%; /* #283593 */
-    --indigo-soft: 231 44% 96%; /* #E8EAF6 - Very light tint */
+    --indigo-night: 222 47% 11%; /* #0F172A */
+    
+    /* Yield Green - High energy */
+    --yield-neon: 150 100% 39%; /* #00C853 */
 
-    /* Growth & Yield - Neon Mint */
-    --yield-green: 150 100% 39%; /* #00C853 - Primary Success */
-    --yield-light: 150 70% 96%; /* #E8F8F0 - Success Background */
+    /* NEUTRAL BASE - Light Mode */
+    --background: 210 40% 98%; /* Premium Off-White/Grey */
+    --foreground: 222 47% 11%; /* Deep Navy Black */
 
-    /* Neutrals - High Contrast "App" Feel */
-    --app-bg: 0 0% 100%; /* #FFFFFF */
-    --app-surface: 210 40% 98%; /* #F8F9FA - Subtle grey for cards */
-    --app-text: 222 47% 11%; /* #0F172A - Almost Black */
-    --app-muted: 215 16% 47%; /* #64748B - Secondary Text */
-
-    /* ============================================
-       TAILWIND MAPPING
-       ============================================ */
-
-    /* Backgrounds */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-
-    /* Card Surfaces - Slight separation from background */
+    /* SURFACES */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
-
-    /* Popovers */
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary Action (Brand) */
+    /* PRIMARY ACTIONS */
     --primary: 231 48% 48%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary Action (Subtle) */
+    /* SECONDARY / MUTED */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11.2%;
-
-    /* Muted / Disabled */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 40%;
-
-    /* Accent / Hover States */
-    --accent: 210 40% 96.1%;
+    --accent: 210 40% 90%;
     --accent-foreground: 222 47% 11.2%;
 
-    /* Destructive */
+    /* FEEDBACK */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    /* Success / Yield (Custom utility class: .text-success) */
     --success: 150 100% 39%;
     --success-foreground: 0 0% 100%;
 
-    /* Borders */
-    --border: 214.3 31.8% 85%;
-    --input: 214.3 31.8% 91.4%;
+    /* BORDERS & RINGS */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 231 48% 48%;
 
-    /* Modern Radius */
-    --radius: 1rem; /* 16px - Larger, app-like corners */
+    /* RADIUS - Modern App Feel */
+    --radius: 1rem;
 
-    /* Sidebar Colors - High Contrast Navigation */
-    --sidebar: 231 48% 48%;
-    --sidebar-foreground: 0 0% 100%;
-    /* Active item: bright white background for maximum contrast */
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 231 48% 30%;
-    /* Hover state: lighter indigo for clear feedback */
-    --sidebar-accent: 231 48% 58%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 231 48% 40%;
-    --sidebar-ring: 0 0% 100%;
-    /* Muted text for inactive items */
-    --sidebar-muted: 231 30% 85%;
+    /* SIDEBAR - "Glassy Dock" Feel on Light Mode */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 231 48% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 231 48% 48%;
+    --sidebar-border: 220 13% 91%; /* Subtle */
+    --sidebar-ring: 231 48% 48%;
   }
 
   .dark {
-    /* Dark Mode - "Command Center" Feel */
-    --background: 222 47% 11%; /* #0F172A */
+    /* DARK MODE - "Abyss Command Center" */
+    --background: 224 71% 4%; /* #02040a - Deepest possible blue-black */
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 13%; /* Slightly lighter than BG */
+    --card: 222 47% 6%; /* Slight elevation */
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 11%;
+    --popover: 222 47% 4%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 231 48% 60%; /* Lighter Indigo for dark mode */
+    --primary: 231 48% 65%; /* Lighter Indigo */
     --primary-foreground: 222 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -124,29 +99,25 @@
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 45%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --success: 150 100% 45%; /* Brighter Green for dark mode */
+    --success: 150 100% 45%;
     --success-foreground: 222 47% 11%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 231 48% 60%;
+    --border: 217.2 32.6% 12%;
+    --input: 217.2 32.6% 12%;
+    --ring: 231 48% 65%;
 
-    /* Sidebar Colors - Dark Mode */
-    --sidebar: 222 47% 15%;
+    /* SIDEBAR - Dark Mode */
+    --sidebar: 224 71% 4%;
     --sidebar-foreground: 210 40% 98%;
-    /* Active item: primary brand color for visibility */
-    --sidebar-primary: 231 48% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    /* Hover state: slightly lighter for feedback */
-    --sidebar-accent: 222 47% 25%;
+    --sidebar-primary: 231 48% 65%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 20%;
-    --sidebar-ring: 231 48% 60%;
-    /* Muted text for inactive items */
-    --sidebar-muted: 222 30% 60%;
+    --sidebar-border: 217.2 32.6% 12%;
+    --sidebar-ring: 231 48% 65%;
   }
 }
 
@@ -154,99 +125,65 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-    font-family:
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      sans-serif;
+    font-family: "Inter", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ============================================
-     MODERN TYPOGRAPHY SYSTEM
-     ============================================ */
-
-  /* Headers - The "Display" Layer */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Montserrat", sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.03em; /* Tighter tracking for modern feel */
+  /* Typography Hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight text-foreground;
   }
-
-  /* Massive Hero Numbers */
-  .text-hero {
-    font-family: "Montserrat", sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-
-  /* Data / Financials - The "Precision" Layer */
-  .text-value,
+  
+  h1 { @apply text-4xl lg:text-5xl; }
+  h2 { @apply text-3xl lg:text-4xl; }
+  h3 { @apply text-2xl lg:text-3xl; }
+  
+  /* Utilities */
   .font-mono {
     font-family: "JetBrains Mono", monospace;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
-  /* ============================================
-     APP-LIKE CARD COMPONENT
-     ============================================ */
-  .dashboard-card {
-    @apply bg-card text-card-foreground rounded-2xl border border-border shadow-sm transition-all duration-200 hover:shadow-md;
+  /* GLASSMORPHISM UTILITIES */
+  .glass-panel {
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 shadow-lg;
   }
 
-  /* The "Green Pill" for Yield Indicators */
+  .glass-card {
+    @apply bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-card/80;
+  }
+
+  /* PREMIUM INTERACTIVE ELEMENTS */
+  .btn-premium {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-95;
+  }
+
+  .btn-premium::after {
+    content: '';
+    @apply absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300;
+  }
+
+  .btn-premium:hover::after {
+    @apply translate-y-0;
+  }
+
+  /* YIELD BADGES */
   .yield-badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-success/15 text-success dark:bg-success/20 dark:text-success;
   }
 
-  /* Utility classes for overflow handling */
-  .text-truncate {
-    @apply truncate max-w-full;
-  }
-
-  .text-truncate-2 {
-    @apply line-clamp-2 overflow-hidden;
-  }
-
-  /* Table cell with controlled width */
-  .table-cell-constrained {
-    @apply max-w-[200px] overflow-hidden;
-  }
-
-  /* Dialog content with overflow protection */
-  .dialog-content-overflow {
-    @apply max-h-[85vh] overflow-y-auto;
-  }
-
-  /* Card content with overflow protection */
-  .card-content-overflow {
-    @apply overflow-x-auto;
+  /* DASHBOARD CARD */
+  .dashboard-card {
+    @apply rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-1;
   }
 }
 
-/* Animations */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
+/* CUSTOM ANIMATIONS */
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
 
-.animate-shimmer {
-  animation: shimmer 2s linear infinite;
-}

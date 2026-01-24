@@ -20,54 +20,37 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        // Primary brand action - Deep Indigo with shadow
-        primary:
-          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30",
-
-        // Success actions - Mint Teal with shadow
-        success:
-          "bg-success text-success-foreground hover:bg-success/90 shadow-lg shadow-success/25 hover:shadow-xl hover:shadow-success/30",
-
-        // Warning/Risk actions - Coral with dark text
-        warning: "bg-amber-500 text-white hover:bg-amber-600 shadow-md shadow-amber-500/20",
-
-        // Destructive actions (keep existing)
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md shadow-destructive/20",
-
-        // Outline variant - Slate border with hover fill
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg btn-premium",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
         outline:
-          "border-2 border-slate-300 bg-transparent hover:bg-slate-100 hover:border-slate-400 text-slate-700",
+          "border border-input bg-background/50 hover:bg-accent hover:text-accent-foreground backdrop-blur-sm",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+        premium:
+          "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] border-0",
 
-        // Secondary actions - Slate background
-        secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-
-        // Ghost variant - Minimal style
-        ghost: "hover:bg-slate-100 text-slate-700 hover:text-slate-900",
-
-        // Link variant (keep existing)
-        link: "text-indigo-primary underline-offset-4 hover:underline hover:text-indigo-dark",
+        // COMPATIBILITY VARIANTS
+        primary:
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg btn-premium",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-md",
+        warning: "bg-amber-500 text-white hover:bg-amber-600 shadow-md",
       },
       size: {
-        // Small - 44px minimum for mobile touch targets
-        sm: "h-11 px-4 text-sm",
-
-        // Default - 48px optimal touch target
-        default: "h-12 px-6 text-base",
-
-        // Large - 56px premium feel for primary CTAs
-        lg: "h-14 px-8 text-lg",
-
-        // Icon only - Square button with 44px minimum
-        icon: "h-11 w-11",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8 text-base",
+        icon: "h-10 w-10",
+        xl: "h-12 rounded-lg px-8 text-lg font-semibold",
       },
     },
     defaultVariants: {
-      variant: "primary",
+      variant: "default",
       size: "default",
     },
   }

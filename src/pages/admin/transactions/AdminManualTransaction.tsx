@@ -4,19 +4,46 @@ import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Button, Input, Label, Textarea,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Alert, AlertDescription,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Alert,
+  AlertDescription,
   Calendar,
-  Popover, PopoverContent, PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { createAdminTransaction } from "@/services";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
-import { processDepositWithYield, previewDepositYield, getCurrentFundAum, type YieldPreviewResult } from "@/services/admin/depositWithYieldService";
-import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon, TrendingUp } from "lucide-react";
+import {
+  processDepositWithYield,
+  previewDepositYield,
+  getCurrentFundAum,
+  type YieldPreviewResult,
+} from "@/services/admin/depositWithYieldService";
+import {
+  Loader2,
+  ArrowRightLeft,
+  Info,
+  AlertTriangle,
+  Check,
+  CalendarIcon,
+  TrendingUp,
+} from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction, invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
@@ -28,6 +55,9 @@ import {
 } from "@/hooks/data/admin";
 import { logError } from "@/lib/logger";
 import { getTodayString } from "@/utils/dateUtils";
+
+// Maximum allowed deviation between expected and entered AUM (10%)
+const MAX_AUM_DEVIATION_PCT = 0.1;
 
 // Form Schema
 const transactionSchema = z.object({
@@ -50,7 +80,8 @@ export default function AdminManualTransaction() {
   const [yieldPreview, setYieldPreview] = useState<YieldPreviewResult | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [currentAum, setCurrentAum] = useState<number | null>(null);
-  
+  const [aumDeviationWarning, setAumDeviationWarning] = useState<string | null>(null);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -130,14 +161,49 @@ export default function AdminManualTransaction() {
   // Auto-select transaction type based on balance
   useEffect(() => {
     if (currentBalance === null || isCheckingBalance) return;
-    
+
     if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
       form.setValue("type", "DEPOSIT");
     }
   }, [currentBalance, isCheckingBalance, txnType, form]);
 
-  const isFirstInvestment = currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
-  const hasExistingPosition = currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
+  // Validate AUM deviation - CORE FIX for data entry errors
+  useEffect(() => {
+    if (!isDeposit || currentAum === null || !depositAmount || !newTotalAum) {
+      setAumDeviationWarning(null);
+      return;
+    }
+
+    try {
+      const amountDec = toDecimal(depositAmount);
+      const enteredAumDec = toDecimal(newTotalAum);
+      const expectedAumDec = toDecimal(currentAum).plus(amountDec);
+
+      if (expectedAumDec.isZero()) {
+        setAumDeviationWarning(null);
+        return;
+      }
+
+      const deviation = enteredAumDec.minus(expectedAumDec).abs().div(expectedAumDec);
+      const deviationPct = deviation.times(100);
+
+      if (deviation.gt(MAX_AUM_DEVIATION_PCT)) {
+        setAumDeviationWarning(
+          `Entered AUM (${enteredAumDec.toFixed(4)}) deviates by ${deviationPct.toFixed(1)}% from expected (${expectedAumDec.toFixed(4)}). ` +
+            `This may indicate a data entry error. Expected: currentAUM (${toDecimal(currentAum).toFixed(4)}) + deposit (${amountDec.toFixed(4)}) = ${expectedAumDec.toFixed(4)}`
+        );
+      } else {
+        setAumDeviationWarning(null);
+      }
+    } catch {
+      setAumDeviationWarning(null);
+    }
+  }, [isDeposit, currentAum, depositAmount, newTotalAum]);
+
+  const isFirstInvestment =
+    currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
+  const hasExistingPosition =
+    currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
   const isDeposit = txnType === "DEPOSIT" || txnType === "FIRST_INVESTMENT";
   const isLoading = investorsLoading || fundsLoading;
   const yieldPreviewAum = yieldPreview ? toDecimal(yieldPreview.currentAum) : null;
@@ -148,7 +214,7 @@ export default function AdminManualTransaction() {
   const onSubmit = async (data: TransactionFormValues) => {
     setIsSubmitting(true);
     try {
-      const selectedFund = funds.find(f => f.id === data.fundId);
+      const selectedFund = funds.find((f) => f.id === data.fundId);
       if (!selectedFund) {
         throw new Error("Selected fund not found");
       }
@@ -164,6 +230,22 @@ export default function AdminManualTransaction() {
 
         if (aumValue.lte(0)) {
           throw new Error("Please enter a valid New Total AUM");
+        }
+
+        // CORE FIX: Validate AUM against expected value before submission
+        if (currentAum !== null) {
+          const amountDec = toDecimal(data.amount);
+          const expectedAum = toDecimal(currentAum).plus(amountDec);
+
+          if (expectedAum.gt(0)) {
+            const deviation = aumValue.minus(expectedAum).abs().div(expectedAum);
+            if (deviation.gt(MAX_AUM_DEVIATION_PCT)) {
+              throw new Error(
+                `AUM validation failed: Entered AUM (${aumValue.toFixed(4)}) deviates by ${deviation.times(100).toFixed(1)}% from expected (${expectedAum.toFixed(4)}). ` +
+                  `Please verify the value is correct. If this is intentional, contact a super admin.`
+              );
+            }
+          }
         }
 
         const result = await processDepositWithYield({
@@ -186,19 +268,23 @@ export default function AdminManualTransaction() {
           invalidateAfterYieldOp(queryClient);
         }
 
-        const yieldMsg = result.yieldDistributed > 0 
-          ? ` Yield of ${result.yieldDistributed.toFixed(8)} ${selectedFund.asset} distributed to ${result.yieldInvestorsAffected} investors.`
-          : "";
+        const yieldMsg =
+          result.yieldDistributed > 0
+            ? ` Yield of ${result.yieldDistributed.toFixed(8)} ${selectedFund.asset} distributed to ${result.yieldInvestorsAffected} investors.`
+            : "";
 
         toast({
           title: "Transaction Created",
-          description: `Successfully created ${data.type.toLowerCase().replace(/_/g, ' ')} of ${data.amount} ${selectedFund.asset}.${yieldMsg}`,
+          description: `Successfully created ${data.type.toLowerCase().replace(/_/g, " ")} of ${data.amount} ${selectedFund.asset}.${yieldMsg}`,
         });
       } else {
         // Standard transaction (withdrawal or deposit without AUM)
-        const isFlow = data.type === "DEPOSIT" || data.type === "WITHDRAWAL" || data.type === "FIRST_INVESTMENT";
+        const isFlow =
+          data.type === "DEPOSIT" || data.type === "WITHDRAWAL" || data.type === "FIRST_INVESTMENT";
         if (isFlow && !data.newTotalAum) {
-          throw new Error("New Total AUM is required for deposits/withdrawals (crystallize-before-flow).");
+          throw new Error(
+            "New Total AUM is required for deposits/withdrawals (crystallize-before-flow)."
+          );
         }
 
         const result = await createAdminTransaction({
@@ -222,7 +308,7 @@ export default function AdminManualTransaction() {
 
         toast({
           title: "Transaction Created",
-          description: `Successfully created ${data.type.toLowerCase().replace(/_/g, ' ')} of ${data.amount} ${selectedFund.asset}.`,
+          description: `Successfully created ${data.type.toLowerCase().replace(/_/g, " ")} of ${data.amount} ${selectedFund.asset}.`,
         });
       }
 
@@ -268,7 +354,8 @@ export default function AdminManualTransaction() {
             Manual Transaction
           </CardTitle>
           <CardDescription>
-            Record a deposit or withdrawal. For deposits, enter the new total AUM to automatically distribute yield before the deposit is processed.
+            Record a deposit or withdrawal. For deposits, enter the new total AUM to automatically
+            distribute yield before the deposit is processed.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -292,7 +379,9 @@ export default function AdminManualTransaction() {
                 </SelectContent>
               </Select>
               {form.formState.errors.investorId && (
-                <p className="text-sm text-destructive">{form.formState.errors.investorId.message}</p>
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.investorId.message}
+                </p>
               )}
             </div>
 
@@ -332,7 +421,8 @@ export default function AdminManualTransaction() {
                     </span>
                   ) : (
                     <span>
-                      <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit" for top-ups
+                      <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit"
+                      for top-ups
                     </span>
                   )}
                 </AlertDescription>
@@ -345,23 +435,23 @@ export default function AdminManualTransaction() {
                 <Label>Type</Label>
                 <Select
                   value={form.watch("type") || ""}
-                  onValueChange={(val: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL") => form.setValue("type", val)}
+                  onValueChange={(val: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL") =>
+                    form.setValue("type", val)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem 
+                    <SelectItem
                       value="FIRST_INVESTMENT"
                       disabled={hasExistingPosition}
                       className={cn(hasExistingPosition && "opacity-50")}
                     >
                       First Investment {hasExistingPosition && "(position exists)"}
                     </SelectItem>
-                    <SelectItem value="DEPOSIT">
-                      Deposit / Top-up
-                    </SelectItem>
-                    <SelectItem 
+                    <SelectItem value="DEPOSIT">Deposit / Top-up</SelectItem>
+                    <SelectItem
                       value="WITHDRAWAL"
                       disabled={isFirstInvestment}
                       className={cn(isFirstInvestment && "opacity-50")}
@@ -434,6 +524,15 @@ export default function AdminManualTransaction() {
                 {currentAum !== null && (
                   <p className="text-xs text-muted-foreground">
                     Current AUM: {currentAum.toFixed(8)}
+                    {depositAmount && (
+                      <span className="ml-2 text-primary">
+                        (Expected after deposit:{" "}
+                        {toDecimal(currentAum)
+                          .plus(toDecimal(depositAmount || "0"))
+                          .toFixed(8)}
+                        )
+                      </span>
+                    )}
                   </p>
                 )}
                 {!newTotalAum && (
@@ -441,6 +540,19 @@ export default function AdminManualTransaction() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="text-sm">
                       Enter the new total AUM to calculate and distribute yield before this deposit.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {aumDeviationWarning && (
+                  <Alert
+                    variant="destructive"
+                    className="py-2 border-orange-500 bg-orange-50 dark:bg-orange-950/20"
+                  >
+                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                    <AlertDescription className="text-orange-700 dark:text-orange-400 text-sm">
+                      <strong>Warning: AUM deviation detected!</strong>
+                      <br />
+                      {aumDeviationWarning}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -458,15 +570,20 @@ export default function AdminManualTransaction() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Current AUM</p>
-                      <p className="font-medium">{yieldPreviewAum?.toFixed(8)} {yieldPreview.fundAsset}</p>
+                      <p className="font-medium">
+                        {yieldPreviewAum?.toFixed(8)} {yieldPreview.fundAsset}
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Yield to Distribute</p>
-                      <p className={cn(
-                        "font-medium",
-                        yieldPreviewGross?.gt(0) ? "text-green-600" : "text-muted-foreground"
-                      )}>
-                        {yieldPreviewGross?.gt(0) ? "+" : ""}{yieldPreviewGross?.toFixed(8)} {yieldPreview.fundAsset}
+                      <p
+                        className={cn(
+                          "font-medium",
+                          yieldPreviewGross?.gt(0) ? "text-green-600" : "text-muted-foreground"
+                        )}
+                      >
+                        {yieldPreviewGross?.gt(0) ? "+" : ""}
+                        {yieldPreviewGross?.toFixed(8)} {yieldPreview.fundAsset}
                         {yieldPreviewGross?.gt(0) && (
                           <span className="text-xs ml-1">({yieldPreviewPct?.toFixed(4)}%)</span>
                         )}
@@ -474,7 +591,9 @@ export default function AdminManualTransaction() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">This Deposit</p>
-                      <p className="font-medium">+{depositAmountDec?.abs().toFixed(8)} {yieldPreview.fundAsset}</p>
+                      <p className="font-medium">
+                        +{depositAmountDec?.abs().toFixed(8)} {yieldPreview.fundAsset}
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Investors Affected</p>
@@ -485,7 +604,8 @@ export default function AdminManualTransaction() {
                     <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
                       <Check className="h-4 w-4 text-green-600" />
                       <AlertDescription className="text-green-700 dark:text-green-400 text-sm">
-                        Yield will be distributed to {yieldPreview.investorCount} existing investors before the deposit is processed.
+                        Yield will be distributed to {yieldPreview.investorCount} existing investors
+                        before the deposit is processed.
                       </AlertDescription>
                     </Alert>
                   )}
@@ -519,9 +639,9 @@ export default function AdminManualTransaction() {
               <Textarea {...form.register("description")} placeholder="Admin notes..." />
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isSubmitting || (isDeposit && !newTotalAum)}
             >
               {isSubmitting ? (
@@ -529,10 +649,10 @@ export default function AdminManualTransaction() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
                 </>
+              ) : isDeposit && yieldPreview && yieldPreviewGross?.gt(0) ? (
+                "Distribute Yield & Create Deposit"
               ) : (
-                isDeposit && yieldPreview && yieldPreviewGross?.gt(0)
-                  ? "Distribute Yield & Create Deposit"
-                  : "Create Transaction"
+                "Create Transaction"
               )}
             </Button>
           </form>

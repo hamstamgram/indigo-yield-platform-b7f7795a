@@ -34,7 +34,10 @@
       "mcp__MCP_DOCKER__browser_snapshot",
       "mcp__MCP_DOCKER__browser_resize",
       "mcp__MCP_DOCKER__browser_press_key",
-      "mcp__MCP_DOCKER__browser_tabs"
+      "mcp__MCP_DOCKER__browser_tabs",
+      "mcp__MCP_DOCKER__browser_fill_form",
+      "mcp__MCP_DOCKER__browser_run_code",
+      "mcp__MCP_DOCKER__browser_network_requests"
     ],
     "deny": [],
     "ask": []

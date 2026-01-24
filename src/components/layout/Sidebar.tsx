@@ -21,7 +21,7 @@ type PortalView = "admin" | "ib" | "investor";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Portal view state for multi-role users (IBs)
   const [portalView, setPortalView] = useState<PortalView>("investor");
 
@@ -35,8 +35,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const userId = user?.id || null;
 
   // Compute userName from profile
-  const userName = profile 
-    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || user?.email?.split("@")[0] || "User"
+  const userName = profile
+    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
+      user?.email?.split("@")[0] ||
+      "User"
     : user?.email?.split("@")[0] || "User";
 
   // Get user role for proper navigation rendering
@@ -153,7 +155,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   };
 
   const activePortal = getActivePortal();
-  
+
   // Check if user has multiple portal options (IB users)
   const hasMultiplePortals = isIB && !isAdmin;
 
@@ -162,53 +164,56 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden animate-fade-in"
           onClick={closeSidebar}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar */}
-      <div
+      {/* Sidebar - Glassy Dock */}
+      <aside
         ref={sidebarRef}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto focus:outline-none",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 w-72 transform transition-all duration-300 ease-spring",
+          "lg:static lg:translate-x-0 lg:z-auto lg:h-screen lg:flex lg:flex-col lg:py-6 lg:pl-6",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          sidebarOpen && "h-full shadow-2xl lg:shadow-none"
         )}
         onKeyDown={handleKeyDown}
         tabIndex={-1}
         role="navigation"
-        aria-label={
-          activePortal === "admin"
-            ? "Admin navigation menu"
-            : activePortal === "ib"
-              ? "IB navigation menu"
-              : "Main navigation menu"
-        }
+        aria-label="Main navigation"
       >
-        <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-sidebar-border">
+        <div
+          className={cn(
+            "flex flex-col h-full bg-sidebar/95 backdrop-blur-xl border-r border-border/50 lg:border-none lg:bg-sidebar lg:rounded-2xl lg:shadow-sm overflow-hidden",
+            "lg:ring-1 lg:ring-border/50"
+          )}
+        >
+          {/* Sidebar Header - Brand */}
+          <div className="flex items-center justify-between px-6 py-6 lg:py-8">
             <div
-              className="flex items-center gap-2 flex-1 cursor-pointer"
+              className="flex items-center gap-3 cursor-pointer group"
               onClick={() => {
                 if (activePortal === "admin") navigate("/admin");
                 else if (activePortal === "ib") navigate("/ib");
                 else navigate("/dashboard");
               }}
             >
-              <img
-                src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
-                alt="Indigo Yield Fund"
-                className="h-8 w-auto"
-                loading="lazy"
-                decoding="async"
-              />
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <img
+                  src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+                  alt="Indigo Yield Fund"
+                  className="h-9 w-auto relative z-10 transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
             </div>
             <button
               onClick={closeSidebar}
-              className="lg:hidden text-sidebar-foreground hover:text-sidebar-primary transition-colors p-2 rounded-md hover:bg-sidebar-accent min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Close navigation menu"
+              className="lg:hidden text-sidebar-foreground/70 hover:text-primary transition-colors p-2 rounded-full hover:bg-sidebar-accent"
             >
               <X className="h-5 w-5" />
             </button>
@@ -216,52 +221,63 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
           {/* Portal Switcher for IB users */}
           {hasMultiplePortals && (
-            <div className="px-4 py-3 border-b border-sidebar-border">
-              <div className="flex gap-2">
+            <div className="px-5 pb-6">
+              <div className="p-1 bg-sidebar-accent/50 rounded-xl flex gap-1">
                 <Button
-                  variant={portalView === "ib" ? "primary" : "ghost"}
+                  variant={portalView === "ib" ? "secondary" : "ghost"}
                   size="sm"
-                  className="flex-1 text-xs"
+                  className={cn(
+                    "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                    portalView === "ib"
+                      ? "bg-white text-primary dark:bg-primary dark:text-white"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
                   onClick={() => switchPortal("ib")}
                 >
                   IB Portal
                 </Button>
                 <Button
-                  variant={portalView === "investor" ? "primary" : "ghost"}
+                  variant={portalView === "investor" ? "secondary" : "ghost"}
                   size="sm"
-                  className="flex-1 text-xs"
+                  className={cn(
+                    "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                    portalView === "investor"
+                      ? "bg-white text-primary dark:bg-primary dark:text-white"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
                   onClick={() => switchPortal("investor")}
                 >
-                  My Portfolio
+                  Portfolio
                 </Button>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-sidebar-foreground/60 mt-2">
-                <ArrowLeftRight className="h-3 w-3" />
-                <span>Switch between portals</span>
               </div>
             </div>
           )}
 
           {/* Search Bar (Admin only) */}
           {activePortal === "admin" && (
-            <div className="px-4 py-3 border-b border-sidebar-border">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
+            <div className="px-5 pb-6">
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search admin tools..."
+                  placeholder="Jump to..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-8 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/60"
+                  className="pl-9 h-10 bg-sidebar-accent/30 border-transparent focus:bg-background focus:border-primary/20 focus:ring-2 focus:ring-primary/10 transition-all rounded-xl text-sm"
                 />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[10px] font-mono text-muted-foreground border border-border rounded px-1.5 py-0.5 opacity-50">
+                  ⌘K
+                </div>
               </div>
-              <div className="text-xs text-sidebar-foreground/60 mt-1">Press ⌘ / to focus</div>
             </div>
           )}
 
-          {/* Nav */}
-          <nav className="flex-1 px-4 py-6 overflow-y-auto" role="menu">
+          {/* Nav - Scrollable Area */}
+          <nav
+            className="flex-1 px-3 space-y-1 overflow-y-auto no-scrollbar scroll-smooth mask-linear-fade"
+            role="menu"
+          >
             {/* Admin Navigation */}
             {activePortal === "admin" && (
               <>
@@ -272,15 +288,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                   if (filteredItems.length === 0) return null;
 
                   return (
-                    <div key={group.title} className="mb-6">
-                      <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider">
-                        <div className="flex items-center gap-2">
+                    <div key={group.title} className="mb-6 px-2">
+                      {group.title && (
+                        <h4 className="flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-sidebar-foreground/40 font-display">
                           {group.icon && <group.icon className="h-3 w-3" />}
-                          <span>{group.title}</span>
-                        </div>
-                      </div>
+                          {group.title}
+                        </h4>
+                      )}
 
-                      <div id={`nav-group-${group.title}`} className="ml-0">
+                      <div id={`nav-group-${group.title}`}>
                         <NavSection
                           title=""
                           items={filteredItems}
@@ -296,34 +312,35 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
             {/* IB Navigation */}
             {activePortal === "ib" && (
-              <NavSection
-                title="IB Portal"
-                items={ibNav}
-                onItemClick={handleNavigationClick}
-                isExpanded={true}
-              />
+              <div className="px-2">
+                <NavSection
+                  title="Main"
+                  items={ibNav}
+                  onItemClick={handleNavigationClick}
+                  isExpanded={true}
+                />
+              </div>
             )}
 
             {/* Investor Navigation */}
             {activePortal === "investor" && (
-              <NavSection
-                title="Menu"
-                items={investorNav}
-                onItemClick={handleNavigationClick}
-                isExpanded={true}
-              />
+              <div className="px-2">
+                <NavSection
+                  title="Menu"
+                  items={investorNav}
+                  onItemClick={handleNavigationClick}
+                  isExpanded={true}
+                />
+              </div>
             )}
-
-            {/* Logout Button */}
-            <div className="px-2 py-2 border-t border-sidebar-border mt-4 pt-4">
-              <LogoutButton onLogout={handleNavigationClick} />
-            </div>
           </nav>
 
-          {/* User Profile */}
-          <UserProfile userName={userName} isAdmin={activePortal === "admin"} />
+          {/* Footer Area */}
+          <div className="p-4 mt-auto border-t border-sidebar-border/30 bg-sidebar/30 backdrop-blur-md">
+            <UserProfile userName={userName} isAdmin={activePortal === "admin"} />
+          </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 };

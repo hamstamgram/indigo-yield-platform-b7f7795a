@@ -1,6 +1,11 @@
 import { Menu } from "lucide-react";
 import {
-  Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage,
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
   Button,
 } from "@/components/ui";
 import { useBreadcrumbs } from "@/hooks";
@@ -17,24 +22,24 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const { isAdmin } = useAuth();
 
   return (
-    <header className="h-16 bg-background border-b border-border flex items-center px-4 sm:px-6 flex-shrink-0">
+    <header className="h-16 flex items-center px-4 sm:px-6 lg:px-8 mt-4 lg:mt-6 mb-2 flex-shrink-0 animate-fade-in relative z-20">
       {/* Mobile hamburger menu - Enhanced contrast for visibility */}
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className="lg:hidden mr-3 -ml-1 border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary active:bg-primary/25 transition-colors"
+        className="lg:hidden mr-4 -ml-2 text-foreground/80 hover:bg-white/50 hover:text-foreground"
         aria-label="Toggle menu"
       >
-        <Menu className="h-5 w-5 text-primary" />
+        <Menu className="h-6 w-6" />
       </Button>
 
       {/* Mobile logo */}
-      <div className="lg:hidden flex-1 flex justify-center">
+      <div className="lg:hidden flex-1 flex justify-center mr-8">
         <img
           src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
           alt="Indigo Yield Fund"
-          className="h-7 w-auto"
+          className="h-8 w-auto opacity-90"
           loading="lazy"
           decoding="async"
         />
@@ -42,40 +47,50 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
       {/* Desktop content */}
       <div className="hidden lg:flex flex-1 items-center justify-between">
-        {/* Breadcrumbs */}
-        {breadcrumbs.length > 1 ? (
-          <Breadcrumb>
-            <BreadcrumbList>
-              {breadcrumbs.map((crumb, index) => (
-                <div key={index} className="flex items-center">
-                  {index > 0 && <BreadcrumbSeparator />}
-                  <BreadcrumbItem>
-                    {crumb.isCurrentPage ? (
-                      <BreadcrumbPage>{crumb.title}</BreadcrumbPage>
-                    ) : (
-                      <BreadcrumbLink asChild>
-                        <Link to={crumb.href!}>{crumb.title}</Link>
-                      </BreadcrumbLink>
-                    )}
-                  </BreadcrumbItem>
-                </div>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
-        ) : (
-          <div /> /* Spacer */
-        )}
+        {/* Breadcrumbs - Now transparent and sleek */}
+        <div className="ml-2">
+          {breadcrumbs.length > 0 && (
+            <Breadcrumb>
+              <BreadcrumbList className="text-sm font-medium">
+                {breadcrumbs.map((crumb, index) => (
+                  <div key={index} className="flex items-center">
+                    {index > 0 && <BreadcrumbSeparator className="text-muted-foreground/40 mx-2" />}
+                    <BreadcrumbItem>
+                      {crumb.isCurrentPage ? (
+                        <BreadcrumbPage className="text-foreground font-semibold flex items-center gap-2">
+                          {/* Optional: Add icon based on route here if available */}
+                          {crumb.title}
+                        </BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink asChild>
+                          <Link
+                            to={crumb.href!}
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            {crumb.title}
+                          </Link>
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </div>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
+        </div>
 
-        {/* Admin Fund AUM Bar */}
-        {isAdmin && (
-          <div className="ml-4">
-            <FundAUMBar />
-          </div>
-        )}
+        {/* Global Action Area - Right Side */}
+        <div className="flex items-center gap-4">
+          {/* Admin Fund AUM Bar */}
+          {isAdmin && (
+            <div className="bg-white/50 dark:bg-black/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-black/5 dark:border-white/10 shadow-sm">
+              <FundAUMBar />
+            </div>
+          )}
+
+          {/* Notification Bell or other global actions could go here */}
+        </div>
       </div>
-
-      {/* Mobile placeholder for right side balance */}
-      <div className="lg:hidden w-10" />
     </header>
   );
 };

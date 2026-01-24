@@ -94,24 +94,26 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-background">
+    <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
       {/* Global Shortcuts & Action Bar */}
       <GlobalShortcuts />
 
-      {/* Sidebar */}
+      {/* Sidebar - Floating Dock Style */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isAdmin={isAdmin} />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Top Header */}
+      {/* Main Content Area - calculated width to account for sidebar */}
+      <div className="flex-1 flex flex-col h-full min-w-0 transition-all duration-300 ease-in-out relative">
+        {/* Top Header - Context Bar */}
         <Header toggleSidebar={toggleSidebar} />
 
-        {/* Content Area with Financial Error Boundary */}
-        <ContentArea>
+        {/* Scrollable Content Canvas */}
+        <main className="flex-1 overflow-hidden px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
           <FinancialErrorBoundary context={isAdmin ? "admin" : "investor"}>
-            <Outlet />
+            <div className="h-full w-full rounded-2xl animate-fade-in relative z-10 mx-auto max-w-[1600px]">
+              <Outlet />
+            </div>
           </FinancialErrorBoundary>
-        </ContentArea>
+        </main>
       </div>
     </div>
   );
