@@ -68,18 +68,36 @@ export async function previewYieldDistribution(
   }
 
   // Get fund info and current AUM
+  // FIX: Match UI filter - only account_type='investor' with current_value > 0
+  // This ensures grossYield calculation matches what user sees on screen
   const [fundResult, positionsResult] = await Promise.all([
     supabase.from("funds").select("code, asset, name").eq("id", fundId).maybeSingle(),
     supabase
       .from("investor_positions")
-      .select("current_value")
+      .select("current_value, investor_id")
       .eq("fund_id", fundId)
-      .eq("is_active", true),
+      .eq("is_active", true)
+      .gt("current_value", 0),
   ]);
+
+  // Filter to only investor account types (exclude ib, fees_account)
+  const investorIds = positionsResult.data?.map((p) => p.investor_id).filter(Boolean) || [];
+  const { data: profiles } =
+    investorIds.length > 0
+      ? await supabase
+          .from("profiles")
+          .select("id")
+          .in("id", investorIds)
+          .eq("account_type", "investor")
+      : { data: [] };
+
+  const investorSet = new Set(profiles?.map((p) => p.id) || []);
 
   const fund = fundResult.data;
   const currentAUM =
-    positionsResult.data?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+    positionsResult.data
+      ?.filter((p) => investorSet.has(p.investor_id))
+      .reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
   // Calculate gross yield amount from AUM difference
   const newTotalAUMNum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
