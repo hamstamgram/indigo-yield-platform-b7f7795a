@@ -168,6 +168,25 @@ All three portals tested successfully via Playwright browser automation.
 
 ---
 
+## IB Relationship Configuration
+
+### Applied Fixes
+| Investor | IB Parent | IB % (Before) | IB % (After) | Source |
+|----------|-----------|---------------|--------------|--------|
+| Sam Johnson | Ryan Van Der Wall | 2.00% | **4.00%** | Accounting ib_fee |
+
+### Known Limitations
+The accounting data specifies `ib_fee` percentages for some investors but does **not** identify their IB parent:
+
+| Investor | IB Fee in Accounting | Status |
+|----------|---------------------|--------|
+| Advantage Blockchain | 2% | IB parent unknown - not configured |
+| Ventures Life Style | 4% | IB parent unknown - not configured |
+
+These investors have IB fee percentages in the accounting system but no IB parent relationship configured in the platform because the accounting data does not specify who their introducing broker is.
+
+---
+
 ## Conclusion
 
 **VALIDATION PASSED**
@@ -175,3 +194,6 @@ All three portals tested successfully via Playwright browser automation.
 All 46 investor/fund positions in the Indigo Yield Platform match the accounting system's expected values with variance < 0.01%. The platform successfully stores and represents the accounting truth data for all 36 investors across 5 funds.
 
 All three portal interfaces (Admin, Investor, IB) are functional and correctly display the imported data.
+
+### Post-Validation Fixes Applied
+- Sam Johnson's IB percentage corrected from 2% to 4% (per accounting data)
