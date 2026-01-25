@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
       "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
       "Content-Security-Policy":
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none';",
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-ancestors 'none';",
     },
   },
   preview: {
@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => ({
       "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
       "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
       "Content-Security-Policy":
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none';",
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-ancestors 'none';",
     },
   },
   plugins: [

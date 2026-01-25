@@ -21,60 +21,62 @@
        COLOR PALETTE: "Yield Spectrum" (Refined - DARK ONLY)
        ============================================ */
 
-  /* Brand Core - Deep Indigo to Abyss */
-  --indigo-brand: 231 48% 65%;
-  /* #3F51B5 lighter for dark mode */
-  --indigo-night: 222 47% 11%;
-  /* #0F172A */
+  :root {
+    /* Brand Core - Deep Indigo to Abyss */
+    --indigo-brand: 231 48% 65%;
+    /* #3F51B5 lighter for dark mode */
+    --indigo-night: 222 47% 11%;
+    /* #0F172A */
 
-  /* Yield Green */
-  --yield-neon: 150 100% 45%;
+    /* Yield Green */
+    --yield-neon: 150 100% 45%;
 
-  /* DARK MODE BASE */
-  --background: 224 71% 4%;
-  /* #02040a - Deepest possible blue-black */
-  --foreground: 210 40% 98%;
+    /* DARK MODE BASE */
+    --background: 224 71% 4%;
+    /* #02040a - Deepest possible blue-black */
+    --foreground: 210 40% 98%;
 
-  --card: 222 47% 6%;
-  --card-foreground: 210 40% 98%;
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 98%;
 
-  --popover: 222 47% 4%;
-  --popover-foreground: 210 40% 98%;
+    --popover: 222 47% 4%;
+    --popover-foreground: 210 40% 98%;
 
-  --primary: 231 48% 65%;
-  --primary-foreground: 222 47.4% 11.2%;
+    --primary: 231 48% 65%;
+    --primary-foreground: 222 47.4% 11.2%;
 
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-  --success: 150 100% 45%;
-  --success-foreground: 222 47% 11%;
+    --success: 150 100% 45%;
+    --success-foreground: 222 47% 11%;
 
-  --border: 217.2 32.6% 12%;
-  --input: 217.2 32.6% 12%;
-  --ring: 231 48% 65%;
+    --border: 217.2 32.6% 12%;
+    --input: 217.2 32.6% 12%;
+    --ring: 231 48% 65%;
 
-  /* RADIUS */
-  --radius: 1rem;
+    /* RADIUS */
+    --radius: 1rem;
 
-  /* SIDEBAR - Dark Mode Default */
-  --sidebar: 224 71% 4%;
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-primary: 231 48% 65%;
-  --sidebar-primary-foreground: 222 47% 11%;
-  --sidebar-accent: 217.2 32.6% 17.5%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-border: 217.2 32.6% 12%;
-  --sidebar-ring: 231 48% 65%;
+    /* SIDEBAR - Dark Mode Default */
+    --sidebar: 224 71% 4%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 231 48% 65%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 12%;
+    --sidebar-ring: 231 48% 65%;
+  }
 }
 
 
