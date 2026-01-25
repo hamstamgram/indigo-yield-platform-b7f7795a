@@ -1,27 +1,38 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { BrowserRouter } from "react-router-dom";
 import AppLogo from "@/components/AppLogo";
+
+const renderWithRouter = (ui: React.ReactElement) => {
+  return render(<BrowserRouter>{ui}</BrowserRouter>);
+};
 
 describe("AppLogo", () => {
   it("should render without crashing", () => {
-    render(<AppLogo />);
-    expect(screen.getByTestId("applogo")).toBeInTheDocument();
+    renderWithRouter(<AppLogo />);
+    expect(screen.getByAltText("Indigo Digital Assets Yield")).toBeInTheDocument();
   });
 
-  it("should apply custom className", () => {
-    render(<AppLogo className="custom-class" />);
-    expect(screen.getByTestId("applogo")).toHaveClass("custom-class");
+  it("should apply custom className to image", () => {
+    renderWithRouter(<AppLogo className="custom-class" />);
+    expect(screen.getByAltText("Indigo Digital Assets Yield")).toHaveClass("custom-class");
   });
 
-  it("should handle props correctly", () => {
-    const props = { testProp: "test-value" };
-    render(<AppLogo {...props} />);
-    expect(screen.getByTestId("applogo")).toBeInTheDocument();
+  it("should render as link when linkTo is provided", () => {
+    renderWithRouter(<AppLogo linkTo="/dashboard" />);
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute("href", "/dashboard");
   });
 
-  it("should be accessible", () => {
-    const { container } = render(<AppLogo />);
-    expect(container.querySelector("[role]")).toBeInTheDocument();
+  it("should render without link when linkTo is not provided", () => {
+    renderWithRouter(<AppLogo />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("should have lazy loading for performance", () => {
+    renderWithRouter(<AppLogo />);
+    const img = screen.getByAltText("Indigo Digital Assets Yield");
+    expect(img).toHaveAttribute("loading", "lazy");
   });
 });

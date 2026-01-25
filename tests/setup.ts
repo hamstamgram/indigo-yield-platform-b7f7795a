@@ -14,6 +14,18 @@ afterEach(() => {
   cleanup();
 });
 
+// Mock react-router-dom
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => vi.fn(),
+    useLocation: () => ({ pathname: "/", search: "", hash: "", state: null }),
+    useParams: () => ({}),
+    useSearchParams: () => [new URLSearchParams(), vi.fn()],
+  };
+});
+
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -27,6 +39,20 @@ vi.mock("next/navigation", () => ({
   }),
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
+}));
+
+// Mock auth context
+vi.mock("@/contexts/UnifiedAuthContext", () => ({
+  useAuth: () => ({
+    user: null,
+    profile: null,
+    isAuthenticated: false,
+    isLoading: false,
+    role: null,
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+  }),
+  UnifiedAuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock Supabase client

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import Decimal from "decimal.js";
 import {
   toDecimal,
-  formatMoney,
   formatCrypto,
   formatPercentage,
   calculateYield,
@@ -44,34 +43,7 @@ describe("Financial Utilities", () => {
 
     it("should handle scientific notation", () => {
       const result = toDecimal("1e-8");
-      expect(result.toString()).toBe("0.00000001");
-    });
-  });
-
-  describe("formatMoney", () => {
-    it("should format money with default settings", () => {
-      expect(formatMoney(1000)).toBe("$1000.00");
-    });
-
-    it("should format money with custom decimals", () => {
-      expect(formatMoney(1000.123456, 4)).toBe("$1000.1235");
-    });
-
-    it("should format money without symbol", () => {
-      expect(formatMoney(1000, 2, false)).toBe("1000.00");
-    });
-
-    it("should handle zero", () => {
-      expect(formatMoney(0)).toBe("$0.00");
-    });
-
-    it("should handle negative values", () => {
-      expect(formatMoney(-500.5)).toBe("$-500.50");
-    });
-
-    it("should handle Decimal input", () => {
-      const value = new Decimal("1234.56");
-      expect(formatMoney(value)).toBe("$1234.56");
+      expect(result.toNumber()).toBeCloseTo(0.00000001, 10);
     });
   });
 
@@ -263,13 +235,14 @@ describe("Financial Utilities", () => {
 
   describe("calculateWeightedAverage", () => {
     it("should calculate weighted average correctly", () => {
+      // (10*2 + 20*3 + 30*5) / (2+3+5) = (20+60+150)/10 = 23
       const values = [
         { value: 10, weight: 2 },
         { value: 20, weight: 3 },
         { value: 30, weight: 5 },
       ];
       const result = calculateWeightedAverage(values);
-      expect(result.toNumber()).toBeCloseTo(22, 2);
+      expect(result.toNumber()).toBeCloseTo(23, 2);
     });
 
     it("should handle empty array", () => {

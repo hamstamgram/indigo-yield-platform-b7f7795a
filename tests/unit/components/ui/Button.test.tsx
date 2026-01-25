@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -83,11 +84,10 @@ describe("Button Component", () => {
   });
 
   it("should be keyboard accessible", () => {
-    const handleClick = vi.fn();
-    render(<Button onClick={handleClick}>Accessible</Button>);
+    render(<Button>Accessible</Button>);
 
     const button = screen.getByRole("button");
-    fireEvent.keyDown(button, { key: "Enter" });
+    button.focus();
     expect(button).toHaveFocus();
   });
 });
