@@ -67,7 +67,7 @@ export const preflowAumService = {
     });
 
     if (error) throw error;
-    
+
     // RPC returns a single JSONB object, not an array
     const result = data as {
       success?: boolean;
@@ -101,7 +101,7 @@ export const preflowAumService = {
       console.error("[preflowAumService] RPC error:", error);
       throw error;
     }
-    
+
     // Runtime shape validation - RPC returns TABLE with exactly 1 row
     if (!data || !Array.isArray(data) || data.length === 0) {
       if (import.meta.env.DEV) {
@@ -109,42 +109,29 @@ export const preflowAumService = {
       }
       return null;
     }
-    
+
     const row = data[0];
-    
+
     // Validate expected shape
-    if (typeof row !== 'object' || row === null) {
+    if (typeof row !== "object" || row === null) {
       console.error("[preflowAumService] Unexpected RPC return shape:", row);
       throw new Error("Unexpected AUM data shape from backend");
     }
-    
+
     // Check if historical AUM actually exists
     // RPC returns aum_source='no_data' when no fund_aum_events match
-    if (row.aum_source === 'no_data') {
-      if (import.meta.env.DEV) {
-        console.log("[preflowAumService] No historical AUM for:", { fundId, asOfDate, purpose });
-      }
+    if (row.aum_source === "no_data") {
       return null; // Signal "no snapshot" to caller
     }
-    
+
     const aumValue = Number(row.aum_value ?? 0);
-    
+
     // Validate numeric result
     if (!Number.isFinite(aumValue)) {
       console.error("[preflowAumService] Invalid AUM value:", row.aum_value);
       throw new Error("Invalid AUM value from backend");
     }
-    
-    if (import.meta.env.DEV) {
-      console.log("[preflowAumService] AUM fetched:", {
-        fundId,
-        asOfDate,
-        purpose,
-        aumValue,
-        source: row.aum_source,
-      });
-    }
-    
+
     return aumValue;
   },
 };

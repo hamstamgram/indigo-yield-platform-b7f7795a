@@ -12,7 +12,7 @@ export type AumPurpose = "reporting" | "transaction";
 /**
  * Fetches the fund AUM as of a specific date using the backend RPC
  * This ensures the UI shows historical AUM, not current positions
- * 
+ *
  * @param fundId - The fund UUID
  * @param asOfDate - ISO date string (YYYY-MM-DD) for the as-of date
  * @param purpose - 'reporting' for month-end or 'transaction' for mid-month
@@ -28,25 +28,9 @@ export function useFundAumAsOf(
       if (!fundId || !asOfDate) {
         throw new Error("fundId and asOfDate are required");
       }
-      
-      if (import.meta.env.DEV) {
-        console.log("[useFundAumAsOf] Fetching AUM:", {
-          fundId,
-          asOfDate,
-          purpose,
-        });
-      }
-      
+
       const result = await preflowAumService.getFundAumAsOf(fundId, asOfDate, purpose);
-      
-      if (import.meta.env.DEV) {
-        console.log("[useFundAumAsOf] Result:", {
-          asOfDate,
-          aumValue: result,
-          hasData: result !== null,
-        });
-      }
-      
+
       return result;
     },
     enabled: !!fundId && !!asOfDate,

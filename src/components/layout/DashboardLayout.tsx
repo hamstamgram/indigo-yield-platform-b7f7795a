@@ -54,7 +54,7 @@ const DashboardLayout = () => {
     // This ensures admins on wrong page always get redirected
     if (isInvestorRoute && verifiedIsAdmin) {
       // Admin on investor routes -> redirect to admin dashboard
-      console.log("[DashboardLayout] Admin detected on investor route, redirecting to /admin");
+
       navigate("/admin", { replace: true });
     } else if (isAdminRoute && !verifiedIsAdmin) {
       // Non-admin trying to access admin routes -> redirect to investor portal

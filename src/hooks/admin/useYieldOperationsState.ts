@@ -89,18 +89,13 @@ export function useYieldOperationsState() {
   );
 
   // Log when as-of AUM changes for debugging (dev only)
-  useEffect(() => {
-    if (import.meta.env.DEV && state.selectedFund && state.asOfDateIso) {
-      console.log("[YieldOps] As-of AUM state:", {
-        fundId: state.selectedFund.id,
-        asOfDate: state.asOfDateIso,
-        purpose: AUM_READ_PURPOSE,
-        aumValue: asOfAum,
-        loading: asOfAumLoading,
-        error: asOfAumError?.message,
-      });
-    }
-  }, [state.selectedFund, state.asOfDateIso, asOfAum, asOfAumLoading, asOfAumError]);
+  useEffect(() => {}, [
+    state.selectedFund,
+    state.asOfDateIso,
+    asOfAum,
+    asOfAumLoading,
+    asOfAumError,
+  ]);
 
   // Setters
   const setSelectedFund = useCallback((fund: Fund | null) => {
@@ -126,13 +121,7 @@ export function useYieldOperationsState() {
   // FIX: setAumDate must sync asOfDateIso and clear preview to avoid stale data
   const setAumDate = useCallback((date: Date) => {
     const newAsOfDateIso = format(date, "yyyy-MM-dd");
-    
-    if (import.meta.env.DEV) {
-      console.log("[YieldOps] Date picker changed:", {
-        newDate: newAsOfDateIso,
-      });
-    }
-    
+
     setState((prev) => ({
       ...prev,
       aumDate: date,
@@ -199,16 +188,7 @@ export function useYieldOperationsState() {
     const currentMonthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
     const lastDayOfMonth = endOfMonth(new Date());
     const asOfDateIso = format(lastDayOfMonth, "yyyy-MM-dd");
-    
-    if (import.meta.env.DEV) {
-      console.log("[YieldOps] Opening dialog:", {
-        fundId: fund.id,
-        fundName: fund.name,
-        reportingMonth: currentMonthStart,
-        computedAsOfDate: asOfDateIso,
-      });
-    }
-    
+
     setState((prev) => ({
       ...prev,
       selectedFund: fund,
@@ -232,15 +212,7 @@ export function useYieldOperationsState() {
     const selectedDate = new Date(monthStart + "T12:00:00");
     const lastDayOfMonth = endOfMonth(selectedDate);
     const asOfDateIso = format(lastDayOfMonth, "yyyy-MM-dd");
-    
-    if (import.meta.env.DEV) {
-      console.log("[YieldOps] Month changed:", {
-        selectedMonth: monthStart,
-        computedAsOfDate: asOfDateIso,
-        fundId: state.selectedFund?.id,
-      });
-    }
-    
+
     setState((prev) => ({
       ...prev,
       reportingMonth: monthStart,
@@ -250,7 +222,7 @@ export function useYieldOperationsState() {
       yieldPreview: null,
       newAUM: "",
     }));
-  }, [state.selectedFund?.id]);
+  }, []);
 
   // Validate effective date is within reporting month
   const validateEffectiveDate = useCallback((): { valid: boolean; error?: string } => {
@@ -286,23 +258,13 @@ export function useYieldOperationsState() {
 
     // Use as-of AUM for comparison instead of current positions
     const baseAum = asOfAum ?? state.selectedFund.total_aum;
-    
+
     // Allow zero or lower AUM (negative yield months are valid - no fees on losses)
     // Show a warning but proceed with preview
     if (newAUMValue < baseAum) {
       toast.warning("New AUM is lower than period AUM. This represents a negative yield month.");
     } else if (newAUMValue === baseAum) {
       toast.info("New AUM equals period AUM. No yield to distribute.");
-    }
-
-    if (import.meta.env.DEV) {
-      console.log("[YieldOps] Preview request:", {
-        fundId: state.selectedFund.id,
-        targetDate: format(state.aumDate, "yyyy-MM-dd"),
-        newTotalAUM: newAUMValue,
-        baseAum: baseAum,
-        purpose: state.yieldPurpose,
-      });
     }
 
     setState((prev) => ({ ...prev, previewLoading: true }));
@@ -347,7 +309,10 @@ export function useYieldOperationsState() {
       );
 
       const asset = state.selectedFund.asset;
-      const grossYieldNum = typeof state.yieldPreview.grossYield === 'string' ? parseFloat(state.yieldPreview.grossYield) : state.yieldPreview.grossYield;
+      const grossYieldNum =
+        typeof state.yieldPreview.grossYield === "string"
+          ? parseFloat(state.yieldPreview.grossYield)
+          : state.yieldPreview.grossYield;
       toast.success(
         `Distributed ${formatAUM(grossYieldNum, asset)} ${asset} to ${state.yieldPreview.investorCount} investors (${state.yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
       );
@@ -363,12 +328,12 @@ export function useYieldOperationsState() {
       YIELD_RELATED_KEYS.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
       });
-      
+
       // FIX: Explicitly invalidate the specific fundAumAsOf query for this fund
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.fundAumAsOf(state.selectedFund.id, state.asOfDateIso, "reporting"),
       });
-      
+
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
 
@@ -409,7 +374,7 @@ export function useYieldOperationsState() {
     funds,
     loading,
     user,
-    
+
     // As-of AUM data
     asOfAum: asOfAum ?? null,
     asOfAumLoading,
