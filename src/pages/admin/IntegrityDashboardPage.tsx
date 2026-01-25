@@ -1,22 +1,10 @@
 /**
- * Admin Integrity Dashboard - P1 Enhanced
+ * Admin Integrity Dashboard - Yield Spectrum Redesign
  * Comprehensive view of all data integrity checks
- * - Shows mismatch views (should be empty)
- * - Audit events and overall status
- * - admin_integrity_runs history (P1)
- * - "Run integrity now" button (P1)
- * - Violated views with sample rows (P1)
  */
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  Badge,
   Button,
-  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -27,6 +15,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Badge,
 } from "@/components/ui";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { useIntegrityChecks, useAuditEvents } from "@/hooks/data";
@@ -59,12 +48,12 @@ import { formatDistanceToNow, format } from "date-fns";
 import { useState } from "react";
 
 const ICON_MAP: Record<IntegrityCheck["iconName"], React.ReactNode> = {
-  wallet: <Wallet className="h-5 w-5" />,
-  "trending-up": <TrendingUp className="h-5 w-5" />,
-  users: <Users className="h-5 w-5" />,
-  scale: <Scale className="h-5 w-5" />,
-  database: <Database className="h-5 w-5" />,
-  shield: <Shield className="h-5 w-5" />,
+  wallet: <Wallet className="h-5 w-5 text-indigo-400" />,
+  "trending-up": <TrendingUp className="h-5 w-5 text-emerald-400" />,
+  users: <Users className="h-5 w-5 text-indigo-400" />,
+  scale: <Scale className="h-5 w-5 text-amber-400" />,
+  database: <Database className="h-5 w-5 text-indigo-400" />,
+  shield: <Shield className="h-5 w-5 text-indigo-400" />,
 };
 
 export default function IntegrityDashboardPage() {
@@ -100,11 +89,11 @@ export default function IntegrityDashboardPage() {
   const getStatusIcon = (status: IntegrityStatus) => {
     switch (status) {
       case "ok":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return <CheckCircle2 className="h-5 w-5 text-emerald-400" />;
       case "warning":
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className="h-5 w-5 text-amber-400" />;
       case "error":
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-5 w-5 text-rose-500" />;
     }
   };
 
@@ -112,12 +101,12 @@ export default function IntegrityDashboardPage() {
     switch (status) {
       case "ok":
       case "pass":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_-4px_rgba(16,185,129,0.3)]";
       case "warning":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_-4px_rgba(251,191,36,0.3)]";
       case "error":
       case "fail":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_10px_-4px_rgba(244,63,94,0.3)]";
     }
   };
 
@@ -135,31 +124,23 @@ export default function IntegrityDashboardPage() {
   const getSeverityBadgeClass = (severity: string) => {
     switch (severity) {
       case "critical":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-rose-500/20 text-rose-400 border border-rose-500/30";
       case "warning":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
       default:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";
     }
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-pulse">
         <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-96" />
-          </div>
+          <div className="h-8 w-64 bg-white/5 rounded-lg mb-2" />
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i}>
-              <CardContent className="pt-6">
-                <Skeleton className="h-6 w-32 mb-4" />
-                <Skeleton className="h-4 w-48" />
-              </CardContent>
-            </Card>
+            <div key={i} className="h-32 bg-white/5 rounded-xl border border-white/5" />
           ))}
         </div>
       </div>
@@ -167,22 +148,27 @@ export default function IntegrityDashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in-up pb-12">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Data Integrity</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-display font-bold text-white tracking-tight flex items-center gap-3">
+            <Shield className="h-8 w-8 text-indigo-400" />
+            Data Integrity
+          </h1>
+          <p className="text-zinc-400 font-light mt-1">
             Monitor database consistency and reconciliation status
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={`${getStatusBadgeClass(overallStatus)} text-sm px-3 py-1.5`}>
+          <Badge
+            className={`${getStatusBadgeClass(overallStatus)} text-sm px-4 py-1.5 h-9 rounded-full border`}
+          >
             {getStatusIcon(overallStatus)}
-            <span className="ml-2">{getStatusLabel(overallStatus)}</span>
+            <span className="ml-2 font-medium">{getStatusLabel(overallStatus)}</span>
           </Badge>
           <Button
-            variant="primary"
+            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 border-0 transition-all font-medium"
             size="sm"
             onClick={handleRunIntegrityCheck}
             disabled={runIntegrityCheck.isPending}
@@ -190,9 +176,15 @@ export default function IntegrityDashboardPage() {
             <Play
               className={`h-4 w-4 mr-2 ${runIntegrityCheck.isPending ? "animate-pulse" : ""}`}
             />
-            Run Integrity Check
+            Run Check
           </Button>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
+          >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
@@ -201,40 +193,39 @@ export default function IntegrityDashboardPage() {
 
       {/* Active Alerts (P1) */}
       {alerts && alerts.length > 0 && (
-        <Card className="border-red-200 dark:border-red-900/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
-              <Bell className="h-5 w-5" />
-              Active Alerts ({alerts.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+        <div className="border border-rose-500/20 bg-rose-500/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-[0_0_30px_-10px_rgba(244,63,94,0.1)]">
+          <div className="p-4 border-b border-rose-500/10 flex items-center gap-2 bg-rose-500/10">
+            <Bell className="h-5 w-5 text-rose-400 animate-pulse" />
+            <h3 className="font-semibold text-rose-400">Active Alerts ({alerts.length})</h3>
+          </div>
+          <div className="p-2">
+            <div className="space-y-1">
               {alerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className="flex items-center justify-between p-3 border rounded-lg bg-red-50/50 dark:bg-red-900/10"
+                  className="flex items-center justify-between p-3 rounded-xl hover:bg-rose-500/10 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <Badge className={getSeverityBadgeClass(alert.severity)}>
                       {alert.severity}
                     </Badge>
                     <div>
-                      <p className="font-medium text-sm">{alert.title}</p>
+                      <p className="font-medium text-sm text-rose-200">{alert.title}</p>
                       {alert.description && (
-                        <p className="text-xs text-muted-foreground">{alert.description}</p>
+                        <p className="text-xs text-rose-300/60">{alert.description}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-rose-400/50 font-mono">
                       {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true })}
                     </span>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       onClick={() => handleAcknowledgeAlert(alert.id)}
                       disabled={acknowledgeAlert.isPending}
+                      className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 rounded-full h-8 w-8"
                     >
                       <CheckCheck className="h-4 w-4" />
                     </Button>
@@ -242,16 +233,31 @@ export default function IntegrityDashboardPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="checks" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="checks">Current Checks</TabsTrigger>
-          <TabsTrigger value="history">Run History</TabsTrigger>
-          <TabsTrigger value="audit">Audit Events</TabsTrigger>
+      <Tabs defaultValue="checks" className="space-y-6">
+        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-full">
+          <TabsTrigger
+            value="checks"
+            className="rounded-full data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 px-6"
+          >
+            Current Checks
+          </TabsTrigger>
+          <TabsTrigger
+            value="history"
+            className="rounded-full data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 px-6"
+          >
+            Run History
+          </TabsTrigger>
+          <TabsTrigger
+            value="audit"
+            className="rounded-full data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 px-6"
+          >
+            Audit Events
+          </TabsTrigger>
         </TabsList>
 
         {/* Current Checks Tab */}
@@ -259,72 +265,90 @@ export default function IntegrityDashboardPage() {
           {/* Integrity Checks Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {integrityChecks?.map((check) => (
-              <Card
+              <div
                 key={check.name}
-                className={
+                className={`glass-card p-5 rounded-xl border backdrop-blur-xl transition-all duration-300 hover:bg-white/10 ${
                   check.status === "error"
-                    ? "border-red-200 dark:border-red-900/50"
+                    ? "border-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_-5px_rgba(244,63,94,0.1)]"
                     : check.status === "warning"
-                      ? "border-yellow-200 dark:border-yellow-900/50"
-                      : ""
-                }
+                      ? "border-amber-500/30 bg-amber-500/5 shadow-[0_0_20px_-5px_rgba(251,191,36,0.1)]"
+                      : "border-white/10 bg-black/40 shadow-xl"
+                }`}
               >
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center justify-between text-base">
-                    <span className="flex items-center gap-2">
-                      {ICON_MAP[check.iconName]}
-                      {check.name}
+                <div className="flex flex-col h-full justify-between gap-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-lg bg-white/5 border border-white/10">
+                        {ICON_MAP[check.iconName]}
+                      </span>
+                      {getStatusIcon(check.status)}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-zinc-100">{check.name}</h3>
+                      <p
+                        className="text-xs text-zinc-400 mt-1 leading-relaxed line-clamp-2"
+                        title={check.description}
+                      >
+                        {check.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
+                      Issues Found
                     </span>
-                    {getStatusIcon(check.status)}
-                  </CardTitle>
-                  <CardDescription>{check.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Issues</span>
                     <span
-                      className={`text-2xl font-bold ${
+                      className={`text-2xl font-bold font-mono ${
                         check.status === "error"
-                          ? "text-red-600 dark:text-red-400"
+                          ? "text-rose-400"
                           : check.status === "warning"
-                            ? "text-yellow-600 dark:text-yellow-400"
-                            : "text-green-600 dark:text-green-400"
+                            ? "text-amber-400"
+                            : "text-emerald-400"
                       }`}
                     >
                       {check.count}
                     </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
 
           {/* Mismatch Details (if any) */}
           {integrityChecks?.some((c) => c.details && c.details.length > 0) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                  Violation Details
-                </CardTitle>
-                <CardDescription>Detailed breakdown of detected inconsistencies</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <div className="glass-panel p-6 rounded-2xl border border-rose-500/20 bg-rose-950/10 backdrop-blur-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-full bg-rose-500/10 border border-rose-500/20 animate-pulse">
+                  <AlertTriangle className="h-6 w-6 text-rose-500" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-rose-200">Violation Details</h2>
+                  <p className="text-rose-300/60 text-sm">
+                    Detailed breakdown of detected inconsistencies
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-8">
                 {integrityChecks
                   ?.filter((c) => c.details && c.details.length > 0)
                   .map((check) => (
-                    <div key={check.name} className="space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-2">
+                    <div key={check.name} className="space-y-3">
+                      <h4 className="font-medium text-sm flex items-center gap-2 text-rose-300">
                         {ICON_MAP[check.iconName]}
                         {check.name}
                       </h4>
-                      <div className="rounded-md border overflow-auto max-h-48">
+                      <div className="rounded-xl border border-rose-500/10 overflow-hidden bg-black/20">
                         <Table>
-                          <TableHeader>
-                            <TableRow>
+                          <TableHeader className="bg-rose-500/5">
+                            <TableRow className="border-rose-500/10 hover:bg-transparent">
                               {check.details?.[0] &&
                                 Object.keys(check.details[0]).map((key) => (
-                                  <TableHead key={key} className="text-xs">
+                                  <TableHead
+                                    key={key}
+                                    className="text-xs text-rose-300/70 font-semibold uppercase"
+                                  >
                                     {key.replace(/_/g, " ")}
                                   </TableHead>
                                 ))}
@@ -332,9 +356,9 @@ export default function IntegrityDashboardPage() {
                           </TableHeader>
                           <TableBody>
                             {check.details?.slice(0, 5).map((row, idx) => (
-                              <TableRow key={idx}>
+                              <TableRow key={idx} className="border-rose-500/5 hover:bg-rose-500/5">
                                 {Object.values(row).map((val, i) => (
-                                  <TableCell key={i} className="text-xs font-mono">
+                                  <TableCell key={i} className="text-xs font-mono text-rose-200">
                                     {typeof val === "number" ? (
                                       <FinancialValue
                                         value={val}
@@ -352,150 +376,159 @@ export default function IntegrityDashboardPage() {
                         </Table>
                       </div>
                       {check.details && check.details.length > 5 && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-rose-400/50 italic pl-1">
                           Showing 5 of {check.details.length} issues
                         </p>
                       )}
                     </div>
                   ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </TabsContent>
 
         {/* Run History Tab (P1) */}
         <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Integrity Run History
-              </CardTitle>
-              <CardDescription>
-                Previous integrity check runs from admin_integrity_runs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {runsLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : integrityRuns && integrityRuns.length > 0 ? (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Violations</TableHead>
-                        <TableHead>Critical</TableHead>
-                        <TableHead>Runtime</TableHead>
-                        <TableHead>Triggered By</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {integrityRuns.map((run) => (
-                        <TableRow key={run.id}>
-                          <TableCell className="text-sm">
-                            <div className="flex flex-col">
-                              <span>{format(new Date(run.run_at), "MMM d, yyyy")}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {format(new Date(run.run_at), "HH:mm:ss")}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getStatusBadgeClass(run.status)}>
-                              {run.status === "pass" ? (
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                              ) : (
-                                <XCircle className="h-3 w-3 mr-1" />
-                              )}
-                              {run.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-mono">{run.violation_count}</TableCell>
-                          <TableCell>
-                            <span
-                              className={
-                                run.critical_count > 0
-                                  ? "text-red-600 dark:text-red-400 font-bold"
-                                  : ""
-                              }
-                            >
-                              {run.critical_count}
+          <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
+            <div className="flex items-center gap-2 mb-6">
+              <Clock className="h-5 w-5 text-indigo-400" />
+              <h2 className="text-xl font-semibold text-white">Integrity Run History</h2>
+            </div>
+
+            <div className="rounded-xl border border-white/5 overflow-hidden bg-white/5">
+              <Table>
+                <TableHeader className="bg-white/5">
+                  <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableHead className="text-zinc-400">Time</TableHead>
+                    <TableHead className="text-zinc-400">Status</TableHead>
+                    <TableHead className="text-zinc-400">Violations</TableHead>
+                    <TableHead className="text-zinc-400">Critical</TableHead>
+                    <TableHead className="text-zinc-400">Runtime</TableHead>
+                    <TableHead className="text-zinc-400">Triggered By</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {runsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-zinc-500">
+                        Loading history...
+                      </TableCell>
+                    </TableRow>
+                  ) : integrityRuns && integrityRuns.length > 0 ? (
+                    integrityRuns.map((run) => (
+                      <TableRow
+                        key={run.id}
+                        className="border-white/5 hover:bg-white/5 transition-colors"
+                      >
+                        <TableCell className="text-sm text-zinc-300">
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {format(new Date(run.run_at), "MMM d, yyyy")}
                             </span>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {run.runtime_ms ? `${run.runtime_ms}ms` : "-"}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {run.triggered_by}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No integrity runs recorded yet. Click "Run Integrity Check" to create one.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                            <span className="text-xs text-zinc-500 font-mono">
+                              {format(new Date(run.run_at), "HH:mm:ss")}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={`${getStatusBadgeClass(run.status)} flex w-fit items-center gap-1`}
+                          >
+                            {run.status === "pass" ? (
+                              <CheckCircle2 className="h-3 w-3" />
+                            ) : (
+                              <XCircle className="h-3 w-3" />
+                            )}
+                            <span className="capitalize">{run.status}</span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-zinc-300">
+                          {run.violation_count}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              run.critical_count > 0
+                                ? "text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20"
+                                : "text-zinc-500"
+                            }
+                          >
+                            {run.critical_count}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-zinc-500 font-mono text-xs">
+                          {run.runtime_ms ? `${run.runtime_ms}ms` : "-"}
+                        </TableCell>
+                        <TableCell className="text-zinc-400 text-sm">{run.triggered_by}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12">
+                        <p className="text-zinc-500">No integrity runs recorded yet.</p>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Audit Events Tab */}
         <TabsContent value="audit">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Recent Audit Events
-              </CardTitle>
-              <CardDescription>Last 10 logged system events</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {auditEvents && auditEvents.length > 0 ? (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Entity</TableHead>
-                        <TableHead>Time</TableHead>
+          <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
+            <div className="flex items-center gap-2 mb-6">
+              <Activity className="h-5 w-5 text-indigo-400" />
+              <div>
+                <h2 className="text-xl font-semibold text-white">Recent Audit Events</h2>
+                <p className="text-sm text-zinc-400">Last 10 logged system events</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/5 overflow-hidden bg-white/5">
+              <Table>
+                <TableHeader className="bg-white/5">
+                  <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableHead className="text-zinc-400">Action</TableHead>
+                    <TableHead className="text-zinc-400">Entity</TableHead>
+                    <TableHead className="text-zinc-400">Time</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {auditEvents && auditEvents.length > 0 ? (
+                    auditEvents.map((event) => (
+                      <TableRow
+                        key={event.id}
+                        className="border-white/5 hover:bg-white/5 transition-colors"
+                      >
+                        <TableCell className="font-medium text-emerald-400 font-mono text-xs uppercase tracking-wide bg-emerald-500/5 w-[200px]">
+                          {event.action}
+                        </TableCell>
+                        <TableCell className="text-zinc-300">
+                          <span className="font-semibold text-zinc-200">{event.entity}</span>
+                          {event.entity_id && (
+                            <span className="text-zinc-600 text-xs ml-2 font-mono">
+                              ID: {event.entity_id.slice(0, 8)}...
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-zinc-500 text-sm">
+                          {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {auditEvents.map((event) => (
-                        <TableRow key={event.id}>
-                          <TableCell className="font-medium">{event.action}</TableCell>
-                          <TableCell>
-                            {event.entity}
-                            {event.entity_id && (
-                              <span className="text-muted-foreground text-xs ml-1">
-                                ({event.entity_id.slice(0, 8)}...)
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No recent audit events
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-12 text-zinc-500">
+                        No recent audit events
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

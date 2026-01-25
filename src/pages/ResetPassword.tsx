@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  Button, Input,
-  Card, CardContent, CardHeader, CardTitle,
-  Alert, AlertDescription,
+  Button,
+  Input,
+  LoadingSpinner,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useResetPassword, useSetSessionFromTokens } from "@/hooks/data";
@@ -87,163 +93,162 @@ export default function ResetPassword() {
 
   const error = localError || resetMutation.error?.message;
 
+  // Yield Spectrum Background
+  const backgroundDecorators = (
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none select-none">
+      <div className="absolute inset-0 bg-background" />
+      <div className="absolute top-[-10%] left-[20%] w-[50%] h-[50%] rounded-full bg-indigo-brand/20 blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-yield-neon/5 blur-[100px] animate-pulse animate-delay-200" />
+    </div>
+  );
+
   if (resetMutation.isSuccess) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md">
-          <div className="mb-8 flex justify-center">
-            <img
-              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
-              alt="Infinite Yield Fund"
-              className="h-14"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-          <Card className="border shadow-md">
-            <CardHeader>
-              <CardTitle className="text-center text-2xl">Password Updated</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <div className="flex justify-center">
-                <CheckCircle2 className="h-16 w-16 text-green-500" />
-              </div>
-              <p className="text-muted-foreground">Your password has been successfully updated.</p>
-              <p className="text-sm text-muted-foreground">
-                You will be redirected to the login page shortly.
+      <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto">
+        {backgroundDecorators}
+
+        <div className="relative z-10 w-full max-w-md animate-fade-in-up">
+          <div className="glass-panel rounded-3xl p-8 backdrop-blur-2xl bg-black/40 border border-white/10 shadow-2xl relative overflow-hidden text-center space-y-6">
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+            <div className="w-20 h-20 mx-auto rounded-full bg-yield-neon/10 flex items-center justify-center border border-yield-neon/20 shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)]">
+              <CheckCircle2 className="h-10 w-10 text-yield-neon" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white">Password Updated</h2>
+              <p className="text-indigo-200/70 text-sm">
+                Your password has been successfully secured.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-sm text-indigo-200/50">
+              Redirecting you to login...
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 flex justify-center">
-          <img
-            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
-            alt="Infinite Yield Fund"
-            className="h-14"
-            loading="lazy"
-            decoding="async"
-          />
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto">
+      {backgroundDecorators}
+
+      <div className="relative z-10 w-full max-w-md animate-fade-in-up">
+        {/* Brand Header */}
+        <div className="mb-8 flex flex-col items-center justify-center text-center space-y-4">
+          <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl shadow-indigo-500/10">
+            <img
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+              alt="Infinite Yield Fund"
+              className="h-16 w-auto drop-shadow-lg"
+            />
+          </div>
         </div>
-        <Card className="border shadow-md">
-          <CardHeader>
-            <CardTitle className="text-center text-2xl">Set New Password</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
 
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <div className="space-y-2">
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="New Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    required
-                    minLength={8}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    <span className="sr-only">Toggle password visibility</span>
-                  </Button>
+        {/* Glass Card */}
+        <div className="glass-panel rounded-3xl p-8 backdrop-blur-2xl bg-black/40 border border-white/10 shadow-2xl relative overflow-hidden group">
+          {/* Top light reflection */}
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-white mb-2">Set New Password</h2>
+            <p className="text-indigo-200/60 text-sm">Secure your account with a strong password</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-200/90">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleResetPassword} className="space-y-5">
+            <div className="space-y-2">
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within/input:text-indigo-400 text-indigo-200/30">
+                  <Lock className="h-5 w-5" />
                 </div>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="New Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 transition-all font-medium text-base font-mono tracking-tighter"
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-200/30 hover:text-indigo-200 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm New Password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    required
-                    minLength={8}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                    <span className="sr-only">Toggle password visibility</span>
-                  </Button>
+            <div className="space-y-2">
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within/input:text-indigo-400 text-indigo-200/30">
+                  <Lock className="h-5 w-5" />
                 </div>
-              </div>
-
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>Password requirements:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>At least 8 characters long</li>
-                  <li>Contains uppercase and lowercase letters</li>
-                  <li>Contains at least one number</li>
-                </ul>
-              </div>
-
-              <div className="pt-2">
-                <Button type="submit" className="w-full" disabled={resetMutation.isPending}>
-                  {resetMutation.isPending ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Updating...
-                    </span>
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 transition-all font-medium text-base font-mono tracking-tighter"
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-200/30 hover:text-indigo-200 transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    "Update Password"
+                    <Eye className="h-5 w-5" />
                   )}
-                </Button>
+                </button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
 
-        <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>Investor Portal - Secure Password Reset</p>
+            <div className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-2">
+              <p className="text-xs text-indigo-200/70 font-medium">Password Requirements:</p>
+              <ul className="text-xs text-indigo-200/40 space-y-1 list-disc list-inside">
+                <li>At least 8 characters long</li>
+                <li>Contains uppercase & lowercase letters</li>
+                <li>Contains at least one number</li>
+              </ul>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                className="w-full h-12 btn-premium bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wide rounded-xl shadow-lg shadow-indigo-600/20 text-base"
+                disabled={resetMutation.isPending}
+              >
+                {resetMutation.isPending ? (
+                  <span className="flex items-center">
+                    <LoadingSpinner size="sm" className="mr-2 text-white" />
+                    Securing Account...
+                  </span>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-xs text-indigo-200/30 font-medium tracking-widest uppercase">
+            Secure Password Encryption
+          </p>
         </div>
       </div>
     </div>

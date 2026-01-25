@@ -1,12 +1,13 @@
-// @ts-nocheck
-import '@testing-library/jest-dom';
-import { cleanup } from '@testing-library/react';
-import { afterEach, beforeAll, vi, expect } from 'vitest';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import "@testing-library/jest-dom";
+import { cleanup } from "@testing-library/react";
+import { afterEach, beforeAll, vi, expect } from "vitest";
 
 // Set test environment variables
-process.env.NODE_ENV = 'test';
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+process.env.NODE_ENV = "test";
+process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
 
 // Cleanup after each test
 afterEach(() => {
@@ -14,22 +15,22 @@ afterEach(() => {
 });
 
 // Mock Next.js router
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
     back: vi.fn(),
-    pathname: '/',
+    pathname: "/",
     query: {},
-    asPath: '/',
+    asPath: "/",
   }),
-  usePathname: () => '/',
+  usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
 }));
 
 // Mock Supabase client
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
       getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
@@ -50,7 +51,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
     matches: false,
@@ -96,7 +97,7 @@ expect.extend({
     };
   },
   toBeValidPercentage(received: number) {
-    const pass = typeof received === 'number' && received >= 0 && received <= 100;
+    const pass = typeof received === "number" && received >= 0 && received <= 100;
     return {
       message: () =>
         pass
@@ -108,7 +109,7 @@ expect.extend({
 });
 
 // Type declarations for custom matchers
-declare module 'vitest' {
+declare module "vitest" {
   interface Assertion<T = any> {
     toBeWithinRange(floor: number, ceiling: number): T;
     toBeValidPercentage(): T;

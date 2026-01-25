@@ -1,6 +1,6 @@
 /**
  * ActivityFeed - Unified activity feed component
- * 
+ *
  * Can be used in two modes:
  * 1. Self-fetching: Automatically fetches and subscribes to realtime updates
  * 2. Controlled: Receives activities as props for custom data sources
@@ -8,8 +8,14 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Button, Badge, Skeleton,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  Skeleton,
   ScrollArea,
 } from "@/components/ui";
 import {
@@ -75,7 +81,7 @@ type ActivityFeedProps = ControlledActivityFeedProps | SelfFetchingActivityFeedP
 
 // Type guard to check if props are controlled
 function isControlled(props: ActivityFeedProps): props is ControlledActivityFeedProps {
-  return 'activities' in props && Array.isArray(props.activities);
+  return "activities" in props && Array.isArray(props.activities);
 }
 
 /**
@@ -115,7 +121,7 @@ function getIconColor(type: string, status?: string): string {
         return "text-muted-foreground";
     }
   }
-  
+
   // Type-based colors
   switch (type) {
     case "deposit":
@@ -169,7 +175,7 @@ function formatAmount(amount?: string | number, asset?: string): string | null {
 function ActivityItemRow({ activity }: { activity: ControlledActivityItem }) {
   const Icon = activity.icon || getActivityIcon(activity.type);
   const iconColor = getIconColor(activity.type, activity.status);
-  
+
   return (
     <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
       <div className="mt-0.5 p-1.5 rounded-full bg-muted">
@@ -185,16 +191,16 @@ function ActivityItemRow({ activity }: { activity: ControlledActivityItem }) {
           )}
           {activity.metadata?.amount && (
             <Badge
-              variant={activity.type === "deposit" || activity.type === "yield" ? "default" : "secondary"}
+              variant={
+                activity.type === "deposit" || activity.type === "yield" ? "default" : "secondary"
+              }
               className="font-mono text-[10px] px-1.5"
             >
               {formatAmount(activity.metadata.amount, activity.metadata.asset)}
             </Badge>
           )}
         </div>
-        <p className="text-xs text-muted-foreground truncate">
-          {activity.description}
-        </p>
+        <p className="text-xs text-muted-foreground truncate">{activity.description}</p>
         {activity.user && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
             <span>by {activity.user}</span>
@@ -229,9 +235,7 @@ function ActivityEmptyState() {
     <div className="flex flex-col items-center justify-center py-12 text-center px-4">
       <Activity className="h-12 w-12 text-muted-foreground/30 mb-3" />
       <p className="text-sm font-medium text-muted-foreground">No recent activity</p>
-      <p className="text-xs text-muted-foreground">
-        Activity will appear here as it happens
-      </p>
+      <p className="text-xs text-muted-foreground">Activity will appear here as it happens</p>
     </div>
   );
 }
@@ -239,128 +243,51 @@ function ActivityEmptyState() {
 /**
  * Unified Activity Feed Component
  */
+import { useRecentActivities, useRealtimeSubscription } from "@/hooks/data";
+
+/**
+ * ActivityFeed - Unified activity feed component
+ */
 export function ActivityFeed(props: ActivityFeedProps) {
+  if (isControlled(props)) {
+    return <ControlledActivityFeedContent {...props} />;
+  }
+  return <SelfFetchingActivityFeedWrapper {...props} />;
+}
+
+function ControlledActivityFeedContent(props: ControlledActivityFeedProps) {
   const {
     title = "Recent Activity",
     description,
     maxHeight = "400px",
     className,
     compact = false,
+    activities,
+    isLoading = false,
+    onRefresh,
   } = props;
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  // Controlled mode - use provided activities
-  if (isControlled(props)) {
-    const { activities, isLoading = false, onRefresh } = props;
-
-    const handleRefresh = async () => {
-      if (!onRefresh) return;
-      setRefreshing(true);
-      await onRefresh();
-      setRefreshing(false);
-    };
-
-    const content = (
-      <>
-        {isLoading ? (
-          <ActivitySkeleton />
-        ) : activities.length === 0 ? (
-          <ActivityEmptyState />
-        ) : (
-          <ScrollArea className={cn("px-4")} style={{ maxHeight }}>
-            <div className="space-y-1 pb-4">
-              {activities.map((activity) => (
-                <ActivityItemRow key={activity.id} activity={activity} />
-              ))}
-            </div>
-          </ScrollArea>
-        )}
-      </>
-    );
-
-    if (compact) {
-      return <div className={className}>{content}</div>;
-    }
-
-    return (
-      <Card className={cn("h-full flex flex-col", className)}>
-        <CardHeader className="pb-3 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
-                {title}
-              </CardTitle>
-              {description && (
-                <CardDescription>{description}</CardDescription>
-              )}
-            </div>
-            {onRefresh && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleRefresh}
-                disabled={refreshing}
-              >
-                <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 overflow-hidden p-0">
-          {content}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Self-fetching mode - use hooks to fetch data
-  // Import dynamically to avoid circular dependencies
-  const { useRecentActivities, useRealtimeSubscription } = require("@/hooks/data");
-  
-  const { data: activities = [], isLoading, refetch } = useRecentActivities();
-
-  // Subscribe to realtime changes
-  useRealtimeSubscription({
-    channel: "activity-feed",
-    table: "transactions_v2",
-    onChange: () => refetch(),
-  });
-
-  useRealtimeSubscription({
-    channel: "activity-feed-withdrawals",
-    table: "withdrawal_requests",
-    onChange: () => refetch(),
-  });
+  const [localRefreshing, setLocalRefreshing] = useState(false);
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
+    if (!onRefresh) return;
+    setLocalRefreshing(true);
+    await onRefresh();
+    setLocalRefreshing(false);
   };
 
-  // Transform dashboard activities to controlled format
-  const controlledActivities: ControlledActivityItem[] = (activities as DashboardActivityItem[]).map(a => ({
-    id: a.id,
-    type: a.type,
-    title: a.title,
-    description: a.description,
-    timestamp: a.timestamp,
-    metadata: a.metadata,
-  }));
+  const isRefreshing = localRefreshing;
 
   const content = (
     <>
       {isLoading ? (
         <ActivitySkeleton />
-      ) : controlledActivities.length === 0 ? (
+      ) : activities.length === 0 ? (
         <ActivityEmptyState />
       ) : (
-        <ScrollArea className="px-4" style={{ maxHeight }}>
+        <ScrollArea className={cn("px-4")} style={{ maxHeight }}>
           <div className="space-y-1 pb-4">
-            {controlledActivities.map((activity) => (
+            {activities.map((activity) => (
               <ActivityItemRow key={activity.id} activity={activity} />
             ))}
           </div>
@@ -382,25 +309,68 @@ export function ActivityFeed(props: ActivityFeedProps) {
               <Activity className="h-5 w-5 text-primary" />
               {title}
             </CardTitle>
-            {description && (
-              <CardDescription>{description}</CardDescription>
-            )}
+            {description && <CardDescription>{description}</CardDescription>}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
-          </Button>
+          {onRefresh && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+            </Button>
+          )}
         </div>
       </CardHeader>
-      <CardContent className="flex-1 overflow-hidden p-0">
-        {content}
-      </CardContent>
+      <CardContent className="flex-1 overflow-hidden p-0">{content}</CardContent>
     </Card>
+  );
+}
+
+function SelfFetchingActivityFeedWrapper(props: SelfFetchingActivityFeedProps) {
+  const { data: activities = [], isLoading, refetch } = useRecentActivities();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Subscribe to realtime changes
+  useRealtimeSubscription({
+    channel: "activity-feed",
+    table: "transactions_v2",
+    onChange: () => refetch(),
+  });
+
+  useRealtimeSubscription({
+    channel: "activity-feed-withdrawals",
+    table: "withdrawal_requests",
+    onChange: () => refetch(),
+  });
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
+  // Transform dashboard activities to controlled format
+  const controlledActivities: ControlledActivityItem[] = (
+    activities as DashboardActivityItem[]
+  ).map((a) => ({
+    id: a.id,
+    type: a.type,
+    title: a.title,
+    description: a.description,
+    timestamp: a.timestamp,
+    metadata: a.metadata,
+  }));
+
+  return (
+    <ControlledActivityFeedContent
+      {...props}
+      activities={controlledActivities}
+      isLoading={isLoading}
+      onRefresh={handleRefresh}
+    />
   );
 }
 

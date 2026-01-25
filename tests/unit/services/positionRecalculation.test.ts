@@ -91,10 +91,7 @@ function calculatePosition(
 ): Position {
   const relevantTxs = sortTransactions(
     transactions.filter(
-      (tx) =>
-        tx.investor_id === investorId &&
-        tx.fund_id === fundId &&
-        !tx.is_voided
+      (tx) => tx.investor_id === investorId && tx.fund_id === fundId && !tx.is_voided
     )
   );
 
@@ -113,9 +110,7 @@ function calculatePosition(
       costBasis = costBasis.plus(tx.amount);
     } else if (tx.type === "WITHDRAWAL") {
       // Proportional cost basis reduction for withdrawals
-      const costBasisRatio = costBasis.dividedBy(
-        currentValue.plus(tx.amount)
-      );
+      const costBasisRatio = costBasis.dividedBy(currentValue.plus(tx.amount));
       const costReduction = new Decimal(tx.amount).times(costBasisRatio);
       const pnlRealized = new Decimal(tx.amount).minus(costReduction);
       realizedPnl = realizedPnl.plus(pnlRealized);
@@ -140,10 +135,7 @@ function calculatePosition(
 /**
  * Calculate fund AUM from all investor positions
  */
-function calculateFundAUM(
-  transactions: Transaction[],
-  fundId: string
-): FundAUM {
+function calculateFundAUM(transactions: Transaction[], fundId: string): FundAUM {
   // Get unique investors in this fund
   const investorIds = [
     ...new Set(
@@ -157,14 +149,9 @@ function calculateFundAUM(
     calculatePosition(transactions, investorId, fundId)
   );
 
-  const totalAum = positions.reduce(
-    (sum, pos) => sum + Math.max(0, pos.current_value),
-    0
-  );
+  const totalAum = positions.reduce((sum, pos) => sum + Math.max(0, pos.current_value), 0);
 
-  const investorCount = positions.filter(
-    (pos) => pos.current_value > 0
-  ).length;
+  const investorCount = positions.filter((pos) => pos.current_value > 0).length;
 
   return {
     fund_id: fundId,
@@ -179,7 +166,7 @@ function calculateFundAUM(
  */
 function calculateAllocations(fundAum: FundAUM): Map<string, number> {
   const allocations = new Map<string, number>();
-  
+
   if (fundAum.total_aum <= 0) {
     return allocations;
   }
@@ -530,14 +517,8 @@ describe("Position Recalculation", () => {
       const newAllocations = calculateAllocations(newAum);
 
       // Allocations should remain the same after proportional yield
-      expect(newAllocations.get("inv-1")).toBeCloseTo(
-        initialAllocations.get("inv-1")!,
-        5
-      );
-      expect(newAllocations.get("inv-2")).toBeCloseTo(
-        initialAllocations.get("inv-2")!,
-        5
-      );
+      expect(newAllocations.get("inv-1")).toBeCloseTo(initialAllocations.get("inv-1")!, 5);
+      expect(newAllocations.get("inv-2")).toBeCloseTo(initialAllocations.get("inv-2")!, 5);
     });
   });
 
@@ -561,6 +542,7 @@ describe("Position Recalculation", () => {
     });
 
     it("handles large amounts with precision", () => {
+      /* eslint-disable no-loss-of-precision */
       const txs: Transaction[] = [
         {
           id: "tx-1",
@@ -576,6 +558,7 @@ describe("Position Recalculation", () => {
 
       const pos = calculatePosition(txs, "inv-1", "fund-btc");
       expect(pos.current_value).toBeCloseTo(1234567890.12345678, 8);
+      /* eslint-enable no-loss-of-precision */
     });
 
     it("handles multiple funds correctly", () => {

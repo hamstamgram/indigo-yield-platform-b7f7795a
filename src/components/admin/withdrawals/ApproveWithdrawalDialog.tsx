@@ -1,11 +1,23 @@
 import { useState, useEffect } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Textarea, Alert, AlertDescription, Checkbox,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Alert,
+  AlertDescription,
+  Checkbox,
 } from "@/components/ui";
 import { withdrawalService } from "@/services";
 import { useWithdrawalMutations } from "@/hooks/data";
+import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { formatAssetAmount } from "@/utils/assets";
@@ -24,6 +36,7 @@ export function ApproveWithdrawalDialog({
   withdrawal,
   onSuccess,
 }: ApproveWithdrawalDialogProps) {
+  const { user } = useAuth();
   const [processedAmount, setProcessedAmount] = useState(withdrawal.requested_amount.toString());
   const [adminNotes, setAdminNotes] = useState("");
   const [confirmText, setConfirmText] = useState("");
@@ -46,12 +59,12 @@ export function ApproveWithdrawalDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isConfirmed) {
       toast.error("Please type APPROVE to confirm");
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -68,9 +81,12 @@ export function ApproveWithdrawalDialog({
       if (routeToFees) {
         routeToFeesMutation.mutate({
           withdrawalId: withdrawal.id,
-          reason: adminNotes ? `${adminNotes} (routed on approval)` : "Routed to INDIGO FEES on approval",
+          reason: adminNotes
+            ? `${adminNotes} (routed on approval)`
+            : "Routed to INDIGO FEES on approval",
           investorId: withdrawal.investor_id,
           fundId: withdrawal.fund_id,
+          actorId: user?.id || "system",
         });
       }
 
@@ -147,7 +163,7 @@ export function ApproveWithdrawalDialog({
                 </p>
               </div>
             </div>
-            
+
             {/* Typed Confirmation Gate */}
             <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -158,7 +174,7 @@ export function ApproveWithdrawalDialog({
                 </p>
               </AlertDescription>
             </Alert>
-            
+
             <div>
               <Label htmlFor="confirmText">Type APPROVE to confirm *</Label>
               <Input

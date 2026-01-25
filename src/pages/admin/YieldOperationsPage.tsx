@@ -1,9 +1,7 @@
 /**
  * Yield Operations Page
  * Consolidated fund management and yield distribution
- * With confirmation dialog for safety
- *
- * Refactored to use extracted components and hooks for maintainability
+ * REDESIGNED: Yield Spectrum aesthetic
  */
 
 import {
@@ -27,7 +25,16 @@ import {
   SelectValue,
   QueryErrorBoundary,
 } from "@/components/ui";
-import { TrendingUp, Users, Plus, Coins, CalendarIcon, AlertTriangle, Clock } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  Plus,
+  Coins,
+  CalendarIcon,
+  AlertTriangle,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 import { AdminGuard } from "@/components/admin";
 import {
   FundAUMEventsTable,
@@ -43,6 +50,7 @@ import { usePendingYieldEvents } from "@/hooks/data/admin/useYieldCrystallizatio
 import { useAUMReconciliation } from "@/hooks/data/admin/useAUMReconciliation";
 import { getMonth, getYear } from "date-fns";
 import { useYieldOperationsState, type Fund } from "@/hooks/admin/useYieldOperationsState";
+import { cn } from "@/lib/utils";
 
 function YieldOperationsContent() {
   const ops = useYieldOperationsState();
@@ -60,12 +68,12 @@ function YieldOperationsContent() {
 
   if (ops.loading) {
     return (
-      <div className="container max-w-6xl mx-auto px-4 py-6">
-        <Skeleton className="h-8 w-64 mb-2" />
-        <Skeleton className="h-4 w-96 mb-8" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-40 rounded-lg" />
+      <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <Skeleton className="h-10 w-64 mb-2" />
+        <Skeleton className="h-5 w-96 mb-8" />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-64 rounded-xl" />
           ))}
         </div>
       </div>
@@ -73,86 +81,106 @@ function YieldOperationsContent() {
   }
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div className="container max-w-7xl mx-auto px-4 py-8 space-y-10 animate-fade-in pb-20">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-display font-bold tracking-tight">Yield Operations</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage fund AUM and distribute yield to investors
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-display font-bold tracking-tight text-white flex items-center gap-3">
+            Yield Operations
+            <Badge
+              variant="outline"
+              className="border-emerald-500/30 text-emerald-400 bg-emerald-500/5"
+            >
+              Live Systems
+            </Badge>
+          </h1>
+          <p className="text-slate-400 mt-2 max-w-2xl text-lg">
+            Manage fund AUM checkpoints and distribute algorithmic yields to investors.
+          </p>
+        </div>
+
+        <div className="flex gap-3">{/* Future actions can go here */}</div>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Coins className="h-8 w-8 text-primary/30" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Active Funds</p>
-                <p className="text-2xl font-mono font-bold">{ops.funds.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Users className="h-8 w-8 text-primary/30" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Total Positions</p>
-                <p className="text-2xl font-mono font-bold">
-                  {ops.funds.reduce((sum, f) => sum + f.investor_count, 0)}
-                </p>
-                <p className="text-xs text-muted-foreground">Investor × fund combinations</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+        <div className="glass-panel rounded-2xl p-6 border border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Coins className="h-24 w-24 text-indigo-400 transform rotate-12" />
+          </div>
+          <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">
+            Active Funds
+          </p>
+          <p className="text-4xl font-display font-medium text-white">{ops.funds.length}</p>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-6 border border-emerald-500/20 bg-emerald-500/5 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Users className="h-24 w-24 text-emerald-400 transform -rotate-12" />
+          </div>
+          <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">
+            Total Positions
+          </p>
+          <p className="text-4xl font-display font-medium text-white">
+            {ops.funds.reduce((sum, f) => sum + f.investor_count, 0)}
+          </p>
+        </div>
       </div>
 
-      {/* Funds Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {ops.funds.map((fund) => (
-          <FundCard
-            key={fund.id}
-            fund={fund}
-            formatValue={ops.formatValue}
-            onOpenYieldDialog={() => ops.openYieldDialog(fund)}
-            onOpenPeriodDialog={() => {
-              ops.setSelectedFund(fund);
-              ops.setShowOpenPeriodDialog(true);
-            }}
-          />
-        ))}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-indigo-400" />
+          Fund Portfolio
+        </h2>
+
+        {/* Funds Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {ops.funds.map((fund) => (
+            <FundCard
+              key={fund.id}
+              fund={fund}
+              formatValue={ops.formatValue}
+              onOpenYieldDialog={() => ops.openYieldDialog(fund)}
+              onOpenPeriodDialog={() => {
+                ops.setSelectedFund(fund);
+                ops.setShowOpenPeriodDialog(true);
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* AUM Checkpoints Section */}
       {ops.funds.length > 0 && (
-        <AUMCheckpointsSection
-          funds={ops.funds}
-          selectedFund={ops.selectedFund}
-          setSelectedFund={ops.setSelectedFund}
-          formatValue={ops.formatValue}
-        />
+        <div className="pt-8 border-t border-white/5">
+          <AUMCheckpointsSection
+            funds={ops.funds}
+            selectedFund={ops.selectedFund}
+            setSelectedFund={ops.setSelectedFund}
+            formatValue={ops.formatValue}
+          />
+        </div>
       )}
 
       {/* Yield Distribution Dialog */}
       <Dialog open={ops.showYieldDialog} onOpenChange={ops.setShowYieldDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-panel border-white/10 p-0 overflow-hidden">
+          <DialogHeader className="p-6 bg-black/20 border-b border-white/5">
+            <DialogTitle className="flex items-center gap-3 text-2xl">
               {ops.selectedFund && (
-                <CryptoIcon symbol={ops.selectedFund.asset} className="h-8 w-8" />
+                <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                  <CryptoIcon symbol={ops.selectedFund.asset} className="h-6 w-6 text-white" />
+                </div>
               )}
-              Record Yield - {ops.selectedFund?.name}
+              <span className="text-white">Record Yield Event</span>
             </DialogTitle>
-            <DialogDescription>
-              Enter the new total AUM to calculate and distribute yield.
+            <DialogDescription className="text-slate-400 text-base">
+              Enter the new total AUM to calculate distribution for{" "}
+              <span className="text-indigo-400 font-medium">{ops.selectedFund?.name}</span>.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 p-6">
             <YieldInputForm
               selectedFund={ops.selectedFund}
               newAUM={ops.newAUM}
@@ -179,20 +207,22 @@ function YieldOperationsContent() {
 
             {/* Preview Results */}
             {ops.yieldPreview && (
-              <YieldPreviewResults
-                yieldPreview={ops.yieldPreview}
-                selectedFund={ops.selectedFund}
-                formatValue={ops.formatValue}
-                showSystemAccounts={ops.showSystemAccounts}
-                setShowSystemAccounts={ops.setShowSystemAccounts}
-                showOnlyChanged={ops.showOnlyChanged}
-                setShowOnlyChanged={ops.setShowOnlyChanged}
-                searchInvestor={ops.searchInvestor}
-                setSearchInvestor={ops.setSearchInvestor}
-                getFilteredDistributions={ops.getFilteredDistributions}
-                onConfirmApply={ops.handleConfirmApply}
-                applyLoading={ops.applyLoading}
-              />
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <YieldPreviewResults
+                  yieldPreview={ops.yieldPreview}
+                  selectedFund={ops.selectedFund}
+                  formatValue={ops.formatValue}
+                  showSystemAccounts={ops.showSystemAccounts}
+                  setShowSystemAccounts={ops.setShowSystemAccounts}
+                  showOnlyChanged={ops.showOnlyChanged}
+                  setShowOnlyChanged={ops.setShowOnlyChanged}
+                  searchInvestor={ops.searchInvestor}
+                  setSearchInvestor={ops.setSearchInvestor}
+                  getFilteredDistributions={ops.getFilteredDistributions}
+                  onConfirmApply={ops.handleConfirmApply}
+                  applyLoading={ops.applyLoading}
+                />
+              </div>
             )}
           </div>
         </DialogContent>
@@ -238,47 +268,68 @@ interface FundCardProps {
 
 function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: FundCardProps) {
   return (
-    <Card className="group hover:shadow-md transition-shadow flex flex-col">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <CryptoIcon symbol={fund.asset} className="h-10 w-10" />
+    <div className="glass-card bg-card/40 hover:bg-card/60 border-white/5 hover:border-indigo-500/30 rounded-2xl overflow-hidden transition-all duration-300 group hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.2)] flex flex-col h-full">
+      <div className="p-6 flex-1">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+              <CryptoIcon symbol={fund.asset} className="h-7 w-7 text-white" />
+            </div>
             <div>
-              <CardTitle className="text-lg">{fund.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">{fund.code}</p>
+              <h3 className="font-bold text-lg text-white group-hover:text-indigo-300 transition-colors">
+                {fund.name}
+              </h3>
+              <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                <span>{fund.code}</span>
+                <span className="w-1 h-1 rounded-full bg-slate-600" />
+                <span>{fund.asset}</span>
+              </div>
             </div>
           </div>
-          <Badge variant="outline">{fund.asset}</Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex-1 space-y-3 pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            <span className="font-mono font-semibold">
-              {formatValue(fund.total_aum, fund.asset)}
-            </span>
-            <span className="text-muted-foreground">{fund.asset}</span>
+          <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
+            Active
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>{fund.investor_count}</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          <div className="p-3 rounded-lg bg-black/20 border border-white/5">
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">
+              Total AUM
+            </p>
+            <p className="text-white font-mono font-medium">
+              {formatValue(fund.total_aum, fund.asset)}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-black/20 border border-white/5">
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">
+              Investors
+            </p>
+            <div className="flex items-center gap-1.5 text-white font-mono font-medium">
+              <Users className="h-3.5 w-3.5 text-indigo-400" />
+              {fund.investor_count}
+            </div>
           </div>
         </div>
 
         {fund.aum_record_count === 0 && (
-          <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-            <AlertTriangle className="h-3 w-3" />
-            No AUM baseline - Open Period first
+          <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+            <span className="text-xs text-amber-200">
+              No baseline AUM found. You must open a period before recording yield.
+            </span>
           </div>
         )}
-      </CardContent>
+      </div>
 
-      <CardFooter className="pt-0">
-        <div className="flex gap-2 w-full">
+      <div className="p-4 border-t border-white/5 bg-white/[0.02]">
+        <div className="flex gap-3">
           {fund.aum_record_count === 0 && (
-            <Button onClick={onOpenPeriodDialog} variant="outline" size="sm" className="flex-1">
+            <Button
+              onClick={onOpenPeriodDialog}
+              variant="outline"
+              size="sm"
+              className="flex-1 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 hover:text-white"
+            >
               <CalendarIcon className="h-4 w-4 mr-2" />
               Open Period
             </Button>
@@ -288,15 +339,21 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
             onClick={onOpenYieldDialog}
             disabled={fund.investor_count === 0}
             size="sm"
-            className={fund.aum_record_count === 0 ? "flex-1" : "w-full"}
-            variant={fund.investor_count > 0 ? "primary" : "secondary"}
+            className={cn(
+              "w-full shadow-lg transition-all active:scale-95",
+              fund.aum_record_count === 0 ? "flex-1" : "w-full",
+              fund.investor_count > 0
+                ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20"
+                : "bg-slate-800 text-slate-500 border border-white/5"
+            )}
+            variant={fund.investor_count > 0 ? "default" : "secondary"}
           >
             <Plus className="h-4 w-4 mr-2" />
             Record Yield
           </Button>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -315,22 +372,25 @@ function AUMCheckpointsSection({
 }: AUMCheckpointsSectionProps) {
   return (
     <Collapsible>
-      <Card>
+      <div className="glass-panel border-white/5 rounded-2xl overflow-hidden">
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Clock className="h-5 w-5 text-muted-foreground" />
-                AUM Checkpoints
-              </CardTitle>
-              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          <div className="w-full p-6 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors group">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <Clock className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">AUM Checkpoints</h3>
+                <p className="text-sm text-slate-400">View historical data for reconciliation</p>
+              </div>
             </div>
-          </CardHeader>
+            <ChevronDown className="h-5 w-5 text-slate-500 transition-transform duration-300 group-data-[state=open]:rotate-180" />
+          </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">Select Fund</span>
+          <div className="p-6 pt-0 border-t border-white/5 space-y-6 bg-black/20">
+            <div className="flex items-center gap-4 mt-6">
+              <span className="text-sm font-medium text-slate-400">Select Fund to Inspect:</span>
               <Select
                 value={selectedFund?.id || ""}
                 onValueChange={(value) => {
@@ -338,12 +398,16 @@ function AUMCheckpointsSection({
                   setSelectedFund(fund || null);
                 }}
               >
-                <SelectTrigger className="w-[250px]">
+                <SelectTrigger className="w-[280px] bg-black/40 border-white/10 text-white focus:ring-emerald-500/50">
                   <SelectValue placeholder="Choose a fund..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-900 border-white/10 text-white">
                   {funds.map((fund) => (
-                    <SelectItem key={fund.id} value={fund.id}>
+                    <SelectItem
+                      key={fund.id}
+                      value={fund.id}
+                      className="focus:bg-white/10 focus:text-white"
+                    >
                       <div className="flex items-center gap-2">
                         <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
                         {fund.name}
@@ -353,20 +417,25 @@ function AUMCheckpointsSection({
                 </SelectContent>
               </Select>
             </div>
+
             {selectedFund ? (
-              <FundAUMEventsTable
-                fundId={selectedFund.id}
-                formatValue={formatValue}
-                asset={selectedFund.asset || ""}
-              />
+              <div className="rounded-xl border border-white/5 overflow-hidden">
+                <FundAUMEventsTable
+                  fundId={selectedFund.id}
+                  formatValue={formatValue}
+                  asset={selectedFund.asset || ""}
+                />
+              </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                Select a fund to view AUM checkpoints
+              <div className="text-center py-12 rounded-xl border border-dashed border-white/10 bg-white/5">
+                <p className="text-slate-400">
+                  Select a fund above to view its historical AUM checkpoints.
+                </p>
               </div>
             )}
-          </CardContent>
+          </div>
         </CollapsibleContent>
-      </Card>
+      </div>
     </Collapsible>
   );
 }

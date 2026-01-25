@@ -167,6 +167,17 @@ export default function AdminManualTransaction() {
     }
   }, [currentBalance, isCheckingBalance, txnType, form]);
 
+  const isFirstInvestment =
+    currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
+  const hasExistingPosition =
+    currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
+  const isDeposit = txnType === "DEPOSIT" || txnType === "FIRST_INVESTMENT";
+  const isLoading = investorsLoading || fundsLoading;
+  const yieldPreviewAum = yieldPreview ? toDecimal(yieldPreview.currentAum) : null;
+  const yieldPreviewGross = yieldPreview ? toDecimal(yieldPreview.preDepositYield) : null;
+  const yieldPreviewPct = yieldPreview ? toDecimal(yieldPreview.yieldPercentage) : null;
+  const depositAmountDec = depositAmount ? toDecimal(depositAmount || "0") : null;
+
   // Validate AUM deviation - CORE FIX for data entry errors
   useEffect(() => {
     if (!isDeposit || currentAum === null || !depositAmount || !newTotalAum) {
@@ -199,17 +210,6 @@ export default function AdminManualTransaction() {
       setAumDeviationWarning(null);
     }
   }, [isDeposit, currentAum, depositAmount, newTotalAum]);
-
-  const isFirstInvestment =
-    currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
-  const hasExistingPosition =
-    currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
-  const isDeposit = txnType === "DEPOSIT" || txnType === "FIRST_INVESTMENT";
-  const isLoading = investorsLoading || fundsLoading;
-  const yieldPreviewAum = yieldPreview ? toDecimal(yieldPreview.currentAum) : null;
-  const yieldPreviewGross = yieldPreview ? toDecimal(yieldPreview.preDepositYield) : null;
-  const yieldPreviewPct = yieldPreview ? toDecimal(yieldPreview.yieldPercentage) : null;
-  const depositAmountDec = depositAmount ? toDecimal(depositAmount || "0") : null;
 
   const onSubmit = async (data: TransactionFormValues) => {
     setIsSubmitting(true);

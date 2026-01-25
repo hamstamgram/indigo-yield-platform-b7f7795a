@@ -6,21 +6,14 @@
 export { useAdminStats, type AdminStats } from "../useAdminStats";
 
 // useDeliveryData
-export { 
-  usePeriodsWithCounts, 
-  useDeliveryStats, 
-  useDeliveries,
-} from "../useDeliveryData";
+export { usePeriodsWithCounts, useDeliveryStats, useDeliveries } from "../useDeliveryData";
 
 // useDeliveryMutations
-export { 
-  useDeliveryMutations,
-  type SendProgress,
-} from "../useDeliveryMutations";
+export { useDeliveryMutations, type SendProgress } from "../useDeliveryMutations";
 
 // useEmailTracking
-export { 
-  useEmailStats, 
+export {
+  useEmailStats,
   useEmailDeliveries,
   type EmailStats,
   type EmailDelivery,
@@ -28,28 +21,29 @@ export {
 } from "../useEmailTracking";
 
 // useIntegrityData
-export { 
-  useIntegrityChecks, 
-  useAuditEvents,
-} from "../useIntegrityData";
+export { useIntegrityChecks, useAuditEvents } from "../useIntegrityData";
+
+// useIntegrityOperations (P1)
+export {
+  useIntegrityRuns,
+  useAdminAlerts,
+  useRunIntegrityCheck,
+  useAcknowledgeAlert,
+} from "../useIntegrityOperations";
 
 // useMonthlyReports
-export { 
-  useInvestorMonthlyReports, 
-  useCreateMonthlyTemplate, 
+export {
+  useInvestorMonthlyReports,
+  useCreateMonthlyTemplate,
   useUpdateMonthlyReportField,
   type MonthlyReport,
 } from "../useMonthlyReports";
 
 // useOperationsHub
-export { 
-  useRecentAuditLogs, 
-  useOperationsRealtime,
-  type AuditLogEntry,
-} from "../useOperationsHub";
+export { useRecentAuditLogs, useOperationsRealtime, type AuditLogEntry } from "../useOperationsHub";
 
 // useReportData
-export { 
+export {
   useHistoricalDataSummary,
   useActiveInvestorsForReports,
   useStatementPeriod,
@@ -60,10 +54,7 @@ export {
 } from "../useReportData";
 
 // useActionBar
-export {
-  usePendingCounts,
-  type PendingCounts,
-} from "../useActionBar";
+export { usePendingCounts, type PendingCounts } from "../useActionBar";
 
 // useCommandPalette
 export {
@@ -81,16 +72,10 @@ export {
 } from "../useInternalRoute";
 
 // useReportRecipients
-export {
-  useReportRecipients,
-  useUpdateReportRecipients,
-} from "../useReportRecipients";
+export { useReportRecipients, useUpdateReportRecipients } from "../useReportRecipients";
 
 // useIBUsers
-export {
-  useIBUsers,
-  type IBUser,
-} from "../useIBUsers";
+export { useIBUsers, type IBUser } from "../useIBUsers";
 
 // useDeposits
 export {
@@ -119,10 +104,7 @@ export {
 } from "../useIBManagementPage";
 
 // useIBPayoutMutations
-export {
-  useIBAllocationsForPayout,
-  useMarkAllocationsAsPaid,
-} from "../useIBPayoutMutations";
+export { useIBAllocationsForPayout, useMarkAllocationsAsPaid } from "../useIBPayoutMutations";
 
 // useAuditLogs
 export {
@@ -133,7 +115,4 @@ export {
 } from "../useAuditLogs";
 
 // useRealtimeAlerts
-export {
-  useRealtimeAlerts,
-  useUnacknowledgedAlertCount,
-} from "../useRealtimeAlerts";
+export { useRealtimeAlerts, useUnacknowledgedAlertCount } from "../useRealtimeAlerts";

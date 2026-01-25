@@ -31,6 +31,7 @@ import {
   type UserSettings,
 } from "@/hooks/data";
 import { logError } from "@/lib/logger";
+import { cn } from "@/lib/utils";
 
 const SETTINGS_KEY = "indigo_user_settings";
 
@@ -139,59 +140,110 @@ export default function InvestorSettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-20 px-4 md:px-6 lg:px-0">
-      <PageHeader title="Settings" icon={Settings} />
+    <div className="space-y-8 max-w-5xl mx-auto pb-20 px-4 md:px-6 lg:px-8 animate-fade-in-up">
+      {/* Background Decoration */}
+      <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-500/5 blur-[120px] pointer-events-none -z-10 rounded-full" />
 
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="mb-4 bg-muted">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+      <div className="flex items-center gap-4 py-4">
+        <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+          <Settings className="h-8 w-8 text-indigo-400" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Settings</h1>
+          <p className="text-indigo-200/60 font-light">
+            Manage your profile, security, and preferences
+          </p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="profile" className="w-full space-y-8">
+        <TabsList className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-1 h-auto w-full md:w-auto flex-wrap justify-start">
+          <TabsTrigger
+            value="profile"
+            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
+          >
+            Profile
+          </TabsTrigger>
+          <TabsTrigger
+            value="security"
+            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
+          >
+            Security
+          </TabsTrigger>
+          <TabsTrigger
+            value="notifications"
+            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
+          >
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger
+            value="appearance"
+            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
+          >
+            Appearance
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile">
-          <ProfileTab profile={profile || null} loading={loading} />
-        </TabsContent>
+        <div className="glass-panel rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl overflow-hidden min-h-[400px]">
+          <div className="p-6 md:p-8">
+            <TabsContent value="profile" className="mt-0 space-y-6">
+              <ProfileTab profile={profile || null} loading={loading} />
+            </TabsContent>
 
-        <TabsContent value="security">
-          <SecurityTab />
-        </TabsContent>
+            <TabsContent value="security" className="mt-0 space-y-6">
+              <SecurityTab />
+            </TabsContent>
 
-        <TabsContent value="notifications">
-          <NotificationsTab />
-        </TabsContent>
+            <TabsContent value="notifications" className="mt-0 space-y-6">
+              <NotificationsTab />
+            </TabsContent>
 
-        <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>Customize how the dashboard looks</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Theme</Label>
-                <div className="grid grid-cols-3 gap-2">
+            <TabsContent value="appearance" className="mt-0 space-y-8">
+              <div>
+                <h2 className="text-xl font-bold text-white mb-1">Appearance</h2>
+                <p className="text-indigo-200/50">Customize how the dashboard looks and feels.</p>
+              </div>
+
+              <Separator className="bg-white/10" />
+
+              <div className="space-y-4">
+                <Label className="text-sm font-medium text-white">Theme</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Button
-                    variant={settings.theme === "light" ? "primary" : "outline"}
-                    className="justify-start"
-                    onClick={() => updateSetting("theme", "light")}
+                    variant={settings.theme === "light" ? "default" : "outline"}
+                    className={cn(
+                      "justify-start h-12 rounded-xl",
+                      settings.theme === "light"
+                        ? "bg-indigo-600 hover:bg-indigo-500 text-white border-transparent"
+                        : "border-white/10 bg-white/5 hover:bg-white/10 text-indigo-200"
+                    )}
+                    onClick={() => updateSetting("theme", "light" as const)}
                   >
                     <Sun className="h-4 w-4 mr-2" />
                     Light
                   </Button>
                   <Button
-                    variant={settings.theme === "dark" ? "primary" : "outline"}
-                    className="justify-start"
-                    onClick={() => updateSetting("theme", "dark")}
+                    variant={settings.theme === "dark" ? "default" : "outline"}
+                    className={cn(
+                      "justify-start h-12 rounded-xl",
+                      settings.theme === "dark"
+                        ? "bg-indigo-600 hover:bg-indigo-500 text-white border-transparent"
+                        : "border-white/10 bg-white/5 hover:bg-white/10 text-indigo-200"
+                    )}
+                    onClick={() => updateSetting("theme", "dark" as const)}
                   >
                     <Moon className="h-4 w-4 mr-2" />
                     Dark
                   </Button>
                   <Button
-                    variant={settings.theme === "system" ? "primary" : "outline"}
-                    className="justify-start"
-                    onClick={() => updateSetting("theme", "system")}
+                    variant={settings.theme === "system" ? "default" : "outline"}
+                    className={cn(
+                      "justify-start h-12 rounded-xl",
+                      settings.theme === "system"
+                        ? "bg-indigo-600 hover:bg-indigo-500 text-white border-transparent"
+                        : "border-white/10 bg-white/5 hover:bg-white/10 text-indigo-200"
+                    )}
+                    onClick={() => updateSetting("theme", "system" as const)}
                   >
                     <Settings className="h-4 w-4 mr-2" />
                     System
@@ -199,12 +251,12 @@ export default function InvestorSettingsPage() {
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="bg-white/10" />
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Reduce Animations</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-base font-medium text-white">Reduce Animations</Label>
+                  <p className="text-sm text-indigo-200/50">
                     Minimize animations for better performance
                   </p>
                 </div>
@@ -214,12 +266,10 @@ export default function InvestorSettingsPage() {
                 />
               </div>
 
-              <Separator />
-
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Hide Portfolio Values</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-base font-medium text-white">Hide Portfolio Values</Label>
+                  <p className="text-sm text-indigo-200/50">
                     Mask your portfolio values for privacy
                   </p>
                 </div>
@@ -229,15 +279,18 @@ export default function InvestorSettingsPage() {
                 />
               </div>
 
-              <Button
-                onClick={handleSaveSettings}
-                disabled={savePreferencesMutation.isPending}
-              >
-                {savePreferencesMutation.isPending ? "Saving..." : "Save Settings"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <div className="pt-4 flex justify-end">
+                <Button
+                  onClick={handleSaveSettings}
+                  disabled={savePreferencesMutation.isPending}
+                  className="bg-yield-neon text-black hover:bg-yield-neon/90 font-bold px-8 rounded-xl shadow-lg shadow-yield-neon/20 h-12"
+                >
+                  {savePreferencesMutation.isPending ? "Saving..." : "Save Preferences"}
+                </Button>
+              </div>
+            </TabsContent>
+          </div>
+        </div>
       </Tabs>
     </div>
   );

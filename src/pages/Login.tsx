@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  Button, Input, Label, LoadingSpinner,
-  Card, CardContent, CardFooter, CardHeader, CardTitle,
-  Alert, AlertDescription,
+  Button,
+  Input,
+  Label,
+  LoadingSpinner,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
 import { useSignIn, useCheckAuthSession } from "@/hooks/data";
@@ -46,151 +54,180 @@ export default function Login() {
     );
   }
 
-  const error = signInMutation.error?.message || (!isLogin ? "This platform requires an invitation. Please contact the administrator." : null);
+  const error =
+    signInMutation.error?.message ||
+    (!isLogin ? "This platform requires an invitation. Please contact the administrator." : null);
+
+  // Yield Spectrum Login Design
+  const backgroundDecorators = (
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none select-none">
+      {/* Deep Space Background */}
+      <div className="absolute inset-0 bg-background" />
+
+      {/* Animated Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-brand/20 blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-yield-neon/10 blur-[120px] animate-pulse animate-delay-200" />
+      <div className="absolute top-[20%] left-[20%] w-[30%] h-[30%] rounded-full bg-indigo-brand/10 blur-[80px] animate-dash-slow" />
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-6 sm:p-4">
-      <div className="w-full max-w-sm sm:max-w-md">
-        <div className="mb-8 flex justify-center">
-          <img
-            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
-            alt="Infinite Yield Fund"
-            className="h-12 sm:h-14 w-auto"
-            loading="eager"
-          />
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto">
+      {backgroundDecorators}
+
+      <div className="relative z-10 w-full max-w-md animate-fade-in-up">
+        {/* Brand Header */}
+        <div className="mb-8 flex flex-col items-center justify-center text-center space-y-4">
+          <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl shadow-indigo-500/10">
+            <img
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+              alt="Infinite Yield Fund"
+              className="h-16 w-auto drop-shadow-lg"
+            />
+          </div>
+          <div>
+            <h1 className="text-3xl font-display font-bold tracking-tight text-white drop-shadow-md">
+              Indigo Yield
+            </h1>
+            <p className="text-indigo-200/60 font-light tracking-wide">
+              Institutional Grade DeFi Intelligence
+            </p>
+          </div>
         </div>
-        <Card className="border border-gray-200 bg-white shadow-md">
-          <CardHeader>
-            <CardTitle className="text-center text-xl sm:text-2xl text-gray-800">
-              {isLogin ? "Investor Access" : "Request Access"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail
-                    className="absolute left-3 top-3 h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 border-gray-200 text-gray-800 placeholder-gray-400"
-                    required
-                    autoComplete="email"
-                    error={!!error}
-                    aria-invalid={!!error}
-                  />
+        {/* Glass Login Card */}
+        <div className="glass-panel rounded-3xl p-8 backdrop-blur-2xl bg-black/40 border border-white/10 shadow-2xl relative overflow-hidden group">
+          {/* Top light reflection */}
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+          {error && (
+            <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-200/90">{error}</p>
+            </div>
+          )}
+
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">
+              {isLogin ? "Investor Portal" : "Request Access"}
+            </h2>
+            {/* Toggle Switch */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                signInMutation.reset();
+              }}
+              className="text-xs font-medium text-indigo-300 hover:text-white transition-colors"
+            >
+              {isLogin ? "Need an account?" : "Have an account?"}
+            </button>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-xs uppercase tracking-widest text-indigo-200/50 font-bold ml-1"
+              >
+                Email Address
+              </Label>
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within/input:text-indigo-400 text-indigo-200/30">
+                  <Mail className="h-5 w-5" />
                 </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@firm.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 transition-all font-medium text-base"
+                  required
+                  autoComplete="email"
+                />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="password"
+                  className="text-xs uppercase tracking-widest text-indigo-200/50 font-bold ml-1"
+                >
                   Password
                 </Label>
-                <div className="relative">
-                  <Lock
-                    className="absolute left-3 top-3 h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-12 sm:pr-10 border-gray-200 text-gray-800 placeholder-gray-400"
-                    required
-                    minLength={6}
-                    autoComplete="current-password"
-                    error={!!error}
-                    aria-invalid={!!error}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1 h-9 w-9 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                {isLogin && (
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" aria-hidden="true" />
-                    ) : (
-                      <Eye className="h-5 w-5" aria-hidden="true" />
-                    )}
-                  </Button>
+                    Forgot?
+                  </Link>
+                )}
+              </div>
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within/input:text-indigo-400 text-indigo-200/30">
+                  <Lock className="h-5 w-5" />
                 </div>
-              </div>
-
-              <div className="pt-2">
-                <Button
-                  type="submit"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                  disabled={signInMutation.isPending}
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 transition-all font-medium text-base font-mono tracking-tighter"
+                  required
+                  minLength={6}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-200/30 hover:text-indigo-200 transition-colors"
                 >
-                  {signInMutation.isPending ? (
-                    <span className="flex items-center">
-                      <LoadingSpinner size="sm" className="mr-2 text-white" />
-                      Processing...
-                    </span>
-                  ) : isLogin ? (
-                    "Sign In"
-                  ) : (
-                    "Request Access"
-                  )}
-                </Button>
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
-            </form>
+            </div>
 
-            {isLogin && (
-              <div className="mt-4 text-center text-sm">
-                <Link
-                  to="/forgot-password"
-                  className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-center border-t border-gray-200 px-6 py-4">
-            <p className="text-sm text-gray-600">
-              {isLogin ? "Need access to the platform? " : "Already have access? "}
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
-              >
-                {isLogin ? "Request Access" : "Sign in"}
-              </button>
+            <Button
+              type="submit"
+              className="w-full h-12 btn-premium bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wide rounded-xl shadow-lg shadow-indigo-600/20 text-base mt-2"
+              disabled={signInMutation.isPending}
+            >
+              {signInMutation.isPending ? (
+                <LoadingSpinner size="sm" className="text-white" />
+              ) : (
+                <span className="flex items-center gap-2">
+                  {isLogin ? "Access Portal" : "Submit Request"}
+                  {!signInMutation.isPending && <span className="text-lg">→</span>}
+                </span>
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-white/5 text-center space-y-4">
+            <p className="text-xs text-indigo-200/40 font-light px-4 leading-relaxed">
+              By accessing this platform, you acknowledge that you are an accredited investor or
+              authorized representative.
             </p>
-          </CardFooter>
-        </Card>
+            <div className="flex justify-center gap-6 text-xs text-indigo-300/60 font-medium tracking-wide">
+              <Link to="/terms" className="hover:text-white transition-colors">
+                Terms of Service
+              </Link>
+              <Link to="/privacy" className="hover:text-white transition-colors">
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
+        </div>
 
-        <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
-          <p>Investor Portal - Invitation Only Access</p>
-          <div className="flex justify-center space-x-4">
-            <Link to="/terms" className="hover:text-foreground hover:underline">
-              Terms
-            </Link>
-            <Link to="/privacy" className="hover:text-foreground hover:underline">
-              Privacy
-            </Link>
+        {/* Secure connection badge */}
+        <div className="mt-8 flex justify-center">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-[10px] text-indigo-200/50 font-medium">
+            <Lock className="h-3 w-3" />
+            256-Bit SSL Secured Connection
           </div>
         </div>
       </div>

@@ -1,20 +1,26 @@
 import { useState, useEffect } from "react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Badge, Progress, ScrollArea, Checkbox,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Alert, AlertDescription,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Badge,
+  Progress,
+  ScrollArea,
+  Checkbox,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
-import {
-  Loader2,
-  Send,
-  Check,
-  X,
-  AlertTriangle,
-  Mail,
-  FileText,
-  RotateCcw,
-} from "lucide-react";
+import { Loader2, Send, Check, X, AlertTriangle, Mail, FileText, RotateCcw } from "lucide-react";
 import { logError } from "@/lib/logger";
 
 interface InvestorSendStatus {
@@ -35,7 +41,9 @@ interface BatchSendDialogProps {
   onOpenChange: (open: boolean) => void;
   periodName: string;
   investors: InvestorSendStatus[];
-  onSendBatch: (investorIds: string[]) => Promise<{ success: string[]; failed: { id: string; error: string }[] }>;
+  onSendBatch: (
+    investorIds: string[]
+  ) => Promise<{ success: string[]; failed: { id: string; error: string }[] }>;
 }
 
 export function BatchSendDialog({
@@ -50,7 +58,10 @@ export function BatchSendDialog({
   const [isSending, setIsSending] = useState(false);
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState<"preflight" | "sending" | "complete">("preflight");
-  const [results, setResults] = useState<{ success: number; failed: number }>({ success: 0, failed: 0 });
+  const [results, setResults] = useState<{ success: number; failed: number }>({
+    success: 0,
+    failed: 0,
+  });
 
   // Initialize investors when dialog opens
   useEffect(() => {
@@ -62,7 +73,7 @@ export function BatchSendDialog({
         error: undefined,
       }));
       setInvestors(processed);
-      
+
       // Auto-select all eligible
       const eligible = new Set(processed.filter((i) => i.isEligible).map((i) => i.id));
       setSelectedIds(eligible);
@@ -108,7 +119,6 @@ export function BatchSendDialog({
 
     try {
       const idsToSend = Array.from(selectedIds);
-      let completed = 0;
 
       // Simulate progress updates (the actual send is done in batch)
       const progressInterval = setInterval(() => {
@@ -154,9 +164,7 @@ export function BatchSendDialog({
   };
 
   const handleRetryFailed = () => {
-    const failedIds = investors
-      .filter((i) => i.sendStatus === "failed")
-      .map((i) => i.id);
+    const failedIds = investors.filter((i) => i.sendStatus === "failed").map((i) => i.id);
     setSelectedIds(new Set(failedIds));
     setPhase("preflight");
     setProgress(0);
@@ -164,22 +172,45 @@ export function BatchSendDialog({
 
   const getStatusBadge = (investor: InvestorSendStatus) => {
     if (investor.sendStatus === "success") {
-      return <Badge variant="default" className="gap-1"><Check className="h-3 w-3" />Sent</Badge>;
+      return (
+        <Badge variant="default" className="gap-1">
+          <Check className="h-3 w-3" />
+          Sent
+        </Badge>
+      );
     }
     if (investor.sendStatus === "failed") {
-      return <Badge variant="destructive" className="gap-1"><X className="h-3 w-3" />Failed</Badge>;
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <X className="h-3 w-3" />
+          Failed
+        </Badge>
+      );
     }
     if (investor.sendStatus === "sending" || investor.sendStatus === "pending") {
-      return <Badge variant="secondary" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" />Sending</Badge>;
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Sending
+        </Badge>
+      );
     }
     if (investor.isSent) {
       return <Badge variant="outline">Already Sent</Badge>;
     }
     if (!investor.isGenerated) {
-      return <Badge variant="outline" className="text-muted-foreground">Not Generated</Badge>;
+      return (
+        <Badge variant="outline" className="text-muted-foreground">
+          Not Generated
+        </Badge>
+      );
     }
     if (investor.recipientCount === 0) {
-      return <Badge variant="outline" className="text-amber-600">No Recipients</Badge>;
+      return (
+        <Badge variant="outline" className="text-amber-600">
+          No Recipients
+        </Badge>
+      );
     }
     return <Badge variant="secondary">Ready</Badge>;
   };
@@ -293,9 +324,7 @@ export function BatchSendDialog({
                   <TableCell className="text-center">
                     <Badge variant="outline">{investor.recipientCount}</Badge>
                   </TableCell>
-                  <TableCell className="text-center">
-                    {getStatusBadge(investor)}
-                  </TableCell>
+                  <TableCell className="text-center">{getStatusBadge(investor)}</TableCell>
                   <TableCell className="text-sm text-destructive max-w-[200px] truncate">
                     {investor.error}
                   </TableCell>
@@ -306,11 +335,7 @@ export function BatchSendDialog({
         </ScrollArea>
 
         <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSending}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSending}>
             {phase === "complete" ? "Close" : "Cancel"}
           </Button>
           {phase === "preflight" && (

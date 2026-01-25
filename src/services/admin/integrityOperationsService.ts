@@ -227,7 +227,7 @@ export async function runIntegrityCheck(): Promise<IntegrityCheckResult> {
   const result = data as unknown as IntegrityCheckResult;
 
   // Auto-resolve stale integrity alerts when check passes with 0 violations
-  if (result && (result.total_violations === 0 || result.violations_count === 0)) {
+  if (result && result.violation_count === 0) {
     await autoResolveStaleAlerts();
   }
 
