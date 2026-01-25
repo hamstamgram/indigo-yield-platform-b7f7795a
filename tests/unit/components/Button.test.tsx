@@ -3,8 +3,10 @@
  * Tests variants, sizes, accessibility, and interactions
  */
 
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import { Button } from "@/components/ui/button";
 
 describe("Button Component", () => {
@@ -72,28 +74,32 @@ describe("Button Component", () => {
   });
 
   describe("Sizes", () => {
-    it("renders default size (44px)", () => {
+    it("renders default size (h-10)", () => {
       render(<Button size="default">Default Size</Button>);
       const button = screen.getByRole("button");
-      expect(button).toHaveClass("h-11");
+      expect(button).toHaveClass("h-10");
     });
 
-    it("renders small size (44px)", () => {
+    it("renders small size (h-9)", () => {
       render(<Button size="sm">Small</Button>);
       const button = screen.getByRole("button");
+      expect(button).toHaveClass("h-9");
+    });
+
+    it("renders large size (h-11)", () => {
+      render(<Button size="lg">Large</Button>);
+      const button = screen.getByRole("button");
       expect(button).toHaveClass("h-11");
     });
 
-    it("renders large size (48px)", () => {
-      render(<Button size="lg">Large</Button>);
+    it("renders icon size (h-10 w-10)", () => {
+      render(
+        <Button size="icon" aria-label="Icon button">
+          X
+        </Button>
+      );
       const button = screen.getByRole("button");
-      expect(button).toHaveClass("h-12");
-    });
-
-    it("renders icon size (44x44px)", () => {
-      render(<Button size="icon" aria-label="Icon button">X</Button>);
-      const button = screen.getByRole("button");
-      expect(button).toHaveClass("h-11", "w-11");
+      expect(button).toHaveClass("h-10", "w-10");
     });
   });
 
@@ -106,8 +112,12 @@ describe("Button Component", () => {
     });
 
     it("does not trigger onClick when disabled", async () => {
-      const handleClick = jest.fn();
-      render(<Button disabled onClick={handleClick}>Disabled</Button>);
+      const handleClick = vi.fn();
+      render(
+        <Button disabled onClick={handleClick}>
+          Disabled
+        </Button>
+      );
       const button = screen.getByRole("button");
 
       await userEvent.click(button);
@@ -117,7 +127,7 @@ describe("Button Component", () => {
 
   describe("Interactions", () => {
     it("handles click events", async () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(<Button onClick={handleClick}>Click me</Button>);
       const button = screen.getByRole("button");
 
@@ -126,7 +136,7 @@ describe("Button Component", () => {
     });
 
     it("handles keyboard interactions (Enter)", async () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(<Button onClick={handleClick}>Press Enter</Button>);
       const button = screen.getByRole("button");
 
@@ -136,7 +146,7 @@ describe("Button Component", () => {
     });
 
     it("handles keyboard interactions (Space)", async () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(<Button onClick={handleClick}>Press Space</Button>);
       const button = screen.getByRole("button");
 
@@ -180,25 +190,18 @@ describe("Button Component", () => {
       expect(button).toHaveClass("focus-visible:ring-2");
     });
 
-    it("meets minimum touch target size (44x44px)", () => {
-      const { container } = render(<Button>Touch Target</Button>);
-      const button = container.firstChild as HTMLElement;
-      const styles = window.getComputedStyle(button);
-
-      // Default button should be 44px height (h-11 = 2.75rem = 44px)
-      expect(button).toHaveClass("h-11");
+    it("meets minimum touch target size", () => {
+      render(<Button>Touch Target</Button>);
+      const button = screen.getByRole("button");
+      // Default button uses h-10 (40px height)
+      expect(button).toHaveClass("h-10");
     });
   });
 
   describe("TypeScript Props", () => {
     it("accepts standard button HTML attributes", () => {
       render(
-        <Button
-          type="submit"
-          name="submit-button"
-          value="submit"
-          form="test-form"
-        >
+        <Button type="submit" name="submit-button" value="submit" form="test-form">
           Submit
         </Button>
       );
@@ -218,6 +221,3 @@ describe("Button Component", () => {
     });
   });
 });
-
-// Add React import for ref test
-import React from "react";

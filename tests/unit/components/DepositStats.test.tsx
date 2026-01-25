@@ -1,27 +1,27 @@
-import { describe, it, expect, vi } from '@jest/globals';
-import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import DepositStats from '@/components/admin/deposits/DepositStats';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import DepositStats from "@/components/admin/deposits/DepositStats";
 
-describe('DepositStats', () => {
-  it('should render without crashing', () => {
+describe("DepositStats", () => {
+  it("should render without crashing", () => {
     render(<DepositStats />);
-    expect(screen.getByTestId('depositstats')).toBeInTheDocument();
+    expect(screen.getByTestId("depositstats")).toBeInTheDocument();
   });
 
-  it('should apply custom className', () => {
+  it("should apply custom className", () => {
     render(<DepositStats className="custom-class" />);
-    expect(screen.getByTestId('depositstats')).toHaveClass('custom-class');
+    expect(screen.getByTestId("depositstats")).toHaveClass("custom-class");
   });
 
-  it('should handle props correctly', () => {
-    const props = { testProp: 'test-value' };
+  it("should handle props correctly", () => {
+    const props = { testProp: "test-value" };
     render(<DepositStats {...props} />);
-    expect(screen.getByTestId('depositstats')).toBeInTheDocument();
+    expect(screen.getByTestId("depositstats")).toBeInTheDocument();
   });
 
-  it('should be accessible', () => {
+  it("should be accessible", () => {
     const { container } = render(<DepositStats />);
-    expect(container.querySelector('[role]')).toBeInTheDocument();
+    expect(container.querySelector("[role]")).toBeInTheDocument();
   });
 });

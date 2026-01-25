@@ -1,20 +1,20 @@
-import { describe, it, expect, vi } from '@jest/globals';
-import { renderHook, act } from '@testing-library/react';
-import { useDocuments } from '@/hooks/useDocuments';
+import { describe, it, expect, vi } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useDocuments } from "@/hooks/useDocuments";
 
-describe('useDocuments', () => {
-  it('should initialize correctly', () => {
+describe("useDocuments", () => {
+  it("should initialize correctly", () => {
     const { result } = renderHook(() => useDocuments());
     expect(result.current).toBeDefined();
   });
 
-  it('should handle updates', () => {
+  it("should handle updates", () => {
     const { result, rerender } = renderHook(() => useDocuments());
     rerender();
     expect(result.current).toBeDefined();
   });
 
-  it('should cleanup on unmount', () => {
+  it("should cleanup on unmount", () => {
     const { unmount } = renderHook(() => useDocuments());
     expect(() => unmount()).not.toThrow();
   });

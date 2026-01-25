@@ -1,4 +1,4 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import * as securityLogger from "@/utils/security-logger";
 
 describe("security-logger", () => {

@@ -1,7 +1,7 @@
 /**
  * Yield Distribution Reconciliation Tests
  * Verifies fee calculations match expected values
- * 
+ *
  * CANONICAL FORMULA (matches database implementation):
  * - Platform Fee (INDIGO) = grossYield × (investorFeePct / 100)
  * - IB Commission = grossYield × (ibCommissionPct / 100)  [calculated on GROSS, not on fee]
@@ -26,20 +26,18 @@ interface DistributionResult {
 
 /**
  * Calculate yield distribution following the platform's fee model
- * 
+ *
  * CANONICAL FLOW (per accounting/yield-fee-calculation-standard):
  * 1. Gross yield is the total income before any fees
  * 2. Platform fee (performance fee) is taken from gross yield
  * 3. Net to investor is gross minus platform fee
  * 4. IB commission is calculated on GROSS yield (not on fee!)
  * 5. INDIGO receives the remaining fee after IB commission
- * 
+ *
  * IMPORTANT: Both platform fee and IB commission are calculated
  * as percentages of the GROSS yield, NOT sequentially.
  */
-function calculateYieldDistribution(
-  distribution: YieldDistribution
-): DistributionResult {
+function calculateYieldDistribution(distribution: YieldDistribution): DistributionResult {
   const { grossYield, investorFeePct, ibCommissionPct } = distribution;
 
   // Calculate platform fee (performance fee) - on GROSS
@@ -207,22 +205,21 @@ describe("Yield Distribution Reconciliation", () => {
 
     const result = calculateYieldDistribution(distribution);
 
-    expect(result).toEqual({
-      netToInvestor: 0.8,
-      totalFees: 0.2,
-      ibCredit: 0.02,
-      indigoCredit: 0.18,
-    });
+    // Use toBeCloseTo for floating point precision
+    expect(result.netToInvestor).toBeCloseTo(0.8, 10);
+    expect(result.totalFees).toBeCloseTo(0.2, 10);
+    expect(result.ibCredit).toBeCloseTo(0.02, 10);
+    expect(result.indigoCredit).toBeCloseTo(0.18, 10);
   });
 
   it("matches database formula: IB calculated on GROSS not fees", () => {
     /**
      * This test explicitly validates the canonical formula from
      * accounting/yield-fee-calculation-standard memory:
-     * 
+     *
      * "Platform Fee (INDIGO) and Introducing Broker (IB) Fee are both
      * calculated as percentages of the GROSS yield."
-     * 
+     *
      * Example from memory:
      * For 355 XRP yield with 18% Indigo and 2% IB:
      * - Indigo receives: 355 * 0.18 = 63.9 XRP
@@ -239,16 +236,16 @@ describe("Yield Distribution Reconciliation", () => {
 
     // IB calculated on GROSS: 355 * 0.02 = 7.1
     expect(result.ibCredit).toBeCloseTo(7.1, 10);
-    
+
     // Total fee: 355 * 0.20 = 71
     expect(result.totalFees).toBeCloseTo(71, 10);
-    
+
     // INDIGO gets remainder: 71 - 7.1 = 63.9
     expect(result.indigoCredit).toBeCloseTo(63.9, 10);
-    
+
     // Net to investor: 355 - 71 = 284
     expect(result.netToInvestor).toBeCloseTo(284, 10);
-    
+
     // Conservation check
     expect(result.ibCredit + result.indigoCredit).toBeCloseTo(result.totalFees, 10);
   });

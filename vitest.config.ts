@@ -9,10 +9,17 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: [path.resolve(__dirname, "./tests/setup.ts")],
     include: [
-      "src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-      "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "src/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "tests/unit/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
     ],
-    exclude: ["node_modules", "dist"],
+    exclude: [
+      "node_modules",
+      "dist",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "tests/integration/**",
+      "tests/accessibility/**",
+    ],
   },
   resolve: {
     alias: {

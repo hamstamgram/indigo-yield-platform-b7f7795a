@@ -1,27 +1,27 @@
-import { describe, it, expect, vi } from '@jest/globals';
-import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import AdminGuard from '@/components/admin/AdminGuard';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import AdminGuard from "@/components/admin/AdminGuard";
 
-describe('AdminGuard', () => {
-  it('should render without crashing', () => {
+describe("AdminGuard", () => {
+  it("should render without crashing", () => {
     render(<AdminGuard />);
-    expect(screen.getByTestId('adminguard')).toBeInTheDocument();
+    expect(screen.getByTestId("adminguard")).toBeInTheDocument();
   });
 
-  it('should apply custom className', () => {
+  it("should apply custom className", () => {
     render(<AdminGuard className="custom-class" />);
-    expect(screen.getByTestId('adminguard')).toHaveClass('custom-class');
+    expect(screen.getByTestId("adminguard")).toHaveClass("custom-class");
   });
 
-  it('should handle props correctly', () => {
-    const props = { testProp: 'test-value' };
+  it("should handle props correctly", () => {
+    const props = { testProp: "test-value" };
     render(<AdminGuard {...props} />);
-    expect(screen.getByTestId('adminguard')).toBeInTheDocument();
+    expect(screen.getByTestId("adminguard")).toBeInTheDocument();
   });
 
-  it('should be accessible', () => {
+  it("should be accessible", () => {
     const { container } = render(<AdminGuard />);
-    expect(container.querySelector('[role]')).toBeInTheDocument();
+    expect(container.querySelector("[role]")).toBeInTheDocument();
   });
 });
