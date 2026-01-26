@@ -366,6 +366,8 @@ export const QUERY_KEYS = {
   adminFundsActive: ["admin", "funds", "active"] as const,
 
   // ============ Operations Hub ============
+  operationsMetrics: () => ["operations", "metrics"] as const,
+  operationsSystemHealth: () => ["operations", "system-health"] as const,
   recentAuditLogs: (limit?: number) =>
     limit !== undefined
       ? (["audit-logs", "recent", limit] as const)

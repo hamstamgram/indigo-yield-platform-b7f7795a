@@ -85,3 +85,11 @@ export {
   useBypassAttempts,
   useLedgerReconciliation,
 } from "../useIntegrityOperations";
+
+// Operations Hub Metrics
+export {
+  useOperationsMetrics,
+  useOperationsSystemHealth,
+  type OperationsMetricsData,
+  type PendingBreakdown,
+} from "../useOperationsMetrics";
