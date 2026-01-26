@@ -25,7 +25,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { InvestorKpiChips } from "./InvestorKpiChips";
-import { AddTransactionDialog } from "../AddTransactionDialog";
+import { AddTransactionDialog } from "../../AddTransactionDialog";
 import { useInvestorQuickView, useInvestorRecentActivity } from "@/hooks/data";
 import { formatTokenAmount } from "@/utils/statementCalculations";
 import { format } from "date-fns";

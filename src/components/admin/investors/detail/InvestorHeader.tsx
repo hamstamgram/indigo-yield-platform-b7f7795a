@@ -22,7 +22,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui";
 import { InvestorKpiChips } from "./InvestorKpiChips";
-import { AddTransactionDialog } from "../AddTransactionDialog";
+import { AddTransactionDialog } from "../../AddTransactionDialog";
 
 interface InvestorHeaderProps {
   investorId: string;

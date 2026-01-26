@@ -146,9 +146,10 @@ export async function acceptAdminInvite(
     .from("admin_invites")
     .select("intended_role")
     .eq("invite_code", inviteCode)
-    .single();
+    .maybeSingle();
 
   if (inviteError) throw inviteError;
+  if (!invite) throw new Error("Invite not found or has expired");
 
   const intendedRole = invite?.intended_role || "admin";
 

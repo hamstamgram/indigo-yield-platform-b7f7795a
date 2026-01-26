@@ -6,6 +6,32 @@ import { callRPC } from "@/lib/supabase/typedRPC";
 import { rpc } from "@/lib/rpc";
 import { getTodayString } from "@/utils/dateUtils";
 
+// Type for Supabase join result with profile
+interface TransactionWithProfile {
+  id: string;
+  investor_id: string;
+  amount: number;
+  asset: string;
+  tx_date: string;
+  tx_hash: string | null;
+  notes: string | null;
+  is_voided: boolean;
+  created_at: string;
+  profile: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  } | null;
+}
+
+// Type for deposit RPC result
+interface DepositRPCResult {
+  success: boolean;
+  transaction_id?: string;
+  deposit_tx_id?: string;
+  error?: string;
+}
+
 export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
     let query = supabase
@@ -45,9 +71,10 @@ export class DepositService {
 
     if (error) throw error;
 
-    return (transactions || []).map((tx) =>
-      this.mapTransactionToDeposit(tx, (tx as any).profile)
-    ) as Deposit[];
+    return (transactions || []).map((tx) => {
+      const txWithProfile = tx as unknown as TransactionWithProfile;
+      return this.mapTransactionToDeposit(tx, txWithProfile.profile);
+    }) as Deposit[];
   }
 
   private mapTransactionToDeposit(tx: any, profile?: any): Deposit {
@@ -89,7 +116,8 @@ export class DepositService {
 
     if (error) throw error;
     if (!tx) throw new Error("Deposit not found");
-    return this.mapTransactionToDeposit(tx, (tx as any).profile);
+    const txWithProfile = tx as unknown as TransactionWithProfile;
+    return this.mapTransactionToDeposit(tx, txWithProfile.profile);
   }
 
   /**
@@ -152,7 +180,7 @@ export class DepositService {
       throw new Error(error.message || "Failed to create deposit");
     }
 
-    const result = data as any;
+    const result = data as unknown as DepositRPCResult;
     // RPC returns transaction_id (not deposit_tx_id)
     const txId = result?.transaction_id || result?.deposit_tx_id;
     if (!result?.success || !txId) {
@@ -200,9 +228,10 @@ export class DepositService {
       throw new Error("Failed to verify deposit");
     }
 
+    const existingWithProfile = existing as unknown as TransactionWithProfile;
     return this.mapTransactionToDeposit(
       { ...existing, notes: verifiedNote },
-      (existing as any).profile
+      existingWithProfile.profile
     );
   }
 
@@ -247,11 +276,12 @@ export class DepositService {
     }
 
     // Return the updated deposit (now voided)
+    const existingWithProfile = existing as unknown as TransactionWithProfile;
     const voided = await this.getDepositById(id).catch(() => {
       // If we can't fetch (may be filtered out), return mapped version
       return this.mapTransactionToDeposit(
         { ...existing, is_voided: true, notes: `${existing.notes || ""} | VOIDED: ${reason}` },
-        (existing as any).profile
+        existingWithProfile.profile
       );
     });
 
