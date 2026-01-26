@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, Button, Input } from "@/components/ui";
 import { Search, Filter, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { CryptoIcon } from "@/components/CryptoIcons";
+import { formatAssetAmount } from "@/utils/assets";
 
 export default function WithdrawalHistoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,8 +51,9 @@ export default function WithdrawalHistoryPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
+                          <CryptoIcon symbol={item.fund_class} className="h-6 w-6" />
                           <h3 className="font-semibold">
-                            {(item as any).funds?.name || "Fund"} - {item.fund_class}
+                            {(item as any).funds?.name || "Fund"}
                           </h3>
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${
@@ -70,8 +73,8 @@ export default function WithdrawalHistoryPage() {
                             {item.status.toUpperCase()}
                           </span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {item.requested_amount} {item.fund_class} •{" "}
+                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                          {formatAssetAmount(item.requested_amount, item.fund_class)} •{" "}
                           {new Date(item.request_date).toLocaleDateString()}
                         </p>
                       </div>

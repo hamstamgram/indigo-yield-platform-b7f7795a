@@ -18,6 +18,7 @@ import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hooks/data";
 import { cn } from "@/lib/utils";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 const TRANSACTION_TYPES = [
   { value: "all", label: "All Types" },
@@ -70,7 +71,12 @@ export default function InvestorTransactionsPage() {
     },
     {
       header: "Asset",
-      cell: (item: any) => <span className="font-bold text-white">{item.asset}</span>,
+      cell: (item: any) => (
+        <div className="flex items-center gap-2">
+          <CryptoIcon symbol={item.asset} className="h-5 w-5" />
+          <span className="font-bold text-white">{item.asset}</span>
+        </div>
+      ),
     },
     {
       header: "Amount",
