@@ -264,30 +264,15 @@ export async function createInvestorWithWizard(
           });
 
           if (txError) {
-            logWarn("createInvestorWithWizard.transaction", { fundAsset: fund.asset, error: txError.message });
-            // Fallback: try direct insert if RPC fails (for backwards compatibility)
-            const { error: fallbackError } = await supabase
-              .from("transactions_v2")
-              .insert({
-                investor_id: investorId,
-                fund_id: fund.id,
-                type: "DEPOSIT",
-                asset: fund.asset,
-                amount: amount,
-                tx_date: effectiveDate,
-                value_date: effectiveDate,
-                notes: "Initial position on investor creation",
-                source: "investor_wizard",
-                is_system_generated: false,
-                reference_id: referenceId,
-                visibility_scope: "investor_visible",
-              });
-
-          if (fallbackError) {
-              logWarn("createInvestorWithWizard.fallbackTransaction", { fundAsset: fund.asset, error: fallbackError.message });
-              // Note: Position will be created via the recompute trigger when transaction succeeds
-              // Do NOT directly insert into investor_positions - this causes orphaned positions
-            }
+            // Log the error but do NOT attempt direct insert fallback
+            // Direct inserts to transactions_v2 bypass crystallization and position triggers
+            logError("createInvestorWithWizard.transaction", txError, { 
+              fundAsset: fund.asset, 
+              investorId,
+              amount,
+              message: "RPC failed - no fallback to direct insert per governance rules"
+            });
+            // Continue to next fund rather than throwing - partial success is acceptable
           }
         }
       }

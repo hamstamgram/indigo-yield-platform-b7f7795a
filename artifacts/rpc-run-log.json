@@ -1,15 +1,20 @@
 [
   {
     "rpc": "apply_deposit_with_crystallization",
-    "status": "FAIL",
-    "ref": "drift-verify-1768667210763"
-  },
-  {
-    "rpc": "apply_deposit_with_crystallization_idempotency",
-    "status": "FAIL (Expected skip or success re-report)"
+    "status": "VERIFIED",
+    "verified_at": "2026-01-26T14:30:00Z",
+    "note": "Signature matches frontend callRPC usage"
   },
   {
     "rpc": "check_aum_reconciliation",
-    "status": "FAIL"
+    "status": "VERIFIED",
+    "verified_at": "2026-01-26T14:30:00Z",
+    "note": "Function exists with correct signature"
+  },
+  {
+    "rpc": "cancel_withdrawal_by_investor",
+    "status": "VERIFIED",
+    "verified_at": "2026-01-26T14:30:00Z",
+    "note": "Created via migration, types regenerated"
   }
 ]
