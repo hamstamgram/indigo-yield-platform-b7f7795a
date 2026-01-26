@@ -184,15 +184,16 @@ export class DepositService {
     if (!existing) throw new Error("Deposit not found");
     if (existing.is_voided) throw new Error("Cannot verify a voided deposit");
 
-    // Update notes to indicate verification
+    // Update notes to indicate verification using canonical RPC for audit trail
     const verifiedNote = existing.notes
       ? `${existing.notes} | Verified by admin at ${new Date().toISOString()}`
       : `Verified by admin at ${new Date().toISOString()}`;
 
-    const { error: updateError } = await supabase
-      .from("transactions_v2")
-      .update({ notes: verifiedNote })
-      .eq("id", id);
+    // Use edit_transaction RPC for consistency and audit logging
+    const { error: updateError } = await rpc.call("edit_transaction", {
+      p_transaction_id: id,
+      p_notes: verifiedNote,
+    });
 
     if (updateError) {
       logError("depositService.verifyDeposit", updateError, { depositId: id });

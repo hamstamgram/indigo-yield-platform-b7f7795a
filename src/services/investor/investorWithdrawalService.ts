@@ -111,8 +111,7 @@ export async function cancelWithdrawalRequest(requestId: string, reason?: string
   if (!user.user) throw new Error("Not authenticated");
 
   // Use RPC to ensure state machine validation and audit trail
-  // Type assertion needed until types regenerate after migration
-  const { data, error } = await (rpc.call as any)("cancel_withdrawal_by_investor", {
+  const { data, error } = await rpc.call("cancel_withdrawal_by_investor", {
     p_request_id: requestId,
     p_investor_id: user.user.id,
     p_reason: reason ?? "Cancelled by investor",
