@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@/componen
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useInvestorPerformance, useAssetMeta } from "@/hooks";
 import { Loader2, TrendingUp, Info } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { toNum } from "@/utils/numeric";
 
 export default function FundDetailsPage() {
@@ -38,13 +39,9 @@ export default function FundDetailsPage() {
         <div className="relative group">
           <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full group-hover:bg-indigo-500/30 transition-all duration-500" />
           <div className="h-24 w-24 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center p-4 relative z-10 shadow-lg">
-            <img
-              src={assetMeta?.logo}
-              alt={assetCode}
+            <CryptoIcon
+              symbol={assetCode}
               className="h-full w-full object-contain drop-shadow-md"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
             />
           </div>
         </div>
@@ -57,7 +54,7 @@ export default function FundDetailsPage() {
             </span>
           </h1>
           <p className="text-lg text-indigo-200/60 font-light tracking-wide max-w-2xl flex items-center gap-2 justify-center md:justify-start">
-            <img src={assetMeta?.logo} alt="logo" className="h-5 w-5 object-contain opacity-50" />{" "}
+            <CryptoIcon symbol={assetCode} className="h-5 w-5 opacity-50" />{" "}
             Strategy • Institutional Grade DeFi Yield
           </p>
         </div>
@@ -85,7 +82,7 @@ export default function FundDetailsPage() {
               {balance.toFixed(4)}
             </p>
             <div className="flex items-center gap-2 text-sm text-indigo-200/40 font-medium">
-              <img src={assetMeta?.logo} alt="logo" className="h-4 w-4 object-contain opacity-50" />{" "}
+              <CryptoIcon symbol={assetCode} className="h-4 w-4 opacity-50" />{" "}
               Tokens
             </div>
           </div>
