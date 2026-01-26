@@ -1,157 +1,275 @@
 
-# Architecture Cleanup Implementation Plan
+# Phase 3 & 4: Detailed Architecture Cleanup Implementation
 
 ## Overview
-This plan implements Phase 1 (Quick Wins) and Phase 2 fixes from the architecture audit. These are low-risk, high-impact changes that improve code organization without major refactoring.
+This plan implements the remaining architecture improvements from the audit: type safety fixes, component organization, and service migration. All changes maintain backward compatibility.
 
 ---
 
-## Phase 1: Quick Wins (30 minutes)
+## Phase 3A: Type Safety in Operations Service (15 min)
 
-### 1.1 Delete Deprecated `positionService.ts`
+### File: `src/services/operations/operationsService.ts`
 
-**Action**: Delete `src/services/shared/positionService.ts`
-
-**Rationale**: 
-- Already marked `@deprecated` with migration guide
-- NOT exported from `shared/index.ts` (only a comment exists)
-- No active imports found in codebase
-- The canonical service is `src/services/investor/investorPositionService.ts`
-
----
-
-### 1.2 Consolidate Duplicate Settings Pages
-
-**Current State**:
-- `/admin/settings` → `AdminSettingsPage.tsx` (minimal placeholder UI)
-- `/admin/settings-platform` → `AdminSettings.tsx` (full implementation with form)
-
-**Action**: 
-1. Update `src/routing/routes/admin/system.tsx` to use `AdminSettings.tsx` for the main `/admin/settings` route
-2. Delete `src/pages/admin/AdminSettingsPage.tsx` (the placeholder)
-3. Update `src/routing/LazyRoutes.tsx` to remove duplicate lazy import
-
-**Files to Modify**:
-```
-src/routing/routes/admin/system.tsx:
-- Line 10: Keep AdminSettingsNew import
-- Line 11: Remove AdminSettingsPage import
-- Lines 29-35: Change to use AdminSettingsNew for /admin/settings
-- Lines 39-46: Remove legacy route
-
-src/routing/LazyRoutes.tsx:
-- No changes needed (already has AdminSettings)
-```
-
----
-
-### 1.3 Add Missing Barrel Exports
-
-**Create `src/components/sidebar/index.ts`**:
+**Current Problem** (lines 75-81):
 ```typescript
-/**
- * Sidebar Components
- * Navigation and user profile components for the sidebar
- */
-
-export { default as LogoutButton } from "./LogoutButton";
-export { default as NavSection } from "./NavSection";
-export { default as UserProfile } from "./UserProfile";
-```
-
-**Create `src/components/error/index.ts`**:
-```typescript
-/**
- * Error Handling Components
- * Error boundaries and fallback UI components
- */
-
-export { ErrorBoundary } from "./ErrorBoundary";
-export { FinancialErrorBoundary } from "./FinancialErrorBoundary";
-```
-
----
-
-### 1.4 Refactor AdminOperationsHub to Use Hook Pattern
-
-**Current Anti-Pattern** (lines 34-46):
-```typescript
-const [metrics, setMetrics] = useState({...});
-const [pendingBreakdown, setPendingBreakdown] = useState<PendingBreakdown>({...});
-const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
-```
-
-**Solution**: Create a dedicated React Query hook
-
-**Create `src/hooks/data/admin/useOperationsMetrics.ts`**:
-```typescript
-import { useQuery } from "@tanstack/react-query";
-import { operationsService } from "@/services/operations/operationsService";
-import { getSystemHealth } from "@/services/core/systemHealthService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-
-export function useOperationsMetrics() {
-  return useQuery({
-    queryKey: QUERY_KEYS.operationsMetrics(),
-    queryFn: async () => {
-      const [metricsData, yesterdayCount] = await Promise.all([
-        operationsService.getMetrics(),
-        operationsService.getYesterdayTransactions(),
-      ]);
-      
-      const trend = operationsService.calculateTrend(
-        metricsData.todaysTransactions,
-        yesterdayCount
-      );
-      
-      return {
-        pendingApprovals: metricsData.pendingApprovals,
-        todaysTransactions: metricsData.todaysTransactions,
-        activeInvestors: metricsData.activeInvestors,
-        totalAUM: metricsData.totalAUM,
-        transactionTrend: trend,
-        pendingBreakdown: operationsService.getPendingBreakdown(metricsData),
-      };
-    },
-    staleTime: 30_000, // 30 seconds
-  });
-}
-
-export function useSystemHealth() {
-  return useQuery({
-    queryKey: QUERY_KEYS.systemHealth(),
-    queryFn: getSystemHealth,
-    staleTime: 60_000, // 1 minute
-  });
-}
-```
-
-**Update `src/constants/queryKeys.ts`**: Add new keys:
-```typescript
-operationsMetrics: () => ["operationsMetrics"] as const,
-systemHealth: () => ["systemHealth"] as const,
-```
-
-**Refactor `AdminOperationsHub.tsx`**: Replace useState with hooks
-
----
-
-## Phase 2: Type Safety Improvements
-
-### 2.1 Remove `as any` Cast in Operations Service
-
-**File**: `src/services/operations/operationsService.ts`
-
-**Pattern to Fix**:
-```typescript
-// Current
 const withdrawalsResult = results[0] as any;
+const depositsResult = results[1] as any;
+// ... 5 more `as any` casts
+```
 
-// Fixed - Create proper interface
-interface OperationsQueryResults {
-  withdrawals: { count: number }[];
-  deposits: { count: number }[];
-  // ...
+**Solution**: Create typed interfaces for query results
+
+```typescript
+// Add after line 24
+interface SupabaseCountResult {
+  count: number | null;
+  error: { message: string } | null;
+}
+
+interface PositionRow {
+  current_value: number;
+  investor_id: string;
+}
+
+interface ProfileIdRow {
+  id: string;
+}
+
+type MetricsQueryResults = [
+  SupabaseCountResult,           // withdrawals
+  CountQueryResult,               // deposits (mock)
+  CountQueryResult,               // investments (mock)
+  SupabaseCountResult,           // transactions
+  SupabaseCountResult,           // investors
+  { data: PositionRow[] | null; error: unknown },  // AUM
+  { data: ProfileIdRow[] | null; error: unknown }, // investor profiles
+];
+```
+
+**Replace lines 75-93**:
+```typescript
+const [
+  withdrawalsResult,
+  depositsResult,
+  investmentsResult,
+  transactionsResult,
+  investorsResult,
+  aumResult,
+  investorProfilesResult,
+] = results as MetricsQueryResults;
+
+// Calculate total AUM (only for investor account types)
+const investorIds = new Set(
+  (investorProfilesResult.data || []).map((p) => p.id)
+);
+const totalAUM =
+  aumResult.data
+    ?.filter((position) => investorIds.has(position.investor_id))
+    .reduce((sum, position) => sum + (position.current_value || 0), 0) || 0;
+```
+
+---
+
+## Phase 3B: Component Directory Reorganization (30 min)
+
+### Target: `src/components/admin/investors/`
+
+**Current State**: 42 loose files + 3 subdirectories
+**Goal**: Logical grouping by function
+
+### New Directory Structure
+
+```text
+src/components/admin/investors/
+├── detail/                    # Single investor views
+│   ├── InvestorDetailPanel.tsx
+│   ├── InvestorDrawerQuickView.tsx
+│   ├── InvestorHeader.tsx
+│   ├── InvestorKpiChips.tsx
+│   ├── InvestorLifecyclePanel.tsx
+│   ├── InvestorManagementDrawer.tsx
+│   └── index.ts
+│
+├── list/                      # Investor list/table views
+│   ├── EditableInvestorRow.tsx
+│   ├── InvestorFiltersBar.tsx
+│   ├── InvestorsHeader.tsx
+│   ├── InvestorsTable.tsx
+│   ├── InvestorsTableHeader.tsx
+│   ├── InvestorTableContainer.tsx
+│   ├── InvestorTableRow.tsx
+│   ├── SearchBar.tsx
+│   ├── UnifiedInvestorsTable.tsx
+│   └── index.ts
+│
+├── tabs/                      # Tab content components
+│   ├── InvestorActivityTab.tsx
+│   ├── InvestorOverviewTab.tsx
+│   ├── InvestorPortfolioTab.tsx
+│   ├── InvestorPositionsTab.tsx
+│   ├── InvestorReportsTab.tsx
+│   ├── InvestorSettingsTab.tsx
+│   ├── InvestorTabs.tsx
+│   ├── InvestorTransactionsTab.tsx
+│   ├── InvestorWithdrawalsTab.tsx
+│   └── index.ts
+│
+├── forms/                     # Forms and editors
+│   ├── AddInvestorDialog.tsx
+│   ├── InternalRouteDialog.tsx
+│   ├── InvestorForm.tsx
+│   ├── InvestorProfileEditor.tsx
+│   ├── InviteInvestorDialog.tsx
+│   └── index.ts
+│
+├── yields/                    # Yield management
+│   ├── InvestorFeeManager.tsx
+│   ├── InvestorYieldHistory.tsx
+│   ├── InvestorYieldManager.tsx
+│   └── index.ts
+│
+├── reports/                   # Report components
+│   ├── HistoricalReportsDashboard.tsx
+│   ├── MonthlyReportsTable.tsx
+│   ├── ReportRecipientsEditor.tsx
+│   └── index.ts
+│
+├── bulk/                      # Bulk operations
+│   ├── BulkDataGenerator.tsx
+│   ├── BulkOperationsPanel.tsx
+│   └── index.ts
+│
+├── shared/                    # Shared/misc components
+│   ├── FundAssetDropdown.tsx
+│   ├── FundPositionCard.tsx
+│   ├── IBSettingsSection.tsx
+│   └── index.ts
+│
+├── ledger/                    # (existing)
+├── wizard/                    # (existing)
+├── MobileInvestorCard/        # (existing)
+│
+└── index.ts                   # Updated barrel export
+```
+
+### Implementation Steps
+
+1. **Create subdirectory barrel files** (`detail/index.ts`, `list/index.ts`, etc.)
+2. **Move files** to appropriate subdirectories
+3. **Update imports** within moved files (relative paths)
+4. **Update main barrel** (`investors/index.ts`) to re-export from subdirectories
+
+### Updated Main Barrel (`src/components/admin/investors/index.ts`)
+
+```typescript
+/**
+ * Admin Investor Components
+ * Investor management, tables, forms, and detail views
+ */
+
+// Detail views
+export * from "./detail";
+
+// List/table views
+export * from "./list";
+
+// Tab components
+export * from "./tabs";
+
+// Forms & dialogs
+export * from "./forms";
+
+// Yield management
+export * from "./yields";
+
+// Reports
+export * from "./reports";
+
+// Bulk operations
+export * from "./bulk";
+
+// Shared components
+export * from "./shared";
+
+// Existing subdirectories
+export { InvestorLedgerTab } from "./ledger";
+export * from "./wizard";
+export { default as MobileInvestorCard } from "./MobileInvestorCard";
+```
+
+---
+
+## Phase 3C: Service Migration (20 min)
+
+### Services to Move from `shared/` to `admin/`
+
+| Current Location | New Location | Rationale |
+|------------------|--------------|-----------|
+| `shared/adminToolsService.ts` | `admin/adminToolsService.ts` | Admin-only operations |
+| `shared/yieldRatesService.ts` | `admin/yields/yieldRatesService.ts` | Admin yield management |
+| `shared/feeScheduleService.ts` | `admin/fees/feeScheduleService.ts` | Admin fee management |
+
+### Implementation Steps
+
+1. **Move files** to new locations
+2. **Update imports** in moved files
+3. **Update `shared/index.ts`** to add deprecation re-exports:
+   ```typescript
+   // DEPRECATED: Use @/services/admin/adminToolsService
+   export { adminToolsService } from "../admin/adminToolsService";
+   ```
+4. **Update `admin/index.ts`** to export from new locations
+5. **Gradually update consumers** to use new paths
+
+---
+
+## Phase 4: Query Safety Audit (45 min)
+
+### `.single()` Usage Categories
+
+Based on the search results, categorize each usage:
+
+| Category | Count | Action |
+|----------|-------|--------|
+| **INSERT + select().single()** | ~15 | SAFE - Insert always returns 1 row |
+| **UPSERT + select().single()** | ~8 | SAFE - Upsert always returns 1 row |
+| **SELECT by PK where existence unknown** | ~12 | CONVERT to `.maybeSingle()` |
+| **SELECT by PK where existence guaranteed** | ~5 | SAFE - Keep as is |
+
+### High-Risk `.single()` Calls to Convert
+
+1. **`src/services/investor/investorLookupService.ts`** (lines 171-173, 263-265)
+   - `getInvestorById(id)` - Investor may not exist
+   - `getInvestorRef(id)` - Reference may not exist
+
+2. **`src/services/admin/depositWithYieldService.ts`** (lines 62-64)
+   - `getFundById(fundId)` - Fund may be archived/deleted
+
+3. **`src/services/admin/approvalService.ts`** (lines 252-254)
+   - `getThresholds()` - Config may not exist yet
+
+4. **`src/services/auth/inviteService.ts`** (lines 147-149)
+   - `getInviteRole(code)` - Invite may have expired
+
+### Safe Pattern
+
+```typescript
+// Before (throws on no data)
+const { data, error } = await supabase
+  .from("profiles")
+  .select("*")
+  .eq("id", id)
+  .single();
+
+// After (returns null on no data)
+const { data, error } = await supabase
+  .from("profiles")
+  .select("*")
+  .eq("id", id)
+  .maybeSingle();
+
+if (!data) {
+  return null; // or throw meaningful error
 }
 ```
 
@@ -159,33 +277,51 @@ interface OperationsQueryResults {
 
 ## Implementation Order
 
-| Step | File | Action | Risk |
-|------|------|--------|------|
-| 1 | `src/services/shared/positionService.ts` | DELETE | None - not imported |
-| 2 | `src/components/sidebar/index.ts` | CREATE | None - new file |
-| 3 | `src/components/error/index.ts` | CREATE | None - new file |
-| 4 | `src/pages/admin/AdminSettingsPage.tsx` | DELETE | Low - unused route |
-| 5 | `src/routing/routes/admin/system.tsx` | MODIFY | Low - route consolidation |
-| 6 | `src/hooks/data/admin/useOperationsMetrics.ts` | CREATE | None - new file |
-| 7 | `src/constants/queryKeys.ts` | MODIFY | None - adding keys |
-| 8 | `src/hooks/data/admin/exports/system.ts` | MODIFY | None - re-export hook |
-| 9 | `src/pages/admin/AdminOperationsHub.tsx` | MODIFY | Low - same behavior |
+| Step | Phase | Action | Files | Risk |
+|------|-------|--------|-------|------|
+| 1 | 3A | Add typed interfaces to operationsService | 1 | Low |
+| 2 | 3A | Replace `as any` casts with typed destructuring | 1 | Low |
+| 3 | 3C | Move adminToolsService to admin/ | 2 | Low |
+| 4 | 3C | Move yieldRatesService to admin/yields/ | 3 | Low |
+| 5 | 3C | Move feeScheduleService to admin/fees/ | 3 | Low |
+| 6 | 3C | Update shared/index.ts with deprecation exports | 1 | None |
+| 7 | 3B | Create subdirectory barrel files | 8 | None |
+| 8 | 3B | Move components to subdirectories | 35 | Medium |
+| 9 | 3B | Update main investors/index.ts | 1 | Low |
+| 10 | 4 | Convert risky .single() to .maybeSingle() | 5 | Low |
 
 ---
 
-## Expected Outcomes
+## File Changes Summary
 
-1. **Cleaner imports**: `import { ErrorBoundary } from "@/components/error"`
-2. **No deprecated code**: Removed dead `positionService.ts`
-3. **Single settings page**: No confusion about which to edit
-4. **Consistent patterns**: All admin pages use React Query hooks
-5. **Better caching**: Operations metrics cached properly
+### Files to Create
+- `src/components/admin/investors/detail/index.ts`
+- `src/components/admin/investors/list/index.ts`
+- `src/components/admin/investors/tabs/index.ts`
+- `src/components/admin/investors/forms/index.ts`
+- `src/components/admin/investors/yields/index.ts`
+- `src/components/admin/investors/reports/index.ts`
+- `src/components/admin/investors/bulk/index.ts`
+- `src/components/admin/investors/shared/index.ts`
+
+### Files to Move
+- 35 component files → appropriate subdirectories
+
+### Files to Modify
+- `src/services/operations/operationsService.ts` - Type safety
+- `src/services/shared/index.ts` - Deprecation exports
+- `src/services/admin/index.ts` - New exports
+- `src/components/admin/investors/index.ts` - Re-export structure
+- 5 service files - `.single()` → `.maybeSingle()`
 
 ---
 
-## Testing After Implementation
+## Testing Checklist
 
-1. Navigate to `/admin/settings` - should show full settings form
-2. Navigate to `/admin/operations` - should display metrics
-3. Verify no TypeScript errors after deletions
-4. Run `npm run build` to ensure no broken imports
+After implementation:
+1. Run `npm run build` - Verify no TypeScript errors
+2. Navigate to `/admin/investors` - List loads correctly
+3. Navigate to `/admin/investors/:id` - Detail view works
+4. Navigate to `/admin/yields` - Yield management works
+5. Navigate to `/admin/settings` - Fee settings work
+6. Verify no console errors about missing modules
