@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
+import { InvestorFormValues } from "@/components/admin/investors/forms/InvestorForm";
 import { addCsrfHeader } from "@/lib/security/csrf";
 
 /**
