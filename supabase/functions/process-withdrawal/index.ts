@@ -275,7 +275,7 @@ serve(async (req) => {
     if (!authHeader) {
       throw new Error("Missing authorization header");
     }
-    const token = authHeader.replace(/^Bearer\\s+/i, "").trim();
+    const token = authHeader.replace("Bearer ", "").trim();
 
     const {
       data: { user },

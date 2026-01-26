@@ -10926,6 +10926,10 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      cancel_withdrawal_by_investor: {
+        Args: { p_investor_id: string; p_reason?: string; p_request_id: string }
+        Returns: Json
+      }
       check_all_funds_transaction_aum: {
         Args: { p_tx_date: string }
         Returns: {
