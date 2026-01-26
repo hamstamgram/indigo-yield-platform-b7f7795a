@@ -86,7 +86,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         <div className="flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center">
             <img
-              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+              src="/lovable-uploads/INDIGO_logo-white.png"
               alt="Indigo Yield"
               className="h-8"
               loading="lazy"
