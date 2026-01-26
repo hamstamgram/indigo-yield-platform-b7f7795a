@@ -336,8 +336,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           </nav>
 
           {/* Footer Area */}
-          <div className="p-4 mt-auto border-t border-sidebar-border/30 bg-sidebar/30 backdrop-blur-md">
+          <div className="mt-auto border-t border-sidebar-border/30 bg-sidebar/30 backdrop-blur-md">
             <UserProfile userName={userName} isAdmin={activePortal === "admin"} />
+            <div className="px-4 pb-4">
+              <LogoutButton />
+            </div>
           </div>
         </div>
       </aside>
