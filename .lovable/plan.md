@@ -1,77 +1,40 @@
 
-# Fix Scroll Issue on the Platform
+# Fix Overlay Issue on Investor Transactions Page
 
 ## Problem Analysis
 
-The dashboard layout has a broken scroll configuration that prevents page content from scrolling:
+The Investor Transactions page (`src/pages/investor/InvestorTransactionsPage.tsx`) has a layout issue where the main content container uses `overflow-hidden`, which can cause visual clipping problems with overlays, dropdowns, and other floating elements.
 
-```text
-┌─────────────────────────────────────────────────┐
-│ DashboardLayout (h-screen, overflow-hidden) ❌  │
-│ ┌─────────────────────────────────────────────┐ │
-│ │ Main Content (overflow-hidden) ❌            │ │
-│ │ ┌─────────────────────────────────────────┐ │ │
-│ │ │ Inner Div (h-full, no scroll) ❌        │ │ │
-│ │ │                                         │ │ │
-│ │ │  Page Content (long, can't scroll)      │ │ │
-│ │ │                                         │ │ │
-│ │ └─────────────────────────────────────────┘ │ │
-│ └─────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────┘
+**Current code (line 146):**
+```tsx
+<div className="glass-panel rounded-3xl border border-white/5 overflow-hidden p-6 space-y-6">
 ```
 
-The `<main>` element on line 110 has `overflow-hidden` which clips all content. The inner wrapper also lacks scroll capability.
+The `overflow-hidden` class clips any content that extends beyond the container boundaries. While the Select dropdowns use portals (which render outside the DOM hierarchy), the visual effect can still be impacted by stacking contexts and clip-path behaviors.
 
 ---
 
 ## Solution
 
-Change the main content area to allow vertical scrolling while keeping the sidebar and header fixed:
-
-```text
-┌─────────────────────────────────────────────────┐
-│ DashboardLayout (h-screen, overflow-hidden) ✓   │
-│ ┌─────────────────────────────────────────────┐ │
-│ │ Main Content (overflow-y-auto) ✓             │ │
-│ │ ┌─────────────────────────────────────────┐ │ │
-│ │ │ ScrollArea or native scroll             │ │ │
-│ │ │                                         │ │ │
-│ │ │  Page Content (scrolls normally)  ✓     │ │ │
-│ │ │                                         │ │ │
-│ │ └─────────────────────────────────────────┘ │ │
-│ └─────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────┘
-```
+Remove `overflow-hidden` from the glass-panel container. The rounded corners can be preserved using `rounded-3xl` without clipping child content.
 
 ---
 
 ## Files to Modify
 
-### 1. `src/components/layout/DashboardLayout.tsx`
+### 1. `src/pages/investor/InvestorTransactionsPage.tsx`
 
-**Change line 110** from:
+**Change line 146** from:
 ```tsx
-<main className="flex-1 overflow-hidden px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+<div className="glass-panel rounded-3xl border border-white/5 overflow-hidden p-6 space-y-6">
 ```
 
 **To:**
 ```tsx
-<main className="flex-1 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+<div className="glass-panel rounded-3xl border border-white/5 p-6 space-y-6">
 ```
 
-This single change enables vertical scrolling on the main content area.
-
-**Additionally, update line 112** from:
-```tsx
-<div className="h-full w-full rounded-2xl animate-fade-in relative z-10 mx-auto max-w-[1600px]">
-```
-
-**To:**
-```tsx
-<div className="min-h-full w-full rounded-2xl animate-fade-in relative z-10 mx-auto max-w-[1600px]">
-```
-
-Using `min-h-full` instead of `h-full` allows content to grow beyond the viewport height.
+This removes `overflow-hidden` while preserving all other styling (rounded corners, border, padding, and spacing).
 
 ---
 
@@ -79,25 +42,15 @@ Using `min-h-full` instead of `h-full` allows content to grow beyond the viewpor
 
 | Property | Before | After | Effect |
 |----------|--------|-------|--------|
-| `<main>` overflow | `overflow-hidden` | `overflow-y-auto` | Enables vertical scroll |
-| Inner div height | `h-full` | `min-h-full` | Allows content to exceed viewport |
+| Container overflow | `overflow-hidden` | (removed) | Prevents clipping of overlays and dropdowns |
+| Rounded corners | `rounded-3xl` | `rounded-3xl` | Preserved - no change |
+| Border/styling | Preserved | Preserved | No visual change to the panel |
 
 ---
 
 ## Expected Behavior After Fix
 
-- All dashboard pages will scroll vertically when content exceeds viewport
-- Header remains fixed at top
-- Sidebar remains fixed on the left
-- Smooth native scroll behavior
-- Works on all pages (Admin Dashboard, Investor Overview, Fund Management, etc.)
-
----
-
-## Testing Checklist
-
-1. Navigate to Admin Dashboard - verify long content scrolls
-2. Navigate to Investor Overview - verify asset cards scroll
-3. Navigate to Fund Management - verify fund cards scroll
-4. Test on mobile viewport - verify touch scroll works
-5. Verify sidebar and header stay fixed during scroll
+- Select dropdown menus display correctly without being clipped
+- All overlay elements (tooltips, popovers) render properly
+- No visual regression to the glass-panel styling
+- Proper z-index layering for floating elements
