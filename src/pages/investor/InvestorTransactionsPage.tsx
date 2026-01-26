@@ -143,7 +143,7 @@ export default function InvestorTransactionsPage() {
         </div>
       </div>
 
-      <div className="glass-panel rounded-3xl border border-white/5 overflow-hidden p-6 space-y-6">
+      <div className="glass-panel rounded-3xl border border-white/5 p-6 space-y-6">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="relative flex-1">
