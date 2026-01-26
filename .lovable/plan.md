@@ -1,136 +1,267 @@
 
-# Add Missing Asset Logos
 
-## Problem Analysis
+# Core Bug Fixes: Frontend-Backend Integration Audit
 
-Two areas are missing asset logos:
+## Executive Summary
 
-### 1. Investor Fund Details Page (`FundDetailsPage.tsx`)
-The page uses raw `<img>` tags with `assetMeta?.logo` instead of the standardized `CryptoIcon` component. This causes:
-- No fallback when logos fail to load (the `onError` just hides the image completely)
-- Inconsistency with the rest of the platform
-
-**Affected locations:**
-- Line 41-48: Large header logo (h-full w-full inside a 24x24 container)
-- Line 60: Description inline logo (h-5 w-5)
-- Line 88: Balance card logo (h-4 w-4)
-
-### 2. Investor Overview Page - Recent Activity Section (`InvestorOverviewPage.tsx`)
-The Recent Activity section shows transactions but the asset is displayed as text only without a logo.
-
-**Affected location:**
-- Line 279: Asset shown as text `{tx.asset}` without an icon
+This plan addresses **5 core issues** that cause systemic problems across the platform. Rather than fixing symptoms, we're addressing root causes that violate the established architecture patterns documented in `docs/DUPLICATE_PREVENTION_GOVERNANCE.md`.
 
 ---
 
-## Solution
+## Issue 1: RPC Gateway Bypass in `yieldManagementService.ts`
 
-Replace raw `<img>` tags with the standardized `CryptoIcon` component which:
-- Uses the same centralized `getAssetLogo` utility
-- Provides graceful fallback (displays asset code abbreviation if image fails)
-- Maintains consistent styling across the platform
+### Problem
+The `getYieldVoidImpact` function bypasses the centralized RPC gateway (`src/lib/rpc.ts`) with `as never` casting:
 
----
-
-## Files to Modify
-
-### 1. `src/pages/investor/funds/FundDetailsPage.tsx`
-
-**Location 1 - Header Logo (lines 41-48):**
-
-Replace the raw `<img>` tag with `CryptoIcon`:
-
-```tsx
-// Before (lines 41-48)
-<img
-  src={assetMeta?.logo}
-  alt={assetCode}
-  className="h-full w-full object-contain drop-shadow-md"
-  onError={(e) => {
-    (e.target as HTMLImageElement).style.display = "none";
-  }}
-/>
-
-// After
-<CryptoIcon
-  symbol={assetCode}
-  className="h-full w-full object-contain drop-shadow-md"
-/>
+```typescript
+const { data, error } = await supabase.rpc("get_void_aum_impact" as never, {
+  p_record_id: recordId,
+} as never);
 ```
 
-**Location 2 - Description Logo (line 60):**
+### Root Cause
+The comment states "get_void_aum_impact may not be in generated types yet" but the function IS present in `src/integrations/supabase/types.ts` at line 11446.
 
-```tsx
+### Fix
+1. Remove the `as never` casts
+2. Use the `rpc.call()` gateway for consistent error handling, logging, and rate limiting
+
+```typescript
 // Before
-<img src={assetMeta?.logo} alt="logo" className="h-5 w-5 object-contain opacity-50" />
+const { data, error } = await supabase.rpc("get_void_aum_impact" as never, {
+  p_record_id: recordId,
+} as never);
 
 // After
-<CryptoIcon symbol={assetCode} className="h-5 w-5 opacity-50" />
+import { rpc } from "@/lib/rpc";
+
+const { data, error } = await rpc.call("get_void_aum_impact", {
+  p_record_id: recordId,
+});
 ```
 
-**Location 3 - Balance Card Logo (line 88):**
+### Files to Modify
+- `src/services/admin/yieldManagementService.ts` (lines 300-302)
 
-```tsx
+---
+
+## Issue 2: Edge Function Auth Regex Bug
+
+### Problem
+In `supabase/functions/process-withdrawal/index.ts`, the auth header parsing uses a double backslash that prevents correct token extraction:
+
+```typescript
+// Line 278 - BROKEN
+const token = authHeader.replace(/^Bearer\\s+/i, "").trim();
+```
+
+The regex `Bearer\\s+` is looking for a literal backslash followed by "s+" instead of whitespace (`\s+`).
+
+### Root Cause
+This is the ONLY edge function (out of 23) using the regex pattern. All others use the simpler `"Bearer "` string replacement which works correctly.
+
+### Fix
+Align with the standard pattern used in all other edge functions:
+
+```typescript
 // Before
-<img src={assetMeta?.logo} alt="logo" className="h-4 w-4 object-contain opacity-50" />
+const token = authHeader.replace(/^Bearer\\s+/i, "").trim();
+
+// After (matches 22 other edge functions)
+const token = authHeader.replace("Bearer ", "").trim();
+```
+
+### Files to Modify
+- `supabase/functions/process-withdrawal/index.ts` (line 278)
+
+---
+
+## Issue 3: Direct DB Write in Withdrawal Cancellation
+
+### Problem
+The `cancelWithdrawalRequest` function in `investorWithdrawalService.ts` performs a direct database update that bypasses:
+- The `validate_withdrawal_transition` state machine guard
+- Audit logging triggers
+- The canonical `cancel_withdrawal_by_admin` RPC
+
+```typescript
+// Direct write - bypasses governance
+const { error } = await supabase
+  .from("withdrawal_requests")
+  .update({
+    status: "cancelled",
+    cancellation_reason: reason || "Cancelled by investor",
+    cancelled_at: new Date().toISOString(),
+  })
+  .eq("id", requestId)
+  .eq("status", "pending");
+```
+
+### Root Cause
+There are TWO cancellation paths:
+1. `investorWithdrawalService.cancelWithdrawalRequest` - Direct DB write (for investors)
+2. `withdrawalService.cancelWithdrawal` - Uses RPC (for admins)
+
+The investor path bypasses all governance.
+
+### Fix
+Option A (Preferred): Create an investor-facing RPC `cancel_withdrawal_by_investor` that validates the user owns the request
+Option B: Use the existing `cancel_withdrawal_by_admin` RPC with investor context validation
+
+Since the existing RPC requires admin role (see types at line 10925-10927), we need to create a new RPC or modify the existing one.
+
+**Recommended approach**: Update frontend to use an existing edge function or create a lightweight investor cancellation RPC.
+
+### Files to Modify
+- `src/services/investor/investorWithdrawalService.ts` (lines 108-120)
+- Potentially create new RPC or edge function for investor-initiated cancellation
+
+---
+
+## Issue 4: Legacy Fallback with Wrong Parameter Names
+
+### Problem
+The `voidAndReissueTransaction` function has a fallback with incorrect parameter names:
+
+```typescript
+// Primary call - CORRECT
+const { data, error } = await rpc.call("void_and_reissue_transaction", {
+  p_original_tx_id: params.transactionId,  // ✓ Correct
+  p_new_amount: ...,
+  p_new_date: params.newValues.tx_date,    // ✓ Correct
+  ...
+});
+
+// Fallback - WRONG parameter names
+const legacy = await rpc.call("void_and_reissue_transaction" as any, {
+  p_original_transaction_id: params.transactionId,  // ✗ Wrong
+  p_new_tx_date: params.newValues.tx_date,          // ✗ Wrong (should be p_new_date)
+  ...
+});
+```
+
+### Root Cause
+The database signature (from types.ts lines 12333-12343) is:
+```
+p_admin_id: string
+p_closing_aum: number
+p_new_amount: number
+p_new_date: string
+p_new_notes: string
+p_original_tx_id: string
+p_reason: string
+```
+
+The fallback uses non-existent parameters (`p_original_transaction_id`, `p_new_tx_date`).
+
+### Fix
+Remove the dead fallback code. If the primary call fails, it should fail clearly - not attempt a call with wrong parameters that will also fail.
+
+```typescript
+// Remove this entire fallback block (lines 255-271)
+if (error) {
+  // Fallback for legacy signatures...
+  const legacy = await rpc.call("void_and_reissue_transaction" as any, {
+    p_original_transaction_id: params.transactionId,  // DELETE THIS
+    ...
+  });
+  ...
+}
+```
+
+### Files to Modify
+- `src/services/admin/adminTransactionHistoryService.ts` (lines 255-271)
+
+---
+
+## Issue 5: Failing RPCs in Production Log
+
+### Problem
+The `artifacts/rpc-run-log.json` shows three failing RPCs:
+1. `apply_deposit_with_crystallization` - FAIL
+2. `apply_deposit_with_crystallization_idempotency` - FAIL
+3. `check_aum_reconciliation` - FAIL
+
+### Root Cause Analysis Needed
+These failures require database-side investigation:
+1. Check if the RPCs exist and have correct signatures
+2. Check if required parameters are missing or mistyped
+3. Check if there are missing prerequisites (e.g., AUM records)
+
+### Fix
+1. Verify RPC signatures match between frontend (`src/lib/rpc.ts`) and database
+2. The `check_aum_reconciliation` RPC exists in contracts but the failure suggests a runtime issue
+
+### Files to Investigate
+- `src/services/admin/aumReconciliationService.ts` (uses `check_aum_reconciliation`)
+- Database function definitions (require SQL access)
+
+---
+
+## Issue 6: Parameter Inconsistency (`undefined` vs `null`)
+
+### Problem
+The `p_notes` parameter is passed as `undefined` in some services and `null` in others:
+
+```typescript
+// investorWithdrawalService.ts
+p_notes: notes || undefined,  // Sends undefined
+
+// Other services may send null
+p_notes: notes || null,
+```
+
+### Root Cause
+PostgreSQL and Supabase treat `undefined` and `null` differently in some cases. The generated types show `p_notes` as optional, but consistency is important.
+
+### Fix
+Standardize to `null` for database parameters (PostgreSQL convention):
+
+```typescript
+// Before
+p_notes: notes || undefined,
 
 // After
-<CryptoIcon symbol={assetCode} className="h-4 w-4 opacity-50" />
+p_notes: notes ?? null,
 ```
 
-**Import Statement:**
-
-Add at the top of the file:
-```tsx
-import { CryptoIcon } from "@/components/CryptoIcons";
-```
+### Files to Modify
+- `src/services/investor/investorWithdrawalService.ts` (line 98)
+- `src/services/investor/investorPortfolioService.ts` (line 154)
 
 ---
 
-### 2. `src/pages/investor/InvestorOverviewPage.tsx`
+## Implementation Priority
 
-**Location - Recent Activity Asset Display (line 279):**
-
-The asset is currently shown as plain text. Add a `CryptoIcon` next to it:
-
-```tsx
-// Before (line 279)
-<p className="text-[10px] text-slate-500 font-bold uppercase">{tx.asset}</p>
-
-// After
-<div className="flex items-center gap-1 justify-end">
-  <CryptoIcon symbol={tx.asset} className="h-3 w-3" />
-  <p className="text-[10px] text-slate-500 font-bold uppercase">{tx.asset}</p>
-</div>
-```
-
-Note: `CryptoIcon` is already imported in this file (line 11).
+| Priority | Issue | Risk Level | Effort |
+|----------|-------|------------|--------|
+| P0 | Issue 2: Edge Function Regex Bug | **Critical** - Auth failures | 5 min |
+| P0 | Issue 1: RPC Gateway Bypass | High - Inconsistent error handling | 10 min |
+| P1 | Issue 4: Dead Fallback Code | Medium - Masks real errors | 10 min |
+| P1 | Issue 3: Direct DB Write | Medium - Bypasses audit trail | 30 min |
+| P2 | Issue 6: Parameter Inconsistency | Low - Edge cases only | 5 min |
+| P2 | Issue 5: Failing RPCs | Requires investigation | TBD |
 
 ---
 
-## Summary of Changes
+## Technical Implementation Details
 
-| File | Location | Current State | Change |
-|------|----------|---------------|--------|
-| `FundDetailsPage.tsx` | Header (line 41-48) | Raw `<img>` tag | Replace with `CryptoIcon` |
-| `FundDetailsPage.tsx` | Description (line 60) | Raw `<img>` tag | Replace with `CryptoIcon` |
-| `FundDetailsPage.tsx` | Balance card (line 88) | Raw `<img>` tag | Replace with `CryptoIcon` |
-| `InvestorOverviewPage.tsx` | Recent Activity (line 279) | Text only | Add `CryptoIcon` with text |
+### Changes Summary
 
----
+| File | Change Type | Lines Affected |
+|------|-------------|----------------|
+| `supabase/functions/process-withdrawal/index.ts` | Fix regex | Line 278 |
+| `src/services/admin/yieldManagementService.ts` | Use RPC gateway | Lines 6, 297-309 |
+| `src/services/admin/adminTransactionHistoryService.ts` | Remove dead code | Lines 255-271 |
+| `src/services/investor/investorWithdrawalService.ts` | RPC migration + param fix | Lines 98, 108-120 |
+| `src/services/investor/investorPortfolioService.ts` | Param consistency | Line 154 |
 
-## Technical Notes
+### Testing Approach
 
-- The `CryptoIcon` component uses `getAssetLogo()` from `@/utils/assets` - the same utility the current code uses
-- `CryptoIcon` provides a fallback UI showing the asset abbreviation if the image fails to load
-- No database or API changes required
-- Follows the platform's established pattern (as documented in memory: `style/asset-logo-standard`)
+After fixes:
+1. Test withdrawal flow end-to-end (login → request → cancel)
+2. Test yield void impact preview
+3. Test transaction void-and-reissue
+4. Verify console logs show RPC gateway logging
+5. Run `npm run test:vitest` for reconciliation tests
 
----
-
-## Expected Result
-
-After implementation:
-- Fund Details page shows logos consistently with proper fallback
-- Recent Activity section in Investor Overview displays asset logos alongside the asset code
-- All logos use the centralized `CryptoIcon` component for consistent behavior
