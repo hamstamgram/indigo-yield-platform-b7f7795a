@@ -61,9 +61,13 @@ export async function previewDepositYield(
     .from("funds")
     .select("code, asset")
     .eq("id", fundId)
-    .single();
+    .maybeSingle();
 
-  if (fundError || !fund) {
+  if (fundError) {
+    throw new Error(`Failed to fetch fund: ${fundError.message}`);
+  }
+
+  if (!fund) {
     throw new Error("Fund not found");
   }
 
