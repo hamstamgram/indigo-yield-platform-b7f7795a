@@ -10,7 +10,7 @@ const AppLogo = ({ className = "h-8 w-auto", linkTo }: AppLogoProps) => {
   const LogoContent = () => (
     <>
       <img
-        src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+        src="/lovable-uploads/INDIGO_logo-white.png"
         alt="Indigo Digital Assets Yield"
         className={className}
         loading="lazy"

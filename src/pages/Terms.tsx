@@ -11,7 +11,7 @@ const Terms = () => {
           <div className="flex items-center">
             <Link to="/">
               <img
-                src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+                src="/lovable-uploads/INDIGO_logo-white.png"
                 alt="Infinite Yield Fund"
                 className="h-8 sm:h-10"
                 loading="lazy"
@@ -128,7 +128,7 @@ const Terms = () => {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
             <img
-              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+              src="/lovable-uploads/INDIGO_logo-white.png"
               alt="Infinite Yield Fund"
               className="h-8"
               loading="lazy"

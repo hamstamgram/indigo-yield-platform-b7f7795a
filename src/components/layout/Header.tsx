@@ -37,7 +37,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       {/* Mobile logo */}
       <div className="lg:hidden flex-1 flex justify-center mr-8">
         <img
-          src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+          src="/lovable-uploads/INDIGO_logo-white.png"
           alt="Indigo Yield Fund"
           className="h-8 w-auto opacity-90"
           loading="lazy"

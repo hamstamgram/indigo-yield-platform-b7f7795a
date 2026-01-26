@@ -11520,6 +11520,17 @@ export type Database = {
           new_crystallization_date: string
         }[]
       }
+      insert_yield_transaction: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_fund_code: string
+          p_investor_name: string
+          p_month: string
+          p_tx_date: string
+        }
+        Returns: boolean
+      }
       internal_route_to_fees: {
         Args: {
           p_admin_id: string
