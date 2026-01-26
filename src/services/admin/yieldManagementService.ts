@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { rpc } from "@/lib/rpc";
 
 export interface VoidYieldResult {
   success: boolean;
@@ -295,11 +296,10 @@ export async function canEditYieldRecord(
  * Shows what will happen before voiding (distributions, transactions, investors affected)
  */
 export async function getYieldVoidImpact(recordId: string): Promise<VoidAumImpactResult> {
-  // Use the correct RPC that accepts fund_daily_aum record ID
-  // Note: get_void_aum_impact may not be in generated types yet - using direct rpc call
-  const { data, error } = await supabase.rpc("get_void_aum_impact" as never, {
+  // Use the RPC gateway for consistent error handling, logging, and rate limiting
+  const { data, error } = await rpc.call("get_void_aum_impact", {
     p_record_id: recordId,
-  } as never);
+  });
 
   if (error) {
     logError("yieldManagement.getVoidImpact", error, { recordId });

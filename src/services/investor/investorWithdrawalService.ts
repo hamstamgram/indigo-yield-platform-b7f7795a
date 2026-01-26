@@ -95,7 +95,7 @@ export async function createWithdrawalRequest(
     p_fund_id: fundId,
     p_amount: amount,
     p_type: withdrawalType,
-    p_notes: notes || undefined,
+    p_notes: notes ?? null,
   });
 
   if (error) throw error;
@@ -104,19 +104,27 @@ export async function createWithdrawalRequest(
 
 /**
  * Cancel a withdrawal request (if still pending)
+ * Uses the RPC gateway to ensure state machine validation and audit logging
  */
 export async function cancelWithdrawalRequest(requestId: string, reason?: string): Promise<void> {
-  const { error } = await supabase
-    .from("withdrawal_requests")
-    .update({
-      status: "cancelled",
-      cancellation_reason: reason || "Cancelled by investor",
-      cancelled_at: new Date().toISOString(),
-    })
-    .eq("id", requestId)
-    .eq("status", "pending");
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error("Not authenticated");
+
+  // Use RPC to ensure state machine validation and audit trail
+  // Type assertion needed until types regenerate after migration
+  const { data, error } = await (rpc.call as any)("cancel_withdrawal_by_investor", {
+    p_request_id: requestId,
+    p_investor_id: user.user.id,
+    p_reason: reason ?? "Cancelled by investor",
+  });
 
   if (error) throw error;
+  
+  // Check for RPC-level errors
+  const result = data as { success?: boolean; message?: string; error_code?: string } | null;
+  if (result && result.success === false) {
+    throw new Error(result.message || result.error_code || "Failed to cancel withdrawal");
+  }
 }
 
 /**

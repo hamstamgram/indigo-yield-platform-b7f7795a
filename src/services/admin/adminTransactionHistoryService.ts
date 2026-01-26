@@ -253,21 +253,8 @@ async function voidAndReissueTransaction(
   });
 
   if (error) {
-    // Fallback for legacy signatures (until migrations are applied)
-    const legacy = await rpc.call("void_and_reissue_transaction" as any, {
-      p_original_transaction_id: params.transactionId,
-      p_new_amount: params.newValues.amount,
-      p_new_tx_date: params.newValues.tx_date,
-      p_new_notes: mergedNotes,
-      p_reason: params.reason,
-    });
-    if (legacy.error) throw new Error(error.userMessage || error.message);
-    return {
-      success: true,
-      voided_transaction_id: params.transactionId,
-      new_transaction_id: "",
-      message: "Transaction corrected successfully",
-    };
+    // No legacy fallback - fail clearly with proper error message
+    throw new Error(error.userMessage || error.message);
   }
 
   // Handle typed response from RPC
