@@ -276,7 +276,10 @@ export default function InvestorOverviewPage() {
                         {tx.type === "DEPOSIT" || tx.type === "YIELD" ? "+" : ""}
                         {formatCurrency(Number(tx.amount), tx.asset)}
                       </p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase">{tx.asset}</p>
+                      <div className="flex items-center gap-1 justify-end">
+                        <CryptoIcon symbol={tx.asset} className="h-3 w-3" />
+                        <p className="text-[10px] text-slate-500 font-bold uppercase">{tx.asset}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
