@@ -170,14 +170,14 @@ export async function getInvestorById(id: string): Promise<InvestorLookup | null
       onboarding_date
     `)
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    if (error.code === "PGRST116") {
-      // Not found
-      return null;
-    }
     throw error;
+  }
+
+  if (!data) {
+    return null;
   }
 
   return transformToInvestorLookup(data);
@@ -262,13 +262,14 @@ export async function getInvestorRef(id: string): Promise<InvestorRef | null> {
     .from("profiles")
     .select("id, email, first_name, last_name")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    if (error.code === "PGRST116") {
-      return null;
-    }
     throw error;
+  }
+
+  if (!data) {
+    return null;
   }
 
   return transformToInvestorRef(data);

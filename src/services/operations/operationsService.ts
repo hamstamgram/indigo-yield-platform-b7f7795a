@@ -23,6 +23,28 @@ interface CountQueryResult {
   error: { message: string } | null;
 }
 
+/** Position row from investor_positions */
+interface PositionRow {
+  current_value: number;
+  investor_id: string;
+}
+
+/** Profile ID row for investor filtering */
+interface ProfileIdRow {
+  id: string;
+}
+
+/** Typed tuple for parallel query results */
+type MetricsQueryResults = [
+  { count: number | null; error: unknown },    // withdrawals
+  CountQueryResult,                             // deposits (mock)
+  CountQueryResult,                             // investments (mock)
+  { count: number | null; error: unknown },    // transactions
+  { count: number | null; error: unknown },    // investors
+  { data: PositionRow[] | null; error: unknown }, // AUM positions
+  { data: ProfileIdRow[] | null; error: unknown }, // investor profiles
+];
+
 export const operationsService = {
   /**
    * Get comprehensive operations metrics
@@ -72,23 +94,25 @@ export const operationsService = {
           .eq("account_type", "investor"),
       ]);
 
-      const withdrawalsResult = results[0] as any;
-      const depositsResult = results[1] as any;
-      const investmentsResult = results[2] as any;
-      const transactionsResult = results[3] as any;
-      const investorsResult = results[4] as any;
-      const aumResult = results[5] as any;
-      const investorProfilesResult = results[6] as any;
+      const [
+        withdrawalsResult,
+        depositsResult,
+        investmentsResult,
+        transactionsResult,
+        investorsResult,
+        aumResult,
+        investorProfilesResult,
+      ] = results as MetricsQueryResults;
 
       // Calculate total AUM (only for investor account types)
       const investorIds = new Set(
-        (investorProfilesResult.data || []).map((p: any) => p.id)
+        (investorProfilesResult.data || []).map((p) => p.id)
       );
       const totalAUM =
         aumResult.data
-          ?.filter((position: any) => investorIds.has(position.investor_id))
+          ?.filter((position) => investorIds.has(position.investor_id))
           .reduce(
-            (sum: number, position: any) => sum + (position.current_value || 0),
+            (sum, position) => sum + (position.current_value || 0),
             0
           ) || 0;
 

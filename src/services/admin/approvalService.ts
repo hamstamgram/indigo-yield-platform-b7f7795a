@@ -251,14 +251,18 @@ class ApprovalService {
       .from("system_config")
       .select("value")
       .eq("key", "approval_thresholds")
-      .single();
+      .maybeSingle();
 
     if (error) {
       logError("getThresholds", error);
       return null;
     }
 
-    return data?.value as unknown as ApprovalThresholds;
+    if (!data) {
+      return null;
+    }
+
+    return data.value as unknown as ApprovalThresholds;
   }
 
   /**

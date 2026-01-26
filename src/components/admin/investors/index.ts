@@ -1,64 +1,45 @@
 /**
  * Admin Investor Components
  * Investor management, tables, forms, and detail views
+ * 
+ * Components are organized into subdirectories by function:
+ * - detail/   - Single investor views and panels
+ * - list/     - Investor tables and filtering
+ * - tabs/     - Tab content components
+ * - forms/    - Forms and dialogs
+ * - yields/   - Yield and fee management
+ * - reports/  - Report components
+ * - bulk/     - Bulk operations
+ * - shared/   - Miscellaneous shared components
+ * - ledger/   - Ledger tab components
+ * - wizard/   - Onboarding wizard
  */
 
-// Dialogs
-export { default as AddInvestorDialog } from "./AddInvestorDialog";
-export { default as InviteInvestorDialog } from "./InviteInvestorDialog";
-export { InternalRouteDialog } from "./InternalRouteDialog";
+// Detail views
+export * from "./detail";
 
-// Panels & Drawers
-export { default as InvestorDetailPanel } from "./InvestorDetailPanel";
-export { InvestorManagementDrawer } from "./InvestorManagementDrawer";
-export { InvestorDrawerQuickView } from "./InvestorDrawerQuickView";
-export { default as InvestorLifecyclePanel } from "./InvestorLifecyclePanel";
+// List/table views
+export * from "./list";
 
-// Tabs
-export { InvestorTabs } from "./InvestorTabs";
-export { default as InvestorOverviewTab } from "./InvestorOverviewTab";
-export { InvestorPortfolioTab } from "./InvestorPortfolioTab";
-export { default as InvestorPositionsTab } from "./InvestorPositionsTab";
-export { default as InvestorTransactionsTab } from "./InvestorTransactionsTab";
-export { default as InvestorWithdrawalsTab } from "./InvestorWithdrawalsTab";
-export { InvestorActivityTab } from "./InvestorActivityTab";
-export { InvestorLedgerTab } from "./ledger";
-export { default as InvestorReportsTab } from "./InvestorReportsTab";
-export { default as InvestorSettingsTab } from "./InvestorSettingsTab";
+// Tab components
+export * from "./tabs";
 
-// Tables
-export { default as InvestorsTable } from "./InvestorsTable";
-export { default as InvestorsTableHeader } from "./InvestorsTableHeader";
-export { default as InvestorTableContainer } from "./InvestorTableContainer";
-export { default as InvestorTableRow } from "./InvestorTableRow";
-export { UnifiedInvestorsTable } from "./UnifiedInvestorsTable";
+// Forms & dialogs
+export * from "./forms";
 
-// Forms & Editors
-export { default as InvestorForm } from "./InvestorForm";
-export { InvestorProfileEditor } from "./InvestorProfileEditor";
-export { InvestorFeeManager } from "./InvestorFeeManager";
-export { InvestorYieldHistory } from "./InvestorYieldHistory";
-export { InvestorYieldManager } from "./InvestorYieldManager";
-export { default as EditableInvestorRow } from "./EditableInvestorRow";
-
-// UI Components
-export { InvestorHeader } from "./InvestorHeader";
-export { default as InvestorsHeader } from "./InvestorsHeader";
-export { InvestorKpiChips } from "./InvestorKpiChips";
-export { InvestorFiltersBar } from "./InvestorFiltersBar";
-export { default as SearchBar } from "./SearchBar";
-export { FundPositionCard } from "./FundPositionCard";
-export { default as FundAssetDropdown } from "./FundAssetDropdown";
-export { IBSettingsSection } from "./IBSettingsSection";
+// Yield management
+export * from "./yields";
 
 // Reports
-export { default as HistoricalReportsDashboard } from "./HistoricalReportsDashboard";
-export { default as MonthlyReportsTable } from "./MonthlyReportsTable";
-export { ReportRecipientsEditor } from "./ReportRecipientsEditor";
+export * from "./reports";
 
-// Bulk Operations
-export { default as BulkOperationsPanel } from "./BulkOperationsPanel";
-export { default as BulkDataGenerator } from "./BulkDataGenerator";
+// Bulk operations
+export * from "./bulk";
 
-// Mobile
+// Shared components
+export * from "./shared";
+
+// Existing subdirectories
+export { InvestorLedgerTab } from "./ledger";
+export * from "./wizard";
 export { default as MobileInvestorCard } from "./MobileInvestorCard";
