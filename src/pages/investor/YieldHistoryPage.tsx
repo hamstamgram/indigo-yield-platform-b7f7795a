@@ -28,9 +28,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui";
-import { TrendingUp, ChevronDown, Coins, Calendar, Percent } from "lucide-react";
+import { TrendingUp, ChevronDown, Coins, Calendar } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useInvestorYieldEvents, useInvestorCumulativeYield } from "@/hooks/data/investor/useInvestorYield";
+import {
+  useInvestorYieldEvents,
+  useInvestorCumulativeYield,
+} from "@/hooks/data/investor/useInvestorYield";
 import { format, getYear, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { InvestorYieldEvent } from "@/services/investor/investorYieldService";
@@ -59,7 +62,9 @@ export default function YieldHistoryPage() {
   );
 
   // Fetch cumulative totals
-  const { data: cumulative, isLoading: cumulativeLoading } = useInvestorCumulativeYield(user?.id || null);
+  const { data: cumulative, isLoading: cumulativeLoading } = useInvestorCumulativeYield(
+    user?.id || null
+  );
 
   // Get available years and funds for filters
   const { years, funds } = useMemo(() => {
@@ -139,36 +144,18 @@ export default function YieldHistoryPage() {
       />
 
       {/* Cumulative Summary */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Coins className="h-8 w-8 text-green-500/30" />
               <div>
-                <p className="text-xs text-muted-foreground uppercase">Total Net Yield</p>
+                <p className="text-xs text-muted-foreground uppercase">Total Yield Earned</p>
                 {isLoading ? (
                   <Skeleton className="h-7 w-24" />
                 ) : (
                   <p className="text-2xl font-mono font-bold text-green-600">
                     {formatValue(cumulative?.totalNetYield || 0)}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Percent className="h-8 w-8 text-muted-foreground/30" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Total Fees</p>
-                {isLoading ? (
-                  <Skeleton className="h-7 w-24" />
-                ) : (
-                  <p className="text-2xl font-mono font-bold">
-                    {formatValue(cumulative?.totalFees || 0)}
                   </p>
                 )}
               </div>
@@ -185,9 +172,7 @@ export default function YieldHistoryPage() {
                 {isLoading ? (
                   <Skeleton className="h-7 w-16" />
                 ) : (
-                  <p className="text-2xl font-mono font-bold">
-                    {cumulative?.eventCount || 0}
-                  </p>
+                  <p className="text-2xl font-mono font-bold">{cumulative?.eventCount || 0}</p>
                 )}
               </div>
             </div>
@@ -246,7 +231,11 @@ export default function YieldHistoryPage() {
       ) : (
         <div className="space-y-4">
           {monthGroups.map((group) => (
-            <MonthSection key={`${group.year}-${group.month}`} group={group} formatValue={formatValue} />
+            <MonthSection
+              key={`${group.year}-${group.month}`}
+              group={group}
+              formatValue={formatValue}
+            />
           ))}
         </div>
       )}
@@ -265,13 +254,24 @@ function MonthSection({
 
   // Group events by fund within month
   const fundGroups = useMemo(() => {
-    const map = new Map<string, { fund: { id: string; name: string; asset: string }; events: InvestorYieldEvent[]; totals: { gross: number; fees: number; net: number } }>();
+    const map = new Map<
+      string,
+      {
+        fund: { id: string; name: string; asset: string };
+        events: InvestorYieldEvent[];
+        totals: { gross: number; fees: number; net: number };
+      }
+    >();
 
     group.events.forEach((e) => {
       const fundData = e.fund;
       if (!map.has(e.fund_id)) {
         map.set(e.fund_id, {
-          fund: { id: e.fund_id, name: fundData?.name || "Unknown", asset: fundData?.asset || "USD" },
+          fund: {
+            id: e.fund_id,
+            name: fundData?.name || "Unknown",
+            asset: fundData?.asset || "USD",
+          },
           events: [],
           totals: { gross: 0, fees: 0, net: 0 },
         });
@@ -326,9 +326,7 @@ function MonthSection({
                   </div>
                   <div className="text-sm text-right">
                     <span className="text-muted-foreground">Net: </span>
-                    <span className="font-mono text-green-600">
-                      +{formatValue(fg.totals.net)}
-                    </span>
+                    <span className="font-mono text-green-600">+{formatValue(fg.totals.net)}</span>
                   </div>
                 </div>
 
@@ -338,9 +336,7 @@ function MonthSection({
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Balance</TableHead>
                       <TableHead className="text-right">Yield %</TableHead>
-                      <TableHead className="text-right">Gross</TableHead>
-                      <TableHead className="text-right">Fees</TableHead>
-                      <TableHead className="text-right">Net</TableHead>
+                      <TableHead className="text-right">Yield Earned</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -352,12 +348,6 @@ function MonthSection({
                         </TableCell>
                         <TableCell className="text-right font-mono">
                           {(e.fund_yield_pct * 100).toFixed(4)}%
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatValue(e.gross_yield_amount)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-muted-foreground">
-                          -{formatValue(e.fee_amount)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-green-600 font-semibold">
                           +{formatValue(e.net_yield_amount)}

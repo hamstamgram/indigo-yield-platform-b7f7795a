@@ -52,9 +52,12 @@ const DashboardLayout = () => {
 
     // PRODUCTION FIX: Always evaluate redirect conditions (no ref guard)
     // This ensures admins on wrong page always get redirected
-    if (isInvestorRoute && verifiedIsAdmin) {
-      // Admin on investor routes -> redirect to admin dashboard
+    // EXCEPTION: If admin has explicitly chosen to view as investor via portal switcher
+    const portalPreference = user?.id ? localStorage.getItem(`portal_view_${user.id}`) : null;
+    const adminWantsInvestorView = verifiedIsAdmin && portalPreference === "investor";
 
+    if (isInvestorRoute && verifiedIsAdmin && !adminWantsInvestorView) {
+      // Admin on investor routes -> redirect to admin dashboard (unless they explicitly chose investor view)
       navigate("/admin", { replace: true });
     } else if (isAdminRoute && !verifiedIsAdmin) {
       // Non-admin trying to access admin routes -> redirect to investor portal

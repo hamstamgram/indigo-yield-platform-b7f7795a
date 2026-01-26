@@ -8,7 +8,7 @@ import { adminNavGroups, investorNav, ibNav } from "@/config/navigation";
 import { Input, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
-import { useUserRole } from "@/hooks";
+import { useUserRole, useHasInvestorPositions } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import { useCurrentProfile } from "@/hooks";
 type SidebarProps = {
@@ -44,9 +44,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   // Get user role for proper navigation rendering
   const { isIB, isSuperAdmin, isLoading: roleLoading } = useUserRole();
 
+  // Check if admin user also has investor positions
+  const { hasPositions: hasInvestorPositions } = useHasInvestorPositions();
+
   // Load saved portal view preference
   useEffect(() => {
-    if (userId && isIB && !isAdmin) {
+    if (userId && isAdmin && hasInvestorPositions) {
+      // Admin with investor positions - check saved preference
+      const savedView = localStorage.getItem(`portal_view_${userId}`);
+      if (savedView === "admin" || savedView === "investor") {
+        setPortalView(savedView);
+      } else {
+        // Default to admin view
+        setPortalView("admin");
+      }
+    } else if (userId && isIB && !isAdmin) {
       const savedView = localStorage.getItem(`portal_view_${userId}`);
       if (savedView === "ib" || savedView === "investor") {
         setPortalView(savedView);
@@ -59,7 +71,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     } else {
       setPortalView("investor");
     }
-  }, [userId, isIB, isAdmin]);
+  }, [userId, isIB, isAdmin, hasInvestorPositions]);
 
   // Switch portal view and persist preference
   const switchPortal = (view: PortalView) => {
@@ -68,7 +80,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
       localStorage.setItem(`portal_view_${userId}`, view);
     }
     // Navigate to appropriate dashboard
-    if (view === "ib") {
+    if (view === "admin") {
+      navigate("/admin");
+    } else if (view === "ib") {
       navigate("/ib");
     } else if (view === "investor") {
       navigate("/dashboard");
@@ -150,14 +164,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
   // Determine active portal view
   const getActivePortal = (): PortalView => {
+    // If admin with positions, respect their portal choice
+    if (isAdmin && hasInvestorPositions) {
+      return portalView;
+    }
+    // Otherwise, admins always see admin portal
     if (isAdmin) return "admin";
     return portalView;
   };
 
   const activePortal = getActivePortal();
 
-  // Check if user has multiple portal options (IB users)
-  const hasMultiplePortals = isIB && !isAdmin;
+  // Check if user has multiple portal options (IB users or admins with positions)
+  const hasMultiplePortals = (isIB && !isAdmin) || (isAdmin && hasInvestorPositions);
+  const isAdminWithPositions = isAdmin && hasInvestorPositions;
 
   return (
     <>
@@ -219,36 +239,69 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             </button>
           </div>
 
-          {/* Portal Switcher for IB users */}
+          {/* Portal Switcher for users with multiple portals */}
           {hasMultiplePortals && (
             <div className="px-5 pb-6">
               <div className="p-1 bg-sidebar-accent/50 rounded-xl flex gap-1">
-                <Button
-                  variant={portalView === "ib" ? "secondary" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
-                    portalView === "ib"
-                      ? "bg-white text-primary dark:bg-primary dark:text-white"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                  onClick={() => switchPortal("ib")}
-                >
-                  IB Portal
-                </Button>
-                <Button
-                  variant={portalView === "investor" ? "secondary" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
-                    portalView === "investor"
-                      ? "bg-white text-primary dark:bg-primary dark:text-white"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                  onClick={() => switchPortal("investor")}
-                >
-                  Portfolio
-                </Button>
+                {isAdminWithPositions ? (
+                  <>
+                    <Button
+                      variant={portalView === "admin" ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                        portalView === "admin"
+                          ? "bg-white text-primary dark:bg-primary dark:text-white"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      onClick={() => switchPortal("admin")}
+                    >
+                      Admin
+                    </Button>
+                    <Button
+                      variant={portalView === "investor" ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                        portalView === "investor"
+                          ? "bg-white text-primary dark:bg-primary dark:text-white"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      onClick={() => switchPortal("investor")}
+                    >
+                      Investor
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant={portalView === "ib" ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                        portalView === "ib"
+                          ? "bg-white text-primary dark:bg-primary dark:text-white"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      onClick={() => switchPortal("ib")}
+                    >
+                      IB Portal
+                    </Button>
+                    <Button
+                      variant={portalView === "investor" ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                        portalView === "investor"
+                          ? "bg-white text-primary dark:bg-primary dark:text-white"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      onClick={() => switchPortal("investor")}
+                    >
+                      Portfolio
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}

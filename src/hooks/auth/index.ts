@@ -4,6 +4,7 @@
  */
 
 export { useUserRole, type UserRole } from "./useUserRole";
+export { useHasInvestorPositions } from "./useHasInvestorPositions";
 export {
   useLoginMutation,
   useGoogleLoginMutation,
