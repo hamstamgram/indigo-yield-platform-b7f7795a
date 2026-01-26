@@ -6,8 +6,8 @@
 import { useState } from "react";
 import { Separator } from "@/components/ui";
 import InvestorPositionsTab from "./InvestorPositionsTab";
-import { InvestorYieldManager } from "./InvestorYieldManager";
-import { InvestorYieldHistory } from "./InvestorYieldHistory";
+import { InvestorYieldManager } from "./yields/InvestorYieldManager";
+import { InvestorYieldHistory } from "./yields/InvestorYieldHistory";
 
 interface InvestorPortfolioTabProps {
   investorId: string;

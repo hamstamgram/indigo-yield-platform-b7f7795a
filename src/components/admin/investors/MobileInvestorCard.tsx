@@ -13,7 +13,7 @@ import { useToast } from "@/hooks";
 import { useUpdateInvestorStatus } from "@/hooks/data";
 import { AssetRef as Asset } from "@/types/asset";
 import type { AdminInvestorSummary } from "@/services/admin";
-import FundAssetDropdown from "./FundAssetDropdown";
+import FundAssetDropdown from "./shared/FundAssetDropdown";
 import { FinancialValue } from "@/components/common/FinancialValue";
 
 interface MobileInvestorCardProps {

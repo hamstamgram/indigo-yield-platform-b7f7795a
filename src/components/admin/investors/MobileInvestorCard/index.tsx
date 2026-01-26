@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, Button, Input } from "@/components/ui";
 import { Send, Save } from "lucide-react";
 import { useToast } from "@/hooks";
 import { AssetRef as Asset } from "@/types/asset";
-import FundAssetDropdown from "../FundAssetDropdown";
+import FundAssetDropdown from "../shared/FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { getAllFunds, updateInvestorPosition, profileService } from "@/services";
