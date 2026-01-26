@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
 import { useAdminPendingWithdrawalsCount as usePendingWithdrawalsCount } from "@/hooks/data/admin";
-import { InvestorTabs } from "./InvestorTabs";
+import { InvestorTabs } from "../tabs";
 import { toast } from "sonner";
 
 interface InvestorDetailPanelProps {

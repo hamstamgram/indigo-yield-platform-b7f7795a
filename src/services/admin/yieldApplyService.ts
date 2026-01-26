@@ -100,7 +100,7 @@ export async function applyYieldDistribution(
     .from("funds")
     .select("name, asset")
     .eq("id", fundId)
-    .single();
+    .maybeSingle();
 
   const { data: affectedInvestors } = await supabase
     .from("transactions_v2")

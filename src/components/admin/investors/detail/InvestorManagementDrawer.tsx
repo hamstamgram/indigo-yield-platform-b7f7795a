@@ -26,9 +26,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
-import { InvestorYieldManager } from "./InvestorYieldManager";
-import InvestorPositionsTab from "./InvestorPositionsTab";
-import InvestorTransactionsTab from "./InvestorTransactionsTab";
+import { InvestorYieldManager } from "../yields";
+import InvestorPositionsTab from "../InvestorPositionsTab";
+import InvestorTransactionsTab from "../InvestorTransactionsTab";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

@@ -91,16 +91,20 @@ class IBAllocationService {
       .from("profiles")
       .select("ib_parent_id, ib_percentage")
       .eq("id", investorId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching IB config:", error);
       return { ibParentId: null, ibPercentage: null };
     }
 
+    if (!data) {
+      return { ibParentId: null, ibPercentage: null };
+    }
+
     return {
-      ibParentId: data?.ib_parent_id ?? null,
-      ibPercentage: data?.ib_percentage ?? null,
+      ibParentId: data.ib_parent_id ?? null,
+      ibPercentage: data.ib_percentage ?? null,
     };
   }
 
