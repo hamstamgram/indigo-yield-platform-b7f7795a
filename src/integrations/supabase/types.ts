@@ -11706,6 +11706,10 @@ export type Database = {
         Args: { p_end_date: string; p_fund_id: string; p_start_date: string }
         Returns: Json
       }
+      populate_investor_fund_performance: {
+        Args: { p_investor_id?: string }
+        Returns: number
+      }
       preview_adb_yield_distribution_v2: {
         Args: {
           p_fund_id: string
