@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useIBReferrals } from "@/hooks/data/shared";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 const PAGE_SIZE = 10;
 
@@ -130,8 +131,9 @@ export default function IBReferralsPage() {
                       Object.entries(referral.holdings).map(([asset, amount]) => (
                         <span
                           key={asset}
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono bg-white/5 border border-white/5 text-slate-300"
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-white/5 border border-white/5 text-slate-300"
                         >
+                          <CryptoIcon symbol={asset} className="h-3.5 w-3.5" />
                           {formatAssetAmount(amount, asset)}
                         </span>
                       ))

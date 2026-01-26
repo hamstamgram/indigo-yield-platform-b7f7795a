@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui";
 import { Search, CheckCircle, XCircle, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { useDeposits } from "@/hooks/data/admin";
 import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
@@ -165,7 +166,10 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{deposit.asset_symbol}</Badge>
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={deposit.asset_symbol} className="h-5 w-5" />
+                        <Badge variant="outline">{deposit.asset_symbol}</Badge>
+                      </div>
                     </TableCell>
                     <TableCell className="font-semibold">
                       {deposit.amount.toLocaleString()} {deposit.asset_symbol}
