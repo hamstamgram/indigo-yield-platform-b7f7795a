@@ -85,14 +85,6 @@ export default function Login() {
               className="h-16 w-auto drop-shadow-lg"
             />
           </div>
-          <div>
-            <h1 className="text-3xl font-display font-bold tracking-tight text-white drop-shadow-md">
-              Indigo Yield
-            </h1>
-            <p className="text-indigo-200/60 font-light tracking-wide">
-              Institutional Grade DeFi Intelligence
-            </p>
-          </div>
         </div>
 
         {/* Glass Login Card */}
