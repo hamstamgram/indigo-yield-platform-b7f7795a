@@ -1,239 +1,353 @@
 
-# Frontend-Backend Integration Audit Report
+# Comprehensive Architecture Audit Report
 
-## Audit Summary
+## Executive Summary
 
-After a thorough audit of the codebase, I identified **6 issues** across the frontend-backend integration layer. Most previous issues have been fixed, and the platform follows good architectural patterns. However, there are still areas requiring attention.
+This audit evaluates the INDIGO platform's codebase for architectural cleanliness, modularity, and optimization. The platform is a **mature, well-architected financial management system** with strong foundations. However, several areas can be improved for better maintainability and adherence to best practices.
+
+**Overall Architecture Grade: B+**
+
+---
+
+## Strengths Identified
+
+### Excellent Patterns Already Implemented
+
+1. **Centralized RPC Gateway** (`src/lib/rpc.ts`) - All database mutations go through a typed, validated gateway with rate limiting and error normalization
+2. **Protected Table Enforcement** (`src/lib/db.ts`) - Direct writes to financial tables are blocked at the gateway level
+3. **Contract-First Design** (`src/contracts/`) - Database enums, schemas, and RPC signatures are centralized
+4. **Domain-Driven Types** (`src/types/domains/`) - 25+ domain type files with clear separation
+5. **No Direct DB Calls from Components** - All pages/components use hooks, not direct Supabase calls
+6. **Centralized Query Keys** (`src/constants/queryKeys.ts`) - 500+ lines of structured cache keys
+7. **Comprehensive Documentation** (`docs/`) - 40+ markdown files covering architecture, patterns, and governance
 
 ---
 
 ## Critical Issues (P0)
 
-### Issue 1: `rpc.call as any` Type Bypass in Withdrawal Cancellation
+### Issue 1: Deprecated Services Still Active
 
-**File**: `src/services/investor/investorWithdrawalService.ts` (line 115)
+**Location**: `src/services/shared/positionService.ts`
 
-**Problem**:
+**Problem**: Despite being marked `@deprecated`, this service still exists and is exported from the barrel file. The deprecation note says to use `investorPositionService` instead, but leaving deprecated code creates confusion and increases bundle size.
+
+**Impact**: Developer confusion, potential for accidental use, increased maintenance burden
+
+**Recommendation**: 
+- Remove `positionService.ts` entirely
+- Update any remaining imports to use `investorPositionService`
+- Add a lint rule to prevent importing from deprecated paths
+
+---
+
+### Issue 2: Mixed Service Architecture Patterns
+
+**Location**: `src/services/` (22 files with class singletons, rest are functional)
+
+**Problem**: The codebase uses two conflicting patterns:
+- **Class-based singletons**: `fundService = new FundServiceClass()`, `depositService = new DepositService()`
+- **Functional exports**: `listFunds()`, `getFund()`, `createFund()`
+
+This creates inconsistency - some imports use `fundService.getAllFunds()` while others use `listFunds()`.
+
+**Impact**: Inconsistent API, harder onboarding for new developers
+
+**Recommendation**:
+- Standardize on functional exports (more tree-shakable, easier to test)
+- Keep class wrappers only for backward compatibility with explicit deprecation notices
+
+---
+
+### Issue 3: AdminOperationsHub Uses useState/useEffect Anti-Pattern
+
+**Location**: `src/pages/admin/AdminOperationsHub.tsx` (lines 34-100)
+
+**Problem**: This page uses `useState` + `useEffect` + manual `fetch().then(setState())` pattern instead of React Query hooks:
+
 ```typescript
-const { data, error } = await (rpc.call as any)("cancel_withdrawal_by_investor", {
-  p_request_id: requestId,
-  p_investor_id: user.user.id,
-  p_reason: reason ?? "Cancelled by investor",
-});
+const [metrics, setMetrics] = useState({...});
+const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
+
+const loadMetrics = useCallback(async () => {
+  setIsLoadingMetrics(true);
+  const metricsData = await operationsService.getMetrics();
+  setMetrics(metricsData);
+  setIsLoadingMetrics(false);
+}, []);
 ```
 
-The code uses `(rpc.call as any)` which bypasses TypeScript's compile-time type checking. The comment says "Type assertion needed until types regenerate after migration" but the types ARE now present in `src/integrations/supabase/types.ts` (lines 10929-10932).
+**Impact**: No cache reuse, no automatic refetching, inconsistent with rest of codebase
 
-**Database Signature** (verified via query):
-```
-p_request_id uuid, p_investor_id uuid, p_reason text DEFAULT 'Cancelled by investor'::text
-```
-
-**Fix**: Remove `as any` since the RPC is now in the generated types:
-```typescript
-const { data, error } = await rpc.call("cancel_withdrawal_by_investor", {
-  p_request_id: requestId,
-  p_investor_id: user.user.id,
-  p_reason: reason ?? "Cancelled by investor",
-});
-```
+**Recommendation**: Migrate to `useOperationsMetrics` hook pattern like other pages
 
 ---
 
 ## High Priority Issues (P1)
 
-### Issue 2: Direct `transactions_v2` Insert Fallback in Investor Wizard
+### Issue 4: 242+ Instances of `as any` in Services
 
-**File**: `src/services/admin/investorWizardService.ts` (lines 269-290)
+**Location**: 22 service files including:
+- `src/services/investor/investorWithdrawalService.ts` - 6 instances
+- `src/services/operations/operationsService.ts` - 7 instances
+- `src/services/api/reportsApi.ts` - 12 instances
 
-**Problem**:
-The investor wizard has a fallback that directly inserts into `transactions_v2` when the RPC fails:
-
+**Problem**: Excessive type casting bypasses TypeScript's safety:
 ```typescript
-if (txError) {
-  logWarn("createInvestorWithWizard.transaction", { fundAsset: fund.asset, error: txError.message });
-  // Fallback: try direct insert if RPC fails (for backwards compatibility)
-  const { error: fallbackError } = await supabase
-    .from("transactions_v2")
-    .insert({
-      investor_id: investorId,
-      fund_id: fund.id,
-      type: "DEPOSIT",
-      // ...
-    });
+const withdrawalsResult = results[0] as any;
+fund_name: (request.funds as any)?.name || "Unknown"
+```
+
+**Impact**: Potential runtime errors, reduced type safety
+
+**Recommendation**:
+- Create proper interface types for joined query results
+- Use the existing domain types from `src/types/domains/`
+- Example fix:
+```typescript
+interface WithdrawalWithFund extends Withdrawal {
+  funds: { name: string; fund_class: string; asset: string } | null;
 }
 ```
 
-**Why This Is Bad**:
-1. `transactions_v2` is a **protected table** per `src/lib/db.ts` (line 49) - direct inserts should be blocked
-2. Bypasses the `trg_enforce_canonical_position_write` trigger and crystallization logic
-3. Creates transactions without proper position updates
-4. The comment even acknowledges this: "Do NOT directly insert into investor_positions - this causes orphaned positions"
+---
 
-**Fix**: Remove the fallback entirely. If the RPC fails, the operation should fail with a clear error message. The fallback creates data integrity issues.
+### Issue 5: Inconsistent Component Import Patterns
+
+**Location**: `src/components/admin/investors/` (45 files)
+
+**Problem**: This directory has grown to 45 files with no subdirectory organization. Related components are scattered:
+- `InvestorDetailPanel.tsx`, `InvestorHeader.tsx`, `InvestorKpiChips.tsx` (detail view)
+- `InvestorTableContainer.tsx`, `InvestorTableRow.tsx`, `InvestorsTable.tsx` (list view)
+- `InvestorYieldManager.tsx`, `InvestorYieldHistory.tsx` (yield management)
+
+**Impact**: Hard to navigate, potential circular dependencies, slow IDE performance
+
+**Recommendation**: Organize into subdirectories:
+```
+src/components/admin/investors/
+├── detail/
+│   ├── InvestorDetailPanel.tsx
+│   ├── InvestorHeader.tsx
+│   └── InvestorKpiChips.tsx
+├── list/
+│   ├── InvestorsTable.tsx
+│   └── InvestorTableRow.tsx
+├── yields/
+│   └── InvestorYieldManager.tsx
+└── index.ts
+```
 
 ---
 
-### Issue 3: Direct `transactions_v2.notes` Update in Deposit Verification
+### Issue 6: Service Layer Responsibility Confusion
 
-**File**: `src/services/investor/depositService.ts` (lines 192-195)
+**Location**: 
+- `src/services/shared/` (21 files)
+- `src/services/admin/` (50+ files)
+- `src/services/investor/` (15 files)
 
-**Problem**:
-```typescript
-const { error: updateError } = await supabase
-  .from("transactions_v2")
-  .update({ notes: verifiedNote })
-  .eq("id", id);
-```
+**Problem**: The `shared/` directory contains services that are clearly domain-specific:
+- `adminToolsService.ts` - Should be in `admin/`
+- `feeScheduleService.ts` - Financial, should be in `admin/fees/`
+- `yieldRatesService.ts` - Financial, should be in `admin/yields/`
 
-While `notes` is a non-financial field, this bypasses the db gateway's protected table check and doesn't use the `edit_transaction` or `update_transaction` RPC.
+Additionally, `shared/index.ts` has multiple deprecation warnings indicating incomplete migrations.
 
-**Impact**: Low - `notes` updates don't affect financial calculations, but this violates the canonical mutation pattern and doesn't create audit logs.
+**Impact**: Unclear ownership, import path confusion
 
-**Fix**: Use `rpc.call("update_transaction", ...)` or `rpc.call("edit_transaction", ...)` for consistency and audit trail:
-```typescript
-const { error } = await rpc.call("edit_transaction", {
-  p_transaction_id: id,
-  p_new_notes: verifiedNote,
-  p_admin_id: adminId,
-  p_reason: "Deposit verification"
-});
-```
+**Recommendation**:
+- Complete the migration of admin-specific services out of `shared/`
+- `shared/` should only contain truly cross-cutting concerns: logging, storage, notifications
 
 ---
 
 ## Medium Priority Issues (P2)
 
-### Issue 4: Outdated Failing RPC Log Not Updated
+### Issue 7: 140+ Uses of `.single()` Without Error Handling
 
-**File**: `artifacts/rpc-run-log.json`
+**Location**: 16 service files
 
-**Problem**:
-The log shows 3 failing RPCs:
-- `apply_deposit_with_crystallization` - FAIL
-- `apply_deposit_with_crystallization_idempotency` - FAIL  
-- `check_aum_reconciliation` - FAIL
+**Problem**: Many queries use `.single()` which throws if no row is found:
+```typescript
+const { data } = await supabase.from("funds").select("*").eq("id", id).single();
+```
 
-However, verification of the database shows the RPCs exist with correct signatures. The frontend code matches the database signatures. This suggests the log is stale or the failures were due to missing prerequisites (no AUM data, missing investor/fund records) rather than signature mismatches.
+**Impact**: Unhandled exceptions when querying deleted/missing records
 
-**Fix**: 
-1. Clear or update `artifacts/rpc-run-log.json` to reflect current status
-2. Add test context (fund_id, investor_id) to verify RPCs work with real data
-3. Consider adding a CI check that validates RPC signatures match
+**Recommendation**: Use `.maybeSingle()` for queries where the record might not exist, reserve `.single()` for cases where absence is truly an error condition
 
 ---
 
-### Issue 5: Excessive `as any` Casts in Service Files
+### Issue 8: Page Components Have Business Logic
 
-**Pattern found in 22 files with 247+ matches**
+**Location**: Multiple admin pages including:
+- `src/pages/admin/YieldOperationsPage.tsx` (441 lines)
+- `src/pages/admin/AdminTransactionsPage.tsx` (655 lines)
+- `src/pages/admin/FundManagementPage.tsx` (495 lines)
 
-**Examples**:
-- `src/services/investor/depositService.ts` - `(tx as any).profile`
-- `src/services/operations/operationsService.ts` - Multiple `as any` casts
-- `src/services/api/reportsApi.ts` - Template and config casts
+**Problem**: These page files contain significant business logic, data transformation, and state management. Pages should be thin orchestrators that compose hooks and components.
 
-**Impact**: These bypass TypeScript's type checking, potentially hiding bugs where data shapes don't match expectations.
+**Impact**: Hard to test, difficult to extract reusable logic
 
-**Fix**: Create proper type definitions for joined query results:
-```typescript
-// Instead of (tx as any).profile
-interface TransactionWithProfile {
-  id: string;
-  // ... transaction fields
-  profile: {
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-  } | null;
-}
+**Recommendation**: Extract business logic into custom hooks, keep pages under 200 lines
+
+---
+
+### Issue 9: Duplicate AdminSettings Pages
+
+**Location**:
+- `src/pages/admin/AdminSettings.tsx`
+- `src/pages/admin/AdminSettingsPage.tsx`
+
+**Problem**: Two similar files exist for admin settings, suggesting incomplete refactoring.
+
+**Impact**: Confusion about which to use/modify
+
+**Recommendation**: Consolidate into single `AdminSettingsPage.tsx`, remove the other
+
+---
+
+### Issue 10: Missing Barrel Exports in Some Directories
+
+**Location**: 
+- `src/components/sidebar/` - No `index.ts`
+- `src/components/error/` - No `index.ts`
+- `src/components/support/` - No `index.ts`
+
+**Problem**: Some component directories lack barrel exports, forcing consumers to import from full paths.
+
+**Impact**: Inconsistent import patterns, harder refactoring
+
+**Recommendation**: Add `index.ts` barrel files to all component directories
+
+---
+
+## Low Priority Issues (P3)
+
+### Issue 11: Design System Underutilized
+
+**Location**: `src/design-system/tokens.ts`
+
+**Problem**: The design system directory contains only a single `tokens.ts` file. Design tokens exist but aren't fully leveraged.
+
+**Impact**: Potential for style inconsistencies
+
+**Recommendation**: Expand design system with:
+- Color palette tokens
+- Spacing scale
+- Typography scale
+- Component-level design tokens
+
+---
+
+### Issue 12: Inconsistent Hook Naming
+
+**Location**: `src/hooks/data/admin/`
+
+**Problem**: Some hooks follow `use[Domain][Action]` pattern, others don't:
+- Good: `useAdminWithdrawals`, `useYieldOperations`
+- Inconsistent: `useAssets` (should be `useAdminAssets`), `useFees` (should be `useAdminFees`)
+
+**Impact**: Potential naming collisions, confusion about admin vs shared hooks
+
+**Recommendation**: Prefix all admin-specific hooks with `Admin`
+
+---
+
+## Recommended Implementation Order
+
+### Phase 1: Quick Wins (1-2 days)
+1. Remove deprecated `positionService.ts`
+2. Delete duplicate `AdminSettings.tsx`
+3. Add missing barrel exports to component directories
+4. Fix the AdminOperationsHub useState/useEffect anti-pattern
+
+### Phase 2: Type Safety (3-5 days)
+5. Create proper interface types for top 10 `as any` usage sites
+6. Convert `.single()` to `.maybeSingle()` where appropriate
+
+### Phase 3: Organization (1 week)
+7. Reorganize `src/components/admin/investors/` into subdirectories
+8. Move admin-specific services out of `shared/`
+9. Standardize hook naming with `Admin` prefix
+
+### Phase 4: Refinement (ongoing)
+10. Extract business logic from large page components
+11. Expand design system tokens
+12. Migrate class-based services to functional exports
+
+---
+
+## Architecture Diagram (Current State)
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                           PAGES                                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │
+│  │ Admin Pages  │  │Investor Pages│  │ Public Pages │               │
+│  └──────┬───────┘  └──────┬───────┘  └──────────────┘               │
+│         │                 │                                          │
+├─────────┼─────────────────┼──────────────────────────────────────────┤
+│         │    COMPONENTS   │                                          │
+│  ┌──────┴───────┐  ┌──────┴───────┐  ┌─────────────┐                │
+│  │ /admin/*     │  │ /investor/*  │  │ /common/*   │                │
+│  │ (45 files)   │  │              │  │ (9 files)   │                │
+│  └──────┬───────┘  └──────┬───────┘  └─────────────┘                │
+│         │                 │                                          │
+├─────────┼─────────────────┼──────────────────────────────────────────┤
+│         │      HOOKS      │                                          │
+│  ┌──────┴───────┐  ┌──────┴───────┐  ┌─────────────┐                │
+│  │ /data/admin/ │  │/data/investor│  │ /data/shared│                │
+│  │ (50 hooks)   │  │ (14 hooks)   │  │ (27 hooks)  │                │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘                │
+│         │                 │                 │                        │
+├─────────┼─────────────────┼─────────────────┼────────────────────────┤
+│         │    SERVICES     │                 │                        │
+│  ┌──────┴───────┐  ┌──────┴───────┐  ┌──────┴──────┐                │
+│  │ /admin/      │  │ /investor/   │  │ /shared/    │                │
+│  │ (50 files)   │  │ (15 files)   │  │ (21 files)  │ ← NEEDS CLEANUP│
+│  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘                │
+│         │                 │                 │                        │
+├─────────┴─────────────────┴─────────────────┴────────────────────────┤
+│                        GATEWAYS                                       │
+│  ┌─────────────────────────────────────────────────────────────────┐ │
+│  │ src/lib/rpc.ts (RPC Gateway) │ src/lib/db.ts (DB Gateway)      │ │
+│  └──────────────────────────────┴──────────────────────────────────┘ │
+├──────────────────────────────────────────────────────────────────────┤
+│                        CONTRACTS                                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │
+│  │ dbEnums.ts   │  │ dbSchema.ts  │  │rpcSignatures │               │
+│  └──────────────┘  └──────────────┘  └──────────────┘               │
+├──────────────────────────────────────────────────────────────────────┤
+│                        SUPABASE                                       │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │ PostgreSQL │ Edge Functions │ Auth │ RLS                     │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Issue 6: Mixed `undefined` vs `null` for Optional RPC Parameters
+## Separation of Concerns Assessment
 
-**Files**: Multiple service files
-
-**Observation**: While the parameter standardization was applied to some files, there's still inconsistency. PostgreSQL/Supabase treats `undefined` and `null` differently in edge cases.
-
-**Current State**: `investorWithdrawalService.ts` and `investorPortfolioService.ts` now use `?? null` pattern correctly for `p_notes`.
-
-**Recommendation**: Audit all RPC calls to ensure optional parameters use `?? null` pattern consistently.
-
----
-
-## Architecture Compliance Check
-
-### Passing Items
-
-| Check | Status | Notes |
+| Layer | Status | Notes |
 |-------|--------|-------|
-| Protected tables use RPCs | ✓ | No direct inserts to `investor_positions` found |
-| RPC gateway used consistently | ✓ | All major RPCs go through `src/lib/rpc.ts` |
-| Edge function auth pattern | ✓ | Uses `"Bearer "` string replacement correctly |
-| DB gateway protected table check | ✓ | `src/lib/db.ts` blocks protected table mutations |
-| Type-safe RPC wrapper | ✓ | `callRPC` wraps `rpc.call` with proper types |
-| Rate limiting on mutations | ✓ | Configured in `RATE_LIMITED_RPCS` |
-| Error normalization | ✓ | `normalizeError` provides user-friendly messages |
-
-### Previously Fixed Issues (Verified Resolved)
-
-1. ~~Edge Function Regex Bug~~ - Fixed at line 278: `replace("Bearer ", "")`
-2. ~~Direct DB Write in Withdrawal Cancellation~~ - Now uses `cancel_withdrawal_by_investor` RPC
-3. ~~Legacy Fallback with Wrong Parameters~~ - Removed from `adminTransactionHistoryService.ts`
-4. ~~RPC Gateway Bypass in yieldManagementService~~ - Now uses `rpc.call("get_void_aum_impact", ...)`
+| UI Components | Good | Minimal business logic in components |
+| State Management | Good | React Query + Zustand properly separated |
+| Data Fetching | Good | All through hooks, no direct calls in components |
+| Business Logic | Mixed | Some leaks into pages, mostly in services |
+| Database Access | Excellent | Centralized through gateways |
+| Types | Good | Domain types well-organized, some `as any` leakage |
 
 ---
 
-## Implementation Plan
+## Conclusion
 
-### Step 1: Fix Type Bypass (Issue 1)
-**File**: `src/services/investor/investorWithdrawalService.ts`
-- Remove `as any` cast on line 115
-- The RPC is now in generated types, so TypeScript will validate parameters
+The INDIGO platform has a solid architectural foundation with excellent patterns for database access control, type safety at the gateway level, and comprehensive documentation. The main areas for improvement are:
 
-### Step 2: Remove Dangerous Fallback (Issue 2)
-**File**: `src/services/admin/investorWizardService.ts`
-- Remove lines 269-290 (the fallback direct insert block)
-- Keep only the RPC call with proper error propagation
-- If RPC fails, let the error bubble up with a clear message
+1. **Cleanup**: Remove deprecated code and consolidate duplicate files
+2. **Organization**: Better subdirectory structure for large component folders
+3. **Type Safety**: Reduce `as any` casts by creating proper interface types
+4. **Consistency**: Standardize on functional service exports and hook naming conventions
 
-### Step 3: Use RPC for Transaction Updates (Issue 3)
-**File**: `src/services/investor/depositService.ts`
-- Replace direct `.update({ notes })` with `edit_transaction` or `update_transaction` RPC
-- This creates an audit trail for all transaction modifications
-
-### Step 4: Clean Up Artifact Log (Issue 4)
-**File**: `artifacts/rpc-run-log.json`
-- Either delete the file if it's purely historical
-- Or add a "verified_at" timestamp and update status
-
----
-
-## Technical Details
-
-### Files to Modify
-
-| File | Change | Lines |
-|------|--------|-------|
-| `src/services/investor/investorWithdrawalService.ts` | Remove `as any` cast | 115 |
-| `src/services/admin/investorWizardService.ts` | Remove fallback insert | 269-290 |
-| `src/services/investor/depositService.ts` | Use RPC for notes update | 192-195 |
-
-### Estimated Effort
-- P0 Fix: 5 minutes
-- P1 Fixes: 20 minutes
-- P2 Fixes: Optional, lower priority
-
----
-
-## Summary
-
-The platform is in good architectural health. The major issues from the previous audit have been addressed. The remaining issues are:
-
-1. **One stale type bypass** that should be removed now that types are regenerated
-2. **One dangerous fallback** that bypasses protected table governance
-3. **One minor pattern violation** for transaction notes updates
-4. **Housekeeping items** (stale logs, type safety improvements)
-
-No critical data integrity bugs were found. The RPC gateway, protected table enforcement, and rate limiting are all functioning correctly.
+The recommended changes are incremental and can be done without major refactoring, maintaining backward compatibility throughout the process.
