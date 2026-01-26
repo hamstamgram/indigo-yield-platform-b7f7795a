@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import { 
   AdminGuard, 
   OperationsStats, 
@@ -14,7 +13,6 @@ import {
   DollarSign,
   FileText,
   Calendar,
-  BarChart3,
   Upload,
   AlertCircle,
   CheckCircle,
@@ -24,30 +22,29 @@ import {
   Database,
   Mail,
 } from "lucide-react";
-import { toast } from "sonner";
-import { logError } from "@/lib/logger";
-import { operationsService, type PendingBreakdown } from "@/services/operations/operationsService";
-import { getSystemHealth, type SystemHealth } from "@/services/core/systemHealthService";
-import { useRecentAuditLogs, useOperationsRealtime, type AuditLogEntry } from "@/hooks/data";
+import { 
+  useRecentAuditLogs, 
+  useOperationsRealtime, 
+  useOperationsMetrics,
+  useOperationsSystemHealth,
+  type AuditLogEntry 
+} from "@/hooks/data";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 function AdminOperationsHubContent() {
-  const [metrics, setMetrics] = useState({
-    pendingApprovals: 0,
-    todaysTransactions: 0,
-    activeInvestors: 0,
-    totalAUM: 0,
-    transactionTrend: "0%",
-  });
-  const [pendingBreakdown, setPendingBreakdown] = useState<PendingBreakdown>({
-    deposits: 0,
-    withdrawals: 0,
-    investments: 0,
-  });
-  const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
-  const [systemStatus, setSystemStatus] = useState<SystemHealth[]>([]);
-
-  // Use the audit logs hook
+  const queryClient = useQueryClient();
+  
+  // Use React Query hooks for metrics and system health
+  const { data: metricsData, isLoading: isLoadingMetrics } = useOperationsMetrics();
+  const { data: systemStatus = [] } = useOperationsSystemHealth();
   const { data: auditLogs, refetch: refetchAuditLogs } = useRecentAuditLogs(10);
+
+  // Use realtime hook for automatic updates
+  useOperationsRealtime(() => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.operationsMetrics() });
+    refetchAuditLogs();
+  });
 
   // Transform audit logs to activity items
   const recentActivities: ControlledActivityItem[] = (auditLogs || []).map((log: AuditLogEntry) => ({
@@ -61,82 +58,32 @@ function AdminOperationsHubContent() {
     user: log.actor_user || undefined,
   }));
 
-  const loadMetrics = useCallback(async () => {
-    setIsLoadingMetrics(true);
-    try {
-      const [metricsData, yesterdayCount] = await Promise.all([
-        operationsService.getMetrics(),
-        operationsService.getYesterdayTransactions(),
-      ]);
-
-      const trend = operationsService.calculateTrend(
-        metricsData.todaysTransactions,
-        yesterdayCount
-      );
-
-      setMetrics({
-        pendingApprovals: metricsData.pendingApprovals,
-        todaysTransactions: metricsData.todaysTransactions,
-        activeInvestors: metricsData.activeInvestors,
-        totalAUM: metricsData.totalAUM,
-        transactionTrend: trend,
-      });
-
-      setPendingBreakdown(operationsService.getPendingBreakdown(metricsData));
-    } catch (error) {
-      logError("operations.loadMetrics", error);
-      toast.error("Failed to load operations metrics");
-    } finally {
-      setIsLoadingMetrics(false);
-    }
-  }, []);
-
-  const loadSystemHealth = async () => {
-    try {
-      const health = await getSystemHealth();
-      setSystemStatus(health);
-    } catch (error) {
-      logError("operations.loadSystemHealth", error);
-    }
-  };
-
-  // Use realtime hook for automatic updates
-  useOperationsRealtime(() => {
-    loadMetrics();
-    refetchAuditLogs();
-  });
-
-  useEffect(() => {
-    loadMetrics();
-    loadSystemHealth();
-  }, [loadMetrics]);
-
   const stats = [
     {
       title: "Pending Approvals",
-      value: isLoadingMetrics ? "..." : metrics.pendingApprovals.toString(),
+      value: isLoadingMetrics ? "..." : (metricsData?.pendingApprovals ?? 0).toString(),
       description: "Investments, withdrawals, deposits",
       icon: Clock,
-      status: metrics.pendingApprovals > 0 ? ("warning" as const) : ("info" as const),
+      status: (metricsData?.pendingApprovals ?? 0) > 0 ? ("warning" as const) : ("info" as const),
     },
     {
       title: "Today's Transactions",
-      value: isLoadingMetrics ? "..." : metrics.todaysTransactions.toString(),
-      description: `${metrics.transactionTrend} from yesterday`,
+      value: isLoadingMetrics ? "..." : (metricsData?.todaysTransactions ?? 0).toString(),
+      description: `${metricsData?.transactionTrend ?? "0%"} from yesterday`,
       icon: TrendingUp,
       status: "success" as const,
-      trend: isLoadingMetrics ? undefined : metrics.transactionTrend,
+      trend: isLoadingMetrics ? undefined : metricsData?.transactionTrend,
     },
     {
       title: "Active Investors",
-      value: isLoadingMetrics ? "..." : metrics.activeInvestors.toString(),
+      value: isLoadingMetrics ? "..." : (metricsData?.activeInvestors ?? 0).toString(),
       description: "Currently active accounts",
       icon: Users,
       status: "info" as const,
     },
     {
       title: "Total AUM",
-      value: isLoadingMetrics ? "..." : `${(metrics.totalAUM / 1_000_000).toFixed(1)}M`,
+      value: isLoadingMetrics ? "..." : `${((metricsData?.totalAUM ?? 0) / 1_000_000).toFixed(1)}M`,
       description: "Aggregate across all assets",
       icon: TrendingUp,
       status: "success" as const,
@@ -161,10 +108,10 @@ function AdminOperationsHubContent() {
       icon: ArrowDownToLine,
       category: "Request Management",
       badge:
-        isLoadingMetrics || metrics.pendingApprovals === 0
+        isLoadingMetrics || (metricsData?.pendingApprovals ?? 0) === 0
           ? undefined
           : {
-              text: `${metrics.pendingApprovals} pending`,
+              text: `${metricsData?.pendingApprovals} pending`,
               variant: "secondary" as const,
             },
     },
@@ -230,7 +177,10 @@ function AdminOperationsHubContent() {
       <OperationsStats stats={stats} />
 
       {/* Pending Items Breakdown */}
-      <PendingItemsBreakdown breakdown={pendingBreakdown} isLoading={isLoadingMetrics} />
+      <PendingItemsBreakdown 
+        breakdown={metricsData?.pendingBreakdown ?? { deposits: 0, withdrawals: 0, investments: 0 }} 
+        isLoading={isLoadingMetrics} 
+      />
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">

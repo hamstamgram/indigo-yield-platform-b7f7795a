@@ -7,8 +7,7 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminSettingsNew = lazy(() => import("@/pages/admin/AdminSettings"));
-const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
+const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettings"));
 const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
 const MaintenancePage = lazy(() => import("@/pages/admin/MaintenancePage"));
 const AdminListPage = lazy(() => import("@/pages/admin/settings/AdminList"));
@@ -31,16 +30,6 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <AdminSettingsPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* Legacy Settings */}
-      <Route
-        path="/admin/settings-platform"
-        element={
-          <AdminRoute>
-            <AdminSettingsNew />
           </AdminRoute>
         }
       />
