@@ -23,7 +23,7 @@ import {
   Plus,
 } from "lucide-react";
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
-import { FundPositionCard } from "./FundPositionCard";
+import { FundPositionCard } from "../shared/FundPositionCard";
 import { InvestorFeeManager } from "./InvestorFeeManager";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import {

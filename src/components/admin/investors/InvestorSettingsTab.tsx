@@ -21,8 +21,8 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
-import { IBSettingsSection } from "./IBSettingsSection";
-import { InvestorFeeManager } from "./InvestorFeeManager";
+import { IBSettingsSection } from "./shared/IBSettingsSection";
+import { InvestorFeeManager } from "./yields/InvestorFeeManager";
 import { toast } from "sonner";
 
 interface InvestorSettingsTabProps {

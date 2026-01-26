@@ -8,7 +8,7 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const HistoricalReportsDashboard = lazy(
-  () => import("@/components/admin/investors/HistoricalReportsDashboard")
+  () => import("@/components/admin/investors/reports/HistoricalReportsDashboard")
 );
 
 const ReportDeliveryCenter = lazy(
