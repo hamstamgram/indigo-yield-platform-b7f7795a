@@ -166,7 +166,7 @@ export function YieldCorrectionPanel({
   return (
     <>
       <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-hidden flex flex-col">
+        <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col overflow-y-auto">
           <SheetHeader className="pb-4 border-b">
             <SheetTitle className="flex items-center gap-2">
               <CryptoIcon symbol={record?.fund_asset || ""} className="h-5 w-5" />
