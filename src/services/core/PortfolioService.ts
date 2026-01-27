@@ -12,6 +12,7 @@ import { logError, logWarn } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { getTodayString } from "@/utils/dateUtils";
 import { generateUUID } from "@/lib/utils";
+import { verifyResourceAccess } from "@/utils/authorizationHelper";
 
 // Helper to fetch funds (internal use)
 async function getAllFunds() {
@@ -99,8 +100,19 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get portfolio summary for investor
+   * Authorization: Self-access or admin required
    */
   async getPortfolioSummary(investorId: string): Promise<ApiResponse<PortfolioSummary>> {
+    // Verify caller has access to this investor's data
+    const auth = await verifyResourceAccess(investorId);
+    if (!auth.authorized) {
+      return {
+        data: null,
+        error: new Error("Not authorized to view this portfolio"),
+        success: false,
+      };
+    }
+
     return this.execute(async () => {
       const { data: positions, error } = await this.supabase
         .from("investor_positions")
@@ -142,8 +154,19 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get portfolio positions
+   * Authorization: Self-access or admin required
    */
   async getPortfolioPositions(investorId: string): Promise<ApiResponse<PortfolioPosition[]>> {
+    // Verify caller has access to this investor's data
+    const auth = await verifyResourceAccess(investorId);
+    if (!auth.authorized) {
+      return {
+        data: null,
+        error: new Error("Not authorized to view these positions"),
+        success: false,
+      };
+    }
+
     return this.execute(async () => {
       const { data, error } = await this.supabase
         .from("investor_positions")
@@ -189,8 +212,19 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get complete portfolio data
+   * Authorization: Self-access or admin required
    */
   async getCompletePortfolio(investorId: string): Promise<ApiResponse<PortfolioData>> {
+    // Verify caller has access to this investor's data
+    const auth = await verifyResourceAccess(investorId);
+    if (!auth.authorized) {
+      return {
+        data: null,
+        error: new Error("Not authorized to view this portfolio"),
+        success: false,
+      };
+    }
+
     return this.execute(async () => {
       const { data: positionsData, error: positionsError } = await this.supabase
         .from("investor_positions")

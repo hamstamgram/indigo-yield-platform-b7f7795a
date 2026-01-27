@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Asset, AssetFormData, AssetPrice, AssetPriceFormData } from "@/types/asset";
+import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 // Asset kind mapping based on symbol
 const getAssetKind = (symbol: string): "crypto" | "stablecoin" | "other" => {
@@ -10,7 +11,12 @@ const getAssetKind = (symbol: string): "crypto" | "stablecoin" | "other" => {
 
 // Convert database row to Asset type with defaults
 // Note: Database 'assets' table has id as number and symbol as enum
-const mapDbRowToAsset = (row: { id: number; symbol: string; name: string; is_active?: boolean }): Asset => ({
+const mapDbRowToAsset = (row: {
+  id: number;
+  symbol: string;
+  name: string;
+  is_active?: boolean;
+}): Asset => ({
   asset_id: String(row.id),
   symbol: row.symbol,
   name: row.name,
@@ -33,7 +39,10 @@ export class AssetService {
     let query = supabase.from("assets").select("*");
 
     if (filters?.search) {
-      query = query.or(`symbol.ilike.%${filters.search}%,name.ilike.%${filters.search}%`);
+      const safeFilter = buildSafeOrFilter(filters.search, ["symbol", "name"]);
+      if (safeFilter) {
+        query = query.or(safeFilter);
+      }
     }
 
     const { data, error } = await query;
@@ -56,7 +65,11 @@ export class AssetService {
 
   async getAssetById(assetId: string): Promise<Asset> {
     const numericId = parseInt(assetId, 10);
-    const { data, error } = await supabase.from("assets").select("*").eq("id", numericId).maybeSingle();
+    const { data, error } = await supabase
+      .from("assets")
+      .select("*")
+      .eq("id", numericId)
+      .maybeSingle();
 
     if (error) throw error;
     if (!data) throw new Error(`Asset not found: ${assetId}`);

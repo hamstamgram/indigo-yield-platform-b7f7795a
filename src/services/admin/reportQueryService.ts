@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { sanitizeSearchInput } from "@/utils/searchSanitizer";
 
 // ============================================================================
 // Internal Types for Query Results
@@ -158,7 +159,10 @@ export async function fetchInvestorPerformanceReports(
     .eq("investor_id", investorId);
 
   if (searchTerm) {
-    query = query.ilike("fund_name", `%${searchTerm}%`);
+    const safeSearch = sanitizeSearchInput(searchTerm);
+    if (safeSearch) {
+      query = query.ilike("fund_name", `%${safeSearch}%`);
+    }
   }
 
   const { data, error } = await query.order("period(period_end_date)", { ascending: false });

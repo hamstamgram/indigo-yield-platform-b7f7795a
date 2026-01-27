@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc";
 import { logError } from "@/lib/logger";
+import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 export interface TransactionRecord {
   id: string;
@@ -49,7 +50,10 @@ class TransactionsRecordService {
       .order("id", { ascending: false });
 
     if (filters?.search) {
-      query = query.or(`asset.ilike.%${filters.search}%,notes.ilike.%${filters.search}%`);
+      const safeFilter = buildSafeOrFilter(filters.search, ["asset", "notes"]);
+      if (safeFilter) {
+        query = query.or(safeFilter);
+      }
     }
 
     if (filters?.type) {

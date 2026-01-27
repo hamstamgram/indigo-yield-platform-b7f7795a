@@ -2,35 +2,47 @@
  * Security headers configuration and utilities
  */
 
+import config from "@/config/environment";
+
+// Extract Supabase host from URL for CSP
+const supabaseUrl = config.supabase.url;
+const supabaseHost = supabaseUrl ? new URL(supabaseUrl).host : "";
+
 export const SECURITY_HEADERS = {
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
-  "X-XSS-Protection": "1; mode=block",
+  // Note: X-XSS-Protection is deprecated and can cause security issues in some browsers
+  // Modern browsers use CSP for XSS protection instead
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-site",
 } as const;
 
-export const CSP_POLICY = {
-  "default-src": "'self'",
-  // Removed 'unsafe-inline' for better XSS protection
-  // Modern bundlers like Vite handle all script bundling
-  "script-src": "'self' https://nkfimvovosdehmyyjubn.supabase.co",
-  // Allow 'unsafe-inline' for Tailwind/styled components and Google Fonts stylesheets
-  "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src": "'self' data: https:",
-  "connect-src":
-    "'self' https://nkfimvovosdehmyyjubn.supabase.co wss://nkfimvovosdehmyyjubn.supabase.co",
-  // Allow Google Fonts and font data URIs
-  "font-src": "'self' data: https://fonts.gstatic.com",
-  "object-src": "'none'",
-  "media-src": "'self'",
-  "frame-src": "'none'",
-  "base-uri": "'self'",
-  "form-action": "'self'",
-} as const;
+// Build CSP policy dynamically based on configuration
+function buildCSPPolicy() {
+  const policy: Record<string, string> = {
+    "default-src": "'self'",
+    // Removed 'unsafe-inline' for better XSS protection
+    // Modern bundlers like Vite handle all script bundling
+    "script-src": `'self'${supabaseHost ? ` https://${supabaseHost}` : ""}`,
+    // Allow 'unsafe-inline' for Tailwind/styled components and Google Fonts stylesheets
+    "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src": "'self' data: https:",
+    "connect-src": `'self'${supabaseHost ? ` https://${supabaseHost} wss://${supabaseHost}` : ""}`,
+    // Allow Google Fonts and font data URIs
+    "font-src": "'self' data: https://fonts.gstatic.com",
+    "object-src": "'none'",
+    "media-src": "'self'",
+    "frame-src": "'none'",
+    "base-uri": "'self'",
+    "form-action": "'self'",
+  };
+  return policy;
+}
+
+export const CSP_POLICY = buildCSPPolicy();
 
 export function generateCSP(): string {
   return Object.entries(CSP_POLICY)

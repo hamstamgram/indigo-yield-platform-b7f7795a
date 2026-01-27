@@ -1,10 +1,11 @@
 /**
  * Investor Portal Service
- * 
+ *
  * Handles all Supabase operations for investor-facing portal pages.
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 // ============= Types =============
 
@@ -87,7 +88,10 @@ export async function getInvestorTransactionsList(
     .eq("is_voided", false);
 
   if (searchTerm) {
-    query = query.or(`asset.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
+    const safeFilter = buildSafeOrFilter(searchTerm, ["asset", "notes"]);
+    if (safeFilter) {
+      query = query.or(safeFilter);
+    }
   }
 
   if (assetFilter && assetFilter !== "all") {
@@ -115,7 +119,8 @@ export async function getInvestorStatements(
 ): Promise<MonthlyStatement[]> {
   let query = supabase
     .from("investor_fund_performance")
-    .select(`
+    .select(
+      `
       id,
       fund_name,
       mtd_beginning_balance,
@@ -130,7 +135,8 @@ export async function getInvestorStatements(
         month,
         period_end_date
       )
-    `)
+    `
+    )
     .eq("investor_id", userId)
     .eq("period.year", year)
     .eq("purpose", "reporting")
@@ -222,8 +228,10 @@ export async function getStatementHtmlContent(
 // ============= Profile/Settings Functions =============
 
 export async function getInvestorProfile(userId: string): Promise<InvestorProfile> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     throw new Error("User not authenticated");
   }
@@ -278,10 +286,7 @@ export async function getUserPreferences(userId: string): Promise<Partial<UserSe
   return data?.preferences as Partial<UserSettings> | null;
 }
 
-export async function saveUserPreferences(
-  userId: string,
-  settings: UserSettings
-): Promise<void> {
+export async function saveUserPreferences(userId: string, settings: UserSettings): Promise<void> {
   const { error } = await supabase
     .from("profiles")
     .update({ preferences: settings as any })
@@ -316,10 +321,7 @@ export async function getAccessLogs(userId: string, limit = 20): Promise<AccessL
 }
 
 export async function revokeSession(sessionId: string): Promise<void> {
-  const { error } = await supabase
-    .from("user_sessions")
-    .delete()
-    .eq("id", sessionId);
+  const { error } = await supabase.from("user_sessions").delete().eq("id", sessionId);
 
   if (error) throw error;
 }

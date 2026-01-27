@@ -5,8 +5,17 @@
 
 import { format } from "date-fns";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   Badge,
 } from "@/components/ui";
 import { ArrowRightLeft } from "lucide-react";
@@ -67,8 +76,8 @@ export function InternalRoutingTab({ summary, entries }: InternalRoutingTabProps
               <ArrowRightLeft className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="font-medium mb-2">No internal routing events recorded</p>
               <p className="text-sm max-w-md mx-auto">
-                When withdrawals are routed to INDIGO FEES instead of external payout, 
-                they will appear here for audit purposes.
+                When withdrawals are routed to INDIGO FEES instead of external payout, they will
+                appear here for audit purposes.
               </p>
             </div>
           ) : (
@@ -89,15 +98,24 @@ export function InternalRoutingTab({ summary, entries }: InternalRoutingTabProps
                     const meta = (entry.meta || {}) as Record<string, unknown>;
                     const newValues = (entry.new_values || {}) as Record<string, unknown>;
                     const oldValues = (entry.old_values || {}) as Record<string, unknown>;
-                    
+
                     const amount = Number(meta.amount || newValues.amount || 0);
-                    const asset = (meta.asset_code as string) || (newValues.asset_code as string) || "USD";
-                    const sourceInvestorName = (meta.source_investor_name as string) || 
-                      (meta.investor_name as string) || 
-                      (oldValues.investor_name as string) || "";
-                    const sourceInvestorEmail = (meta.source_investor_email as string) || 
-                      (meta.investor_email as string) || 
-                      (oldValues.investor_email as string) || "";
+                    const asset =
+                      (meta.asset_code as string) ||
+                      (newValues.asset_code as string) ||
+                      (meta.asset as string) ||
+                      (newValues.asset as string) ||
+                      "USDT";
+                    const sourceInvestorName =
+                      (meta.source_investor_name as string) ||
+                      (meta.investor_name as string) ||
+                      (oldValues.investor_name as string) ||
+                      "";
+                    const sourceInvestorEmail =
+                      (meta.source_investor_email as string) ||
+                      (meta.investor_email as string) ||
+                      (oldValues.investor_email as string) ||
+                      "";
                     const withdrawalId = entry.entity_id || (meta.withdrawal_id as string) || "-";
 
                     return (
@@ -109,10 +127,13 @@ export function InternalRoutingTab({ summary, entries }: InternalRoutingTabProps
                           {entry.actor_profile ? (
                             <div>
                               <p className="text-sm font-medium">
-                                {`${entry.actor_profile.first_name || ""} ${entry.actor_profile.last_name || ""}`.trim() || entry.actor_profile.email}
+                                {`${entry.actor_profile.first_name || ""} ${entry.actor_profile.last_name || ""}`.trim() ||
+                                  entry.actor_profile.email}
                               </p>
                               {entry.actor_profile.email && entry.actor_profile.first_name && (
-                                <p className="text-xs text-muted-foreground">{entry.actor_profile.email}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {entry.actor_profile.email}
+                                </p>
                               )}
                             </div>
                           ) : (
@@ -128,7 +149,10 @@ export function InternalRoutingTab({ summary, entries }: InternalRoutingTabProps
                           </div>
                         </TableCell>
                         <TableCell>
-                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded truncate max-w-[100px] inline-block" title={withdrawalId}>
+                          <code
+                            className="text-xs bg-muted px-1.5 py-0.5 rounded truncate max-w-[100px] inline-block"
+                            title={withdrawalId}
+                          >
                             {withdrawalId.slice(0, 8)}...
                           </code>
                         </TableCell>
@@ -159,16 +183,20 @@ export function InternalRoutingTab({ summary, entries }: InternalRoutingTabProps
         <CardContent className="prose prose-sm dark:prose-invert max-w-none">
           <ol className="space-y-2 text-sm text-muted-foreground">
             <li>
-              <strong className="text-foreground">Withdrawal Request:</strong> An investor requests a withdrawal from their fund position.
+              <strong className="text-foreground">Withdrawal Request:</strong> An investor requests
+              a withdrawal from their fund position.
             </li>
             <li>
-              <strong className="text-foreground">Admin Routes to INDIGO:</strong> Instead of processing as external payout, admin routes the withdrawal to INDIGO Fees account.
+              <strong className="text-foreground">Admin Routes to INDIGO:</strong> Instead of
+              processing as external payout, admin routes the withdrawal to INDIGO Fees account.
             </li>
             <li>
-              <strong className="text-foreground">Internal Transfer:</strong> An INTERNAL_WITHDRAWAL is created for the source investor, and an INTERNAL_CREDIT is created for INDIGO FEES.
+              <strong className="text-foreground">Internal Transfer:</strong> An INTERNAL_WITHDRAWAL
+              is created for the source investor, and an INTERNAL_CREDIT is created for INDIGO FEES.
             </li>
             <li>
-              <strong className="text-foreground">Audit Trail:</strong> The routing action is recorded in the audit log for compliance and reconciliation.
+              <strong className="text-foreground">Audit Trail:</strong> The routing action is
+              recorded in the audit log for compliance and reconciliation.
             </li>
           </ol>
         </CardContent>

@@ -34,6 +34,8 @@ function AppContent() {
 
   // Handle Supabase recovery links that arrive with tokens in the URL hash
   // Example: https://site/#access_token=...&refresh_token=...&type=recovery
+  // SECURITY: Store tokens in sessionStorage instead of URL params to prevent
+  // token exposure in browser history and referrer headers
   useEffect(() => {
     const rawHash = window.location.hash || "";
     const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
@@ -42,10 +44,13 @@ function AppContent() {
       const access = hashParams.get("access_token");
       const refresh = hashParams.get("refresh_token");
       if (access && refresh) {
-        navigate(
-          `/reset-password?access_token=${encodeURIComponent(access)}&refresh_token=${encodeURIComponent(refresh)}`,
-          { replace: true }
-        );
+        // Store tokens temporarily in sessionStorage (cleared on tab close)
+        sessionStorage.setItem("reset_access_token", access);
+        sessionStorage.setItem("reset_refresh_token", refresh);
+        // Navigate without tokens in URL - reset password page will read from sessionStorage
+        navigate("/reset-password", { replace: true });
+        // Clear the hash from the URL for security
+        window.history.replaceState(null, "", window.location.pathname);
       }
     }
   }, [navigate]);

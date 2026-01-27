@@ -26,11 +26,23 @@ export default function ResetPassword() {
   const setSessionMutation = useSetSessionFromTokens();
 
   useEffect(() => {
-    // Try to get tokens from query params first
-    let accessToken = searchParams.get("access_token") || undefined;
-    let refreshToken = searchParams.get("refresh_token") || undefined;
+    // SECURITY: Try sessionStorage first (preferred - tokens not exposed in URL)
+    let accessToken = sessionStorage.getItem("reset_access_token") || undefined;
+    let refreshToken = sessionStorage.getItem("reset_refresh_token") || undefined;
 
-    // If not found, parse from URL hash (Supabase sometimes sends recovery tokens in the hash)
+    // Clear tokens from sessionStorage immediately after reading for security
+    if (accessToken && refreshToken) {
+      sessionStorage.removeItem("reset_access_token");
+      sessionStorage.removeItem("reset_refresh_token");
+    }
+
+    // Fallback: Try to get tokens from query params (for backward compatibility)
+    if (!accessToken || !refreshToken) {
+      accessToken = searchParams.get("access_token") || undefined;
+      refreshToken = searchParams.get("refresh_token") || undefined;
+    }
+
+    // Last resort: parse from URL hash (Supabase sometimes sends recovery tokens in the hash)
     if (!accessToken || !refreshToken) {
       const rawHash = window.location.hash || "";
       const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
@@ -39,12 +51,16 @@ export default function ResetPassword() {
         const type = hashParams.get("type");
         accessToken = accessToken || hashParams.get("access_token") || undefined;
         refreshToken = refreshToken || hashParams.get("refresh_token") || undefined;
-        // If we found tokens in hash, normalize URL to query-string form for consistency
+        // If we found tokens in hash, clear it from URL for security
         if (accessToken && refreshToken && (type === "recovery" || type === "recovery_token")) {
-          const cleanUrl = `${window.location.pathname}?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
-          window.history.replaceState({}, "", cleanUrl);
+          window.history.replaceState({}, "", window.location.pathname);
         }
       }
+    }
+
+    // If tokens were in URL params, clear them for security
+    if (searchParams.get("access_token") || searchParams.get("refresh_token")) {
+      window.history.replaceState({}, "", window.location.pathname);
     }
 
     if (!accessToken || !refreshToken) {
@@ -54,7 +70,7 @@ export default function ResetPassword() {
 
     // Set the session with the tokens
     setSessionMutation.mutate({ accessToken, refreshToken });
-  }, [searchParams]);
+  }, [searchParams, setSessionMutation]);
 
   const validatePassword = (password: string) => {
     if (password.length < 8) {

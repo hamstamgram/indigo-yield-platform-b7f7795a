@@ -15,6 +15,8 @@ import {
 } from "@/types/domains";
 import { generateCorrelationId, createCorrelatedLogger } from "@/lib/correlationId";
 import type { Database } from "@/integrations/supabase/types";
+import { verifyResourceAccess } from "@/utils/authorizationHelper";
+import { sanitizeSearchInput } from "@/utils/searchSanitizer";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -442,8 +444,15 @@ export const withdrawalService = {
   /**
    * Fetch investor positions with positive balance for withdrawal forms
    * Returns only positions with current_value > 0
+   * Authorization: Self-access or admin required
    */
   async fetchPositionsForWithdrawal(investorId: string): Promise<WithdrawalInvestorPosition[]> {
+    // Verify caller has access to this investor's data
+    const auth = await verifyResourceAccess(investorId);
+    if (!auth.authorized) {
+      throw new Error("Not authorized to view these positions");
+    }
+
     const { data, error } = await supabase
       .from("investor_positions")
       .select(
@@ -542,15 +551,25 @@ export const withdrawalService = {
 
   /**
    * Get investor's own withdrawal history with optional search
+   * Authorization: Self-access or admin required
    */
   async getInvestorWithdrawals(investorId: string, search?: string) {
+    // Verify caller has access to this investor's data
+    const auth = await verifyResourceAccess(investorId);
+    if (!auth.authorized) {
+      throw new Error("Not authorized to view these withdrawals");
+    }
+
     let query = supabase
       .from("withdrawal_requests")
       .select(`*, funds:fund_id(name, code)`)
       .eq("investor_id", investorId);
 
     if (search) {
-      query = query.ilike("notes", `%${search}%`);
+      const safeSearch = sanitizeSearchInput(search);
+      if (safeSearch) {
+        query = query.ilike("notes", `%${safeSearch}%`);
+      }
     }
 
     const { data, error } = await query.order("request_date", { ascending: false });

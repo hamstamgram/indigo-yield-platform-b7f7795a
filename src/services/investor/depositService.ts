@@ -6,6 +6,7 @@ import { callRPC } from "@/lib/supabase/typedRPC";
 import { rpc } from "@/lib/rpc";
 import { getTodayString } from "@/utils/dateUtils";
 import { generateUUID } from "@/lib/utils";
+import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 // Type for Supabase join result with profile
 interface TransactionWithProfile {
@@ -57,7 +58,10 @@ export class DepositService {
     }
 
     if (filters?.search) {
-      query = query.or(`tx_hash.ilike.%${filters.search}%,asset.ilike.%${filters.search}%`);
+      const safeFilter = buildSafeOrFilter(filters.search, ["tx_hash", "asset"]);
+      if (safeFilter) {
+        query = query.or(safeFilter);
+      }
     }
 
     if (filters?.start_date) {
@@ -308,7 +312,10 @@ export class DepositService {
     }
 
     if (filters?.search) {
-      query = query.or(`tx_hash.ilike.%${filters.search}%,asset.ilike.%${filters.search}%`);
+      const safeFilter = buildSafeOrFilter(filters.search, ["tx_hash", "asset"]);
+      if (safeFilter) {
+        query = query.or(safeFilter);
+      }
     }
 
     if (filters?.start_date) {

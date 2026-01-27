@@ -13,6 +13,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc";
+import { buildSafeOrFilter } from "@/utils/searchSanitizer";
+import { requireAdmin } from "@/utils/authorizationHelper";
 import type {
   DeliveryRecord,
   DeliveryStats,
@@ -94,8 +96,12 @@ export const deliveryService = {
 
   /**
    * Fetch delivery records for a period with optional filters
+   * Authorization: Admin required
    */
   async fetchDeliveries(periodId: string, filters: DeliveryFilters): Promise<DeliveryRecord[]> {
+    // Require admin access for viewing delivery records (contains PII)
+    await requireAdmin("view delivery records");
+
     if (!periodId) return [];
 
     let query = supabase
@@ -122,7 +128,10 @@ export const deliveryService = {
       query = query.eq("delivery_mode", filters.deliveryModeFilter);
     }
     if (filters.searchQuery) {
-      query = query.or(`recipient_email.ilike.%${filters.searchQuery}%`);
+      const safeFilter = buildSafeOrFilter(filters.searchQuery, ["recipient_email"]);
+      if (safeFilter) {
+        query = query.or(safeFilter);
+      }
     }
 
     const { data, error } = await query;

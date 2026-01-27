@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 import { investorDataService } from "@/services/investor/investorDataService";
 import type { InvestorPositionDetail } from "@/services/investor/investorDataService";
+import { requireAdmin } from "@/utils/authorizationHelper";
 
 type WithdrawalStatus =
   | "pending"
@@ -101,6 +102,9 @@ class AdminInvestorService {
   }
 
   async getInvestorPositions(investorId: string): Promise<InvestorPositionDetail[]> {
+    // Require admin access to view any investor's positions
+    await requireAdmin("view investor positions");
+
     // Use unified data service
     return await investorDataService.getInvestorPositions(investorId);
   }

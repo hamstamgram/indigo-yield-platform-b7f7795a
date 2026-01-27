@@ -374,7 +374,12 @@ export async function getRoutingAuditEntries(): Promise<{
     const meta = (entry.meta || {}) as Record<string, unknown>;
     const newValues = (entry.new_values || {}) as Record<string, unknown>;
     const amount = Number(meta.amount || newValues.amount || 0);
-    const asset = (meta.asset_code as string) || (newValues.asset_code as string) || "USD";
+    const asset =
+      (meta.asset_code as string) ||
+      (newValues.asset_code as string) ||
+      (meta.asset as string) ||
+      (newValues.asset as string) ||
+      "USDT";
 
     summary.totalAmount += amount;
 

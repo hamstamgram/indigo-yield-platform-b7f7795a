@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 import type { Document, DocumentFilter } from "@/types/domains/document";
+import { sanitizeSearchInput } from "@/utils/searchSanitizer";
 
 export interface CreateStatementDocumentParams {
   user_id: string;
@@ -34,7 +35,10 @@ export const documentService = {
     }
 
     if (filter?.search_query) {
-      query = query.ilike("title", `%${filter.search_query}%`);
+      const safeSearch = sanitizeSearchInput(filter.search_query);
+      if (safeSearch) {
+        query = query.ilike("title", `%${safeSearch}%`);
+      }
     }
 
     const { data, error } = await query;
