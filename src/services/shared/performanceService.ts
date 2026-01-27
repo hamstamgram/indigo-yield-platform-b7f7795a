@@ -53,7 +53,8 @@ export const performanceService = {
     // V2 Architecture: investor_id = profiles.id (One ID)
     let query = supabase
       .from("investor_fund_performance")
-      .select(`
+      .select(
+        `
         *,
         period:statement_periods (
           period_name,
@@ -61,7 +62,8 @@ export const performanceService = {
           year,
           month
         )
-      `)
+      `
+      )
       .eq("investor_id", filters.userId);
 
     if (filters.assetCode && filters.assetCode !== "all") {
@@ -86,54 +88,61 @@ export const performanceService = {
     });
 
     // Map to PerformanceRecord (convert nullable numbers to strings)
-    return sortedData.map((r): PerformanceRecord => ({
-      id: r.id,
-      period_id: r.period_id,
-      investor_id: r.investor_id,
-      fund_name: r.fund_name,
-      mtd_net_income: String(r.mtd_net_income ?? 0),
-      mtd_ending_balance: String(r.mtd_ending_balance ?? 0),
-      mtd_rate_of_return: String(r.mtd_rate_of_return ?? 0),
-      qtd_net_income: String(r.qtd_net_income ?? 0),
-      qtd_ending_balance: String(r.qtd_ending_balance ?? 0),
-      qtd_rate_of_return: String(r.qtd_rate_of_return ?? 0),
-      ytd_net_income: String(r.ytd_net_income ?? 0),
-      ytd_ending_balance: String(r.ytd_ending_balance ?? 0),
-      ytd_rate_of_return: String(r.ytd_rate_of_return ?? 0),
-      itd_net_income: r.itd_net_income != null ? String(r.itd_net_income) : undefined,
-      itd_ending_balance: r.itd_ending_balance != null ? String(r.itd_ending_balance) : undefined,
-      itd_rate_of_return: r.itd_rate_of_return != null ? String(r.itd_rate_of_return) : undefined,
-      period: r.period ? {
-        period_name: r.period.period_name || "",
-        period_end_date: r.period.period_end_date || "",
-        year: r.period.year || 0,
-        month: r.period.month || 0,
-      } : undefined,
-    }));
+    return sortedData.map(
+      (r): PerformanceRecord => ({
+        id: r.id,
+        period_id: r.period_id,
+        investor_id: r.investor_id,
+        fund_name: r.fund_name,
+        mtd_net_income: String(r.mtd_net_income ?? 0),
+        mtd_ending_balance: String(r.mtd_ending_balance ?? 0),
+        mtd_rate_of_return: String(r.mtd_rate_of_return ?? 0),
+        qtd_net_income: String(r.qtd_net_income ?? 0),
+        qtd_ending_balance: String(r.qtd_ending_balance ?? 0),
+        qtd_rate_of_return: String(r.qtd_rate_of_return ?? 0),
+        ytd_net_income: String(r.ytd_net_income ?? 0),
+        ytd_ending_balance: String(r.ytd_ending_balance ?? 0),
+        ytd_rate_of_return: String(r.ytd_rate_of_return ?? 0),
+        itd_net_income: r.itd_net_income != null ? String(r.itd_net_income) : undefined,
+        itd_ending_balance: r.itd_ending_balance != null ? String(r.itd_ending_balance) : undefined,
+        itd_rate_of_return: r.itd_rate_of_return != null ? String(r.itd_rate_of_return) : undefined,
+        period: r.period
+          ? {
+              period_name: r.period.period_name || "",
+              period_end_date: r.period.period_end_date || "",
+              year: r.period.year || 0,
+              month: r.period.month || 0,
+            }
+          : undefined,
+      })
+    );
   },
 
   /**
    * Get per-asset stats for an investor (latest period data per fund)
    * Returns individual fund stats - NO aggregation across different assets
+   * Falls back to investor_positions for new investors without performance history
    */
   async getPerAssetStats(userId: string) {
     const records = await this.getInvestorPerformance({ userId });
-    
-    // Fetch funds to get asset symbols
-    const { data: funds } = await supabase
-      .from("funds")
-      .select("name, asset");
-    
-    // Create a map of fund name -> asset symbol
+
+    // Fetch funds to get asset symbols and names
+    const { data: funds } = await supabase.from("funds").select("id, name, asset, code");
+
+    // Create maps for fund lookups
     const fundToAsset = new Map<string, string>();
-    funds?.forEach(f => {
+    const fundIdToName = new Map<string, string>();
+    const fundIdToAsset = new Map<string, string>();
+    funds?.forEach((f) => {
       fundToAsset.set(f.name, f.asset);
+      fundIdToName.set(f.id, f.name);
+      fundIdToAsset.set(f.id, f.asset);
     });
-    
+
     // Get latest record for each unique fund
     const latestByFund = new Map<string, PerformanceRecord>();
-    
-    records.forEach(rec => {
+
+    records.forEach((rec) => {
       if (!latestByFund.has(rec.fund_name)) {
         latestByFund.set(rec.fund_name, rec);
       }
@@ -141,9 +150,9 @@ export const performanceService = {
 
     // Return per-asset data (no aggregation)
     // Filter out zero-value positions (ending balance <= 0 means position is inactive)
-    const perAssetStats = Array.from(latestByFund.values())
-      .filter(rec => Number(rec.mtd_ending_balance || 0) > 0)
-      .map(rec => ({
+    let perAssetStats = Array.from(latestByFund.values())
+      .filter((rec) => Number(rec.mtd_ending_balance || 0) > 0)
+      .map((rec) => ({
         fundName: rec.fund_name,
         assetSymbol: fundToAsset.get(rec.fund_name) || rec.fund_name,
         periodName: rec.period?.period_name || "Current",
@@ -169,9 +178,54 @@ export const performanceService = {
         },
       }));
 
+    // Fallback: If no performance records, check investor_positions directly
+    // This handles new investors who have deposits but no yield distributions yet
+    if (perAssetStats.length === 0) {
+      const { data: positions, error: positionsError } = await supabase
+        .from("investor_positions")
+        .select("fund_id, current_value, shares, is_active")
+        .eq("investor_id", userId)
+        .eq("is_active", true)
+        .gt("current_value", 0);
+
+      if (!positionsError && positions && positions.length > 0) {
+        perAssetStats = positions.map((pos) => {
+          const fundName = fundIdToName.get(pos.fund_id) || "Unknown Fund";
+          const assetSymbol = fundIdToAsset.get(pos.fund_id) || "UNKNOWN";
+          const balance = Number(pos.current_value || 0);
+
+          return {
+            fundName,
+            assetSymbol,
+            periodName: "Current",
+            mtd: {
+              netIncome: 0,
+              endingBalance: balance,
+              rateOfReturn: 0,
+            },
+            qtd: {
+              netIncome: 0,
+              endingBalance: balance,
+              rateOfReturn: 0,
+            },
+            ytd: {
+              netIncome: 0,
+              endingBalance: balance,
+              rateOfReturn: 0,
+            },
+            itd: {
+              netIncome: 0,
+              endingBalance: balance,
+              rateOfReturn: 0,
+            },
+          };
+        });
+      }
+    }
+
     return {
       assets: perAssetStats,
-      activeFunds: latestByFund.size
+      activeFunds: perAssetStats.length || latestByFund.size,
     };
   },
 
@@ -219,22 +273,22 @@ export const performanceService = {
       .eq("period_id", periodToUse?.id || "");
 
     // Calculate totals
-    const totalBalance = performance?.reduce(
-      (sum, p) => sum + Number(p.mtd_ending_balance || 0), 
-      0
-    ) || 0;
+    const totalBalance =
+      performance?.reduce((sum, p) => sum + Number(p.mtd_ending_balance || 0), 0) || 0;
 
     // Get weighted average YTD return
-    const ytdReturn = performance?.length 
-      ? performance.reduce((sum, p) => sum + Number(p.ytd_rate_of_return || 0), 0) / performance.length
+    const ytdReturn = performance?.length
+      ? performance.reduce((sum, p) => sum + Number(p.ytd_rate_of_return || 0), 0) /
+        performance.length
       : 0;
 
-    const activeFunds = performance?.filter(p => Number(p.mtd_ending_balance || 0) > 0).length || 0;
+    const activeFunds =
+      performance?.filter((p) => Number(p.mtd_ending_balance || 0) > 0).length || 0;
 
     // Check if finalized period is current month
     const now = new Date();
     const periodDate = periodToUse?.period_end_date ? new Date(periodToUse.period_end_date) : null;
-    const isCurrentMonth = periodDate 
+    const isCurrentMonth = periodDate
       ? periodDate.getMonth() === now.getMonth() && periodDate.getFullYear() === now.getFullYear()
       : false;
 
@@ -251,15 +305,19 @@ export const performanceService = {
    * Get performance history grouped by asset/fund
    * Returns data formatted for MyPerformanceHistory component
    */
-  async getPerformanceHistoryGrouped(userId: string): Promise<Record<string, PerformanceHistoryRecord[]>> {
+  async getPerformanceHistoryGrouped(
+    userId: string
+  ): Promise<Record<string, PerformanceHistoryRecord[]>> {
     const { data, error } = await supabase
       .from("investor_fund_performance")
-      .select(`
+      .select(
+        `
         *,
         period:statement_periods (
           period_end_date
         )
-      `)
+      `
+      )
       .eq("investor_id", userId)
       .order("period(period_end_date)", { ascending: false });
 
@@ -293,7 +351,7 @@ export const performanceService = {
     );
 
     return grouped;
-  }
+  },
 };
 
 // Type for performance history records

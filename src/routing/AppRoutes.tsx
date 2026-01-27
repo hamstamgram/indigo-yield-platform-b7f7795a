@@ -9,6 +9,7 @@ import { Suspense } from "react";
 // Route modules
 import { AdminRoutes } from "./routes/admin";
 import { InvestorRoutes } from "./routes/investor";
+import { IBUserRoutes } from "./routes/ib";
 import { PublicRoutes } from "./routes/public";
 
 // UI Components
@@ -39,6 +40,9 @@ export function AppRoutes() {
 
           {/* Admin Routes (AdminRoute wrapper) */}
           {AdminRoutes()}
+
+          {/* IB Routes (IBRoute wrapper) */}
+          {IBUserRoutes()}
         </Route>
       </Routes>
     </Suspense>

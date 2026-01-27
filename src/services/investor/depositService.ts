@@ -5,6 +5,7 @@ import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { rpc } from "@/lib/rpc";
 import { getTodayString } from "@/utils/dateUtils";
+import { generateUUID } from "@/lib/utils";
 
 // Type for Supabase join result with profile
 interface TransactionWithProfile {
@@ -162,7 +163,7 @@ export class DepositService {
     }
 
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
-    const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${crypto.randomUUID()}`;
+    const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${generateUUID()}`;
 
     const { data, error } = await callRPC("apply_deposit_with_crystallization", {
       p_fund_id: fund.id,

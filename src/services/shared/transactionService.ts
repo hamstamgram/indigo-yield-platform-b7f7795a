@@ -13,6 +13,7 @@ import type {
 } from "@/types/domains/transaction";
 import { logError } from "@/lib/logger";
 import { rpc } from "@/lib/rpc";
+import { generateUUID } from "@/lib/utils";
 // Note: CreateTransactionParams should be imported from @/types/domains/transaction
 // (exported as CreateTransactionUIParams there)
 
@@ -209,7 +210,7 @@ export async function createAdminTransaction(
       // Generate unique trigger reference client-side (idempotency key)
       const triggerReferenceRaw =
         params.reference_id ||
-        `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
+        `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${generateUUID()}`;
       const triggerReference = triggerReferenceRaw.replace(/^(DEP:|WDR:)/, "");
 
       const result =
@@ -308,7 +309,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   const today = getTodayString();
 
   // Generate unique trigger reference to prevent duplicates
-  const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${crypto.randomUUID()}`;
+  const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${generateUUID()}`;
 
   const result =
     params.type === "DEPOSIT"

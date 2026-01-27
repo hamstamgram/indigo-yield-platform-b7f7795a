@@ -4,11 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { 
-  IBAllocationWithJoins, 
-  IBProfileRef, 
-  IBFundRef 
-} from "@/types/domains/ibAllocation";
+import type { IBAllocationWithJoins, IBProfileRef, IBFundRef } from "@/types/domains/ibAllocation";
+import { generateUUID } from "@/lib/utils";
 
 export interface PendingCommission {
   id: string;
@@ -22,7 +19,7 @@ export interface PendingCommission {
   effectiveDate: string;
   periodStart: string | null;
   periodEnd: string | null;
-  payoutStatus: 'pending' | 'paid';
+  payoutStatus: "pending" | "paid";
 }
 
 class IBPayoutService {
@@ -32,7 +29,8 @@ class IBPayoutService {
   async getAllocationsForPayout(statusFilter: string): Promise<PendingCommission[]> {
     let query = supabase
       .from("ib_allocations")
-      .select(`
+      .select(
+        `
         id,
         ib_investor_id,
         source_investor_id,
@@ -52,7 +50,8 @@ class IBPayoutService {
           last_name,
           email
         )
-      `)
+      `
+      )
       .order("effective_date", { ascending: false })
       .limit(1000);
 
@@ -79,7 +78,8 @@ class IBPayoutService {
         ? `${ibProfile.first_name || ""} ${ibProfile.last_name || ""}`.trim() || ibProfile.email
         : "Unknown IB";
       const sourceName = sourceProfile
-        ? `${sourceProfile.first_name || ""} ${sourceProfile.last_name || ""}`.trim() || sourceProfile.email
+        ? `${sourceProfile.first_name || ""} ${sourceProfile.last_name || ""}`.trim() ||
+          sourceProfile.email
         : "Unknown";
 
       return {
@@ -94,7 +94,7 @@ class IBPayoutService {
         effectiveDate: alloc.effective_date,
         periodStart: alloc.period_start,
         periodEnd: alloc.period_end,
-        payoutStatus: (alloc.payout_status || 'pending') as 'pending' | 'paid',
+        payoutStatus: (alloc.payout_status || "pending") as "pending" | "paid",
       };
     });
   }
@@ -103,11 +103,11 @@ class IBPayoutService {
    * Mark allocations as paid
    */
   async markAllocationsAsPaid(
-    ids: string[], 
+    ids: string[],
     paidBy: string
   ): Promise<{ count: number; batchId: string }> {
-    const batchId = crypto.randomUUID();
-    
+    const batchId = generateUUID();
+
     const { error } = await supabase
       .from("ib_allocations")
       .update({
@@ -119,7 +119,7 @@ class IBPayoutService {
       .in("id", ids);
 
     if (error) throw error;
-    
+
     return { count: ids.length, batchId };
   }
 }

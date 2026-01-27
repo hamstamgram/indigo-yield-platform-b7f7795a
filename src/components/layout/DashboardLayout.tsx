@@ -22,6 +22,9 @@ const DashboardLayout = () => {
   // Determine if path is admin route
   const isAdminRoute = currentPath.startsWith("/admin") || currentPath === "/admin-operations";
 
+  // Determine if path is IB route
+  const isIBRoute = currentPath.startsWith("/ib");
+
   // Determine if path is investor route (for admin redirect)
   const isInvestorRoute =
     currentPath === "/investor" ||
@@ -56,6 +59,13 @@ const DashboardLayout = () => {
     const portalPreference = user?.id ? localStorage.getItem(`portal_view_${user.id}`) : null;
     const adminWantsInvestorView = verifiedIsAdmin && portalPreference === "investor";
 
+    // IB routes should be accessible to IB users, no redirect needed
+    // IB route guard (IBRoute.tsx) handles authentication and role checks
+    if (isIBRoute) {
+      // IB routes are protected by IBRoute component, no redirect needed here
+      return;
+    }
+
     if (isInvestorRoute && verifiedIsAdmin && !adminWantsInvestorView) {
       // Admin on investor routes -> redirect to admin dashboard (unless they explicitly chose investor view)
       navigate("/admin", { replace: true });
@@ -74,6 +84,7 @@ const DashboardLayout = () => {
     navigate,
     currentPath,
     isAdminRoute,
+    isIBRoute,
     isInvestorRoute,
   ]);
 

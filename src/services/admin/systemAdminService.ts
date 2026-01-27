@@ -10,6 +10,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc";
 import type { IntegrityViolation, LastActivityRow } from "@/types/domains/integrity";
+import { generateUUID } from "@/lib/utils";
 
 // ============ Types ============
 
@@ -264,7 +265,7 @@ export async function createAdminInvite(
   email: string,
   intendedRole: "admin" | "super_admin" = "admin"
 ): Promise<{ inviteCode: string; expiresAt: string }> {
-  const inviteCode = crypto.randomUUID();
+  const inviteCode = generateUUID();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 

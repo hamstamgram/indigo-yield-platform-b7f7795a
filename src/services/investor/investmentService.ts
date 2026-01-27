@@ -3,6 +3,7 @@ import { type InvestmentFormData } from "@/types/domains";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { getTodayString } from "@/utils/dateUtils";
+import { generateUUID } from "@/lib/utils";
 
 export const investmentService = {
   /**
@@ -20,7 +21,9 @@ export const investmentService = {
 
     // Map transaction type
     const type = data.transaction_type === "redemption" ? "WITHDRAWAL" : "DEPOSIT";
-    const amount = Math.abs(typeof data.amount === 'string' ? parseFloat(data.amount) : data.amount);
+    const amount = Math.abs(
+      typeof data.amount === "string" ? parseFloat(data.amount) : data.amount
+    );
 
     const closingAum = data.closing_aum;
     if (!closingAum) {
@@ -45,7 +48,7 @@ export const investmentService = {
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference =
       data.reference_number ||
-      `investment:${data.fund_id}:${data.investor_id}:${txDate}:${crypto.randomUUID()}`;
+      `investment:${data.fund_id}:${data.investor_id}:${txDate}:${generateUUID()}`;
 
     const { data: result, error } =
       type === "DEPOSIT"

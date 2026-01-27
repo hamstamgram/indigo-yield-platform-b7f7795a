@@ -37,7 +37,9 @@
       "mcp__MCP_DOCKER__browser_tabs",
       "mcp__MCP_DOCKER__browser_fill_form",
       "mcp__MCP_DOCKER__browser_run_code",
-      "mcp__MCP_DOCKER__browser_network_requests"
+      "mcp__MCP_DOCKER__browser_network_requests",
+      "mcp__MCP_DOCKER__read_graph",
+      "mcp__MCP_DOCKER__mcp-find"
     ],
     "deny": [],
     "ask": []

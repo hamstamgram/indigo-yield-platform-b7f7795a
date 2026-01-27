@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
 import { db } from "@/lib/db";
+import { generateUUID } from "@/lib/utils";
 
 export interface AdminInvite {
   id: string;
@@ -43,7 +44,7 @@ class AdminInviteService {
    * Create a new admin invite
    */
   async create(email: string, role: string): Promise<{ email: string; inviteCode: string }> {
-    const inviteCode = crypto.randomUUID();
+    const inviteCode = generateUUID();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 

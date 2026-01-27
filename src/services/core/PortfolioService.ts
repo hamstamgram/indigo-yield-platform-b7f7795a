@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logError, logWarn } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { getTodayString } from "@/utils/dateUtils";
+import { generateUUID } from "@/lib/utils";
 
 // Helper to fetch funds (internal use)
 async function getAllFunds() {
@@ -64,7 +65,7 @@ export class PortfolioService extends ApiClient {
             : "0.0000000000";
 
         // Generate trigger reference for idempotency
-        const triggerReference = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
+        const triggerReference = `initial:${fund.id}:${investorId}:${today}:${generateUUID()}`;
         const newTotalAum = Number(closingAum) + amount;
 
         const { data, error } = await callRPC("apply_deposit_with_crystallization", {
@@ -127,8 +128,9 @@ export class PortfolioService extends ApiClient {
         total_value: String(totalValue),
         total_cost_basis: String(totalCostBasis),
         total_unrealized_gain: String(totalUnrealizedGain),
-        total_unrealized_gain_percent:
-          String(totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0),
+        total_unrealized_gain_percent: String(
+          totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0
+        ),
         total_realized_gain: String(totalRealizedGain),
         position_count: positions?.length || 0,
         last_updated: new Date().toISOString(),
@@ -244,8 +246,9 @@ export class PortfolioService extends ApiClient {
         total_value: String(totalValue),
         total_cost_basis: String(totalCostBasis),
         total_unrealized_gain: String(totalUnrealizedGain),
-        total_unrealized_gain_percent:
-          String(totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0),
+        total_unrealized_gain_percent: String(
+          totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0
+        ),
         total_realized_gain: String(totalRealizedGain),
         position_count: positions.length,
         last_updated: new Date().toISOString(),
