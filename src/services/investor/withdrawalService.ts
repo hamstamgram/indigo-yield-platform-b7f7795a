@@ -473,14 +473,19 @@ export const withdrawalService = {
 
   /**
    * Create a new withdrawal request via RPC
+   * Uses idempotency key to prevent duplicate requests from double-clicks
    */
-  async createWithdrawal(params: CreateWithdrawalParams): Promise<void> {
+  async createWithdrawal(
+    params: CreateWithdrawalParams & { idempotencyKey?: string }
+  ): Promise<void> {
+    const corrId = params.idempotencyKey || generateCorrelationId("wdr_create");
+
     const { error } = await rpc.call("create_withdrawal_request", {
       p_investor_id: params.investorId,
       p_fund_id: params.fundId,
       p_amount: typeof params.amount === "string" ? parseFloat(params.amount) : params.amount,
       p_type: params.withdrawalType,
-      p_notes: params.notes || null,
+      p_notes: params.notes ? `${params.notes} [${corrId}]` : `[${corrId}]`,
     });
 
     if (error) throw error;
@@ -573,17 +578,37 @@ export const withdrawalService = {
   },
 
   /**
-   * Verify MFA TOTP code for withdrawal submission
+   * Check if user has MFA enabled
    */
-  async verifyMFAForWithdrawal(totpCode: string): Promise<{ verified: boolean; error?: string }> {
+  async hasMFAEnabled(): Promise<boolean> {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const totpFactor = (factors as any)?.find(
+      (f: any) => f.factor_type === "totp" && f.status === "verified"
+    );
+    return Boolean(totpFactor);
+  },
+
+  /**
+   * Verify MFA TOTP code for withdrawal submission
+   * SECURITY: Users without MFA must enable it before withdrawing
+   */
+  async verifyMFAForWithdrawal(
+    totpCode: string
+  ): Promise<{ verified: boolean; error?: string; requiresMfaSetup?: boolean }> {
     const { data: factors } = await supabase.auth.mfa.listFactors();
     const totpFactor = (factors as any)?.find(
       (f: any) => f.factor_type === "totp" && f.status === "verified"
     );
 
     if (!totpFactor) {
-      console.warn("No verified TOTP factor found for user");
-      return { verified: true }; // Allow if no TOTP factor
+      // SECURITY FIX: Do NOT allow withdrawal without MFA
+      console.warn("No verified TOTP factor found for user - MFA required for withdrawals");
+      return {
+        verified: false,
+        error:
+          "Two-factor authentication (2FA) is required for withdrawals. Please enable 2FA in your security settings first.",
+        requiresMfaSetup: true,
+      };
     }
 
     const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({
@@ -634,13 +659,16 @@ export const withdrawalService = {
       .filter(Boolean)
       .join("\n");
 
+    // Generate idempotency key to prevent duplicate requests from double-clicks
+    const idempotencyKey = generateCorrelationId("inv_wdr");
+
     // Create withdrawal via RPC
     const { data: requestId, error: rpcError } = await rpc.call("create_withdrawal_request", {
       p_investor_id: investorId,
       p_fund_id: params.fundId,
       p_amount: params.amount,
       p_type: "partial",
-      p_notes: combinedNotes || null,
+      p_notes: combinedNotes ? `${combinedNotes} [${idempotencyKey}]` : `[${idempotencyKey}]`,
     });
 
     if (rpcError) throw rpcError;

@@ -195,6 +195,7 @@ export async function getAdminUsers(): Promise<AdminProfile[]> {
 
 /**
  * Fetch all admins with super_admin role detection
+ * PERFORMANCE FIX: Batch fetch roles instead of N+1 queries
  */
 export async function getAdminUsersWithRoles(): Promise<AdminUser[]> {
   // Get all profiles that are admins
@@ -205,29 +206,30 @@ export async function getAdminUsersWithRoles(): Promise<AdminUser[]> {
     .order("created_at", { ascending: false });
 
   if (profilesError) throw profilesError;
+  if (!profiles || profiles.length === 0) return [];
 
-  // Get roles for each admin
-  const adminList: AdminUser[] = [];
-  for (const profile of profiles || []) {
-    // Check for super_admin role first
-    const { data: superAdminRole } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", profile.id)
-      .eq("role", "super_admin")
-      .maybeSingle();
+  // PERFORMANCE FIX: Batch fetch all super_admin roles in a single query
+  const adminIds = profiles.map((p) => p.id);
+  const { data: superAdminRoles, error: rolesError } = await supabase
+    .from("user_roles")
+    .select("user_id, role")
+    .in("user_id", adminIds)
+    .eq("role", "super_admin");
 
-    adminList.push({
-      id: profile.id,
-      email: profile.email,
-      firstName: profile.first_name,
-      lastName: profile.last_name,
-      role: superAdminRole ? "super_admin" : "admin",
-      createdAt: profile.created_at,
-    });
-  }
+  if (rolesError) throw rolesError;
 
-  return adminList;
+  // Create a Set for O(1) lookup of super_admin users
+  const superAdminSet = new Set(superAdminRoles?.map((r) => r.user_id) || []);
+
+  // Map profiles to AdminUser with role from Set lookup
+  return profiles.map((profile) => ({
+    id: profile.id,
+    email: profile.email,
+    firstName: profile.first_name,
+    lastName: profile.last_name,
+    role: superAdminSet.has(profile.id) ? "super_admin" : "admin",
+    createdAt: profile.created_at,
+  }));
 }
 
 /**

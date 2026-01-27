@@ -40,8 +40,16 @@ export function useInvestorOverview(investorId: string) {
 
       if (posError) throw posError;
 
-      const activePositions = (positions || []).filter(
-        (p: any) => p.funds?.status === "active" && p.current_value > 0
+      // Type the position data properly instead of using any
+      interface PositionWithFund {
+        fund_id: string;
+        current_value: number;
+        shares: number;
+        funds: { name: string; asset: string; status: string } | null;
+      }
+
+      const activePositions = ((positions as PositionWithFund[]) || []).filter(
+        (p) => p.funds?.status === "active" && p.current_value > 0
       );
 
       // Fetch pending withdrawals count
@@ -71,7 +79,7 @@ export function useInvestorOverview(investorId: string) {
         .maybeSingle();
 
       // Fetch IB parent info
-      const { data: profile } = await (supabase as any)
+      const { data: profile } = await supabase
         .from("profiles")
         .select("ib_parent_id")
         .eq("id", investorId)
@@ -86,9 +94,7 @@ export function useInvestorOverview(investorId: string) {
           .maybeSingle();
         if (parentProfile) {
           ibParentName =
-            [parentProfile.first_name, parentProfile.last_name]
-              .filter(Boolean)
-              .join(" ") || null;
+            [parentProfile.first_name, parentProfile.last_name].filter(Boolean).join(" ") || null;
         }
       }
 
@@ -99,8 +105,8 @@ export function useInvestorOverview(investorId: string) {
         .eq("investor_id", investorId)
         .limit(1);
 
-      // Build token balances
-      const tokenBalances = activePositions.map((p: any) => ({
+      // Build token balances (using properly typed activePositions)
+      const tokenBalances = activePositions.map((p) => ({
         asset: p.funds?.asset || "Unknown",
         amount: p.current_value || 0,
         fundName: p.funds?.name || "Unknown",
@@ -113,8 +119,7 @@ export function useInvestorOverview(investorId: string) {
         pendingWithdrawals: pendingCount || 0,
         lastReportPeriod: lastReport?.period_id || null,
         ibParentName,
-        feeScheduleStatus:
-          (feeSchedule?.length || 0) > 0 ? "active" : "default",
+        feeScheduleStatus: (feeSchedule?.length || 0) > 0 ? "active" : "default",
         hasPositions: activePositions.length > 0,
       };
     },

@@ -3,7 +3,7 @@
  * Centralizes real-time subscription logic
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -20,20 +20,27 @@ interface SubscriptionConfig {
 
 /**
  * Subscribe to real-time changes on a Supabase table
+ * Uses refs for callbacks to avoid stale closure issues
  */
 export function useRealtimeSubscription(config: SubscriptionConfig) {
   const channelRef = useRef<RealtimeChannel | null>(null);
 
+  // Store callbacks in refs to avoid stale closures
+  const onInsertRef = useRef(config.onInsert);
+  const onUpdateRef = useRef(config.onUpdate);
+  const onDeleteRef = useRef(config.onDelete);
+  const onChangeRef = useRef(config.onChange);
+
+  // Update refs when callbacks change
   useEffect(() => {
-    const {
-      channel: channelName,
-      table,
-      filter,
-      onInsert,
-      onUpdate,
-      onDelete,
-      onChange,
-    } = config;
+    onInsertRef.current = config.onInsert;
+    onUpdateRef.current = config.onUpdate;
+    onDeleteRef.current = config.onDelete;
+    onChangeRef.current = config.onChange;
+  }, [config.onInsert, config.onUpdate, config.onDelete, config.onChange]);
+
+  useEffect(() => {
+    const { channel: channelName, table, filter } = config;
 
     const finalChannelName = channelName || `${table}-${Date.now()}`;
 
@@ -48,17 +55,18 @@ export function useRealtimeSubscription(config: SubscriptionConfig) {
           ...(filter ? { filter } : {}),
         },
         (payload: any) => {
-          onChange?.();
+          // Use refs to always call the latest callback
+          onChangeRef.current?.();
 
           switch (payload.eventType) {
             case "INSERT":
-              onInsert?.(payload);
+              onInsertRef.current?.(payload);
               break;
             case "UPDATE":
-              onUpdate?.(payload);
+              onUpdateRef.current?.(payload);
               break;
             case "DELETE":
-              onDelete?.(payload);
+              onDeleteRef.current?.(payload);
               break;
           }
         }
@@ -80,10 +88,7 @@ export function useRealtimeSubscription(config: SubscriptionConfig) {
 /**
  * Simple helper for ledger/transaction subscriptions
  */
-export function useLedgerSubscription(
-  investorId: string,
-  onInvalidate: () => void
-) {
+export function useLedgerSubscription(investorId: string, onInvalidate: () => void) {
   useEffect(() => {
     if (!investorId) return;
 

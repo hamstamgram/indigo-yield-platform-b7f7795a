@@ -2,17 +2,40 @@ import React, { useMemo, useCallback, memo } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalFullStatus } from "@/types/domains";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
 import {
-  Input, Button, Badge, TruncatedText,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  Input,
+  Button,
+  Badge,
+  TruncatedText,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui";
 import { ResponsiveTable, ResponsiveTableColumn } from "@/components/ui/responsive-table";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { useSortableColumns } from "@/hooks";
-import { 
-  Search, CheckCircle, XCircle, Play, CheckCircle2, Eye, 
-  ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, ArrowRightLeft,
-  Calendar, User, Coins
+import {
+  Search,
+  CheckCircle,
+  XCircle,
+  Play,
+  CheckCircle2,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  ArrowRightLeft,
+  Calendar,
+  User,
+  Coins,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -74,7 +97,7 @@ interface ActionsDropdownProps {
 
 const canEdit = (status: WithdrawalFullStatus) => status === "pending" || status === "approved";
 const canDelete = (status: WithdrawalFullStatus) => status !== "completed";
-const canRouteToFees = (status: WithdrawalFullStatus) => 
+const canRouteToFees = (status: WithdrawalFullStatus) =>
   status === "pending" || status === "approved" || status === "processing";
 
 const ActionsDropdown = memo(function ActionsDropdown({
@@ -91,7 +114,7 @@ const ActionsDropdown = memo(function ActionsDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" aria-label="Open actions menu">
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -102,7 +125,7 @@ const ActionsDropdown = memo(function ActionsDropdown({
             View Details
           </DropdownMenuItem>
         )}
-        
+
         {canEdit(withdrawal.status) && onEdit && (
           <DropdownMenuItem onClick={() => onEdit(withdrawal)}>
             <Pencil className="h-4 w-4 mr-2" />
@@ -118,21 +141,21 @@ const ActionsDropdown = memo(function ActionsDropdown({
             Approve
           </DropdownMenuItem>
         )}
-        
+
         {withdrawal.status === "pending" && onReject && (
           <DropdownMenuItem onClick={() => onReject(withdrawal)}>
             <XCircle className="h-4 w-4 mr-2 text-red-600" />
             Reject
           </DropdownMenuItem>
         )}
-        
+
         {withdrawal.status === "approved" && onStartProcessing && (
           <DropdownMenuItem onClick={() => onStartProcessing(withdrawal)}>
             <Play className="h-4 w-4 mr-2 text-blue-600" />
             Start Processing
           </DropdownMenuItem>
         )}
-        
+
         {withdrawal.status === "processing" && onComplete && (
           <DropdownMenuItem onClick={() => onComplete(withdrawal)}>
             <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
@@ -153,7 +176,7 @@ const ActionsDropdown = memo(function ActionsDropdown({
         {canDelete(withdrawal.status) && onDelete && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => onDelete(withdrawal)}
               className="text-destructive focus:text-destructive"
             >
@@ -186,39 +209,60 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
 }: WithdrawalsTableProps) {
   // Add sorting capability
   const { sortConfig, requestSort, sortedData } = useSortableColumns(withdrawals, {
-    column: 'request_date',
-    direction: 'desc'
+    column: "request_date",
+    direction: "desc",
   });
 
   const displayedWithdrawals = useMemo(() => sortedData, [sortedData]);
 
   // Memoize filter handlers
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onFiltersChange({ ...filters, search: e.target.value });
-  }, [filters, onFiltersChange]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onFiltersChange({ ...filters, search: e.target.value });
+    },
+    [filters, onFiltersChange]
+  );
 
-  const handleStatusChange = useCallback((value: string) => {
-    onFiltersChange({ ...filters, status: value as WithdrawalFullStatus | "all" });
-  }, [filters, onFiltersChange]);
+  const handleStatusChange = useCallback(
+    (value: string) => {
+      onFiltersChange({ ...filters, status: value as WithdrawalFullStatus | "all" });
+    },
+    [filters, onFiltersChange]
+  );
 
-  const handleFundChange = useCallback((value: string) => {
-    onFiltersChange({ ...filters, fund_id: value === "all" ? undefined : value });
-  }, [filters, onFiltersChange]);
+  const handleFundChange = useCallback(
+    (value: string) => {
+      onFiltersChange({ ...filters, fund_id: value === "all" ? undefined : value });
+    },
+    [filters, onFiltersChange]
+  );
 
   // Render the memoized ActionsDropdown with all callbacks
-  const renderActionsDropdown = useCallback((withdrawal: Withdrawal) => (
-    <ActionsDropdown
-      withdrawal={withdrawal}
-      onViewDetails={onViewDetails}
-      onApprove={onApprove}
-      onReject={onReject}
-      onStartProcessing={onStartProcessing}
-      onComplete={onComplete}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onRouteToFees={onRouteToFees}
-    />
-  ), [onViewDetails, onApprove, onReject, onStartProcessing, onComplete, onEdit, onDelete, onRouteToFees]);
+  const renderActionsDropdown = useCallback(
+    (withdrawal: Withdrawal) => (
+      <ActionsDropdown
+        withdrawal={withdrawal}
+        onViewDetails={onViewDetails}
+        onApprove={onApprove}
+        onReject={onReject}
+        onStartProcessing={onStartProcessing}
+        onComplete={onComplete}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onRouteToFees={onRouteToFees}
+      />
+    ),
+    [
+      onViewDetails,
+      onApprove,
+      onReject,
+      onStartProcessing,
+      onComplete,
+      onEdit,
+      onDelete,
+      onRouteToFees,
+    ]
+  );
 
   // Define columns for ResponsiveTable
   const columns: ResponsiveTableColumn<Withdrawal>[] = [
@@ -279,7 +323,10 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <TruncatedText text={withdrawal.investor_name} className="font-medium text-sm" />
-          <TruncatedText text={withdrawal.investor_email} className="text-xs text-muted-foreground" />
+          <TruncatedText
+            text={withdrawal.investor_email}
+            className="text-xs text-muted-foreground"
+          />
         </div>
         <Badge variant="outline" className={`${statusColors[withdrawal.status]} shrink-0`}>
           {withdrawal.status}
@@ -297,15 +344,17 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
               className="h-4 w-4 rounded-full border"
               onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
             />
-            <FinancialValue 
-              value={withdrawal.requested_amount} 
-              asset={withdrawal.fund_class || "UNITS"} 
-              showAsset 
+            <FinancialValue
+              value={withdrawal.requested_amount}
+              asset={withdrawal.fund_class || "UNITS"}
+              showAsset
               className="text-sm"
             />
           </div>
         </div>
-        <Badge variant="outline" className="text-xs">{withdrawal.withdrawal_type}</Badge>
+        <Badge variant="outline" className="text-xs">
+          {withdrawal.withdrawal_type}
+        </Badge>
       </div>
 
       {/* Date */}
@@ -358,7 +407,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
             <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
-        
+
         {/* Fund Filter */}
         {funds.length > 0 && (
           <Select
@@ -384,9 +433,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
 
       {/* Responsive Table */}
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">
-          Loading withdrawals...
-        </div>
+        <div className="text-center py-8 text-muted-foreground">Loading withdrawals...</div>
       ) : (
         <ResponsiveTable
           data={displayedWithdrawals}
@@ -401,7 +448,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between pt-4">
           <p className="text-sm text-muted-foreground">
-            Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{" "}
+            Showing {(pagination.page - 1) * pagination.pageSize + 1} to{" "}
             {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{" "}
             {pagination.totalCount} withdrawals
           </p>
