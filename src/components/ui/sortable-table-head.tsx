@@ -22,21 +22,34 @@ export function SortableTableHead({
   const isActive = currentSort.column === column;
   const direction = isActive ? currentSort.direction : null;
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSort(column);
+    }
+  };
+
+  const ariaSort = direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none";
+
   return (
     <TableHead
       className={cn(
-        "cursor-pointer select-none hover:bg-muted/50 transition-colors",
+        "cursor-pointer select-none hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className
       )}
       onClick={() => onSort(column)}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="columnheader"
+      aria-sort={ariaSort}
       {...props}
     >
       <div className="flex items-center gap-1">
         <span>{children}</span>
-        <span className="ml-auto">
-          {direction === 'asc' ? (
+        <span className="ml-auto" aria-hidden="true">
+          {direction === "asc" ? (
             <ChevronUp className="h-4 w-4" />
-          ) : direction === 'desc' ? (
+          ) : direction === "desc" ? (
             <ChevronDown className="h-4 w-4" />
           ) : (
             <ChevronsUpDown className="h-4 w-4 opacity-30" />

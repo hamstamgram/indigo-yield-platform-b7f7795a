@@ -77,7 +77,7 @@ export function redactString(value: string, options: RedactionOptions = {}): str
 /**
  * Redacts PII from object properties
  */
-export function redactObject<T extends Record<string, any>>(
+export function redactObject<T extends Record<string, unknown>>(
   obj: T,
   options: RedactionOptions = {}
 ): T {
@@ -86,7 +86,7 @@ export function redactObject<T extends Record<string, any>>(
   }
 
   const { keys = [] } = options;
-  const result = { ...obj } as any;
+  const result = { ...obj } as T;
 
   // Redact specific keys if provided
   if (keys.length > 0) {
@@ -122,7 +122,7 @@ export function redactArray<T>(arr: T[], options: RedactionOptions = {}): T[] {
     if (typeof item === "string") {
       return redactString(item, options) as T;
     } else if (typeof item === "object" && item !== null) {
-      return redactObject(item as Record<string, any>, options) as T;
+      return redactObject(item as Record<string, unknown>, options) as T;
     }
     return item;
   });
@@ -154,7 +154,7 @@ export function redactPII<T>(
   }
 
   if (data && typeof data === "object") {
-    return redactObject(data as Record<string, any>, finalOptions) as T;
+    return redactObject(data as Record<string, unknown>, finalOptions) as T;
   }
 
   return data;

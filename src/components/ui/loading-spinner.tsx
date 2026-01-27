@@ -32,9 +32,16 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   ...props
 }) => {
   return (
-    <div className={cn("flex flex-col items-center justify-center", className)} {...props}>
-      <div className={cn(spinnerVariants({ size }), "border-t-primary")} />
+    <div
+      className={cn("flex flex-col items-center justify-center", className)}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      {...props}
+    >
+      <div className={cn(spinnerVariants({ size }), "border-t-primary")} aria-hidden="true" />
       {message && <p className="mt-4 text-sm text-muted-foreground">{message}</p>}
+      <span className="sr-only">{message || "Loading..."}</span>
     </div>
   );
 };

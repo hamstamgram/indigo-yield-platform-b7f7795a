@@ -29,7 +29,7 @@ const SENSITIVE_FIELDS = [
 /**
  * Mask sensitive data in an object for safe logging
  */
-function maskSensitiveData<T extends Record<string, any>>(obj: T | null | undefined): T | null {
+function maskSensitiveData<T extends Record<string, unknown>>(obj: T | null | undefined): T | null {
   if (!obj || typeof obj !== "object") return obj as T | null;
 
   const masked = { ...obj } as T;
@@ -43,14 +43,14 @@ function maskSensitiveData<T extends Record<string, any>>(obj: T | null | undefi
     );
 
     if (isSensitive) {
-      (masked as Record<string, any>)[key] = "[REDACTED]";
+      (masked as Record<string, unknown>)[key] = "[REDACTED]";
     } else if (
-      typeof (masked as Record<string, any>)[key] === "object" &&
-      (masked as Record<string, any>)[key] !== null
+      typeof (masked as Record<string, unknown>)[key] === "object" &&
+      (masked as Record<string, unknown>)[key] !== null
     ) {
       // Recursively mask nested objects
-      (masked as Record<string, any>)[key] = maskSensitiveData(
-        (masked as Record<string, any>)[key]
+      (masked as Record<string, unknown>)[key] = maskSensitiveData(
+        (masked as Record<string, unknown>)[key] as Record<string, unknown>
       );
     }
   }
@@ -64,9 +64,9 @@ export interface AuditLogEntry {
   action: string;
   entity: string;
   entity_id: string | null;
-  old_values: Record<string, any> | null;
-  new_values: Record<string, any> | null;
-  meta: Record<string, any> | null;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  meta: Record<string, unknown> | null;
   created_at: string;
   actor_name?: string;
   actor_email?: string;

@@ -7,12 +7,12 @@ export function initPostHog() {
   const apiHost = import.meta.env.VITE_POSTHOG_HOST || "https://app.posthog.com";
 
   if (!apiKey || apiKey === "your_posthog_key_here") {
-    console.log("PostHog: No API key configured, skipping initialization");
+    // PostHog not configured - skip silently
     return;
   }
 
   if (isInitialized) {
-    console.log("PostHog: Already initialized");
+    // Already initialized - skip silently
     return;
   }
 
@@ -46,14 +46,14 @@ export function initPostHog() {
     });
 
     isInitialized = true;
-    console.log("PostHog: Initialized successfully");
-  } catch (error) {
-    console.error("PostHog: Failed to initialize", error);
+  } catch {
+    // PostHog initialization failed - analytics will be disabled
+    isInitialized = false;
   }
 }
 
 // User identification
-export function identifyUser(userId: string, traits?: Record<string, any>) {
+export function identifyUser(userId: string, traits?: Record<string, unknown>) {
   if (!isInitialized) return;
 
   // Mask email if present in traits
@@ -152,7 +152,7 @@ export const analytics = {
   },
 
   // Page views
-  trackPageView: (page: string, properties?: Record<string, any>) => {
+  trackPageView: (page: string, properties?: Record<string, unknown>) => {
     if (!isInitialized) return;
     posthog.capture("$pageview", {
       $current_url: window.location.href,
@@ -162,7 +162,7 @@ export const analytics = {
   },
 
   // Feature usage
-  trackFeatureUsed: (feature: string, properties?: Record<string, any>) => {
+  trackFeatureUsed: (feature: string, properties?: Record<string, unknown>) => {
     if (!isInitialized) return;
     posthog.capture("feature_used", {
       feature_name: feature,
@@ -172,7 +172,7 @@ export const analytics = {
   },
 
   // Error tracking
-  trackError: (error: string, context?: Record<string, any>) => {
+  trackError: (error: string, context?: Record<string, unknown>) => {
     if (!isInitialized) return;
     posthog.capture("error_occurred", {
       error_message: error.slice(0, 100), // Truncate for privacy
@@ -207,7 +207,6 @@ export function shutdownPostHog() {
   if (isInitialized) {
     posthog.opt_out_capturing();
     isInitialized = false;
-    console.log("PostHog: Shut down due to consent withdrawal");
   }
 }
 

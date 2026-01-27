@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, LucideIcon } from "lucide-react";
 
 interface OperationsStat {
   title: string;
   value: string | number;
   description: string;
-  icon: any;
+  icon: LucideIcon;
   trend?: string;
   status?: "success" | "warning" | "error" | "info";
 }

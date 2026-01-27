@@ -17,9 +17,11 @@ export function EmptyState({ icon: Icon, title, description, action, className }
         "flex flex-col items-center justify-center p-8 text-center border rounded-lg bg-card shadow-sm",
         className
       )}
+      role="status"
+      aria-label={`${title}: ${description}`}
     >
       {Icon && (
-        <div className="bg-muted p-4 rounded-full mb-4">
+        <div className="bg-muted p-4 rounded-full mb-4" aria-hidden="true">
           <Icon className="h-8 w-8 text-muted-foreground" />
         </div>
       )}
