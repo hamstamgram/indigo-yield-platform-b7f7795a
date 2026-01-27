@@ -127,6 +127,14 @@
     @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 shadow-lg;
   }
 
+  .glass-dialog {
+    @apply bg-black/90 backdrop-blur-2xl border-white/10;
+  }
+
+  .glass-card {
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 shadow-lg;
+  }
+
   .glass-card {
     @apply bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-card/80;
   }

@@ -29,6 +29,11 @@ const DrawerOverlay = React.forwardRef<
 ));
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
+/**
+ * DrawerContent - Base drawer content component
+ * NOTE: For dynamic content that may overflow, add `max-h-[90vh]` and `overflow-y-auto`
+ * to the className prop or wrap content in a ScrollArea.
+ */
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
