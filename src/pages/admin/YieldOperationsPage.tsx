@@ -164,7 +164,7 @@ function YieldOperationsContent() {
 
       {/* Yield Distribution Dialog */}
       <Dialog open={ops.showYieldDialog} onOpenChange={ops.setShowYieldDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-panel border-white/10 p-0 overflow-hidden">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-panel border-white/10 p-0">
           <DialogHeader className="p-6 bg-black/20 border-b border-white/5">
             <DialogTitle className="flex items-center gap-3 text-2xl">
               {ops.selectedFund && (
