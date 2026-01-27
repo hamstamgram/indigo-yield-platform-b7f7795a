@@ -1,109 +1,212 @@
 
-# Fix Scroll Issues Across All Pages
+# UI/UX Audit: Comprehensive Issue Analysis
 
-## Problem Identified
-When recording a yield event (and potentially in other dialogs/sheets), users cannot scroll down to see all content. This is caused by conflicting CSS classes that block scrolling.
+## Executive Summary
+This audit covers scrolling issues, dialog sizing, z-index stacking, overflow handling, and other UI/UX patterns across the application. Most core UI primitives are well-designed, but there are specific areas requiring attention.
 
-## Root Causes
+---
 
-### 1. Yield Operations Dialog - CRITICAL FIX
-**File:** `src/pages/admin/YieldOperationsPage.tsx` (Line 167)
+## 1. CRITICAL: Dialog Scroll Issues (Already Fixed)
 
-The DialogContent has conflicting overflow classes:
+### Fixed Issues
+| File | Issue | Status |
+|------|-------|--------|
+| `src/pages/admin/YieldOperationsPage.tsx` | `overflow-hidden` overriding `overflow-y-auto` | FIXED |
+| `src/components/admin/yields/YieldCorrectionPanel.tsx` | `overflow-hidden` blocking scroll | FIXED |
+
+---
+
+## 2. POTENTIAL SCROLL ISSUES TO ADDRESS
+
+### 2.1 Command Dialog - Limited List Height
+**File:** `src/components/ui/command.tsx` (Line 29)
 ```tsx
-className="max-w-4xl max-h-[90vh] overflow-y-auto glass-panel border-white/10 p-0 overflow-hidden"
+<DialogContent className="overflow-hidden p-0 shadow-lg">
+```
+**Issue:** The `overflow-hidden` is intentional here since the `CommandList` inside has its own scroll area (`max-h-[300px] overflow-y-auto`). However, the `300px` max height may be too restrictive on larger screens.
+
+**Recommendation:** Consider increasing to `max-h-[400px]` or use viewport-relative units for better scalability.
+
+### 2.2 Drawer Content Without Explicit Scroll
+**File:** `src/components/ui/drawer.tsx` (Line 40-43)
+```tsx
+className={cn(
+  "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+  className
+)}
+```
+**Issue:** Base DrawerContent lacks default `max-h` and `overflow-y-auto`. Individual usages must handle this.
+
+**Current Usage:** `WithdrawalDetailsDrawer.tsx` correctly handles this with `max-h-[90vh]` and inner `overflow-y-auto` on the wrapper div.
+
+**Recommendation:** Add defensive defaults to base component:
+```tsx
+className="... max-h-[90vh] overflow-y-auto"
 ```
 
-The `overflow-hidden` at the end **overrides** the earlier `overflow-y-auto`, preventing scrolling inside the dialog.
-
-**Fix:** Remove the conflicting `overflow-hidden` class:
+### 2.3 InvestorDetailPanel - Inner Content Scroll
+**File:** `src/components/admin/investors/detail/InvestorDetailPanel.tsx` (Line 127)
 ```tsx
-className="max-w-4xl max-h-[90vh] overflow-y-auto glass-panel border-white/10 p-0"
+<div className="h-full flex flex-col overflow-hidden">
 ```
+**Analysis:** This is correct - the parent has `overflow-hidden` to contain, while the inner tabs area (Line 171) has `overflow-y-auto`. Pattern is valid.
 
 ---
 
-### 2. Yield Correction Panel Sheet - SECONDARY FIX
-**File:** `src/components/admin/yields/YieldCorrectionPanel.tsx` (Line 169)
+## 3. DIALOG SIZE CONSISTENCY AUDIT
 
-The SheetContent has `overflow-hidden` which could block scrolling:
+### Current Sizing Patterns
+| Size Class | Usage | Files |
+|------------|-------|-------|
+| `max-w-lg` (32rem) | Default dialogs | Base dialog.tsx, alert-dialog.tsx |
+| `sm:max-w-[425px]` | Small forms | InviteInvestorDialog |
+| `sm:max-w-[500px]` | Medium forms | AddTransactionDialog, RejectWithdrawalDialog |
+| `sm:max-w-[700px]` | Large wizards | AddInvestorDialog |
+| `max-w-2xl` | Asset editors | CreateAssetDialog, EditAssetDialog |
+| `max-w-3xl` | Data editors | PerformanceDataEditor |
+| `max-w-4xl` | Large tables | YieldOperationsPage, InvestorReports, BatchSendDialog |
+| `max-w-5xl` | Preview modals | ReportPreviewModal |
+
+**Finding:** Sizing is consistent and appropriate for content types.
+
+### Height Constraints
+| Height Class | Files |
+|--------------|-------|
+| `max-h-[80vh]` | InvestorReports (slightly smaller) |
+| `max-h-[90vh]` | Most dialogs (standard) |
+| `max-h-[95vh]` | ReportPreviewModal (needs maximum space) |
+
+**Recommendation:** Standardize on `max-h-[90vh]` unless there's a specific reason for variation.
+
+---
+
+## 4. Z-INDEX STACKING AUDIT
+
+### Current Z-Index Hierarchy (Correct)
+
+| Component | Z-Index | Status |
+|-----------|---------|--------|
+| Sidebar | `z-50` | Base layer |
+| Dialog/Sheet Overlay | `z-50` | Matches sidebar |
+| Dialog/Sheet Content | `z-50` | Correct |
+| Dropdown/Select/Popover | `z-[100]` | Above dialogs |
+| Tooltip | `z-[100]` | Above dialogs |
+
+**Finding:** All overlay components use proper portals and z-indexing. No transparency issues detected - all have solid backgrounds (`bg-black/95`, `bg-black/90`).
+
+---
+
+## 5. POTENTIAL UX IMPROVEMENTS
+
+### 5.1 Glass-Dialog Class - Undefined
+**Files:** `AdminRequestsQueuePage.tsx`, `AdminUserManagement.tsx`, `FundManagementPage.tsx`
 ```tsx
-className="w-full sm:max-w-2xl overflow-hidden flex flex-col"
+<DialogContent className="glass-dialog border-white/10 bg-black/90 backdrop-blur-2xl">
 ```
+**Issue:** `glass-dialog` class is not defined in `index.css`. The styling works because of the other classes, but the undefined class could cause confusion.
 
-While it uses a `ScrollArea` inside, the parent `overflow-hidden` combined with the flex column layout may cause issues on smaller viewports.
+**Recommendation:** Either define `glass-dialog` in `index.css` or remove it from usages.
 
-**Fix:** Change to use `overflow-y-auto` or rely on the internal ScrollArea:
+### 5.2 ActivityFeed CardContent Overflow
+**File:** `src/components/common/ActivityFeed.tsx` (Line 327)
 ```tsx
-className="w-full sm:max-w-2xl flex flex-col overflow-y-auto"
+<CardContent className="flex-1 overflow-hidden p-0">{content}</CardContent>
 ```
+**Analysis:** This is correct - the `overflow-hidden` is intentional because `ScrollArea` inside handles scrolling. Pattern is valid.
+
+### 5.3 SecurityTab Dialog - Missing Scroll Handling
+**File:** `src/components/account/SecurityTab.tsx` (Line 73)
+```tsx
+<DialogContent>
+```
+**Issue:** No explicit `max-h` or `overflow-y-auto`. This dialog has minimal content so it's unlikely to overflow, but for consistency should have defensive styling.
+
+**Recommendation:** Add `max-h-[90vh] overflow-y-auto` for consistency.
 
 ---
 
-### 3. DashboardLayout Main Content - ALREADY CORRECT
-**File:** `src/components/layout/DashboardLayout.tsx`
+## 6. MOBILE RESPONSIVENESS
 
-The layout structure is correct:
-- Root container: `overflow-hidden` (to contain the layout)
-- Main element: `overflow-y-auto` (allows page scrolling)
+### Sheet Width on Mobile
+**File:** `src/components/ui/sheet.tsx`
+```tsx
+left: "inset-y-0 left-0 h-full w-3/4 border-r ... sm:max-w-sm"
+right: "inset-y-0 right-0 h-full w-3/4 border-l ... sm:max-w-sm"
+```
+**Analysis:** Correct - uses `w-3/4` on mobile, `sm:max-w-sm` on larger screens.
 
-This is working as designed. The memory note confirms this was previously fixed.
-
----
-
-### 4. ActionBar Bottom Padding - ALREADY IMPLEMENTED
-The fixed ActionBar at the bottom requires pages to have `pb-20` to prevent content being hidden. This is already applied on affected pages (YieldOperationsPage has `pb-20`).
-
----
-
-## Implementation Steps
-
-### Step 1: Fix Yield Dialog Scroll
-Remove conflicting `overflow-hidden` from the DialogContent in YieldOperationsPage.
-
-### Step 2: Fix Yield Correction Panel Scroll
-Update SheetContent to allow scrolling properly.
-
-### Step 3: Audit Other Dialogs (Optional)
-Review other dialog/sheet components for similar issues.
+### Dialog on Mobile
+**File:** `src/components/ui/dialog.tsx`
+```tsx
+className={cn(
+  "... w-full max-w-lg ... max-h-[90vh] overflow-y-auto",
+  "sm:rounded-3xl",
+  ...
+)}
+```
+**Analysis:** Correct - `w-full` ensures dialogs fit mobile, `max-h-[90vh]` prevents overflow.
 
 ---
 
-## Files to Modify
+## 7. IMPLEMENTATION PLAN
 
-| File | Change |
-|------|--------|
-| `src/pages/admin/YieldOperationsPage.tsx` | Remove `overflow-hidden` from DialogContent (line 167) |
-| `src/components/admin/yields/YieldCorrectionPanel.tsx` | Replace `overflow-hidden` with `overflow-y-auto` (line 169) |
+### Priority 1: Consistency Fixes
+1. **Add `glass-dialog` definition to index.css** - Create a reusable utility class
+2. **Audit SecurityTab dialog** - Add defensive scroll handling
 
----
+### Priority 2: Enhancement
+3. **Increase CommandList height** - Change from `300px` to `400px`
+4. **Standardize height constraints** - Document standard as `max-h-[90vh]`
 
-## Testing Checklist
-After implementation:
-1. Open Yield Operations page
-2. Click "Record Yield" on any fund
-3. Fill in the form and click Preview
-4. Verify the preview results section is fully scrollable
-5. Test the Apply Yield confirmation dialog
-6. Open the Yield Correction panel (from Recorded Yields page)
-7. Verify all content is scrollable in the sheet
+### Priority 3: Documentation
+5. **Create UI pattern guide** - Document overflow handling patterns for future development
 
 ---
 
-## Technical Details
+## 8. CODE CHANGES REQUIRED
 
-The issue stems from CSS specificity:
-- When multiple overflow classes are present, the **last one wins**
-- `overflow-hidden` on a parent blocks scrolling even if children have `overflow-y-auto`
-- `max-h-[90vh]` requires `overflow-y-auto` to work correctly for tall content
-
-### CSS Order of Application
+### 8.1 Define glass-dialog Class
+**File:** `src/index.css`
 ```css
-/* What's happening: */
-.element {
-  overflow-y: auto;    /* First: enables scroll */
-  overflow: hidden;    /* Last: OVERRIDES, disables scroll */
+@layer components {
+  .glass-dialog {
+    @apply bg-black/90 backdrop-blur-2xl border-white/10;
+  }
 }
 ```
 
-The fix ensures scroll is preserved while maintaining the visual design.
+### 8.2 SecurityTab Dialog Consistency
+**File:** `src/components/account/SecurityTab.tsx`
+```tsx
+// Line 73
+<DialogContent className="max-h-[90vh] overflow-y-auto">
+```
+
+### 8.3 CommandList Height Increase
+**File:** `src/components/ui/command.tsx`
+```tsx
+// Line 63
+className={cn("max-h-[400px] overflow-y-auto overflow-x-hidden", className)}
+```
+
+### 8.4 Drawer Component Defensive Defaults (Optional)
+**File:** `src/components/ui/drawer.tsx`
+Add comment documenting that individual usages should add `max-h-[90vh]` when content is dynamic.
+
+---
+
+## 9. SUMMARY
+
+### Issues Found
+- **Critical:** 0 (previous scroll issues already fixed)
+- **Minor:** 3 (undefined class, missing defensive styles)
+- **Recommendations:** 4 (consistency improvements)
+
+### Overall Assessment
+The UI component library is well-structured with:
+- Consistent z-index hierarchy
+- Proper portal usage for overlays
+- Solid backgrounds (no transparency issues)
+- Mobile-responsive dialog/sheet sizing
+
+The few issues identified are minor consistency improvements rather than functional bugs.
