@@ -10,7 +10,7 @@ import {
   setupOperationsRealtimeChannel,
   removeOperationsChannel,
   type OperationsAuditLogEntry as AuditLogEntry,
-} from "@/services";
+} from "@/services/admin";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
@@ -28,10 +28,7 @@ export function useRecentAuditLogs(limit: number = 10) {
  * @param onUpdate - Callback to invoke when updates occur (debounced)
  * @param debounceMs - Debounce delay in milliseconds (default: 1000ms)
  */
-export function useOperationsRealtime(
-  onUpdate: () => void,
-  debounceMs: number = 1000
-) {
+export function useOperationsRealtime(onUpdate: () => void, debounceMs: number = 1000) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedUpdate = useCallback(() => {

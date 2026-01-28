@@ -12,9 +12,9 @@ import {
   voidYieldDistribution,
   updateYieldAum,
   type YieldRecord,
-  type YieldFilters,
   type CorrectionHistoryItem,
-} from "@/services";
+} from "@/services/admin";
+import { type YieldFilters } from "@/services/admin";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 

@@ -16,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui";
-import type { YieldRecord } from "@/services";
+import type { YieldRecord } from "@/services/admin";
 
 interface YieldActionsColumnProps {
   record: YieldRecord;

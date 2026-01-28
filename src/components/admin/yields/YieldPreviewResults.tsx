@@ -33,7 +33,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { type YieldCalculationResult, type YieldDistribution } from "@/services";
+import { type YieldCalculationResult, type YieldDistribution } from "@/services/admin";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
 import { toNum } from "@/utils/numeric";
 
@@ -351,7 +351,10 @@ export function YieldPreviewResults({
                       {formatValue(toNum(inv.adb ?? inv.currentBalance), asset)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs text-blue-600">
-                      {((toNum(inv.adbWeight ?? 0) || toNum(inv.allocationPercentage) / 100) * 100).toFixed(2)}%
+                      {(
+                        (toNum(inv.adbWeight ?? 0) || toNum(inv.allocationPercentage) / 100) * 100
+                      ).toFixed(2)}
+                      %
                     </TableCell>
                   </>
                 )}

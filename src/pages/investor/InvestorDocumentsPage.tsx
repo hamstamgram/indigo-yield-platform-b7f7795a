@@ -1,14 +1,19 @@
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Button, Badge,
-  ResponsiveTable, EmptyState,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  ResponsiveTable,
+  EmptyState,
 } from "@/components/ui";
 import { FolderOpen, Download, FileText, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";
-import type { InvestorDocument } from "@/services";
+import type { InvestorDocument } from "@/services/investor";
 import { logError } from "@/lib/logger";
 
 export default function InvestorDocumentsPage() {
@@ -76,9 +81,9 @@ export default function InvestorDocumentsPage() {
     {
       header: "Actions",
       cell: (item: InvestorDocument) => (
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => handleDownload(item)}
           disabled={downloadMutation.isPending}
         >
@@ -91,11 +96,7 @@ export default function InvestorDocumentsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-20 px-4 md:px-6 lg:px-0">
-      <PageHeader
-        title="Documents"
-        subtitle="Access your investment documents"
-        icon={FolderOpen}
-      />
+      <PageHeader title="Documents" subtitle="Access your investment documents" icon={FolderOpen} />
 
       <Card>
         <CardHeader>
@@ -107,11 +108,7 @@ export default function InvestorDocumentsPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : documents && documents.length > 0 ? (
-            <ResponsiveTable
-              data={documents}
-              columns={columns}
-              keyExtractor={(item) => item.id}
-            />
+            <ResponsiveTable data={documents} columns={columns} keyExtractor={(item) => item.id} />
           ) : (
             <EmptyState
               icon={FolderOpen}

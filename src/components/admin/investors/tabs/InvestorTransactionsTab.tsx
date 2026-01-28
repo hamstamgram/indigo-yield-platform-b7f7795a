@@ -5,12 +5,18 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Badge, Button, Skeleton,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Button,
+  Skeleton,
 } from "@/components/ui";
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
 import { useRealtimeSubscription } from "@/hooks";
-import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { formatAssetAmount } from "@/utils/assets";
 import {
   useInvestorTransactions,
@@ -133,7 +139,10 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                   <div className="text-right">
                     <div className="font-medium">
                       {txType === "WITHDRAWAL" ? "-" : ""}
-                      {formatAssetAmount(Number(transaction.amount), transaction.fund?.code || "USD")}
+                      {formatAssetAmount(
+                        Number(transaction.amount),
+                        transaction.fund?.code || "USD"
+                      )}
                     </div>
                   </div>
                 </div>

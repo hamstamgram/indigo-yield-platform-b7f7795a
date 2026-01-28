@@ -1,6 +1,6 @@
 /**
  * Delivery Mutations Hook
- * 
+ *
  * React Query mutations for delivery operations with proper cache invalidation.
  * Consolidates all delivery-related mutations in a single hook.
  */
@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deliveryService } from "@/services";
+import { deliveryService } from "@/services/admin";
 import { invalidateAfterDeliveryOp } from "@/utils/cacheInvalidation";
 import type { DeliveryMode, BatchSendResult, QueueResult } from "@/types/domains/delivery";
 import { logDebug } from "@/lib/logger";
@@ -29,9 +29,14 @@ export interface SendProgress {
 function handleMailerSendError(error: Error, toastFn: typeof toast) {
   const errorMessage = error.message || "Unknown error";
 
-  if (errorMessage.includes("quota") || errorMessage.includes("limit") || errorMessage.includes("402")) {
+  if (
+    errorMessage.includes("quota") ||
+    errorMessage.includes("limit") ||
+    errorMessage.includes("402")
+  ) {
     toastFn.error("MailerSend quota exceeded", {
-      description: "Your MailerSend trial account has reached its sending limit. Upgrade your plan at mailersend.com to continue sending.",
+      description:
+        "Your MailerSend trial account has reached its sending limit. Upgrade your plan at mailersend.com to continue sending.",
       duration: 8000,
     });
   } else if (errorMessage.includes("401") || errorMessage.includes("unauthorized")) {
@@ -74,7 +79,13 @@ export function useDeliveryMutations(selectedPeriodId: string) {
 
   // Send single delivery via MailerSend
   const sendViaMutation = useMutation({
-    mutationFn: async ({ deliveryId, deliveryMode }: { deliveryId: string; deliveryMode: DeliveryMode }) => {
+    mutationFn: async ({
+      deliveryId,
+      deliveryMode,
+    }: {
+      deliveryId: string;
+      deliveryMode: DeliveryMode;
+    }) => {
       return deliveryService.sendViaMailerSend(deliveryId, deliveryMode);
     },
     onSuccess: (data) => {
@@ -90,13 +101,22 @@ export function useDeliveryMutations(selectedPeriodId: string) {
 
   // Batch send via MailerSend - auto-queues if queue is empty
   const processMutation = useMutation({
-    mutationFn: async ({ periodId, deliveryMode }: { periodId: string; deliveryMode: DeliveryMode }): Promise<BatchSendResult> => {
+    mutationFn: async ({
+      periodId,
+      deliveryMode,
+    }: {
+      periodId: string;
+      deliveryMode: DeliveryMode;
+    }): Promise<BatchSendResult> => {
       // Get queued deliveries for period
       let queuedIds = await deliveryService.fetchQueuedDeliveryIds(periodId, 25);
 
       // AUTO-QUEUE: If queue is empty, automatically queue remaining statements first
       if (queuedIds.length === 0) {
-        logDebug("useDeliveryMutations.autoQueue", { periodId, message: "Queue empty, auto-queueing statements" });
+        logDebug("useDeliveryMutations.autoQueue", {
+          periodId,
+          message: "Queue empty, auto-queueing statements",
+        });
 
         const queueResult = await deliveryService.queueDeliveries(periodId, "email");
         logDebug("useDeliveryMutations.autoQueueResult", { periodId, queueResult });
@@ -108,11 +128,12 @@ export function useDeliveryMutations(selectedPeriodId: string) {
             total: 0,
             autoQueued: true,
             queueResult,
-            reason: queueResult.already_exists_count > 0
-              ? `All ${queueResult.already_exists_count} statements already processed`
-              : queueResult.skipped_missing_email > 0
-                ? `${queueResult.skipped_missing_email} investors have no email address`
-                : "No statements generated for this period",
+            reason:
+              queueResult.already_exists_count > 0
+                ? `All ${queueResult.already_exists_count} statements already processed`
+                : queueResult.skipped_missing_email > 0
+                  ? `${queueResult.skipped_missing_email} investors have no email address`
+                  : "No statements generated for this period",
           };
         }
 

@@ -6,7 +6,8 @@ import { AssetRef as Asset } from "@/types/asset";
 import FundAssetDropdown from "../shared/FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { getAllFunds, updateInvestorPosition, profileService } from "@/services";
+import { getAllFunds, updateInvestorPosition } from "@/services/investor";
+import { profileService } from "@/services/shared";
 import { formatAssetAmount } from "@/utils/assets";
 import { logWarn, logError } from "@/lib/logger";
 
@@ -102,7 +103,10 @@ const MobileInvestorCard = ({
         // Find the fund for this asset
         const fund = funds.find((f) => f.asset === symbol);
         if (!fund) {
-          logWarn("MobileInvestorCard.handleSave", { message: `No fund found for asset ${symbol}`, symbol });
+          logWarn("MobileInvestorCard.handleSave", {
+            message: `No fund found for asset ${symbol}`,
+            symbol,
+          });
           return;
         }
 
@@ -117,7 +121,10 @@ const MobileInvestorCard = ({
           });
 
           if (!result.success) {
-            logError("MobileInvestorCard.updatePosition", result.error, { symbol, investorId: investor.id });
+            logError("MobileInvestorCard.updatePosition", result.error, {
+              symbol,
+              investorId: investor.id,
+            });
           }
         }
       });

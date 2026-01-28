@@ -4,12 +4,19 @@
  */
 
 import {
-  Card, CardContent,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Button, Input, Label,
+  Card,
+  CardContent,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Button,
+  Input,
+  Label,
 } from "@/components/ui";
 import { Filter } from "lucide-react";
-import type { YieldFilters } from "@/services";
+import type { YieldFilters } from "@/services/admin";
 
 interface Fund {
   id: string;
@@ -87,11 +94,7 @@ export function YieldsFilterBar({ filters, funds, onFilterChange, onReset }: Yie
             />
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onReset}
-          >
+          <Button variant="ghost" size="sm" onClick={onReset}>
             <Filter className="h-4 w-4 mr-1" />
             Reset
           </Button>

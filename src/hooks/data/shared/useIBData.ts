@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/services/auth";
-import { ibService } from "@/services";
+import { ibService } from "@/services/ib";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
@@ -198,7 +198,9 @@ export function useUpdateIBProfile() {
       invalidateAfterIBOperation(queryClient, user?.id, user?.id);
     },
     onError: (error) => {
-      toast.error("Failed to update profile: " + (error instanceof Error ? error.message : "Unknown error"));
+      toast.error(
+        "Failed to update profile: " + (error instanceof Error ? error.message : "Unknown error")
+      );
     },
   });
 }

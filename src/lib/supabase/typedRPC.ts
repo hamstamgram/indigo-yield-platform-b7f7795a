@@ -5,7 +5,7 @@
  * Includes runtime validation for enum parameters to prevent database errors.
  *
  * NOTE: This is a legacy wrapper that internally uses the canonical RPC gateway.
- * For new code, prefer importing { rpc } from "@/lib/rpc" directly.
+ * For new code, prefer importing { rpc } from "@/lib/rpc/index" directly.
  *
  * Usage:
  * ```typescript
@@ -20,7 +20,7 @@
  */
 
 import type { Database } from "@/integrations/supabase/types";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 
 // Extract RPC function types from Database
 type RPCFunctions = Database["public"]["Functions"];

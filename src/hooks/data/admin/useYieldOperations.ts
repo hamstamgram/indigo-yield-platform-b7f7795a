@@ -9,7 +9,7 @@ import {
   getFundInvestorComposition,
   applyYieldDistribution,
   type YieldCalculationInput,
-} from "@/services";
+} from "@/services/admin";
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";

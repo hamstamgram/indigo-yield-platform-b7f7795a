@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 import {
   Withdrawal,
   WithdrawalFilters,

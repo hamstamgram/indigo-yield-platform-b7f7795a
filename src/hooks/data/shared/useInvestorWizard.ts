@@ -5,7 +5,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createInvestorWithWizard } from "@/services";
+import { createInvestorWithWizard } from "@/services/admin";
 import type { WizardResult, WizardProgressCallback } from "@/services/admin/investorWizardService";
 import { WizardFormData } from "@/components/admin/investors/wizard/types";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -31,11 +31,11 @@ export function useCreateInvestorWizard() {
       };
 
       const result = await createInvestorWithWizard(wizardData, onProgress);
-      
+
       if (!result.success) {
         throw new Error(result.error || "Failed to create investor");
       }
-      
+
       return result;
     },
     onSuccess: () => {

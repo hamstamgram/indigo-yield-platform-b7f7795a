@@ -20,12 +20,14 @@ import {
   getActiveSessions,
   getAccessLogs,
   revokeSession,
+} from "@/services/investor";
+import {
   type Session,
   type AccessLog,
   type UserSettings,
   type InvestorProfile,
   type MonthlyStatement,
-} from "@/services";
+} from "@/services/investor";
 
 // Re-export types
 export type { Session, AccessLog, UserSettings, InvestorProfile, MonthlyStatement };

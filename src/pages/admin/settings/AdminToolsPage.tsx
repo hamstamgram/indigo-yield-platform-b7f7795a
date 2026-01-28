@@ -21,7 +21,8 @@ import {
   DialogTitle,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { adminToolsService, type ToolResult } from "@/services/shared";
+import { adminToolsService } from "@/services/admin";
+import { type ToolResult } from "@/services/shared";
 import { AdminGuard } from "@/components/admin";
 import {
   Wrench,
@@ -79,7 +80,7 @@ function AdminToolsContent() {
     try {
       const result = await adminToolsService.runTool(toolId);
       setResults((prev) => ({ ...prev, [toolId]: result }));
-      
+
       toast({
         title: result.success ? "Success" : "Warning",
         description: result.message,
@@ -111,9 +112,7 @@ function AdminToolsContent() {
             <Wrench className="h-8 w-8" />
             Admin Tools
           </h1>
-          <p className="text-muted-foreground mt-1">
-            System utilities and maintenance actions
-          </p>
+          <p className="text-muted-foreground mt-1">System utilities and maintenance actions</p>
         </div>
       </div>
 
@@ -156,9 +155,7 @@ function AdminToolsContent() {
             <CardContent>
               <CardDescription>{tool.description}</CardDescription>
               {results[tool.id] && (
-                <p className="text-sm mt-2 text-muted-foreground">
-                  {results[tool.id].message}
-                </p>
+                <p className="text-sm mt-2 text-muted-foreground">{results[tool.id].message}</p>
               )}
             </CardContent>
           </Card>

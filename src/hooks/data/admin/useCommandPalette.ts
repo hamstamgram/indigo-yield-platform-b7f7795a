@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { commandPaletteService, type InvestorSearchResult } from "@/services";
+import { commandPaletteService, type InvestorSearchResult } from "@/services/admin";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**

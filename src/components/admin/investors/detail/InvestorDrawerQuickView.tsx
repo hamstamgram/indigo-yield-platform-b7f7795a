@@ -1,7 +1,7 @@
 /**
  * InvestorDrawerQuickView - Quick view content for drawer
  * Shows: Header, KPI chips, Quick actions, Positions summary, Recent activity
- * 
+ *
  * Refactored to use useInvestorQuickView and useInvestorRecentActivity data hooks
  */
 
@@ -11,21 +11,24 @@ import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   Button,
   Badge,
-  Card, CardContent, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Separator,
 } from "@/components/ui";
-import { 
-  ExternalLink, 
-  Plus, 
-  FileOutput, 
-  FileText, 
-  TrendingUp, 
+import {
+  ExternalLink,
+  Plus,
+  FileOutput,
+  FileText,
+  TrendingUp,
   TrendingDown,
   Minus,
-  ArrowRight
+  ArrowRight,
 } from "lucide-react";
 import { InvestorKpiChips } from "./InvestorKpiChips";
-import { AddTransactionDialog } from "../../AddTransactionDialog";
+import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { useInvestorQuickView, useInvestorRecentActivity } from "@/hooks/data";
 import { formatTokenAmount } from "@/utils/statementCalculations";
 import { format } from "date-fns";
@@ -49,8 +52,15 @@ export function InvestorDrawerQuickView({
   const [showAddTransaction, setShowAddTransaction] = useState(false);
 
   // Use data hooks for fetching
-  const { data: quickViewData, isLoading: isLoadingQuickView, refetch: refetchQuickView } = useInvestorQuickView(investorId);
-  const { data: recentActivity = [], isLoading: isLoadingActivity } = useInvestorRecentActivity(investorId, 5);
+  const {
+    data: quickViewData,
+    isLoading: isLoadingQuickView,
+    refetch: refetchQuickView,
+  } = useInvestorQuickView(investorId);
+  const { data: recentActivity = [], isLoading: isLoadingActivity } = useInvestorRecentActivity(
+    investorId,
+    5
+  );
 
   const isLoading = isLoadingQuickView || isLoadingActivity;
   const positions = quickViewData?.positions || [];
@@ -123,9 +133,9 @@ export function InvestorDrawerQuickView({
           View Full Profile
         </Button>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="flex-1"
             onClick={() => setShowAddTransaction(true)}
             disabled={!selectedFundId}
@@ -133,19 +143,11 @@ export function InvestorDrawerQuickView({
             <Plus className="h-4 w-4 mr-1.5" />
             Add Transaction
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleViewWithdrawals}
-          >
+          <Button variant="ghost" size="sm" onClick={handleViewWithdrawals}>
             <FileOutput className="h-4 w-4 mr-1.5" />
             Withdrawals
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleViewReports}
-          >
+          <Button variant="ghost" size="sm" onClick={handleViewReports}>
             <FileText className="h-4 w-4 mr-1.5" />
             Reports
           </Button>
@@ -170,12 +172,13 @@ export function InvestorDrawerQuickView({
                 <div>
                   <span className="font-medium text-sm">{pos.fund_code}</span>
                   <span className="text-xs text-muted-foreground ml-2">
-                    <FinancialValue value={pos.shares} displayDecimals={4} showAsset={false} /> shares
+                    <FinancialValue value={pos.shares} displayDecimals={4} showAsset={false} />{" "}
+                    shares
                   </span>
                 </div>
-                <FinancialValue 
-                  value={pos.current_value} 
-                  asset={pos.fund_code} 
+                <FinancialValue
+                  value={pos.current_value}
+                  asset={pos.fund_code}
                   className="font-medium text-sm"
                 />
               </div>
@@ -230,9 +233,9 @@ export function InvestorDrawerQuickView({
             ))
           )}
           {recentActivity.length > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="w-full mt-2"
               onClick={handleViewFullProfile}
             >

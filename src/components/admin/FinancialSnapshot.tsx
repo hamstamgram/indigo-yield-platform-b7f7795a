@@ -2,15 +2,21 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Radio, AlertCircle, RefreshCw, TrendingUp } from "lucide-react";
 import {
-  Card, CardContent, Badge, Button, Calendar,
-  Popover, PopoverContent, PopoverTrigger,
+  Card,
+  CardContent,
+  Badge,
+  Button,
+  Calendar,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useFundAUM } from "@/hooks";
 import { useHistoricalFlowData, useFundComposition } from "@/hooks/data";
 import { toast } from "sonner";
-import { FundSnapshotCard } from "./dashboard/FundSnapshotCard";
-import { InvestorCompositionSheet } from "./dashboard/InvestorCompositionSheet";
+import { FundSnapshotCard } from "@/features/admin/dashboard/FundSnapshotCard";
+import { InvestorCompositionSheet } from "@/features/admin/dashboard/InvestorCompositionSheet";
 
 export const FinancialSnapshot: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -38,13 +44,10 @@ export const FinancialSnapshot: React.FC = () => {
   }, [date]);
 
   // Memoize filtered funds to avoid recalculating on every render
-  const activeFunds = useMemo(() => 
-    funds.filter((f) => f.status === 'active'),
-    [funds]
-  );
+  const activeFunds = useMemo(() => funds.filter((f) => f.status === "active"), [funds]);
 
-  const selectedFund = useMemo(() => 
-    funds.find((f) => f.id === selectedFundId),
+  const selectedFund = useMemo(
+    () => funds.find((f) => f.id === selectedFundId),
     [funds, selectedFundId]
   );
 
@@ -64,7 +67,7 @@ export const FinancialSnapshot: React.FC = () => {
   // Check if viewing today
   const isViewingToday = useMemo(() => {
     if (!date) return false;
-    return format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+    return format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
   }, [date]);
 
   return (
@@ -72,9 +75,7 @@ export const FinancialSnapshot: React.FC = () => {
       {/* Controls Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            Fund Financials
-          </h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Fund Financials</h2>
           <div className="flex items-center gap-2 text-muted-foreground">
             {isViewingToday ? (
               <>
@@ -87,7 +88,9 @@ export const FinancialSnapshot: React.FC = () => {
                 )}
               </>
             ) : (
-              <span>Historical AUM and flows for {date ? format(date, 'PPP') : 'selected date'}.</span>
+              <span>
+                Historical AUM and flows for {date ? format(date, "PPP") : "selected date"}.
+              </span>
             )}
           </div>
         </div>

@@ -27,7 +27,7 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { createAdminTransaction } from "@/services";
+import { createAdminTransaction } from "@/services/shared";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import {
   processDepositWithYield,

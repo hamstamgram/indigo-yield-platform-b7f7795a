@@ -5,7 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 
 export interface PerformanceData {
   id: string;

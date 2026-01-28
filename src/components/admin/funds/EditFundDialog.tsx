@@ -8,9 +8,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
@@ -18,7 +29,15 @@ import { logError } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
 import { format } from "date-fns";
-import { updateFund, auditLogService, checkFundUsage } from "@/services";
+import {
+  createFund,
+  updateFund,
+  codeExists,
+  checkFundUsage,
+  type CreateFundInput,
+} from "@/services/admin";
+import { auditLogService } from "@/services/shared";
+import type { Fund } from "@/types/domains/fund";
 
 const editFundSchema = z.object({
   name: z
@@ -35,16 +54,6 @@ const editFundSchema = z.object({
 });
 
 type EditFundFormData = z.infer<typeof editFundSchema>;
-
-interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  status: string;
-  inception_date: string;
-  logo_url?: string | null;
-}
 
 interface EditFundDialogProps {
   open: boolean;
@@ -65,7 +74,10 @@ export function EditFundDialog({
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [tickerChangeBlocked, setTickerChangeBlocked] = useState(false);
   const [confirmTickerChange, setConfirmTickerChange] = useState("");
-  const [fundUsageInfo, setFundUsageInfo] = useState<{ positions: number; transactions: number } | null>(null);
+  const [fundUsageInfo, setFundUsageInfo] = useState<{
+    positions: number;
+    transactions: number;
+  } | null>(null);
   const { user } = useAuth();
 
   const {
@@ -207,11 +219,7 @@ export function EditFundDialog({
           {/* Logo Upload */}
           <div className="space-y-2">
             <Label>Fund Logo</Label>
-            <FundLogoUpload
-              currentLogoUrl={logoUrl}
-              onUpload={setLogoUrl}
-              disabled={loading}
-            />
+            <FundLogoUpload currentLogoUrl={logoUrl} onUpload={setLogoUrl} disabled={loading} />
           </div>
 
           {/* Fund Name */}

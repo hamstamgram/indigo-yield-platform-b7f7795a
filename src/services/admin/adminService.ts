@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import { investorDataService } from "@/services/investor/investorDataService";
 import type { InvestorPositionDetail } from "@/services/investor/investorDataService";
 import { requireAdmin } from "@/utils/authorizationHelper";

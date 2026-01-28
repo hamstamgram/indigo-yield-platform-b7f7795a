@@ -4,11 +4,7 @@
  */
 
 // Active funds
-export {
-  useActiveFunds,
-  formatFundLabel,
-  formatFundLabelFull,
-} from "./useActiveFunds";
+export { useActiveFunds, formatFundLabel, formatFundLabelFull } from "./useActiveFunds";
 
 // Asset data
 export { useAssetData } from "./useAssetData";
@@ -48,11 +44,7 @@ export {
 } from "./useDashboardMetrics";
 
 // Dashboard queries
-export {
-  useFundsWithAUM,
-  useRecentActivities,
-  usePendingItems,
-} from "./useDashboardQueries";
+export { useFundsWithAUM, useRecentActivities, usePendingItems } from "./useDashboardQueries";
 
 // Documents
 export { useDocuments } from "./useDocuments";
@@ -61,11 +53,7 @@ export { useDocuments } from "./useDocuments";
 export { useFinalizedPortfolio } from "./useFinalizedPortfolio";
 
 // Fund AUM
-export {
-  useFundAUM,
-  FUND_AUM_QUERY_KEY,
-  type FundAUMData,
-} from "./useFundAUM";
+export { useFundAUM, FUND_AUM_QUERY_KEY, type FundAUMData } from "./useFundAUM";
 
 // Funds
 export {
@@ -93,7 +81,7 @@ export {
 } from "./useIBSettings";
 
 // Investors list
-export { useInvestors } from "./useInvestors";
+// Investors list - moved to main imports below
 
 // Investor wizard
 export {
@@ -106,10 +94,7 @@ export {
 export { useNotificationBell } from "./useNotificationBell";
 
 // Notifications
-export {
-  useNotifications,
-  usePriceAlerts,
-} from "./useNotifications";
+export { useNotifications, usePriceAlerts } from "./useNotifications";
 
 // Profile settings
 export {
@@ -143,10 +128,7 @@ export {
 export { useRealtimeNotifications } from "./useRealtimeNotifications";
 
 // Realtime subscription
-export {
-  useRealtimeSubscription,
-  useLedgerSubscription,
-} from "./useRealtimeSubscription";
+export { useRealtimeSubscription, useLedgerSubscription } from "./useRealtimeSubscription";
 
 // Reports
 export {
@@ -160,12 +142,9 @@ export {
 } from "./useReports";
 
 // Statements
-export {
-  useStatements,
-  usePublishStatements,
-  type StatementDraft,
-} from "./useStatements";
+export { useStatements, usePublishStatements, type StatementDraft } from "./useStatements";
 
+// Transaction details
 // Transaction details
 export {
   useTransactionById,
@@ -182,7 +161,7 @@ export {
   type FundForTransaction,
   type BalanceCheckResult,
   type AumCheckResult,
-} from "./useTransactionDetails";
+} from "@/hooks/queries/useTransactions";
 
 // Transactions
 export {
@@ -193,28 +172,22 @@ export {
   useInvestorTransactionSummary,
   type TransactionWithFund,
   type TransactionFilters,
-} from "./useTransactions";
+} from "@/hooks/queries/useTransactions";
+
+// Investors list
+export { useInvestors } from "@/hooks/queries/useInvestors";
 
 // Unified investors
-export {
-  useUnifiedInvestors,
-  type EnrichedInvestor,
-} from "./useUnifiedInvestors";
+export { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/queries/useInvestors";
 
 // User assets
 export { useUserAssets, type UserAsset } from "./useUserAssets";
 
 // Available balance for withdrawals (security: accounts for pending withdrawals)
-export {
-  useAvailableBalance,
-  type AvailableBalanceResult,
-} from "./useAvailableBalance";
+export { useAvailableBalance, type AvailableBalanceResult } from "./useAvailableBalance";
 
 // Withdrawal form data
-export {
-  useInvestorOptions,
-  usePositionsForWithdrawal,
-} from "./useWithdrawalFormData";
+export { useInvestorOptions, usePositionsForWithdrawal } from "./useWithdrawalFormData";
 
 // Withdrawal mutations
 export { useWithdrawalMutations } from "./useWithdrawalMutations";
@@ -233,9 +206,7 @@ export {
 } from "./useYieldData";
 
 // Storage
-export {
-  useUploadFundLogo,
-} from "./useStorage";
+export { useUploadFundLogo } from "./useStorage";
 
 // IB Data (moved from hooks/ib/)
 export {

@@ -24,11 +24,13 @@ import {
   executePositionReset,
   type PositionResetPreview,
   type PositionResetResult,
-} from "@/services";
+} from "@/services/admin/systemAdminService";
 
 export function PositionResetDialog() {
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<"initial" | "preview" | "confirm" | "executing" | "complete" | "error">("initial");
+  const [step, setStep] = useState<
+    "initial" | "preview" | "confirm" | "executing" | "complete" | "error"
+  >("initial");
   const [preview, setPreview] = useState<PositionResetPreview | null>(null);
   const [confirmationCode, setConfirmationCode] = useState("");
   const [result, setResult] = useState<PositionResetResult | null>(null);
@@ -61,7 +63,7 @@ export function PositionResetDialog() {
   const fetchPreview = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const previewData = await getPositionResetPreview();
       setPreview(previewData);
@@ -115,8 +117,8 @@ export function PositionResetDialog() {
             Reset All Investor Positions
           </DialogTitle>
           <DialogDescription>
-            This will archive all current positions and reset balances to zero.
-            This action is auditable and reversible via database restore.
+            This will archive all current positions and reset balances to zero. This action is
+            auditable and reversible via database restore.
           </DialogDescription>
         </DialogHeader>
 
@@ -127,20 +129,24 @@ export function PositionResetDialog() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Destructive Operation</AlertTitle>
               <AlertDescription>
-                This will reset ALL investor positions, AUM, transactions, and performance data to zero.
-                Use this only when preparing for a clean data re-entry.
+                This will reset ALL investor positions, AUM, transactions, and performance data to
+                zero. Use this only when preparing for a clean data re-entry.
               </AlertDescription>
             </Alert>
 
             <div className="text-sm text-muted-foreground space-y-2">
-              <p><strong>What will be archived:</strong></p>
+              <p>
+                <strong>What will be archived:</strong>
+              </p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>All investor positions (balances reset to 0)</li>
                 <li>All fund performance records</li>
                 <li>All fund daily AUM records</li>
                 <li>All transaction history</li>
               </ul>
-              <p className="mt-3"><strong>What will be preserved:</strong></p>
+              <p className="mt-3">
+                <strong>What will be preserved:</strong>
+              </p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>Investor profiles and accounts</li>
                 <li>Fund definitions</li>
@@ -224,7 +230,8 @@ export function PositionResetDialog() {
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                This action cannot be undone through the UI. Archive data will be preserved for manual restoration.
+                This action cannot be undone through the UI. Archive data will be preserved for
+                manual restoration.
               </p>
             </div>
           </div>
@@ -272,7 +279,8 @@ export function PositionResetDialog() {
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Archive data is stored in *_archive tables and can be restored by database administrators.
+              Archive data is stored in *_archive tables and can be restored by database
+              administrators.
             </p>
           </div>
         )}
@@ -294,11 +302,7 @@ export function PositionResetDialog() {
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
-                onClick={fetchPreview}
-                disabled={loading}
-              >
+              <Button variant="destructive" onClick={fetchPreview} disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 View Impact
               </Button>
@@ -310,10 +314,7 @@ export function PositionResetDialog() {
               <Button variant="outline" onClick={() => setStep("initial")}>
                 Back
               </Button>
-              <Button 
-                variant="destructive" 
-                onClick={() => setStep("confirm")}
-              >
+              <Button variant="destructive" onClick={() => setStep("confirm")}>
                 Proceed to Confirmation
               </Button>
             </>
@@ -324,8 +325,8 @@ export function PositionResetDialog() {
               <Button variant="outline" onClick={() => setStep("preview")}>
                 Back
               </Button>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleExecuteReset}
                 disabled={loading || confirmationCode !== "RESET POSITIONS"}
               >
@@ -336,9 +337,7 @@ export function PositionResetDialog() {
           )}
 
           {(step === "complete" || step === "error") && (
-            <Button onClick={() => handleOpenChange(false)}>
-              Close
-            </Button>
+            <Button onClick={() => handleOpenChange(false)}>Close</Button>
           )}
         </DialogFooter>
       </DialogContent>

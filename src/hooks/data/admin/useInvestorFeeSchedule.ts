@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { feeScheduleService } from "@/services/shared";
+import { feeScheduleService } from "@/services/admin";
 
 export interface FeeScheduleEntry {
   id: string;

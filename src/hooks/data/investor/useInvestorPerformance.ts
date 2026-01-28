@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { performanceService } from "@/services";
+import { performanceService } from "@/services/shared";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useAuth } from "@/services/auth";
 

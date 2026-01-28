@@ -19,7 +19,7 @@ import {
 } from "@/components/ui";
 import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import type { YieldCalculationResult } from "@/services";
+import type { YieldCalculationResult } from "@/services/admin";
 import { toNum } from "@/utils/numeric";
 
 interface ReconciliationData {

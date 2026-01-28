@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import { generateUUID } from "@/lib/utils";
 
 export interface AdminInvite {

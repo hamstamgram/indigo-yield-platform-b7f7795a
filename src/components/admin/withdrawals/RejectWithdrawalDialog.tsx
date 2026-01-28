@@ -11,7 +11,7 @@ import {
   Label,
   Textarea,
 } from "@/components/ui";
-import { withdrawalService } from "@/services";
+import { withdrawalService } from "@/services/investor";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { logError } from "@/lib/logger";
@@ -74,13 +74,14 @@ export function RejectWithdrawalDialog({
             <div>
               <Label className="text-sm font-medium">Requested Amount</Label>
               <p className="text-sm text-muted-foreground">
-                {(typeof withdrawal.requested_amount === "string" 
-                  ? parseFloat(withdrawal.requested_amount) 
+                {(typeof withdrawal.requested_amount === "string"
+                  ? parseFloat(withdrawal.requested_amount)
                   : withdrawal.requested_amount
-                ).toLocaleString(undefined, { 
-                  minimumFractionDigits: 2, 
-                  maximumFractionDigits: 8 
-                })} {withdrawal.asset || 'tokens'}
+                ).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 8,
+                })}{" "}
+                {withdrawal.asset || "tokens"}
               </p>
             </div>
             <div>

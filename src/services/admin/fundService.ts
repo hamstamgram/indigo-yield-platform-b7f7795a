@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import type { Fund, FundRef } from "@/types/domains/fund";
 import { mapDbFundToFund, mapFundToDb } from "@/types/domains/fund";
 

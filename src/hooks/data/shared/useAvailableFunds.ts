@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { getAvailableFunds } from "@/services";
+import { getAvailableFunds } from "@/services/investor";
 
 export function useAvailableFunds() {
   return useQuery({

@@ -7,11 +7,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getYieldRecords,
   updateYieldRecord,
-  canEditYields,
   voidYieldRecord,
   getYieldDetails,
   canVoidYieldRecord,
-} from "@/services";
+} from "@/services/admin";
+import { canEditYields } from "@/services/admin";
 import type {
   YieldRecord,
   YieldFilters,

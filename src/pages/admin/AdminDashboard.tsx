@@ -34,7 +34,7 @@ import {
   ConcentrationRiskPanel,
   PlatformMetricsPanel,
   QuickActionsBar,
-} from "@/components/admin/dashboard";
+} from "@/features/admin/dashboard";
 import { useAdminStats } from "@/hooks";
 import {
   useUnacknowledgedAlertCount,

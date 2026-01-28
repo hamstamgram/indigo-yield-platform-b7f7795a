@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 
 class IBManagementService {
   /**

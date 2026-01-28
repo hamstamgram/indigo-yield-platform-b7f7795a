@@ -9,20 +9,12 @@ import { fundService } from "@/services/admin";
 import { auditLogService } from "@/services/shared";
 import { getPositionsByFund } from "@/services/investor";
 import { useAuth } from "@/services/auth";
-import type { FundStatus } from "@/types/domains/fund";
+import type { Fund, FundStatus } from "@/types/domains/fund";
 
-export interface FundWithMetrics {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  fund_class?: string;
-  status: string;
-  inception_date: string;
-  logo_url?: string | null;
-  created_at?: string | null;
+export interface FundWithMetrics extends Fund {
   total_aum: number;
   investor_count: number;
+  status: FundStatus | null; // Override status to match Fund or be specific
 }
 
 const QUERY_KEY = ["funds", "with-metrics"] as const;
@@ -40,10 +32,8 @@ export function useFundsWithMetrics() {
         (fundsData || []).map(async (fund) => {
           const positions = await getPositionsByFund(fund.id);
 
-          const total_aum = positions?.reduce(
-            (sum, p) => sum + Number(p.currentValue || 0),
-            0
-          ) || 0;
+          const total_aum =
+            positions?.reduce((sum, p) => sum + Number(p.currentValue || 0), 0) || 0;
           const uniqueInvestors = new Set(positions?.map((p) => p.investorId) || []);
 
           return {

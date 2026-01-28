@@ -2,12 +2,24 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Switch,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Switch,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { assetService } from "@/services";
+import { assetService } from "@/services/shared";
 import type { AssetFormData, AssetKind } from "@/types/asset";
 
 interface CreateAssetDialogProps {

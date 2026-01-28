@@ -5,7 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 
 // ============================================
 // Types
@@ -118,7 +118,7 @@ export async function cancelWithdrawalRequest(requestId: string, reason?: string
   });
 
   if (error) throw error;
-  
+
   // Check for RPC-level errors
   const result = data as { success?: boolean; message?: string; error_code?: string } | null;
   if (result && result.success === false) {

@@ -1,11 +1,12 @@
 /**
  * Portfolio Hooks
- * 
+ *
  * React Query hooks for investor portfolio operations
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { investorPortfolioService, type PortfolioPosition, type WithdrawalFormPosition } from "@/services";
+import { investorPortfolioService } from "@/services/investor";
+import { type PortfolioPosition, type WithdrawalFormPosition } from "@/services/investor";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
@@ -18,7 +19,9 @@ export function usePortfolioPositions() {
   return useQuery<PortfolioPosition[]>({
     queryKey: QUERY_KEYS.portfolioPositions,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
       return investorPortfolioService.getPortfolioPositions(user.id);
     },
@@ -32,7 +35,9 @@ export function useWithdrawalFormPositions() {
   return useQuery<WithdrawalFormPosition[]>({
     queryKey: QUERY_KEYS.withdrawalFormPositions,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
       return investorPortfolioService.getWithdrawalFormPositions(user.id);
     },
@@ -46,7 +51,9 @@ export function useMyWithdrawalsWithFunds() {
   return useQuery({
     queryKey: QUERY_KEYS.myWithdrawalsWithFunds,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
       return investorPortfolioService.getWithdrawalsWithFunds(user.id);
     },
@@ -68,7 +75,9 @@ export function useCreateWithdrawalRequest() {
 
   return useMutation({
     mutationFn: async (params: CreateWithdrawalParams) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       await investorPortfolioService.createWithdrawalRequest({

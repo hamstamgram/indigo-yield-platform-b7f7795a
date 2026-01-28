@@ -1,15 +1,10 @@
 import React, { useMemo, memo } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { OptimizedTable, Column } from "@/components/ui/optimized-table";
 import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets";
 import { Loader2, TrendingUp, Calendar } from "lucide-react";
 import { usePerformanceHistory } from "@/hooks/data/investor";
-import type { PerformanceHistoryRecord } from "@/services";
+import { type PerformanceHistoryRecord } from "@/services/shared";
 
 // Pre-calculate rate of return for a report
 interface ProcessedReport extends PerformanceHistoryRecord {
@@ -71,83 +66,87 @@ const calculateRate = (report: PerformanceHistoryRecord): number => {
 };
 
 // Memoized asset section component
-const AssetSection = memo(function AssetSection({ 
-  assetCode, 
-  reports 
-}: { 
-  assetCode: string; 
+const AssetSection = memo(function AssetSection({
+  assetCode,
+  reports,
+}: {
+  assetCode: string;
   reports: PerformanceHistoryRecord[];
 }) {
   // Memoize processed reports with pre-calculated rates
-  const processedReports = useMemo<ProcessedReport[]>(() => 
-    reports.map((report) => ({
-      ...report,
-      rate: calculateRate(report),
-    })),
+  const processedReports = useMemo<ProcessedReport[]>(
+    () =>
+      reports.map((report) => ({
+        ...report,
+        rate: calculateRate(report),
+      })),
     [reports]
   );
 
   // Memoize columns for this asset
-  const columns = useMemo<Column<ProcessedReport>[]>(() => [
-    {
-      header: "Month",
-      accessor: (report) => (
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          {new Date(report.report_month).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-          })}
-        </div>
-      ),
-      width: "180px",
-      className: "font-medium",
-    },
-    {
-      header: "Opening Balance",
-      accessor: (report) => formatAssetAmount(report.opening_balance || 0, assetCode),
-      className: "text-right font-mono",
-    },
-    {
-      header: "Additions",
-      accessor: (report) => (
-        <span className="text-green-600">
-          {report.additions && report.additions > 0 ? "+" : ""}
-          {formatAssetAmount(report.additions || 0, assetCode)}
-        </span>
-      ),
-      className: "text-right font-mono",
-    },
-    {
-      header: "Withdrawals",
-      accessor: (report) => (
-        <span className="text-red-600">
-          {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
-          {formatAssetAmount(report.withdrawals || 0, assetCode)}
-        </span>
-      ),
-      className: "text-right font-mono",
-    },
-    {
-      header: "Yield Earned",
-      accessor: (report) => (
-        <span className="text-blue-600 font-semibold">
-          +{formatAssetAmount(report.yield_earned || 0, assetCode)}
-        </span>
-      ),
-      className: "text-right font-mono",
-    },
-    {
-      header: "Rate of Return",
-      accessor: (report) => `${report.rate.toFixed(2)}%`,
-      className: "text-right font-mono font-medium",
-    },
-    {
-      header: "Closing Balance",
-      accessor: (report) => formatAssetAmount(report.closing_balance || 0, assetCode),
-      className: "text-right font-mono font-bold bg-muted/10",
-    },
-  ], [assetCode]);
+  const columns = useMemo<Column<ProcessedReport>[]>(
+    () => [
+      {
+        header: "Month",
+        accessor: (report) => (
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            {new Date(report.report_month).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+            })}
+          </div>
+        ),
+        width: "180px",
+        className: "font-medium",
+      },
+      {
+        header: "Opening Balance",
+        accessor: (report) => formatAssetAmount(report.opening_balance || 0, assetCode),
+        className: "text-right font-mono",
+      },
+      {
+        header: "Additions",
+        accessor: (report) => (
+          <span className="text-green-600">
+            {report.additions && report.additions > 0 ? "+" : ""}
+            {formatAssetAmount(report.additions || 0, assetCode)}
+          </span>
+        ),
+        className: "text-right font-mono",
+      },
+      {
+        header: "Withdrawals",
+        accessor: (report) => (
+          <span className="text-red-600">
+            {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
+            {formatAssetAmount(report.withdrawals || 0, assetCode)}
+          </span>
+        ),
+        className: "text-right font-mono",
+      },
+      {
+        header: "Yield Earned",
+        accessor: (report) => (
+          <span className="text-blue-600 font-semibold">
+            +{formatAssetAmount(report.yield_earned || 0, assetCode)}
+          </span>
+        ),
+        className: "text-right font-mono",
+      },
+      {
+        header: "Rate of Return",
+        accessor: (report) => `${report.rate.toFixed(2)}%`,
+        className: "text-right font-mono font-medium",
+      },
+      {
+        header: "Closing Balance",
+        accessor: (report) => formatAssetAmount(report.closing_balance || 0, assetCode),
+        className: "text-right font-mono font-bold bg-muted/10",
+      },
+    ],
+    [assetCode]
+  );
 
   return (
     <Card className="col-span-full overflow-hidden border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
@@ -189,10 +188,7 @@ export default function MyPerformanceHistory() {
   const { data: groupedReports, isLoading, error } = usePerformanceHistory();
 
   // Memoize sorted asset keys
-  const assetKeys = useMemo(() => 
-    Object.keys(groupedReports || {}).sort(),
-    [groupedReports]
-  );
+  const assetKeys = useMemo(() => Object.keys(groupedReports || {}).sort(), [groupedReports]);
 
   if (isLoading) {
     return (
@@ -233,11 +229,7 @@ export default function MyPerformanceHistory() {
   return (
     <div className="space-y-8">
       {assetKeys.map((assetCode) => (
-        <AssetSection 
-          key={assetCode} 
-          assetCode={assetCode} 
-          reports={groupedReports![assetCode]} 
-        />
+        <AssetSection key={assetCode} assetCode={assetCode} reports={groupedReports![assetCode]} />
       ))}
     </div>
   );

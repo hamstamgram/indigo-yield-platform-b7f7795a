@@ -25,7 +25,7 @@ import InvestorPositionsTab from "./InvestorPositionsTab";
 import { InvestorWithdrawalsTab } from "./InvestorWithdrawalsTab";
 import { InvestorReportsTab } from "./InvestorReportsTab";
 import { InvestorSettingsTab } from "./InvestorSettingsTab";
-import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { useInvestorDefaultFund } from "@/hooks/data";
 
 export interface InvestorTabsProps {

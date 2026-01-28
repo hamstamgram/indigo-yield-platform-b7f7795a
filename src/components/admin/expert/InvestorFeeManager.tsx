@@ -1,15 +1,28 @@
 import type React from "react";
 import { useState, useEffect, useMemo } from "react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Label, Button, Separator, Input,
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Label,
+  Button,
+  Separator,
+  Input,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui";
 import { DollarSign, TrendingUp, Calendar, History, FileText, Percent } from "lucide-react";
 import { ExpertInvestor } from "@/services/investor";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 import { useToast } from "@/hooks";
-import { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "@/services/shared";
+import { feeScheduleService } from "@/services/admin";
+import { type FeeScheduleRow, type FeeHistoryRow } from "@/services/shared";
 
 interface InvestorFeeManagerProps {
   investor: ExpertInvestor;
@@ -90,7 +103,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
         description: `Fee rate updated to ${newRatePct.toFixed(2)}%`,
       });
       setShowAdjustRate(false);
-      
+
       // Refresh fee schedule
       const data = await feeScheduleService.getInvestorFeeSchedule(investor.id);
       setFeeSchedule(data);
@@ -107,7 +120,9 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
 
   // Build investor name from available fields
   const investorName =
-    `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email || "Investor";
+    `${investor.first_name || ""} ${investor.last_name || ""}`.trim() ||
+    investor.email ||
+    "Investor";
 
   return (
     <div className="space-y-6">
@@ -209,7 +224,9 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
           <div>
             <h4 className="font-medium mb-4">Per-Fund Fee Schedule</h4>
             {feeSchedule.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No fee schedule found for this investor.</p>
+              <p className="text-sm text-muted-foreground">
+                No fee schedule found for this investor.
+              </p>
             ) : (
               <div className="space-y-2">
                 {feeSchedule.map((row) => (
@@ -236,11 +253,11 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
           </div>
 
           {/* Actions */}
-            <div className="flex space-x-2 pt-4">
-              <Button variant="outline" onClick={handleViewFeeHistory}>
-                <History className="h-4 w-4 mr-2" />
-                View Fee History
-              </Button>
+          <div className="flex space-x-2 pt-4">
+            <Button variant="outline" onClick={handleViewFeeHistory}>
+              <History className="h-4 w-4 mr-2" />
+              View Fee History
+            </Button>
             <Button variant="outline" onClick={handleGenerateFeeStatement}>
               <FileText className="h-4 w-4 mr-2" />
               Generate Fee Statement

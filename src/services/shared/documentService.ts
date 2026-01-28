@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import type { Document, DocumentFilter } from "@/types/domains/document";
 import { sanitizeSearchInput } from "@/utils/searchSanitizer";
 

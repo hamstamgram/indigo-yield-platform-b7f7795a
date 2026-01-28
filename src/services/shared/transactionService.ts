@@ -12,7 +12,7 @@ import type {
   CreateTransactionUIParams,
 } from "@/types/domains/transaction";
 import { logError } from "@/lib/logger";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 import { generateUUID } from "@/lib/utils";
 // Note: CreateTransactionParams should be imported from @/types/domains/transaction
 // (exported as CreateTransactionUIParams there)

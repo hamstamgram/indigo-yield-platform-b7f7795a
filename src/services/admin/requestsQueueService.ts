@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 import type {
   WithdrawalRequest,
   ApproveWithdrawalParams,
@@ -37,7 +37,11 @@ export const requestsQueueService = {
   async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
     const { error } = await rpc.call("approve_withdrawal", {
       p_request_id: params.requestId,
-      p_approved_amount: params.amount ? (typeof params.amount === 'string' ? parseFloat(params.amount) : params.amount) : undefined,
+      p_approved_amount: params.amount
+        ? typeof params.amount === "string"
+          ? parseFloat(params.amount)
+          : params.amount
+        : undefined,
       p_admin_notes: params.notes,
     });
 

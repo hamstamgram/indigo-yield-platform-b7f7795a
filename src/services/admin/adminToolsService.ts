@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 import { auditLogService } from "../shared/auditLogService";
 import { logError } from "@/lib/logger";
 
@@ -84,8 +84,6 @@ class AdminToolsService {
     await this.logToolExecution("refresh_performance");
     return { success: true, message: "Performance cache refresh triggered" };
   }
-
-
 
   /**
    * Run a tool by ID

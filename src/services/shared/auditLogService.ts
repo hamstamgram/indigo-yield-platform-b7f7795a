@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 
 /**
  * Sensitive fields that should be masked in audit logs to protect PII and secrets

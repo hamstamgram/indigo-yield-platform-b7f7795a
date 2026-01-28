@@ -18,7 +18,7 @@ import {
   Badge,
 } from "@/components/ui";
 import { format } from "date-fns";
-import type { YieldRecord } from "@/services";
+import type { YieldRecord } from "@/services/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NumericInput } from "@/components/common/NumericInput";
 import { FormattedNumber, PercentageValue } from "@/components/common/FormattedNumber";

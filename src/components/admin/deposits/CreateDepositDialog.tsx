@@ -24,7 +24,9 @@ import {
 } from "@/components/ui";
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { depositService, preflowAumService, profileService, fundService } from "@/services";
+import { depositService } from "@/services/investor";
+import { preflowAumService, fundService } from "@/services/admin";
+import { profileService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/domains";
 import { format } from "date-fns";
@@ -184,7 +186,12 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       return;
     }
 
-    if (!formData.user_id || !formData.asset_symbol || !formData.amount || parseFloat(formData.amount) <= 0) {
+    if (
+      !formData.user_id ||
+      !formData.asset_symbol ||
+      !formData.amount ||
+      parseFloat(formData.amount) <= 0
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }

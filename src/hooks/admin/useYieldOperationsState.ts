@@ -15,7 +15,7 @@ import {
   applyYieldDistribution,
   type YieldCalculationResult,
   type YieldDistribution,
-} from "@/services";
+} from "@/services/admin";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 import { formatAUM } from "@/utils/formatters";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";

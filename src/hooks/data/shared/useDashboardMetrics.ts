@@ -1,6 +1,6 @@
 /**
  * Dashboard Metrics Hooks
- * 
+ *
  * React Query hooks for admin dashboard metrics and analytics.
  */
 
@@ -14,7 +14,7 @@ import {
   retryDelivery,
   getDeliveryDiagnostics,
   getDeliveryExclusionBreakdown,
-} from "@/services";
+} from "@/services/admin";
 import type {
   FinancialMetrics,
   FlowData,
@@ -76,11 +76,7 @@ export function useFundComposition(fundId: string | null) {
 /**
  * Hook for fetching delivery status records
  */
-export function useDeliveryStatus(
-  statementId: string,
-  investorId?: string,
-  periodId?: string
-) {
+export function useDeliveryStatus(statementId: string, investorId?: string, periodId?: string) {
   return useQuery<DeliveryRecord[]>({
     queryKey: QUERY_KEYS.statementDeliveryStatus(statementId, investorId, periodId),
     queryFn: () => getDeliveryStatus(statementId, investorId, periodId),

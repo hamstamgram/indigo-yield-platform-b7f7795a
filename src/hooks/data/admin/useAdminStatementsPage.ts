@@ -5,13 +5,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import {
-  profileService,
-  statementsService,
-  documentService,
-  fetchActiveInvestorsForStatements,
-  sendStatementEmail,
-} from "@/services";
+import { profileService, statementsService, documentService } from "@/services/shared";
+import { fetchActiveInvestorsForStatements, sendStatementEmail } from "@/services/admin";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
@@ -63,10 +58,10 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
       onGeneratingChange?.(params.investorId);
 
       const reportMonth = `${params.year}-${params.month.toString().padStart(2, "0")}-01`;
-      
+
       const profile = await profileService.getProfileById(params.investorId);
-      const investorName = profile 
-        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
+      const investorName = profile
+        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
         : "Unknown";
 
       const reports = await profileService.getMonthlyReports(params.investorId, reportMonth);
@@ -84,14 +79,15 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
           total_pnl: reports?.reduce((sum, r) => sum + Number(r.yield_earned || 0), 0) || 0,
           total_fees: 0,
         },
-        positions: reports?.map(r => ({
-          asset_code: r.asset_code,
-          opening_balance: r.opening_balance,
-          additions: r.additions,
-          withdrawals: r.withdrawals,
-          yield_earned: r.yield_earned,
-          closing_balance: r.closing_balance,
-        })) || [],
+        positions:
+          reports?.map((r) => ({
+            asset_code: r.asset_code,
+            opening_balance: r.opening_balance,
+            additions: r.additions,
+            withdrawals: r.withdrawals,
+            yield_earned: r.yield_earned,
+            closing_balance: r.closing_balance,
+          })) || [],
       };
 
       const mappedData = {
@@ -118,7 +114,7 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
 
       const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;
       const storagePath = `${params.investorId}/${fileName}`;
-      
+
       await statementsService.uploadStatementPDF(storagePath, pdfContent);
 
       const monthLabel = MONTHS.find((m) => m.value === params.month.toString())?.label;

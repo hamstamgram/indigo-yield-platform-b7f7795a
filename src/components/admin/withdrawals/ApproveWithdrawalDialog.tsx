@@ -15,7 +15,7 @@ import {
   AlertDescription,
   Checkbox,
 } from "@/components/ui";
-import { withdrawalService } from "@/services";
+import { withdrawalService } from "@/services/investor";
 import { useWithdrawalMutations } from "@/hooks/data";
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";

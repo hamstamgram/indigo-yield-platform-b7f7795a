@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { reportService } from "@/services";
+import { reportService } from "@/services/admin";
 import { GenerateReportRequest, GenerateReportResponse } from "@/types/domains";
 import { logError } from "@/lib/logger";
 
@@ -16,7 +16,7 @@ export class ReportEngine {
       // 1. Fetch Data
       const req = request as any;
       const userId = req.userId || (await supabase.auth.getUser()).data.user?.id || "";
-      
+
       const reportData = await this.fetchReportData(
         userId,
         req.reportType,

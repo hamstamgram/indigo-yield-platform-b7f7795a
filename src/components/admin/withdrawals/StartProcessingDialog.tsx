@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Label, Textarea,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Label,
+  Textarea,
 } from "@/components/ui";
-import { withdrawalService } from "@/services";
+import { withdrawalService } from "@/services/investor";
 import { toast } from "sonner";
 import { Loader2, Play } from "lucide-react";
 import { logError } from "@/lib/logger";
@@ -39,7 +47,11 @@ export function StartProcessingDialog({
     setIsSubmitting(true);
 
     try {
-      await withdrawalService.markAsProcessing(withdrawal.id, txHash || undefined, adminNotes || undefined);
+      await withdrawalService.markAsProcessing(
+        withdrawal.id,
+        txHash || undefined,
+        adminNotes || undefined
+      );
       toast.success("Withdrawal marked as processing");
       onSuccess();
       onOpenChange(false);

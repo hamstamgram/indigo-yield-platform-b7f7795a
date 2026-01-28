@@ -6,7 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 
 export interface VoidYieldResult {
   success: boolean;

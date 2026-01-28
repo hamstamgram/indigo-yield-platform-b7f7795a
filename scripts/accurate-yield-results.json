@@ -1,0 +1,588 @@
+{
+  "monthlyPerformance": {
+    "2024-07": {
+      "btc": 0.005074971165,
+      "eth": 0.01001626016,
+      "usdt": 0.0123,
+      "sol": 0.0071,
+      "xrp": null
+    },
+    "2024-08": {
+      "btc": 0.003750143266,
+      "eth": 0.007066002891,
+      "usdt": 0.0136,
+      "sol": 0.0074,
+      "xrp": null
+    },
+    "2024-09": {
+      "btc": 0.004355716878,
+      "eth": 0.006494746896,
+      "usdt": 0.0128,
+      "sol": 0.0066,
+      "xrp": null
+    },
+    "2024-10": {
+      "btc": 0.004047661488,
+      "eth": 0.01328,
+      "usdt": 0.0132,
+      "sol": 0.007,
+      "xrp": null
+    },
+    "2024-11": {
+      "btc": 0.004405362939,
+      "eth": 0.01328,
+      "usdt": 0.0124,
+      "sol": 0.0086,
+      "xrp": null
+    },
+    "2024-12": {
+      "btc": 0.005562323502,
+      "eth": 0.01328,
+      "usdt": 0.0127,
+      "sol": 0.0102,
+      "xrp": null
+    },
+    "2025-01": {
+      "btc": 0.0046875,
+      "eth": 0.004491829414,
+      "usdt": 0.013,
+      "sol": 0.0105,
+      "xrp": null
+    },
+    "2025-02": {
+      "btc": 0.003106796117,
+      "eth": 0.009920385242,
+      "usdt": 0.0126,
+      "sol": 0.0089,
+      "xrp": null
+    },
+    "2025-03": {
+      "btc": 0.003094777563,
+      "eth": 0.002277969736,
+      "usdt": 0.0131,
+      "sol": 0.0099,
+      "xrp": null
+    },
+    "2025-04": {
+      "btc": 0.008523906305,
+      "eth": 0.009567043333,
+      "usdt": 0.00826,
+      "sol": 0.0098,
+      "xrp": null
+    },
+    "2025-05": {
+      "btc": 0.004770260516,
+      "eth": 0.001895213886,
+      "usdt": 0.00765,
+      "sol": 0.0102,
+      "xrp": null
+    },
+    "2025-06": {
+      "btc": 0.003059012141,
+      "eth": 0.001812152992,
+      "usdt": 0.0101,
+      "sol": 0.0102,
+      "xrp": null
+    },
+    "2025-07": {
+      "btc": 0.00386199079,
+      "eth": 0.008016547048,
+      "usdt": 0.005267324077,
+      "sol": 0.0094,
+      "xrp": null
+    },
+    "2025-08": {
+      "btc": 0.002923974837,
+      "eth": 0.006853377097,
+      "usdt": 0.007973410454,
+      "sol": 0.0085,
+      "xrp": 0.0067
+    },
+    "2025-09": {
+      "btc": 0.002794537949,
+      "eth": 0.005780533636,
+      "usdt": 0.007007054546,
+      "sol": 0.008734168716,
+      "xrp": 0.0062
+    },
+    "2025-10": {
+      "btc": 0.002715356648,
+      "eth": 0.006001465552,
+      "usdt": 0.007470554372,
+      "sol": 0.008127010286,
+      "xrp": 0.0061
+    },
+    "2025-11": {
+      "btc": 0.002452900214,
+      "eth": 0.004584107256,
+      "usdt": 0.006812689211,
+      "sol": 0.005739750694,
+      "xrp": 0.006
+    },
+    "2025-12": {
+      "btc": 0.00224892717,
+      "eth": 0.005056602598,
+      "usdt": 0.00595549916,
+      "sol": 0.006707538245,
+      "xrp": 0.005514935123
+    }
+  },
+  "fundTotals": {
+    "IND-BTC": {
+      "txSum": 34.3653406,
+      "yield": 1.6111890951690488,
+      "balance": 35.97652969516905,
+      "investors": 15
+    },
+    "IND-ETH": {
+      "txSum": 596.4399600000002,
+      "yield": 34.1764031025703,
+      "balance": 630.6163631025703,
+      "investors": 12
+    },
+    "IND-SOL": {
+      "txSum": 13.370000000000445,
+      "yield": 83.8396455912937,
+      "balance": 97.20964559129403,
+      "investors": 4
+    },
+    "IND-USDT": {
+      "txSum": 7264098.92,
+      "yield": 102975.2020247818,
+      "balance": 7367074.122024781,
+      "investors": 21
+    },
+    "IND-XRP": {
+      "txSum": -1897.4199999999837,
+      "yield": 3193.8198463510034,
+      "balance": 1296.3998463510652,
+      "investors": 1
+    }
+  },
+  "positions": [
+    {
+      "email": "blondish@example.com",
+      "name": "Blondish",
+      "fund": "IND-BTC",
+      "txSum": 4.121,
+      "yield": 0.1394286357739543,
+      "finalBalance": 4.260428635773955
+    },
+    {
+      "email": "danielle@example.com",
+      "name": "Danielle Richetta",
+      "fund": "IND-BTC",
+      "txSum": 3.9029999999999996,
+      "yield": 0.2793843093099114,
+      "finalBalance": 4.18238430930991
+    },
+    {
+      "email": "jose.molla@example.com",
+      "name": "Jose Molla",
+      "fund": "IND-BTC",
+      "txSum": 4.5647,
+      "yield": 0.2615393522541489,
+      "finalBalance": 4.82623935225415
+    },
+    {
+      "email": "kabbaj@example.com",
+      "name": "Kabbaj",
+      "fund": "IND-BTC",
+      "txSum": 6.6593,
+      "yield": 0.07971834370646755,
+      "finalBalance": 6.7390183437064675
+    },
+    {
+      "email": "updated.email.1768776102586@test.indigo.fund",
+      "name": "Kyle Gulamerian",
+      "fund": "IND-BTC",
+      "txSum": 3.8897,
+      "yield": 0.08459578338834763,
+      "finalBalance": 3.974295783388348
+    },
+    {
+      "email": "matthias@example.com",
+      "name": "Matthias Reiser",
+      "fund": "IND-BTC",
+      "txSum": -0.3694999999999995,
+      "yield": 0.2655058969250095,
+      "finalBalance": -0.10399410307499135
+    },
+    {
+      "email": "nath.thomas@example.com",
+      "name": "Nath & Thomas",
+      "fund": "IND-BTC",
+      "txSum": 1,
+      "yield": 0.004707343777936563,
+      "finalBalance": 1.0047073437779366
+    },
+    {
+      "email": "nathanael@indigo.fund",
+      "name": "Nathanaël Cohen",
+      "fund": "IND-BTC",
+      "txSum": 0.4483,
+      "yield": 0.015167643149105481,
+      "finalBalance": 0.4634676431491053
+    },
+    {
+      "email": "nsvo.holdings@example.com",
+      "name": "NSVO Holdings",
+      "fund": "IND-BTC",
+      "txSum": 0.622,
+      "yield": 0,
+      "finalBalance": 0.622
+    },
+    {
+      "email": "oliver.loisel@example.com",
+      "name": "Oliver Loisel",
+      "fund": "IND-BTC",
+      "txSum": 2.115364,
+      "yield": 0.03621023942474706,
+      "finalBalance": 2.1515742394247472
+    },
+    {
+      "email": "paul.johnson@example.com",
+      "name": "Paul Johnson",
+      "fund": "IND-BTC",
+      "txSum": -0.0013000000000000234,
+      "yield": 0.001193399246796,
+      "finalBalance": -0.00010660075320401141
+    },
+    {
+      "email": "sam.johnson@example.com",
+      "name": "Sam Johnson",
+      "fund": "IND-BTC",
+      "txSum": -0.015200000000000102,
+      "yield": 0.030995455454551103,
+      "finalBalance": 0.015795455454552076
+    },
+    {
+      "email": "thomas.puech@example.com",
+      "name": "Thomas Puech",
+      "fund": "IND-BTC",
+      "txSum": 7.2898766,
+      "yield": 0.3916379566094561,
+      "finalBalance": 7.681514556609456
+    },
+    {
+      "email": "victoria.pc@example.com",
+      "name": "Victoria",
+      "fund": "IND-BTC",
+      "txSum": 0.1492,
+      "yield": 0.005047986522075705,
+      "finalBalance": 0.15424798652207572
+    },
+    {
+      "email": "vivie.liana@example.com",
+      "name": "Vivie & Liana",
+      "fund": "IND-BTC",
+      "txSum": -0.011099999999999888,
+      "yield": 0.01605674962654162,
+      "finalBalance": 0.00495674962654169
+    },
+    {
+      "email": "advantage.blockchain@example.com",
+      "name": "Advantage Blockchain",
+      "fund": "IND-ETH",
+      "txSum": 50,
+      "yield": 1.1789420670103898,
+      "finalBalance": 51.17894206701039
+    },
+    {
+      "email": "babak.eftekhari@example.com",
+      "name": "Babak Eftekhari",
+      "fund": "IND-ETH",
+      "txSum": 66.11,
+      "yield": 2.518962011920681,
+      "finalBalance": 68.62896201192068
+    },
+    {
+      "email": "blondish@example.com",
+      "name": "Blondish",
+      "fund": "IND-ETH",
+      "txSum": 124.7939593520424,
+      "yield": 13.41312133812192,
+      "finalBalance": 138.20708069016436
+    },
+    {
+      "email": "brandon.hood@example.com",
+      "name": "Brandon Hood",
+      "fund": "IND-ETH",
+      "txSum": 31.37,
+      "yield": 0.15862562349926,
+      "finalBalance": 31.52862562349926
+    },
+    {
+      "email": "Hello@test.fund",
+      "name": "INDIGO DIGITAL ASSET FUND LP",
+      "fund": "IND-ETH",
+      "txSum": -3.3700000000000045,
+      "yield": 0.649390226714949,
+      "finalBalance": -2.7206097732850765
+    },
+    {
+      "email": "indigo.lp@example.com",
+      "name": "Indigo Fees",
+      "fund": "IND-ETH",
+      "txSum": 0.03593745021234585,
+      "yield": 0.00034729556079694476,
+      "finalBalance": 0.03628474577314279
+    },
+    {
+      "email": "jose.molla@example.com",
+      "name": "Jose Molla",
+      "fund": "IND-ETH",
+      "txSum": 65.20635773860653,
+      "yield": 8.51752266467668,
+      "finalBalance": 73.72388040328319
+    },
+    {
+      "email": "nathanael@indigo.fund",
+      "name": "Nathanaël Cohen",
+      "fund": "IND-ETH",
+      "txSum": 48.143905459138736,
+      "yield": 2.6992829413840793,
+      "finalBalance": 50.84318840052281
+    },
+    {
+      "email": "nsvo.holdings@example.com",
+      "name": "NSVO Holdings",
+      "fund": "IND-ETH",
+      "txSum": 25.03,
+      "yield": 0,
+      "finalBalance": 25.03
+    },
+    {
+      "email": "paul.johnson@example.com",
+      "name": "Paul Johnson",
+      "fund": "IND-ETH",
+      "txSum": -0.18730000000000224,
+      "yield": 0.21220780220595747,
+      "finalBalance": 0.02490780220595563
+    },
+    {
+      "email": "sam.johnson@example.com",
+      "name": "Sam Johnson",
+      "fund": "IND-ETH",
+      "txSum": -1.2299999999999898,
+      "yield": 1.7471919927153894,
+      "finalBalance": 0.5171919927153965
+    },
+    {
+      "email": "tomer.zur@example.com",
+      "name": "Tomer Zur",
+      "fund": "IND-ETH",
+      "txSum": 190.53709999999998,
+      "yield": 3.0808091387601952,
+      "finalBalance": 193.6179091387602
+    },
+    {
+      "email": "Hello@test.fund",
+      "name": "INDIGO DIGITAL ASSET FUND LP",
+      "fund": "IND-SOL",
+      "txSum": -35.66000000000008,
+      "yield": 28.4613734521925,
+      "finalBalance": -7.198626547807635
+    },
+    {
+      "email": "jose.molla@example.com",
+      "name": "Jose Molla",
+      "fund": "IND-SOL",
+      "txSum": 87.98,
+      "yield": 1.8224415585470037,
+      "finalBalance": 89.80244155854702
+    },
+    {
+      "email": "paul.johnson@example.com",
+      "name": "Paul Johnson",
+      "fund": "IND-SOL",
+      "txSum": -1.8500000000000227,
+      "yield": 2.049325377028033,
+      "finalBalance": 0.19932537702800238
+    },
+    {
+      "email": "sam.johnson@example.com",
+      "name": "Sam Johnson",
+      "fund": "IND-SOL",
+      "txSum": -37.099999999999454,
+      "yield": 51.50650520352616,
+      "finalBalance": 14.406505203526649
+    },
+    {
+      "email": "alain.bensimon@example.com",
+      "name": "Alain Bensimon",
+      "fund": "IND-USDT",
+      "txSum": 136737,
+      "yield": 5629.895140989842,
+      "finalBalance": 142366.89514098986
+    },
+    {
+      "email": "anne.cecile.noique@example.com",
+      "name": "Anne Cecile Noique",
+      "fund": "IND-USDT",
+      "txSum": 222687,
+      "yield": 9168.728722010903,
+      "finalBalance": 231855.7287220109
+    },
+    {
+      "email": "babak.eftekhari@example.com",
+      "name": "Babak Eftekhari",
+      "fund": "IND-USDT",
+      "txSum": 233132.03,
+      "yield": 10201.723675919011,
+      "finalBalance": 243333.75367591897
+    },
+    {
+      "email": "bokriek@example.com",
+      "name": "Bo De Kriek",
+      "fund": "IND-USDT",
+      "txSum": 273807,
+      "yield": 11273.500946115577,
+      "finalBalance": 285080.5009461155
+    },
+    {
+      "email": "daniele.francilia@example.com",
+      "name": "Daniele Francilia",
+      "fund": "IND-USDT",
+      "txSum": -5091.5899999999965,
+      "yield": 4519.825423969379,
+      "finalBalance": -571.7645760306041
+    },
+    {
+      "email": "dario.deiana@example.com",
+      "name": "Dario Deiana",
+      "fund": "IND-USDT",
+      "txSum": 199659.72,
+      "yield": 8220.622709869254,
+      "finalBalance": 207880.34270986926
+    },
+    {
+      "email": "halley86@example.com",
+      "name": "HALLEY86",
+      "fund": "IND-USDT",
+      "txSum": 99990,
+      "yield": 2037.296675544548,
+      "finalBalance": 102027.29667554455
+    },
+    {
+      "email": "Hello@test.fund",
+      "name": "INDIGO DIGITAL ASSET FUND LP",
+      "fund": "IND-USDT",
+      "txSum": -2471.649999999994,
+      "yield": 2519.710255296481,
+      "finalBalance": 48.060255296484236
+    },
+    {
+      "email": "indigo.ventures@example.com",
+      "name": "INDIGO Ventures",
+      "fund": "IND-USDT",
+      "txSum": -2709.5899999999992,
+      "yield": 2043.5621208165983,
+      "finalBalance": -666.0278791834116
+    },
+    {
+      "email": "jose.molla@example.com",
+      "name": "Jose Molla",
+      "fund": "IND-USDT",
+      "txSum": -213,
+      "yield": 736.4558359046259,
+      "finalBalance": 523.455835904626
+    },
+    {
+      "email": "julien.grunebaum@example.com",
+      "name": "Julien Grunebaum",
+      "fund": "IND-USDT",
+      "txSum": 109392,
+      "yield": 4504.014928389249,
+      "finalBalance": 113896.01492838927
+    },
+    {
+      "email": "matthew@example.com",
+      "name": "Matthew Beatty",
+      "fund": "IND-USDT",
+      "txSum": 334704,
+      "yield": 12127.704029371906,
+      "finalBalance": 346831.70402937196
+    },
+    {
+      "email": "monica.levy.chicheportiche@example.com",
+      "name": "Monica Levy Chicheportiche",
+      "fund": "IND-USDT",
+      "txSum": 840168.03,
+      "yield": 10761.511778300966,
+      "finalBalance": 850929.541778301
+    },
+    {
+      "email": "nath.thomas@example.com",
+      "name": "Nath & Thomas",
+      "fund": "IND-USDT",
+      "txSum": -1522.8299999999872,
+      "yield": 1444.1454793400505,
+      "finalBalance": -78.68452065993915
+    },
+    {
+      "email": "pierre.bezencon@example.com",
+      "name": "Pierre Bezencon",
+      "fund": "IND-USDT",
+      "txSum": 109333,
+      "yield": 4501.585711620427,
+      "finalBalance": 113834.58571162043
+    },
+    {
+      "email": "sacha.oshry@example.com",
+      "name": "Sacha Oshry",
+      "fund": "IND-USDT",
+      "txSum": 100000,
+      "yield": 2037.5004255871067,
+      "finalBalance": 102037.5004255871
+    },
+    {
+      "email": "sam.johnson@example.com",
+      "name": "Sam Johnson",
+      "fund": "IND-USDT",
+      "txSum": 4200000,
+      "yield": 0,
+      "finalBalance": 4200000
+    },
+    {
+      "email": "terance.chen@example.com",
+      "name": "Terance Chen",
+      "fund": "IND-USDT",
+      "txSum": 219747,
+      "yield": 9047.67961522554,
+      "finalBalance": 228794.67961522553
+    },
+    {
+      "email": "thomas.puech@example.com",
+      "name": "Thomas Puech",
+      "fund": "IND-USDT",
+      "txSum": 46750.8,
+      "yield": 278.424350129328,
+      "finalBalance": 47029.224350129334
+    },
+    {
+      "email": "valeria.cruz@example.com",
+      "name": "Valeria Cruz",
+      "fund": "IND-USDT",
+      "txSum": 50000,
+      "yield": 640.4380667936725,
+      "finalBalance": 50640.43806679367
+    },
+    {
+      "email": "ventures.lifestyle@example.com",
+      "name": "Ventures Life Style",
+      "fund": "IND-USDT",
+      "txSum": 100000,
+      "yield": 1280.876133587345,
+      "finalBalance": 101280.87613358734
+    },
+    {
+      "email": "sam.johnson@example.com",
+      "name": "Sam Johnson",
+      "fund": "IND-XRP",
+      "txSum": -1897.4199999999837,
+      "yield": 3193.8198463510034,
+      "finalBalance": 1296.3998463510652
+    }
+  ]
+}

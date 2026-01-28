@@ -11,7 +11,7 @@ import {
   Label,
   Textarea,
 } from "@/components/ui";
-import { investmentService } from "@/services";
+import { investmentService } from "@/services/investor";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import type { Investment } from "@/types/domains";

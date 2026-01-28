@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
-import { reportRecipientsService } from "@/services";
+import { reportRecipientsService } from "@/services/admin";
 
 /**
  * Hook to fetch report recipients for an investor

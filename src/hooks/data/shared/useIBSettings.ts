@@ -10,8 +10,8 @@ import {
   getIBReferrals,
   getAvailableIBParents,
   ibManagementService,
-  auditLogService,
-} from "@/services";
+} from "@/services/ib";
+import { auditLogService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -144,9 +144,7 @@ export function useUpdateIBConfig() {
     },
     onError: (error: Error) => {
       if (error.message.includes("IB parent does not have the IB role")) {
-        toast.error(
-          "The selected user does not have the IB role. Use 'Assign IB Role' first."
-        );
+        toast.error("The selected user does not have the IB role. Use 'Assign IB Role' first.");
       } else {
         toast.error(`Failed to save IB settings: ${error.message}`);
       }

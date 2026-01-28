@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { integrityService } from "@/services";
+import { integrityService } from "@/services/admin";
 import type { IntegrityCheck, AuditEvent, IntegrityStatus } from "@/types/domains/integrity";
 
 /**
@@ -22,8 +22,8 @@ export function useIntegrityChecks() {
     ? query.data.every((c) => c.status === "ok")
       ? "ok"
       : query.data.some((c) => c.status === "error")
-      ? "error"
-      : "warning"
+        ? "error"
+        : "warning"
     : "ok";
 
   return {

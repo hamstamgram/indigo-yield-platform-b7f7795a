@@ -13,7 +13,7 @@ import {
   type InvestorStatus,
   type CleanupResult,
   type AdminPerformanceUpdateData as PerformanceUpdateData,
-} from "@/services";
+} from "@/services/admin";
 
 /**
  * Query hook for pending withdrawals count
@@ -34,13 +34,8 @@ export function useUpdateInvestorStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      investorId,
-      status,
-    }: {
-      investorId: string;
-      status: InvestorStatus;
-    }) => updateInvestorStatus(investorId, status),
+    mutationFn: ({ investorId, status }: { investorId: string; status: InvestorStatus }) =>
+      updateInvestorStatus(investorId, status),
     onSuccess: (_, { investorId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
       queryClient.invalidateQueries({
@@ -71,13 +66,8 @@ export function useUpdateFundPerformance() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      performanceId,
-      data,
-    }: {
-      performanceId: string;
-      data: PerformanceUpdateData;
-    }) => updateFundPerformance(performanceId, data),
+    mutationFn: ({ performanceId, data }: { performanceId: string; data: PerformanceUpdateData }) =>
+      updateFundPerformance(performanceId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorPerformance });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });

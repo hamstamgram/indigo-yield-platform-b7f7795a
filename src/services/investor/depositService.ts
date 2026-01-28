@@ -3,7 +3,7 @@ import type { Deposit, DepositFormData, DepositFilters } from "@/types/domains";
 import { depositNotifications } from "@/services/notifications";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 import { getTodayString } from "@/utils/dateUtils";
 import { generateUUID } from "@/lib/utils";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";

@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInvestorPositions } from "@/hooks";
-import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Button, Alert, AlertDescription,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Button,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { Plus, Loader2, AlertCircle, Info } from "lucide-react";
 import { FinancialValue } from "@/components/common/FinancialValue";
@@ -50,16 +61,15 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Positions are derived from transactions. To correct balances, use the "Add Transaction" button to create adjustment entries.
+          Positions are derived from transactions. To correct balances, use the "Add Transaction"
+          button to create adjustment entries.
         </AlertDescription>
       </Alert>
 
       <Card>
         <CardHeader>
           <CardTitle>Current Holdings</CardTitle>
-          <CardDescription>
-            Token-denominated balances across all funds
-          </CardDescription>
+          <CardDescription>Token-denominated balances across all funds</CardDescription>
         </CardHeader>
         <CardContent>
           {positions && positions.length > 0 ? (
@@ -76,12 +86,19 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
                 {positions.map((pos) => (
                   <TableRow key={`${pos.investor_id}-${pos.fund_id}`}>
                     <TableCell className="font-medium">{pos.funds?.name}</TableCell>
-                    <TableCell className="font-mono"><FinancialValue value={pos.current_value} asset={pos.funds?.asset} /></TableCell>
+                    <TableCell className="font-mono">
+                      <FinancialValue value={pos.current_value} asset={pos.funds?.asset} />
+                    </TableCell>
                     <TableCell>
                       <CryptoIcon symbol={pos.funds?.asset || ""} className="h-5 w-5" />
                     </TableCell>
                     <TableCell className="font-mono">
-                      <FinancialValue value={pos.realized_pnl || 0} asset={pos.funds?.asset} colorize prefix="+" />
+                      <FinancialValue
+                        value={pos.realized_pnl || 0}
+                        asset={pos.funds?.asset}
+                        colorize
+                        prefix="+"
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

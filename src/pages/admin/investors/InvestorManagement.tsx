@@ -6,12 +6,20 @@
 import { useEffect } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import {
-  Card, CardContent, Button, Badge,
-  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
+  Card,
+  CardContent,
+  Button,
+  Badge,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Clock, FileText, ArrowDownToLine, Users, Percent } from "lucide-react";
-import { forceDeleteInvestorUser } from "@/services";
+import { forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorTabs } from "@/components/admin";
 import { format } from "date-fns";
 import { useInvestorDetail, useInvestorOpsIndicators } from "@/hooks/data/admin";
@@ -23,12 +31,15 @@ const InvestorManagement = () => {
 
   // Use hooks for data fetching
   const { data: investor, isLoading, refetch: refetchInvestor } = useInvestorDetail(id);
-  const { data: opsIndicators, refetch: refetchOps } = useInvestorOpsIndicators(id, investor?.ib_parent_id);
+  const { data: opsIndicators, refetch: refetchOps } = useInvestorOpsIndicators(
+    id,
+    investor?.ib_parent_id
+  );
 
   // Preserve filter params for back navigation
   const getBackUrl = () => {
     const preserved = new URLSearchParams();
-    ["search", "fund", "status", "ib", "has_withdrawals"].forEach(key => {
+    ["search", "fund", "status", "ib", "has_withdrawals"].forEach((key) => {
       const val = searchParams.get(key);
       if (val) preserved.set(key, val);
     });
@@ -150,7 +161,10 @@ const InvestorManagement = () => {
                 IB: {opsIndicators.ibParentName}
               </Badge>
             )}
-            <Badge variant={opsIndicators.hasFeeSchedule ? "default" : "secondary"} className="flex items-center gap-1">
+            <Badge
+              variant={opsIndicators.hasFeeSchedule ? "default" : "secondary"}
+              className="flex items-center gap-1"
+            >
               <Percent className="h-3 w-3" />
               {opsIndicators.hasFeeSchedule ? "Custom fees" : "Default fees"}
             </Badge>

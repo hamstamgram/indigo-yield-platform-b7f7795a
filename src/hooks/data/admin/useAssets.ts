@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { assetService } from "@/services";
+import { assetService } from "@/services/shared";
 import type { Asset } from "@/types/asset";
 
 export interface AssetStats {

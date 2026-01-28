@@ -1,4 +1,6 @@
-import { profileService, fundService, transactionsV2Service } from "@/services";
+import { profileService } from "@/services/shared";
+import { fundService } from "@/services/admin";
+import { transactionsV2Service } from "@/services/investor";
 import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";
 
@@ -45,7 +47,7 @@ export interface AssetStatement {
  * Calculate Rate of Return using the correct formula:
  * net_income = ending_balance - beginning_balance - additions + redemptions
  * rate_of_return = net_income / beginning_balance (or 0 if beginning_balance is 0)
- * 
+ *
  * This properly accounts for mid-month additions/withdrawals
  */
 export function calculateRateOfReturn(
@@ -57,14 +59,14 @@ export function calculateRateOfReturn(
   // CORRECT formula per December 20 requirements:
   // net_income = ending_balance - beginning_balance - additions + redemptions
   const netIncome = endingBalance - beginningBalance - additions + redemptions;
-  
+
   // If beginning balance is 0, return 0% to avoid NaN/Infinity
   if (beginningBalance <= 0) {
     return { netIncome, rateOfReturn: 0 };
   }
-  
+
   const rateOfReturn = (netIncome / beginningBalance) * 100;
-  
+
   return { netIncome, rateOfReturn };
 }
 
@@ -82,7 +84,8 @@ export async function computeStatement(
       return null;
     }
 
-    const investorName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email;
+    const investorName =
+      `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email;
 
     // Calculate period dates
     const period_start = new Date(period_year, period_month - 1, 1);
@@ -212,7 +215,7 @@ export async function computeStatement(
         totalAdditions,
         totalRedemptions
       );
-      
+
       summary.net_income = netIncome;
       summary.rate_of_return_mtd = rateOfReturn;
     }

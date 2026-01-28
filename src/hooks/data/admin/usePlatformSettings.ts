@@ -10,7 +10,7 @@ import {
   systemConfigService,
   defaultPlatformSettings,
   type PlatformSettings,
-} from "@/services";
+} from "@/services/shared";
 
 /**
  * Hook to fetch platform settings

@@ -21,7 +21,7 @@ import {
   Badge,
 } from "@/components/ui";
 import { format } from "date-fns";
-import type { YieldRecord } from "@/services";
+import type { YieldRecord } from "@/services/admin";
 import { getYieldVoidImpact } from "@/services/admin/yieldManagementService";
 import { FormattedNumber } from "@/components/common/FormattedNumber";
 

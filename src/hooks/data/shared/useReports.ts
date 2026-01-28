@@ -13,7 +13,7 @@ import {
   generateFundPerformanceReports,
   fetchLatestPerformance,
   fetchActiveInvestorsForStatements,
-} from "@/services";
+} from "@/services/admin";
 import type {
   InvestorReportSummary,
   PerformanceReportDetail,
@@ -69,14 +69,22 @@ export function useGenerateFundPerformance() {
     },
     onError: (error: any) => {
       const errorStr = error?.message || error?.toString() || "";
-      
+
       let errorTitle = "Generation Failed";
       let errorMessage = "Failed to generate performance data";
-      
-      if (errorStr.includes("403") || errorStr.includes("Admin access required") || errorStr.includes("ADMIN_REQUIRED")) {
+
+      if (
+        errorStr.includes("403") ||
+        errorStr.includes("Admin access required") ||
+        errorStr.includes("ADMIN_REQUIRED")
+      ) {
         errorTitle = "Access Denied";
         errorMessage = "You don't have administrator permissions to generate reports.";
-      } else if (errorStr.includes("401") || errorStr.includes("Authorization") || errorStr.includes("token")) {
+      } else if (
+        errorStr.includes("401") ||
+        errorStr.includes("Authorization") ||
+        errorStr.includes("token")
+      ) {
         errorTitle = "Session Expired";
         errorMessage = "Your session has expired. Please refresh the page and try again.";
       } else if (errorStr.includes("non-2xx") || errorStr.includes("FunctionsHttpError")) {
@@ -85,7 +93,7 @@ export function useGenerateFundPerformance() {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorTitle, { description: errorMessage });
     },
   });
@@ -115,16 +123,11 @@ export function useActiveInvestorsForStatements() {
 /**
  * Hook to generate statement (uses mutation for the statement generation)
  */
-export function useGenerateStatement(
-  onSuccess?: () => void
-) {
+export function useGenerateStatement(onSuccess?: () => void) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: {
-      investorId: string;
-      assetCode: string;
-    }) => {
+    mutationFn: async (params: { investorId: string; assetCode: string }) => {
       const data = await fetchLatestPerformance(params.investorId, params.assetCode);
       if (!data) throw new Error("No performance data found for this investor/asset/period.");
       return data;

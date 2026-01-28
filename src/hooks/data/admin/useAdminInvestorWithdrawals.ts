@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { withdrawalService } from "@/services";
+import { withdrawalService } from "@/services/investor";
 import type { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
 
 export function useAdminInvestorWithdrawals(

@@ -1,0 +1,1254 @@
+{
+  "generatedAt": "2026-01-25T19:33:36.295Z",
+  "positions": {
+    "matches": [
+      {
+        "fund": "IND-BTC",
+        "investor": "Nath & Thomas",
+        "excelPosition": 1.005438734,
+        "platformPosition": 1,
+        "variance": 0.005438733999999945,
+        "variancePct": 0.5438733999999945
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "NSVO Holdings",
+        "excelPosition": 0.6222218876,
+        "platformPosition": 0.622,
+        "variance": 0.00022188759999997032,
+        "variancePct": 0.035673247588419665
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Alex Jacobs",
+        "excelPosition": 0.003369787219,
+        "platformPosition": 0.0033697872,
+        "variance": 1.8999999924079747e-11,
+        "variancePct": 5.638338208442286e-7
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Brandon Hood",
+        "excelPosition": 31.54763953,
+        "platformPosition": 31.37,
+        "variance": 0.17763953000000043,
+        "variancePct": 0.5662720114759338
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "NSVO Holdings",
+        "excelPosition": 25.03,
+        "platformPosition": 25.03,
+        "variance": 0,
+        "variancePct": 0
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Sam Johnson",
+        "excelPosition": 4200000,
+        "platformPosition": 4200000,
+        "variance": 0,
+        "variancePct": 0
+      }
+    ],
+    "mismatches": [
+      {
+        "fund": "IND-BTC",
+        "investor": "Jose Molla",
+        "excelPosition": 4.834201273,
+        "platformPosition": 4.5647,
+        "variance": 0.2695012729999995,
+        "variancePct": 5.904030341533933
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Thomas Puech",
+        "excelPosition": 7.597853117,
+        "platformPosition": 7.2898766,
+        "variance": 0.3079765169999993,
+        "variancePct": 4.22471509325685
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Danielle Richetta",
+        "excelPosition": 4.291298963,
+        "platformPosition": 3.903,
+        "variance": 0.388298963,
+        "variancePct": 9.948730796822955
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Kabbaj",
+        "excelPosition": 6.739706077,
+        "platformPosition": 6.6593,
+        "variance": 0.08040607700000013,
+        "variancePct": 1.207425360022827
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Nathanaël Cohen",
+        "excelPosition": 0.4550111474,
+        "platformPosition": 0.4483,
+        "variance": 0.006711147400000006,
+        "variancePct": 1.4970215034575076
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Blondish",
+        "excelPosition": 4.182429821,
+        "platformPosition": 4.121,
+        "variance": 0.06142982099999994,
+        "variancePct": 1.4906532637709278
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Thomas Puech",
+        "excelPosition": 0.2096546682,
+        "platformPosition": 7.2898766,
+        "variance": 7.080221931800001,
+        "variancePct": 97.12402994311317
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Danielle Richetta",
+        "excelPosition": 0.1184138264,
+        "platformPosition": 3.903,
+        "variance": 3.7845861736,
+        "variancePct": 96.96608182423778
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Blondish",
+        "excelPosition": 0.1154096984,
+        "platformPosition": 4.121,
+        "variance": 4.005590301600001,
+        "variancePct": 97.19947346760496
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Nath & Thomas",
+        "excelPosition": 0.02774401148,
+        "platformPosition": 1,
+        "variance": 0.97225598852,
+        "variancePct": 97.22559885199999
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "NSVO Holdings",
+        "excelPosition": 0.01716955058,
+        "platformPosition": 0.622,
+        "variance": 0.60483044942,
+        "variancePct": 97.23962209324758
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Babak Eftekhari",
+        "excelPosition": 68.89412097,
+        "platformPosition": 66.11,
+        "variance": 2.7841209700000036,
+        "variancePct": 4.211346195734388
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Nathanaël Cohen",
+        "excelPosition": 49.50510554,
+        "platformPosition": 48.1439054591,
+        "variance": 1.361200080900005,
+        "variancePct": 2.8273569996443144
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Jose Molla",
+        "excelPosition": 68.49020428,
+        "platformPosition": 65.2063577386,
+        "variance": 3.2838465413999955,
+        "variancePct": 5.036083374821083
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Blondish",
+        "excelPosition": 129.7211329,
+        "platformPosition": 124.793959352,
+        "variance": 4.927173547999985,
+        "variancePct": 3.9482468330876146
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Advantage Blockchain",
+        "excelPosition": 50.98265585,
+        "platformPosition": 50,
+        "variance": 0.9826558500000004,
+        "variancePct": 1.9653117000000009
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Tomer Zur",
+        "excelPosition": 193.3187709,
+        "platformPosition": 190.5371,
+        "variance": 2.7816708999999946,
+        "variancePct": 1.4599103796583417
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Babak Eftekhari",
+        "excelPosition": 0.1109298956,
+        "platformPosition": 66.11,
+        "variance": 65.9990701044,
+        "variancePct": 99.83220406050522
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Jose Molla",
+        "excelPosition": 0.110279529,
+        "platformPosition": 65.2063577386,
+        "variance": 65.09607820960001,
+        "variancePct": 99.83087610959336
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Blondish",
+        "excelPosition": 0.2088705324,
+        "platformPosition": 124.793959352,
+        "variance": 124.5850888196,
+        "variancePct": 99.83262769008647
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Advantage Blockchain",
+        "excelPosition": 0.0820897431,
+        "platformPosition": 50,
+        "variance": 49.9179102569,
+        "variancePct": 99.8358205138
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Alex Jacobs",
+        "excelPosition": 0.000005425864199,
+        "platformPosition": 0.0033697872,
+        "variance": 0.003364361335801,
+        "variancePct": 99.83898496026693
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Tomer Zur",
+        "excelPosition": 0.311272294,
+        "platformPosition": 190.5371,
+        "variance": 190.22582770600002,
+        "variancePct": 99.83663428592122
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Brandon Hood",
+        "excelPosition": 0.05079644404,
+        "platformPosition": 31.37,
+        "variance": 31.31920355596,
+        "variancePct": 99.83807317806821
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "NSVO Holdings",
+        "excelPosition": 0.04030206421,
+        "platformPosition": 25.03,
+        "variance": 24.98969793579,
+        "variancePct": 99.83898496120656
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Babak Eftekhari",
+        "excelPosition": 242825.2234,
+        "platformPosition": 233132.03,
+        "variance": 9693.19339999999,
+        "variancePct": 4.157812806760182
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Julien Grunebaum",
+        "excelPosition": 114700.2302,
+        "platformPosition": 109392,
+        "variance": 5308.230200000005,
+        "variancePct": 4.852484825215743
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Pierre Bezençon",
+        "excelPosition": 114638.3672,
+        "platformPosition": 109333,
+        "variance": 5305.367199999993,
+        "variancePct": 4.852484794160952
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Matthew Beatty",
+        "excelPosition": 348958.4782,
+        "platformPosition": 334704,
+        "variance": 14254.478200000012,
+        "variancePct": 4.25883114632631
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Dario Deiana",
+        "excelPosition": 208002.1363,
+        "platformPosition": 199659.72,
+        "variance": 8342.416300000012,
+        "variancePct": 4.178317138779926
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Alain Bensimon",
+        "excelPosition": 143017.4648,
+        "platformPosition": 136737,
+        "variance": 6280.464799999987,
+        "variancePct": 4.593098283566253
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Anne Cecile Noique",
+        "excelPosition": 232915.2328,
+        "platformPosition": 222687,
+        "variance": 10228.232799999998,
+        "variancePct": 4.5930982949161825
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Terance Chen",
+        "excelPosition": 229840.1957,
+        "platformPosition": 219747,
+        "variance": 10093.195700000011,
+        "variancePct": 4.5930982903065845
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Sacha Oshry",
+        "excelPosition": 102412.67,
+        "platformPosition": 100000,
+        "variance": 2412.6699999999983,
+        "variancePct": 2.4126699999999985
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "HALLEY86",
+        "excelPosition": 101919.9688,
+        "platformPosition": 99990,
+        "variance": 1929.9688000000024,
+        "variancePct": 1.9301618161816205
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Monica Levy Chicheportiche",
+        "excelPosition": 852212.8619,
+        "platformPosition": 840168.03,
+        "variance": 12044.83189999999,
+        "variancePct": 1.433621783966237
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Valeria Cruz",
+        "excelPosition": 50536.62208,
+        "platformPosition": 50000,
+        "variance": 536.622080000001,
+        "variancePct": 1.073244160000002
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Ventures Life Style",
+        "excelPosition": 101055.9224,
+        "platformPosition": 100000,
+        "variance": 1055.9223999999958,
+        "variancePct": 1.0559223999999958
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Thomas Puech",
+        "excelPosition": 47222.61076,
+        "platformPosition": 46750.8,
+        "variance": 471.8107600000003,
+        "variancePct": 1.0092036072110002
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Babak Eftekhari",
+        "excelPosition": 0.03283814684,
+        "platformPosition": 233132.03,
+        "variance": 233131.99716185316,
+        "variancePct": 99.9999859143564
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "julien grunebaum",
+        "excelPosition": 0.01551133342,
+        "platformPosition": 109392,
+        "variance": 109391.98448866658,
+        "variancePct": 99.99998582041336
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "matthew beatty",
+        "excelPosition": 0.04719093671,
+        "platformPosition": 334704,
+        "variance": 334703.9528090633,
+        "variancePct": 99.99998590069534
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "bo kriek",
+        "excelPosition": 0.03882470079,
+        "platformPosition": 273807,
+        "variance": 273806.9611752992,
+        "variancePct": 99.99998582041336
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Dario Deiana",
+        "excelPosition": 0.02812889287,
+        "platformPosition": 199659.72,
+        "variance": 199659.69187110712,
+        "variancePct": 99.99998591158352
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "alain bensimon",
+        "excelPosition": 0.01934077706,
+        "platformPosition": 136737,
+        "variance": 136736.98065922293,
+        "variancePct": 99.99998585549115
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "anne cecile noique",
+        "excelPosition": 0.03149798241,
+        "platformPosition": 222687,
+        "variance": 222686.96850201758,
+        "variancePct": 99.99998585549115
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "terance chen",
+        "excelPosition": 0.03108213385,
+        "platformPosition": 219747,
+        "variance": 219746.96891786615,
+        "variancePct": 99.99998585549116
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Sacha Oshry",
+        "excelPosition": 0.01384964152,
+        "platformPosition": 100000,
+        "variance": 99999.98615035848,
+        "variancePct": 99.9999861503585
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "HALLEY86",
+        "excelPosition": 0.01378301172,
+        "platformPosition": 99990,
+        "variance": 99989.98621698828,
+        "variancePct": 99.99998621560985
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Monica Levy Chicheportiche",
+        "excelPosition": 0.1152478754,
+        "platformPosition": 840168.03,
+        "variance": 840167.9147521246,
+        "variancePct": 99.99998628275877
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Sam Johnson",
+        "excelPosition": 0.5679814263,
+        "platformPosition": 4200000,
+        "variance": 4199999.432018573,
+        "variancePct": 99.9999864766327
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Valeria Cruz",
+        "excelPosition": 0.006834253021,
+        "platformPosition": 50000,
+        "variance": 49999.99316574698,
+        "variancePct": 99.99998633149396
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Ventures Life Style",
+        "excelPosition": 0.01366616356,
+        "platformPosition": 100000,
+        "variance": 99999.98633383644,
+        "variancePct": 99.99998633383643
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Thomas Puech",
+        "excelPosition": 0.006386087099,
+        "platformPosition": 46750.8,
+        "variance": 46750.7936139129,
+        "variancePct": 99.9999863401544
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Jose Molla",
+        "excelPosition": 89.23651496,
+        "platformPosition": 87.98,
+        "variance": 1.2565149599999899,
+        "variancePct": 1.4281824960218115
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Jose Molla",
+        "excelPosition": 0.8848439758,
+        "platformPosition": 87.98,
+        "variance": 87.09515602420001,
+        "variancePct": 98.99426690634236
+      }
+    ],
+    "excelOnly": [
+      {
+        "fund": "IND-BTC",
+        "investor": "Kyle Gulamerian",
+        "position": 3.9998
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Victoria Pariente-Cohen",
+        "position": 0.151398328
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Oliver Loisel",
+        "position": 2.153270293
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Alex Jacobs",
+        "position": 0.00002245098223
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Ryan Van Der Wall",
+        "position": 0.0007598933542
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Jose",
+        "position": 0.1333946377
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Kyle",
+        "position": 0.1103702229
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Kabbaj Fam",
+        "position": 0.1859750142
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Victoria",
+        "position": 0.004177675685
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Nathanael Cohen",
+        "position": 0.01255554822
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "oliver loisel",
+        "position": 0.05941720141
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Alex Jacobs",
+        "position": 6.195109538e-7
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Ryan Van Der Wall",
+        "position": 0.00002096844814
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Lars Ahlgreen",
+        "position": 0.04812842663
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Alec Beckman",
+        "position": 0.0248894614
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Ryan Van Der Wall",
+        "position": 0.06154761137
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Lars Ahlgreen",
+        "position": 0.00007749400482
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Nathanael Cohen",
+        "position": 0.0797106649
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Alec Beckman",
+        "position": 0.00004007577592
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Ryan Van Der Wall",
+        "position": 0.00009910091033
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Bo De kriek",
+        "position": 287093.4431
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Lars Ahlgreen",
+        "position": 213.4131641
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Jose Molla",
+        "position": 296.9904213
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Joel Barbeau",
+        "position": 52.98995997
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "pierre bezencon",
+        "position": 0.01550296746
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Lars Ahlgreen",
+        "position": 0.00002886064604
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Jose Molla",
+        "position": 0.0000401631055
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Joel Barbeau",
+        "position": 0.000007166026916
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Alex Jacobs",
+        "position": 0.03336417509
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Ryan Van Der Wall",
+        "position": 1.859858446
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Alex Jacobs",
+        "position": 0.0003308296984
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Ryan Van Der Wall",
+        "position": 0.01844182892
+      },
+      {
+        "fund": "IND-XRP",
+        "investor": "Ryan Van Der Wall",
+        "position": 158.350864
+      },
+      {
+        "fund": "IND-XRP",
+        "investor": "Ryan Van Der Wall",
+        "position": 0.1999381077
+      }
+    ],
+    "platformOnly": []
+  },
+  "fees": {
+    "matches": [
+      {
+        "fund": "IND-BTC",
+        "investor": "Jose Molla",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Kyle Gulamerian",
+        "excelFee": 15,
+        "platformFee": 15
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Thomas Puech",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Danielle Richetta",
+        "excelFee": 10,
+        "platformFee": 10
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Nathanaël Cohen",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Blondish",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Oliver Loisel",
+        "excelFee": 10,
+        "platformFee": 10
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Nath & Thomas",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Vivie & Liana",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Thomas Puech",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Danielle Richetta",
+        "excelFee": 10,
+        "platformFee": 10
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Blondish",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "oliver loisel",
+        "excelFee": 10,
+        "platformFee": 10
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Nath & Thomas",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-BTC",
+        "investor": "Vivie & Liana",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Nathanaël Cohen",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Jose Molla",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Blondish",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Alec Beckman",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Tomer Zur",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Brandon Hood",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Blondish",
+        "excelFee": 0,
+        "platformFee": 0
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Dario Deiana",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Jose Molla",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Monica Levy Chicheportiche",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Valeria Cruz",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Jose Molla",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 20,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-XRP",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 20,
+        "platformFee": 20
+      }
+    ],
+    "mismatches": [
+      {
+        "fund": "IND-ETH",
+        "investor": "Advantage Blockchain",
+        "excelFee": 18,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Jose Molla",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Advantage Blockchain",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Alec Beckman",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Tomer Zur",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-ETH",
+        "investor": "Brandon Hood",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Julien Grunebaum",
+        "excelFee": 10,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Daniele Francilia",
+        "excelFee": 10,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Matthew Beatty",
+        "excelFee": 10,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Alain Bensimon",
+        "excelFee": 10,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Anne Cecile Noique",
+        "excelFee": 10,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Terance Chen",
+        "excelFee": 10,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Sacha Oshry",
+        "excelFee": 15,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "julien grunebaum",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "daniele francilia",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "matthew beatty",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "bo kriek",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Dario Deiana",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "alain bensimon",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "anne cecile noique",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "terance chen",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Sacha Oshry",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Jose Molla",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Monica Levy Chicheportiche",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-USDT",
+        "investor": "Valeria Cruz",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Jose Molla",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-SOL",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 0,
+        "platformFee": 20
+      },
+      {
+        "fund": "IND-XRP",
+        "investor": "Ryan Van Der Wall",
+        "excelFee": 0,
+        "platformFee": 20
+      }
+    ]
+  },
+  "ib": {
+    "matches": [
+      {
+        "investor": "Paul Johnson",
+        "excelIB": 1.5,
+        "platformIB": 1.5,
+        "ibParent": "alex jacobs"
+      },
+      {
+        "investor": "Sam Johnson",
+        "excelIB": 4,
+        "platformIB": 4,
+        "ibParent": "ryan van der wall"
+      },
+      {
+        "investor": "Paul Johnson",
+        "excelIB": 1.5,
+        "platformIB": 1.5,
+        "ibParent": "alex jacobs"
+      },
+      {
+        "investor": "Babak Eftekhari",
+        "excelIB": 2,
+        "platformIB": 2,
+        "ibParent": "lars ahlgreen"
+      },
+      {
+        "investor": "Paul Johnson",
+        "excelIB": 1.5,
+        "platformIB": 1.5,
+        "ibParent": "alex jacobs"
+      },
+      {
+        "investor": "Sam Johnson",
+        "excelIB": 4,
+        "platformIB": 4,
+        "ibParent": "ryan van der wall"
+      },
+      {
+        "investor": "Babak Eftekhari",
+        "excelIB": 2,
+        "platformIB": 2,
+        "ibParent": "lars ahlgreen"
+      },
+      {
+        "investor": "Sam Johnson",
+        "excelIB": 4,
+        "platformIB": 4,
+        "ibParent": "ryan van der wall"
+      },
+      {
+        "investor": "Paul Johnson",
+        "excelIB": 1.5,
+        "platformIB": 1.5,
+        "ibParent": "alex jacobs"
+      },
+      {
+        "investor": "Sam Johnson",
+        "excelIB": 4,
+        "platformIB": 4,
+        "ibParent": "ryan van der wall"
+      },
+      {
+        "investor": "Sam Johnson",
+        "excelIB": 4,
+        "platformIB": 4,
+        "ibParent": "ryan van der wall"
+      }
+    ],
+    "mismatches": [
+      {
+        "investor": "Sam Johnson",
+        "excelIB": 1.5,
+        "platformIB": 4
+      }
+    ]
+  },
+  "yields": [
+    {
+      "fund": "IND-BTC",
+      "investor": "Jose Molla",
+      "initial": 3.4856,
+      "latest": 4.834201273,
+      "totalGrowthPct": 38.69064932866651,
+      "fee": 0.2
+    },
+    {
+      "fund": "IND-BTC",
+      "investor": "Kyle Gulamerian",
+      "initial": 0,
+      "latest": 3.9998,
+      "totalGrowthPct": 0,
+      "fee": 0.15
+    },
+    {
+      "fund": "IND-BTC",
+      "investor": "Matthias Reiser",
+      "initial": 0,
+      "latest": 0,
+      "totalGrowthPct": 0,
+      "fee": 0.1
+    },
+    {
+      "fund": "IND-ETH",
+      "investor": "Babak Eftekhari",
+      "initial": 27.01,
+      "latest": 68.89412097,
+      "totalGrowthPct": 155.06894102184376,
+      "fee": 0.18
+    },
+    {
+      "fund": "IND-ETH",
+      "investor": "Lars Ahlgreen",
+      "initial": 0,
+      "latest": 0.04812842663,
+      "totalGrowthPct": 0,
+      "fee": 0.2
+    },
+    {
+      "fund": "IND-ETH",
+      "investor": "INDIGO DIGITAL ASSET FUND LP",
+      "initial": 175,
+      "latest": 0,
+      "totalGrowthPct": -100,
+      "fee": 0
+    },
+    {
+      "fund": "IND-USDT",
+      "investor": "Babak Eftekhari",
+      "initial": 135726.75,
+      "latest": 242825.2234,
+      "totalGrowthPct": 78.90741758717422,
+      "fee": 0.18
+    },
+    {
+      "fund": "IND-USDT",
+      "investor": "Julien Grunebaum",
+      "initial": 0,
+      "latest": 114700.2302,
+      "totalGrowthPct": 0,
+      "fee": 0.1
+    },
+    {
+      "fund": "IND-USDT",
+      "investor": "Daniele Francilia",
+      "initial": 0,
+      "latest": 0,
+      "totalGrowthPct": 0,
+      "fee": 0.1
+    },
+    {
+      "fund": "IND-SOL",
+      "investor": "INDIGO DIGITAL ASSET FUND LP",
+      "initial": 1250,
+      "latest": 0,
+      "totalGrowthPct": -100,
+      "fee": 0
+    },
+    {
+      "fund": "IND-SOL",
+      "investor": "Paul Johnson",
+      "initial": 0,
+      "latest": 0,
+      "totalGrowthPct": 0,
+      "fee": 0.135
+    },
+    {
+      "fund": "IND-SOL",
+      "investor": "Alex Jacobs",
+      "initial": 0,
+      "latest": 0.03336417509,
+      "totalGrowthPct": 0,
+      "fee": 0.2
+    },
+    {
+      "fund": "IND-XRP",
+      "investor": "Sam Johnson",
+      "initial": 135003,
+      "latest": 0,
+      "totalGrowthPct": -100,
+      "fee": 0.16
+    },
+    {
+      "fund": "IND-XRP",
+      "investor": "Ryan Van Der Wall",
+      "initial": 0,
+      "latest": 158.350864,
+      "totalGrowthPct": 0,
+      "fee": 0.2
+    },
+    {
+      "fund": "IND-XRP",
+      "investor": "x",
+      "initial": 0,
+      "latest": 0,
+      "totalGrowthPct": 0,
+      "fee": 0
+    }
+  ],
+  "summary": {
+    "positionMatchRate": 0.0967741935483871,
+    "feeMatchRate": 0.5245901639344263,
+    "ibMatchRate": 0.9166666666666666
+  }
+}

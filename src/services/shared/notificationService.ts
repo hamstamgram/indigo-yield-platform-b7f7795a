@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { toNotifications, type Notification } from "@/lib/typeAdapters";
 
@@ -188,7 +188,10 @@ class NotificationService {
       user_id: userId,
       alert_type: alert.alert_type,
       asset_code: alert.asset_code,
-      threshold_value: typeof alert.threshold_value === "string" ? parseFloat(alert.threshold_value) : alert.threshold_value,
+      threshold_value:
+        typeof alert.threshold_value === "string"
+          ? parseFloat(alert.threshold_value)
+          : alert.threshold_value,
       is_active: alert.is_active,
     };
     const { data, error } = await supabase
@@ -207,9 +210,10 @@ class NotificationService {
   async updatePriceAlert(alertId: string, updates: Partial<PriceAlert>): Promise<void> {
     const updateData: Record<string, unknown> = { ...updates };
     if (updates.threshold_value !== undefined) {
-      updateData.threshold_value = typeof updates.threshold_value === "string" 
-        ? parseFloat(updates.threshold_value) 
-        : updates.threshold_value;
+      updateData.threshold_value =
+        typeof updates.threshold_value === "string"
+          ? parseFloat(updates.threshold_value)
+          : updates.threshold_value;
     }
     const { error } = await supabase.from("price_alerts").update(updateData).eq("id", alertId);
 

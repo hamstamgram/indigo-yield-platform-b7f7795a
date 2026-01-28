@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 import type { User, Session } from "@supabase/supabase-js";
 import type { SignInData, SignUpData, SignInResult, AuthResponse } from "./types";
 import type { Database } from "@/integrations/supabase/types";

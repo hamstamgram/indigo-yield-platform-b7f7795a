@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { actionBarService, type PendingCounts } from "@/services";
+import { actionBarService, type PendingCounts } from "@/services/admin";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**

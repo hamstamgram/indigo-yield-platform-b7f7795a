@@ -14,9 +14,9 @@ import { useState, useCallback, useMemo } from "react";
 import { toast } from "@/hooks";
 import { useUrlFilters, useInvestorLedger, useInvestorDefaultFund } from "@/hooks";
 import { useLedgerSubscription } from "@/hooks/data";
-import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
-import { VoidAndReissueDialog } from "@/components/admin/transactions/VoidAndReissueDialog";
-import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
+import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
+import { VoidAndReissueDialog } from "@/features/admin/transactions/VoidAndReissueDialog";
+import { VoidTransactionDialog } from "@/features/admin/transactions/VoidTransactionDialog";
 
 import { LedgerHeader } from "./LedgerHeader";
 import { LedgerFilters } from "./LedgerFilters";

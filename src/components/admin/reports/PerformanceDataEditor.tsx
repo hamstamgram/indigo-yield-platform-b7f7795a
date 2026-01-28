@@ -6,12 +6,33 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-  Button, Input, Label, Badge,
-  Tabs, TabsContent, TabsList, TabsTrigger,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Save, Loader2, Plus, Trash2 } from "lucide-react";
@@ -20,7 +41,7 @@ import {
   createPerformanceRecord,
   deletePerformanceRecord,
   type PerformanceUpdateData,
-} from "@/services";
+} from "@/services/shared";
 import { useAvailableFunds } from "@/hooks/data";
 
 interface AssetData {
@@ -96,7 +117,7 @@ export function PerformanceDataEditor({
   const [saving, setSaving] = useState(false);
   const [showAddFund, setShowAddFund] = useState(false);
   const [newFundName, setNewFundName] = useState("");
-  
+
   // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -199,32 +220,37 @@ export function PerformanceDataEditor({
 
     setSaving(true);
     try {
-      const result = await createPerformanceRecord(investorId, periodId, newFundName.toUpperCase(), {
-        mtd_beginning_balance: 0,
-        mtd_additions: 0,
-        mtd_redemptions: 0,
-        mtd_net_income: 0,
-        mtd_ending_balance: 0,
-        mtd_rate_of_return: 0,
-        qtd_beginning_balance: 0,
-        qtd_additions: 0,
-        qtd_redemptions: 0,
-        qtd_net_income: 0,
-        qtd_ending_balance: 0,
-        qtd_rate_of_return: 0,
-        ytd_beginning_balance: 0,
-        ytd_additions: 0,
-        ytd_redemptions: 0,
-        ytd_net_income: 0,
-        ytd_ending_balance: 0,
-        ytd_rate_of_return: 0,
-        itd_beginning_balance: 0,
-        itd_additions: 0,
-        itd_redemptions: 0,
-        itd_net_income: 0,
-        itd_ending_balance: 0,
-        itd_rate_of_return: 0,
-      });
+      const result = await createPerformanceRecord(
+        investorId,
+        periodId,
+        newFundName.toUpperCase(),
+        {
+          mtd_beginning_balance: 0,
+          mtd_additions: 0,
+          mtd_redemptions: 0,
+          mtd_net_income: 0,
+          mtd_ending_balance: 0,
+          mtd_rate_of_return: 0,
+          qtd_beginning_balance: 0,
+          qtd_additions: 0,
+          qtd_redemptions: 0,
+          qtd_net_income: 0,
+          qtd_ending_balance: 0,
+          qtd_rate_of_return: 0,
+          ytd_beginning_balance: 0,
+          ytd_additions: 0,
+          ytd_redemptions: 0,
+          ytd_net_income: 0,
+          ytd_ending_balance: 0,
+          ytd_rate_of_return: 0,
+          itd_beginning_balance: 0,
+          itd_additions: 0,
+          itd_redemptions: 0,
+          itd_net_income: 0,
+          itd_ending_balance: 0,
+          itd_rate_of_return: 0,
+        }
+      );
 
       if (result.success) {
         toast.success("Fund Added", {
@@ -395,11 +421,7 @@ export function PerformanceDataEditor({
             {!currentAsset && Object.keys(formData).length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No fund data for this investor in this period.</p>
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => setShowAddFund(true)}
-                >
+                <Button variant="outline" className="mt-4" onClick={() => setShowAddFund(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add First Fund
                 </Button>

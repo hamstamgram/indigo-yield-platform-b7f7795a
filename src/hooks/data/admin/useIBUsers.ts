@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { ibUsersService, type IBUser } from "@/services";
+import { ibUsersService, type IBUser } from "@/services/admin";
 
 /**
  * Hook to fetch all IB users

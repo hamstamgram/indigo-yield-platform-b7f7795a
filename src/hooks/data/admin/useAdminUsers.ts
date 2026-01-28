@@ -6,11 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useToast } from "@/hooks";
-import {
-  adminUsersService,
-  type AdminUserProfile,
-  type AdminInviteParams,
-} from "@/services";
+import { adminUsersService } from "@/services/admin";
+import { type AdminUserProfile, type AdminInviteParams } from "@/services/admin";
 
 /**
  * Hook to fetch all users for admin management
@@ -57,8 +54,7 @@ export function useSendAdminInviteMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: AdminInviteParams) =>
-      adminUsersService.sendAdminInvite(params),
+    mutationFn: (params: AdminInviteParams) => adminUsersService.sendAdminInvite(params),
     onSuccess: (_, { email }) => {
       toast({
         title: "Invitation Sent",

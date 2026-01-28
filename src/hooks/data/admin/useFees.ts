@@ -19,7 +19,7 @@ import {
   type RoutingSummary,
   type YieldEarned,
   type FeeSummary,
-} from "@/services";
+} from "@/services/admin";
 import type { FundRef } from "@/types/domains/fund";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
@@ -110,7 +110,7 @@ export function useRoutingAuditEntries() {
  */
 export function useYieldEarned(funds: FundRef[]) {
   return useQuery<YieldEarned[], Error>({
-    queryKey: [...QUERY_KEYS.adminFeesOverview, "yield", funds.map(f => f.id)],
+    queryKey: [...QUERY_KEYS.adminFeesOverview, "yield", funds.map((f) => f.id)],
     queryFn: () => getYieldEarned(funds),
     enabled: funds.length > 0,
     staleTime: 5 * 60 * 1000,

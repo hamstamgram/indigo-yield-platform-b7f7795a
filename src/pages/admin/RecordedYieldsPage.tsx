@@ -6,7 +6,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { AdminGuard } from "@/components/admin";
 import { useFunds, useUrlFilters } from "@/hooks";
-import { canEditYields, type AumPurpose, type YieldFilters } from "@/services";
+import { canEditYields } from "@/services/admin";
+import { type AumPurpose, type YieldFilters } from "@/services/admin";
 import {
   YieldsFilterBar,
   YieldsTable,
@@ -35,18 +36,28 @@ interface Fund {
 
 function RecordedYieldsContent() {
   const { data: fundsData = [] } = useFunds(true);
-  const funds: Fund[] = fundsData.map(f => ({ id: f.id, code: f.code, name: f.name, asset: f.asset }));
-  
+  const funds: Fund[] = fundsData.map((f) => ({
+    id: f.id,
+    code: f.code,
+    name: f.name,
+    asset: f.asset,
+  }));
+
   const [canEdit, setCanEdit] = useState(false);
   const [correctionRecord, setCorrectionRecord] = useState<RecordedYieldRecord | null>(null);
-  const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<RecordedYieldRecord | null>(null);
+  const [correctionHistoryRecord, setCorrectionHistoryRecord] =
+    useState<RecordedYieldRecord | null>(null);
   const [voidRecord, setVoidRecord] = useState<RecordedYieldRecord | null>(null);
   const [editAumRecord, setEditAumRecord] = useState<RecordedYieldRecord | null>(null);
 
   const queryClient = useQueryClient();
 
   // URL-persisted filters
-  const { filters: urlFilters, setFilter, clearFilters } = useUrlFilters({
+  const {
+    filters: urlFilters,
+    setFilter,
+    clearFilters,
+  } = useUrlFilters({
     keys: ["fundId", "purpose", "dateFrom", "dateTo"],
     defaults: { fundId: "all", purpose: "all" },
   });
@@ -67,7 +78,7 @@ function RecordedYieldsContent() {
   const { data: correctionHistory = [] } = useYieldCorrectionHistory(
     filters.fundId === "all" ? undefined : filters.fundId
   );
-  const { data: recordCorrectionHistory = [], isLoading: isLoadingCorrectionHistory } = 
+  const { data: recordCorrectionHistory = [], isLoading: isLoadingCorrectionHistory } =
     useRecordCorrectionHistory(correctionHistoryRecord);
 
   // Build correction map

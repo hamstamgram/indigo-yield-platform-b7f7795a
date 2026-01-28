@@ -5,7 +5,17 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, FileOutput, FileText, MoreHorizontal, User, Users, Percent, AlertTriangle } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  FileOutput,
+  FileText,
+  MoreHorizontal,
+  User,
+  Users,
+  Percent,
+  AlertTriangle,
+} from "lucide-react";
 import {
   Button,
   Badge,
@@ -22,7 +32,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui";
 import { InvestorKpiChips } from "./InvestorKpiChips";
-import { AddTransactionDialog } from "../../AddTransactionDialog";
+import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 
 interface InvestorHeaderProps {
   investorId: string;
@@ -103,12 +113,7 @@ export function InvestorHeader({
       {/* Breadcrumb row */}
       <div className="px-6 py-3 border-b bg-muted/30">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={handleBack} className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Breadcrumb>
@@ -140,11 +145,7 @@ export function InvestorHeader({
           {/* Actions */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Primary actions (max 3) */}
-            <Button 
-              onClick={() => setShowAddTransaction(true)} 
-              size="sm"
-              disabled={!defaultFundId}
-            >
+            <Button onClick={() => setShowAddTransaction(true)} size="sm" disabled={!defaultFundId}>
               <Plus className="h-4 w-4 mr-1.5" />
               Add Transaction
             </Button>
@@ -178,7 +179,7 @@ export function InvestorHeader({
                   Manage Fees
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => scrollToSection("danger-zone", "settings")}
                   className="text-destructive focus:text-destructive"
                 >

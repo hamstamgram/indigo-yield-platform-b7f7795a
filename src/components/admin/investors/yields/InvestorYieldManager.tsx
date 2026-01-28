@@ -9,9 +9,16 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Button, Badge, Skeleton,
-  Collapsible, CollapsibleContent, CollapsibleTrigger,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  Skeleton,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "@/components/ui";
 import {
   ChevronLeft,
@@ -25,7 +32,7 @@ import {
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
 import { FundPositionCard } from "../shared/FundPositionCard";
 import { InvestorFeeManager } from "./InvestorFeeManager";
-import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import {
   useStatementPeriodId,
   useInvestorPositionsWithFunds,
@@ -65,9 +72,18 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
 
   // React Query hooks
   const { data: periodId } = useStatementPeriodId(selectedDate);
-  const { data: positions = [], isLoading: positionsLoading, refetch: refetchPositions } = useInvestorPositionsWithFunds(investorId);
-  const { data: performance = [], isLoading: perfLoading, refetch: refetchPerformance } = useInvestorPerformanceForPeriod(investorId, periodId ?? null);
-  const { data: feeSchedule = [], refetch: refetchFeeSchedule } = useInvestorFeeScheduleData(investorId);
+  const {
+    data: positions = [],
+    isLoading: positionsLoading,
+    refetch: refetchPositions,
+  } = useInvestorPositionsWithFunds(investorId);
+  const {
+    data: performance = [],
+    isLoading: perfLoading,
+    refetch: refetchPerformance,
+  } = useInvestorPerformanceForPeriod(investorId, periodId ?? null);
+  const { data: feeSchedule = [], refetch: refetchFeeSchedule } =
+    useInvestorFeeScheduleData(investorId);
 
   const loading = positionsLoading || perfLoading;
 
@@ -75,15 +91,11 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
   const getFeeForFund = (fundId: string): number => {
     const today = getTodayString();
     // First try fund-specific fee
-    const fundFee = feeSchedule.find(
-      (f) => f.fund_id === fundId && f.effective_date <= today
-    );
+    const fundFee = feeSchedule.find((f) => f.fund_id === fundId && f.effective_date <= today);
     if (fundFee) return fundFee.fee_pct;
 
     // Fall back to global fee
-    const globalFee = feeSchedule.find(
-      (f) => !f.fund_id && f.effective_date <= today
-    );
+    const globalFee = feeSchedule.find((f) => !f.fund_id && f.effective_date <= today);
     return globalFee?.fee_pct || 0.02;
   };
 
@@ -98,8 +110,8 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
   const isCurrentMonth = format(selectedDate, "yyyy-MM") === format(new Date(), "yyyy-MM");
 
   // Calculate totals
-  const totalYield = useMemo(() => 
-    performance.reduce((sum, p) => sum + (p.mtd_net_income || 0), 0),
+  const totalYield = useMemo(
+    () => performance.reduce((sum, p) => sum + (p.mtd_net_income || 0), 0),
     [performance]
   );
   const hasPerformanceData = performance.length > 0;
@@ -136,18 +148,13 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
           <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          
+
           <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md min-w-[160px] justify-center">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{format(selectedDate, "MMMM yyyy")}</span>
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goToNextMonth}
-            disabled={isCurrentMonth}
-          >
+          <Button variant="outline" size="icon" onClick={goToNextMonth} disabled={isCurrentMonth}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -163,19 +170,11 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
           <FileText className="h-4 w-4 mr-2" />
           View Reports
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowFeeManager(!showFeeManager)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setShowFeeManager(!showFeeManager)}>
           <Percent className="h-4 w-4 mr-2" />
           {showFeeManager ? "Hide" : "Manage"} Fees
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate("/admin/monthly-data-entry")}
-        >
+        <Button variant="outline" size="sm" onClick={() => navigate("/admin/monthly-data-entry")}>
           <TrendingUp className="h-4 w-4 mr-2" />
           Bulk Yield Entry
         </Button>
@@ -244,11 +243,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
           <Card className="bg-muted/30">
             <CardContent className="p-8 text-center">
               <p className="text-muted-foreground">No active fund positions found.</p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => setAddTxDialogOpen(true)}
-              >
+              <Button variant="outline" className="mt-4" onClick={() => setAddTxDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Transaction
               </Button>
@@ -281,9 +276,13 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
         open={addTxDialogOpen}
         onOpenChange={setAddTxDialogOpen}
         investorId={investorId}
-        fundId={defaultFundId || (positions[0]?.fund_id || "")}
+        fundId={defaultFundId || positions[0]?.fund_id || ""}
         onSuccess={() => {
-          invalidateAfterTransaction(queryClient, investorId, defaultFundId || positions[0]?.fund_id);
+          invalidateAfterTransaction(
+            queryClient,
+            investorId,
+            defaultFundId || positions[0]?.fund_id
+          );
           handleDataUpdate();
           setAddTxDialogOpen(false);
         }}

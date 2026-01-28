@@ -1,0 +1,131 @@
+{
+  "phase": "Phase 0 - Data Reconciliation",
+  "generated_at": "2026-01-26T13:41:33.425Z",
+  "excel_count": 144,
+  "json_count": 135,
+  "matched": 135,
+  "excel_only": [
+    {
+      "date": "2024-08-21",
+      "investor": "Kyle Gulamerian",
+      "currency": "BTC",
+      "amount": 0.01,
+      "type": "deposit"
+    },
+    {
+      "date": "2024-08-21",
+      "investor": "Kyle Gulamerian",
+      "currency": "BTC",
+      "amount": 1.99,
+      "type": "deposit"
+    },
+    {
+      "date": "2025-04-01",
+      "investor": "Victoria",
+      "currency": "BTC",
+      "amount": 0.1492,
+      "type": "deposit"
+    },
+    {
+      "date": "2025-05-13",
+      "investor": "Kyle Gulamerian",
+      "currency": "BTC",
+      "amount": -2.1101,
+      "type": "withdrawal"
+    },
+    {
+      "date": "2025-07-24",
+      "investor": "Oliver Loisel",
+      "currency": "BTC",
+      "amount": 2.115364,
+      "type": "deposit"
+    },
+    {
+      "date": "2025-11-03",
+      "investor": "Indigo Fees",
+      "currency": "ETH",
+      "amount": 0.03593745021234585,
+      "type": "deposit"
+    },
+    {
+      "date": "2025-11-27",
+      "investor": "Vivie & Liana",
+      "currency": "BTC",
+      "amount": 3.411,
+      "type": "deposit"
+    },
+    {
+      "date": "2026-01-05",
+      "investor": "Vivie & Liana",
+      "currency": "BTC",
+      "amount": -3.4221,
+      "type": "withdrawal"
+    },
+    {
+      "date": "2026-01-19",
+      "investor": "Kyle Gulamerian",
+      "currency": "BTC",
+      "amount": 3.9998,
+      "type": "deposit"
+    }
+  ],
+  "json_only": [],
+  "unique_investors": [
+    "Advantage Blockchain",
+    "Alain Bensimon",
+    "Anne Cecile Noique",
+    "Babak Eftekhari",
+    "Blondish",
+    "Bo De Kriek",
+    "Brandon Hood",
+    "Daniele Francilia",
+    "Danielle Richetta",
+    "Dario Deiana",
+    "HALLEY86",
+    "INDIGO DIGITAL ASSET FUND LP",
+    "INDIGO Ventures",
+    "Indigo Fees",
+    "Jose Molla",
+    "Julien Grunebaum",
+    "Kabbaj",
+    "Kyle Gulamerian",
+    "Matthew Beatty",
+    "Matthias Reiser",
+    "Monica Levy Chicheportiche",
+    "NSVO Holdings",
+    "Nath & Thomas",
+    "Nathanaël Cohen",
+    "Oliver Loisel",
+    "Paul Johnson",
+    "Pierre Bezencon",
+    "Sacha Oshry",
+    "Sam Johnson",
+    "Terance Chen",
+    "Thomas Puech",
+    "Tomer Zur",
+    "Valeria Cruz",
+    "Ventures Life Style",
+    "Victoria",
+    "Vivie & Liana",
+    "danielle Richetta"
+  ],
+  "monthly_counts": {
+    "2024-06": 2,
+    "2024-07": 2,
+    "2024-08": 2,
+    "2024-10": 5,
+    "2024-11": 1,
+    "2024-12": 1,
+    "2025-03": 2,
+    "2025-04": 3,
+    "2025-05": 6,
+    "2025-06": 3,
+    "2025-07": 16,
+    "2025-08": 6,
+    "2025-09": 8,
+    "2025-10": 19,
+    "2025-11": 37,
+    "2025-12": 15,
+    "2026-01": 16
+  }
+}

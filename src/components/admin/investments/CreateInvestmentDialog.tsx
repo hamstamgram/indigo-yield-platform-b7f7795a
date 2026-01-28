@@ -2,14 +2,30 @@ import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Button, Input, Textarea,
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Input,
+  Textarea,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validation/investment";
 import { type InvestmentFormData } from "@/types/domains";
-import { investmentService } from "@/services";
+import { investmentService } from "@/services/investor";
 import { getTodayString } from "@/utils/dateUtils";
 import { toast } from "sonner";
 import { useInvestors, useActiveFunds } from "@/hooks/data";
@@ -32,13 +48,16 @@ export function CreateInvestmentDialog({
   const { data: fundsData = [] } = useActiveFunds();
 
   // Transform data for selectors
-  const investors = useMemo(() => 
-    investorsData.map(p => ({
-      id: p.id,
-      name: p.email.split('@')[0], // Use email prefix as fallback name
-      email: p.email
-    })), [investorsData]);
-  
+  const investors = useMemo(
+    () =>
+      investorsData.map((p) => ({
+        id: p.id,
+        name: p.email.split("@")[0], // Use email prefix as fallback name
+        email: p.email,
+      })),
+    [investorsData]
+  );
+
   const funds = useMemo(() => fundsData, [fundsData]);
 
   const form = useForm<InvestmentFormValues>({

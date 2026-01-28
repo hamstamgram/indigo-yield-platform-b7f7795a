@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { withdrawalService } from "@/services";
+import { withdrawalService } from "@/services/investor";
 import { fetchInvestorsForSelector } from "@/services/investor/investorDataService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 

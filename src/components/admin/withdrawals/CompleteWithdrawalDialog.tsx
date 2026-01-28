@@ -14,7 +14,7 @@ import {
   Alert,
   AlertDescription,
 } from "@/components/ui";
-import { withdrawalService } from "@/services";
+import { withdrawalService } from "@/services/investor";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";

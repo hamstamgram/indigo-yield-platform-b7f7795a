@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { auditLogService } from "@/services/shared";
+import { auditLogService } from "@/services/shared/auditLogService";
 
 interface RateLimitConfig {
   windowMs: number;

@@ -12,7 +12,7 @@ export { SuperAdminGuard, useSuperAdmin } from "./SuperAdminGuard";
 // ============================================
 // ROOT-LEVEL COMPONENTS
 // ============================================
-export { default as AddTransactionDialog } from "./AddTransactionDialog";
+export { default as AddTransactionDialog } from "@/features/admin/transactions/AddTransactionDialog";
 export { default as AdminInvites } from "./AdminInvites";
 export { default as AdminPageHeader } from "./AdminPageHeader";
 export { default as AdminUsersList } from "./AdminUsersList";
@@ -27,7 +27,7 @@ export { TwoFactorWarningBanner } from "./TwoFactorWarningBanner";
 // ============================================
 // SUBDIRECTORY RE-EXPORTS
 // ============================================
-export * from "./dashboard";
+export * from "@/features/admin/dashboard";
 export * from "./investors";
 export * from "./withdrawals";
 export * from "./deposits";
@@ -36,7 +36,7 @@ export * from "./funds";
 // Operations components
 export { OperationsStats, PendingItemsBreakdown, QuickLinksGrid, SystemStatus } from "./operations";
 export * from "./reports";
-export * from "./transactions";
+export * from "@/features/admin/transactions";
 export * from "./statements";
 export * from "./assets";
 export * from "./investments";

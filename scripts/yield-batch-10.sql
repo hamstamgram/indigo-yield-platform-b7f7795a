@@ -1,0 +1,2 @@
+SELECT insert_yield_transaction('Ventures Life Style', 'IND-USDT', '2025-12', '2025-12-28'::date, 629.8005811772979, 'ed91c89d-23de-4981-b6b7-60e13f1a6767'::uuid);
+SELECT insert_yield_transaction('Sam Johnson', 'IND-XRP', '2025-12', '2025-12-28'::date, 1902.8354375343276, 'ed91c89d-23de-4981-b6b7-60e13f1a6767'::uuid);

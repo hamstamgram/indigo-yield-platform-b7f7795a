@@ -6,17 +6,39 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Button, Input, Label, Badge,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui";
 import { Plus, Trash2, Percent, History } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { feeScheduleService } from "@/services/shared";
+import { feeScheduleService } from "@/services/admin";
 import { useInvestorFeeSchedule, useActiveFunds } from "@/hooks/data";
 import { getTodayString } from "@/utils/dateUtils";
 
@@ -27,7 +49,7 @@ interface InvestorFeeManagerProps {
 
 export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerProps) {
   const [deleteEntry, setDeleteEntry] = useState<{ id: string; fundName: string } | null>(null);
-  
+
   // Form state
   const [newFeeFundId, setNewFeeFundId] = useState<string>("all");
   const [newFeePercent, setNewFeePercent] = useState<string>("");
@@ -35,11 +57,8 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
   const [isAdding, setIsAdding] = useState(false);
 
   // React Query hooks
-  const { 
-    data: feeSchedule = [], 
-    refetch: refetchFees 
-  } = useInvestorFeeSchedule(investorId);
-  
+  const { data: feeSchedule = [], refetch: refetchFees } = useInvestorFeeSchedule(investorId);
+
   const { data: funds = [] } = useActiveFunds();
 
   const getCurrentFee = () => {
@@ -74,16 +93,18 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       setNewFeePercent("");
       setNewFeeFundId("all");
       setNewFeeEffectiveDate(getTodayString());
-      
+
       await refetchFees();
       onUpdate?.();
     } catch (error: unknown) {
       console.error("Error adding fee:", error);
       const err = error as { code?: string };
       // Handle specific constraint violations
-      if (err?.code === '23P01') {
-        toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date.");
-      } else if (err?.code === '23505') {
+      if (err?.code === "23P01") {
+        toast.error(
+          "Fee schedule overlaps with an existing entry. Choose a different effective date."
+        );
+      } else if (err?.code === "23505") {
         toast.error("A fee schedule already exists for this fund and date.");
       } else {
         toast.error("Failed to add fee schedule entry");
@@ -126,9 +147,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
               {currentFee ? `${currentFee.fee_pct.toFixed(2)}%` : "2.00% (default)"}
             </p>
           </div>
-          {currentFee?.fund && (
-            <Badge variant="outline">{currentFee.fund.name}</Badge>
-          )}
+          {currentFee?.fund && <Badge variant="outline">{currentFee.fund.name}</Badge>}
         </div>
 
         {/* Add New Fee Form */}
@@ -149,7 +168,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-1">
             <Label className="text-xs">Fee %</Label>
             <div className="relative">
@@ -168,7 +187,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
               </span>
             </div>
           </div>
-          
+
           <div className="space-y-1">
             <Label className="text-xs">Effective Date</Label>
             <Input
@@ -178,7 +197,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
               className="h-9"
             />
           </div>
-          
+
           <Button onClick={handleAddFee} disabled={isAdding} size="sm" className="h-9">
             <Plus className="h-4 w-4 mr-1" />
             Add
@@ -227,10 +246,12 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => setDeleteEntry({ 
-                              id: entry.id, 
-                              fundName: entry.fund?.name || "All Funds" 
-                            })}
+                            onClick={() =>
+                              setDeleteEntry({
+                                id: entry.id,
+                                fundName: entry.fund?.name || "All Funds",
+                              })
+                            }
                           >
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
@@ -255,8 +276,8 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Fee Entry</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete the fee entry for {deleteEntry?.fundName}? 
-                This action cannot be undone.
+                Are you sure you want to delete the fee entry for {deleteEntry?.fundName}? This
+                action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

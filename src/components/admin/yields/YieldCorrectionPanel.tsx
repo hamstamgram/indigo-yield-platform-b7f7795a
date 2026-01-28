@@ -8,9 +8,21 @@ import { useMutation } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { X, Loader2, Eye, AlertCircle, CheckCircle2, RefreshCw, Calendar } from "lucide-react";
 import {
-  Button, Input, Label, Badge, ScrollArea,
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Button,
+  Input,
+  Label,
+  Badge,
+  ScrollArea,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
@@ -19,9 +31,9 @@ import {
   applyYieldCorrectionV2,
   regenerateAffectedReports,
   formatTokenAmount,
-  type YieldRecord,
   type CorrectionPreview,
-} from "@/services";
+} from "@/services/admin/yieldCorrectionService";
+import { type YieldRecord } from "@/services/admin";
 import { YieldCorrectionPreview } from "./YieldCorrectionPreview";
 import { CorrectionConfirmDialog } from "./CorrectionConfirmDialog";
 
@@ -109,7 +121,13 @@ export function YieldCorrectionPanel({
       if (!record || !periodStart || !periodEnd) throw new Error("Missing period selection");
       const newAumValue = parseFloat(newAum);
       if (isNaN(newAumValue) || newAumValue < 0) throw new Error("Invalid AUM value");
-      return previewYieldCorrectionV2(record.fund_id, periodStart, periodEnd, record.purpose, newAumValue);
+      return previewYieldCorrectionV2(
+        record.fund_id,
+        periodStart,
+        periodEnd,
+        record.purpose,
+        newAumValue
+      );
     },
     onSuccess: (data) => {
       if (data.success) {
@@ -126,9 +144,18 @@ export function YieldCorrectionPanel({
   // Apply mutation using V2
   const applyMutation = useMutation({
     mutationFn: async (confirmation: string) => {
-      if (!record || !preview?.summary || !periodStart || !periodEnd) throw new Error("No preview available");
+      if (!record || !preview?.summary || !periodStart || !periodEnd)
+        throw new Error("No preview available");
       const newAumValue = parseFloat(newAum);
-      return applyYieldCorrectionV2(record.fund_id, periodStart, periodEnd, record.purpose, newAumValue, reason, confirmation);
+      return applyYieldCorrectionV2(
+        record.fund_id,
+        periodStart,
+        periodEnd,
+        record.purpose,
+        newAumValue,
+        reason,
+        confirmation
+      );
     },
     onSuccess: (data) => {
       if (data.success) {
@@ -147,12 +174,15 @@ export function YieldCorrectionPanel({
 
   const regenerateMutation = useMutation({
     mutationFn: (correctionId: string) => regenerateAffectedReports(correctionId),
-    onSuccess: (data) => {
-      if (data.success) {
-        toast.success(data.message || `Regenerated ${data.statements_regenerated} statements`);
-        handleOpenChange(false);
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(
+          result.message || `Regenerated ${(result as any).statements_regenerated} statements`
+        );
+        onCorrectionApplied(); // This will trigger a refresh of the parent component's data
+        handleOpenChange(false); // Close the panel
       } else {
-        toast.error(data.error || "Failed to regenerate reports");
+        toast.error(result.error || "Failed to regenerate reports");
       }
     },
     onError: (error) => {
@@ -176,7 +206,10 @@ export function YieldCorrectionPanel({
               {record && (
                 <>
                   {record.fund_name} •{" "}
-                  <Badge variant={record.purpose === "reporting" ? "default" : "secondary"} className="text-xs">
+                  <Badge
+                    variant={record.purpose === "reporting" ? "default" : "secondary"}
+                    className="text-xs"
+                  >
                     {record.purpose}
                   </Badge>
                 </>
@@ -214,7 +247,9 @@ export function YieldCorrectionPanel({
               {/* Current vs New AUM */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Current AUM ({record?.fund_asset})</Label>
+                  <Label className="text-muted-foreground">
+                    Current AUM ({record?.fund_asset})
+                  </Label>
                   <div className="p-3 rounded-lg bg-muted font-mono text-lg">
                     {record ? formatTokenAmount(record.total_aum, record.fund_asset) : "-"}
                   </div>
@@ -237,17 +272,29 @@ export function YieldCorrectionPanel({
 
               {/* Delta indicator */}
               {hasChanges && !isNaN(delta) && (
-                <div className={`flex items-center gap-2 p-3 rounded-lg ${delta > 0 ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400" : delta < 0 ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400" : "bg-muted"}`}>
+                <div
+                  className={`flex items-center gap-2 p-3 rounded-lg ${delta > 0 ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400" : delta < 0 ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400" : "bg-muted"}`}
+                >
                   <span className="text-sm font-medium">Delta:</span>
                   <span className="font-mono">
-                    {delta > 0 ? "+" : ""}{formatTokenAmount(delta, record?.fund_asset)} {record?.fund_asset}
+                    {delta > 0 ? "+" : ""}
+                    {formatTokenAmount(delta, record?.fund_asset)} {record?.fund_asset}
                   </span>
                 </div>
               )}
 
               {/* Preview button */}
-              <Button onClick={() => previewMutation.mutate()} disabled={!hasChanges || !selectedMonth || previewMutation.isPending} className="w-full" variant="secondary">
-                {previewMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
+              <Button
+                onClick={() => previewMutation.mutate()}
+                disabled={!hasChanges || !selectedMonth || previewMutation.isPending}
+                className="w-full"
+                variant="secondary"
+              >
+                {previewMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Eye className="h-4 w-4 mr-2" />
+                )}
                 Preview Time-Weighted Impact
               </Button>
 
@@ -260,21 +307,25 @@ export function YieldCorrectionPanel({
               )}
 
               {/* Preview results */}
-              {preview?.success && preview.summary && preview.investor_rows && preview.tx_diffs && preview.report_impacts && (
-                <>
-                  <YieldCorrectionPreview
-                    summary={preview.summary}
-                    investorRows={preview.investor_rows}
-                    txDiffs={preview.tx_diffs}
-                    reportImpacts={preview.report_impacts}
-                    reconciliation={preview.reconciliation}
-                  />
-                  <Button onClick={() => setShowConfirmDialog(true)} className="w-full">
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Apply Correction
-                  </Button>
-                </>
-              )}
+              {preview?.success &&
+                preview.summary &&
+                preview.investor_rows &&
+                preview.tx_diffs &&
+                preview.report_impacts && (
+                  <>
+                    <YieldCorrectionPreview
+                      summary={preview.summary}
+                      investorRows={preview.investor_rows}
+                      txDiffs={preview.tx_diffs}
+                      reportImpacts={preview.report_impacts}
+                      reconciliation={preview.reconciliation}
+                    />
+                    <Button onClick={() => setShowConfirmDialog(true)} className="w-full">
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Apply Correction
+                    </Button>
+                  </>
+                )}
 
               {/* Post-correction actions */}
               {lastCorrectionId && (
@@ -283,11 +334,26 @@ export function YieldCorrectionPanel({
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Correction Applied (Time-Weighted)</span>
                   </div>
-                  <Button variant="outline" onClick={() => regenerateMutation.mutate(lastCorrectionId)} disabled={regenerateMutation.isPending} className="w-full">
-                    {regenerateMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                  <Button
+                    variant="outline"
+                    onClick={() => regenerateMutation.mutate(lastCorrectionId)}
+                    disabled={regenerateMutation.isPending}
+                    className="w-full"
+                  >
+                    {regenerateMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
                     Regenerate Affected Reports
                   </Button>
-                  <Button variant="ghost" onClick={() => handleOpenChange(false)} className="w-full">Close</Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleOpenChange(false)}
+                    className="w-full"
+                  >
+                    Close
+                  </Button>
                 </div>
               )}
             </div>

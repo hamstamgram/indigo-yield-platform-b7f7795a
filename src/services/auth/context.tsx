@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Track profile fetch state to avoid double-fetching
   const profileFetchedRef = useRef<string | null>(null);
-  const initializedRef = useRef(false);
+
   const [profileLoading, setProfileLoading] = useState(true);
 
   // Memoized profile fetch that deduplicates requests
@@ -70,10 +70,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Prevent double-initialization in StrictMode
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
     // Set up auth state listener FIRST
     const {
       data: { subscription },
@@ -158,7 +154,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         // SECURITY: Fail closed - never trust user_metadata for admin status
         // Admin status MUST come from the user_roles table (server-verified)
-        logWarn("fetchProfile.notFound", { userId, reason: "Profile not found in database, defaulting to non-admin" });
+        logWarn("fetchProfile.notFound", {
+          userId,
+          reason: "Profile not found in database, defaulting to non-admin",
+        });
         setProfile({
           id: userId,
           email: user?.email || "",

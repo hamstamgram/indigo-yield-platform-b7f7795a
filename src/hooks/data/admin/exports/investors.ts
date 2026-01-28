@@ -3,6 +3,7 @@
  */
 
 // useInvestorDetail
+// useInvestorDetail
 export {
   useInvestorDetail,
   useInvestorOpsIndicators,
@@ -12,7 +13,7 @@ export {
   type OpsIndicators,
   type InvestorPosition as AdminInvestorPosition,
   type InvestorPositionsData as AdminInvestorPositionsData,
-} from "../useInvestorDetail";
+} from "@/hooks/queries/useInvestors";
 
 // useAdminInvestorsWithAssets
 export {
@@ -21,7 +22,7 @@ export {
   useAdminAssets,
   useDeleteInvestor,
   type AdminInvestorSummary as AdminInvestorListItem,
-} from "../useAdminInvestorsWithAssets";
+} from "@/hooks/queries/useInvestors";
 
 // useAdminInvestorMutations
 export {

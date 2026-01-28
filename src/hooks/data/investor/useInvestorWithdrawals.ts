@@ -1,11 +1,12 @@
 /**
  * Investor Withdrawal Hooks
- * 
+ *
  * React Query hooks for investor-facing withdrawal operations
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { withdrawalService, auditLogService } from "@/services";
+import { withdrawalService } from "@/services/investor";
+import { auditLogService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
@@ -24,7 +25,9 @@ export function useInvestorWithdrawals(search?: string) {
   return useQuery({
     queryKey: QUERY_KEYS.withdrawalRequests(search || undefined),
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
       return withdrawalService.getInvestorWithdrawals(user.id, search);
@@ -39,7 +42,9 @@ export function useWithdrawalPositions() {
   return useQuery<WithdrawalPosition[]>({
     queryKey: QUERY_KEYS.availableWithdrawalPositions,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
       return withdrawalService.getInvestorWithdrawalPositions(user.id);
@@ -75,7 +80,9 @@ export function useSubmitWithdrawal() {
       });
 
       // Log audit event
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await auditLogService.logEvent({
           actorUserId: user.id,

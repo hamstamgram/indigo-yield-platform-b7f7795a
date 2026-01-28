@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc";
-import { db } from "@/lib/db";
+import { rpc } from "@/lib/rpc/index";
+import { db } from "@/lib/db/index";
 import type { Database } from "@/integrations/supabase/types";
 import {
   generateMonthlyStatementHTML,

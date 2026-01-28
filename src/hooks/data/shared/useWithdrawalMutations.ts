@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { withdrawalService } from "@/services";
-import { 
-  CreateWithdrawalParams, 
-  UpdateWithdrawalParams, 
+import { withdrawalService } from "@/services/investor";
+import {
+  CreateWithdrawalParams,
+  UpdateWithdrawalParams,
   DeleteWithdrawalParams,
-  RouteToFeesParams 
+  RouteToFeesParams,
 } from "@/types/domains";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
@@ -22,8 +22,7 @@ export function useWithdrawalMutations() {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: (params: CreateWithdrawalParams) => 
-      withdrawalService.createWithdrawal(params),
+    mutationFn: (params: CreateWithdrawalParams) => withdrawalService.createWithdrawal(params),
     onSuccess: (_, params) => {
       invalidateAfterWithdrawal(queryClient, params.investorId, params.fundId);
       toast.success("Withdrawal request created successfully");
@@ -34,15 +33,10 @@ export function useWithdrawalMutations() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (params: UpdateWithdrawalParams & WithdrawalContext) => 
+    mutationFn: (params: UpdateWithdrawalParams & WithdrawalContext) =>
       withdrawalService.updateWithdrawal(params),
     onSuccess: (_, params) => {
-      invalidateAfterWithdrawal(
-        queryClient, 
-        params.investorId, 
-        params.fundId, 
-        params.withdrawalId
-      );
+      invalidateAfterWithdrawal(queryClient, params.investorId, params.fundId, params.withdrawalId);
       toast.success("Withdrawal updated successfully");
     },
     onError: (error: Error) => {
@@ -51,7 +45,7 @@ export function useWithdrawalMutations() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (params: DeleteWithdrawalParams & WithdrawalContext) => 
+    mutationFn: (params: DeleteWithdrawalParams & WithdrawalContext) =>
       withdrawalService.deleteWithdrawal(params),
     onSuccess: (_, params) => {
       invalidateAfterWithdrawal(queryClient, params.investorId, params.fundId);
@@ -63,15 +57,10 @@ export function useWithdrawalMutations() {
   });
 
   const routeToFeesMutation = useMutation({
-    mutationFn: (params: RouteToFeesParams & WithdrawalContext) => 
+    mutationFn: (params: RouteToFeesParams & WithdrawalContext) =>
       withdrawalService.routeToFees(params),
     onSuccess: (_, params) => {
-      invalidateAfterWithdrawal(
-        queryClient, 
-        params.investorId, 
-        params.fundId, 
-        params.withdrawalId
-      );
+      invalidateAfterWithdrawal(queryClient, params.investorId, params.fundId, params.withdrawalId);
       toast.success("Withdrawal routed to INDIGO FEES successfully");
     },
     onError: (error: Error) => {

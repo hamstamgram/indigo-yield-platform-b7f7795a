@@ -8,7 +8,7 @@ import {
   getInvestorMonthlyReports,
   createMonthlyReportTemplate,
   updateMonthlyReportField,
-} from "@/services";
+} from "@/services/admin";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 

@@ -3,7 +3,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import type { Database } from "@/integrations/supabase/types";
 import { logError } from "@/lib/logger";
 

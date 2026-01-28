@@ -5,7 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import { getMonthEndDate } from "@/utils/dateUtils";
 
 /**
@@ -64,7 +64,9 @@ interface MonthlyReportWithPeriod {
 /**
  * Get investor monthly reports (from investor_fund_performance)
  */
-export async function getInvestorMonthlyReports(investorId: string): Promise<MonthlyReportWithPeriod[]> {
+export async function getInvestorMonthlyReports(
+  investorId: string
+): Promise<MonthlyReportWithPeriod[]> {
   // Note: Supabase JS v2 doesn't fully support order() on relation fields in TypeScript,
   // so we fetch and sort client-side for type safety
   const { data, error } = await supabase
@@ -89,7 +91,7 @@ export async function getInvestorMonthlyReports(investorId: string): Promise<Mon
     .eq("investor_id", investorId);
 
   if (error) throw new Error(`Failed to fetch monthly reports: ${error.message}`);
-  
+
   // Client-side sort: by period_end_date DESC, then fund_name ASC
   const reports = (data || []) as unknown as MonthlyReportWithPeriod[];
   return reports.sort((a, b) => {

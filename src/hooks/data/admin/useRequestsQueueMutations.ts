@@ -5,9 +5,13 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { requestsQueueService } from "@/services";
+import { requestsQueueService } from "@/services/admin";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
-import type { ApproveWithdrawalParams, RejectWithdrawalParams, WithdrawalRequest } from "@/types/domains/requests";
+import type {
+  ApproveWithdrawalParams,
+  RejectWithdrawalParams,
+  WithdrawalRequest,
+} from "@/types/domains/requests";
 
 interface UseRequestsQueueMutationsOptions {
   withdrawalRequests?: WithdrawalRequest[];
@@ -22,20 +26,21 @@ export function useRequestsQueueMutations(options: UseRequestsQueueMutationsOpti
   const queryClient = useQueryClient();
 
   const approveMutation = useMutation({
-    mutationFn: (params: ApproveWithdrawalParams) => 
-      requestsQueueService.approveWithdrawal(params),
+    mutationFn: (params: ApproveWithdrawalParams) => requestsQueueService.approveWithdrawal(params),
     onMutate: async (variables) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["admin", "withdrawal-requests"] });
-      
+
       // Snapshot for rollback
       const previousRequests = queryClient.getQueryData(["admin", "withdrawal-requests"]);
-      
+
       // Optimistic update - mark as approved
-      queryClient.setQueryData(["admin", "withdrawal-requests"], (old: WithdrawalRequest[] | undefined) => 
-        old?.map(r => r.id === variables.requestId ? { ...r, status: "approved" } : r)
+      queryClient.setQueryData(
+        ["admin", "withdrawal-requests"],
+        (old: WithdrawalRequest[] | undefined) =>
+          old?.map((r) => (r.id === variables.requestId ? { ...r, status: "approved" } : r))
       );
-      
+
       return { previousRequests };
     },
     onError: (error: Error, _variables, context) => {
@@ -56,20 +61,21 @@ export function useRequestsQueueMutations(options: UseRequestsQueueMutationsOpti
   });
 
   const rejectMutation = useMutation({
-    mutationFn: (params: RejectWithdrawalParams) => 
-      requestsQueueService.rejectWithdrawal(params),
+    mutationFn: (params: RejectWithdrawalParams) => requestsQueueService.rejectWithdrawal(params),
     onMutate: async (variables) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["admin", "withdrawal-requests"] });
-      
+
       // Snapshot for rollback
       const previousRequests = queryClient.getQueryData(["admin", "withdrawal-requests"]);
-      
+
       // Optimistic update - mark as rejected
-      queryClient.setQueryData(["admin", "withdrawal-requests"], (old: WithdrawalRequest[] | undefined) => 
-        old?.map(r => r.id === variables.requestId ? { ...r, status: "rejected" } : r)
+      queryClient.setQueryData(
+        ["admin", "withdrawal-requests"],
+        (old: WithdrawalRequest[] | undefined) =>
+          old?.map((r) => (r.id === variables.requestId ? { ...r, status: "rejected" } : r))
       );
-      
+
       return { previousRequests };
     },
     onError: (error: Error, _variables, context) => {

@@ -12,7 +12,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 import { requireAdmin } from "@/utils/authorizationHelper";
 import type {

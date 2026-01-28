@@ -5,11 +5,11 @@
  * All return types are automatically inferred from the Database schema.
  *
  * NOTE: This is a legacy wrapper that internally uses the canonical RPC gateway.
- * For new code, prefer importing { rpc } from "@/lib/rpc" directly.
+ * For new code, prefer importing { rpc } from "@/lib/rpc/index" directly.
  */
 
 import type { Database } from "./types";
-import { rpc } from "@/lib/rpc";
+import { rpc } from "@/lib/rpc/index";
 
 // Extract RPC function types from Database schema
 type RpcFunctions = Database["public"]["Functions"];
