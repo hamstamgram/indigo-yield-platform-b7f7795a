@@ -5,16 +5,14 @@
  * Eliminates duplicate system account checks across components.
  */
 
+import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
+
+// Re-export for backward compatibility
+export { INDIGO_FEES_ACCOUNT_ID };
+
 // ============================================================================
 // Constants
 // ============================================================================
-
-/**
- * UUID of the INDIGO FEES system account
- * This account receives all performance fees from yield distributions
- * Note: Management fees are frozen to 0 per CFO policy
- */
-export const INDIGO_FEES_ACCOUNT_ID = "d1c0a00d-9d14-4dd0-a0e8-5cf2b48df7b4";
 
 /**
  * Account type identifiers
