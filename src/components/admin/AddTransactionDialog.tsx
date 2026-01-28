@@ -528,8 +528,8 @@ export function AddTransactionDialog({
             <Label htmlFor="amount">Amount *</Label>
             <Input
               id="amount"
-              type="number"
-              step="0.00000001"
+              type="text"
+              inputMode="decimal"
               placeholder="0.00"
               {...register("amount")}
               className={errors.amount ? "border-destructive" : ""}
@@ -699,9 +699,8 @@ function PreflowAumInput(props: {
       )}
       <Input
         id="closing_aum"
-        type="number"
-        step="0.00000001"
-        min="0"
+        type="text"
+        inputMode="decimal"
         placeholder={`Enter preflow AUM (${asset})`}
         {...register("closing_aum")}
         className={errorMessage ? "border-destructive" : ""}

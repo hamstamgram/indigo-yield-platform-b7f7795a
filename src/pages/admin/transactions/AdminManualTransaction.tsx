@@ -468,8 +468,8 @@ export default function AdminManualTransaction() {
                 <Input
                   {...form.register("amount")}
                   placeholder="0.00000000"
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                 />
                 {form.formState.errors.amount && (
                   <p className="text-sm text-destructive">{form.formState.errors.amount.message}</p>
