@@ -227,6 +227,7 @@ class IBAllocationService {
       .from("ib_allocations")
       .select("*")
       .eq("ib_investor_id", ibInvestorId)
+      .eq("is_voided", false)
       .order("effective_date", { ascending: false })
       .order("id", { ascending: false })
       .limit(500);

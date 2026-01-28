@@ -52,6 +52,7 @@ class IBPayoutService {
         )
       `
       )
+      .eq("is_voided", false)
       .order("effective_date", { ascending: false })
       .limit(1000);
 
