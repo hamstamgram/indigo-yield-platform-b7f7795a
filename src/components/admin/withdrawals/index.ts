@@ -14,7 +14,6 @@ export { RouteToFeesDialog } from "./RouteToFeesDialog";
 export { StartProcessingDialog } from "./StartProcessingDialog";
 
 // Components
-export { default as AdminWithdrawalForm } from "./AdminWithdrawalForm";
 export { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 export { WithdrawalDetailsDrawer } from "./WithdrawalDetailsDrawer";
 export { WithdrawalStatsComponent as WithdrawalStats } from "./WithdrawalStats";

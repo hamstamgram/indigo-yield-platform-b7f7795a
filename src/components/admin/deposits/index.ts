@@ -9,6 +9,5 @@ export { CreateDepositDialog } from "./CreateDepositDialog";
 export { RejectDepositDialog } from "./RejectDepositDialog";
 
 // Components
-export { default as AdminDepositForm } from "./AdminDepositForm";
 export { DepositStats } from "./DepositStats";
 export { DepositsTable } from "./DepositsTable";
