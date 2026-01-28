@@ -10,19 +10,19 @@ import { logError } from "@/lib/logger";
 export interface AdminStats {
   // Fund metrics
   totalFunds: number;
-  
+
   // Position metrics
-  totalPositions: number;        // Total rows in investor_positions
-  activePositions: number;       // Positions with current_value > 0
-  
+  totalPositions: number; // Total rows in investor_positions
+  activePositions: number; // Positions with current_value > 0
+
   // Investor metrics
-  totalProfiles: number;         // All non-admin profiles
-  activeProfiles: number;        // Profiles with status='active'
+  totalProfiles: number; // All non-admin profiles
+  activeProfiles: number; // Profiles with status='active'
   uniqueInvestorsWithPositions: number; // Unique investors that have at least one position
-  
+
   // Operational metrics
   pendingWithdrawals: number;
-  recentActivity: number;        // 24h transaction count
+  recentActivity: number; // 24h transaction count
 }
 
 interface ProfileData {
@@ -39,42 +39,29 @@ interface PositionData {
  * Fetch all admin dashboard statistics in parallel
  */
 export async function fetchAdminStats(): Promise<AdminStats> {
-  const [
-    fundsResult,
-    profilesResult,
-    positionsResult,
-    withdrawalsResult,
-    activityResult,
-  ] = await Promise.all([
-    // Active funds count
-    supabase
-      .from("funds")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "active"),
-    
-    // All non-admin profiles
-    supabase
-      .from("profiles")
-      .select("id, status")
-      .eq("is_admin", false),
-    
-    // All investor positions
-    supabase
-      .from("investor_positions")
-      .select("investor_id, current_value"),
-    
-    // Pending withdrawals
-    supabase
-      .from("withdrawal_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
-    
-    // 24h activity
-    supabase
-      .from("transactions_v2")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-  ]);
+  const [fundsResult, profilesResult, positionsResult, withdrawalsResult, activityResult] =
+    await Promise.all([
+      // Active funds count
+      supabase.from("funds").select("id", { count: "exact", head: true }).eq("status", "active"),
+
+      // All non-admin profiles
+      supabase.from("profiles").select("id, status").eq("is_admin", false),
+
+      // All investor positions
+      supabase.from("investor_positions").select("investor_id, current_value"),
+
+      // Pending withdrawals
+      supabase
+        .from("withdrawal_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending"),
+
+      // 24h activity
+      supabase
+        .from("transactions_v2")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+    ]);
 
   // Calculate profile stats
   const profiles = (profilesResult.data || []) as ProfileData[];
@@ -84,14 +71,15 @@ export async function fetchAdminStats(): Promise<AdminStats> {
   // Calculate position stats
   const positions = (positionsResult.data || []) as PositionData[];
   const totalPositions = positions.length;
-  const activePositions = positions.filter((p) => (p.current_value || 0) > 0).length;
-  const uniqueInvestorIds = new Set(positions.map((p) => p.investor_id));
+  const activePositions = positions.filter((p) => (p.current_value || 0) > 0);
+  // Only count investors with active positions (current_value > 0)
+  const uniqueInvestorIds = new Set(activePositions.map((p) => p.investor_id));
   const uniqueInvestorsWithPositions = uniqueInvestorIds.size;
 
   return {
     totalFunds: fundsResult.count || 0,
     totalPositions,
-    activePositions,
+    activePositions: activePositions.length,
     totalProfiles,
     activeProfiles,
     uniqueInvestorsWithPositions,
@@ -141,7 +129,7 @@ export async function getPendingWithdrawalCount(): Promise<number> {
  */
 export async function getRecentActivityCount(hoursAgo: number = 24): Promise<number> {
   const cutoffTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
-  
+
   const { count, error } = await supabase
     .from("transactions_v2")
     .select("id", { count: "exact", head: true })

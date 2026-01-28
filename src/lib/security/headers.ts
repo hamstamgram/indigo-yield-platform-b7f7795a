@@ -51,25 +51,17 @@ export function generateCSP(): string {
 }
 
 export function applySecurityHeaders() {
-  // Apply security headers as meta tags
+  // Apply security headers where possible via meta tags
+  // NOTE: X-Frame-Options, X-Content-Type-Options, HSTS, etc. MUST be set via HTTP headers
+  // (configured in lovable.json, vercel.json) - browsers ignore these when set via meta tags.
+  // Only CSP works as a meta tag via http-equiv.
   const head = document.head;
 
-  // Content Security Policy
+  // Content Security Policy - this works as a meta tag
   const cspMeta = document.createElement("meta");
   cspMeta.httpEquiv = "Content-Security-Policy";
   cspMeta.content = generateCSP();
   head.appendChild(cspMeta);
-
-  // Other security headers as meta tags where applicable
-  const xFrameMeta = document.createElement("meta");
-  xFrameMeta.httpEquiv = "X-Frame-Options";
-  xFrameMeta.content = SECURITY_HEADERS["X-Frame-Options"];
-  head.appendChild(xFrameMeta);
-
-  const xContentTypeMeta = document.createElement("meta");
-  xContentTypeMeta.httpEquiv = "X-Content-Type-Options";
-  xContentTypeMeta.content = SECURITY_HEADERS["X-Content-Type-Options"];
-  head.appendChild(xContentTypeMeta);
 }
 
 export function validateCSRFToken(token: string): boolean {
