@@ -155,7 +155,9 @@ export async function processDepositWithYield(
   try {
     const triggerReference = (txHash || `deposit_yield:${Date.now()}`).replace(/^DEP:/, "");
     const amountFixed = amountDec.toFixed(10);
-    const newTotalAumFixed = newTotalAumDec.toFixed(10);
+    // FIX: Pass pre-flow AUM (before deposit), not the final AUM
+    // The RPC expects p_closing_aum to be the AUM BEFORE the deposit is applied
+    const closingAumBeforeDepositFixed = closingAumBeforeDeposit.toFixed(10);
 
     const { data: depositResult, error: depositError } = await callRPC(
       "apply_deposit_with_crystallization",
@@ -163,7 +165,7 @@ export async function processDepositWithYield(
         p_fund_id: fundId,
         p_investor_id: investorId,
         p_amount: Number(amountFixed),
-        p_closing_aum: Number(newTotalAumFixed),
+        p_closing_aum: Number(closingAumBeforeDepositFixed),
         p_effective_date: txDate,
         p_admin_id: user.id,
         p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
@@ -221,20 +223,18 @@ export async function getCurrentFundAum(fundId: string): Promise<number> {
   }
 
   // Fetch investor profiles to filter by account_type
-  const investorIds = [...new Set((positions || []).map(p => p.investor_id))];
+  const investorIds = [...new Set((positions || []).map((p) => p.investor_id))];
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, account_type")
-    .in("id", investorIds.length > 0 ? investorIds : ['none']);
+    .in("id", investorIds.length > 0 ? investorIds : ["none"]);
 
   const investorSet = new Set(
-    (profiles || [])
-      .filter(p => p.account_type === 'investor')
-      .map(p => p.id)
+    (profiles || []).filter((p) => p.account_type === "investor").map((p) => p.id)
   );
 
   // Filter to investor accounts only
-  const investorPositions = (positions || []).filter(p => investorSet.has(p.investor_id));
+  const investorPositions = (positions || []).filter((p) => investorSet.has(p.investor_id));
 
   return investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 }
