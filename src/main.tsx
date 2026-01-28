@@ -18,4 +18,4 @@ initPostHog();
 registerSW();
 
 createRoot(document.getElementById("root")!).render(<App />);
-// Deployment trigger - 2026-01-28T09:24:20Z
+// Deployment trigger - 2026-01-28T12:20:00Z
