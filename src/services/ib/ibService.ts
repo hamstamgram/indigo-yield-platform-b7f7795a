@@ -78,7 +78,7 @@ export interface Commission {
   sourceNetIncome: number;
   ibPercentage: number;
   ibFeeAmount: number;
-  payoutStatus: 'pending' | 'paid';
+  payoutStatus: "pending" | "paid";
   paidAt: string | null;
 }
 
@@ -155,15 +155,18 @@ class IBService {
   async getCommissionSummary(ibId: string, startDate?: Date): Promise<CommissionSummary[]> {
     let query = supabase
       .from("ib_allocations")
-      .select(`
+      .select(
+        `
         id,
         ib_fee_amount,
         fund_id,
         effective_date,
         payout_status,
         funds!inner(asset)
-      `)
-      .eq("ib_investor_id", ibId);
+      `
+      )
+      .eq("ib_investor_id", ibId)
+      .eq("is_voided", false);
 
     if (startDate) {
       query = query.gte("effective_date", format(startDate, "yyyy-MM-dd"));
@@ -178,7 +181,7 @@ class IBService {
 
     // Group by asset with proper pending/paid tracking
     const byAsset: Record<string, { total: number; pending: number; paid: number }> = {};
-    
+
     interface AllocationRow {
       id: string;
       ib_fee_amount: number;
@@ -196,7 +199,7 @@ class IBService {
       }
       const amount = Number(allocation.ib_fee_amount);
       byAsset[asset].total += amount;
-      if (allocation.payout_status === 'paid') {
+      if (allocation.payout_status === "paid") {
         byAsset[asset].paid += amount;
       } else {
         byAsset[asset].pending += amount;
@@ -217,7 +220,8 @@ class IBService {
   async getTopReferrals(ibId: string, startDate?: Date, limit = 10): Promise<TopReferral[]> {
     let query = supabase
       .from("ib_allocations")
-      .select(`
+      .select(
+        `
         source_investor_id,
         ib_fee_amount,
         funds!inner(asset),
@@ -226,8 +230,10 @@ class IBService {
           last_name,
           email
         )
-      `)
-      .eq("ib_investor_id", ibId);
+      `
+      )
+      .eq("ib_investor_id", ibId)
+      .eq("is_voided", false);
 
     if (startDate) {
       query = query.gte("effective_date", format(startDate, "yyyy-MM-dd"));
@@ -305,7 +311,11 @@ class IBService {
    * Get paginated referrals with positions
    */
   async getReferrals(ibId: string, page: number, pageSize: number): Promise<PaginatedReferrals> {
-    const { data: profiles, error, count } = await supabase
+    const {
+      data: profiles,
+      error,
+      count,
+    } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, email, status, created_at", { count: "exact" })
       .eq("ib_parent_id", ibId)
@@ -318,7 +328,7 @@ class IBService {
     }
 
     const referralIds = profiles?.map((p) => p.id) || [];
-    
+
     // Typed positions with fund join
     let positionsData: PositionWithFundAsset[] = [];
     if (referralIds.length > 0) {
@@ -331,10 +341,10 @@ class IBService {
 
     const referrals: Referral[] = (profiles || []).map((profile) => {
       const investorPositions = positionsData.filter((p) => p.investor_id === profile.id);
-      
+
       const holdings: Record<string, number> = {};
       const activeFundIds = new Set<string>();
-      
+
       for (const pos of investorPositions) {
         const asset = pos.funds?.asset;
         const currentValue = Number(pos.current_value);
@@ -375,7 +385,7 @@ class IBService {
       logError("ibService.getReferralsForDashboard", error, { ibId });
       return [];
     }
-    
+
     return data || [];
   }
 
@@ -404,13 +414,15 @@ class IBService {
   async getReferralPositions(investorId: string): Promise<Position[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(`
+      .select(
+        `
         fund_id,
         shares,
         cost_basis,
         current_value,
         funds!fk_investor_positions_fund(name, asset, code)
-      `)
+      `
+      )
       .eq("investor_id", investorId);
 
     if (error) {
@@ -427,7 +439,8 @@ class IBService {
   async getReferralCommissions(referralId: string, ibId: string, limit = 50): Promise<any[]> {
     const { data, error } = await supabase
       .from("ib_allocations")
-      .select(`
+      .select(
+        `
         id,
         ib_fee_amount,
         ib_percentage,
@@ -436,9 +449,11 @@ class IBService {
         period_start,
         period_end,
         funds!inner(name, asset)
-      `)
+      `
+      )
       .eq("ib_investor_id", ibId)
       .eq("source_investor_id", referralId)
+      .eq("is_voided", false)
       .order("effective_date", { ascending: false })
       .limit(limit);
 
@@ -454,14 +469,15 @@ class IBService {
    * Get paginated commissions with filters
    */
   async getCommissions(
-    ibId: string, 
-    page: number, 
-    pageSize: number, 
+    ibId: string,
+    page: number,
+    pageSize: number,
     dateRange?: { start: Date | null; end: Date | null }
   ): Promise<PaginatedCommissions> {
     let query = supabase
       .from("ib_allocations")
-      .select(`
+      .select(
+        `
         id,
         ib_fee_amount,
         ib_percentage,
@@ -478,8 +494,11 @@ class IBService {
           last_name,
           email
         )
-      `, { count: "exact" })
+      `,
+        { count: "exact" }
+      )
       .eq("ib_investor_id", ibId)
+      .eq("is_voided", false)
       .order("effective_date", { ascending: false });
 
     if (dateRange?.start) {
@@ -498,7 +517,9 @@ class IBService {
       return { commissions: [], total: 0, assets: [] };
     }
 
-    const commissions: Commission[] = ((allocations || []) as unknown as IBAllocationCommissionRow[]).map((alloc) => {
+    const commissions: Commission[] = (
+      (allocations || []) as unknown as IBAllocationCommissionRow[]
+    ).map((alloc) => {
       const fund: IBFundRef | null = alloc.funds;
       const profile: IBProfileRef | null = alloc.profiles;
       const investorName = profile
@@ -517,7 +538,7 @@ class IBService {
         sourceNetIncome: Number(alloc.source_net_income),
         ibPercentage: Number(alloc.ib_percentage),
         ibFeeAmount: Number(alloc.ib_fee_amount),
-        payoutStatus: (alloc.payout_status || 'pending') as 'pending' | 'paid',
+        payoutStatus: (alloc.payout_status || "pending") as "pending" | "paid",
         paidAt: alloc.paid_at || null,
       };
     });
@@ -537,7 +558,8 @@ class IBService {
   async getAllocations(ibId: string): Promise<Allocation[]> {
     const { data, error } = await supabase
       .from("ib_allocations")
-      .select(`
+      .select(
+        `
         id,
         fund_id,
         source_investor_id,
@@ -549,8 +571,10 @@ class IBService {
         source,
         created_at,
         funds:fund_id (asset)
-      `)
+      `
+      )
       .eq("ib_investor_id", ibId)
+      .eq("is_voided", false)
       .order("created_at", { ascending: false })
       .limit(500);
 
@@ -595,12 +619,14 @@ class IBService {
   async getIBPositions(ibId: string): Promise<FundPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(`
+      .select(
+        `
         fund_id,
         current_value,
         cost_basis,
         funds:fund_id (name, asset)
-      `)
+      `
+      )
       .eq("investor_id", ibId)
       .gt("current_value", 0);
 
@@ -624,9 +650,14 @@ class IBService {
    * Get payout history (withdrawal requests)
    */
   async getPayoutHistory(ibId: string, page: number, pageSize: number): Promise<PaginatedPayouts> {
-    const { data: withdrawals, error, count } = await supabase
+    const {
+      data: withdrawals,
+      error,
+      count,
+    } = await supabase
       .from("withdrawal_requests")
-      .select(`
+      .select(
+        `
         id,
         requested_amount,
         processed_amount,
@@ -634,7 +665,9 @@ class IBService {
         request_date,
         processed_at,
         funds!inner(name, asset)
-      `, { count: "exact" })
+      `,
+        { count: "exact" }
+      )
       .eq("investor_id", ibId)
       .order("request_date", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
