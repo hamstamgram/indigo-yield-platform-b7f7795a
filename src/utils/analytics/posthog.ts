@@ -58,7 +58,7 @@ export function identifyUser(userId: string, traits?: Record<string, unknown>) {
 
   // Mask email if present in traits
   const maskedTraits = { ...traits };
-  if (maskedTraits.email) {
+  if (maskedTraits.email && typeof maskedTraits.email === "string") {
     const [localPart, domain] = maskedTraits.email.split("@");
     maskedTraits.email = `${localPart.slice(0, 2)}***@${domain}`;
   }

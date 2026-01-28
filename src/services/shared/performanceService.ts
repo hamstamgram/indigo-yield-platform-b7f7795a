@@ -188,35 +188,92 @@ export const performanceService = {
         .eq("is_active", true)
         .gt("current_value", 0);
 
+      // Also fetch yield events to calculate actual returns
+      const { data: yieldEvents } = await supabase
+        .from("investor_yield_events")
+        .select("fund_id, net_yield_amount, event_date, visibility_scope, is_voided")
+        .eq("investor_id", userId)
+        .eq("is_voided", false)
+        .eq("visibility_scope", "investor_visible");
+
+      // Aggregate yields by fund
+      const yieldByFund = new Map<string, { mtd: number; qtd: number; ytd: number; itd: number }>();
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const currentQuarter = Math.floor(currentMonth / 3);
+
+      yieldEvents?.forEach((event) => {
+        const fundId = event.fund_id;
+        const amount = Number(event.net_yield_amount || 0);
+        const eventDate = new Date(event.event_date);
+        const eventYear = eventDate.getFullYear();
+        const eventMonth = eventDate.getMonth();
+        const eventQuarter = Math.floor(eventMonth / 3);
+
+        if (!yieldByFund.has(fundId)) {
+          yieldByFund.set(fundId, { mtd: 0, qtd: 0, ytd: 0, itd: 0 });
+        }
+
+        const fundYields = yieldByFund.get(fundId)!;
+
+        // ITD: All yields
+        fundYields.itd += amount;
+
+        // YTD: Same year
+        if (eventYear === currentYear) {
+          fundYields.ytd += amount;
+
+          // QTD: Same quarter and year
+          if (eventQuarter === currentQuarter) {
+            fundYields.qtd += amount;
+
+            // MTD: Same month and year
+            if (eventMonth === currentMonth) {
+              fundYields.mtd += amount;
+            }
+          }
+        }
+      });
+
       if (!positionsError && positions && positions.length > 0) {
         perAssetStats = positions.map((pos) => {
           const fundName = fundIdToName.get(pos.fund_id) || "Unknown Fund";
           const assetSymbol = fundIdToAsset.get(pos.fund_id) || "UNKNOWN";
           const balance = Number(pos.current_value || 0);
+          const yields = yieldByFund.get(pos.fund_id) || { mtd: 0, qtd: 0, ytd: 0, itd: 0 };
+
+          // Calculate rate of return: (netIncome / balance) * 100
+          // Use beginning balance approximation (balance - yields) for more accurate RoR
+          const calcRoR = (netIncome: number, endBal: number) => {
+            const beginBal = endBal - netIncome;
+            if (beginBal <= 0) return netIncome > 0 ? 100 : 0;
+            return (netIncome / beginBal) * 100;
+          };
 
           return {
             fundName,
             assetSymbol,
             periodName: "Current",
             mtd: {
-              netIncome: 0,
+              netIncome: yields.mtd,
               endingBalance: balance,
-              rateOfReturn: 0,
+              rateOfReturn: calcRoR(yields.mtd, balance),
             },
             qtd: {
-              netIncome: 0,
+              netIncome: yields.qtd,
               endingBalance: balance,
-              rateOfReturn: 0,
+              rateOfReturn: calcRoR(yields.qtd, balance),
             },
             ytd: {
-              netIncome: 0,
+              netIncome: yields.ytd,
               endingBalance: balance,
-              rateOfReturn: 0,
+              rateOfReturn: calcRoR(yields.ytd, balance),
             },
             itd: {
-              netIncome: 0,
+              netIncome: yields.itd,
               endingBalance: balance,
-              rateOfReturn: 0,
+              rateOfReturn: calcRoR(yields.itd, balance),
             },
           };
         });

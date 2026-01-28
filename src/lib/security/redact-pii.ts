@@ -86,16 +86,16 @@ export function redactObject<T extends Record<string, unknown>>(
   }
 
   const { keys = [] } = options;
-  const result = { ...obj } as T;
+  const result = { ...obj } as Record<string, unknown>;
 
   // Redact specific keys if provided
   if (keys.length > 0) {
     for (const key of keys) {
       if (key in result && typeof result[key] === "string") {
-        result[key] = redactString(result[key], options);
+        result[key] = redactString(result[key] as string, options);
       }
     }
-    return result;
+    return result as T;
   }
 
   // Redact all string values
@@ -103,11 +103,11 @@ export function redactObject<T extends Record<string, unknown>>(
     if (typeof value === "string") {
       result[key] = redactString(value, options);
     } else if (typeof value === "object" && value !== null) {
-      result[key] = redactObject(value, options);
+      result[key] = redactObject(value as Record<string, unknown>, options);
     }
   }
 
-  return result;
+  return result as T;
 }
 
 /**
