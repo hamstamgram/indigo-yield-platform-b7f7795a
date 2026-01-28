@@ -601,7 +601,9 @@ export const withdrawalService = {
    */
   async hasMFAEnabled(): Promise<boolean> {
     const { data: factors } = await supabase.auth.mfa.listFactors();
-    const totpFactor = (factors as any)?.find(
+    // factors is { totp: Factor[], phone: Factor[] }, not an array
+    const totpFactors = factors?.totp || [];
+    const totpFactor = totpFactors.find(
       (f: any) => f.factor_type === "totp" && f.status === "verified"
     );
     return Boolean(totpFactor);
@@ -615,7 +617,9 @@ export const withdrawalService = {
     totpCode: string
   ): Promise<{ verified: boolean; error?: string; requiresMfaSetup?: boolean }> {
     const { data: factors } = await supabase.auth.mfa.listFactors();
-    const totpFactor = (factors as any)?.find(
+    // factors is { totp: Factor[], phone: Factor[] }, not an array
+    const totpFactors = factors?.totp || [];
+    const totpFactor = totpFactors.find(
       (f: any) => f.factor_type === "totp" && f.status === "verified"
     );
 
