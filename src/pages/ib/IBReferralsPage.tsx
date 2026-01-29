@@ -30,7 +30,9 @@ export default function IBReferralsPage() {
       if (!search) return true;
       const searchLower = search.toLowerCase();
       const fullName = `${r.firstName || ""} ${r.lastName || ""}`.toLowerCase();
-      return fullName.includes(searchLower) || r.email.toLowerCase().includes(searchLower);
+      return (
+        fullName.includes(searchLower) || (r.emailMasked || "").toLowerCase().includes(searchLower)
+      );
     }) || [];
 
   const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
@@ -89,7 +91,7 @@ export default function IBReferralsPage() {
                 {/* Investor Info */}
                 <div className="col-span-4 flex items-center gap-4">
                   <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold shrink-0">
-                    {(referral.firstName?.[0] || referral.email[0]).toUpperCase()}
+                    {(referral.firstName?.[0] || referral.emailMasked?.[0] || "—").toUpperCase()}
                   </div>
                   <div>
                     <p className="font-bold text-white text-base">
@@ -99,7 +101,7 @@ export default function IBReferralsPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Mail className="h-3 w-3 text-slate-500" />
-                      <p className="text-xs text-slate-400">{referral.email}</p>
+                      <p className="text-xs text-slate-400">{referral.emailMasked || "—"}</p>
                     </div>
                   </div>
                 </div>

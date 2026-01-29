@@ -138,14 +138,18 @@ class IBAllocationService {
    * Get all investors who have a specific IB as their parent
    */
   async getIBReferralIds(ibId: string): Promise<string[]> {
-    const { data, error } = await supabase.from("profiles").select("id").eq("ib_parent_id", ibId);
+    const { data, error } = await supabase.rpc("get_ib_referrals", {
+      p_ib_id: ibId,
+      p_limit: 1000,
+      p_offset: 0,
+    });
 
     if (error) {
       console.error("Error fetching IB referrals:", error);
       return [];
     }
 
-    return (data || []).map((p) => p.id);
+    return (data || []).map((p: { id: string }) => p.id);
   }
 
   /**

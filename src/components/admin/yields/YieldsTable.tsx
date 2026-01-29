@@ -3,7 +3,7 @@
  * Main yields table using ResponsiveTable
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { Check, X, Loader2, RefreshCw, Columns } from "lucide-react";
 import {
@@ -24,6 +24,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
   SortableTableHead,
+  Input,
 } from "@/components/ui";
 import { TrendingUp } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -66,12 +67,45 @@ export function YieldsTable({
     created: true,
     actions: true,
   });
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({
+    fund: "",
+    date: "",
+    aum: "",
+    purpose: "",
+    monthEnd: "",
+    source: "",
+    created: "",
+  });
 
   // Sort state
   const { sortConfig, requestSort, sortedData } = useSortableColumns(yields, {
     column: "aum_date", // Default sort by date
     direction: "desc",
   });
+
+  const filteredData = useMemo(() => {
+    const activeFilters = Object.entries(columnFilters).filter(([, value]) => value.trim() !== "");
+    if (activeFilters.length === 0) return sortedData;
+
+    return sortedData.filter((record) => {
+      const effectiveDate = record.as_of_date || record.aum_date;
+      const columnValues: Record<string, string> = {
+        fund: `${record.fund_name ?? ""} ${record.fund_asset ?? ""}`.trim(),
+        date: format(new Date(effectiveDate), "MMM d, yyyy HH:mm"),
+        aum: `${record.total_aum}`,
+        purpose: record.purpose ?? "",
+        monthEnd: record.is_month_end ? "yes" : "no",
+        source: record.source ?? "",
+        created: `${format(new Date(record.created_at), "MMM d, yyyy HH:mm")} ${
+          record.created_by_name ?? ""
+        }`.trim(),
+      };
+
+      return activeFilters.every(([key, value]) =>
+        (columnValues[key] || "").toLowerCase().includes(value.toLowerCase())
+      );
+    });
+  }, [columnFilters, sortedData]);
 
   const allColumns = [
     {
@@ -102,9 +136,10 @@ export function YieldsTable({
         const isVoided = record.is_voided;
         const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
         const correctionInfo = correctedRecordsMap.get(correctionKey);
+        const effectiveDate = record.as_of_date || record.aum_date;
         return (
           <div className="flex items-center gap-2">
-            {format(new Date(record.aum_date), "MMM d, yyyy")}
+            {format(new Date(effectiveDate), "MMM d, yyyy HH:mm")}
             {isVoided && (
               <Badge variant="destructive" className="text-xs">
                 Voided
@@ -238,7 +273,7 @@ export function YieldsTable({
               Yield Records
             </CardTitle>
             <CardDescription>
-              {sortedData.length} record{sortedData.length !== 1 ? "s" : ""} found
+              {filteredData.length} record{filteredData.length !== 1 ? "s" : ""} found
             </CardDescription>
           </div>
           <DropdownMenu>
@@ -272,95 +307,165 @@ export function YieldsTable({
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : sortedData.length === 0 ? (
+        ) : filteredData.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             No yield records found. Adjust filters or record yields first.
           </div>
         ) : (
-          <ResponsiveTable<RecordedYieldRecord>
-            data={sortedData}
-            keyExtractor={(r) => r.id}
-            emptyMessage="No yield records found"
-            columns={visibleColumnsList}
-            mobileCardRenderer={(record) => {
-              const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
-              const correctionInfo = correctedRecordsMap.get(correctionKey);
-              return (
-                <Card className={`p-4 ${record.is_voided ? "opacity-50" : ""}`}>
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      <CryptoIcon symbol={record.fund_asset || ""} className="h-6 w-6" />
-                      <div>
-                        <p className="font-medium">{record.fund_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(record.aum_date), "MMM d, yyyy")}
-                        </p>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <Input
+                placeholder="Filter fund"
+                value={columnFilters.fund}
+                onChange={(event) =>
+                  setColumnFilters((prev) => ({ ...prev, fund: event.target.value }))
+                }
+              />
+              <Input
+                placeholder="Filter effective date"
+                value={columnFilters.date}
+                onChange={(event) =>
+                  setColumnFilters((prev) => ({ ...prev, date: event.target.value }))
+                }
+              />
+              <Input
+                placeholder="Filter AUM"
+                value={columnFilters.aum}
+                onChange={(event) =>
+                  setColumnFilters((prev) => ({ ...prev, aum: event.target.value }))
+                }
+              />
+              <Input
+                placeholder="Filter purpose"
+                value={columnFilters.purpose}
+                onChange={(event) =>
+                  setColumnFilters((prev) => ({ ...prev, purpose: event.target.value }))
+                }
+              />
+              <Input
+                placeholder="Filter month end (yes/no)"
+                value={columnFilters.monthEnd}
+                onChange={(event) =>
+                  setColumnFilters((prev) => ({ ...prev, monthEnd: event.target.value }))
+                }
+              />
+              <Input
+                placeholder="Filter source"
+                value={columnFilters.source}
+                onChange={(event) =>
+                  setColumnFilters((prev) => ({ ...prev, source: event.target.value }))
+                }
+              />
+              <Input
+                placeholder="Filter created"
+                value={columnFilters.created}
+                onChange={(event) =>
+                  setColumnFilters((prev) => ({ ...prev, created: event.target.value }))
+                }
+              />
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setColumnFilters({
+                    fund: "",
+                    date: "",
+                    aum: "",
+                    purpose: "",
+                    monthEnd: "",
+                    source: "",
+                    created: "",
+                  })
+                }
+              >
+                Clear column filters
+              </Button>
+            </div>
+            <ResponsiveTable<RecordedYieldRecord>
+              data={filteredData}
+              keyExtractor={(r) => r.id}
+              emptyMessage="No yield records found"
+              columns={visibleColumnsList}
+              mobileCardRenderer={(record) => {
+                const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
+                const correctionInfo = correctedRecordsMap.get(correctionKey);
+                const effectiveDate = record.as_of_date || record.aum_date;
+                return (
+                  <Card className={`p-4 ${record.is_voided ? "opacity-50" : ""}`}>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={record.fund_asset || ""} className="h-6 w-6" />
+                        <div>
+                          <p className="font-medium">{record.fund_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(effectiveDate), "MMM d, yyyy HH:mm")}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge
-                        variant={record.purpose === "reporting" ? "default" : "secondary"}
-                        className={
-                          record.purpose === "reporting"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                        }
-                      >
-                        {record.purpose === "reporting" ? "Reporting" : "Transaction"}
-                      </Badge>
-                      {record.is_voided && (
-                        <Badge variant="destructive" className="text-xs">
-                          Voided
-                        </Badge>
-                      )}
-                      {correctionInfo && !record.is_voided && (
+                      <div className="flex flex-col items-end gap-1">
                         <Badge
-                          variant="outline"
-                          className="text-xs bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400"
+                          variant={record.purpose === "reporting" ? "default" : "secondary"}
+                          className={
+                            record.purpose === "reporting"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                          }
                         >
-                          {correctionInfo.count}x Corrected
+                          {record.purpose === "reporting" ? "Reporting" : "Transaction"}
                         </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                    <div>
-                      <span className="text-muted-foreground text-xs">AUM</span>
-                      <div className="font-medium">
-                        <FinancialValue value={record.total_aum} asset={record.fund_asset} />
+                        {record.is_voided && (
+                          <Badge variant="destructive" className="text-xs">
+                            Voided
+                          </Badge>
+                        )}
+                        {correctionInfo && !record.is_voided && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400"
+                          >
+                            {correctionInfo.count}x Corrected
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      {record.is_month_end && (
-                        <Badge variant="outline" className="text-xs">
-                          <Check className="h-3 w-3 mr-1" />
-                          Month End
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="flex justify-between items-center pt-2 border-t">
-                    <div className="text-xs text-muted-foreground">
-                      {record.created_by_name && <span>{record.created_by_name} • </span>}
-                      {format(new Date(record.created_at), "MMM d, yyyy")}
+                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                      <div>
+                        <span className="text-muted-foreground text-xs">AUM</span>
+                        <div className="font-medium">
+                          <FinancialValue value={record.total_aum} asset={record.fund_asset} />
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {record.is_month_end && (
+                          <Badge variant="outline" className="text-xs">
+                            <Check className="h-3 w-3 mr-1" />
+                            Month End
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <YieldActionsColumn
-                      record={record}
-                      canEdit={canEdit}
-                      onEdit={onEdit}
-                      onVoid={onVoid}
-                      onViewHistory={onViewHistory}
-                      onCorrect={onCorrect}
-                      isVoided={record.is_voided}
-                    />
-                  </div>
-                </Card>
-              );
-            }}
-            className="rounded-md border"
-          />
+
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <div className="text-xs text-muted-foreground">
+                        {record.created_by_name && <span>{record.created_by_name} • </span>}
+                        {format(new Date(record.created_at), "MMM d, yyyy")}
+                      </div>
+                      <YieldActionsColumn
+                        record={record}
+                        canEdit={canEdit}
+                        onEdit={onEdit}
+                        onVoid={onVoid}
+                        onViewHistory={onViewHistory}
+                        onCorrect={onCorrect}
+                        isVoided={record.is_voided}
+                      />
+                    </div>
+                  </Card>
+                );
+              }}
+              className="rounded-md border"
+            />
+          </div>
         )}
       </CardContent>
     </Card>

@@ -7,13 +7,40 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Button, Input, Label, Badge,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Alert, AlertDescription,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
-import { Loader2, Users, Percent, Save, AlertCircle, UserPlus, Search, Crown, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  Users,
+  Percent,
+  Save,
+  AlertCircle,
+  UserPlus,
+  Search,
+  Crown,
+  Trash2,
+} from "lucide-react";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
@@ -35,7 +62,7 @@ interface IBSettingsSectionProps {
 export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionProps) {
   const { toast } = useToast();
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
-  
+
   // Use data hooks
   const { data: ibSettings, isLoading: loading, error, refetch } = useIBSettings(investorId);
   const { searchUsers } = useSearchUsersForIB(investorId);
@@ -101,7 +128,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
 
   const handleSearchUsers = async () => {
     if (!searchEmail.trim()) return;
-    
+
     setSearching(true);
     try {
       const results = await searchUsers(searchEmail);
@@ -123,16 +150,14 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
       userId: user.id,
       investorId,
     });
-    
+
     // Update search result to show they now have IB role
-    setSearchResults(prev => 
-      prev.map(u => u.id === user.id ? { ...u, hasIBRole: true } : u)
-    );
+    setSearchResults((prev) => prev.map((u) => (u.id === user.id ? { ...u, hasIBRole: true } : u)));
 
     // Auto-select this user as the IB parent
     setIbParentId(user.id);
     setShowCreateIBDialog(false);
-    
+
     toast({
       title: "IB Selected",
       description: `${user.email} has been selected as the IB parent. Don't forget to set the commission percentage and save.`,
@@ -246,7 +271,11 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                   className="text-destructive hover:text-destructive"
                   onClick={() => setShowRemoveIBDialog(true)}
                   disabled={referrals.length > 0}
-                  title={referrals.length > 0 ? "Cannot remove IB with active referrals" : "Remove IB role"}
+                  title={
+                    referrals.length > 0
+                      ? "Cannot remove IB with active referrals"
+                      : "Remove IB role"
+                  }
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -294,7 +323,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                     <SelectItem value="none">No IB Parent</SelectItem>
                     {availableParents.map((parent) => (
                       <SelectItem key={parent.id} value={parent.id}>
-                        {parent.name || parent.email}
+                        {parent.name || parent.emailMasked || "—"}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -343,9 +372,9 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </div>
 
           {!isReadOnly && (
-            <Button 
-              onClick={handleSave} 
-              disabled={updateIBConfigMutation.isPending} 
+            <Button
+              onClick={handleSave}
+              disabled={updateIBConfigMutation.isPending}
               className="w-full sm:w-auto"
             >
               {updateIBConfigMutation.isPending ? (
@@ -364,9 +393,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Referrals (This Investor is IB Parent)</CardTitle>
-            <CardDescription>
-              Investors who have this account as their IB parent
-            </CardDescription>
+            <CardDescription>Investors who have this account as their IB parent</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -379,9 +406,9 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                     <p className="font-medium">
                       {ref.firstName || ref.lastName
                         ? `${ref.firstName || ""} ${ref.lastName || ""}`.trim()
-                        : ref.email}
+                        : ref.emailMasked || "—"}
                     </p>
-                    <p className="text-sm text-muted-foreground">{ref.email}</p>
+                    <p className="text-sm text-muted-foreground">{ref.emailMasked || "—"}</p>
                   </div>
                   <Badge variant="outline" className="font-mono">
                     {ref.ibPercentage}%
@@ -399,10 +426,11 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           <DialogHeader>
             <DialogTitle>Find or Assign IB</DialogTitle>
             <DialogDescription>
-              Search for an existing user to assign as IB parent. If they don't have the IB role, you can grant it.
+              Search for an existing user to assign as IB parent. If they don't have the IB role,
+              you can grant it.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="flex gap-2">
               <Input
@@ -438,11 +466,10 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                     <div className="flex items-center gap-2 ml-2">
                       {user.hasIBRole ? (
                         <>
-                          <Badge variant="secondary" className="text-xs">IB</Badge>
-                          <Button
-                            size="sm"
-                            onClick={() => handleSelectExistingIB(user)}
-                          >
+                          <Badge variant="secondary" className="text-xs">
+                            IB
+                          </Badge>
+                          <Button size="sm" onClick={() => handleSelectExistingIB(user)}>
                             Select
                           </Button>
                         </>
@@ -494,7 +521,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
               This will grant the investor IB permissions, allowing them to:
             </DialogDescription>
           </DialogHeader>
-          
+
           <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-2">
             <li>Earn referral commissions from referred investors</li>
             <li>Access the IB portal and dashboard</li>
@@ -509,7 +536,11 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </Alert>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPromoteDialog(false)} disabled={promoteToIBMutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setShowPromoteDialog(false)}
+              disabled={promoteToIBMutation.isPending}
+            >
               Cancel
             </Button>
             <Button onClick={handlePromoteToIB} disabled={promoteToIBMutation.isPending}>
@@ -532,23 +563,30 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
               <Trash2 className="h-5 w-5" />
               Remove IB Role
             </DialogTitle>
-            <DialogDescription>
-              This will revoke the investor's IB permissions.
-            </DialogDescription>
+            <DialogDescription>This will revoke the investor's IB permissions.</DialogDescription>
           </DialogHeader>
-          
+
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              The investor will no longer be able to access the IB portal or receive referral commissions.
+              The investor will no longer be able to access the IB portal or receive referral
+              commissions.
             </AlertDescription>
           </Alert>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRemoveIBDialog(false)} disabled={removeIBRoleMutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setShowRemoveIBDialog(false)}
+              disabled={removeIBRoleMutation.isPending}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleRemoveIBRole} disabled={removeIBRoleMutation.isPending}>
+            <Button
+              variant="destructive"
+              onClick={handleRemoveIBRole}
+              disabled={removeIBRoleMutation.isPending}
+            >
               {removeIBRoleMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (

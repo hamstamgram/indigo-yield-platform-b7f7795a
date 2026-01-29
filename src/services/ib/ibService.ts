@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
 import type {
-  IBProfileRef,
   IBFundRef,
   IBAllocationCommissionRow,
   PositionWithFundAsset,
@@ -32,7 +31,7 @@ export interface Referral {
   id: string;
   firstName: string | null;
   lastName: string | null;
-  email: string;
+  emailMasked: string | null;
   status: string;
   joinedAt: string;
   activeFunds: number;
@@ -48,7 +47,7 @@ export interface ReferralDetail {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  email: string;
+  email_masked: string | null;
   status: string;
   created_at: string;
   ib_parent_id: string;
@@ -139,7 +138,7 @@ export interface ProfileUpdateData {
 
 export interface ReferralForDashboard {
   id: string;
-  email: string;
+  email_masked: string | null;
   first_name: string | null;
   last_name: string | null;
   ib_percentage: number | null;
@@ -149,6 +148,29 @@ export interface ReferralForDashboard {
 // ============ Service Implementation ============
 
 class IBService {
+  private async getReferralDirectory(ibId: string) {
+    const { data, error } = await supabase.rpc("get_ib_referrals", {
+      p_ib_id: ibId,
+      p_limit: 1000,
+      p_offset: 0,
+    });
+
+    if (error) {
+      logError("ibService.getReferralDirectory", error, { ibId });
+      return new Map<string, { name: string }>();
+    }
+
+    const directory = new Map<string, { name: string }>();
+    (data || []).forEach((profile: ReferralDetail) => {
+      const name =
+        `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
+        profile.email_masked ||
+        "Unknown";
+      directory.set(profile.id, { name });
+    });
+
+    return directory;
+  }
   /**
    * Get commission summary grouped by asset for a period
    */
@@ -218,18 +240,14 @@ class IBService {
    * Get top referrals by commission for a period
    */
   async getTopReferrals(ibId: string, startDate?: Date, limit = 10): Promise<TopReferral[]> {
+    const referralDirectory = await this.getReferralDirectory(ibId);
     let query = supabase
       .from("ib_allocations")
       .select(
         `
         source_investor_id,
         ib_fee_amount,
-        funds!inner(asset),
-        profiles!ib_allocations_source_investor_id_fkey(
-          first_name,
-          last_name,
-          email
-        )
+        funds!inner(asset)
       `
       )
       .eq("ib_investor_id", ibId)
@@ -253,19 +271,15 @@ class IBService {
       source_investor_id: string;
       ib_fee_amount: number;
       funds: { asset: string } | null;
-      profiles: { first_name: string | null; last_name: string | null; email: string } | null;
     }
 
     for (const allocation of (data || []) as TopReferralRow[]) {
       const investorId = allocation.source_investor_id;
-      const profile = allocation.profiles;
       const asset = allocation.funds?.asset;
       if (!asset) continue;
 
       if (!byInvestor[investorId]) {
-        const name = profile
-          ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
-          : "Unknown";
+        const name = referralDirectory.get(investorId)?.name || "Unknown";
         byInvestor[investorId] = { name, commissions: {} };
       }
 
@@ -294,40 +308,36 @@ class IBService {
    * Get referral count for an IB
    */
   async getReferralCount(ibId: string): Promise<number> {
-    const { count, error } = await supabase
-      .from("profiles")
-      .select("*", { count: "exact", head: true })
-      .eq("ib_parent_id", ibId);
+    const { data, error } = await supabase.rpc("get_ib_referral_count", {
+      p_ib_id: ibId,
+    });
 
     if (error) {
       logError("ibService.getReferralCount", error, { ibId });
       return 0;
     }
 
-    return count || 0;
+    return Number(data || 0);
   }
 
   /**
    * Get paginated referrals with positions
    */
   async getReferrals(ibId: string, page: number, pageSize: number): Promise<PaginatedReferrals> {
-    const {
-      data: profiles,
-      error,
-      count,
-    } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email, status, created_at", { count: "exact" })
-      .eq("ib_parent_id", ibId)
-      .order("created_at", { ascending: false })
-      .range(page * pageSize, (page + 1) * pageSize - 1);
+    const { data: profiles, error } = await supabase.rpc("get_ib_referrals", {
+      p_ib_id: ibId,
+      p_limit: pageSize,
+      p_offset: page * pageSize,
+    });
 
     if (error) {
       logError("ibService.getReferrals", error, { ibId });
       return { referrals: [], total: 0 };
     }
 
-    const referralIds = profiles?.map((p) => p.id) || [];
+    const referralIds = (profiles || []).map((p: { id: string }) => p.id);
+
+    const total = await this.getReferralCount(ibId);
 
     // Typed positions with fund join
     let positionsData: PositionWithFundAsset[] = [];
@@ -360,7 +370,7 @@ class IBService {
         id: profile.id,
         firstName: profile.first_name,
         lastName: profile.last_name,
-        email: profile.email,
+        emailMasked: profile.email_masked,
         status: profile.status || "active",
         joinedAt: profile.created_at,
         activeFunds: activeFundIds.size,
@@ -368,18 +378,18 @@ class IBService {
       };
     });
 
-    return { referrals, total: count || 0 };
+    return { referrals, total };
   }
 
   /**
    * Get referrals for dashboard (simpler version)
    */
   async getReferralsForDashboard(ibId: string): Promise<ReferralForDashboard[]> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, email, first_name, last_name, ib_percentage, created_at")
-      .eq("ib_parent_id", ibId)
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.rpc("get_ib_referrals", {
+      p_ib_id: ibId,
+      p_limit: 50,
+      p_offset: 0,
+    });
 
     if (error) {
       logError("ibService.getReferralsForDashboard", error, { ibId });
@@ -393,19 +403,19 @@ class IBService {
    * Get referral detail with ownership verification
    */
   async getReferralDetail(referralId: string, ibId: string): Promise<ReferralDetail | null> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email, status, created_at, ib_parent_id")
-      .eq("id", referralId)
-      .eq("ib_parent_id", ibId)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("get_ib_referral_detail", {
+      p_ib_id: ibId,
+      p_referral_id: referralId,
+    });
 
-    if (error || !data) {
+    const record = (data || [])[0] as ReferralDetail | undefined;
+
+    if (error || !record) {
       logError("ibService.getReferralDetail", error, { referralId, ibId });
       return null;
     }
 
-    return data;
+    return record;
   }
 
   /**
@@ -474,6 +484,7 @@ class IBService {
     pageSize: number,
     dateRange?: { start: Date | null; end: Date | null }
   ): Promise<PaginatedCommissions> {
+    const referralDirectory = await this.getReferralDirectory(ibId);
     let query = supabase
       .from("ib_allocations")
       .select(
@@ -488,12 +499,7 @@ class IBService {
         payout_status,
         paid_at,
         source_investor_id,
-        funds!inner(name, asset),
-        profiles!ib_allocations_source_investor_id_fkey(
-          first_name,
-          last_name,
-          email
-        )
+        funds!inner(name, asset)
       `,
         { count: "exact" }
       )
@@ -521,10 +527,7 @@ class IBService {
       (allocations || []) as unknown as IBAllocationCommissionRow[]
     ).map((alloc) => {
       const fund: IBFundRef | null = alloc.funds;
-      const profile: IBProfileRef | null = alloc.profiles;
-      const investorName = profile
-        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
-        : "Unknown";
+      const investorName = referralDirectory.get(alloc.source_investor_id)?.name || "Unknown";
 
       return {
         id: alloc.id,

@@ -10,6 +10,7 @@ import { AdminRoute } from "../../AdminRoute";
 const YieldOperationsPage = lazy(() => import("@/pages/admin/YieldOperationsPage"));
 const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
 const RecordedYieldsPage = lazy(() => import("@/pages/admin/RecordedYieldsPage"));
+const YieldDistributionsPage = lazy(() => import("@/pages/admin/YieldDistributionsPage"));
 const FundManagementPage = lazy(() => import("@/pages/admin/FundManagementPage"));
 
 export function OperationsRoutes() {
@@ -45,6 +46,16 @@ export function OperationsRoutes() {
         }
       />
 
+      {/* Yield Distributions - investor allocations by distribution */}
+      <Route
+        path="/admin/yield-distributions"
+        element={
+          <AdminRoute>
+            <YieldDistributionsPage />
+          </AdminRoute>
+        }
+      />
+
       {/* Reports */}
       <Route
         path="/admin/investor-reports"
@@ -55,14 +66,16 @@ export function OperationsRoutes() {
         }
       />
 
-
       {/* Redirects for consolidated pages */}
       <Route path="/admin/monthly-data-entry" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/operations" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/requests" element={<Navigate to="/admin/withdrawals" replace />} />
       <Route path="/admin/statements" element={<Navigate to="/admin/investor-reports" replace />} />
-      <Route path="/admin/email-tracking" element={<Navigate to="/admin/investor-reports" replace />} />
+      <Route
+        path="/admin/email-tracking"
+        element={<Navigate to="/admin/investor-reports" replace />}
+      />
     </>
   );
 }

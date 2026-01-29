@@ -24,6 +24,7 @@ import {
   Wrench,
   UserPlus,
   HeartPulse,
+  Layers,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -41,7 +42,11 @@ export const investorNav: NavItem[] = [
   { title: "Portfolio", href: "/investor/portfolio", icon: <Wallet className="h-5 w-5" /> },
   { title: "Performance", href: "/investor/performance", icon: <TrendingUp className="h-5 w-5" /> },
   { title: "Yield History", href: "/investor/yield-history", icon: <Coins className="h-5 w-5" /> },
-  { title: "Transactions", href: "/investor/transactions", icon: <CreditCard className="h-5 w-5" /> },
+  {
+    title: "Transactions",
+    href: "/investor/transactions",
+    icon: <CreditCard className="h-5 w-5" />,
+  },
   { title: "Statements", href: "/investor/statements", icon: <FileText className="h-5 w-5" /> },
   { title: "Documents", href: "/investor/documents", icon: <FolderOpen className="h-5 w-5" /> },
   { title: "Settings", href: "/investor/settings", icon: <Settings className="h-5 w-5" /> },
@@ -133,6 +138,12 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
+        title: "Yield Distributions",
+        href: "/admin/yield-distributions",
+        icon: <Layers className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Recorded Yields",
         href: "/admin/recorded-yields",
         icon: <Calendar className="h-5 w-5" />,
@@ -195,7 +206,11 @@ export const activityNav: NavItem[] = [
     href: "/investor/performance",
     icon: <TrendingUp className="h-5 w-5" />,
   },
-  { title: "Transaction History", href: "/investor/transactions", icon: <CreditCard className="h-5 w-5" /> },
+  {
+    title: "Transaction History",
+    href: "/investor/transactions",
+    icon: <CreditCard className="h-5 w-5" />,
+  },
   {
     title: "Withdrawal Requests",
     href: "/withdrawals",

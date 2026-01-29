@@ -5,9 +5,18 @@
 
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Button, Badge,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   PageLoadingSpinner,
 } from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
@@ -25,7 +34,10 @@ export default function IBReferralDetailPage() {
 
   const { data: referral, isLoading: profileLoading } = useIBReferralDetail(id);
   const { data: positions, isLoading: positionsLoading } = useIBReferralPositions(id, !!referral);
-  const { data: commissions, isLoading: commissionsLoading } = useIBReferralCommissions(id, !!referral);
+  const { data: commissions, isLoading: commissionsLoading } = useIBReferralCommissions(
+    id,
+    !!referral
+  );
 
   if (profileLoading || positionsLoading || commissionsLoading) {
     return <PageLoadingSpinner />;
@@ -43,7 +55,10 @@ export default function IBReferralDetailPage() {
     );
   }
 
-  const fullName = `${referral.first_name || ""} ${referral.last_name || ""}`.trim() || referral.email;
+  const fullName =
+    `${referral.first_name || ""} ${referral.last_name || ""}`.trim() ||
+    referral.email_masked ||
+    "Unknown";
 
   return (
     <div className="space-y-6">
@@ -53,7 +68,7 @@ export default function IBReferralDetailPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{fullName}</h1>
-          <p className="text-muted-foreground">{referral.email}</p>
+          <p className="text-muted-foreground">{referral.email_masked || "—"}</p>
         </div>
         <Badge variant={referral.status === "active" ? "default" : "secondary"} className="ml-auto">
           {referral.status}
@@ -80,7 +95,7 @@ export default function IBReferralDetailPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{referral.email}</p>
+              <p className="font-medium">{referral.email_masked || "—"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Joined</p>
@@ -167,9 +182,7 @@ export default function IBReferralDetailPage() {
                   const asset = fund?.asset || "USDT";
                   return (
                     <TableRow key={comm.id}>
-                      <TableCell>
-                        {format(new Date(comm.effective_date), "MMM d, yyyy")}
-                      </TableCell>
+                      <TableCell>{format(new Date(comm.effective_date), "MMM d, yyyy")}</TableCell>
                       <TableCell>
                         {comm.period_start && comm.period_end
                           ? `${format(new Date(comm.period_start), "MMM d")} - ${format(new Date(comm.period_end), "MMM d, yyyy")}`

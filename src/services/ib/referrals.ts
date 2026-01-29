@@ -10,7 +10,7 @@ import { logError } from "@/lib/logger";
 
 export interface IBReferral {
   id: string;
-  email: string;
+  emailMasked: string | null;
   firstName: string | null;
   lastName: string | null;
   ibPercentage: number;
@@ -18,7 +18,7 @@ export interface IBReferral {
 
 export interface AvailableIBParent {
   id: string;
-  email: string;
+  emailMasked: string | null;
   name: string;
 }
 
@@ -28,11 +28,11 @@ export interface AvailableIBParent {
  * Get all investors that have this investor as their IB parent
  */
 export async function getIBReferrals(ibInvestorId: string): Promise<IBReferral[]> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, first_name, last_name, ib_percentage")
-    .eq("ib_parent_id", ibInvestorId)
-    .order("email");
+  const { data, error } = await supabase.rpc("get_ib_referrals", {
+    p_ib_id: ibInvestorId,
+    p_limit: 1000,
+    p_offset: 0,
+  });
 
   if (error) {
     logError("ib.getIBReferrals", error, { ibInvestorId });
@@ -41,7 +41,7 @@ export async function getIBReferrals(ibInvestorId: string): Promise<IBReferral[]
 
   return (data || []).map((row) => ({
     id: row.id,
-    email: row.email,
+    emailMasked: row.email_masked,
     firstName: row.first_name,
     lastName: row.last_name,
     ibPercentage: Number(row.ib_percentage || 0),
@@ -52,30 +52,9 @@ export async function getIBReferrals(ibInvestorId: string): Promise<IBReferral[]
  * Get all investors who can be IB parents (must have IB role, excluding the investor themselves)
  */
 export async function getAvailableIBParents(investorId: string): Promise<AvailableIBParent[]> {
-  // Step 1: Get users with IB role from user_roles table
-  const { data: ibRoles, error: rolesError } = await supabase
-    .from("user_roles")
-    .select("user_id")
-    .eq("role", "ib");
-
-  if (rolesError) {
-    logError("ib.getAvailableIBParents.roles", rolesError, { investorId });
-    return [];
-  }
-
-  if (!ibRoles || ibRoles.length === 0) {
-    return [];
-  }
-
-  const ibUserIds = ibRoles.map((r) => r.user_id);
-
-  // Step 2: Get profiles for IB users (excluding current investor)
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, first_name, last_name")
-    .in("id", ibUserIds)
-    .neq("id", investorId)
-    .order("email");
+  const { data, error } = await supabase.rpc("get_ib_parent_candidates", {
+    p_exclude_id: investorId,
+  });
 
   if (error) {
     logError("ib.getAvailableIBParents.profiles", error, { investorId });
@@ -84,7 +63,7 @@ export async function getAvailableIBParents(investorId: string): Promise<Availab
 
   return (data || []).map((row) => ({
     id: row.id,
-    email: row.email,
-    name: `${row.first_name || ""} ${row.last_name || ""}`.trim() || row.email,
+    emailMasked: row.email_masked,
+    name: `${row.first_name || ""} ${row.last_name || ""}`.trim() || row.email_masked,
   }));
 }

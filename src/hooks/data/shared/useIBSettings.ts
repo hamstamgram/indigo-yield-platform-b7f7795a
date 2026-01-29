@@ -19,13 +19,13 @@ import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 
 export interface IBParentOption {
   id: string;
-  email: string;
+  emailMasked: string | null;
   name: string;
 }
 
 export interface Referral {
   id: string;
-  email: string;
+  emailMasked: string | null;
   firstName: string | null;
   lastName: string | null;
   ibPercentage: number;
