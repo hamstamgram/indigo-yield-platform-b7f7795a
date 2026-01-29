@@ -9,8 +9,6 @@
  * - investorYieldHistoryService.ts - Yield history and documents
  */
 
-import { supabase } from "@/integrations/supabase/client";
-
 // Re-export types from sub-services
 export type {
   InvestorPositionRow,

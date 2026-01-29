@@ -144,8 +144,7 @@ export {
 // Statements
 export { useStatements, usePublishStatements, type StatementDraft } from "./useStatements";
 
-// Transaction details
-// Transaction details
+// Transaction hooks (consolidated)
 export {
   useTransactionById,
   useTransactionWithRelated,
@@ -155,30 +154,23 @@ export {
   useAumCheck,
   useCreateAdminTransaction,
   useRecordAum,
+  useTransactions,
+  useInvestorTransactions,
+  useCreateTransaction,
+  useVoidTransaction,
+  useInvestorTransactionSummary,
   type TransactionDetail,
   type TransactionWithRelated,
   type InvestorForTransaction,
   type FundForTransaction,
   type BalanceCheckResult,
   type AumCheckResult,
-} from "@/hooks/queries/useTransactions";
-
-// Transactions
-export {
-  useTransactions,
-  useInvestorTransactions,
-  useCreateTransaction,
-  useVoidTransaction,
-  useInvestorTransactionSummary,
   type TransactionWithFund,
   type TransactionFilters,
-} from "@/hooks/queries/useTransactions";
+} from "./useTransactionHooks";
 
-// Investors list
-export { useInvestors } from "@/hooks/queries/useInvestors";
-
-// Unified investors
-export { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/queries/useInvestors";
+// Investor hooks (consolidated)
+export { useInvestors, useUnifiedInvestors, type EnrichedInvestor } from "./useInvestorHooks";
 
 // User assets
 export { useUserAssets, type UserAsset } from "./useUserAssets";

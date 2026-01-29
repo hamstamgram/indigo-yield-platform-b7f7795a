@@ -58,12 +58,12 @@ export interface CrystallizationDashboardRow {
   fund_code: string;
   fund_name: string;
   total_positions: number;
-  current_: number;
-  stale: number;
+  up_to_date: number;
+  warning_stale: number;
   critical_stale: number;
   never_crystallized: number;
-  aum_needing_crystallization: number;
-  total_aum_in_positions: number;
+  newest_crystallization: string | null;
+  oldest_crystallization: string | null;
 }
 
 export interface CrystallizationGap {
@@ -281,12 +281,12 @@ export async function fetchCrystallizationDashboard(
     fund_code: row.fund_code,
     fund_name: row.fund_name,
     total_positions: row.total_positions,
-    current_: row.current_,
-    stale: row.stale,
+    up_to_date: row.up_to_date,
+    warning_stale: row.warning_stale,
     critical_stale: row.critical_stale,
     never_crystallized: row.never_crystallized,
-    aum_needing_crystallization: row.aum_needing_crystallization,
-    total_aum_in_positions: row.total_aum_in_positions,
+    newest_crystallization: row.newest_crystallization,
+    oldest_crystallization: row.oldest_crystallization,
   })) as CrystallizationDashboardRow[];
 }
 

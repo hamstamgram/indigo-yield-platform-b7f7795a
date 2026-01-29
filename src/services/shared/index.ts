@@ -54,21 +54,21 @@ export * from "./emailTemplates";
 export { systemConfigService, defaultPlatformSettings } from "./systemConfigService";
 export type { PlatformSettings } from "./systemConfigService";
 
-// Yield rates
-export { yieldRatesService } from "./yieldRatesService";
-export type { Asset, YieldRate } from "./yieldRatesService";
+// Yield rates - DEPRECATED: Use @/services/admin/yieldRatesService instead
+export { yieldRatesService } from "../admin/yieldRatesService";
+export type { Asset, YieldRate } from "../admin/yieldRatesService";
 
 // Investor data export
 export { investorDataExportService } from "./investorDataExportService";
 export type { InvestorExportData } from "./investorDataExportService";
 
-// Fee schedule
-export { feeScheduleService } from "./feeScheduleService";
-export type { FeeScheduleRow, FeeHistoryRow } from "./feeScheduleService";
+// Fee schedule - DEPRECATED: Use @/services/admin/feeScheduleService instead
+export { feeScheduleService } from "../admin/feeScheduleService";
+export type { FeeScheduleRow, FeeHistoryRow } from "../admin/feeScheduleService";
 
-// Admin tools
-export { adminToolsService } from "./adminToolsService";
-export type { ToolResult } from "./adminToolsService";
+// Admin tools - DEPRECATED: Use @/services/admin/adminToolsService instead
+export { adminToolsService } from "../admin/adminToolsService";
+export type { ToolResult } from "../admin/adminToolsService";
 
 // Statements
 export { statementsService } from "./statementsService";
