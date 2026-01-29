@@ -34,6 +34,7 @@ import {
   TruncatedText,
   SortableTableHead,
   QueryErrorBoundary,
+  DateTimePicker,
 } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
 import {
@@ -78,8 +79,8 @@ function TransactionHistoryContent() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDisplayType, setSelectedDisplayType] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [datetimeFrom, setDatetimeFrom] = useState<string | undefined>(undefined);
+  const [datetimeTo, setDatetimeTo] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [dialogInvestorId, setDialogInvestorId] = useState<string>("");
@@ -111,31 +112,42 @@ function TransactionHistoryContent() {
     }
   }, [searchParams, funds, setSearchParams]);
 
-  // Quick date presets
+  // Quick date presets - use ISO datetime strings with start/end of day times
   const setThisMonth = () => {
     const now = new Date();
-    setDateFrom(format(startOfMonth(now), "yyyy-MM-dd"));
-    setDateTo(format(endOfMonth(now), "yyyy-MM-dd"));
+    const start = startOfMonth(now);
+    start.setHours(0, 0, 0, 0);
+    const end = endOfMonth(now);
+    end.setHours(23, 59, 59, 999);
+    setDatetimeFrom(start.toISOString());
+    setDatetimeTo(end.toISOString());
     setPage(0);
   };
 
   const setLastMonth = () => {
     const lastMonth = subMonths(new Date(), 1);
-    setDateFrom(format(startOfMonth(lastMonth), "yyyy-MM-dd"));
-    setDateTo(format(endOfMonth(lastMonth), "yyyy-MM-dd"));
+    const start = startOfMonth(lastMonth);
+    start.setHours(0, 0, 0, 0);
+    const end = endOfMonth(lastMonth);
+    end.setHours(23, 59, 59, 999);
+    setDatetimeFrom(start.toISOString());
+    setDatetimeTo(end.toISOString());
     setPage(0);
   };
 
   const setYTD = () => {
     const now = new Date();
-    setDateFrom(format(startOfYear(now), "yyyy-MM-dd"));
-    setDateTo(format(now, "yyyy-MM-dd"));
+    const start = startOfYear(now);
+    start.setHours(0, 0, 0, 0);
+    now.setHours(23, 59, 59, 999);
+    setDatetimeFrom(start.toISOString());
+    setDatetimeTo(now.toISOString());
     setPage(0);
   };
 
   const clearFilters = () => {
-    setDateFrom("");
-    setDateTo("");
+    setDatetimeFrom(undefined);
+    setDatetimeTo(undefined);
     setSelectedFund("all");
     setSelectedType("all");
     setSelectedDisplayType("all");
@@ -148,8 +160,8 @@ function TransactionHistoryContent() {
     {
       fundId: selectedFund,
       type: selectedType !== "all" ? (selectedType as TransactionType) : undefined,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
+      datetimeFrom: datetimeFrom,
+      datetimeTo: datetimeTo,
       showVoided,
       page,
       pageSize: PAGE_SIZE,
@@ -346,25 +358,29 @@ function TransactionHistoryContent() {
               </SelectContent>
             </Select>
 
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => {
-                setDateFrom(e.target.value);
+            <DateTimePicker
+              value={datetimeFrom}
+              onChange={(v) => {
+                setDatetimeFrom(v);
                 setPage(0);
               }}
-              className="w-40"
-              placeholder="From"
+              placeholder="From date & time"
+              label="From"
+              showTime={true}
+              defaultTime="00:00"
+              className="w-52"
             />
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => {
-                setDateTo(e.target.value);
+            <DateTimePicker
+              value={datetimeTo}
+              onChange={(v) => {
+                setDatetimeTo(v);
                 setPage(0);
               }}
-              className="w-40"
-              placeholder="To"
+              placeholder="To date & time"
+              label="To"
+              showTime={true}
+              defaultTime="23:59"
+              className="w-52"
             />
           </div>
         </CardContent>

@@ -347,6 +347,10 @@ export interface AdminTransactionFilters {
   type?: TransactionType;
   dateFrom?: string;
   dateTo?: string;
+  /** ISO datetime string for filtering on created_at (includes time) */
+  datetimeFrom?: string;
+  /** ISO datetime string for filtering on created_at (includes time) */
+  datetimeTo?: string;
   showVoided?: boolean;
   page?: number;
   pageSize?: number;

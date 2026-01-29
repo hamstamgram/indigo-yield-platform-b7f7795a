@@ -125,10 +125,17 @@ async function fetchTransactions(
   if (filters.type) {
     query = query.eq("type", filters.type);
   }
-  if (filters.dateFrom) {
+  // Use datetime filtering on created_at if datetime values are provided
+  // Otherwise fall back to date-only filtering on tx_date
+  if (filters.datetimeFrom) {
+    query = query.gte("created_at", filters.datetimeFrom);
+  } else if (filters.dateFrom) {
     query = query.gte("tx_date", filters.dateFrom);
   }
-  if (filters.dateTo) {
+
+  if (filters.datetimeTo) {
+    query = query.lte("created_at", filters.datetimeTo);
+  } else if (filters.dateTo) {
     query = query.lte("tx_date", filters.dateTo);
   }
 
