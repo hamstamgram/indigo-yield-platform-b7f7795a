@@ -1,212 +1,258 @@
 
-# UI/UX Audit: Comprehensive Issue Analysis
+
+# Comprehensive Codebase Architecture Audit Report
 
 ## Executive Summary
-This audit covers scrolling issues, dialog sizing, z-index stacking, overflow handling, and other UI/UX patterns across the application. Most core UI primitives are well-designed, but there are specific areas requiring attention.
+
+This audit evaluates the Indigo Yield Platform codebase for clean architecture, modularity, separation of concerns, and adherence to best practices. Overall, the codebase demonstrates **mature architectural patterns** with clear domain boundaries, comprehensive type safety, and well-organized service layers. However, there are opportunities for improvement in several areas.
 
 ---
 
-## 1. CRITICAL: Dialog Scroll Issues (Already Fixed)
+## Overall Architecture Assessment
 
-### Fixed Issues
-| File | Issue | Status |
-|------|-------|--------|
-| `src/pages/admin/YieldOperationsPage.tsx` | `overflow-hidden` overriding `overflow-y-auto` | FIXED |
-| `src/components/admin/yields/YieldCorrectionPanel.tsx` | `overflow-hidden` blocking scroll | FIXED |
+### Strengths
+- **Clean layered architecture**: Clear separation between UI (components), data access (services), state management (hooks), and types (domains)
+- **Domain-driven organization**: Services and types are organized by business domain (admin, investor, shared, ib)
+- **No direct database calls in UI**: Search confirmed zero direct `supabase.from()` or `supabase.rpc()` calls in components or pages
+- **Centralized configuration**: Single `src/config/` module for environment, features, and navigation
+- **Contract-first design**: `src/contracts/` provides canonical DB enum mappings and RPC signatures
+- **Comprehensive documentation**: Extensive docs covering architecture, patterns, and operations
 
----
-
-## 2. POTENTIAL SCROLL ISSUES TO ADDRESS
-
-### 2.1 Command Dialog - Limited List Height
-**File:** `src/components/ui/command.tsx` (Line 29)
-```tsx
-<DialogContent className="overflow-hidden p-0 shadow-lg">
-```
-**Issue:** The `overflow-hidden` is intentional here since the `CommandList` inside has its own scroll area (`max-h-[300px] overflow-y-auto`). However, the `300px` max height may be too restrictive on larger screens.
-
-**Recommendation:** Consider increasing to `max-h-[400px]` or use viewport-relative units for better scalability.
-
-### 2.2 Drawer Content Without Explicit Scroll
-**File:** `src/components/ui/drawer.tsx` (Line 40-43)
-```tsx
-className={cn(
-  "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
-  className
-)}
-```
-**Issue:** Base DrawerContent lacks default `max-h` and `overflow-y-auto`. Individual usages must handle this.
-
-**Current Usage:** `WithdrawalDetailsDrawer.tsx` correctly handles this with `max-h-[90vh]` and inner `overflow-y-auto` on the wrapper div.
-
-**Recommendation:** Add defensive defaults to base component:
-```tsx
-className="... max-h-[90vh] overflow-y-auto"
-```
-
-### 2.3 InvestorDetailPanel - Inner Content Scroll
-**File:** `src/components/admin/investors/detail/InvestorDetailPanel.tsx` (Line 127)
-```tsx
-<div className="h-full flex flex-col overflow-hidden">
-```
-**Analysis:** This is correct - the parent has `overflow-hidden` to contain, while the inner tabs area (Line 171) has `overflow-y-auto`. Pattern is valid.
+### Areas Needing Attention
+- Deprecated shim files still present
+- Some code duplication in formatting utilities
+- Scattered PDF generation logic
+- Type safety gaps (`as any` casts)
+- Incomplete migration of legacy patterns
 
 ---
 
-## 3. DIALOG SIZE CONSISTENCY AUDIT
+## Detailed Findings
 
-### Current Sizing Patterns
-| Size Class | Usage | Files |
-|------------|-------|-------|
-| `max-w-lg` (32rem) | Default dialogs | Base dialog.tsx, alert-dialog.tsx |
-| `sm:max-w-[425px]` | Small forms | InviteInvestorDialog |
-| `sm:max-w-[500px]` | Medium forms | AddTransactionDialog, RejectWithdrawalDialog |
-| `sm:max-w-[700px]` | Large wizards | AddInvestorDialog |
-| `max-w-2xl` | Asset editors | CreateAssetDialog, EditAssetDialog |
-| `max-w-3xl` | Data editors | PerformanceDataEditor |
-| `max-w-4xl` | Large tables | YieldOperationsPage, InvestorReports, BatchSendDialog |
-| `max-w-5xl` | Preview modals | ReportPreviewModal |
+### 1. CRITICAL: Deprecated Shim Files Still Active
 
-**Finding:** Sizing is consistent and appropriate for content types.
+**Location**: `src/services/shared/`
 
-### Height Constraints
-| Height Class | Files |
-|--------------|-------|
-| `max-h-[80vh]` | InvestorReports (slightly smaller) |
-| `max-h-[90vh]` | Most dialogs (standard) |
-| `max-h-[95vh]` | ReportPreviewModal (needs maximum space) |
+**Issue**: Several deprecated backward-compatibility shims are still present and being re-exported. These create unnecessary indirection and confusion:
 
-**Recommendation:** Standardize on `max-h-[90vh]` unless there's a specific reason for variation.
+```
+src/services/shared/adminToolsService.ts    → re-exports from admin
+src/services/shared/feeScheduleService.ts   → re-exports from admin
+src/services/shared/yieldRatesService.ts    → re-exports from admin
+```
+
+**Impact**: Import path confusion, larger bundle size, maintenance overhead
+
+**Recommendation**: 
+1. Search for all imports of these shim paths
+2. Update imports to use canonical `@/services/admin` paths
+3. Delete shim files
 
 ---
 
-## 4. Z-INDEX STACKING AUDIT
+### 2. HIGH: PDF Generation Logic Scattered Across Multiple Files
 
-### Current Z-Index Hierarchy (Correct)
+**Locations**:
+- `src/utils/investorReportPdf.ts` (211 lines)
+- `src/utils/statementPdfGenerator.ts`
+- `src/lib/pdf/statementGenerator.ts`
+- `src/services/reports/pdfGenerator.ts`
 
-| Component | Z-Index | Status |
-|-----------|---------|--------|
-| Sidebar | `z-50` | Base layer |
-| Dialog/Sheet Overlay | `z-50` | Matches sidebar |
-| Dialog/Sheet Content | `z-50` | Correct |
-| Dropdown/Select/Popover | `z-[100]` | Above dialogs |
-| Tooltip | `z-[100]` | Above dialogs |
+**Issue**: Four separate PDF generation implementations with similar but slightly different logic. This violates DRY principles and makes updates error-prone.
 
-**Finding:** All overlay components use proper portals and z-indexing. No transparency issues detected - all have solid backgrounds (`bg-black/95`, `bg-black/90`).
-
----
-
-## 5. POTENTIAL UX IMPROVEMENTS
-
-### 5.1 Glass-Dialog Class - Undefined
-**Files:** `AdminRequestsQueuePage.tsx`, `AdminUserManagement.tsx`, `FundManagementPage.tsx`
-```tsx
-<DialogContent className="glass-dialog border-white/10 bg-black/90 backdrop-blur-2xl">
-```
-**Issue:** `glass-dialog` class is not defined in `index.css`. The styling works because of the other classes, but the undefined class could cause confusion.
-
-**Recommendation:** Either define `glass-dialog` in `index.css` or remove it from usages.
-
-### 5.2 ActivityFeed CardContent Overflow
-**File:** `src/components/common/ActivityFeed.tsx` (Line 327)
-```tsx
-<CardContent className="flex-1 overflow-hidden p-0">{content}</CardContent>
-```
-**Analysis:** This is correct - the `overflow-hidden` is intentional because `ScrollArea` inside handles scrolling. Pattern is valid.
-
-### 5.3 SecurityTab Dialog - Missing Scroll Handling
-**File:** `src/components/account/SecurityTab.tsx` (Line 73)
-```tsx
-<DialogContent>
-```
-**Issue:** No explicit `max-h` or `overflow-y-auto`. This dialog has minimal content so it's unlikely to overflow, but for consistency should have defensive styling.
-
-**Recommendation:** Add `max-h-[90vh] overflow-y-auto` for consistency.
+**Recommendation**:
+1. Consolidate all PDF generation into `src/services/reports/`
+2. Create a single `PdfService` with specialized methods for different report types
+3. Move `src/utils/investorReportPdf.ts` and `src/utils/statementPdfGenerator.ts` to `src/services/reports/`
 
 ---
 
-## 6. MOBILE RESPONSIVENESS
+### 3. HIGH: Type Safety Gaps - Excessive `as any` Casts
 
-### Sheet Width on Mobile
-**File:** `src/components/ui/sheet.tsx`
-```tsx
-left: "inset-y-0 left-0 h-full w-3/4 border-r ... sm:max-w-sm"
-right: "inset-y-0 right-0 h-full w-3/4 border-l ... sm:max-w-sm"
-```
-**Analysis:** Correct - uses `w-3/4` on mobile, `sm:max-w-sm` on larger screens.
+**Scope**: 166 matches in services, 75 matches in hooks
 
-### Dialog on Mobile
-**File:** `src/components/ui/dialog.tsx`
-```tsx
-className={cn(
-  "... w-full max-w-lg ... max-h-[90vh] overflow-y-auto",
-  "sm:rounded-3xl",
-  ...
-)}
-```
-**Analysis:** Correct - `w-full` ensures dialogs fit mobile, `max-h-[90vh]` prevents overflow.
+**Key Problem Areas**:
 
----
+| Location | Issue |
+|----------|-------|
+| `src/hooks/data/admin/useRiskAlerts.ts` | View queries use `supabase as any` |
+| `src/hooks/data/investor/useInvestorData.ts` | Multiple `supabase as any` casts |
+| `src/hooks/data/shared/useLivePlatformMetrics.ts` | Dynamic view name casting |
+| `src/services/core/PortfolioService.ts` | Result type assertions |
 
-## 7. IMPLEMENTATION PLAN
+**Root Cause**: Database views not included in generated Supabase types
 
-### Priority 1: Consistency Fixes
-1. **Add `glass-dialog` definition to index.css** - Create a reusable utility class
-2. **Audit SecurityTab dialog** - Add defensive scroll handling
-
-### Priority 2: Enhancement
-3. **Increase CommandList height** - Change from `300px` to `400px`
-4. **Standardize height constraints** - Document standard as `max-h-[90vh]`
-
-### Priority 3: Documentation
-5. **Create UI pattern guide** - Document overflow handling patterns for future development
+**Recommendation**:
+1. Add missing views to Supabase type generation
+2. Create typed wrapper functions for views that aren't in auto-gen
+3. Replace `as any` with proper discriminated unions where type narrowing is needed
 
 ---
 
-## 8. CODE CHANGES REQUIRED
+### 4. MEDIUM: Formatting Utility Duplication
 
-### 8.1 Define glass-dialog Class
-**File:** `src/index.css`
-```css
-@layer components {
-  .glass-dialog {
-    @apply bg-black/90 backdrop-blur-2xl border-white/10;
+**Issue**: Local `formatCurrency` and `formatPercentage` functions are defined inline in components instead of using centralized formatters:
+
+| File | Issue |
+|------|-------|
+| `src/pages/investor/InvestorOverviewPage.tsx` | Local `formatCurrency` (line 54) |
+| `src/components/onboarding/steps/FundSelectionStep.tsx` | Local `formatPercentage` (line 124) |
+
+**Impact**: Inconsistent formatting, harder to maintain global formatting rules
+
+**Recommendation**: 
+1. Remove inline formatting functions
+2. Import from `@/utils/formatters`
+
+---
+
+### 5. MEDIUM: Legacy Class-Based Service Wrappers
+
+**Location**: `src/services/investor/investorDataService.ts`
+
+**Issue**: The file maintains a legacy class-based `InvestorDataService` that simply wraps functional sub-services. This creates an unnecessary abstraction layer.
+
+```typescript
+export class InvestorDataService {
+  async getInvestorPositions(investorId: string) {
+    return positionService.getInvestorPositions(investorId);
   }
+  // ... 11 more wrapper methods
 }
 ```
 
-### 8.2 SecurityTab Dialog Consistency
-**File:** `src/components/account/SecurityTab.tsx`
-```tsx
-// Line 73
-<DialogContent className="max-h-[90vh] overflow-y-auto">
-```
-
-### 8.3 CommandList Height Increase
-**File:** `src/components/ui/command.tsx`
-```tsx
-// Line 63
-className={cn("max-h-[400px] overflow-y-auto overflow-x-hidden", className)}
-```
-
-### 8.4 Drawer Component Defensive Defaults (Optional)
-**File:** `src/components/ui/drawer.tsx`
-Add comment documenting that individual usages should add `max-h-[90vh]` when content is dynamic.
+**Recommendation**:
+1. Deprecate the class wrapper with proper notice
+2. Update consumers to import functions directly from sub-services
+3. Eventually remove the class entirely
 
 ---
 
-## 9. SUMMARY
+### 6. MEDIUM: Orphaned/Minimal Directories
 
-### Issues Found
-- **Critical:** 0 (previous scroll issues already fixed)
-- **Minor:** 3 (undefined class, missing defensive styles)
-- **Recommendations:** 4 (consistency improvements)
+**Findings**:
+| Directory | Contents | Issue |
+|-----------|----------|-------|
+| `src/design-system/` | Only `tokens.ts` | Underutilized design system |
+| `src/middleware/` | 2 auth files | Could be consolidated into auth service |
+| `src/templates/` | 1 HTML file | Consider moving to Edge Functions `_shared/` |
+| `src/hooks/queries/` | 2 files | Duplicate structure with `src/hooks/data/` |
 
-### Overall Assessment
-The UI component library is well-structured with:
-- Consistent z-index hierarchy
-- Proper portal usage for overlays
-- Solid backgrounds (no transparency issues)
-- Mobile-responsive dialog/sheet sizing
+**Recommendation**: Consolidate or expand these directories based on intended purpose
 
-The few issues identified are minor consistency improvements rather than functional bugs.
+---
+
+### 7. MEDIUM: Dual Hook Organization Pattern
+
+**Issue**: Hooks exist in both:
+- `src/hooks/queries/` (useInvestors.ts, useTransactions.ts)
+- `src/hooks/data/` (comprehensive subdirectories)
+
+The `src/hooks/queries/` hooks are being re-exported from `src/hooks/data/admin/exports/investors.ts`, creating circular references.
+
+**Recommendation**:
+1. Move `src/hooks/queries/*` into `src/hooks/data/` at appropriate locations
+2. Update barrel exports
+3. Remove `src/hooks/queries/` directory
+
+---
+
+### 8. LOW: Incomplete Features Directory Migration
+
+**Current State**: `src/features/` only contains `admin/dashboard` and `admin/transactions`
+
+**Observation**: Most components still live in `src/components/admin/` rather than migrating to feature-based structure.
+
+**Recommendation**: This is a design decision - either:
+1. Complete the feature-based migration (move related components, hooks, services together)
+2. Or keep components/hooks/services separated and remove `src/features/`
+
+---
+
+### 9. LOW: MobileInvestorCard Duplication
+
+**Location**: `src/components/admin/investors/`
+
+**Issue**: Both a directory `MobileInvestorCard/` and a file `MobileInvestorCard.tsx` exist at the same level.
+
+**Recommendation**: Consolidate into the directory structure
+
+---
+
+### 10. LOW: Unused Supabase Import in investorDataService
+
+**Location**: `src/services/investor/investorDataService.ts` (line 12)
+
+```typescript
+import { supabase } from "@/integrations/supabase/client";
+```
+
+**Issue**: The supabase import is never used - all methods delegate to sub-services
+
+**Recommendation**: Remove unused import
+
+---
+
+## Ordered Implementation Steps
+
+### Phase 1: Critical Cleanup (Immediate)
+
+| Step | Action | Files Affected | Risk |
+|------|--------|----------------|------|
+| 1.1 | Remove deprecated shim files after updating imports | ~3 files + consumers | Low |
+| 1.2 | Move `src/hooks/queries/*` into `src/hooks/data/` | ~4 files | Low |
+| 1.3 | Remove duplicate MobileInvestorCard.tsx | 1 file | Low |
+
+### Phase 2: Type Safety Improvements (High Priority)
+
+| Step | Action | Files Affected | Risk |
+|------|--------|----------------|------|
+| 2.1 | Create typed wrappers for database views | New utility file | Low |
+| 2.2 | Replace `as any` casts in hooks with proper types | ~9 hook files | Medium |
+| 2.3 | Replace `as any` casts in services with proper types | ~18 service files | Medium |
+
+### Phase 3: Consolidation (Medium Priority)
+
+| Step | Action | Files Affected | Risk |
+|------|--------|----------------|------|
+| 3.1 | Consolidate PDF generation into `src/services/reports/` | 4 files | Medium |
+| 3.2 | Replace inline formatters with centralized imports | 2 component files | Low |
+| 3.3 | Deprecate legacy InvestorDataService class wrapper | 1 file + consumers | Low |
+| 3.4 | Consolidate `src/middleware/` into auth service | 2 files | Low |
+
+### Phase 4: Structural Decisions (Lower Priority)
+
+| Step | Action | Files Affected | Risk |
+|------|--------|----------------|------|
+| 4.1 | Decide on features/ directory - expand or remove | Multiple | Medium |
+| 4.2 | Evaluate design-system/ expansion | 1 file | Low |
+| 4.3 | Move templates/ to Edge Functions `_shared/` | 1 file | Low |
+
+---
+
+## Metrics Summary
+
+| Category | Status | Count |
+|----------|--------|-------|
+| Deprecated shim files | Needs cleanup | 3 |
+| `as any` casts in services | Needs attention | 166 |
+| `as any` casts in hooks | Needs attention | 75 |
+| Duplicate PDF generators | Needs consolidation | 4 |
+| Inline formatting functions | Should use centralized | 2 |
+| TODO/FIXME comments | Acceptable | 7 |
+| Direct DB calls in UI | None (Good) | 0 |
+| Documented patterns | Well covered | 15+ docs |
+
+---
+
+## Conclusion
+
+The codebase follows solid architectural principles with clear domain boundaries, proper service abstraction, and no direct database access from UI components. The main areas for improvement are:
+
+1. **Cleanup legacy patterns** - Remove deprecated shims and consolidate duplicate code
+2. **Improve type safety** - Address `as any` casts, especially in hook files
+3. **Consolidate PDF generation** - Single source of truth for report generation
+4. **Finalize directory structure** - Decide on features/ pattern and complete migration
+
+The recommended approach is to tackle Phase 1 immediately (low risk, high cleanup value), then proceed with Phase 2 for type safety improvements before considering larger structural changes.
+
