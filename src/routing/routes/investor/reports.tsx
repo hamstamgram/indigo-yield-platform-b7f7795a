@@ -5,7 +5,7 @@
 
 import { Route } from "react-router-dom";
 import { lazy } from "react";
-import { ProtectedRoute } from "../../ProtectedRoute";
+import { InvestorRoute } from "../../InvestorRoute";
 
 // Reports pages
 const ReportsPage = lazy(() => import("@/pages/reports/ReportsPage"));
@@ -17,17 +17,17 @@ export function ReportsRoutes() {
       <Route
         path="/reports"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <ReportsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/reports/custom"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <CustomReport />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
     </>

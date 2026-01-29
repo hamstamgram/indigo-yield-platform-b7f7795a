@@ -49,7 +49,7 @@ export async function applyYieldDistribution(
   const periodEndDate = targetDate;
   const periodStartDate = periodStart || startOfMonth(targetDate);
 
-  // Get current AUM (investor accounts only) to calculate gross yield amount
+  // Get current AUM (investor + IB accounts) to calculate gross yield amount
   const { data: positions } = await supabase
     .from("investor_positions")
     .select("investor_id,current_value")
@@ -64,7 +64,7 @@ export async function applyYieldDistribution(
         .from("profiles")
         .select("id")
         .in("id", investorIds)
-        .eq("account_type", "investor")
+        .in("account_type", ["investor", "ib"])
     : { data: [] };
 
   const investorSet = new Set(profiles?.map((p) => p.id) || []);

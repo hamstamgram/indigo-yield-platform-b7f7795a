@@ -11,19 +11,29 @@ import {
 // Format period ended date as "October 31st, 2025"
 function formatPeriodEndedLong(date: Date): string {
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const month = months[date.getMonth()];
   const day = date.getDate();
   const year = date.getFullYear();
-  
+
   // Add ordinal suffix
   let suffix = "th";
   if (day === 1 || day === 21 || day === 31) suffix = "st";
   else if (day === 2 || day === 22) suffix = "nd";
   else if (day === 3 || day === 23) suffix = "rd";
-  
+
   return `${month} ${day}${suffix}, ${year}`;
 }
 
@@ -57,9 +67,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser(authHeader.replace("Bearer ", ""));
 
     if (authError || !user) {
       console.error("Auth verification failed:", authError?.message);
@@ -79,10 +90,10 @@ serve(async (req) => {
 
     if (roleError || !adminRole) {
       console.error("Admin check failed - user is not admin:", user.id);
-      return new Response(
-        JSON.stringify({ success: false, error: "Admin access required" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: false, error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log(`Admin ${user.id} generating statement`);
@@ -100,12 +111,14 @@ serve(async (req) => {
     const currentMonth = currentDate.getMonth();
     const mtdEnd = new Date(currentYear, currentMonth + 1, 0);
 
-    console.log(`Generating statement for Investor ${investor_id} for period ending ${mtdEnd.toISOString()}`);
+    console.log(
+      `Generating statement for Investor ${investor_id} for period ending ${mtdEnd.toISOString()}`
+    );
 
     // Fetch Investor Profile
     const { data: profile, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("id, first_name, last_name, email")
+      .select("id, first_name, last_name, email, account_type")
       .eq("id", investor_id)
       .single();
 
@@ -113,11 +126,15 @@ serve(async (req) => {
       console.error("Profile fetch error:", profileError);
       throw new Error("Investor profile not found");
     }
+    if (profile.account_type && profile.account_type !== "investor") {
+      throw new Error("Statements are available for investor accounts only");
+    }
 
-    const investorName = profile.first_name && profile.last_name
-      ? `${profile.first_name} ${profile.last_name}`
-      : profile.email || "Valued Investor";
-    
+    const investorName =
+      profile.first_name && profile.last_name
+        ? `${profile.first_name} ${profile.last_name}`
+        : profile.email || "Valued Investor";
+
     const investorEmail = profile.email || "";
 
     // Fetch from investor_fund_performance (single source of truth)
@@ -193,7 +210,9 @@ serve(async (req) => {
       console.warn("HTML validation warnings:", validation.errors);
     }
 
-    console.log(`Generated statement with ${fundBlocks.length} fund blocks for assets: ${assetsIncluded.join(", ")}`);
+    console.log(
+      `Generated statement with ${fundBlocks.length} fund blocks for assets: ${assetsIncluded.join(", ")}`
+    );
 
     return new Response(
       JSON.stringify({

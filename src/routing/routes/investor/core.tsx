@@ -5,7 +5,7 @@
 
 import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
-import { ProtectedRoute } from "../../ProtectedRoute";
+import { InvestorRoute } from "../../InvestorRoute";
 
 // New investor pages
 const InvestorOverviewPage = lazy(() => import("@/pages/investor/InvestorOverviewPage"));
@@ -26,90 +26,93 @@ export function CoreInvestorRoutes() {
       <Route
         path="/investor"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <InvestorOverviewPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/investor/portfolio"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <InvestorPortfolioPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/investor/performance"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <InvestorPerformancePage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/investor/transactions"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <InvestorTransactionsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/investor/statements"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <StatementsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/investor/documents"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <InvestorDocumentsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/investor/settings"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <InvestorSettingsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/investor/yield-history"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <YieldHistoryPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
-      
+
       {/* Legacy redirects */}
       <Route path="/dashboard" element={<Navigate to="/investor" replace />} />
       <Route path="/statements" element={<Navigate to="/investor/statements" replace />} />
       <Route path="/transactions" element={<Navigate to="/investor/transactions" replace />} />
       <Route path="/account" element={<Navigate to="/investor/settings" replace />} />
-      <Route path="/portfolio/analytics" element={<Navigate to="/investor/performance" replace />} />
-      
+      <Route
+        path="/portfolio/analytics"
+        element={<Navigate to="/investor/performance" replace />}
+      />
+
       {/* Detail routes */}
       <Route
         path="/transactions/:id"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <TransactionDetailsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/funds/:assetId"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <FundDetailsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
     </>

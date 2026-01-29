@@ -5,7 +5,7 @@
 
 import { Route } from "react-router-dom";
 import { lazy } from "react";
-import { ProtectedRoute } from "../../ProtectedRoute";
+import { InvestorRoute } from "../../InvestorRoute";
 
 // Portfolio pages
 const WithdrawalsPage = lazy(() => import("@/pages/withdrawals/WithdrawalHistoryPage"));
@@ -20,25 +20,25 @@ export function PortfolioRoutes() {
       <Route
         path="/withdrawals"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <WithdrawalsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/withdrawals/new"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <NewWithdrawalPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
       <Route
         path="/portfolio/analytics"
         element={
-          <ProtectedRoute>
+          <InvestorRoute>
             <PortfolioAnalyticsPage />
-          </ProtectedRoute>
+          </InvestorRoute>
         }
       />
     </>

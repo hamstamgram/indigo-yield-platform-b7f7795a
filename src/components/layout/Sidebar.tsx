@@ -59,13 +59,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
         setPortalView("admin");
       }
     } else if (userId && isIB && !isAdmin) {
-      const savedView = localStorage.getItem(`portal_view_${userId}`);
-      if (savedView === "ib" || savedView === "investor") {
-        setPortalView(savedView);
-      } else {
-        // Default IB users to IB portal view
-        setPortalView("ib");
-      }
+      // IB users are restricted to IB portal only
+      setPortalView("ib");
     } else if (isAdmin) {
       setPortalView("admin");
     } else {
@@ -75,6 +70,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
   // Switch portal view and persist preference
   const switchPortal = (view: PortalView) => {
+    if (isIB && !isAdmin && view === "investor") {
+      return;
+    }
     setPortalView(view);
     if (userId) {
       localStorage.setItem(`portal_view_${userId}`, view);
@@ -170,13 +168,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     }
     // Otherwise, admins always see admin portal
     if (isAdmin) return "admin";
+    if (isIB) return "ib";
     return portalView;
   };
 
   const activePortal = getActivePortal();
 
-  // Check if user has multiple portal options (IB users or admins with positions)
-  const hasMultiplePortals = (isIB && !isAdmin) || (isAdmin && hasInvestorPositions);
+  // Check if user has multiple portal options (admins with positions only)
+  const hasMultiplePortals = isAdmin && hasInvestorPositions;
   const isAdminWithPositions = isAdmin && hasInvestorPositions;
 
   return (
@@ -243,7 +242,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           {hasMultiplePortals && (
             <div className="px-5 pb-6">
               <div className="p-1 bg-sidebar-accent/50 rounded-xl flex gap-1">
-                {isAdminWithPositions ? (
+                {isAdminWithPositions && (
                   <>
                     <Button
                       variant={portalView === "admin" ? "secondary" : "ghost"}
@@ -270,35 +269,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                       onClick={() => switchPortal("investor")}
                     >
                       Investor
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      variant={portalView === "ib" ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn(
-                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
-                        portalView === "ib"
-                          ? "bg-white text-primary dark:bg-primary dark:text-white"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                      onClick={() => switchPortal("ib")}
-                    >
-                      IB Portal
-                    </Button>
-                    <Button
-                      variant={portalView === "investor" ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn(
-                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
-                        portalView === "investor"
-                          ? "bg-white text-primary dark:bg-primary dark:text-white"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                      onClick={() => switchPortal("investor")}
-                    >
-                      Portfolio
                     </Button>
                   </>
                 )}

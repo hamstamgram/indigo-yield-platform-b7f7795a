@@ -68,8 +68,8 @@ export async function previewYieldDistribution(
   }
 
   // Get fund info and current AUM
-  // FIX: Match UI filter - only account_type='investor' with current_value > 0
-  // This ensures grossYield calculation matches what user sees on screen
+  // FIX: Match UI filter - include investor + IB accounts with current_value > 0
+  // This ensures grossYield calculation matches backend ADB ownership logic
   const [fundResult, positionsResult] = await Promise.all([
     supabase.from("funds").select("code, asset, name").eq("id", fundId).maybeSingle(),
     supabase
@@ -80,7 +80,7 @@ export async function previewYieldDistribution(
       .gt("current_value", 0),
   ]);
 
-  // Filter to only investor account types (exclude ib, fees_account)
+  // Filter to investor + IB account types (exclude fees_account)
   const investorIds = positionsResult.data?.map((p) => p.investor_id).filter(Boolean) || [];
   const { data: profiles } =
     investorIds.length > 0
@@ -88,7 +88,7 @@ export async function previewYieldDistribution(
           .from("profiles")
           .select("id")
           .in("id", investorIds)
-          .eq("account_type", "investor")
+          .in("account_type", ["investor", "ib"])
       : { data: [] };
 
   const investorSet = new Set(profiles?.map((p) => p.id) || []);

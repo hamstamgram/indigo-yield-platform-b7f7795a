@@ -102,20 +102,20 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
   }
 
   // Fetch investor profiles to filter by account_type
-  const investorIds = [...new Set((positions || []).map(p => p.investor_id))];
+  const investorIds = [...new Set((positions || []).map((p) => p.investor_id))];
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, account_type")
-    .in("id", investorIds.length > 0 ? investorIds : ['none']);
+    .in("id", investorIds.length > 0 ? investorIds : ["none"]);
 
   const investorSet = new Set(
     (profiles || [])
-      .filter(p => p.account_type === 'investor')
-      .map(p => p.id)
+      .filter((p) => p.account_type === "investor" || p.account_type === "ib")
+      .map((p) => p.id)
   );
 
-  // Filter to investor accounts only
-  const investorPositions = (positions || []).filter(p => investorSet.has(p.investor_id));
+  // Filter to investor + IB accounts
+  const investorPositions = (positions || []).filter((p) => investorSet.has(p.investor_id));
 
   const totalAUM = investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 

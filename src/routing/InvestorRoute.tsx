@@ -1,0 +1,28 @@
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/services/auth";
+import { PageLoadingSpinner } from "@/components/ui";
+import { useUserRole } from "@/hooks";
+
+interface InvestorRouteProps {
+  children: React.ReactNode;
+}
+
+export function InvestorRoute({ children }: InvestorRouteProps) {
+  const { user, loading, profile } = useAuth();
+  const { isIB, isAdmin, isLoading: roleLoading } = useUserRole();
+  const location = useLocation();
+
+  if (loading || roleLoading || (user && !profile)) {
+    return <PageLoadingSpinner />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (isIB && !isAdmin) {
+    return <Navigate to="/ib" replace />;
+  }
+
+  return <>{children}</>;
+}

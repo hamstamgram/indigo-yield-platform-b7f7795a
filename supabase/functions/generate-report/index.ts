@@ -49,9 +49,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser(authHeader.replace("Bearer ", ""));
 
     if (authError || !user) {
       console.error("Auth verification failed:", authError?.message);
@@ -71,10 +72,10 @@ serve(async (req) => {
 
     if (roleError || !adminRole) {
       console.error("Admin check failed - user is not admin:", user.id);
-      return new Response(
-        JSON.stringify({ success: false, error: "Admin access required" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: false, error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log(`Admin ${user.id} generating report`);
@@ -118,11 +119,14 @@ serve(async (req) => {
     // 1. Get Investor Details
     const { data: investor } = await supabaseClient
       .from("investors")
-      .select("*, profiles(first_name, last_name, email)")
+      .select("*, profiles(first_name, last_name, email, account_type)")
       .eq("profile_id", userId) // Link via profile_id
       .single();
 
     if (!investor) throw new Error("Investor profile not found for this user");
+    if (investor.profiles?.account_type && investor.profiles.account_type !== "investor") {
+      throw new Error("Reports are available for investor accounts only");
+    }
     const investorName = investor.profiles
       ? `${investor.profiles.first_name} ${investor.profiles.last_name}`
       : "Valued Investor";
@@ -215,9 +219,14 @@ serve(async (req) => {
     let contentType: string;
 
     // Populate HTML Template - call the function to get the HTML string
-    let htmlContent: string = typeof STATEMENT_TEMPLATE === 'function' 
-      ? STATEMENT_TEMPLATE({ investor_name: investorName, statement_period: mtdEnd.toISOString().slice(0, 7), funds: [] })
-      : String(STATEMENT_TEMPLATE);
+    let htmlContent: string =
+      typeof STATEMENT_TEMPLATE === "function"
+        ? STATEMENT_TEMPLATE({
+            investor_name: investorName,
+            statement_period: mtdEnd.toISOString().slice(0, 7),
+            funds: [],
+          })
+        : String(STATEMENT_TEMPLATE);
     Object.entries(templateData).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, "g");
       htmlContent = htmlContent.replace(regex, value);
