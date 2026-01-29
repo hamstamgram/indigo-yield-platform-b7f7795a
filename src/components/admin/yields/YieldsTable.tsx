@@ -23,12 +23,14 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  SortableTableHead,
 } from "@/components/ui";
 import { TrendingUp } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { YieldActionsColumn } from "./YieldActionsColumn";
 import type { RecordedYieldRecord } from "@/hooks";
+import { useSortableColumns } from "@/hooks/ui/useSortableColumns";
 
 interface YieldsTableProps {
   yields: RecordedYieldRecord[];
@@ -65,10 +67,20 @@ export function YieldsTable({
     actions: true,
   });
 
+  // Sort state
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(yields, {
+    column: "aum_date", // Default sort by date
+    direction: "desc",
+  });
+
   const allColumns = [
     {
       id: "fund",
-      header: "Fund",
+      header: (
+        <SortableTableHead column="fund_name" currentSort={sortConfig} onSort={requestSort}>
+          Fund
+        </SortableTableHead>
+      ),
       cell: (record: RecordedYieldRecord) => (
         <div className="flex items-center gap-2">
           <CryptoIcon symbol={record.fund_asset || ""} className="h-5 w-5" />
@@ -81,7 +93,11 @@ export function YieldsTable({
     },
     {
       id: "date",
-      header: "Effective Date",
+      header: (
+        <SortableTableHead column="aum_date" currentSort={sortConfig} onSort={requestSort}>
+          Effective Date
+        </SortableTableHead>
+      ),
       cell: (record: RecordedYieldRecord) => {
         const isVoided = record.is_voided;
         const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
@@ -122,7 +138,16 @@ export function YieldsTable({
     },
     {
       id: "aum",
-      header: "AUM",
+      header: (
+        <SortableTableHead
+          column="total_aum"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-end w-full"
+        >
+          AUM
+        </SortableTableHead>
+      ),
       className: "text-right",
       cell: (record: RecordedYieldRecord) => (
         <FinancialValue value={record.total_aum} asset={record.fund_asset} />
@@ -130,7 +155,11 @@ export function YieldsTable({
     },
     {
       id: "purpose",
-      header: "Purpose",
+      header: (
+        <SortableTableHead column="purpose" currentSort={sortConfig} onSort={requestSort}>
+          Purpose
+        </SortableTableHead>
+      ),
       cell: (record: RecordedYieldRecord) => (
         <Badge
           variant={record.purpose === "reporting" ? "default" : "secondary"}
@@ -165,7 +194,11 @@ export function YieldsTable({
     },
     {
       id: "created",
-      header: "Created",
+      header: (
+        <SortableTableHead column="created_at" currentSort={sortConfig} onSort={requestSort}>
+          Created
+        </SortableTableHead>
+      ),
       cell: (record: RecordedYieldRecord) => (
         <div className="text-sm">
           <p>{format(new Date(record.created_at), "MMM d, yyyy")}</p>
@@ -205,7 +238,7 @@ export function YieldsTable({
               Yield Records
             </CardTitle>
             <CardDescription>
-              {yields.length} record{yields.length !== 1 ? "s" : ""} found
+              {sortedData.length} record{sortedData.length !== 1 ? "s" : ""} found
             </CardDescription>
           </div>
           <DropdownMenu>
@@ -227,7 +260,7 @@ export function YieldsTable({
                       setVisibleColumns((prev) => ({ ...prev, [column.id]: checked }))
                     }
                   >
-                    {column.header}
+                    {typeof column.header === "string" ? column.header : column.id}
                   </DropdownMenuCheckboxItem>
                 ))}
             </DropdownMenuContent>
@@ -239,13 +272,13 @@ export function YieldsTable({
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : yields.length === 0 ? (
+        ) : sortedData.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             No yield records found. Adjust filters or record yields first.
           </div>
         ) : (
           <ResponsiveTable<RecordedYieldRecord>
-            data={yields}
+            data={sortedData}
             keyExtractor={(r) => r.id}
             emptyMessage="No yield records found"
             columns={visibleColumnsList}
