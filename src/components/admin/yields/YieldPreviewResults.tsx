@@ -214,6 +214,39 @@ export function YieldPreviewResults({
         </Card>
       )}
 
+      {/* Yield Math Explanation */}
+      {yieldPreview.calculationMethod === "adb_v3" && (
+        <Card className="border-slate-200 bg-white dark:bg-slate-950/20">
+          <CardContent className="p-3 space-y-2 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Crystallized Yield Math (ADB)</p>
+            <p>
+              We crystallize yield before any deposit/withdrawal because ownership changes after
+              each flow. This locks the pre-flow ownership for the days already elapsed, then
+              recalculates ownership for the remaining days.
+            </p>
+            <div className="grid gap-1 text-xs">
+              <div>
+                <span className="font-medium text-foreground">ADB share %</span> = investor ADB ÷
+                total ADB
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Gross</span> = gross yield × ADB share
+                %
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Investor fee</span> = gross × fee %
+              </div>
+              <div>
+                <span className="font-medium text-foreground">IB commission</span> = gross × IB %
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Net</span> = gross − fee − IB
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* IB Credits Summary */}
       {yieldPreview.ibCredits && yieldPreview.ibCredits.length > 0 && (
         <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">

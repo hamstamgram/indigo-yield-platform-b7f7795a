@@ -16,6 +16,7 @@ import {
   VoidYieldDialog,
   EditYieldDialog,
 } from "@/components/admin/yields";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui";
 import {
   useRecordedYieldsData,
   useYieldCorrectionHistory,
@@ -117,6 +118,39 @@ function RecordedYieldsContent() {
         onFilterChange={setFilter}
         onReset={clearFilters}
       />
+
+      {/* Yield Math Explanation */}
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="yield-math">
+          <AccordionTrigger className="text-left">Crystallized Yield Math (ADB)</AccordionTrigger>
+          <AccordionContent className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              We crystallize yield before any deposit/withdrawal because ownership changes after
+              each flow. This locks the pre-flow ownership for the days already elapsed, then
+              recalculates ownership for the remaining days.
+            </p>
+            <div className="grid gap-1 text-xs">
+              <div>
+                <span className="font-medium text-foreground">ADB share %</span> = investor ADB ÷
+                total ADB
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Gross</span> = gross yield × ADB share
+                %
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Investor fee</span> = gross × fee %
+              </div>
+              <div>
+                <span className="font-medium text-foreground">IB commission</span> = gross × IB %
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Net</span> = gross − fee − IB
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       {/* Yields Table */}
       <YieldsTable
