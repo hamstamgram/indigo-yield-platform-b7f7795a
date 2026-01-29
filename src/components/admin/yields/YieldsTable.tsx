@@ -3,13 +3,26 @@
  * Main yields table using ResponsiveTable
  */
 
+import { useState } from "react";
 import { format } from "date-fns";
-import { Check, X, Loader2, RefreshCw } from "lucide-react";
+import { Check, X, Loader2, RefreshCw, Columns } from "lucide-react";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
   Badge,
   ResponsiveTable,
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  Button,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
 } from "@/components/ui";
 import { TrendingUp } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -40,6 +53,148 @@ export function YieldsTable({
   onViewHistory,
   onViewCorrectionHistory,
 }: YieldsTableProps) {
+  // Column visibility state
+  const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+    fund: true,
+    date: true,
+    aum: true,
+    purpose: true,
+    monthEnd: true,
+    source: true,
+    created: true,
+    actions: true,
+  });
+
+  const allColumns = [
+    {
+      id: "fund",
+      header: "Fund",
+      cell: (record: RecordedYieldRecord) => (
+        <div className="flex items-center gap-2">
+          <CryptoIcon symbol={record.fund_asset || ""} className="h-5 w-5" />
+          <div>
+            <p className="font-medium">{record.fund_name}</p>
+            <p className="text-xs text-muted-foreground">{record.fund_asset}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "date",
+      header: "Effective Date",
+      cell: (record: RecordedYieldRecord) => {
+        const isVoided = record.is_voided;
+        const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
+        const correctionInfo = correctedRecordsMap.get(correctionKey);
+        return (
+          <div className="flex items-center gap-2">
+            {format(new Date(record.aum_date), "MMM d, yyyy")}
+            {isVoided && (
+              <Badge variant="destructive" className="text-xs">
+                Voided
+              </Badge>
+            )}
+            {correctionInfo && !isVoided && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className="text-xs cursor-pointer bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
+                      onClick={() => onViewCorrectionHistory(record)}
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      {correctionInfo.count}x Corrected
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Last corrected:{" "}
+                    {format(new Date(correctionInfo.lastCorrectedAt), "MMM d, yyyy HH:mm")}
+                    <br />
+                    Click to view correction history
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      id: "aum",
+      header: "AUM",
+      className: "text-right",
+      cell: (record: RecordedYieldRecord) => (
+        <FinancialValue value={record.total_aum} asset={record.fund_asset} />
+      ),
+    },
+    {
+      id: "purpose",
+      header: "Purpose",
+      cell: (record: RecordedYieldRecord) => (
+        <Badge
+          variant={record.purpose === "reporting" ? "default" : "secondary"}
+          className={
+            record.purpose === "reporting"
+              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+              : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+          }
+        >
+          {record.purpose === "reporting" ? "🟢 Reporting" : "🟠 Transaction"}
+        </Badge>
+      ),
+    },
+    {
+      id: "monthEnd",
+      header: "Month End",
+      cell: (record: RecordedYieldRecord) =>
+        record.is_month_end ? (
+          <Check className="h-4 w-4 text-green-600" />
+        ) : (
+          <X className="h-4 w-4 text-muted-foreground" />
+        ),
+    },
+    {
+      id: "source",
+      header: "Source",
+      cell: (record: RecordedYieldRecord) => (
+        <span className="text-sm text-muted-foreground max-w-[150px] truncate block">
+          {record.source || "-"}
+        </span>
+      ),
+    },
+    {
+      id: "created",
+      header: "Created",
+      cell: (record: RecordedYieldRecord) => (
+        <div className="text-sm">
+          <p>{format(new Date(record.created_at), "MMM d, yyyy")}</p>
+          {record.created_by_name && (
+            <p className="text-xs text-muted-foreground">{record.created_by_name}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      className: "text-right",
+      cell: (record: RecordedYieldRecord) => (
+        <YieldActionsColumn
+          record={record}
+          canEdit={canEdit}
+          onEdit={onEdit}
+          onVoid={onVoid}
+          onViewHistory={onViewHistory}
+          onCorrect={onCorrect}
+          isVoided={record.is_voided}
+        />
+      ),
+    },
+  ];
+
+  const visibleColumnsList = allColumns.filter((col) => visibleColumns[col.id]);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -53,6 +208,30 @@ export function YieldsTable({
               {yields.length} record{yields.length !== 1 ? "s" : ""} found
             </CardDescription>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="ml-auto">
+                <Columns className="mr-2 h-4 w-4" />
+                Columns
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {allColumns
+                .filter((col) => col.id !== "actions") // Actions always visible
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={visibleColumns[column.id]}
+                    onCheckedChange={(checked) =>
+                      setVisibleColumns((prev) => ({ ...prev, [column.id]: checked }))
+                    }
+                  >
+                    {column.header}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent>
@@ -69,121 +248,7 @@ export function YieldsTable({
             data={yields}
             keyExtractor={(r) => r.id}
             emptyMessage="No yield records found"
-            columns={[
-              {
-                header: "Fund",
-                cell: (record) => (
-                  <div className="flex items-center gap-2">
-                    <CryptoIcon symbol={record.fund_asset || ""} className="h-5 w-5" />
-                    <div>
-                      <p className="font-medium">{record.fund_name}</p>
-                      <p className="text-xs text-muted-foreground">{record.fund_asset}</p>
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                header: "Effective Date",
-                cell: (record) => {
-                  const isVoided = record.is_voided;
-                  const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
-                  const correctionInfo = correctedRecordsMap.get(correctionKey);
-                  return (
-                    <div className="flex items-center gap-2">
-                      {format(new Date(record.aum_date), "MMM d, yyyy")}
-                      {isVoided && (
-                        <Badge variant="destructive" className="text-xs">Voided</Badge>
-                      )}
-                      {correctionInfo && !isVoided && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge 
-                                variant="outline" 
-                                className="text-xs cursor-pointer bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
-                                onClick={() => onViewCorrectionHistory(record)}
-                              >
-                                <RefreshCw className="h-3 w-3 mr-1" />
-                                {correctionInfo.count}x Corrected
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Last corrected: {format(new Date(correctionInfo.lastCorrectedAt), "MMM d, yyyy HH:mm")}
-                              <br />Click to view correction history
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                  );
-                },
-              },
-              {
-                header: "AUM",
-                className: "text-right",
-                cell: (record) => (
-                  <FinancialValue value={record.total_aum} asset={record.fund_asset} />
-                ),
-              },
-              {
-                header: "Purpose",
-                cell: (record) => (
-                  <Badge
-                    variant={record.purpose === "reporting" ? "default" : "secondary"}
-                    className={
-                      record.purpose === "reporting"
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                        : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                    }
-                  >
-                    {record.purpose === "reporting" ? "🟢 Reporting" : "🟠 Transaction"}
-                  </Badge>
-                ),
-              },
-              {
-                header: "Month End",
-                cell: (record) =>
-                  record.is_month_end ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <X className="h-4 w-4 text-muted-foreground" />
-                  ),
-              },
-              {
-                header: "Source",
-                cell: (record) => (
-                  <span className="text-sm text-muted-foreground max-w-[150px] truncate block">
-                    {record.source || "-"}
-                  </span>
-                ),
-              },
-              {
-                header: "Created",
-                cell: (record) => (
-                  <div className="text-sm">
-                    <p>{format(new Date(record.created_at), "MMM d, yyyy")}</p>
-                    {record.created_by_name && (
-                      <p className="text-xs text-muted-foreground">{record.created_by_name}</p>
-                    )}
-                  </div>
-                ),
-              },
-              {
-                header: "Actions",
-                className: "text-right",
-                cell: (record) => (
-                  <YieldActionsColumn
-                    record={record}
-                    canEdit={canEdit}
-                    onEdit={onEdit}
-                    onVoid={onVoid}
-                    onViewHistory={onViewHistory}
-                    onCorrect={onCorrect}
-                    isVoided={record.is_voided}
-                  />
-                ),
-              },
-            ]}
+            columns={visibleColumnsList}
             mobileCardRenderer={(record) => {
               const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
               const correctionInfo = correctedRecordsMap.get(correctionKey);
@@ -211,11 +276,13 @@ export function YieldsTable({
                         {record.purpose === "reporting" ? "Reporting" : "Transaction"}
                       </Badge>
                       {record.is_voided && (
-                        <Badge variant="destructive" className="text-xs">Voided</Badge>
+                        <Badge variant="destructive" className="text-xs">
+                          Voided
+                        </Badge>
                       )}
                       {correctionInfo && !record.is_voided && (
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className="text-xs bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400"
                         >
                           {correctionInfo.count}x Corrected
@@ -223,7 +290,7 @@ export function YieldsTable({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                     <div>
                       <span className="text-muted-foreground text-xs">AUM</span>
@@ -240,7 +307,7 @@ export function YieldsTable({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-2 border-t">
                     <div className="text-xs text-muted-foreground">
                       {record.created_by_name && <span>{record.created_by_name} • </span>}
