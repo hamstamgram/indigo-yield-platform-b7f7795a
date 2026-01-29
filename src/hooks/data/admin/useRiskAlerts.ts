@@ -1,40 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { REFETCH_INTERVAL, QUERY_DEFAULTS } from "@/constants/queryConfig";
+import { 
+  queryView, 
+  type VLiquidityRisk, 
+  type VConcentrationRisk 
+} from "@/lib/db/viewTypes";
 
-export interface LiquidityRisk {
-  fund_id: string;
-  code: string;
-  asset: string;
-  current_aum: number;
-  pending_amount: number;
-  approved_amount: number;
-  processing_amount: number;
-  total_pending: number;
-  withdrawal_pressure_pct: number;
-  risk_level: "LOW" | "MEDIUM" | "HIGH";
-}
-
-export interface ConcentrationRisk {
-  fund_id: string;
-  fund_code: string;
-  investor_id: string;
-  investor_name: string;
-  account_type: string;
-  position_value: number;
-  fund_aum: number;
-  ownership_pct: number;
-  concentration_level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-}
+// Re-export types for consumers
+export type { VLiquidityRisk as LiquidityRisk, VConcentrationRisk as ConcentrationRisk };
 
 // Fetch liquidity risk view
 export function useLiquidityRisk() {
   return useQuery({
     queryKey: ["liquidity-risk"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("v_liquidity_risk").select("*");
+      const { data, error } = await queryView("v_liquidity_risk").select("*");
       if (error) throw error;
-      return data as LiquidityRisk[];
+      return (data || []) as VLiquidityRisk[];
     },
     ...QUERY_DEFAULTS.riskMonitoring,
     refetchInterval: REFETCH_INTERVAL.LOW,
@@ -46,14 +28,13 @@ export function useConcentrationRisk() {
   return useQuery({
     queryKey: ["concentration-risk"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("v_concentration_risk")
+      const { data, error } = await queryView("v_concentration_risk")
         .select("*")
         .in("concentration_level", ["MEDIUM", "HIGH", "CRITICAL"])
         .order("ownership_pct", { ascending: false })
         .limit(20);
       if (error) throw error;
-      return data as ConcentrationRisk[];
+      return (data || []) as VConcentrationRisk[];
     },
     ...QUERY_DEFAULTS.riskMonitoring,
     refetchInterval: REFETCH_INTERVAL.LOW,

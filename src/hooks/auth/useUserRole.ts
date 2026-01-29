@@ -35,9 +35,8 @@ export function useUserRole(): UseUserRoleResult {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Note: user_roles table may not exist in all deployments
-      // Using type assertion to handle schema variations
-      const { data, error } = await (supabase as any)
+      // user_roles table IS in generated types
+      const { data, error } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id);

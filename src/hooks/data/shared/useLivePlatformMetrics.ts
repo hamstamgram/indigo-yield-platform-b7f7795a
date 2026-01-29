@@ -4,34 +4,15 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { 
+  queryView,
+  type VDailyPlatformMetricsLive,
+  type VFundSummaryLive
+} from "@/lib/db/viewTypes";
 
-export interface LivePlatformMetrics {
-  metric_date: string;
-  active_investors: number;
-  total_ibs: number;
-  active_funds: number;
-  total_platform_aum: number;
-  pending_withdrawals: number;
-  pending_withdrawal_amount: number;
-  yields_today: number;
-  refreshed_at: string;
-}
-
-export interface LiveFundSummary {
-  fund_id: string;
-  code: string;
-  name: string;
-  asset: string;
-  status: string;
-  investor_count: number;
-  investor_aum: number;
-  fees_balance: number;
-  ib_balance: number;
-  total_positions: number;
-  latest_aum: number | null;
-  latest_aum_date: string | null;
-}
+// Re-export types with legacy names for backwards compatibility
+export type LivePlatformMetrics = VDailyPlatformMetricsLive;
+export type LiveFundSummary = VFundSummaryLive;
 
 /**
  * Fetch live platform metrics (always fresh, no MV refresh needed)
@@ -40,10 +21,9 @@ export interface LiveFundSummary {
 export function useLivePlatformMetrics() {
   return useQuery({
     queryKey: ['live-platform-metrics'],
-    queryFn: async (): Promise<LivePlatformMetrics | null> => {
+    queryFn: async (): Promise<VDailyPlatformMetricsLive | null> => {
       // Query the live view (computes in real-time, no refresh needed)
-      const { data, error } = await supabase
-        .from('v_daily_platform_metrics_live' as any)
+      const { data, error } = await queryView("v_daily_platform_metrics_live")
         .select('*')
         .limit(1)
         .maybeSingle();
@@ -53,7 +33,7 @@ export function useLivePlatformMetrics() {
         return null;
       }
       
-      return data as unknown as LivePlatformMetrics;
+      return data as VDailyPlatformMetricsLive | null;
     },
     staleTime: 5000, // 5 seconds - these are live computed
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -67,11 +47,9 @@ export function useLivePlatformMetrics() {
 export function useLiveFundSummary(fundId?: string) {
   return useQuery({
     queryKey: ['live-fund-summary', fundId],
-    queryFn: async (): Promise<LiveFundSummary[]> => {
+    queryFn: async (): Promise<VFundSummaryLive[]> => {
       // Use live view (computes in real-time, no refresh needed)
-      const query = supabase
-        .from('v_fund_summary_live' as any)
-        .select('*');
+      const query = queryView("v_fund_summary_live").select('*');
       
       const { data, error } = fundId 
         ? await query.eq('fund_id', fundId)
@@ -82,7 +60,7 @@ export function useLiveFundSummary(fundId?: string) {
         return [];
       }
       
-      return data as unknown as LiveFundSummary[];
+      return (data || []) as VFundSummaryLive[];
     },
     staleTime: 5000,
     refetchInterval: 30000,

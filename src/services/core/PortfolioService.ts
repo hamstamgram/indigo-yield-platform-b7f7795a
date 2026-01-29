@@ -49,7 +49,8 @@ export class PortfolioService extends ApiClient {
 
         // Best-effort closing AUM snapshot (authoritative snapshots should be provided by admin flows).
         // Use post_flow_aum if available for accurate opening AUM
-        const { data: lastEvent } = await (supabase as any)
+        // fund_aum_events IS in generated types
+        const { data: lastEvent } = await supabase
           .from("fund_aum_events")
           .select("closing_aum, post_flow_aum, event_ts")
           .eq("fund_id", fund.id)
