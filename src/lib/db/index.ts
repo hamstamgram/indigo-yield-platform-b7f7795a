@@ -24,6 +24,9 @@ import {
   upsertMany,
 } from "./client";
 
+// Re-export view types and utilities
+export * from "./viewTypes";
+
 // Re-export types
 export type { TableName, TableRow, DBResult, DBError, ProtectedTable } from "./types";
 

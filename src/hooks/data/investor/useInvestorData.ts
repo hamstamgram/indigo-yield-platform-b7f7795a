@@ -9,6 +9,7 @@ import { fetchInvestorPositions, fetchInvestorsForSelector, InvestorPositionRow 
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateInvestorData } from "@/utils/cacheInvalidation";
+import { queryView, type VLiveInvestorBalances } from "@/lib/db/viewTypes";
 
 export interface InvestorListItem {
   id: string;
@@ -53,14 +54,15 @@ export function useInvestorList() {
   return useQuery<InvestorListItem[], Error>({
     queryKey: QUERY_KEYS.investorsList,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      // profiles table IS in generated types
+      const { data, error } = await supabase
         .from("profiles")
         .select("id, email, first_name, last_name, status, is_admin, account_type, created_at")
         .eq("is_admin", false)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as InvestorListItem[];
     },
   });
 }
@@ -93,24 +95,23 @@ export function useInvestorQuickView(investorId: string) {
   return useQuery<InvestorQuickViewData, Error>({
     queryKey: QUERY_KEYS.investorQuickView(investorId),
     queryFn: async () => {
-      // Load positions from v_live_investor_balances view
-      const { data: positionsData } = await (supabase as any)
-        .from("v_live_investor_balances")
+      // Load positions from v_live_investor_balances view (typed)
+      const { data: positionsData } = await queryView("v_live_investor_balances")
         .select("fund_id, fund_name, fund_code, shares, current_value")
         .eq("investor_id", investorId)
         .gt("current_value", 0)
         .order("current_value", { ascending: false })
         .limit(5);
 
-      // Load pending withdrawals count
+      // Load pending withdrawals count (standard table)
       const { count: pendingCount } = await supabase
         .from("withdrawal_requests")
         .select("id", { count: "exact", head: true })
         .eq("investor_id", investorId)
         .eq("status", "pending");
 
-      // Load IB status
-      const { data: ibData } = await (supabase as any)
+      // Load IB status (profiles is in generated types)
+      const { data: ibData } = await supabase
         .from("profiles")
         .select("ib_parent_id")
         .eq("id", investorId)
@@ -139,8 +140,9 @@ export function useInvestorQuickView(investorId: string) {
         });
       }
 
-      // Map positions
-      const positions: InvestorPosition[] = (positionsData || []).map((p: any) => ({
+      // Map positions with proper typing
+      const typedPositions = (positionsData || []) as VLiveInvestorBalances[];
+      const positions: InvestorPosition[] = typedPositions.map((p) => ({
         fund_id: p.fund_id,
         fund_name: p.fund_name || "Unknown",
         fund_code: p.fund_code || "N/A",

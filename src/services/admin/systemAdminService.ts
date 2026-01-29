@@ -9,6 +9,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
+import { queryView } from "@/lib/db/viewTypes";
 import type { IntegrityViolation, LastActivityRow } from "@/types/domains/integrity";
 import { generateUUID } from "@/lib/utils";
 
@@ -387,17 +388,17 @@ async function queryIntegrityViews() {
     // Fund AUM mismatch: reported vs calculated AUM
     supabase.from("fund_aum_mismatch").select("*", { count: "exact" }),
 
-    // Orphaned transactions: transactions without profiles
-    (supabase.from as any)("v_orphaned_transactions").select("*", { count: "exact" }),
+    // Orphaned transactions: transactions without profiles (view not in generated types)
+    queryView("v_orphaned_transactions").select("*", { count: "exact" }),
 
     // Orphaned positions: positions without profiles/funds
     supabase.from("v_orphaned_positions").select("*", { count: "exact" }),
 
-    // Fee calculation orphans: orphaned fee calculations
-    (supabase.from as any)("v_fee_calculation_orphans").select("*", { count: "exact" }),
+    // Fee calculation orphans: orphaned fee calculations (view not in generated types)
+    queryView("v_fee_calculation_orphans").select("*", { count: "exact" }),
 
-    // Position vs transaction variance breakdown
-    (supabase.from as any)("v_position_transaction_variance").select("*", { count: "exact" }),
+    // Position vs transaction variance breakdown (view not in generated types)
+    queryView("v_position_transaction_variance").select("*", { count: "exact" }),
   ]);
 
   return {

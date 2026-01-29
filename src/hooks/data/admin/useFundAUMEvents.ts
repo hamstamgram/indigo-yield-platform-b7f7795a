@@ -41,7 +41,8 @@ export function useFundAUMEvents({ fundId, dateRange, includeVoided = false }: U
     queryFn: async (): Promise<FundAUMEvent[]> => {
       if (!fundId) return [];
 
-      let query = (supabase as any)
+      // fund_aum_events IS in generated types, use standard query
+      let query = supabase
         .from("fund_aum_events")
         .select("*")
         .eq("fund_id", fundId)
