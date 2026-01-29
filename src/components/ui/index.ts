@@ -116,6 +116,10 @@ export {
 // Date Range Picker
 export { DatePickerWithRange } from "./date-range-picker";
 
+// DateTime Picker
+export { DateTimePicker } from "./date-time-picker";
+export type { DateTimePickerProps } from "./date-time-picker";
+
 // Dialog
 export {
   Dialog,

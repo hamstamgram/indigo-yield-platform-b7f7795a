@@ -28,6 +28,8 @@ export function useAdminTransactions(filters: AdminTransactionFilters, funds: Fu
       selectedType: filters.type || "all",
       dateFrom: filters.dateFrom || "",
       dateTo: filters.dateTo || "",
+      datetimeFrom: filters.datetimeFrom || "",
+      datetimeTo: filters.datetimeTo || "",
       page: filters.page || 0,
       showVoided: filters.showVoided || false,
     }),
