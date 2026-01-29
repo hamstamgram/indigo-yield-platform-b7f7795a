@@ -104,7 +104,7 @@ export default function CrystallizationDashboardPage() {
     );
   };
 
-  const totalGaps = dashboardData?.reduce((sum, f) => sum + f.stale + f.critical_stale + f.never_crystallized, 0) || 0;
+  const totalGaps = dashboardData?.reduce((sum, f) => sum + f.warning_stale + f.critical_stale + f.never_crystallized, 0) || 0;
   const totalPositions = dashboardData?.reduce((sum, f) => sum + f.total_positions, 0) || 0;
 
   if (dashboardLoading) {
@@ -195,7 +195,7 @@ export default function CrystallizationDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {dashboardData?.reduce((sum, f) => sum + f.current_, 0) || 0}
+              {dashboardData?.reduce((sum, f) => sum + f.up_to_date, 0) || 0}
             </div>
           </CardContent>
         </Card>
@@ -254,13 +254,13 @@ export default function CrystallizationDashboardPage() {
                       <TableCell className="text-right font-mono">{fund.total_positions}</TableCell>
                       <TableCell className="text-right">
                         <span className="text-green-600 dark:text-green-400 font-mono">
-                          {fund.current_}
+                          {fund.up_to_date}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        {(fund.stale + fund.critical_stale + fund.never_crystallized) > 0 ? (
+                        {(fund.warning_stale + fund.critical_stale + fund.never_crystallized) > 0 ? (
                           <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                            {fund.stale + fund.critical_stale + fund.never_crystallized}
+                            {fund.warning_stale + fund.critical_stale + fund.never_crystallized}
                           </Badge>
                         ) : (
                           <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
@@ -273,16 +273,16 @@ export default function CrystallizationDashboardPage() {
                           <span className="text-red-600 dark:text-red-400">
                             {fund.critical_stale} critical
                           </span>
-                        ) : fund.stale > 0 ? (
+                        ) : fund.warning_stale > 0 ? (
                           <span className="text-yellow-600 dark:text-yellow-400">
-                            {fund.stale} stale
+                            {fund.warning_stale} stale
                           </span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <FinancialValue value={fund.total_aum_in_positions} displayDecimals={0} />
+                        <span className="text-muted-foreground">-</span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
@@ -292,7 +292,7 @@ export default function CrystallizationDashboardPage() {
                             onClick={() =>
                               handleBatchCrystallize(fund.fund_id, fund.fund_code, true)
                             }
-                            disabled={batchCrystallize.isPending || (fund.stale + fund.critical_stale + fund.never_crystallized) === 0}
+                            disabled={batchCrystallize.isPending || (fund.warning_stale + fund.critical_stale + fund.never_crystallized) === 0}
                             title="Preview batch crystallization"
                           >
                             <Eye className="h-4 w-4" />
@@ -303,7 +303,7 @@ export default function CrystallizationDashboardPage() {
                             onClick={() =>
                               handleBatchCrystallize(fund.fund_id, fund.fund_code, false)
                             }
-                            disabled={batchCrystallize.isPending || (fund.stale + fund.critical_stale + fund.never_crystallized) === 0}
+                            disabled={batchCrystallize.isPending || (fund.warning_stale + fund.critical_stale + fund.never_crystallized) === 0}
                             title="Execute batch crystallization"
                           >
                             <Play className="h-4 w-4" />
