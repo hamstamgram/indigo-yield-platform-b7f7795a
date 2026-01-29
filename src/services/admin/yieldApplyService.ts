@@ -49,16 +49,37 @@ export async function applyYieldDistribution(
   const periodEndDate = targetDate;
   const periodStartDate = periodStart || startOfMonth(targetDate);
 
-  // Get current AUM to calculate gross yield amount
+  // Get current AUM (investor accounts only) to calculate gross yield amount
   const { data: positions } = await supabase
     .from("investor_positions")
-    .select("current_value")
+    .select("investor_id,current_value")
     .eq("fund_id", fundId)
     .eq("is_active", true);
 
-  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  const newTotalAUMNum = typeof newTotalAUM === 'string' ? parseFloat(newTotalAUM) : newTotalAUM;
-  const grossYieldAmount = newTotalAUMNum - currentAUM;
+  const investorIds = Array.from(
+    new Set(positions?.map((p) => p.investor_id).filter(Boolean) || [])
+  );
+  const { data: profiles } = investorIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id")
+        .in("id", investorIds)
+        .eq("account_type", "investor")
+    : { data: [] };
+
+  const investorSet = new Set(profiles?.map((p) => p.id) || []);
+  const currentAUM =
+    positions
+      ?.filter((p) => investorSet.has(p.investor_id))
+      .reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  const isReporting = purpose === "reporting";
+  const parsedAum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
+  const newTotalAUMNum =
+    typeof parsedAum === "number" && !Number.isNaN(parsedAum) ? parsedAum : currentAUM;
+  const grossYieldAmount = isReporting ? 0 : newTotalAUMNum - currentAUM;
+  if (!isReporting && grossYieldAmount < 0) {
+    throw new Error("Yield must be non-negative (positive or zero).");
+  }
 
   // Call ADB apply RPC (time-weighted allocation with loss carryforward)
   const { data, error } = await callRPC("apply_adb_yield_distribution_v3", {

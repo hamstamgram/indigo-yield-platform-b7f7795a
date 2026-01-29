@@ -237,9 +237,17 @@ export class ReportsApi {
    * Get report schedules
    */
   static async getReportSchedules(): Promise<ReportSchedule[]> {
-    // Note: report_schedules table doesn't exist in current schema
-    console.warn("getReportSchedules: report_schedules table not available");
-    return [];
+    const { data, error } = await supabase
+      .from("report_schedules")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("getReportSchedules error:", error);
+      return [];
+    }
+
+    return (data || []).map((row) => this.mapReportSchedule(row as Record<string, unknown>));
   }
 
   /**
@@ -248,9 +256,42 @@ export class ReportsApi {
   static async createReportSchedule(
     _schedule: Omit<ReportSchedule, "id" | "createdAt" | "updatedAt" | "createdBy">
   ): Promise<{ success: boolean; schedule?: ReportSchedule; error?: string }> {
-    // Note: report_schedules table doesn't exist in current schema
-    console.warn("createReportSchedule: report_schedules table not available");
-    return { success: false, error: "Report scheduling not available" };
+    const payload = {
+      report_definition_id: _schedule.reportDefinitionId,
+      name: _schedule.name,
+      description: _schedule.description,
+      frequency: _schedule.frequency,
+      day_of_week: _schedule.dayOfWeek,
+      day_of_month: _schedule.dayOfMonth,
+      time_of_day: _schedule.timeOfDay,
+      timezone: _schedule.timezone,
+      recipient_user_ids: _schedule.recipientUserIds,
+      recipient_emails: _schedule.recipientEmails,
+      delivery_method: _schedule.deliveryMethod,
+      parameters: _schedule.parameters,
+      filters: _schedule.filters,
+      formats: _schedule.formats,
+      is_active: _schedule.isActive,
+      last_run_at: _schedule.lastRunAt,
+      next_run_at: _schedule.nextRunAt,
+      last_run_status: _schedule.lastRunStatus,
+      run_count: _schedule.runCount,
+      failure_count: _schedule.failureCount,
+      created_by: _schedule.createdBy,
+    };
+
+    const { data, error } = await supabase
+      .from("report_schedules")
+      .insert(payload)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      console.error("createReportSchedule error:", error);
+      return { success: false, error: error?.message || "Failed to create report schedule" };
+    }
+
+    return { success: true, schedule: this.mapReportSchedule(data as Record<string, unknown>) };
   }
 
   /**
@@ -260,9 +301,38 @@ export class ReportsApi {
     _scheduleId: string,
     _updates: Partial<ReportSchedule>
   ): Promise<{ success: boolean; error?: string }> {
-    // Note: report_schedules table doesn't exist in current schema
-    console.warn("updateReportSchedule: report_schedules table not available");
-    return { success: false, error: "Report scheduling not available" };
+    const patch: Record<string, unknown> = {};
+    if (_updates.reportDefinitionId !== undefined)
+      patch.report_definition_id = _updates.reportDefinitionId;
+    if (_updates.name !== undefined) patch.name = _updates.name;
+    if (_updates.description !== undefined) patch.description = _updates.description;
+    if (_updates.frequency !== undefined) patch.frequency = _updates.frequency;
+    if (_updates.dayOfWeek !== undefined) patch.day_of_week = _updates.dayOfWeek;
+    if (_updates.dayOfMonth !== undefined) patch.day_of_month = _updates.dayOfMonth;
+    if (_updates.timeOfDay !== undefined) patch.time_of_day = _updates.timeOfDay;
+    if (_updates.timezone !== undefined) patch.timezone = _updates.timezone;
+    if (_updates.recipientUserIds !== undefined)
+      patch.recipient_user_ids = _updates.recipientUserIds;
+    if (_updates.recipientEmails !== undefined) patch.recipient_emails = _updates.recipientEmails;
+    if (_updates.deliveryMethod !== undefined) patch.delivery_method = _updates.deliveryMethod;
+    if (_updates.parameters !== undefined) patch.parameters = _updates.parameters;
+    if (_updates.filters !== undefined) patch.filters = _updates.filters;
+    if (_updates.formats !== undefined) patch.formats = _updates.formats;
+    if (_updates.isActive !== undefined) patch.is_active = _updates.isActive;
+    if (_updates.lastRunAt !== undefined) patch.last_run_at = _updates.lastRunAt;
+    if (_updates.nextRunAt !== undefined) patch.next_run_at = _updates.nextRunAt;
+    if (_updates.lastRunStatus !== undefined) patch.last_run_status = _updates.lastRunStatus;
+    if (_updates.runCount !== undefined) patch.run_count = _updates.runCount;
+    if (_updates.failureCount !== undefined) patch.failure_count = _updates.failureCount;
+
+    const { error } = await supabase.from("report_schedules").update(patch).eq("id", _scheduleId);
+
+    if (error) {
+      console.error("updateReportSchedule error:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
   }
 
   /**
@@ -271,18 +341,46 @@ export class ReportsApi {
   static async deleteReportSchedule(
     _scheduleId: string
   ): Promise<{ success: boolean; error?: string }> {
-    // Note: report_schedules table doesn't exist in current schema
-    console.warn("deleteReportSchedule: report_schedules table not available");
-    return { success: false, error: "Report scheduling not available" };
+    const { error } = await supabase.from("report_schedules").delete().eq("id", _scheduleId);
+
+    if (error) {
+      console.error("deleteReportSchedule error:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
   }
 
   /**
    * Get report statistics
-   * Note: get_report_statistics RPC doesn't exist
    */
   static async getReportStatistics(_daysBack: number = 30): Promise<ReportStatistics[]> {
-    console.warn("getReportStatistics: get_report_statistics RPC not available");
-    return [];
+    const end = new Date();
+    const start = new Date(end);
+    start.setDate(end.getDate() - _daysBack);
+
+    const startDate = start.toISOString().split("T")[0];
+    const endDate = end.toISOString().split("T")[0];
+
+    const { data, error } = await supabase.rpc("get_report_statistics", {
+      p_period_start: startDate,
+      p_period_end: endDate,
+    });
+
+    if (error) {
+      console.error("getReportStatistics error:", error);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      reportType: row.report_type as ReportType,
+      totalGenerated: Number(row.total_generated || 0),
+      successCount: Number(row.success_count || 0),
+      failureCount: Number(row.failure_count || 0),
+      avgProcessingTimeMs: Number(row.avg_processing_time_ms || 0),
+      totalDownloads: Number(row.total_downloads || 0),
+      lastGeneratedAt: row.last_generated_at || null,
+    }));
   }
 
   /**
@@ -292,8 +390,20 @@ export class ReportsApi {
     _reportId: string,
     _action: "view" | "download" | "delete" | "share"
   ): Promise<void> {
-    // Note: report_access_logs table doesn't exist in current schema
-    // Silently skip logging until table is created
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase.from("report_access_logs").insert({
+      report_id: _reportId,
+      user_id: user.id,
+      action: _action,
+    });
+
+    if (error) {
+      console.warn("logReportAccess error:", error.message);
+    }
   }
 
   /**

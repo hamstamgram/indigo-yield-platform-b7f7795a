@@ -19,6 +19,9 @@ import {
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 import { formatAUM } from "@/utils/formatters";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
+import { formatDateForDB } from "@/utils/dateUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 // Fund type used in this component
 export type Fund = NonNullable<ReturnType<typeof useActiveFundsWithAUM>["data"]>[number];
@@ -44,6 +47,8 @@ export interface YieldOperationsState {
   searchInvestor: string;
   acknowledgeDiscrepancy: boolean;
   asOfDateIso: string | null; // ISO string for as-of AUM query
+  existingDistributionDate: string | null;
+  existingDistributionId: string | null;
 }
 
 const initialState: YieldOperationsState = {
@@ -65,6 +70,8 @@ const initialState: YieldOperationsState = {
   searchInvestor: "",
   acknowledgeDiscrepancy: false,
   asOfDateIso: null,
+  existingDistributionDate: null,
+  existingDistributionId: null,
 };
 
 export function useYieldOperationsState() {
@@ -129,6 +136,8 @@ export function useYieldOperationsState() {
       // Clear preview when date changes to force re-calculation
       yieldPreview: null,
       newAUM: "",
+      existingDistributionDate: null,
+      existingDistributionId: null,
     }));
   }, []);
 
@@ -204,6 +213,8 @@ export function useYieldOperationsState() {
       acknowledgeDiscrepancy: false,
       reportingMonth: currentMonthStart,
       asOfDateIso: asOfDateIso,
+      existingDistributionDate: null,
+      existingDistributionId: null,
     }));
   }, []);
 
@@ -221,6 +232,8 @@ export function useYieldOperationsState() {
       // Clear preview when month changes
       yieldPreview: null,
       newAUM: "",
+      existingDistributionDate: null,
+      existingDistributionId: null,
     }));
   }, []);
 
@@ -246,41 +259,124 @@ export function useYieldOperationsState() {
     return { valid: true };
   }, [state.yieldPurpose, state.reportingMonth, state.aumDate]);
 
+  const getLatestTransactionDate = useCallback(async (fundId: string) => {
+    const { data, error } = await supabase
+      .from("transactions_v2")
+      .select("tx_date")
+      .eq("fund_id", fundId)
+      .eq("is_voided", false)
+      .order("tx_date", { ascending: false })
+      .limit(1);
+
+    if (error) {
+      logError("yieldOperations.getLatestTransactionDate", error, { fundId });
+      return null;
+    }
+
+    return data?.[0]?.tx_date ?? null;
+  }, []);
+
+  const checkExistingDistribution = useCallback(
+    async (fundId: string, effectiveDate: Date, purpose: YieldPurpose) => {
+      const reportingDate = purpose === "reporting" ? await getLatestTransactionDate(fundId) : null;
+      const yieldDate = reportingDate ?? formatDateForDB(effectiveDate);
+      if (!yieldDate) {
+        return { exists: false, id: null, date: null };
+      }
+
+      const { data, error } = await supabase
+        .from("yield_distributions")
+        .select("id")
+        .eq("fund_id", fundId)
+        .eq("yield_date", yieldDate)
+        .eq("is_voided", false)
+        .limit(1);
+
+      if (error) {
+        logError("yieldOperations.checkExistingDistribution", error, { fundId, yieldDate });
+        return { exists: false, id: null, date: yieldDate };
+      }
+
+      const existingId = data?.[0]?.id ?? null;
+      return { exists: Boolean(existingId), id: existingId, date: yieldDate };
+    },
+    [getLatestTransactionDate]
+  );
+
   // Handle preview yield - uses as-of AUM for comparison
   const handlePreviewYield = useCallback(async () => {
-    if (!state.selectedFund || !state.newAUM) return;
-
-    const newAUMValue = parseFloat(state.newAUM);
-    if (isNaN(newAUMValue) || newAUMValue < 0) {
+    if (!state.selectedFund) return;
+    const isReporting = state.yieldPurpose === "reporting";
+    const newAUMValue = isReporting ? NaN : parseFloat(state.newAUM);
+    if (!isReporting && (isNaN(newAUMValue) || newAUMValue < 0)) {
       toast.error("Please enter a valid non-negative number.");
       return;
     }
 
-    // Use as-of AUM for comparison instead of current positions
-    const baseAum = asOfAum ?? state.selectedFund.total_aum;
+    if (!isReporting) {
+      // Use as-of AUM for comparison instead of current positions
+      const baseAum = asOfAum ?? state.selectedFund.total_aum;
 
-    // Allow zero or lower AUM (negative yield months are valid - no fees on losses)
-    // Show a warning but proceed with preview
-    if (newAUMValue < baseAum) {
-      toast.warning("New AUM is lower than period AUM. This represents a negative yield month.");
-    } else if (newAUMValue === baseAum) {
-      toast.info("New AUM equals period AUM. No yield to distribute.");
+      // Enforce non-negative yields (business rule)
+      if (newAUMValue < baseAum) {
+        toast.error("New AUM cannot be lower than period AUM. Yield must be >= 0.");
+        return;
+      } else if (newAUMValue === baseAum) {
+        toast.info("New AUM equals period AUM. No yield to distribute.");
+      }
     }
 
     setState((prev) => ({ ...prev, previewLoading: true }));
     try {
+      const existing = await checkExistingDistribution(
+        state.selectedFund.id,
+        state.aumDate,
+        state.yieldPurpose
+      );
+      if (!existing.date && state.yieldPurpose === "reporting") {
+        setState((prev) => ({ ...prev, previewLoading: false }));
+        toast.error("Reporting requires at least one transaction in this fund.");
+        return;
+      }
+      if (existing.exists) {
+        setState((prev) => ({
+          ...prev,
+          previewLoading: false,
+          existingDistributionDate: existing.date,
+          existingDistributionId: existing.id,
+          yieldPreview: null,
+        }));
+        toast.error(
+          `Yield already distributed for ${format(state.aumDate, "MMMM yyyy")}. Void the existing distribution before reapplying.`
+        );
+        return;
+      }
+
       const result = await previewYieldDistribution({
         fundId: state.selectedFund.id,
         targetDate: state.aumDate,
-        newTotalAUM: String(newAUMValue),
+        newTotalAUM: String(isReporting ? 0 : newAUMValue),
         purpose: state.yieldPurpose,
       });
-      setState((prev) => ({ ...prev, yieldPreview: result, previewLoading: false }));
+      setState((prev) => ({
+        ...prev,
+        yieldPreview: result,
+        previewLoading: false,
+        existingDistributionDate: null,
+        existingDistributionId: null,
+      }));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to preview yield.");
       setState((prev) => ({ ...prev, previewLoading: false }));
     }
-  }, [state.selectedFund, state.newAUM, state.aumDate, state.yieldPurpose, asOfAum]);
+  }, [
+    state.selectedFund,
+    state.newAUM,
+    state.aumDate,
+    state.yieldPurpose,
+    asOfAum,
+    checkExistingDistribution,
+  ]);
 
   // Handle confirm apply
   const handleConfirmApply = useCallback(() => {
@@ -289,7 +385,7 @@ export function useYieldOperationsState() {
 
   // Handle apply yield
   const handleApplyYield = useCallback(async () => {
-    if (!state.selectedFund || !state.newAUM || !user || !state.yieldPreview) return;
+    if (!state.selectedFund || !user || !state.yieldPreview) return;
 
     if (state.confirmationText !== "APPLY") {
       toast.error("Please type APPLY to confirm.");
@@ -298,11 +394,34 @@ export function useYieldOperationsState() {
 
     setState((prev) => ({ ...prev, applyLoading: true }));
     try {
+      const existing = await checkExistingDistribution(
+        state.selectedFund.id,
+        state.aumDate,
+        state.yieldPurpose
+      );
+      if (!existing.date && state.yieldPurpose === "reporting") {
+        setState((prev) => ({ ...prev, applyLoading: false }));
+        toast.error("Reporting requires at least one transaction in this fund.");
+        return;
+      }
+      if (existing.exists) {
+        setState((prev) => ({
+          ...prev,
+          applyLoading: false,
+          existingDistributionDate: existing.date,
+          existingDistributionId: existing.id,
+        }));
+        toast.error(
+          `Yield already distributed for ${format(state.aumDate, "MMMM yyyy")}. Void the existing distribution before reapplying.`
+        );
+        return;
+      }
+
       await applyYieldDistribution(
         {
           fundId: state.selectedFund.id,
           targetDate: state.aumDate,
-          newTotalAUM: state.newAUM,
+          newTotalAUM: state.yieldPurpose === "reporting" ? "0" : state.newAUM,
         },
         user.id,
         state.yieldPurpose
@@ -322,6 +441,8 @@ export function useYieldOperationsState() {
         showConfirmDialog: false,
         showYieldDialog: false,
         applyLoading: false,
+        existingDistributionDate: null,
+        existingDistributionId: null,
       }));
 
       // Comprehensive cache invalidation
@@ -342,7 +463,7 @@ export function useYieldOperationsState() {
       toast.error(error instanceof Error ? error.message : "Failed to apply yield.");
       setState((prev) => ({ ...prev, applyLoading: false }));
     }
-  }, [state, user, queryClient, refetchFunds]);
+  }, [state, user, queryClient, refetchFunds, checkExistingDistribution]);
 
   // Filter distributions for display
   const getFilteredDistributions = useCallback(
@@ -379,6 +500,8 @@ export function useYieldOperationsState() {
     asOfAum: asOfAum ?? null,
     asOfAumLoading,
     asOfAumError: asOfAumError ?? null,
+    existingDistributionDate: state.existingDistributionDate,
+    existingDistributionId: state.existingDistributionId,
 
     // Setters
     setSelectedFund,

@@ -1,6 +1,6 @@
 /**
  * Admin Services - Barrel Export
- * 
+ *
  * Consolidated exports for all admin-related services.
  * Organized by domain for better navigation.
  */
@@ -17,12 +17,6 @@ export {
 } from "./adminStatsService";
 
 export {
-  fetchFundsWithAUM,
-  fetchRecentActivities,
-  fetchPendingItems,
-} from "./dashboardService";
-
-export {
   getFinancialMetrics,
   getHistoricalFlowData,
   getDeliveryStatus,
@@ -36,6 +30,8 @@ export {
   type DeliveryDiagnostics,
   type ExclusionBreakdown,
 } from "./dashboardMetricsService";
+
+export { fetchFundsWithAUM, fetchRecentActivities, fetchPendingItems } from "./dashboardService";
 
 export { actionBarService, type PendingCounts } from "./actionBarService";
 
@@ -67,18 +63,39 @@ export {
 // =============================================================================
 // INVESTOR MANAGEMENT
 // =============================================================================
-export { adminInvestorService, type AdminInvestorSummary, type DashboardStats } from "./adminService";
+export {
+  adminInvestorService,
+  type AdminInvestorSummary,
+  type DashboardStats,
+} from "./adminService";
 export * from "./investorSettingsService";
 export * from "./investorWizardService";
 export * from "./investorLifecycleService";
-export { updateFundPerformance, type PerformanceUpdateData as AdminPerformanceUpdateData } from "./investorPerformanceService";
-export { investorDetailService, type InvestorDetailData, type OpsIndicators, type InvestorPositionsData, type InvestorPosition as AdminInvestorPosition } from "./investorDetailService";
+export {
+  updateFundPerformance,
+  type PerformanceUpdateData as AdminPerformanceUpdateData,
+} from "./investorPerformanceService";
+export {
+  investorDetailService,
+  type InvestorDetailData,
+  type OpsIndicators,
+  type InvestorPositionsData,
+  type InvestorPosition as AdminInvestorPosition,
+} from "./investorDetailService";
 
 // =============================================================================
 // USER MANAGEMENT
 // =============================================================================
-export { deleteInvestorUser, forceDeleteInvestorUser, createOrFindInvestorUser } from "./userService";
-export { adminUsersService, type AdminUserProfile, type AdminInviteParams } from "./adminUsersService";
+export {
+  deleteInvestorUser,
+  forceDeleteInvestorUser,
+  createOrFindInvestorUser,
+} from "./userService";
+export {
+  adminUsersService,
+  type AdminUserProfile,
+  type AdminInviteParams,
+} from "./adminUsersService";
 export { adminInviteService, type AdminInvite } from "./adminInviteService";
 
 // =============================================================================
@@ -103,7 +120,12 @@ export {
   type YieldSnapshot,
 } from "./yieldCrystallizationService";
 
-export { preflowAumService, type ExistingPreflowAum, type EnsurePreflowAumResult, type AumPurpose } from "./preflowAumService";
+export {
+  preflowAumService,
+  type ExistingPreflowAum,
+  type EnsurePreflowAumResult,
+  type AumPurpose,
+} from "./preflowAumService";
 export * from "./depositWithYieldService";
 
 // =============================================================================
@@ -130,8 +152,18 @@ export {
 // TRANSACTIONS
 // =============================================================================
 export * from "./transactionDetailsService";
-export { transactionFormDataService, type TransactionFormInvestor, type TransactionFormFund, type BalanceCheckResult } from "./transactionFormDataService";
-export { internalRouteService, type InvestorPositionForRoute, type InternalRouteParams, type InternalRouteResult } from "./internalRouteService";
+export {
+  transactionFormDataService,
+  type TransactionFormInvestor,
+  type TransactionFormFund,
+  type BalanceCheckResult,
+} from "./transactionFormDataService";
+export {
+  internalRouteService,
+  type InvestorPositionForRoute,
+  type InternalRouteParams,
+  type InternalRouteResult,
+} from "./internalRouteService";
 export { adminTransactionHistoryService } from "./adminTransactionHistoryService";
 
 // =============================================================================

@@ -203,6 +203,7 @@ function YieldOperationsContent() {
               pendingEvents={pendingEvents}
               asOfAum={ops.asOfAum}
               asOfAumLoading={ops.asOfAumLoading}
+              existingDistributionDate={ops.existingDistributionDate}
             />
 
             {/* Preview Results */}
@@ -244,6 +245,7 @@ function YieldOperationsContent() {
         formatValue={ops.formatValue}
         onApply={ops.handleApplyYield}
         applyLoading={ops.applyLoading}
+        existingDistributionDate={ops.existingDistributionDate}
       />
 
       {/* Open Period Dialog */}

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui";
 import { PieChart, AlertTriangle } from "lucide-react";
 import { useConcentrationRisk, type ConcentrationRisk } from "@/hooks/data/admin/useRiskAlerts";
+import { logWarn } from "@/lib/logger";
 
 const concentrationConfig = {
   CRITICAL: { color: "bg-red-100 text-red-700", priority: 4 },
@@ -20,6 +21,8 @@ const concentrationConfig = {
   MEDIUM: { color: "bg-yellow-100 text-yellow-700", priority: 2 },
   LOW: { color: "bg-green-100 text-green-700", priority: 1 },
 } as const;
+
+const fallbackConcentrationConfig = concentrationConfig.LOW;
 
 export function ConcentrationRiskPanel() {
   const { data: concentrationData, isLoading } = useConcentrationRisk();
@@ -34,9 +37,14 @@ export function ConcentrationRiskPanel() {
     );
   }
 
+  const safeConcentrationData = (concentrationData || []).filter(
+    (item): item is ConcentrationRisk => Boolean(item && item.fund_id && item.investor_id)
+  );
+
   const criticalCount =
-    concentrationData?.filter((c) => c.concentration_level === "CRITICAL").length || 0;
-  const highCount = concentrationData?.filter((c) => c.concentration_level === "HIGH").length || 0;
+    safeConcentrationData.filter((c) => c.concentration_level === "CRITICAL").length || 0;
+  const highCount =
+    safeConcentrationData.filter((c) => c.concentration_level === "HIGH").length || 0;
 
   return (
     <Card>
@@ -57,7 +65,7 @@ export function ConcentrationRiskPanel() {
         </div>
       </CardHeader>
       <CardContent>
-        {!concentrationData || concentrationData.length === 0 ? (
+        {safeConcentrationData.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <PieChart className="h-8 w-8 mx-auto mb-2 text-green-500" />
             <p>No concentration risks detected</p>
@@ -76,8 +84,23 @@ export function ConcentrationRiskPanel() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {concentrationData.map((item, idx) => {
-                  const config = concentrationConfig[item.concentration_level];
+                {safeConcentrationData.map((item, idx) => {
+                  if (
+                    item.concentration_level &&
+                    !concentrationConfig[
+                      item.concentration_level as keyof typeof concentrationConfig
+                    ]
+                  ) {
+                    logWarn("concentrationRisk.unexpectedLevel", {
+                      fundId: item.fund_id,
+                      investorId: item.investor_id,
+                      concentrationLevel: item.concentration_level,
+                    });
+                  }
+                  const config =
+                    concentrationConfig[
+                      item.concentration_level as keyof typeof concentrationConfig
+                    ] ?? fallbackConcentrationConfig;
                   return (
                     <TableRow key={`${item.fund_id}-${item.investor_id}-${idx}`}>
                       <TableCell>

@@ -99,9 +99,15 @@ export async function previewYieldDistribution(
       ?.filter((p) => investorSet.has(p.investor_id))
       .reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
-  // Calculate gross yield amount from AUM difference
-  const newTotalAUMNum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
-  const grossYieldAmount = newTotalAUMNum - currentAUM;
+  // Calculate gross yield amount from AUM difference (transactional) or defer to backend (reporting)
+  const isReporting = purpose === "reporting";
+  const parsedAum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
+  const newTotalAUMNum =
+    typeof parsedAum === "number" && !Number.isNaN(parsedAum) ? parsedAum : currentAUM;
+  const grossYieldAmount = isReporting ? 0 : newTotalAUMNum - currentAUM;
+  if (!isReporting && grossYieldAmount < 0) {
+    throw new Error("Yield must be non-negative (positive or zero).");
+  }
 
   // Call ADB preview RPC (time-weighted allocation)
   const { data, error } = await callRPC("preview_adb_yield_distribution_v3", {
@@ -109,6 +115,7 @@ export async function previewYieldDistribution(
     p_period_start: formatDateForDB(periodStartDate),
     p_period_end: formatDateForDB(periodEndDate),
     p_gross_yield_amount: grossYieldAmount,
+    p_purpose: purpose,
   });
 
   if (error) {

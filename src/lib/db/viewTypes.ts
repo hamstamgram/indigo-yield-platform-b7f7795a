@@ -1,9 +1,9 @@
 /**
  * Typed Database Views
- * 
+ *
  * This module provides TypeScript types for database views that are not
  * automatically included in Supabase's generated types.
- * 
+ *
  * USAGE:
  *   import { queryView, ViewRow } from "@/lib/db/viewTypes";
  *   const { data } = await queryView("v_liquidity_risk").select("*");
@@ -19,15 +19,13 @@ import { supabase } from "@/integrations/supabase/client";
 /** Liquidity risk monitoring view */
 export interface VLiquidityRisk {
   fund_id: string;
-  code: string;
-  asset: string;
-  current_aum: number;
-  pending_amount: number;
-  approved_amount: number;
-  processing_amount: number;
-  total_pending: number;
-  withdrawal_pressure_pct: number;
-  risk_level: "LOW" | "MEDIUM" | "HIGH";
+  fund_code: string;
+  fund_name: string;
+  total_aum: number | null;
+  pending_withdrawals: number | null;
+  active_positions: number | null;
+  withdrawal_ratio: number | null;
+  risk_level: "LOW" | "MEDIUM" | "HIGH" | "NO_AUM";
 }
 
 /** Concentration risk monitoring view */
@@ -205,7 +203,7 @@ export type ViewRow<T extends ViewName> = ViewRegistry[T];
 /**
  * Create a query builder for a database view
  * Returns a Supabase query builder. Results should be cast to the appropriate ViewRow type.
- * 
+ *
  * @example
  * const { data } = await queryView("v_liquidity_risk").select("*");
  * const typedData = data as VLiquidityRisk[];
@@ -216,7 +214,7 @@ export function queryView(viewName: ViewName) {
 
 /**
  * Fetch all rows from a view with proper typing
- * 
+ *
  * @example
  * const data = await fetchView("v_fund_summary_live");
  * // data is VFundSummaryLive[]

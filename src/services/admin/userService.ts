@@ -6,7 +6,9 @@ import { addCsrfHeader } from "@/lib/security/csrf";
  * Helper to verify session and throw a user-friendly error if expired
  */
 async function requireSession(): Promise<void> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session) {
     throw new Error("Your session has expired. Please log in again to continue.");
   }
@@ -18,34 +20,6 @@ export const createOrFindInvestorUser = async (
   try {
     // Verify session before making the call
     await requireSession();
-    // Generate a complex password that meets Supabase requirements
-    const generateStrongPassword = () => {
-      const lowercase = "abcdefghijklmnopqrstuvwxyz";
-      const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      const numbers = "0123456789";
-      const special = "!@#$%^&*()_+-=[]{};'\":|<>?,./`~";
-
-      const getRandomChar = (charset: string) =>
-        charset.charAt(Math.floor(Math.random() * charset.length));
-
-      // Ensure at least one of each required character type
-      let password =
-        getRandomChar(lowercase) +
-        getRandomChar(uppercase) +
-        getRandomChar(numbers) +
-        getRandomChar(special);
-
-      // Add additional random characters
-      for (let i = 0; i < 12; i++) {
-        const allChars = lowercase + uppercase + numbers + special;
-        password += allChars.charAt(Math.floor(Math.random() * allChars.length));
-      }
-
-      return password;
-    };
-
-    const tempPassword = generateStrongPassword();
-
     // Call Edge Function to create user securely
     const { data, error } = await supabase.functions.invoke("admin-user-management", {
       body: {
@@ -64,10 +38,10 @@ export const createOrFindInvestorUser = async (
     if (error) {
       console.error("Error creating user via Edge Function:", error);
       let errorMessage = "Failed to create user";
-      
+
       // Extract error message from various sources
       try {
-        if (error.context && typeof error.context.json === 'function') {
+        if (error.context && typeof error.context.json === "function") {
           const errorBody = await error.context.json();
           errorMessage = errorBody?.error || errorMessage;
         } else {
@@ -84,12 +58,12 @@ export const createOrFindInvestorUser = async (
           .select("id")
           .eq("email", values.email)
           .maybeSingle();
-        
+
         if (existingProfile?.id) {
           return existingProfile.id;
         }
       }
-      
+
       throw new Error(errorMessage);
     }
 
@@ -102,7 +76,7 @@ export const createOrFindInvestorUser = async (
           .select("id")
           .eq("email", values.email)
           .maybeSingle();
-        
+
         if (existingProfile?.id) {
           return existingProfile.id;
         }
@@ -119,7 +93,6 @@ export const createOrFindInvestorUser = async (
     } else {
       throw new Error("User created but no ID returned from Edge Function");
     }
-
   } catch (error) {
     console.error("Error in createOrFindInvestorUser:", error);
     throw error;
@@ -141,15 +114,17 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
 
     if (error) {
       console.error("Error deleting user via Edge Function:", error);
-      
+
       // Handle network/connection errors
       if (error.message?.includes("Failed to send") || error.message?.includes("fetch")) {
-        throw new Error("Unable to connect to the server. Please check your internet connection and try again.");
+        throw new Error(
+          "Unable to connect to the server. Please check your internet connection and try again."
+        );
       }
-      
+
       let errorMessage = "Failed to delete user";
       try {
-        if (error.context && typeof error.context.json === 'function') {
+        if (error.context && typeof error.context.json === "function") {
           const errorBody = await error.context.json();
           errorMessage = errorBody?.error || errorMessage;
         } else {
@@ -164,7 +139,6 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
     if (data?.success === false && data?.error) {
       throw new Error(data.error);
     }
-
   } catch (error) {
     console.error("Error in deleteInvestorUser:", error);
     throw error;
@@ -186,15 +160,17 @@ export const forceDeleteInvestorUser = async (userId: string): Promise<void> => 
 
     if (error) {
       console.error("Error force deleting user via Edge Function:", error);
-      
+
       // Handle network/connection errors
       if (error.message?.includes("Failed to send") || error.message?.includes("fetch")) {
-        throw new Error("Unable to connect to the server. Please check your internet connection and try again.");
+        throw new Error(
+          "Unable to connect to the server. Please check your internet connection and try again."
+        );
       }
-      
+
       let errorMessage = "Failed to force delete user";
       try {
-        if (error.context && typeof error.context.json === 'function') {
+        if (error.context && typeof error.context.json === "function") {
           const errorBody = await error.context.json();
           errorMessage = errorBody?.error || errorMessage;
         } else {
@@ -209,7 +185,6 @@ export const forceDeleteInvestorUser = async (userId: string): Promise<void> => 
     if (data?.success === false && data?.error) {
       throw new Error(data.error);
     }
-
   } catch (error) {
     console.error("Error in forceDeleteInvestorUser:", error);
     throw error;

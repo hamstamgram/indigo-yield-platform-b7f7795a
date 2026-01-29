@@ -380,7 +380,7 @@ export async function getDeliveryExclusionBreakdown(periodId: string): Promise<E
   const investorResult = await supabase
     .from("profiles")
     .select("id", { count: "exact", head: true })
-    .match({ role: "investor", status: "active" });
+    .match({ account_type: "investor", status: "active" });
   const totalInvestors = investorResult.count ?? 0;
 
   // 2. Get statements generated for this period

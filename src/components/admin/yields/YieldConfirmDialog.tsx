@@ -42,6 +42,7 @@ interface YieldConfirmDialogProps {
   setAcknowledgeDiscrepancy: (acknowledge: boolean) => void;
   onApply: () => void;
   applyLoading: boolean;
+  existingDistributionDate: string | null;
 }
 
 export function YieldConfirmDialog({
@@ -59,6 +60,7 @@ export function YieldConfirmDialog({
   setAcknowledgeDiscrepancy,
   onApply,
   applyLoading,
+  existingDistributionDate,
 }: YieldConfirmDialogProps) {
   const asset = selectedFund?.asset || "";
 
@@ -136,6 +138,16 @@ export function YieldConfirmDialog({
                 </div>
               )}
 
+              {existingDistributionDate && (
+                <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>
+                    A yield distribution already exists for this date. Void the existing
+                    distribution before reapplying.
+                  </span>
+                </div>
+              )}
+
               {/* AUM Discrepancy Acknowledgment */}
               {reconciliation?.has_warning && (
                 <div className="space-y-2 p-3 rounded-md border border-destructive/50 bg-destructive/10">
@@ -174,6 +186,7 @@ export function YieldConfirmDialog({
             disabled={
               confirmationText !== "APPLY" ||
               applyLoading ||
+              Boolean(existingDistributionDate) ||
               (reconciliation?.has_warning && !acknowledgeDiscrepancy)
             }
           >

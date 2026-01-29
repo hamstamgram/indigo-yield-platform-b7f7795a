@@ -20,6 +20,8 @@ import { logError } from "@/lib/logger";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatAssetAmount } from "@/utils/assets";
 import { NumericInput } from "@/components/common/NumericInput";
+import { supabase } from "@/integrations/supabase/client";
+import type { FundAumEventCheckpoint } from "@/types/domains/fund";
 
 interface CompleteWithdrawalDialogProps {
   open: boolean;
@@ -39,6 +41,9 @@ export function CompleteWithdrawalDialog({
   const [closingAum, setClosingAum] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openingAum, setOpeningAum] = useState<number | null>(null);
+  const [hasCheckpoint, setHasCheckpoint] = useState(false);
+  const [openingAumLoading, setOpeningAumLoading] = useState(false);
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -50,7 +55,47 @@ export function CompleteWithdrawalDialog({
     }
   }, [open, withdrawal.tx_hash]);
 
+  useEffect(() => {
+    if (!open || !withdrawal?.fund_id) return;
+    let active = true;
+    setOpeningAumLoading(true);
+
+    (async () => {
+      try {
+        const { data: lastCheckpointRaw } = await supabase
+          .from("fund_aum_events")
+          .select("closing_aum, post_flow_aum, event_ts")
+          .eq("fund_id", withdrawal.fund_id)
+          .eq("is_voided", false)
+          .order("event_ts", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const lastCheckpoint = lastCheckpointRaw as FundAumEventCheckpoint | null;
+        const opening = lastCheckpoint?.post_flow_aum ?? lastCheckpoint?.closing_aum ?? 0;
+
+        if (!active) return;
+        setOpeningAum(opening ?? 0);
+        setHasCheckpoint(!!lastCheckpoint?.event_ts);
+      } catch {
+        if (!active) return;
+        setOpeningAum(0);
+        setHasCheckpoint(false);
+      } finally {
+        if (active) setOpeningAumLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [open, withdrawal?.fund_id]);
+
   const isConfirmed = confirmText.toUpperCase() === "COMPLETE";
+  const parsedClosingAum = Number(closingAum.replace(/,/g, ""));
+  const minClosingAum = openingAum ?? 0;
+  const isClosingAumValid =
+    closingAum === "" || (!isNaN(parsedClosingAum) && parsedClosingAum >= minClosingAum);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +110,14 @@ export function CompleteWithdrawalDialog({
     try {
       if (!closingAum) {
         throw new Error("Closing AUM snapshot is required to complete this withdrawal.");
+      }
+      if (isNaN(parsedClosingAum) || parsedClosingAum < minClosingAum) {
+        throw new Error(
+          `Closing AUM must be >= opening AUM (${formatAssetAmount(
+            minClosingAum,
+            withdrawal.fund_class || "UNITS"
+          )}). Negative yields are not allowed.`
+        );
       }
       await withdrawalService.markAsCompleted(
         withdrawal.id,
@@ -121,12 +174,27 @@ export function CompleteWithdrawalDialog({
                 value={closingAum}
                 onChange={setClosingAum}
                 placeholder="Enter closing AUM"
-                min={0}
+                min={minClosingAum}
                 showFormatted
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Authoritative AUM snapshot used to crystallize yield before posting the withdrawal.
               </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {openingAumLoading
+                  ? "Loading opening AUM checkpoint..."
+                  : hasCheckpoint
+                    ? `Opening AUM (last checkpoint): ${formatAssetAmount(
+                        minClosingAum,
+                        withdrawal.fund_class || "UNITS"
+                      )}`
+                    : "No prior AUM checkpoint found. Minimum allowed is 0."}
+              </p>
+              {!openingAumLoading && closingAum !== "" && !isClosingAumValid && (
+                <p className="text-xs text-destructive mt-1">
+                  Closing AUM must be &gt;= opening AUM (negative yields are not allowed).
+                </p>
+              )}
             </div>
 
             <div>
@@ -194,7 +262,7 @@ export function CompleteWithdrawalDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !isConfirmed}
+              disabled={isSubmitting || !isConfirmed || !closingAum || !isClosingAumValid}
               className="bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? (

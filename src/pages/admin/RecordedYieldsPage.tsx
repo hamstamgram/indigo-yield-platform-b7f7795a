@@ -59,7 +59,7 @@ function RecordedYieldsContent() {
     clearFilters,
   } = useUrlFilters({
     keys: ["fundId", "purpose", "dateFrom", "dateTo"],
-    defaults: { fundId: "all", purpose: "all" },
+    defaults: { fundId: "all", purpose: "reporting" },
   });
 
   const filters: YieldFilters = {

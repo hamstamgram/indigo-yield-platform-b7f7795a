@@ -59,6 +59,7 @@ interface YieldInputFormProps {
   // Historical AUM as-of the selected date
   asOfAum: number | null;
   asOfAumLoading: boolean;
+  existingDistributionDate: string | null;
 }
 
 export function YieldInputForm({
@@ -83,12 +84,15 @@ export function YieldInputForm({
   pendingEvents,
   asOfAum,
   asOfAumLoading,
+  existingDistributionDate,
 }: YieldInputFormProps) {
   const validationResult = validateEffectiveDate();
 
   // Determine displayed AUM: prefer as-of AUM, fallback to current positions
   const displayedAum = asOfAum ?? selectedFund?.total_aum ?? 0;
   const isUsingHistoricalAum = asOfAum !== null && asOfAum !== undefined;
+
+  const isReporting = yieldPurpose === "reporting";
 
   return (
     <div className="space-y-6">
@@ -168,15 +172,24 @@ export function YieldInputForm({
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
+            <Label htmlFor="new-aum">
+              New AUM ({selectedFund?.asset}){isReporting ? " (not required for reporting)" : ""}
+            </Label>
             <NumericInput
               id="new-aum"
               asset={selectedFund?.asset}
               value={newAUM}
               onChange={setNewAUM}
-              placeholder="Enter new total AUM"
+              placeholder={isReporting ? "Not required for reporting yield" : "Enter new total AUM"}
               showFormatted
+              disabled={isReporting}
             />
+            {isReporting && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                Reporting uses latest fund transactions and sums YIELD entries for the month.
+              </p>
+            )}
           </div>
         </div>
 
@@ -297,6 +310,17 @@ export function YieldInputForm({
         </div>
       )}
 
+      {/* Existing Distribution Warning */}
+      {existingDistributionDate && (
+        <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
+          <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span>
+            Yield has already been distributed for this date. Void the existing distribution before
+            reapplying.
+          </span>
+        </div>
+      )}
+
       {/* Pending Crystallization Events Info */}
       {yieldPurpose === "reporting" && pendingEvents && pendingEvents.count > 0 && (
         <div className="flex items-start gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
@@ -358,7 +382,10 @@ export function YieldInputForm({
         <Button
           onClick={handlePreviewYield}
           disabled={
-            !newAUM || previewLoading || (yieldPurpose === "reporting" && !validationResult.valid)
+            !newAUM ||
+            previewLoading ||
+            Boolean(existingDistributionDate) ||
+            (yieldPurpose === "reporting" && !validationResult.valid)
           }
           variant="secondary"
           className="w-full"

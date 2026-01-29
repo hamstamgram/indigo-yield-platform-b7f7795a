@@ -122,17 +122,12 @@
 
 @layer components {
 
-  /* GLASSMORPHISM UTILITIES */
   .glass-panel {
     @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 shadow-lg;
   }
 
   .glass-dialog {
     @apply bg-black/90 backdrop-blur-2xl border-white/10;
-  }
-
-  .glass-card {
-    @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 shadow-lg;
   }
 
   .glass-card {

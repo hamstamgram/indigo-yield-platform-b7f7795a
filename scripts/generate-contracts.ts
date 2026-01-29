@@ -175,37 +175,86 @@ function parseTablesFromSupabaseTypes(content: string): SchemaTable[] {
 function parseFunctionsFromSupabaseTypes(content: string): SchemaFunction[] {
   const functions: SchemaFunction[] = [];
 
-  // Find the Functions section
-  const functionsMatch = content.match(
-    /Functions:\s*\{([\s\S]*?)(?=\n\s*\}[\s\S]*?CompositeTypes:|$)/
-  );
-  if (!functionsMatch) return functions;
+  // Find the Functions section by brace matching (regex is too brittle)
+  const lines = content.split("\n");
+  const startIndex = lines.findIndex((line) => line.includes("Functions: {"));
+  if (startIndex === -1) return functions;
 
-  const functionsSection = functionsMatch[1];
+  let depth =
+    (lines[startIndex].match(/\{/g) || []).length - (lines[startIndex].match(/\}/g) || []).length;
+  const sectionLines: string[] = [];
+  for (let i = startIndex + 1; i < lines.length && depth > 0; i += 1) {
+    const line = lines[i];
+    depth += (line.match(/\{/g) || []).length;
+    depth -= (line.match(/\}/g) || []).length;
+    if (depth > 0) {
+      sectionLines.push(line);
+    }
+  }
 
-  // Extract each function
-  const funcPattern = /(\w+):\s*\{\s*Args:\s*\{([^}]*)\}[^}]*Returns:\s*([^;\n}]+)/g;
-  let match;
+  const functionsSection = sectionLines.join("\n");
 
-  while ((match = funcPattern.exec(functionsSection)) !== null) {
-    const name = match[1];
-    const argsStr = match[2];
-    const returnType = match[3].trim();
+  const functionBlocks: Array<{ name: string; block: string }> = [];
+  let currentName: string | null = null;
+  let currentLines: string[] = [];
 
+  const flush = () => {
+    if (!currentName) return;
+    functionBlocks.push({ name: currentName, block: currentLines.join("\n") });
+  };
+
+  for (const line of functionsSection.split("\n")) {
+    const match = line.match(/^\s{6}([A-Za-z0-9_]+):/);
+    if (match) {
+      flush();
+      currentName = match[1];
+      currentLines = [line];
+      continue;
+    }
+
+    if (currentName) {
+      currentLines.push(line);
+    }
+  }
+  flush();
+
+  for (const { name, block } of functionBlocks) {
+    const argBlocks = Array.from(block.matchAll(/Args:\s*\{([\s\S]*?)\}/g)).map((m) => m[1]);
+    const returnMatch = block.match(/Returns:\s*([^\n}]+)/);
+    const returnType = returnMatch ? returnMatch[1].trim() : "unknown";
+
+    const paramMap = new Map<string, { seenIn: number; optionalIn: number; type: string }>();
+
+    for (const argsStr of argBlocks) {
+      const argPattern = /(\w+)\??:\s*([^;\n,}]+)/g;
+      let argMatch;
+      while ((argMatch = argPattern.exec(argsStr)) !== null) {
+        const paramName = argMatch[1];
+        const paramType = argMatch[2].trim();
+        const optional = argMatch[0].includes("?:");
+        const existing = paramMap.get(paramName);
+        if (existing) {
+          existing.seenIn += 1;
+          if (optional) existing.optionalIn += 1;
+        } else {
+          paramMap.set(paramName, {
+            seenIn: 1,
+            optionalIn: optional ? 1 : 0,
+            type: paramType,
+          });
+        }
+      }
+    }
+
+    const overloads = Math.max(argBlocks.length, 1);
     const parameters: FunctionParam[] = [];
-    const argPattern = /(\w+)\??:\s*([^;\n,}]+)/g;
-    let argMatch;
-
-    while ((argMatch = argPattern.exec(argsStr)) !== null) {
-      const paramName = argMatch[1];
-      const paramType = argMatch[2].trim();
-      const hasDefault = argMatch[0].includes("?:");
-
+    for (const [paramName, meta] of paramMap.entries()) {
+      const requiredInAll = meta.seenIn === overloads && meta.optionalIn === 0;
       parameters.push({
         name: paramName,
-        type: paramType,
+        type: meta.type,
         mode: "IN",
-        has_default: hasDefault,
+        has_default: !requiredInAll,
       });
     }
 

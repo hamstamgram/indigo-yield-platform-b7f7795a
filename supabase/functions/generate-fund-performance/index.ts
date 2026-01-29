@@ -150,7 +150,43 @@ Deno.serve(async (req) => {
     const periodId = period.id;
     console.log(`Using period ID: ${periodId}`);
 
-    // Step 2: Get all investors with positions
+    // Step 2: Resolve eligible investors (exclude non-investor account types)
+    const { data: investorProfiles, error: investorProfilesError } = await supabase
+      .from("profiles")
+      .select("id, account_type, is_admin")
+      .eq("is_admin", false);
+
+    if (investorProfilesError) throw investorProfilesError;
+
+    const investorIds = (investorProfiles || [])
+      .filter((p: any) => !p.account_type || p.account_type === "investor")
+      .map((p: any) => p.id);
+
+    if (investorIds.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          periodId,
+          recordsCreated: 0,
+          statementsGenerated: 0,
+          message: "No eligible investors found for report generation",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Step 2b: Load active funds for asset mapping and filtering
+    const { data: funds, error: fundsError } = await supabase
+      .from("funds")
+      .select("id, asset, status")
+      .eq("status", "active");
+
+    if (fundsError) throw fundsError;
+
+    const fundAssetById = new Map((funds || []).map((f: any) => [f.id, f.asset] as const));
+    const activeAssets = new Set((funds || []).map((f: any) => f.asset));
+
+    // Step 2c: Get current positions for asset discovery (not balance source)
     const { data: positions, error: positionsError } = await supabase
       .from("investor_positions")
       .select(
@@ -158,14 +194,13 @@ Deno.serve(async (req) => {
         investor_id,
         fund_id,
         current_value,
-        cost_basis,
-        shares,
         funds!inner (
           asset,
           status
         )
       `
       )
+      .in("investor_id", investorIds)
       .gt("current_value", 0);
 
     if (positionsError) throw positionsError;
@@ -186,6 +221,8 @@ Deno.serve(async (req) => {
     // YTD: Start of year
     const ytdStart = new Date(periodYear, 0, 1);
 
+    const periodEndDateStr = mtdEnd.toISOString().split("T")[0];
+
     // Step 4: Get transactions for calculations
     // Include ALL non-voided transactions for accurate statement calculations.
     // The purpose filter was causing deposits (which have no purpose or purpose='transaction')
@@ -194,8 +231,10 @@ Deno.serve(async (req) => {
     // so there's no risk of double-counting across different purposes.
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
-      .select("*")
-      .lte("tx_date", mtdEnd.toISOString().split("T")[0])
+      .select("investor_id, asset, amount, type, tx_date")
+      .in("investor_id", investorIds)
+      .in("asset", Array.from(activeAssets))
+      .lte("tx_date", periodEndDateStr)
       .eq("is_voided", false) // Only include non-voided transactions
       .order("tx_date", { ascending: true });
 
@@ -203,90 +242,139 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${transactions?.length || 0} transactions`);
 
-    // Group positions by investor + fund asset
-    const performanceRecords: any[] = [];
+    // Step 4b: Pull end-of-period snapshots (authoritative if available)
+    const { data: snapshots, error: snapshotsError } = await supabase
+      .from("investor_position_snapshots")
+      .select("investor_id, fund_id, current_value")
+      .in("investor_id", investorIds)
+      .eq("snapshot_date", periodEndDateStr);
 
-    // Group positions by investor_id and fund asset
-    const groupedPositions = new Map<string, any[]>();
+    if (snapshotsError) throw snapshotsError;
+
+    const snapshotBalances = new Map<string, number>();
+    for (const snap of snapshots || []) {
+      const asset = fundAssetById.get((snap as any).fund_id);
+      if (!asset) continue;
+      snapshotBalances.set(
+        `${(snap as any).investor_id}:${asset}`,
+        Number((snap as any).current_value) || 0
+      );
+    }
+
+    const positionBalances = new Map<string, number>();
     for (const pos of activePositions) {
       const fundData = pos.funds as unknown as { asset: string; status: string };
       const key = `${pos.investor_id}:${fundData.asset}`;
-      if (!groupedPositions.has(key)) {
-        groupedPositions.set(key, []);
-      }
-      groupedPositions.get(key)!.push(pos);
+      const currentValue = Number(pos.current_value) || 0;
+      positionBalances.set(key, (positionBalances.get(key) || 0) + currentValue);
     }
 
+    const transactionGroups = new Map<string, any[]>();
+    for (const tx of transactions || []) {
+      const key = `${(tx as any).investor_id}:${(tx as any).asset}`;
+      if (!transactionGroups.has(key)) {
+        transactionGroups.set(key, []);
+      }
+      transactionGroups.get(key)!.push(tx);
+    }
+
+    const allKeys = new Set<string>([
+      ...snapshotBalances.keys(),
+      ...positionBalances.keys(),
+      ...transactionGroups.keys(),
+    ]);
+
+    const performanceRecords: any[] = [];
+
+    const inflowTypes = new Set(["DEPOSIT", "INTERNAL_CREDIT", "YIELD"]);
+    const outflowTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL"]);
+    const additionTypes = new Set(["DEPOSIT", "INTERNAL_CREDIT"]);
+    const redemptionTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL"]);
+
+    const sumBalanceUpTo = (txs: any[], beforeDate: Date): number => {
+      return txs
+        .filter((tx: any) => new Date(tx.tx_date) < beforeDate)
+        .reduce((sum: number, tx: any) => {
+          const amount = Math.abs(Number(tx.amount));
+          if (inflowTypes.has(tx.type)) return sum + amount;
+          if (outflowTypes.has(tx.type)) return sum - amount;
+          return sum;
+        }, 0);
+    };
+
+    const sumByType = (txs: any[], startDate: Date, endDate: Date, types: Set<string>): number => {
+      return txs
+        .filter((tx: any) => {
+          const txDate = new Date(tx.tx_date);
+          return txDate >= startDate && txDate <= endDate && types.has(tx.type);
+        })
+        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
+    };
+
+    const sumBalanceThrough = (txs: any[], endDate: Date): number => {
+      return txs
+        .filter((tx: any) => new Date(tx.tx_date) <= endDate)
+        .reduce((sum: number, tx: any) => {
+          const amount = Math.abs(Number(tx.amount));
+          if (inflowTypes.has(tx.type)) return sum + amount;
+          if (outflowTypes.has(tx.type)) return sum - amount;
+          return sum;
+        }, 0);
+    };
+
     // Calculate metrics for each investor + asset combination
-    for (const [key, posGroup] of groupedPositions.entries()) {
+    for (const key of allKeys) {
       const [investorId, fundAsset] = key.split(":");
 
-      // Current ending balance (sum of all positions for this asset)
-      const currentBalance = posGroup.reduce(
-        (sum: number, p: any) => sum + Number(p.current_value),
-        0
-      );
+      const investorTxs = transactionGroups.get(key) || [];
 
-      // Get transactions for this investor + asset
-      const investorTxs = (transactions || []).filter(
-        (tx: any) => tx.investor_id === investorId && tx.asset === fundAsset
-      );
-
-      // Helper to calculate beginning balance from transactions before a date
-      const calculateBeginningBalance = (txs: any[], beforeDate: Date): number => {
-        return txs
-          .filter((tx: any) => new Date(tx.tx_date) < beforeDate)
-          .reduce((sum: number, tx: any) => {
-            const amount = Number(tx.amount);
-            if (["WITHDRAWAL", "FEE", "REDEMPTION"].includes(tx.type)) {
-              return sum - Math.abs(amount);
-            }
-            return sum + amount;
-          }, 0);
-      };
-
-      // Helper to sum transactions by type within a date range
-      const sumByType = (txs: any[], startDate: Date, endDate: Date, types: string[]): number => {
-        return txs
-          .filter((tx: any) => {
-            const txDate = new Date(tx.tx_date);
-            return txDate >= startDate && txDate <= endDate && types.includes(tx.type);
-          })
-          .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
-      };
+      // Prefer snapshot balances at period end; fallback to transaction-derived balance
+      let endingBalance = snapshotBalances.get(key);
+      if (endingBalance === undefined) {
+        if (investorTxs.length > 0) {
+          endingBalance = sumBalanceThrough(investorTxs, mtdEnd);
+        } else {
+          endingBalance = positionBalances.get(key) || 0;
+          if (endingBalance > 0) {
+            console.warn(
+              `No transactions or snapshots for ${key}; using current position value as fallback`
+            );
+          }
+        }
+      }
 
       // ============= MTD CALCULATIONS =============
-      const mtdBeginning = calculateBeginningBalance(investorTxs, mtdStart);
-      const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
-      const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
+      const mtdBeginning = sumBalanceUpTo(investorTxs, mtdStart);
+      const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, additionTypes);
+      const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, redemptionTypes);
 
       // CORRECT FORMULA: net_income = ending - beginning - additions + redemptions
       const mtdMetrics = calculatePerformanceMetrics(
-        currentBalance,
+        endingBalance,
         mtdBeginning,
         mtdAdditions,
         mtdRedemptions
       );
 
       // ============= QTD CALCULATIONS =============
-      const qtdBeginning = calculateBeginningBalance(investorTxs, qtdStart);
-      const qtdAdditions = sumByType(investorTxs, qtdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
-      const qtdRedemptions = sumByType(investorTxs, qtdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
+      const qtdBeginning = sumBalanceUpTo(investorTxs, qtdStart);
+      const qtdAdditions = sumByType(investorTxs, qtdStart, mtdEnd, additionTypes);
+      const qtdRedemptions = sumByType(investorTxs, qtdStart, mtdEnd, redemptionTypes);
 
       const qtdMetrics = calculatePerformanceMetrics(
-        currentBalance,
+        endingBalance,
         qtdBeginning,
         qtdAdditions,
         qtdRedemptions
       );
 
       // ============= YTD CALCULATIONS =============
-      const ytdBeginning = calculateBeginningBalance(investorTxs, ytdStart);
-      const ytdAdditions = sumByType(investorTxs, ytdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
-      const ytdRedemptions = sumByType(investorTxs, ytdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
+      const ytdBeginning = sumBalanceUpTo(investorTxs, ytdStart);
+      const ytdAdditions = sumByType(investorTxs, ytdStart, mtdEnd, additionTypes);
+      const ytdRedemptions = sumByType(investorTxs, ytdStart, mtdEnd, redemptionTypes);
 
       const ytdMetrics = calculatePerformanceMetrics(
-        currentBalance,
+        endingBalance,
         ytdBeginning,
         ytdAdditions,
         ytdRedemptions
@@ -295,14 +383,11 @@ Deno.serve(async (req) => {
       // ============= ITD CALCULATIONS =============
       // ITD beginning is always 0 (inception)
       const itdBeginning = 0;
-      const itdAdditions = sumByType(investorTxs, new Date(0), mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
-      const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, [
-        "WITHDRAWAL",
-        "REDEMPTION",
-      ]);
+      const itdAdditions = sumByType(investorTxs, new Date(0), mtdEnd, additionTypes);
+      const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, redemptionTypes);
 
       const itdMetrics = calculatePerformanceMetrics(
-        currentBalance,
+        endingBalance,
         itdBeginning,
         itdAdditions,
         itdRedemptions
@@ -322,28 +407,28 @@ Deno.serve(async (req) => {
         mtd_additions: Math.round(mtdAdditions * 100) / 100,
         mtd_redemptions: Math.round(mtdRedemptions * 100) / 100,
         mtd_net_income: Math.round(mtdMetrics.netIncome * 100) / 100,
-        mtd_ending_balance: Math.round(currentBalance * 100) / 100,
+        mtd_ending_balance: Math.round(endingBalance * 100) / 100,
         mtd_rate_of_return: Math.round(mtdMetrics.rateOfReturn * 100) / 100,
         // QTD
         qtd_beginning_balance: Math.round(qtdBeginning * 100) / 100,
         qtd_additions: Math.round(qtdAdditions * 100) / 100,
         qtd_redemptions: Math.round(qtdRedemptions * 100) / 100,
         qtd_net_income: Math.round(qtdMetrics.netIncome * 100) / 100,
-        qtd_ending_balance: Math.round(currentBalance * 100) / 100,
+        qtd_ending_balance: Math.round(endingBalance * 100) / 100,
         qtd_rate_of_return: Math.round(qtdMetrics.rateOfReturn * 100) / 100,
         // YTD
         ytd_beginning_balance: Math.round(ytdBeginning * 100) / 100,
         ytd_additions: Math.round(ytdAdditions * 100) / 100,
         ytd_redemptions: Math.round(ytdRedemptions * 100) / 100,
         ytd_net_income: Math.round(ytdMetrics.netIncome * 100) / 100,
-        ytd_ending_balance: Math.round(currentBalance * 100) / 100,
+        ytd_ending_balance: Math.round(endingBalance * 100) / 100,
         ytd_rate_of_return: Math.round(ytdMetrics.rateOfReturn * 100) / 100,
         // ITD
         itd_beginning_balance: itdBeginning,
         itd_additions: Math.round(itdAdditions * 100) / 100,
         itd_redemptions: Math.round(itdRedemptions * 100) / 100,
         itd_net_income: Math.round(itdMetrics.netIncome * 100) / 100,
-        itd_ending_balance: Math.round(currentBalance * 100) / 100,
+        itd_ending_balance: Math.round(endingBalance * 100) / 100,
         itd_rate_of_return: Math.round(itdRoR * 100) / 100,
       });
     }
@@ -379,11 +464,11 @@ Deno.serve(async (req) => {
     }
 
     // Get investor profiles for names
-    const investorIds = Array.from(investorPerformanceMap.keys());
+    const statementInvestorIds = Array.from(investorPerformanceMap.keys());
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, email")
-      .in("id", investorIds);
+      .in("id", statementInvestorIds);
 
     if (profilesError) {
       console.error("Failed to fetch profiles:", profilesError);

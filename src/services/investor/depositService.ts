@@ -169,13 +169,20 @@ export class DepositService {
     // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${generateUUID()}`;
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.id) {
+      throw new Error("Authentication required to create deposits");
+    }
+
     const { data, error } = await callRPC("apply_deposit_with_crystallization", {
       p_fund_id: fund.id,
       p_investor_id: profileId,
       p_amount: amount,
       p_closing_aum: Number(closingAum),
       p_effective_date: txDate,
-      p_admin_id: profileId,
+      p_admin_id: user.id,
       p_notes: `Deposit - ${triggerReference}`,
       p_purpose: "transaction",
     });
