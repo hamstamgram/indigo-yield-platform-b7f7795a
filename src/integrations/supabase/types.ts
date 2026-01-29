@@ -5099,6 +5099,7 @@ export type Database = {
           onboarding_date: string | null
           phone: string | null
           preferences: Json | null
+          role: string | null
           status: string | null
           totp_enabled: boolean | null
           totp_verified: boolean | null
@@ -5125,6 +5126,7 @@ export type Database = {
           onboarding_date?: string | null
           phone?: string | null
           preferences?: Json | null
+          role?: string | null
           status?: string | null
           totp_enabled?: boolean | null
           totp_verified?: boolean | null
@@ -5151,6 +5153,7 @@ export type Database = {
           onboarding_date?: string | null
           phone?: string | null
           preferences?: Json | null
+          role?: string | null
           status?: string | null
           totp_enabled?: boolean | null
           totp_verified?: boolean | null
@@ -5386,6 +5389,30 @@ export type Database = {
           },
         ]
       }
+      report_access_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          report_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          report_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          report_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       report_change_log: {
         Row: {
           change_reason: string | null
@@ -5462,6 +5489,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      report_schedules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          day_of_month: number | null
+          day_of_week: number | null
+          delivery_method: string[]
+          description: string | null
+          failure_count: number
+          filters: Json
+          formats: string[]
+          frequency: string
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          last_run_status: string | null
+          name: string
+          next_run_at: string | null
+          parameters: Json
+          recipient_emails: string[]
+          recipient_user_ids: string[]
+          report_definition_id: string | null
+          run_count: number
+          time_of_day: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          delivery_method?: string[]
+          description?: string | null
+          failure_count?: number
+          filters?: Json
+          formats?: string[]
+          frequency: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_status?: string | null
+          name: string
+          next_run_at?: string | null
+          parameters?: Json
+          recipient_emails?: string[]
+          recipient_user_ids?: string[]
+          report_definition_id?: string | null
+          run_count?: number
+          time_of_day: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          delivery_method?: string[]
+          description?: string | null
+          failure_count?: number
+          filters?: Json
+          formats?: string[]
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_status?: string | null
+          name?: string
+          next_run_at?: string | null
+          parameters?: Json
+          recipient_emails?: string[]
+          recipient_user_ids?: string[]
+          report_definition_id?: string | null
+          run_count?: number
+          time_of_day?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       risk_alerts: {
         Row: {
@@ -10953,6 +11061,7 @@ export type Database = {
         Args: {
           p_admin_id?: string
           p_amount: number
+          p_distribution_id?: string
           p_fund_id: string
           p_investor_id: string
           p_new_total_aum?: number
@@ -11217,6 +11326,14 @@ export type Database = {
       compute_position_from_ledger: {
         Args: { p_as_of?: string; p_fund_id: string; p_investor_id: string }
         Returns: Json
+      }
+      compute_profile_role: {
+        Args: {
+          p_account_type: Database["public"]["Enums"]["account_type"]
+          p_is_admin: boolean
+          p_user_id: string
+        }
+        Returns: string
       }
       create_admin_invite: { Args: { p_email: string }; Returns: string }
       create_daily_position_snapshot: {
@@ -11505,6 +11622,40 @@ export type Database = {
           out_net_flow_24h: number
         }[]
       }
+      get_ib_parent_candidates: {
+        Args: { p_exclude_id: string }
+        Returns: {
+          email_masked: string
+          first_name: string
+          id: string
+          last_name: string
+        }[]
+      }
+      get_ib_referral_count: { Args: { p_ib_id: string }; Returns: number }
+      get_ib_referral_detail: {
+        Args: { p_ib_id: string; p_referral_id: string }
+        Returns: {
+          created_at: string
+          email_masked: string
+          first_name: string
+          ib_parent_id: string
+          id: string
+          last_name: string
+          status: string
+        }[]
+      }
+      get_ib_referrals: {
+        Args: { p_ib_id: string; p_limit?: number; p_offset?: number }
+        Returns: {
+          created_at: string
+          email_masked: string
+          first_name: string
+          ib_percentage: number
+          id: string
+          last_name: string
+          status: string
+        }[]
+      }
       get_investor_fee_pct: {
         Args: {
           p_effective_date: string
@@ -11571,10 +11722,13 @@ export type Database = {
       get_report_statistics: {
         Args: { p_period_end: string; p_period_start: string }
         Returns: {
-          reports_by_type: Json
-          reports_pending: number
-          reports_sent: number
-          total_reports: number
+          avg_processing_time_ms: number
+          failure_count: number
+          last_generated_at: string
+          report_type: string
+          success_count: number
+          total_downloads: number
+          total_generated: number
         }[]
       }
       get_reporting_eligible_investors: {

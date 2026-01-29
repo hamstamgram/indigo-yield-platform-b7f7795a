@@ -173,7 +173,7 @@ export const DB_TABLES = {
   },
   daily_nav: {
     name: "daily_nav" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "aum",
       "created_at",
@@ -257,7 +257,7 @@ export const DB_TABLES = {
   },
   error_code_metadata: {
     name: "error_code_metadata" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "category",
       "created_at",
@@ -453,7 +453,7 @@ export const DB_TABLES = {
   },
   global_fee_settings: {
     name: "global_fee_settings" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: ["description", "setting_key", "updated_at", "updated_by", "value"] as const,
     rlsEnabled: true,
   },
@@ -685,7 +685,7 @@ export const DB_TABLES = {
   },
   investor_positions: {
     name: "investor_positions" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "aum_percentage",
       "cost_basis",
@@ -710,7 +710,7 @@ export const DB_TABLES = {
   },
   investor_positions_archive: {
     name: "investor_positions_archive" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "archive_id",
       "archived_at",
@@ -793,7 +793,7 @@ export const DB_TABLES = {
   },
   notification_settings: {
     name: "notification_settings" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "daily_rates_enabled",
       "email_enabled",
@@ -987,7 +987,7 @@ export const DB_TABLES = {
   },
   rate_limit_config: {
     name: "rate_limit_config" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "action_type",
       "created_at",
@@ -1209,7 +1209,7 @@ export const DB_TABLES = {
   },
   system_config: {
     name: "system_config" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: ["description", "key", "updated_at", "updated_by", "value"] as const,
     rlsEnabled: true,
   },
@@ -1564,9 +1564,10 @@ export const DB_TABLES = {
     ] as const,
     rlsEnabled: true,
   },
+  // Views
   aum_position_reconciliation: {
     name: "aum_position_reconciliation" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "aum_date",
       "calculated_aum",
@@ -1580,7 +1581,7 @@ export const DB_TABLES = {
   },
   fund_aum_mismatch: {
     name: "fund_aum_mismatch" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "aum_date",
       "calculated_aum",
@@ -1594,7 +1595,7 @@ export const DB_TABLES = {
   },
   ib_allocation_consistency: {
     name: "ib_allocation_consistency" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "allocated_ib_id",
       "allocated_ib_name",
@@ -1612,7 +1613,7 @@ export const DB_TABLES = {
   },
   investor_position_ledger_mismatch: {
     name: "investor_position_ledger_mismatch" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "discrepancy",
       "fund_code",
@@ -1626,7 +1627,7 @@ export const DB_TABLES = {
   },
   position_transaction_reconciliation: {
     name: "position_transaction_reconciliation" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: ["difference", "fund_id", "investor_id", "position_value", "transaction_sum"] as const,
     rlsEnabled: true,
   },
@@ -1646,7 +1647,7 @@ export const DB_TABLES = {
   },
   v_approval_history: {
     name: "v_approval_history" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "action_type",
       "actual_value",
@@ -1669,7 +1670,7 @@ export const DB_TABLES = {
   },
   v_aum_position_mismatch: {
     name: "v_aum_position_mismatch" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "asset",
       "fund_id",
@@ -1683,7 +1684,7 @@ export const DB_TABLES = {
   },
   v_aum_snapshot_health: {
     name: "v_aum_snapshot_health" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "active_positions",
       "aum_created_at",
@@ -1701,7 +1702,7 @@ export const DB_TABLES = {
   },
   v_concentration_risk: {
     name: "v_concentration_risk" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "account_type",
       "concentration_level",
@@ -1717,7 +1718,7 @@ export const DB_TABLES = {
   },
   v_cost_basis_anomalies: {
     name: "v_cost_basis_anomalies" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "cost_basis",
       "cost_basis_ratio",
@@ -1732,7 +1733,7 @@ export const DB_TABLES = {
   },
   v_cost_basis_mismatch: {
     name: "v_cost_basis_mismatch" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "computed_cost_basis",
       "computed_current_value",
@@ -1753,7 +1754,7 @@ export const DB_TABLES = {
   },
   v_crystallization_dashboard: {
     name: "v_crystallization_dashboard" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "critical_stale",
       "fund_code",
@@ -1770,7 +1771,7 @@ export const DB_TABLES = {
   },
   v_crystallization_gaps: {
     name: "v_crystallization_gaps" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "cumulative_yield_earned",
       "current_value",
@@ -1788,7 +1789,7 @@ export const DB_TABLES = {
   },
   v_daily_platform_metrics_live: {
     name: "v_daily_platform_metrics_live" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "active_funds",
       "active_investors",
@@ -1824,7 +1825,7 @@ export const DB_TABLES = {
   },
   v_fee_allocation_orphans: {
     name: "v_fee_allocation_orphans" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "allocation_id",
       "distribution_id",
@@ -1865,7 +1866,7 @@ export const DB_TABLES = {
   },
   v_fund_aum_position_health: {
     name: "v_fund_aum_position_health" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "asset",
       "aum_date",
@@ -1882,7 +1883,7 @@ export const DB_TABLES = {
   },
   v_fund_aum_position_status: {
     name: "v_fund_aum_position_status" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "active_investors",
       "actual_positions",
@@ -1898,7 +1899,7 @@ export const DB_TABLES = {
   },
   v_fund_summary_live: {
     name: "v_fund_summary_live" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "asset",
       "code",
@@ -1917,7 +1918,7 @@ export const DB_TABLES = {
   },
   v_ib_allocation_orphans: {
     name: "v_ib_allocation_orphans" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "allocation_id",
       "distribution_id",
@@ -1932,7 +1933,7 @@ export const DB_TABLES = {
   },
   v_investor_kpis: {
     name: "v_investor_kpis" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "email",
       "first_investment_date",
@@ -1953,7 +1954,7 @@ export const DB_TABLES = {
   },
   v_itd_returns: {
     name: "v_itd_returns" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "cost_basis",
       "current_value",
@@ -1968,7 +1969,7 @@ export const DB_TABLES = {
   },
   v_ledger_reconciliation: {
     name: "v_ledger_reconciliation" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "calculated_balance",
       "fund_code",
@@ -1983,7 +1984,7 @@ export const DB_TABLES = {
   },
   v_liquidity_risk: {
     name: "v_liquidity_risk" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "active_positions",
       "fund_code",
@@ -1998,7 +1999,7 @@ export const DB_TABLES = {
   },
   v_live_investor_balances: {
     name: "v_live_investor_balances" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "fund_name",
       "investor_id",
@@ -2011,7 +2012,7 @@ export const DB_TABLES = {
   },
   v_missing_withdrawal_transactions: {
     name: "v_missing_withdrawal_transactions" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "fund_code",
       "fund_id",
@@ -2027,7 +2028,7 @@ export const DB_TABLES = {
   },
   v_orphaned_positions: {
     name: "v_orphaned_positions" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "current_value",
       "fund_id",
@@ -2041,9 +2042,25 @@ export const DB_TABLES = {
     ] as const,
     rlsEnabled: true,
   },
+  v_orphaned_transactions: {
+    name: "v_orphaned_transactions" as const,
+    primaryKey: null,
+    columns: [
+      "amount",
+      "distribution_id",
+      "fund_id",
+      "id",
+      "investor_id",
+      "issue_type",
+      "notes",
+      "tx_date",
+      "type",
+    ] as const,
+    rlsEnabled: true,
+  },
   v_pending_approvals: {
     name: "v_pending_approvals" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "action_description",
       "action_type",
@@ -2065,7 +2082,7 @@ export const DB_TABLES = {
   },
   v_position_transaction_variance: {
     name: "v_position_transaction_variance" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "balance_variance",
       "cost_basis",
@@ -2083,7 +2100,7 @@ export const DB_TABLES = {
   },
   v_potential_duplicate_profiles: {
     name: "v_potential_duplicate_profiles" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "duplicate_type",
       "emails",
@@ -2124,7 +2141,7 @@ export const DB_TABLES = {
   },
   v_transaction_distribution_orphans: {
     name: "v_transaction_distribution_orphans" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "amount",
       "distribution_id",
@@ -2140,19 +2157,19 @@ export const DB_TABLES = {
   },
   v_transaction_sources: {
     name: "v_transaction_sources" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: ["first_tx", "last_tx", "source", "tx_count", "type"] as const,
     rlsEnabled: true,
   },
   v_yield_calculation_health: {
     name: "v_yield_calculation_health" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: ["details", "status", "test_name"] as const,
     rlsEnabled: true,
   },
   v_yield_conservation_violations: {
     name: "v_yield_conservation_violations" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "created_at",
       "distribution_id",
@@ -2197,7 +2214,7 @@ export const DB_TABLES = {
   },
   yield_distribution_conservation_check: {
     name: "yield_distribution_conservation_check" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "actual_deductions",
       "calculated_fees",
@@ -2261,6 +2278,7 @@ export const COMPOSITE_PK_TABLES = [
   "v_live_investor_balances",
   "v_missing_withdrawal_transactions",
   "v_orphaned_positions",
+  "v_orphaned_transactions",
   "v_pending_approvals",
   "v_position_transaction_variance",
   "v_potential_duplicate_profiles",
