@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { db } from "@/lib/db/index";
 import {
   ReportEngineLazy,
@@ -268,8 +269,8 @@ export class ReportsApi {
       recipient_user_ids: _schedule.recipientUserIds,
       recipient_emails: _schedule.recipientEmails,
       delivery_method: _schedule.deliveryMethod,
-      parameters: _schedule.parameters,
-      filters: _schedule.filters,
+      parameters: _schedule.parameters as unknown as Json,
+      filters: _schedule.filters as unknown as Json,
       formats: _schedule.formats,
       is_active: _schedule.isActive,
       last_run_at: _schedule.lastRunAt,
@@ -277,12 +278,11 @@ export class ReportsApi {
       last_run_status: _schedule.lastRunStatus,
       run_count: _schedule.runCount,
       failure_count: _schedule.failureCount,
-      created_by: _schedule.createdBy,
     };
 
     const { data, error } = await supabase
       .from("report_schedules")
-      .insert(payload)
+      .insert([payload])
       .select("*")
       .single();
 

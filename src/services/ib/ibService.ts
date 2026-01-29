@@ -50,7 +50,8 @@ export interface ReferralDetail {
   email_masked: string | null;
   status: string;
   created_at: string;
-  ib_parent_id: string;
+  ib_percentage: number;
+  ib_parent_id?: string | null;
 }
 
 export interface Position {
