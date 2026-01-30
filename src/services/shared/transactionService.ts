@@ -239,7 +239,9 @@ export async function createAdminTransaction(
       if (result.error) {
         logError(`createAdminTransaction.${dbType}`, result.error, { fundId: params.fund_id });
         // Surface the user-friendly error message from gateway
-        throw new Error(result.error.userMessage);
+        const errMsg =
+          result.error.message || result.error.userMessage || JSON.stringify(result.error);
+        throw new Error(errMsg);
       }
 
       const data = result.data as unknown as { success?: boolean } | null;
