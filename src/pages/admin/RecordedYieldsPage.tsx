@@ -63,6 +63,12 @@ function RecordedYieldsContent() {
     defaults: { fundId: "all", purpose: "all" },
   });
 
+  // Force purpose to "all" on page load to ensure all records are visible
+  useEffect(() => {
+    setFilter("purpose", "all");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency - run only on mount
+
   const filters: YieldFilters = {
     fundId: urlFilters.fundId || "all",
     purpose: (urlFilters.purpose as AumPurpose | "all") || "all",
