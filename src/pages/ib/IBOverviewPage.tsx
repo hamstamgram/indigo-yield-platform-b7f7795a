@@ -39,7 +39,7 @@ const formatPendingTotals = (summary: CommissionSummary[]): string => {
 };
 
 export default function IBOverviewPage() {
-  const [period, setPeriod] = useState<PeriodType>("MTD");
+  const [period, setPeriod] = useState<PeriodType>("ALL");
 
   const { data: commissionSummary, isLoading: summaryLoading } = useIBCommissionSummary(period);
   const { data: topReferrals, isLoading: referralsLoading } = useIBTopReferrals(period);
