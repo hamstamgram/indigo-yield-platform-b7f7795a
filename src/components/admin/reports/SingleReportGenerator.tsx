@@ -18,6 +18,7 @@ import {
   useSendInvestorReport,
 } from "@/hooks/data";
 import { getTodayString } from "@/utils/dateUtils";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 export function SingleReportGenerator() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
@@ -127,7 +128,8 @@ export function SingleReportGenerator() {
       const html = renderReportToHtml(investorData);
       const win = window.open("", "_blank");
       if (win) {
-        win.document.write(html);
+        // Use sanitizeHtml for defense-in-depth XSS protection
+        win.document.write(sanitizeHtml(html));
         win.document.close();
       }
     } catch (error: any) {

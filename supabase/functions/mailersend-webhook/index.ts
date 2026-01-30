@@ -19,12 +19,22 @@ type ResendEventType =
 interface ResendWebhookPayload {
   type: ResendEventType;
   created_at?: string;
+  webhook_id?: string;
+  domain_id?: string;
   data?: {
     id?: string;
     subject?: string;
     to?: string[];
     from?: string;
     last_event?: string;
+    email?: {
+      recipient?: {
+        email?: string;
+      };
+      subject?: string;
+      status?: string;
+    };
+    morph?: unknown;
   };
 }
 
