@@ -99,13 +99,13 @@ export async function previewYieldDistribution(
       ?.filter((p) => investorSet.has(p.investor_id))
       .reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
-  // Calculate gross yield amount from AUM difference (transactional) or defer to backend (reporting)
-  const isReporting = purpose === "reporting";
+  // Calculate gross yield amount from AUM difference when provided
+  // For reporting: use explicit AUM delta if given, otherwise fall back to backend logic.
   const parsedAum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
-  const newTotalAUMNum =
-    typeof parsedAum === "number" && !Number.isNaN(parsedAum) ? parsedAum : currentAUM;
-  const grossYieldAmount = isReporting ? 0 : newTotalAUMNum - currentAUM;
-  if (!isReporting && grossYieldAmount < 0) {
+  const hasNewAum = typeof parsedAum === "number" && !Number.isNaN(parsedAum);
+  const newTotalAUMNum = hasNewAum ? parsedAum : currentAUM;
+  const grossYieldAmount = hasNewAum ? newTotalAUMNum - currentAUM : 0;
+  if (grossYieldAmount < 0) {
     throw new Error("Yield must be non-negative (positive or zero).");
   }
 

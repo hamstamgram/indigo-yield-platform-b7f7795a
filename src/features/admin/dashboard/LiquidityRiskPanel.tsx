@@ -56,8 +56,12 @@ export function LiquidityRiskPanel() {
           <div className="space-y-4">
             {safeLiquidityData.map((fund) => {
               const riskLevel = fund.risk_level ?? "LOW";
+              const normalizedRiskLevel = riskLevelConfig[riskLevel as keyof typeof riskLevelConfig]
+                ? riskLevel
+                : "LOW";
               const config =
-                riskLevelConfig[riskLevel as keyof typeof riskLevelConfig] ?? fallbackRiskConfig;
+                riskLevelConfig[normalizedRiskLevel as keyof typeof riskLevelConfig] ??
+                fallbackRiskConfig;
               if (!riskLevelConfig[riskLevel as keyof typeof riskLevelConfig]) {
                 logWarn("liquidityRisk.unexpectedLevel", {
                   fundId: fund.fund_id,
@@ -77,7 +81,7 @@ export function LiquidityRiskPanel() {
                       <span className="text-sm text-muted-foreground">{fund.fund_name}</span>
                     </div>
                     <Badge variant="secondary" className={`${config.bg} ${config.text}`}>
-                      {fund.risk_level}
+                      {normalizedRiskLevel}
                     </Badge>
                   </div>
                   <div className="space-y-1">
