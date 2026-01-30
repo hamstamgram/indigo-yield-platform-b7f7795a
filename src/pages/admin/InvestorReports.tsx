@@ -57,6 +57,7 @@ import { formatAssetWithSymbol } from "@/utils/formatters";
 import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
 import { useAdminInvestorReports, useGenerateFundPerformance } from "@/hooks/data";
 import type { InvestorReportSummary, InvestorReportAsset } from "@/services/admin";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 const InvestorReports = () => {
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReportSummary | null>(null);
@@ -151,7 +152,8 @@ const InvestorReports = () => {
     const html = renderReportToHtml(investorData);
     const win = window.open("", "_blank");
     if (win) {
-      win.document.write(html);
+      // Use sanitizeHtml for defense-in-depth XSS protection
+      win.document.write(sanitizeHtml(html));
       win.document.close();
     }
   };

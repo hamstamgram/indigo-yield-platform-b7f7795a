@@ -11137,6 +11137,14 @@ export type Database = {
       batch_crystallize_fund:
         | {
             Args: {
+              p_effective_date: string
+              p_force_override: boolean
+              p_fund_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
               p_admin_id?: string
               p_dry_run?: boolean
               p_fund_id: string
