@@ -408,7 +408,7 @@ export const RPC_SIGNATURES = {
       "p_fund_id",
       "p_investor_id",
     ] as const,
-    optionalParams: ["p_notes", "p_purpose"] as const,
+    optionalParams: ["p_notes", "p_purpose", "p_tx_subtype"] as const,
   },
   apply_transaction_with_crystallization: {
     name: "apply_transaction_with_crystallization" as const,
@@ -438,7 +438,7 @@ export const RPC_SIGNATURES = {
       "p_new_total_aum",
       "p_tx_date",
     ] as const,
-    optionalParams: ["p_notes", "p_purpose"] as const,
+    optionalParams: ["p_notes", "p_purpose", "p_tx_subtype"] as const,
   },
   apply_yield_correction_v2: {
     name: "apply_yield_correction_v2" as const,

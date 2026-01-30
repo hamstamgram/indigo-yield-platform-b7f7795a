@@ -18,7 +18,7 @@ export const Terms = lazy(() => import("@/pages/Terms"));
 // ============================================================================
 export const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
 export const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
-export const AdminDepositsPage = lazy(() => import("@/pages/admin/AdminDepositsPage"));
+// AdminDepositsPage removed - consolidated into AdminTransactionsPage
 export const AdminEmailTrackingPage = lazy(() => import("@/pages/admin/AdminEmailTrackingPage"));
 export const AdminOperationsHub = lazy(() => import("@/pages/admin/AdminOperationsHub"));
 export const AdminRequestsQueuePage = lazy(() => import("@/pages/admin/AdminRequestsQueuePage"));
@@ -162,11 +162,7 @@ export const LazyAdminDashboard = () => (
     <AdminDashboard />
   </RouteSuspense>
 );
-export const LazyAdminDeposits = () => (
-  <RouteSuspense type="admin">
-    <AdminDepositsPage />
-  </RouteSuspense>
-);
+// LazyAdminDeposits removed - consolidated into AdminTransactionsPage
 export const LazyAdminEmailTracking = () => (
   <RouteSuspense type="admin">
     <AdminEmailTrackingPage />

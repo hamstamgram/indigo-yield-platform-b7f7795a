@@ -113,7 +113,7 @@ export function GlobalShortcuts() {
       ...SHORTCUTS.QUICK_DEPOSITS,
       handler: () => {
         if (isAdmin) {
-          navigate("/admin/deposits");
+          navigate("/admin/transactions"); // Deposits consolidated into transactions
         }
       },
       enabled: isAdmin,

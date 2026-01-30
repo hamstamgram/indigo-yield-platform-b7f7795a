@@ -28,16 +28,16 @@ interface QuickAction {
   label: string;
   icon: React.ReactNode;
   href: string;
-  shortcut?: { key: string; meta?: boolean };
+  shortcut?: { key: string; meta?: boolean; shift?: boolean };
   variant?: "default" | "primary" | "warning";
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
   {
-    id: "deposit",
-    label: "New Deposit",
+    id: "transaction",
+    label: "Transactions",
     icon: <ArrowDownCircle className="h-4 w-4" />,
-    href: "/admin/deposits",
+    href: "/admin/transactions",
     variant: "primary",
   },
   {

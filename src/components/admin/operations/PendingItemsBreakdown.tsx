@@ -24,7 +24,7 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
       description: "Awaiting verification",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      href: "/admin/deposits",
+      href: "/admin/transactions", // Deposits consolidated into transactions
     },
     {
       title: "Pending Withdrawals",

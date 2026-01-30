@@ -1,24 +1,17 @@
 /**
  * Admin Deposit Routes
- * Deposit tracking, approval, and management
+ * Redirects to Transactions page (deposits consolidated)
  */
 
-import { Route } from "react-router-dom";
-import { lazy } from "react";
-import { AdminRoute } from "../../AdminRoute";
-
-const AdminDepositsPage = lazy(() => import("@/pages/admin/AdminDepositsPage"));
+import { Route, Navigate } from "react-router-dom";
 
 export function DepositRoutes() {
   return (
     <>
+      {/* Redirect deposits to transactions - consolidated in P1 cleanup */}
       <Route
         path="/admin/deposits"
-        element={
-          <AdminRoute>
-            <AdminDepositsPage />
-          </AdminRoute>
-        }
+        element={<Navigate to="/admin/transactions" replace />}
       />
     </>
   );

@@ -216,25 +216,27 @@ export async function createAdminTransaction(
       const result =
         dbType === "DEPOSIT"
           ? await rpc.call("apply_deposit_with_crystallization", {
-              p_fund_id: params.fund_id,
-              p_investor_id: params.investor_id,
-              p_amount: Number(params.amount),
-              p_closing_aum: Number(closingAum),
-              p_effective_date: params.tx_date,
-              p_admin_id: user.id,
-              p_notes: params.notes || `${dbType} - ${triggerReference}`,
-              p_purpose: "transaction",
-            })
+            p_fund_id: params.fund_id,
+            p_investor_id: params.investor_id,
+            p_amount: Number(params.amount),
+            p_closing_aum: Number(closingAum),
+            p_effective_date: params.tx_date,
+            p_admin_id: user.id,
+            p_notes: params.notes || `${dbType} - ${triggerReference}`,
+            p_purpose: "transaction",
+            p_tx_subtype: params.type.toLowerCase(), // Store original selection
+          })
           : await rpc.call("apply_withdrawal_with_crystallization", {
-              p_fund_id: params.fund_id,
-              p_investor_id: params.investor_id,
-              p_amount: Number(params.amount),
-              p_new_total_aum: Number(closingAum),
-              p_tx_date: params.tx_date,
-              p_admin_id: user.id,
-              p_notes: params.notes || `${dbType} - ${triggerReference}`,
-              p_purpose: "transaction",
-            });
+            p_fund_id: params.fund_id,
+            p_investor_id: params.investor_id,
+            p_amount: Number(params.amount),
+            p_new_total_aum: Number(closingAum),
+            p_tx_date: params.tx_date,
+            p_admin_id: user.id,
+            p_notes: params.notes || `${dbType} - ${triggerReference}`,
+            p_purpose: "transaction",
+            p_tx_subtype: params.type.toLowerCase(), // Store original selection
+          });
 
       if (result.error) {
         logError(`createAdminTransaction.${dbType}`, result.error, { fundId: params.fund_id });
@@ -275,9 +277,9 @@ export async function createAdminTransaction(
 
     throw new Error(
       `Transaction type ${dbType} cannot be created through this service. ` +
-        `YIELD/INTEREST must use apply_daily_yield_to_fund_v3 RPC. ` +
-        `FEE must use fee allocation RPCs. ` +
-        `See docs/FLOW_MATRIX.md for canonical mutation pathways.`
+      `YIELD/INTEREST must use apply_daily_yield_to_fund_v3 RPC. ` +
+      `FEE must use fee allocation RPCs. ` +
+      `See docs/FLOW_MATRIX.md for canonical mutation pathways.`
     );
   } catch (error) {
     logError("createAdminTransaction", error);
@@ -326,25 +328,25 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   const result =
     params.type === "DEPOSIT"
       ? await rpc.call("apply_deposit_with_crystallization", {
-          p_fund_id: params.fundId,
-          p_investor_id: params.investorId,
-          p_amount: Number(params.amount),
-          p_closing_aum: Number(closingAum),
-          p_effective_date: today,
-          p_admin_id: user.id,
-          p_notes: params.description || `${params.type} - ${triggerReference}`,
-          p_purpose: "transaction",
-        })
+        p_fund_id: params.fundId,
+        p_investor_id: params.investorId,
+        p_amount: Number(params.amount),
+        p_closing_aum: Number(closingAum),
+        p_effective_date: today,
+        p_admin_id: user.id,
+        p_notes: params.description || `${params.type} - ${triggerReference}`,
+        p_purpose: "transaction",
+      })
       : await rpc.call("apply_withdrawal_with_crystallization", {
-          p_fund_id: params.fundId,
-          p_investor_id: params.investorId,
-          p_amount: Number(params.amount),
-          p_new_total_aum: Number(closingAum),
-          p_tx_date: today,
-          p_admin_id: user.id,
-          p_notes: params.description || `${params.type} - ${triggerReference}`,
-          p_purpose: "transaction",
-        });
+        p_fund_id: params.fundId,
+        p_investor_id: params.investorId,
+        p_amount: Number(params.amount),
+        p_new_total_aum: Number(closingAum),
+        p_tx_date: today,
+        p_admin_id: user.id,
+        p_notes: params.description || `${params.type} - ${triggerReference}`,
+        p_purpose: "transaction",
+      });
 
   if (result.error) {
     throw new Error(result.error.userMessage);

@@ -3,7 +3,6 @@ import {
   FileText,
   CreditCard,
   ArrowLeftRight,
-  ArrowDownToLine,
   Users,
   User,
   Calendar,
@@ -105,12 +104,6 @@ export const adminNavGroups: NavGroup[] = [
         title: "Transactions",
         href: "/admin/transactions",
         icon: <CreditCard className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Deposits",
-        href: "/admin/deposits",
-        icon: <ArrowDownToLine className="h-5 w-5" />,
         adminOnly: true,
       },
       {

@@ -61,12 +61,12 @@ export const SHORTCUTS = {
   COMMAND_PALETTE: { key: "k", meta: true },
   ESCAPE: { key: "Escape" },
   
-  // Admin Quick Navigation (Cmd/Ctrl + Key)
-  QUICK_INVESTOR: { key: "i", meta: true },
-  QUICK_YIELD: { key: "y", meta: true },
-  QUICK_REPORT: { key: "r", meta: true },
-  QUICK_DEPOSITS: { key: "d", meta: true },
-  QUICK_WITHDRAWALS: { key: "w", meta: true },
+  // Admin Quick Navigation (Cmd/Ctrl + Shift + Key to avoid browser conflicts)
+  QUICK_INVESTOR: { key: "i", meta: true, shift: true },
+  QUICK_YIELD: { key: "y", meta: true, shift: true },
+  QUICK_REPORT: { key: "r", meta: true, shift: true },
+  QUICK_DEPOSITS: { key: "d", meta: true, shift: true },
+  QUICK_WITHDRAWALS: { key: "w", meta: true, shift: true },
   
   // G-Key Navigation (Press G then another key)
   GO_DASHBOARD: { key: "g" }, // G then D handled in component
