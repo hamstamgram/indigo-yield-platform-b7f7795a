@@ -84,18 +84,23 @@ export function YieldsTable({
   });
 
   const filteredData = useMemo(() => {
-    const activeFilters = Object.entries(columnFilters).filter(([, value]) => value.trim() !== "");
-    if (activeFilters.length === 0) return sortedData;
-
-    return sortedData.filter((record) => {
-      // Filter out internal system sync records (Ghost Records)
+    // Step 1: Always filter out ghost/sync records (position_sync sources)
+    const baseData = sortedData.filter((record) => {
       if (
         record.source?.includes("trigger:position_sync") ||
+        record.source?.includes("tx_position_sync") ||
         record.source?.includes("position_sync")
       ) {
         return false;
       }
+      return true;
+    });
 
+    // Step 2: Apply column filters if any are active
+    const activeFilters = Object.entries(columnFilters).filter(([, value]) => value.trim() !== "");
+    if (activeFilters.length === 0) return baseData;
+
+    return baseData.filter((record) => {
       const effectiveDate = record.as_of_date || record.aum_date;
       const columnValues: Record<string, string> = {
         fund: `${record.fund_name ?? ""} ${record.fund_asset ?? ""}`.trim(),

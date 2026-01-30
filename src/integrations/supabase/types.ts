@@ -11023,6 +11023,16 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_daily_yield_to_fund_v2: {
+        Args: {
+          p_date: string
+          p_fund_id: string
+          p_gross_yield: number
+          p_notes?: string
+          p_purpose?: string
+        }
+        Returns: Json
+      }
       apply_daily_yield_to_fund_v3: {
         Args: {
           p_created_by?: string
@@ -12559,6 +12569,16 @@ export type Database = {
         Args: {
           p_aum_value: number
           p_context?: string
+          p_fund_id: string
+          p_max_deviation_pct?: number
+        }
+        Returns: Json
+      }
+      validate_aum_against_positions_at_date: {
+        Args: {
+          p_aum_value: number
+          p_context?: string
+          p_event_date: string
           p_fund_id: string
           p_max_deviation_pct?: number
         }
