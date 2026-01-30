@@ -88,6 +88,14 @@ export function YieldsTable({
     if (activeFilters.length === 0) return sortedData;
 
     return sortedData.filter((record) => {
+      // Filter out internal system sync records (Ghost Records)
+      if (
+        record.source?.includes("trigger:position_sync") ||
+        record.source?.includes("position_sync")
+      ) {
+        return false;
+      }
+
       const effectiveDate = record.as_of_date || record.aum_date;
       const columnValues: Record<string, string> = {
         fund: `${record.fund_name ?? ""} ${record.fund_asset ?? ""}`.trim(),

@@ -18,9 +18,11 @@ import { Info, Loader2 } from "lucide-react";
 import { useActiveFunds, useInvestorsForTransaction } from "@/hooks";
 import { getAssetLogo } from "@/utils/assets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 // Refactored imports
 import { useTransactionForm, TransactionFormData } from "./hooks/useTransactionForm";
+import { GlobalYieldFlow } from "./components/GlobalYieldFlow";
 import { useTransactionSubmit } from "./hooks/useTransactionSubmit";
 import { AssetInput } from "./components/AssetInput";
 import { InvestorSelect } from "./components/InvestorSelect";
@@ -124,47 +126,24 @@ export function AddTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className={cn(
+          "max-h-[90vh] overflow-y-auto transition-all duration-300",
+          txnType === "YIELD" ? "sm:max-w-4xl" : "sm:max-w-[500px]"
+        )}
+      >
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
           <DialogDescription>
-            Manually create a transaction for an investor. All fields are validated and logged.
+            {txnType === "YIELD"
+              ? "Distribute algorithmic yield to all investors in the selected fund."
+              : "Manually create a transaction for an investor. All fields are validated and logged."}
           </DialogDescription>
         </DialogHeader>
 
         <FormProvider {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Investor Selector */}
-            <InvestorSelect
-              investors={investors}
-              isLoading={isLoadingInvestors}
-              selectedInvestorId={selectedInvestorId}
-              onSelect={setSelectedInvestorId}
-              error={investorError}
-            />
-
-            {/* Balance indicator */}
-            {selectedInvestorId && selectedFundId && (
-              <Alert variant={isFirstInvestment ? "default" : "default"} className="py-2">
-                <Info className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  {isCheckingBalance ? (
-                    "Checking balance..."
-                  ) : isFirstInvestment ? (
-                    <span className="text-amber-600 dark:text-amber-400">
-                      <strong>No existing position</strong> — Use "First Investment" for deposits
-                    </span>
-                  ) : (
-                    <span>
-                      <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit"
-                      for top-ups
-                    </span>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Transaction Type */}
+            {/* Transaction Type - Always visible */}
             <TransactionTypeSelect
               value={txnType}
               onChange={(val) => setValue("txn_type", val)}
@@ -173,7 +152,7 @@ export function AddTransactionDialog({
               error={errors.txn_type?.message}
             />
 
-            {/* Fund Selector */}
+            {/* Fund Selector - Always visible */}
             <div className="space-y-2">
               <Label htmlFor="fund_id">Fund *</Label>
               <Select
@@ -202,38 +181,86 @@ export function AddTransactionDialog({
               {errors.fund_id && (
                 <p className="text-sm text-destructive">{errors.fund_id.message}</p>
               )}
+              {/* Hidden asset input required for form logic */}
               <Input type="hidden" {...form.register("asset")} />
             </div>
 
-            {/* Amount */}
-            <TransactionAmountInput />
-
-            {/* Transaction Date */}
-            <TransactionDateInput />
-
-            {/* Asset Input (Preflow AUM) */}
-            {selectedFundId &&
-              txDate &&
-              ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
-                <AssetInput
-                  fundId={selectedFundId}
-                  txDate={txDate}
-                  asset={selectedFund?.asset || "tokens"}
+            {/* CONDITIONAL CONTENT */}
+            {txnType === "YIELD" ? (
+              /* Global Yield Flow */
+              <GlobalYieldFlow
+                fundId={selectedFundId}
+                onSuccess={() => {
+                  onSuccess();
+                  onOpenChange(false);
+                }}
+                onCancel={handleCancel}
+              />
+            ) : (
+              /* Standard Transaction Flow */
+              <>
+                {/* Investor Selector */}
+                <InvestorSelect
+                  investors={investors}
+                  isLoading={isLoadingInvestors}
+                  selectedInvestorId={selectedInvestorId}
+                  onSelect={setSelectedInvestorId}
+                  error={investorError}
                 />
-              )}
 
-            {/* Metadata Inputs (Reference ID, Hash, Notes) */}
-            <TransactionMetadataInputs />
+                {/* Balance indicator */}
+                {selectedInvestorId && selectedFundId && (
+                  <Alert variant={isFirstInvestment ? "default" : "default"} className="py-2">
+                    <Info className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      {isCheckingBalance ? (
+                        "Checking balance..."
+                      ) : isFirstInvestment ? (
+                        <span className="text-amber-600 dark:text-amber-400">
+                          <strong>No existing position</strong> — Use "First Investment" for
+                          deposits
+                        </span>
+                      ) : (
+                        <span>
+                          <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use
+                          "Deposit" for top-ups
+                        </span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading || fundsLoading || isLoadingInvestors}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Transaction
-              </Button>
-            </DialogFooter>
+                {/* Amount */}
+                <TransactionAmountInput />
+
+                {/* Transaction Date */}
+                <TransactionDateInput />
+
+                {/* Asset Input (Preflow AUM) */}
+                {selectedFundId &&
+                  txDate &&
+                  ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
+                    <AssetInput
+                      fundId={selectedFundId}
+                      txDate={txDate}
+                      asset={selectedFund?.asset || "tokens"}
+                    />
+                  )}
+
+                {/* Metadata Inputs (Reference ID, Hash, Notes) */}
+                <TransactionMetadataInputs />
+
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading || fundsLoading || isLoadingInvestors}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Transaction
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
           </form>
         </FormProvider>
       </DialogContent>
