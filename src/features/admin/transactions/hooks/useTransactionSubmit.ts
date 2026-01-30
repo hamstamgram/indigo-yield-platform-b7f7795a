@@ -102,7 +102,13 @@ export function useTransactionSubmit({
       onOpenChange(false);
     } catch (error) {
       logError("transaction.create", error, { fundId: data.fund_id || initialFundId });
-      toast.error(error instanceof Error ? error.message : "Failed to create transaction");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+            ? error
+            : JSON.stringify(error);
+      toast.error(errorMessage || "Failed to create transaction");
     } finally {
       setLoading(false);
     }
