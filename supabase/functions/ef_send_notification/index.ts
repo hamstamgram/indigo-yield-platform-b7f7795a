@@ -77,8 +77,8 @@ serve(async (req) => {
       throw new Error(`Failed to create notification: ${insertError.message}`);
     }
 
-    // Send email via MailerLite if requested
-    if (request.send_email && Deno.env.get("MAILERLITE_API_KEY")) {
+    // Send email via Resend if requested
+    if (request.send_email && Deno.env.get("RESEND_API_KEY")) {
       try {
         // Get user email
         const { data: recipient } = await supabase
@@ -88,25 +88,25 @@ serve(async (req) => {
           .single();
 
         if (recipient?.email) {
-          const mailerliteResponse = await fetch("https://api.mailerlite.com/api/v2/campaigns", {
+          const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "notifications@indigoyield.com";
+          const fromName = Deno.env.get("RESEND_FROM_NAME") || "Indigo Yield";
+          const resendResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-MailerLite-ApiKey": Deno.env.get("MAILERLITE_API_KEY")!,
+              Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
             },
             body: JSON.stringify({
-              type: "regular",
+              from: `${fromName} <${fromEmail}>`,
+              to: [recipient.email],
               subject: request.title,
-              content: request.body,
-              groups: [], // Configure based on your MailerLite groups
-              settings: {
-                track_opens: true,
-              },
+              text: request.body,
+              html: `<p>${request.body}</p>`,
             }),
           });
 
-          if (!mailerliteResponse.ok) {
-            console.error("MailerLite email failed:", await mailerliteResponse.text());
+          if (!resendResponse.ok) {
+            console.error("Resend email failed:", await resendResponse.text());
           }
         }
       } catch (emailError) {

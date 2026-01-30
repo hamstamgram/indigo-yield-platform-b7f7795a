@@ -17,12 +17,12 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const MAILERSEND_API_TOKEN = Deno.env.get("MAILERSEND_API_TOKEN");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!MAILERSEND_API_TOKEN) {
-      throw new Error("MAILERSEND_API_TOKEN not configured");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY not configured");
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -37,8 +37,11 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -71,77 +74,78 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     if (!delivery.provider_message_id) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        message: "No provider message ID - email may not have been sent yet" 
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "No provider message ID - email may not have been sent yet",
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
-    // Query MailerSend for message activity
+    // Query Resend for message activity
     console.log(`Fetching status for message: ${delivery.provider_message_id}`);
-    
-    const mailersendResponse = await fetch(
-      `https://api.mailersend.com/v1/activity/${delivery.provider_message_id}`,
+
+    const resendResponse = await fetch(
+      `https://api.resend.com/emails/${delivery.provider_message_id}`,
       {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${MAILERSEND_API_TOKEN}`,
+          Authorization: `Bearer ${RESEND_API_KEY}`,
         },
       }
     );
 
-    if (!mailersendResponse.ok) {
-      const errorText = await mailersendResponse.text();
-      console.error("MailerSend API error:", errorText);
-      
-      // If 404, message might be too old or not found
-      if (mailersendResponse.status === 404) {
-        return new Response(JSON.stringify({ 
-          success: false, 
-          message: "Message not found in MailerSend - may be too old or invalid ID" 
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    if (!resendResponse.ok) {
+      const errorText = await resendResponse.text();
+      console.error("Resend API error:", errorText);
+
+      if (resendResponse.status === 404) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Message not found in Resend - may be too old or invalid ID",
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
       }
-      
-      throw new Error(`MailerSend API error: ${mailersendResponse.status}`);
+
+      throw new Error(`Resend API error: ${resendResponse.status}`);
     }
 
-    const activityData = await mailersendResponse.json();
-    console.log("MailerSend activity:", JSON.stringify(activityData));
+    const activityData = await resendResponse.json();
+    console.log("Resend activity:", JSON.stringify(activityData));
 
-    // Parse the activity to determine current status
     let newStatus = delivery.status;
     let deliveredAt = null;
     let failedAt = null;
     let errorMessage = null;
 
-    // MailerSend activity structure
-    const events = activityData.data?.events || [];
-    
-    for (const event of events) {
-      const eventType = event.type?.toLowerCase();
-      const timestamp = event.created_at;
+    const resendStatus = String(activityData?.status || "").toLowerCase();
+    const lastEvent = String(activityData?.last_event || "").toLowerCase();
+    const effectiveStatus = lastEvent || resendStatus;
 
-      if (eventType === "delivered") {
-        newStatus = "DELIVERED";
-        deliveredAt = timestamp;
-      } else if (eventType === "soft_bounced" || eventType === "hard_bounced") {
-        newStatus = "BOUNCED";
-        failedAt = timestamp;
-        errorMessage = event.reason || "Email bounced";
-      } else if (eventType === "spam_complaint") {
-        newStatus = "COMPLAINED";
-        errorMessage = "Recipient marked as spam";
-      } else if (eventType === "opened") {
-        // Don't change status for opens, but we could track it
-      } else if (eventType === "clicked") {
-        // Don't change status for clicks
-      }
+    if (effectiveStatus === "delivered") {
+      newStatus = "DELIVERED";
+      deliveredAt = activityData?.delivered_at || new Date().toISOString();
+    } else if (effectiveStatus === "bounced") {
+      newStatus = "BOUNCED";
+      failedAt = activityData?.bounced_at || new Date().toISOString();
+      errorMessage = activityData?.error || "Email bounced";
+    } else if (effectiveStatus === "complained") {
+      newStatus = "COMPLAINED";
+      failedAt = activityData?.complained_at || new Date().toISOString();
+      errorMessage = "Recipient marked as spam";
+    } else if (effectiveStatus === "failed") {
+      newStatus = "FAILED";
+      failedAt = activityData?.failed_at || new Date().toISOString();
+      errorMessage = activityData?.error || "Delivery failed";
     }
 
     // Update delivery record if status changed
@@ -150,7 +154,7 @@ serve(async (req: Request): Promise<Response> => {
         status: newStatus,
         updated_at: new Date().toISOString(),
       };
-      
+
       if (deliveredAt) updateData.delivered_at = deliveredAt;
       if (failedAt) updateData.failed_at = failedAt;
       if (errorMessage) updateData.error_message = errorMessage;
@@ -165,20 +169,19 @@ serve(async (req: Request): Promise<Response> => {
       }
 
       // Log the status change
-      await supabase
-        .from("report_delivery_events")
-        .insert({
-          delivery_id,
-          provider_message_id: delivery.provider_message_id,
-          event_type: "status_refreshed",
-          event_data: {
-            old_status: delivery.status,
-            new_status: newStatus,
-            refreshed_by: user.id,
-            activity_data: activityData,
-          },
-          occurred_at: new Date().toISOString(),
-        });
+      await supabase.from("report_delivery_events").insert({
+        delivery_id,
+        provider_message_id: delivery.provider_message_id,
+        event_type: "status_refreshed",
+        event_data: {
+          old_status: delivery.status,
+          new_status: newStatus,
+          refreshed_by: user.id,
+          activity_data: activityData,
+          provider: "resend",
+        },
+        occurred_at: new Date().toISOString(),
+      });
     }
 
     return new Response(
@@ -187,24 +190,20 @@ serve(async (req: Request): Promise<Response> => {
         old_status: delivery.status,
         new_status: newStatus,
         status_changed: newStatus !== delivery.status,
-        events_found: events.length,
+        events_found: activityData ? 1 : 0,
       }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in refresh-delivery-status:", errorMessage);
 
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

@@ -128,7 +128,7 @@ SELECT cron.schedule(
 | `SUPABASE_URL` | Supabase project URL | Vercel env vars |
 | `SUPABASE_ANON_KEY` | Public anon key | Vercel env vars |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key | Edge function secrets |
-| `MAILERSEND_API_KEY` | Email delivery | Edge function secrets |
+| `RESEND_API_KEY` | Email delivery | Edge function secrets |
 | `SENTRY_DSN` | Error tracking | Vercel env vars |
 
 ### Optional:

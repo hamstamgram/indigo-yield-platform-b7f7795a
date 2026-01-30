@@ -11,12 +11,12 @@ Monthly statement generation and email delivery with tracking.
 **Preconditions**: Period exists, investor has positions
 
 ### Send Statement Email
-**Edge Function**: send-report-mailersend
+**Edge Function**: send-report-mailersend (Resend)
 **Insert**: statement_email_delivery
-**Tracking**: provider_message_id from MailerSend
+**Tracking**: provider_message_id from Resend
 
 ### Track Delivery
-**Webhook**: mailersend-webhook
+**Webhook**: mailersend-webhook (Resend)
 **Update**: statement_email_delivery status (SENT → DELIVERED/OPENED/CLICKED)
 
 ## Cache Invalidation

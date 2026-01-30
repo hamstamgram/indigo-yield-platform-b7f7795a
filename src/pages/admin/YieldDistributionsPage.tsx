@@ -529,7 +529,7 @@ function YieldDistributionsContent() {
                                                       </TableCell>
                                                       <TableCell className="text-right">
                                                         {formatPercentage(
-                                                          (allocation.fee_pct || 0) * 100,
+                                                          allocation.fee_pct || 0,
                                                           2
                                                         )}
                                                       </TableCell>
@@ -541,7 +541,7 @@ function YieldDistributionsContent() {
                                                       </TableCell>
                                                       <TableCell className="text-right">
                                                         {formatPercentage(
-                                                          (allocation.ib_pct || 0) * 100,
+                                                          allocation.ib_pct || 0,
                                                           2
                                                         )}
                                                       </TableCell>

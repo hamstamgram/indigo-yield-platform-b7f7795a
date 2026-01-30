@@ -7,7 +7,7 @@
  * - Fetching delivery statistics
  * - Fetching delivery records with filters
  * - Queueing statement deliveries
- * - Sending via MailerSend
+ * - Sending via Resend
  * - Retry, cancel, and status operations
  */
 
@@ -172,7 +172,7 @@ export const deliveryService = {
   },
 
   /**
-   * Send a single delivery via MailerSend edge function
+   * Send a single delivery via Resend edge function
    */
   async sendViaMailerSend(deliveryId: string, deliveryMode: DeliveryMode): Promise<SendResult> {
     const { data, error } = await supabase.functions.invoke("send-report-mailersend", {

@@ -41,8 +41,8 @@ export interface PostHogConfig {
 }
 
 export interface EmailConfig {
-  provider: "mailerlite" | "smtp" | "none";
-  mailerlite?: {
+  provider: "resend" | "smtp" | "none";
+  resend?: {
     apiKey: string;
     enabled: boolean;
   };
@@ -257,14 +257,14 @@ function getPostHogConfig(): PostHogConfig | undefined {
 // ============================================================================
 
 function getEmailConfig(): EmailConfig {
-  const mailerliteKey = getEnv("MAILERLITE_API_KEY", "");
-  const mailerliteEnabled = getBoolEnv("VITE_MAILERLITE_ENABLED", false);
+  const resendKey = getEnv("RESEND_API_KEY", "");
+  const resendEnabled = getBoolEnv("VITE_RESEND_ENABLED", false);
 
-  if (mailerliteKey && mailerliteEnabled) {
+  if (resendKey && resendEnabled) {
     return {
-      provider: "mailerlite",
-      mailerlite: {
-        apiKey: mailerliteKey,
+      provider: "resend",
+      resend: {
+        apiKey: resendKey,
         enabled: true,
       },
     };

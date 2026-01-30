@@ -6,42 +6,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// MailerSend webhook event types
-type MailerSendEventType = 
-  | "activity.sent"
-  | "activity.delivered"
-  | "activity.soft_bounced"
-  | "activity.hard_bounced"
-  | "activity.opened"
-  | "activity.clicked"
-  | "activity.unsubscribed"
-  | "activity.spam_complaint";
+// Resend webhook event types
+type ResendEventType =
+  | "email.sent"
+  | "email.delivered"
+  | "email.delivery_delayed"
+  | "email.bounced"
+  | "email.complained"
+  | "email.opened"
+  | "email.clicked";
 
-interface MailerSendWebhookPayload {
-  type: MailerSendEventType;
-  domain_id: string;
-  created_at: string;
-  webhook_id: string;
-  data: {
-    object: string;
-    email: {
-      id: string;
-      from: string;
-      subject: string;
-      status: string;
-      created_at: string;
-      message: {
-        id: string;
-      };
-      recipient: {
-        email: string;
-      };
-    };
-    morph?: {
-      url?: string;
-      ip?: string;
-      user_agent?: string;
-    };
+interface ResendWebhookPayload {
+  type: ResendEventType;
+  created_at?: string;
+  data?: {
+    id?: string;
+    subject?: string;
+    to?: string[];
+    from?: string;
+    last_event?: string;
   };
 }
 
@@ -62,20 +45,20 @@ serve(async (req: Request): Promise<Response> => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const WEBHOOK_SECRET = Deno.env.get("MAILERSEND_WEBHOOK_SIGNING_SECRET");
+    const WEBHOOK_SECRET = Deno.env.get("RESEND_WEBHOOK_SIGNING_SECRET");
 
     // Create Supabase client with service role
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Get raw body for signature verification
     const rawBody = await req.text();
-    
+
     // Verify webhook signature if secret is configured
     if (WEBHOOK_SECRET) {
-      const signature = req.headers.get("x-mailersend-signature");
-      
+      const signature = req.headers.get("resend-signature");
+
       if (signature) {
-        // MailerSend uses HMAC-SHA256 for webhook signatures
+        // Resend uses HMAC-SHA256 for webhook signatures
         const encoder = new TextEncoder();
         const key = await crypto.subtle.importKey(
           "raw",
@@ -84,17 +67,13 @@ serve(async (req: Request): Promise<Response> => {
           false,
           ["sign"]
         );
-        
-        const signatureBytes = await crypto.subtle.sign(
-          "HMAC",
-          key,
-          encoder.encode(rawBody)
-        );
-        
+
+        const signatureBytes = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
+
         const expectedSignature = Array.from(new Uint8Array(signatureBytes))
-          .map(b => b.toString(16).padStart(2, "0"))
+          .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
-        
+
         if (signature !== expectedSignature) {
           console.error("Webhook signature verification failed - rejecting request");
           return new Response(JSON.stringify({ error: "Invalid signature" }), {
@@ -104,17 +83,21 @@ serve(async (req: Request): Promise<Response> => {
         }
       }
     } else {
-      console.warn("MAILERSEND_WEBHOOK_SIGNING_SECRET not configured - signature verification skipped");
+      console.warn("RESEND_WEBHOOK_SIGNING_SECRET not configured - signature verification skipped");
     }
 
     // Parse webhook payload
-    const payload: MailerSendWebhookPayload = JSON.parse(rawBody);
-    
-    console.log(`Received MailerSend webhook: type=${payload.type}`);
+    const payload: ResendWebhookPayload = JSON.parse(rawBody);
+
+    console.log(`Received Resend webhook: type=${payload.type}`);
 
     // Extract message ID from payload
-    const messageId = payload.data?.email?.message?.id;
-    
+    const messageId =
+      payload.data?.id ||
+      (payload as any)?.data?.email?.message?.id ||
+      (payload as any)?.data?.email?.id ||
+      null;
+
     if (!messageId) {
       console.warn("No message ID in webhook payload, skipping");
       return new Response(JSON.stringify({ received: true, skipped: "no_message_id" }), {
@@ -146,7 +129,7 @@ serve(async (req: Request): Promise<Response> => {
     };
 
     switch (payload.type) {
-      case "activity.sent":
+      case "email.sent":
         statusUpdate = {
           ...statusUpdate,
           status: "SENT",
@@ -154,7 +137,7 @@ serve(async (req: Request): Promise<Response> => {
         };
         break;
 
-      case "activity.delivered":
+      case "email.delivered":
         statusUpdate = {
           ...statusUpdate,
           status: "DELIVERED",
@@ -162,7 +145,7 @@ serve(async (req: Request): Promise<Response> => {
         };
         break;
 
-      case "activity.opened":
+      case "email.opened":
         // Don't change status, just record opened_at
         statusUpdate = {
           ...statusUpdate,
@@ -170,7 +153,7 @@ serve(async (req: Request): Promise<Response> => {
         };
         break;
 
-      case "activity.clicked":
+      case "email.clicked":
         // Don't change status, just record clicked_at
         statusUpdate = {
           ...statusUpdate,
@@ -178,34 +161,19 @@ serve(async (req: Request): Promise<Response> => {
         };
         break;
 
-      case "activity.soft_bounced":
+      case "email.bounced":
         statusUpdate = {
           ...statusUpdate,
           status: "BOUNCED",
           bounced_at: eventTime,
-          bounce_type: "soft",
         };
         break;
 
-      case "activity.hard_bounced":
-        statusUpdate = {
-          ...statusUpdate,
-          status: "FAILED",
-          bounced_at: eventTime,
-          bounce_type: "hard",
-        };
-        break;
-
-      case "activity.spam_complaint":
+      case "email.complained":
         statusUpdate = {
           ...statusUpdate,
           status: "COMPLAINED",
         };
-        break;
-
-      case "activity.unsubscribed":
-        // Record but don't change delivery status
-        console.log(`Unsubscribe event for delivery ${delivery.id}`);
         break;
 
       default:
@@ -224,7 +192,7 @@ serve(async (req: Request): Promise<Response> => {
 
     // Log event to report_delivery_events with idempotency check
     const eventType = payload.type.replace("activity.", "");
-    
+
     // Check for existing event (idempotency)
     const { data: existingEvent } = await supabase
       .from("report_delivery_events")
@@ -235,28 +203,28 @@ serve(async (req: Request): Promise<Response> => {
       .maybeSingle();
 
     if (!existingEvent) {
-      const { error: eventError } = await supabase
-        .from("report_delivery_events")
-        .insert({
-          delivery_id: delivery.id,
-          provider_message_id: messageId,
-          event_type: eventType,
-          event_data: {
-            recipient: payload.data?.email?.recipient?.email,
-            subject: payload.data?.email?.subject,
-            status: payload.data?.email?.status,
-            morph: payload.data?.morph,
-            webhook_id: payload.webhook_id,
-            domain_id: payload.domain_id,
-          },
-          occurred_at: eventTime,
-        });
+      const { error: eventError } = await supabase.from("report_delivery_events").insert({
+        delivery_id: delivery.id,
+        provider_message_id: messageId,
+        event_type: eventType,
+        event_data: {
+          recipient: payload.data?.email?.recipient?.email,
+          subject: payload.data?.email?.subject,
+          status: payload.data?.email?.status,
+          morph: payload.data?.morph,
+          webhook_id: payload.webhook_id,
+          domain_id: payload.domain_id,
+        },
+        occurred_at: eventTime,
+      });
 
       if (eventError) {
         console.error("Failed to log delivery event:", eventError);
       }
     } else {
-      console.log(`Event ${eventType} at ${eventTime} already logged for delivery ${delivery.id}, skipping`);
+      console.log(
+        `Event ${eventType} at ${eventTime} already logged for delivery ${delivery.id}, skipping`
+      );
     }
 
     console.log(`Processed ${payload.type} for delivery ${delivery.id}`);
@@ -273,18 +241,14 @@ serve(async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error processing MailerSend webhook:", errorMessage);
+    console.error("Error processing Resend webhook:", errorMessage);
 
     // Always return 200 to prevent webhook retries for parse errors
-    return new Response(
-      JSON.stringify({ received: true, error: errorMessage }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ received: true, error: errorMessage }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

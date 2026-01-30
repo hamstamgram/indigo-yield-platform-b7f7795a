@@ -50,7 +50,7 @@ echo "📝 Required Environment Variables:"
 echo "  export SUPABASE_URL=your_supabase_url"
 echo "  export SUPABASE_ANON_KEY=your_anon_key"
 echo "  export SUPABASE_SERVICE_KEY=your_service_role_key"
-echo "  export MAILERLITE_TOKEN=your_mailerlite_token"
+echo "  export RESEND_API_KEY=your_resend_api_key"
 echo "  export SENTRY_TOKEN=your_sentry_token"
 echo "  export GH_PAT=your_github_pat"
 echo "  export VERCEL_TOKEN=your_vercel_token"
@@ -66,10 +66,9 @@ add_secret_from_env "STAGING_SUPABASE_ANON_KEY" "SUPABASE_ANON_KEY"
 add_secret_from_env "SUPABASE_SERVICE_ROLE_KEY" "SUPABASE_SERVICE_KEY"
 add_secret_from_env "SUPABASE_STAGING_SERVICE_ROLE_KEY" "SUPABASE_SERVICE_KEY"
 
-# MailerLite Secret
-echo "📧 Adding MailerLite secret..."
-add_secret_from_env "MAILERLITE_API_TOKEN" "MAILERLITE_TOKEN"
-add_secret_from_env "VITE_MAILERLITE_API_TOKEN" "MAILERLITE_TOKEN"
+# Resend Secret
+echo "📧 Adding Resend secret..."
+add_secret_from_env "RESEND_API_KEY" "RESEND_API_KEY"
 
 # Sentry Secrets
 echo "🐛 Adding Sentry secrets..."

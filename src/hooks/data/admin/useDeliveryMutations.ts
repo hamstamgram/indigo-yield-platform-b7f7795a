@@ -24,9 +24,9 @@ export interface SendProgress {
 }
 
 /**
- * Parse MailerSend errors for user-friendly messages
+ * Parse Resend errors for user-friendly messages
  */
-function handleMailerSendError(error: Error, toastFn: typeof toast) {
+function handleResendError(error: Error, toastFn: typeof toast) {
   const errorMessage = error.message || "Unknown error";
 
   if (
@@ -34,19 +34,19 @@ function handleMailerSendError(error: Error, toastFn: typeof toast) {
     errorMessage.includes("limit") ||
     errorMessage.includes("402")
   ) {
-    toastFn.error("MailerSend quota exceeded", {
+    toastFn.error("Resend quota exceeded", {
       description:
-        "Your MailerSend trial account has reached its sending limit. Upgrade your plan at mailersend.com to continue sending.",
+        "Your Resend account has reached its sending limit. Upgrade your plan at resend.com to continue sending.",
       duration: 8000,
     });
   } else if (errorMessage.includes("401") || errorMessage.includes("unauthorized")) {
-    toastFn.error("MailerSend authentication failed", {
-      description: "Check your MAILERSEND_API_TOKEN secret is valid.",
+    toastFn.error("Resend authentication failed", {
+      description: "Check your RESEND_API_KEY secret is valid.",
       duration: 6000,
     });
   } else if (errorMessage.includes("domain") || errorMessage.includes("sender")) {
-    toastFn.error("MailerSend domain not verified", {
-      description: "Verify your sending domain at mailersend.com/domains.",
+    toastFn.error("Resend domain not verified", {
+      description: "Verify your sending domain at resend.com/domains.",
       duration: 6000,
     });
   } else {
@@ -77,7 +77,7 @@ export function useDeliveryMutations(selectedPeriodId: string) {
     },
   });
 
-  // Send single delivery via MailerSend
+  // Send single delivery via Resend
   const sendViaMutation = useMutation({
     mutationFn: async ({
       deliveryId,
@@ -95,11 +95,11 @@ export function useDeliveryMutations(selectedPeriodId: string) {
       invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
     },
     onError: (error: Error) => {
-      handleMailerSendError(error, toast);
+      handleResendError(error, toast);
     },
   });
 
-  // Batch send via MailerSend - auto-queues if queue is empty
+  // Batch send via Resend - auto-queues if queue is empty
   const processMutation = useMutation({
     mutationFn: async ({
       periodId,
@@ -192,7 +192,7 @@ export function useDeliveryMutations(selectedPeriodId: string) {
     },
     onError: (error: Error) => {
       setSendProgress(null);
-      handleMailerSendError(error, toast);
+      handleResendError(error, toast);
     },
   });
 

@@ -17,28 +17,30 @@ interface ProcessRequest {
 
 serve(async (req: Request) => {
   const requestId = crypto.randomUUID().slice(0, 8);
-  
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
-    const MAILERSEND_API_TOKEN = Deno.env.get("MAILERSEND_API_TOKEN");
-    const MAILERSEND_FROM_EMAIL = Deno.env.get("MAILERSEND_FROM_EMAIL") || "reports@indigoyield.com";
-    const MAILERSEND_FROM_NAME = Deno.env.get("MAILERSEND_FROM_NAME") || "Indigo Yield";
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "reports@indigoyield.com";
+    const RESEND_FROM_NAME = Deno.env.get("RESEND_FROM_NAME") || "Indigo Yield";
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    console.log(JSON.stringify({
-      event: "queue_processor_started",
-      request_id: requestId,
-      timestamp: new Date().toISOString(),
-      mailersend_configured: !!MAILERSEND_API_TOKEN,
-    }));
+    console.log(
+      JSON.stringify({
+        event: "queue_processor_started",
+        request_id: requestId,
+        timestamp: new Date().toISOString(),
+        resend_configured: !!RESEND_API_KEY,
+      })
+    );
 
-    if (!MAILERSEND_API_TOKEN) {
-      throw new Error("MAILERSEND_API_TOKEN not configured");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY not configured");
     }
 
     // Verify authentication
@@ -55,8 +57,11 @@ serve(async (req: Request) => {
 
     // Verify user token
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await serviceClient.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await serviceClient.auth.getUser(token);
+
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized - Invalid token" }), {
         status: 401,
@@ -70,8 +75,8 @@ serve(async (req: Request) => {
       .select("role")
       .eq("user_id", user.id);
 
-    const isAdmin = userRoles?.some(r => r.role === "admin" || r.role === "super_admin");
-    
+    const isAdmin = userRoles?.some((r) => r.role === "admin" || r.role === "super_admin");
+
     // Fallback to profiles.is_admin if no roles found
     if (!isAdmin) {
       const { data: profile } = await serviceClient
@@ -90,7 +95,12 @@ serve(async (req: Request) => {
 
     // Parse request
     const body: ProcessRequest = await req.json();
-    const { period_id, channel = "email", batch_size = MAX_BATCH_SIZE, delivery_mode = "email_html" } = body;
+    const {
+      period_id,
+      channel = "email",
+      batch_size = MAX_BATCH_SIZE,
+      delivery_mode = "email_html",
+    } = body;
 
     if (!period_id) {
       return new Response(JSON.stringify({ error: "period_id is required" }), {
@@ -99,27 +109,31 @@ serve(async (req: Request) => {
       });
     }
 
-    console.log(JSON.stringify({
-      event: "processing_queue",
-      request_id: requestId,
-      period_id,
-      batch_size,
-      delivery_mode,
-      channel,
-      user_id: user.id,
-    }));
+    console.log(
+      JSON.stringify({
+        event: "processing_queue",
+        request_id: requestId,
+        period_id,
+        batch_size,
+        delivery_mode,
+        channel,
+        user_id: user.id,
+      })
+    );
 
     // Fetch queued deliveries with all required data
     const { data: deliveries, error: fetchError } = await serviceClient
       .from("statement_email_delivery")
-      .select(`
+      .select(
+        `
         id,
         statement_id,
         investor_id,
         recipient_email,
         attempt_count,
         subject
-      `)
+      `
+      )
       .eq("period_id", period_id)
       .eq("channel", channel)
       .or("status.eq.queued,status.eq.QUEUED")
@@ -132,34 +146,37 @@ serve(async (req: Request) => {
     }
 
     if (!deliveries || deliveries.length === 0) {
-      console.log(JSON.stringify({
-        event: "no_queued_deliveries",
-        request_id: requestId,
-        period_id,
-        message: "No queued deliveries found - queue may be empty or already processed",
-      }));
-      
+      console.log(
+        JSON.stringify({
+          event: "no_queued_deliveries",
+          request_id: requestId,
+          period_id,
+          message: "No queued deliveries found - queue may be empty or already processed",
+        })
+      );
+
       // Check WHY there are no queued deliveries
       const { data: statementsCount } = await serviceClient
         .from("generated_statements")
         .select("id", { count: "exact", head: true })
         .eq("period_id", period_id);
-      
+
       const { data: allDeliveries } = await serviceClient
         .from("statement_email_delivery")
         .select("status", { count: "exact" })
         .eq("period_id", period_id);
-      
+
       const totalStatements = statementsCount?.length || 0;
       const existingDeliveries = allDeliveries?.length || 0;
-      
+
       return new Response(
         JSON.stringify({
           success: false,
           error: "No queued deliveries found",
-          reason: existingDeliveries === 0 
-            ? "Queue is empty. Click 'Queue Remaining Statements' first to populate the delivery queue."
-            : `All ${existingDeliveries} deliveries have already been processed (none in 'queued' status).`,
+          reason:
+            existingDeliveries === 0
+              ? "Queue is empty. Click 'Queue Remaining Statements' first to populate the delivery queue."
+              : `All ${existingDeliveries} deliveries have already been processed (none in 'queued' status).`,
           details: {
             statements_generated: totalStatements,
             deliveries_exist: existingDeliveries,
@@ -176,7 +193,7 @@ serve(async (req: Request) => {
     console.log(`Found ${deliveries.length} queued deliveries to process`);
 
     // Mark all as SENDING
-    const deliveryIds = deliveries.map(d => d.id);
+    const deliveryIds = deliveries.map((d) => d.id);
     await serviceClient
       .from("statement_email_delivery")
       .update({ status: "SENDING", updated_at: new Date().toISOString() })
@@ -192,7 +209,7 @@ serve(async (req: Request) => {
 
     for (const delivery of deliveries) {
       results.processed++;
-      
+
       try {
         console.log(`Processing delivery ${delivery.id} for ${delivery.recipient_email}`);
 
@@ -233,50 +250,43 @@ serve(async (req: Request) => {
           throw new Error(`Period not found: ${periodError?.message || "No data"}`);
         }
 
-        const investorName = [investor.first_name, investor.last_name]
-          .filter(Boolean)
-          .join(" ") || investor.email;
+        const investorName =
+          [investor.first_name, investor.last_name].filter(Boolean).join(" ") || investor.email;
 
-        const emailSubject = delivery.subject || `INDIGO Monthly Report – ${periodData.period_name} – ${investorName}`;
+        const emailSubject =
+          delivery.subject || `INDIGO Monthly Report – ${periodData.period_name} – ${investorName}`;
         const plainText = `Dear ${investorName},\n\nYour investment report for ${periodData.period_name} is ready.\n\nPlease view this email in an HTML-compatible email client to see the full report.\n\nThank you for trusting us with your investments.\n\nBest regards,\nIndigo Yield Team`;
 
-        // Build MailerSend payload
+        // Build Resend payload
         const emailPayload: Record<string, unknown> = {
-          from: {
-            email: MAILERSEND_FROM_EMAIL,
-            name: MAILERSEND_FROM_NAME,
-          },
-          to: [{
-            email: delivery.recipient_email,
-            name: investorName,
-          }],
+          from: `${RESEND_FROM_NAME} <${RESEND_FROM_EMAIL}>`,
+          to: [delivery.recipient_email],
           subject: emailSubject,
           text: plainText,
           html: statement.html_content,
-          settings: {
-            track_opens: true,
-            track_clicks: true,
-          },
         };
 
-        // Send via MailerSend API
-        const mailersendResponse = await fetch("https://api.mailersend.com/v1/email", {
+        // Send via Resend API
+        const resendResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${MAILERSEND_API_TOKEN}`,
+            Authorization: `Bearer ${RESEND_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(emailPayload),
         });
 
-        const messageId = mailersendResponse.headers.get("X-Message-Id");
-        const responseStatus = mailersendResponse.status;
+        const responseStatus = resendResponse.status;
+        const resendResult = await resendResponse.json().catch(() => ({}));
+        const messageId = resendResult?.id ?? null;
 
-        console.log(`MailerSend response for ${delivery.id}: status=${responseStatus}, messageId=${messageId}`);
+        console.log(
+          `Resend response for ${delivery.id}: status=${responseStatus}, messageId=${messageId}`
+        );
 
-        if (!mailersendResponse.ok) {
-          const errorText = await mailersendResponse.text();
-          throw new Error(`MailerSend API error: ${responseStatus} - ${errorText}`);
+        if (!resendResponse.ok) {
+          const errorText = JSON.stringify(resendResult) || (await resendResponse.text());
+          throw new Error(`Resend API error: ${responseStatus} - ${errorText}`);
         }
 
         // Update delivery as SENT
@@ -284,7 +294,7 @@ serve(async (req: Request) => {
           .from("statement_email_delivery")
           .update({
             status: "SENT",
-            provider: "mailersend",
+            provider: "resend",
             provider_message_id: messageId,
             delivery_mode,
             sent_at: new Date().toISOString(),
@@ -295,21 +305,19 @@ serve(async (req: Request) => {
           .eq("id", delivery.id);
 
         // Log send event
-        await serviceClient
-          .from("report_delivery_events")
-          .insert({
-            delivery_id: delivery.id,
-            provider_message_id: messageId,
-            event_type: "sent",
-            event_data: {
-              recipient: delivery.recipient_email,
-              subject: emailSubject,
-              delivery_mode,
-              sent_by: user.id,
-              provider: "mailersend",
-            },
-            occurred_at: new Date().toISOString(),
-          });
+        await serviceClient.from("report_delivery_events").insert({
+          delivery_id: delivery.id,
+          provider_message_id: messageId,
+          event_type: "sent",
+          event_data: {
+            recipient: delivery.recipient_email,
+            subject: emailSubject,
+            delivery_mode,
+            sent_by: user.id,
+            provider: "resend",
+          },
+          occurred_at: new Date().toISOString(),
+        });
 
         results.sent++;
       } catch (error) {
@@ -338,7 +346,7 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: true,
-        provider: "mailersend",
+        provider: "resend",
         ...results,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

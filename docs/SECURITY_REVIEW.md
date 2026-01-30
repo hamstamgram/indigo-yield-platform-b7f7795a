@@ -117,7 +117,7 @@ All views have been converted to `SECURITY INVOKER` with inline auth checks:
 | Function | Auth Method | Admin Check | Notes |
 |----------|-------------|-------------|-------|
 | send-email | JWT | `is_admin` in JWT | Validates sender domain |
-| send-report-mailersend | JWT | `is_admin` in JWT | Statement delivery |
+| send-report-mailersend | JWT | `is_admin` in JWT | Statement delivery (Resend) |
 | admin-user-management | JWT | `is_admin` in JWT | CRUD operations |
 | excel_import | JWT | `is_admin` in JWT | Data import |
 | excel_export | JWT | `is_admin` in JWT | Data export |
@@ -127,7 +127,7 @@ All views have been converted to `SECURITY INVOKER` with inline auth checks:
 
 | Function | Auth Method | Validation |
 |----------|-------------|------------|
-| mailersend-webhook | Webhook Signature | HMAC verification |
+| mailersend-webhook | Webhook Signature | HMAC verification (Resend) |
 | process-webhooks | Service Role | Internal only |
 
 ### Service Role Functions
@@ -151,7 +151,7 @@ All views have been converted to `SECURITY INVOKER` with inline auth checks:
 ### P1 - Manual DevOps Required
 
 1. ⚠️ **API Keys in .env** - Requires manual key rotation:
-   - MAILERLITE_API_TOKEN
+   - RESEND_API_KEY
    - SENTRY_TOKEN
    - Recommendation: Rotate keys, add .env to .gitignore, use Supabase secrets
 

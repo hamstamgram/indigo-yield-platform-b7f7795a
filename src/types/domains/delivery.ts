@@ -1,6 +1,6 @@
 /**
  * Delivery Domain Types
- * 
+ *
  * Canonical type definitions for report/statement delivery tracking.
  * All delivery-related components and services should use these types.
  */
@@ -8,25 +8,21 @@
 /**
  * Delivery status values
  */
-export type DeliveryStatus = 
-  | "queued" 
-  | "sending" 
-  | "sent" 
-  | "delivered" 
-  | "failed" 
-  | "bounced" 
-  | "complained" 
-  | "cancelled" 
+export type DeliveryStatus =
+  | "queued"
+  | "sending"
+  | "sent"
+  | "delivered"
+  | "failed"
+  | "bounced"
+  | "complained"
+  | "cancelled"
   | "skipped";
 
 /**
  * Delivery mode options
  */
-export type DeliveryMode = 
-  | "email_html" 
-  | "pdf_attachment" 
-  | "link_only" 
-  | "hybrid";
+export type DeliveryMode = "email_html" | "pdf_attachment" | "link_only" | "hybrid";
 
 /**
  * Delivery channel types
@@ -139,7 +135,7 @@ export interface StatusRefreshResult {
 }
 
 /**
- * Result from send-report-mailersend edge function
+ * Result from send-report-mailersend edge function (Resend-backed)
  */
 export interface SendResult {
   message_id: string;

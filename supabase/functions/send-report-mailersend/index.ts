@@ -19,22 +19,26 @@ interface SendReportRequest {
  * Generate PDF from HTML content using a minimal approach
  * Returns base64 encoded PDF content
  */
-async function generatePDFFromHTML(htmlContent: string, investorName: string, periodName: string): Promise<string | null> {
+async function generatePDFFromHTML(
+  htmlContent: string,
+  investorName: string,
+  periodName: string
+): Promise<string | null> {
   try {
     // Use a PDF generation service or library
     // For now, we'll use a simple text-based PDF approach with embedded HTML
     // In production, you might want to use a service like html-pdf-node or Puppeteer
-    
+
     // Try using an external PDF generation API if available
     const PDF_API_URL = Deno.env.get("PDF_GENERATION_API_URL");
     const PDF_API_KEY = Deno.env.get("PDF_GENERATION_API_KEY");
-    
+
     if (PDF_API_URL && PDF_API_KEY) {
       const response = await fetch(PDF_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${PDF_API_KEY}`,
+          Authorization: `Bearer ${PDF_API_KEY}`,
         },
         body: JSON.stringify({
           html: htmlContent,
@@ -43,13 +47,13 @@ async function generatePDFFromHTML(htmlContent: string, investorName: string, pe
           margin: { top: "20mm", right: "15mm", bottom: "20mm", left: "15mm" },
         }),
       });
-      
+
       if (response.ok) {
         const buffer = await response.arrayBuffer();
         return btoa(String.fromCharCode(...new Uint8Array(buffer)));
       }
     }
-    
+
     // Fallback: Create a simple PDF structure manually
     // This is a minimal PDF that wraps the HTML content
     const pdfHeader = `%PDF-1.4
@@ -94,7 +98,7 @@ trailer
 startxref
 520
 %%EOF`;
-    
+
     return btoa(pdfHeader);
   } catch (error) {
     console.error("PDF generation error:", error);
@@ -104,7 +108,7 @@ startxref
 
 serve(async (req: Request): Promise<Response> => {
   const requestId = crypto.randomUUID().slice(0, 8);
-  
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -112,38 +116,42 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     // Get environment variables
-    const MAILERSEND_API_TOKEN = Deno.env.get("MAILERSEND_API_TOKEN");
-    const MAILERSEND_FROM_EMAIL = Deno.env.get("MAILERSEND_FROM_EMAIL") || "reports@indigoyield.com";
-    const MAILERSEND_FROM_NAME = Deno.env.get("MAILERSEND_FROM_NAME") || "Indigo Yield";
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "reports@indigoyield.com";
+    const RESEND_FROM_NAME = Deno.env.get("RESEND_FROM_NAME") || "Indigo Yield";
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     // Enhanced logging - request received
-    console.log(JSON.stringify({
-      event: "request_received",
-      request_id: requestId,
-      timestamp: new Date().toISOString(),
-      mailersend_configured: !!MAILERSEND_API_TOKEN,
-      from_email: MAILERSEND_FROM_EMAIL,
-    }));
+    console.log(
+      JSON.stringify({
+        event: "request_received",
+        request_id: requestId,
+        timestamp: new Date().toISOString(),
+        resend_configured: !!RESEND_API_KEY,
+        from_email: RESEND_FROM_EMAIL,
+      })
+    );
 
     // Create Supabase client with service role
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Parse request body first to check for health_check
     const body: SendReportRequest = await req.json();
-    
-    console.log(JSON.stringify({
-      event: "request_parsed",
-      request_id: requestId,
-      delivery_id: body.delivery_id,
-      investor_id: body.investor_id,
-      period_id: body.period_id,
-      delivery_mode: body.delivery_mode,
-      health_check: body.health_check,
-    }));
 
-    // Handle health check mode - admin auth still required but only pings MailerSend
+    console.log(
+      JSON.stringify({
+        event: "request_parsed",
+        request_id: requestId,
+        delivery_id: body.delivery_id,
+        investor_id: body.investor_id,
+        period_id: body.period_id,
+        delivery_mode: body.delivery_mode,
+        health_check: body.health_check,
+      })
+    );
+
+    // Handle health check mode - admin auth still required but only pings Resend
     if (body.health_check) {
       // Verify admin access via JWT for health check too
       const authHeader = req.headers.get("Authorization");
@@ -155,8 +163,11 @@ serve(async (req: Request): Promise<Response> => {
       }
 
       const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-      
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser(token);
+
       if (authError || !user) {
         return new Response(JSON.stringify({ error: "Invalid token" }), {
           status: 401,
@@ -170,54 +181,62 @@ serve(async (req: Request): Promise<Response> => {
         return createAdminDeniedResponse(corsHeaders, "Health check requires admin access");
       }
 
-      // Check if MailerSend API token is configured
-      if (!MAILERSEND_API_TOKEN) {
-        return new Response(JSON.stringify({ 
-          status: "error", 
-          message: "MAILERSEND_API_TOKEN not configured" 
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      // Check if Resend API token is configured
+      if (!RESEND_API_KEY) {
+        return new Response(
+          JSON.stringify({
+            status: "error",
+            message: "RESEND_API_KEY not configured",
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
       }
 
-      // Ping MailerSend API to verify token is valid
-      const healthCheckResponse = await fetch("https://api.mailersend.com/v1/api-quota", {
+      // Ping Resend API to verify token is valid
+      const healthCheckResponse = await fetch("https://api.resend.com/domains", {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${MAILERSEND_API_TOKEN}`,
+          Authorization: `Bearer ${RESEND_API_KEY}`,
         },
       });
 
       if (healthCheckResponse.ok) {
         const quotaData = await healthCheckResponse.json();
-        return new Response(JSON.stringify({ 
-          status: "ok",
-          message: "MailerSend API is reachable",
-          from_email: MAILERSEND_FROM_EMAIL,
-          from_name: MAILERSEND_FROM_NAME,
-          remaining_quota: quotaData.remaining,
-          total_quota: quotaData.total,
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            status: "ok",
+            message: "Resend API is reachable",
+            from_email: RESEND_FROM_EMAIL,
+            from_name: RESEND_FROM_NAME,
+            domains: quotaData?.data?.length ?? null,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
       } else {
         const errorText = await healthCheckResponse.text();
-        return new Response(JSON.stringify({ 
-          status: "error", 
-          message: `MailerSend API error: ${healthCheckResponse.status}`,
-          details: errorText,
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            status: "error",
+            message: `Resend API error: ${healthCheckResponse.status}`,
+            details: errorText,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
       }
     }
 
     // Regular send flow - require API token
-    if (!MAILERSEND_API_TOKEN) {
-      throw new Error("MAILERSEND_API_TOKEN not configured");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY not configured");
     }
 
     // Verify admin access via JWT
@@ -230,8 +249,11 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -255,7 +277,8 @@ serve(async (req: Request): Promise<Response> => {
       // Fetch delivery record
       const { data: delivery, error: deliveryError } = await supabase
         .from("statement_email_delivery")
-        .select(`
+        .select(
+          `
           *,
           statement:generated_statements!statement_email_delivery_statement_id_fkey(
             id, html_content, period_id, investor_id, fund_names
@@ -266,7 +289,8 @@ serve(async (req: Request): Promise<Response> => {
           period:statement_periods!statement_email_delivery_period_id_fkey(
             id, year, month, period_end_date
           )
-        `)
+        `
+        )
         .eq("id", delivery_id)
         .single();
 
@@ -323,14 +347,27 @@ serve(async (req: Request): Promise<Response> => {
         deliveryRecord = existingDelivery;
       } else {
         // Build subject and recipient info for the delivery record
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"];
+        const monthNames = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
         const periodNameForRecord = `${monthNames[period.month - 1]} ${period.year}`;
-        const investorNameForRecord = [investor.first_name, investor.last_name]
-          .filter(Boolean)
-          .join(" ") || investor.email || "Investor";
+        const investorNameForRecord =
+          [investor.first_name, investor.last_name].filter(Boolean).join(" ") ||
+          investor.email ||
+          "Investor";
         const subjectForRecord = `INDIGO Monthly Report – ${periodNameForRecord} – ${investorNameForRecord}`;
-        
+
         // Create new delivery record BEFORE sending (required fields included)
         const { data: newDelivery, error: createError } = await supabase
           .from("statement_email_delivery")
@@ -342,7 +379,7 @@ serve(async (req: Request): Promise<Response> => {
             recipient_email: investor.email,
             subject: subjectForRecord,
             status: "QUEUED",
-            provider: "mailersend",
+            provider: "resend",
             delivery_mode,
             channel: "email",
             created_by: user.id,
@@ -361,9 +398,9 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Build recipient info
-    const investorName = [investorData.first_name, investorData.last_name]
-      .filter(Boolean)
-      .join(" ") || investorData.email;
+    const investorName =
+      [investorData.first_name, investorData.last_name].filter(Boolean).join(" ") ||
+      investorData.email;
     const recipientEmail = investorData.email;
 
     if (!recipientEmail) {
@@ -371,8 +408,20 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Build period name
-    const monthNames = ["January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"];
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     const periodName = `${monthNames[periodData.month - 1]} ${periodData.year}`;
 
     // Build email subject
@@ -390,22 +439,12 @@ Please view the HTML version or attached PDF for the full report.
 This is an automated message from Indigo Yield.
     `.trim();
 
-    // Prepare MailerSend API payload
+    // Prepare Resend API payload
     const emailPayload: Record<string, unknown> = {
-      from: {
-        email: MAILERSEND_FROM_EMAIL,
-        name: MAILERSEND_FROM_NAME,
-      },
-      to: [{
-        email: recipientEmail,
-        name: investorName,
-      }],
+      from: `${RESEND_FROM_NAME} <${RESEND_FROM_EMAIL}>`,
+      to: [recipientEmail],
       subject,
       text: plainText,
-      settings: {
-        track_opens: true,
-        track_clicks: true,
-      },
     };
 
     // Add HTML content based on delivery mode
@@ -430,73 +469,85 @@ This is an automated message from Indigo Yield.
     // PDF attachment support
     if (delivery_mode === "pdf_attachment" || delivery_mode === "hybrid") {
       // Generate PDF from HTML using a simple HTML-to-PDF approach
-      const pdfContent = await generatePDFFromHTML(statementData.html_content, investorName, periodName);
+      const pdfContent = await generatePDFFromHTML(
+        statementData.html_content,
+        investorName,
+        periodName
+      );
       if (pdfContent) {
-        emailPayload.attachments = [{
-          content: pdfContent,
-          filename: `Statement_${periodName.replace(" ", "_")}_${investorName.replace(/\s+/g, "_")}.pdf`,
-          disposition: "attachment",
-        }];
+        emailPayload.attachments = [
+          {
+            content: pdfContent,
+            filename: `Statement_${periodName.replace(" ", "_")}_${investorName.replace(/\s+/g, "_")}.pdf`,
+            disposition: "attachment",
+          },
+        ];
         console.log("PDF attachment added to email");
       } else {
         console.warn("PDF generation failed, sending without attachment");
       }
     }
 
-    console.log(JSON.stringify({
-      event: "sending_email",
-      request_id: requestId,
-      recipient: recipientEmail,
-      investor_name: investorName,
-      subject,
-      delivery_mode,
-      delivery_id: deliveryRecord.id,
-    }));
+    console.log(
+      JSON.stringify({
+        event: "sending_email",
+        request_id: requestId,
+        recipient: recipientEmail,
+        investor_name: investorName,
+        subject,
+        delivery_mode,
+        delivery_id: deliveryRecord.id,
+      })
+    );
 
-    // Call MailerSend API
-    const mailersendResponse = await fetch("https://api.mailersend.com/v1/email", {
+    // Call Resend API
+    const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${MAILERSEND_API_TOKEN}`,
+        Authorization: `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(emailPayload),
     });
 
-    // Get message ID from response headers
-    const messageId = mailersendResponse.headers.get("X-Message-Id");
-    const responseStatus = mailersendResponse.status;
+    const responseStatus = resendResponse.status;
+    const resendResult = await resendResponse.json().catch(() => ({}));
+    const messageId = resendResult?.id ?? null;
 
-    console.log(JSON.stringify({
-      event: "mailersend_response",
-      request_id: requestId,
-      status: responseStatus,
-      message_id: messageId,
-      delivery_id: deliveryRecord.id,
-    }));
-
-    if (!mailersendResponse.ok) {
-      const errorBody = await mailersendResponse.text();
-      console.error(JSON.stringify({
-        event: "mailersend_error",
+    console.log(
+      JSON.stringify({
+        event: "resend_response",
         request_id: requestId,
         status: responseStatus,
-        error: errorBody,
+        message_id: messageId,
         delivery_id: deliveryRecord.id,
-      }));
+      })
+    );
+
+    if (!resendResponse.ok) {
+      const errorBody = JSON.stringify(resendResult) || (await resendResponse.text());
+      console.error(
+        JSON.stringify({
+          event: "resend_error",
+          request_id: requestId,
+          status: responseStatus,
+          error: errorBody,
+          delivery_id: deliveryRecord.id,
+        })
+      );
 
       // Update delivery record with failure
       await supabase
         .from("statement_email_delivery")
         .update({
           status: "FAILED",
-          error_message: `MailerSend error: ${responseStatus} - ${errorBody}`,
+          error_message: `Resend error: ${responseStatus} - ${errorBody}`,
           attempt_count: (deliveryRecord.attempt_count || 0) + 1,
           updated_at: new Date().toISOString(),
         })
         .eq("id", deliveryRecord.id);
 
-      throw new Error(`MailerSend API error: ${responseStatus} - ${errorBody}`);
+      throw new Error(`Resend API error: ${responseStatus} - ${errorBody}`);
     }
 
     // Update delivery record with success
@@ -504,7 +555,7 @@ This is an automated message from Indigo Yield.
       .from("statement_email_delivery")
       .update({
         status: "SENT",
-        provider: "mailersend",
+        provider: "resend",
         provider_message_id: messageId,
         delivery_mode,
         sent_at: new Date().toISOString(),
@@ -519,35 +570,31 @@ This is an automated message from Indigo Yield.
     }
 
     // Log initial send event
-    await supabase
-      .from("report_delivery_events")
-      .insert({
-        delivery_id: deliveryRecord.id,
-        provider_message_id: messageId,
-        event_type: "sent",
-        event_data: {
-          recipient: recipientEmail,
-          subject,
-          delivery_mode,
-          sent_by: user.id,
-        },
-        occurred_at: new Date().toISOString(),
-      });
+    await supabase.from("report_delivery_events").insert({
+      delivery_id: deliveryRecord.id,
+      provider_message_id: messageId,
+      event_type: "sent",
+      event_data: {
+        recipient: recipientEmail,
+        subject,
+        delivery_mode,
+        sent_by: user.id,
+      },
+      occurred_at: new Date().toISOString(),
+    });
 
     // Log to audit
-    await supabase
-      .from("report_delivery_audit")
-      .insert({
-        delivery_id: deliveryRecord.id,
-        action: "SENT_VIA_MAILERSEND",
-        performed_by: user.id,
-        details: {
-          provider: "mailersend",
-          message_id: messageId,
-          recipient: recipientEmail,
-          delivery_mode,
-        },
-      });
+    await supabase.from("report_delivery_audit").insert({
+      delivery_id: deliveryRecord.id,
+      action: "SENT_VIA_RESEND",
+      performed_by: user.id,
+      details: {
+        provider: "resend",
+        message_id: messageId,
+        recipient: recipientEmail,
+        delivery_mode,
+      },
+    });
 
     return new Response(
       JSON.stringify({
@@ -562,17 +609,13 @@ This is an automated message from Indigo Yield.
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error in send-report-mailersend:", errorMessage);
+    console.error("Error in send-report-mailersend (resend):", errorMessage);
 
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
