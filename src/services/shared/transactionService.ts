@@ -244,9 +244,19 @@ export async function createAdminTransaction(
         throw new Error(errMsg);
       }
 
-      const data = result.data as unknown as { success?: boolean } | null;
+      const data = result.data as {
+        success?: boolean;
+        message?: string;
+        error?: string;
+        error_code?: string;
+      } | null;
       if (!data?.success) {
-        throw new Error("Failed to create transaction");
+        const message =
+          data?.message ||
+          data?.error ||
+          (data?.error_code ? `RPC error: ${data.error_code}` : null) ||
+          "Failed to create transaction";
+        throw new Error(message);
       }
 
       return { success: true };
