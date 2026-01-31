@@ -1,12 +1,13 @@
 /**
  * Investor Overview Queries
- * 
+ *
  * React Query hooks for investor overview page data
  */
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { STALE_TIME } from "@/constants/queryConfig";
 
 /**
  * Fetch recent transactions for the current investor
@@ -15,7 +16,9 @@ export function useRecentInvestorTransactions(limit = 5) {
   return useQuery({
     queryKey: QUERY_KEYS.recentTransactions,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -29,11 +32,13 @@ export function useRecentInvestorTransactions(limit = 5) {
 
       if (error) throw error;
       // Convert amount to string for domain type precision
-      return (data || []).map(tx => ({
+      return (data || []).map((tx) => ({
         ...tx,
         amount: String(tx.amount ?? "0"),
       }));
     },
+    staleTime: STALE_TIME.FINANCIAL,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -44,7 +49,9 @@ export function usePendingWithdrawalsCount() {
   return useQuery({
     queryKey: QUERY_KEYS.pendingWithdrawalsCount,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return 0;
 
       const { count, error } = await supabase
@@ -56,6 +63,8 @@ export function usePendingWithdrawalsCount() {
       if (error) throw error;
       return count || 0;
     },
+    staleTime: STALE_TIME.FINANCIAL,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -66,7 +75,9 @@ export function useLastStatementPeriod() {
   return useQuery({
     queryKey: QUERY_KEYS.lastStatementPeriod,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data, error } = await supabase
@@ -81,6 +92,8 @@ export function useLastStatementPeriod() {
       if (error || !data) return null;
       return (data?.period as any)?.period_name || null;
     },
+    staleTime: STALE_TIME.REFERENCE,
+    refetchOnWindowFocus: true,
   });
 }
 

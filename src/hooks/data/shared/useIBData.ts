@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/services/auth";
 import { ibService } from "@/services/ib";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { STALE_TIME } from "@/constants/queryConfig";
 import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 import { startOfMonth, startOfQuarter, startOfYear, subMonths } from "date-fns";
@@ -55,6 +56,8 @@ export function useIBCommissionSummary(period: PeriodType) {
     queryKey: QUERY_KEYS.ibCommissions(user?.id, undefined, period),
     queryFn: () => ibService.getCommissionSummary(user!.id, startDate || undefined),
     enabled: !!user?.id,
+    staleTime: STALE_TIME.FINANCIAL,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -86,6 +89,8 @@ export function useIBAllocations() {
     queryKey: QUERY_KEYS.ibAllocations(undefined),
     queryFn: () => ibService.getAllocations(user!.id),
     enabled: !!user?.id,
+    staleTime: STALE_TIME.FINANCIAL,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -96,6 +101,8 @@ export function useIBPositions() {
     queryKey: QUERY_KEYS.ibPositions(user?.id || ""),
     queryFn: () => ibService.getIBPositions(user!.id),
     enabled: !!user?.id,
+    staleTime: STALE_TIME.FINANCIAL,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -108,6 +115,8 @@ export function useIBReferrals(page: number, pageSize = 10) {
     queryKey: QUERY_KEYS.ibReferrals(user?.id, page),
     queryFn: () => ibService.getReferrals(user!.id, page, pageSize),
     enabled: !!user?.id,
+    staleTime: STALE_TIME.TRANSACTIONS,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -118,6 +127,8 @@ export function useIBReferralsForDashboard() {
     queryKey: QUERY_KEYS.ibReferrals(user?.id),
     queryFn: () => ibService.getReferralsForDashboard(user!.id),
     enabled: !!user?.id,
+    staleTime: STALE_TIME.TRANSACTIONS,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -159,6 +170,8 @@ export function useIBCommissions(page: number, dateRange: string, pageSize = 20)
     queryKey: QUERY_KEYS.ibCommissions(user?.id, page, dateRange),
     queryFn: () => ibService.getCommissions(user!.id, page, pageSize, range),
     enabled: !!user?.id,
+    staleTime: STALE_TIME.TRANSACTIONS,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -171,6 +184,8 @@ export function useIBPayoutHistory(page: number, pageSize = 20) {
     queryKey: QUERY_KEYS.ibPayoutHistory(user?.id || "", page),
     queryFn: () => ibService.getPayoutHistory(user!.id, page, pageSize),
     enabled: !!user?.id,
+    staleTime: STALE_TIME.TRANSACTIONS,
+    refetchOnWindowFocus: true,
   });
 }
 

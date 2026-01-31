@@ -1,15 +1,11 @@
 /**
  * Investor Hooks - Barrel Export
- * 
+ *
  * Domain-specific hooks for investor operations
  */
 
 // Balance hooks
-export {
-  useInvestorBalance,
-  useTransactionHistory,
-  useAUMExists,
-} from "./useInvestorBalance";
+export { useInvestorBalance, useTransactionHistory, useAUMExists } from "./useInvestorBalance";
 
 // Investor data hooks
 export {
@@ -30,10 +26,7 @@ export {
 export { useInvestorInvite } from "./useInvestorInvite";
 
 // Ledger hooks
-export {
-  useInvestorLedger,
-  type LedgerTransaction,
-} from "./useInvestorLedger";
+export { useInvestorLedger, type LedgerTransaction } from "./useInvestorLedger";
 
 // Overview hooks
 export {
@@ -120,10 +113,7 @@ export {
 } from "./usePortfolio";
 
 // useFundDetailsPage (new - for FundDetailsPage)
-export {
-  useAssetMeta,
-  type AssetMeta,
-} from "./useFundDetailsPage";
+export { useAssetMeta, type AssetMeta } from "./useFundDetailsPage";
 
 // useInvestorPortfolioQueries (moved from hooks/investor/)
 export {
@@ -140,3 +130,6 @@ export {
   useDeleteNotification,
   type InvestorNotification,
 } from "./useInvestorNotifications";
+
+// Realtime invalidation
+export { useInvestorRealtimeInvalidation } from "./useInvestorRealtimeInvalidation";

@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLoadingSpinner } from "@/components/ui";
+import { useIBRealtimeInvalidation } from "@/hooks/data/ib/useIBRealtimeInvalidation";
 
 interface IBRouteProps {
   children: React.ReactNode;
@@ -17,6 +18,8 @@ interface IBRouteProps {
 export function IBRoute({ children }: IBRouteProps) {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
+
+  useIBRealtimeInvalidation(user?.id);
 
   // Check if user has IB role
   const { data: hasIBRole, isLoading: roleLoading } = useQuery({

@@ -5,6 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { STALE_TIME } from "@/constants/queryConfig";
 import { depositService } from "@/services/investor/depositService";
 import type { Deposit, DepositStatus } from "@/types/domains";
 
@@ -30,6 +31,8 @@ export function useDepositStats(filters?: DepositFilters) {
   return useQuery<DepositStats>({
     queryKey: [...QUERY_KEYS.depositStats, filters],
     queryFn: () => depositService.getDepositStats(filters),
+    staleTime: STALE_TIME.TRANSACTIONS,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -44,6 +47,8 @@ export function useDeposits(filters?: DepositFilters) {
         search: filters?.search,
         status: filters?.status,
       }),
+    staleTime: STALE_TIME.TRANSACTIONS,
+    refetchOnWindowFocus: true,
   });
 }
 
