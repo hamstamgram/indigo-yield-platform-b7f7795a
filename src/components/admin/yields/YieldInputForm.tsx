@@ -382,7 +382,7 @@ export function YieldInputForm({
         <Button
           onClick={handlePreviewYield}
           disabled={
-            !newAUM ||
+            (!newAUM && yieldPurpose !== "reporting") ||
             previewLoading ||
             Boolean(existingDistributionDate) ||
             (yieldPurpose === "reporting" && !validationResult.valid)
