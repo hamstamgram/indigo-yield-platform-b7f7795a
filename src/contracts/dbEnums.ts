@@ -116,6 +116,7 @@ export const TX_SOURCE_VALUES = [
   "crystallization",
   "system",
   "migration",
+  "stress_test",
 ] as const;
 
 export type TxSource = (typeof TX_SOURCE_VALUES)[number];

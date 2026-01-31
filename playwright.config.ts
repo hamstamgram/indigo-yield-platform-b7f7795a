@@ -39,6 +39,18 @@ export default defineConfig({
       name: "Mobile Safari",
       use: { ...devices["iPhone 12"] },
     },
+    {
+      name: "qa",
+      testDir: "./tests/qa",
+      testMatch: /\.(spec|test)\.ts$/,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL:
+          process.env.QA_BASE_URL || process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8080",
+        screenshot: "on",
+        trace: "on",
+      },
+    },
   ],
 
   webServer: {

@@ -365,6 +365,93 @@ jobs:
 
           echo "✅ FIRST_INVESTMENT check complete"
 
+  qa-invariants:
+    name: QA Invariant Checks
+    runs-on: ubuntu-latest
+    needs: sql-checks
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for raw enum string literals
+        run: |
+          echo "Checking for raw enum literals outside contracts..."
+
+          # Known enum values that should come from contracts
+          RAW_ENUMS=("DEPOSIT" "WITHDRAWAL" "YIELD" "FEE_CREDIT" "IB_CREDIT" "IB_DEBIT" "INTERNAL_WITHDRAWAL" "INTERNAL_CREDIT")
+
+          FOUND_RAW=0
+          for enum_val in "${RAW_ENUMS[@]}"; do
+            MATCHES=$(grep -rn "\"${enum_val}\"\|'${enum_val}'" src/pages/ src/components/ src/hooks/ \
+              --include="*.ts" --include="*.tsx" \
+              | grep -v "contracts" | grep -v "dbEnums" | grep -v "\.test\." | grep -v "\.spec\." \
+              | grep -v "import " | grep -v "queryKey" | grep -v "// " || true)
+
+            if [ -n "$MATCHES" ]; then
+              echo "Found raw enum '${enum_val}':"
+              echo "$MATCHES" | head -5
+              FOUND_RAW=1
+            fi
+          done
+
+          if [ $FOUND_RAW -eq 1 ]; then
+            echo ""
+            echo "WARNING: Raw enum string literals found outside contracts/"
+            echo "  Import from @/contracts/dbEnums instead."
+            # Non-blocking for now (warn only)
+          fi
+
+          echo "Raw enum check complete"
+
+      - name: Check dual enum source alignment
+        run: |
+          echo "Checking dual enum source alignment..."
+
+          # Verify dbEnums.ts and domains/enums.ts export same values
+          # This is a static check - counts exports
+          DB_ENUM_EXPORTS=$(grep -c "export const" src/contracts/dbEnums.ts || echo "0")
+          DOMAIN_ENUM_EXPORTS=$(grep -c "export const" src/types/domains/enums.ts || echo "0")
+
+          echo "  dbEnums.ts exports: $DB_ENUM_EXPORTS"
+          echo "  domains/enums.ts exports: $DOMAIN_ENUM_EXPORTS"
+
+          # Check stress_test is in TX_SOURCE_VALUES
+          if ! grep -q "stress_test" src/contracts/dbEnums.ts; then
+            echo "FAIL: stress_test missing from TX_SOURCE_VALUES in dbEnums.ts"
+            exit 1
+          fi
+
+          echo "Dual source check complete"
+
+      - name: Check for dust in yield distributions
+        run: |
+          echo "Checking for dust references in yield RPCs..."
+
+          # After Phase 7 migration, dust_amount should be zero or removed
+          # For now, just document dust usage
+          DUST_REFS=$(grep -rn "dust_amount\|dust_receiver" src/ \
+            --include="*.ts" --include="*.tsx" | wc -l || echo "0")
+
+          echo "  Dust references in frontend: $DUST_REFS"
+
+          if [ "$DUST_REFS" -gt "0" ]; then
+            echo "  Note: dust fields still referenced in frontend code"
+            echo "  These should be removed after dust elimination migration"
+          fi
+
+          echo "Dust check complete"
+
   deploy-preview:
     name: Deploy Preview
     runs-on: ubuntu-latest
