@@ -14,7 +14,7 @@ export default function InvestorPortfolioPage() {
       fundName: asset.fundName,
       assetSymbol: asset.assetSymbol,
       tokenAmount: asset.mtd.endingBalance || 0,
-      costBasis: (asset as any).itd?.endingBalance || asset.mtd.endingBalance || 0,
+      totalValueItd: (asset as any).itd?.endingBalance || asset.mtd.endingBalance || 0,
       netChanges: asset.mtd.netIncome || 0,
       lastUpdated: new Date().toISOString(),
     })) || [];
@@ -43,10 +43,10 @@ export default function InvestorPortfolioPage() {
       ),
     },
     {
-      header: "Cost Basis",
+      header: "Total Value (ITD)",
       cell: (item: (typeof positions)[0]) => (
         <span className="font-mono text-slate-400 font-medium">
-          {formatAssetAmount(item.costBasis, item.assetSymbol)}
+          {formatAssetAmount(item.totalValueItd, item.assetSymbol)}
         </span>
       ),
     },

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatPercentage } from "@/utils/formatters";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 interface Fund {
   id: string;
@@ -366,6 +367,15 @@ function YieldDistributionsContent() {
                                     (sum, a) => sum + (a.adb_share || 0),
                                     0
                                   );
+                                  const sumGrossAllocations = allocations.reduce(
+                                    (sum, a) => sum + (a.gross_amount || 0),
+                                    0
+                                  );
+                                  const grossDiscrepancy = Math.abs(
+                                    sumGrossAllocations - distribution.gross_yield
+                                  );
+                                  const hasDiscrepancy =
+                                    allocations.length > 0 && grossDiscrepancy > 0.01;
                                   return (
                                     <Card key={distribution.id}>
                                       <CardHeader className="pb-3">
@@ -407,163 +417,202 @@ function YieldDistributionsContent() {
                                           </div>
                                         </CardTitle>
                                       </CardHeader>
-                                      <CardContent className="grid gap-4 lg:grid-cols-3">
-                                        <Card>
-                                          <CardHeader className="pb-2">
-                                            <CardTitle className="text-base">
-                                              Distribution summary
-                                            </CardTitle>
-                                          </CardHeader>
-                                          <CardContent className="space-y-2 text-sm">
-                                            <div className="flex justify-between">
-                                              <span className="text-muted-foreground">Gross</span>
+                                      <CardContent className="space-y-4">
+                                        {hasDiscrepancy && (
+                                          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm border border-amber-200 dark:border-amber-800">
+                                            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                            <div>
+                                              <strong>Allocation Reconciliation Warning:</strong>{" "}
+                                              Sum of gross allocations (
+                                              <FinancialValue
+                                                value={sumGrossAllocations}
+                                                asset={fund?.asset}
+                                              />
+                                              ) does not match distribution gross yield (
                                               <FinancialValue
                                                 value={distribution.gross_yield}
                                                 asset={fund?.asset}
                                               />
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-muted-foreground">Fees</span>
+                                              ). Discrepancy:{" "}
                                               <FinancialValue
-                                                value={distribution.total_fees || 0}
+                                                value={grossDiscrepancy}
                                                 asset={fund?.asset}
                                               />
                                             </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-muted-foreground">IB</span>
-                                              <FinancialValue
-                                                value={distribution.total_ib || 0}
-                                                asset={fund?.asset}
-                                              />
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-muted-foreground">Net</span>
-                                              <FinancialValue
-                                                value={distribution.net_yield || 0}
-                                                asset={fund?.asset}
-                                              />
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-muted-foreground">
-                                                Recorded AUM
-                                              </span>
-                                              <FinancialValue
-                                                value={distribution.recorded_aum}
-                                                asset={fund?.asset}
-                                              />
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-muted-foreground">
-                                                Investors
-                                              </span>
-                                              <span>
-                                                {distribution.allocation_count ??
-                                                  allocations.length}
-                                              </span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-muted-foreground">
-                                                Total ADB
-                                              </span>
-                                              <span>{totalAdb.toFixed(6)}</span>
-                                            </div>
-                                          </CardContent>
-                                        </Card>
+                                          </div>
+                                        )}
+                                        {allocations.length > 0 && !hasDiscrepancy && (
+                                          <div className="flex items-center gap-2 p-2 rounded-md bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-xs border border-green-200 dark:border-green-800">
+                                            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                                            <span>Allocations reconcile with gross yield</span>
+                                          </div>
+                                        )}
+                                        <div className="grid gap-4 lg:grid-cols-3">
+                                          <Card>
+                                            <CardHeader className="pb-2">
+                                              <CardTitle className="text-base">
+                                                Distribution summary
+                                              </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-2 text-sm">
+                                              <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Gross</span>
+                                                <FinancialValue
+                                                  value={distribution.gross_yield}
+                                                  asset={fund?.asset}
+                                                />
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Fees</span>
+                                                <FinancialValue
+                                                  value={distribution.total_fees || 0}
+                                                  asset={fund?.asset}
+                                                />
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-muted-foreground">IB</span>
+                                                <FinancialValue
+                                                  value={distribution.total_ib || 0}
+                                                  asset={fund?.asset}
+                                                />
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Net</span>
+                                                <FinancialValue
+                                                  value={distribution.net_yield || 0}
+                                                  asset={fund?.asset}
+                                                />
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-muted-foreground">
+                                                  Recorded AUM
+                                                </span>
+                                                <FinancialValue
+                                                  value={distribution.recorded_aum}
+                                                  asset={fund?.asset}
+                                                />
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-muted-foreground">
+                                                  Investors
+                                                </span>
+                                                <span>
+                                                  {distribution.allocation_count ??
+                                                    allocations.length}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-muted-foreground">
+                                                  Total ADB
+                                                </span>
+                                                <span>{totalAdb.toFixed(6)}</span>
+                                              </div>
+                                            </CardContent>
+                                          </Card>
 
-                                        <Card className="lg:col-span-2">
-                                          <CardHeader className="pb-2">
-                                            <CardTitle className="text-base">
-                                              Allocation breakdown
-                                            </CardTitle>
-                                          </CardHeader>
-                                          <CardContent className="overflow-auto">
-                                            <Table>
-                                              <TableHeader>
-                                                <TableRow>
-                                                  <TableHead>Investor</TableHead>
-                                                  <TableHead className="text-right">ADB</TableHead>
-                                                  <TableHead className="text-right">
-                                                    Ownership
-                                                  </TableHead>
-                                                  <TableHead className="text-right">
-                                                    Gross
-                                                  </TableHead>
-                                                  <TableHead className="text-right">
-                                                    Fee %
-                                                  </TableHead>
-                                                  <TableHead className="text-right">Fee</TableHead>
-                                                  <TableHead className="text-right">IB %</TableHead>
-                                                  <TableHead className="text-right">IB</TableHead>
-                                                  <TableHead className="text-right">Net</TableHead>
-                                                </TableRow>
-                                              </TableHeader>
-                                              <TableBody>
-                                                {allocations.map((allocation) => {
-                                                  const investor =
-                                                    investorMap[allocation.investor_id];
-                                                  return (
-                                                    <TableRow key={allocation.id}>
-                                                      <TableCell>
-                                                        <div className="font-medium">
-                                                          {formatInvestorName(investor)}
-                                                        </div>
-                                                        <div className="text-xs text-muted-foreground">
-                                                          {investor?.email ||
-                                                            allocation.investor_id}
-                                                        </div>
-                                                      </TableCell>
-                                                      <TableCell className="text-right">
-                                                        {(allocation.adb_share || 0).toFixed(6)}
-                                                      </TableCell>
-                                                      <TableCell className="text-right">
-                                                        {formatPercentage(
-                                                          (allocation.ownership_pct || 0) * 100,
-                                                          4
-                                                        )}
-                                                      </TableCell>
-                                                      <TableCell className="text-right">
-                                                        <FinancialValue
-                                                          value={allocation.gross_amount}
-                                                          asset={fund?.asset}
-                                                        />
-                                                      </TableCell>
-                                                      <TableCell className="text-right">
-                                                        {formatPercentage(
-                                                          allocation.fee_pct || 0,
-                                                          2
-                                                        )}
-                                                      </TableCell>
-                                                      <TableCell className="text-right">
-                                                        <FinancialValue
-                                                          value={allocation.fee_amount || 0}
-                                                          asset={fund?.asset}
-                                                        />
-                                                      </TableCell>
-                                                      <TableCell className="text-right">
-                                                        {formatPercentage(
-                                                          allocation.ib_pct || 0,
-                                                          2
-                                                        )}
-                                                      </TableCell>
-                                                      <TableCell className="text-right">
-                                                        <FinancialValue
-                                                          value={allocation.ib_amount || 0}
-                                                          asset={fund?.asset}
-                                                        />
-                                                      </TableCell>
-                                                      <TableCell className="text-right font-semibold">
-                                                        <FinancialValue
-                                                          value={allocation.net_amount}
-                                                          asset={fund?.asset}
-                                                        />
-                                                      </TableCell>
-                                                    </TableRow>
-                                                  );
-                                                })}
-                                              </TableBody>
-                                            </Table>
-                                          </CardContent>
-                                        </Card>
+                                          <Card className="lg:col-span-2">
+                                            <CardHeader className="pb-2">
+                                              <CardTitle className="text-base">
+                                                Allocation breakdown
+                                              </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="overflow-auto">
+                                              <Table>
+                                                <TableHeader>
+                                                  <TableRow>
+                                                    <TableHead>Investor</TableHead>
+                                                    <TableHead className="text-right">
+                                                      ADB
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                      Ownership
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                      Gross
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                      Fee %
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                      Fee
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                      IB %
+                                                    </TableHead>
+                                                    <TableHead className="text-right">IB</TableHead>
+                                                    <TableHead className="text-right">
+                                                      Net
+                                                    </TableHead>
+                                                  </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                  {allocations.map((allocation) => {
+                                                    const investor =
+                                                      investorMap[allocation.investor_id];
+                                                    return (
+                                                      <TableRow key={allocation.id}>
+                                                        <TableCell>
+                                                          <div className="font-medium">
+                                                            {formatInvestorName(investor)}
+                                                          </div>
+                                                          <div className="text-xs text-muted-foreground">
+                                                            {investor?.email ||
+                                                              allocation.investor_id}
+                                                          </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                          {(allocation.adb_share || 0).toFixed(6)}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                          {formatPercentage(
+                                                            (allocation.ownership_pct || 0) * 100,
+                                                            4
+                                                          )}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                          <FinancialValue
+                                                            value={allocation.gross_amount}
+                                                            asset={fund?.asset}
+                                                          />
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                          {formatPercentage(
+                                                            allocation.fee_pct || 0,
+                                                            2
+                                                          )}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                          <FinancialValue
+                                                            value={allocation.fee_amount || 0}
+                                                            asset={fund?.asset}
+                                                          />
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                          {formatPercentage(
+                                                            allocation.ib_pct || 0,
+                                                            2
+                                                          )}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                          <FinancialValue
+                                                            value={allocation.ib_amount || 0}
+                                                            asset={fund?.asset}
+                                                          />
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-semibold">
+                                                          <FinancialValue
+                                                            value={allocation.net_amount}
+                                                            asset={fund?.asset}
+                                                          />
+                                                        </TableCell>
+                                                      </TableRow>
+                                                    );
+                                                  })}
+                                                </TableBody>
+                                              </Table>
+                                            </CardContent>
+                                          </Card>
+                                        </div>
                                       </CardContent>
                                     </Card>
                                   );

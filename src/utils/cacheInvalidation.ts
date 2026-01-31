@@ -52,6 +52,8 @@ const INVALIDATION_GRAPH = {
     QUERY_KEYS.fundDailyAum(),
     QUERY_KEYS.recordedYields(),
     QUERY_KEYS.yieldDistributions(),
+    QUERY_KEYS.feeAllocations(),
+    QUERY_KEYS.ibAllocations(),
   ],
   withdrawal: [...WITHDRAWAL_RELATED_KEYS],
   deposit: [QUERY_KEYS.deposits, QUERY_KEYS.depositsAdmin, QUERY_KEYS.depositStats],

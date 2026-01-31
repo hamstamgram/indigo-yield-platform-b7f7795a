@@ -94,12 +94,31 @@ export default function InvestorTransactionsPage() {
     },
     {
       header: "Status",
-      cell: () => (
-        <span className="flex items-center gap-1.5 text-xs text-emerald-500 font-bold uppercase tracking-wider">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-          Completed
-        </span>
-      ),
+      cell: (item: any) => {
+        const status = (item.status || "completed").toLowerCase();
+        const isPending = status === "pending" || status === "processing";
+        const color = isPending ? "amber" : "emerald";
+        return (
+          <span
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider",
+              `text-${color}-500`
+            )}
+          >
+            <span
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                `bg-${color}-500`,
+                !isPending && "shadow-[0_0_8px_rgba(16,185,129,0.5)]",
+                isPending && "shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+              )}
+            />
+            {status === "completed"
+              ? "Completed"
+              : status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        );
+      },
     },
     {
       header: "Actions",

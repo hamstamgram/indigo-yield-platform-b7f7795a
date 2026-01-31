@@ -56,10 +56,11 @@ export async function fetchAdminStats(): Promise<AdminStats> {
         .select("id", { count: "exact", head: true })
         .eq("status", "pending"),
 
-      // 24h activity
+      // 24h activity (exclude voided)
       supabase
         .from("transactions_v2")
         .select("id", { count: "exact", head: true })
+        .eq("is_voided", false)
         .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
     ]);
 
@@ -133,6 +134,7 @@ export async function getRecentActivityCount(hoursAgo: number = 24): Promise<num
   const { count, error } = await supabase
     .from("transactions_v2")
     .select("id", { count: "exact", head: true })
+    .eq("is_voided", false)
     .gte("created_at", cutoffTime);
 
   if (error) {
