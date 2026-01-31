@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { sanitizeHtml } from "@/utils/sanitize";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Alert, AlertDescription,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Alert,
+  AlertDescription,
   Button,
 } from "@/components/ui";
 import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } from "lucide-react";
@@ -69,14 +78,11 @@ const StatementsPage = () => {
           }
         </style>
       `;
-      
-      const htmlWithPrintStyles = htmlContent.replace(
-        '</head>',
-        `${printStyles}</head>`
-      );
+
+      const htmlWithPrintStyles = htmlContent.replace("</head>", `${printStyles}</head>`);
 
       // Open in new window
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open("", "_blank");
       if (!printWindow) {
         throw new Error("Pop-up blocked. Please allow pop-ups for this site.");
       }
@@ -119,8 +125,8 @@ const StatementsPage = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Monthly Statements" 
+      <PageHeader
+        title="Monthly Statements"
         subtitle="Access your monthly investment statements"
         icon={FileText}
       />
@@ -187,7 +193,7 @@ const StatementsPage = () => {
                           {getMonthName(statement.period_month)} {statement.period_year}
                         </h3>
                         <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          {statement.asset_code}
+                          {statement.fund_name}
                         </span>
                       </div>
                       <Button
@@ -247,7 +253,7 @@ const StatementsPage = () => {
                       <div className="mt-4 flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-green-600" />
                         <span className="text-sm font-medium text-green-600">
-                          Return: {(parseFloat(statement.rate_of_return_mtd) * 100).toFixed(2)}% MTD
+                          Return: {parseFloat(statement.rate_of_return_mtd).toFixed(2)}% MTD
                         </span>
                       </div>
                     )}

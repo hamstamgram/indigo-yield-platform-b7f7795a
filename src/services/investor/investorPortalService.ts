@@ -48,6 +48,7 @@ export interface MonthlyStatement {
   period_year: number;
   period_month: number;
   asset_code: string;
+  fund_name: string;
   begin_balance: string;
   additions: string;
   redemptions: string;
@@ -117,6 +118,11 @@ export async function getInvestorStatements(
   year: number,
   assetFilter?: string
 ): Promise<MonthlyStatement[]> {
+  // Fetch fund name → asset code mapping
+  const { data: fundsData } = await supabase.from("funds").select("name, asset");
+  const fundAssetMap = new Map<string, string>();
+  fundsData?.forEach((f) => fundAssetMap.set(f.name, f.asset));
+
   let query = supabase
     .from("investor_fund_performance")
     .select(
@@ -153,7 +159,8 @@ export async function getInvestorStatements(
     id: record.id,
     period_year: record.period.year,
     period_month: record.period.month,
-    asset_code: record.fund_name,
+    asset_code: fundAssetMap.get(record.fund_name) || record.fund_name,
+    fund_name: record.fund_name,
     begin_balance: record.mtd_beginning_balance?.toString() || "0",
     additions: record.mtd_additions?.toString() || "0",
     redemptions: record.mtd_redemptions?.toString() || "0",

@@ -1,5 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
-import { getAssetLogo, getAssetName, formatAssetAmount, formatSignedAssetAmount } from "@/utils/assets";
+import {
+  getAssetLogo,
+  getAssetName,
+  formatAssetAmount,
+  formatSignedAssetAmount,
+} from "@/utils/assets";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { PerformancePeriod } from "./PeriodSelector";
 
@@ -19,22 +24,23 @@ interface PerformanceCardProps {
 }
 
 export function PerformanceCard({ fundName, period, data }: PerformanceCardProps) {
-  const rateOfReturn = data.rateOfReturn * 100;
+  // DB stores rate_of_return already as percentage (e.g. 1.29 = 1.29%)
+  const rateOfReturn = data.rateOfReturn;
   const isPositive = rateOfReturn > 0;
   const isNegative = rateOfReturn < 0;
 
   const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
-  const trendColor = isPositive ? "text-green-600" : isNegative ? "text-red-600" : "text-muted-foreground";
+  const trendColor = isPositive
+    ? "text-green-600"
+    : isNegative
+      ? "text-red-600"
+      : "text-muted-foreground";
 
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
-          <img
-            src={getAssetLogo(fundName)}
-            alt={fundName}
-            className="h-8 w-8 rounded-full"
-          />
+          <img src={getAssetLogo(fundName)} alt={fundName} className="h-8 w-8 rounded-full" />
           <div>
             <CardTitle className="text-lg">{getAssetName(fundName)}</CardTitle>
             <p className="text-xs text-muted-foreground uppercase">{fundName}</p>
@@ -71,12 +77,16 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
           <div>
             <p className="text-xs text-muted-foreground">Redemptions</p>
             <p className="font-mono text-red-600">
-              {data.redemptions !== 0 ? formatSignedAssetAmount(-Math.abs(data.redemptions), fundName) : formatAssetAmount(0, fundName)}
+              {data.redemptions !== 0
+                ? formatSignedAssetAmount(-Math.abs(data.redemptions), fundName)
+                : formatAssetAmount(0, fundName)}
             </p>
           </div>
           <div className="col-span-2">
             <p className="text-xs text-muted-foreground">Net Income</p>
-            <p className={`font-mono font-medium ${data.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>
+            <p
+              className={`font-mono font-medium ${data.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
+            >
               {formatSignedAssetAmount(data.netIncome, fundName)}
             </p>
           </div>

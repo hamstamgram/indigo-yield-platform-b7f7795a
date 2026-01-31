@@ -98,21 +98,33 @@ export interface PerformanceRecord {
   fund_name: string;
 
   // Month-to-Date - strings for NUMERIC precision
+  mtd_beginning_balance: string;
+  mtd_additions: string;
+  mtd_redemptions: string;
   mtd_net_income: string;
   mtd_ending_balance: string;
   mtd_rate_of_return: string;
 
   // Quarter-to-Date - strings for NUMERIC precision
+  qtd_beginning_balance: string;
+  qtd_additions: string;
+  qtd_redemptions: string;
   qtd_net_income: string;
   qtd_ending_balance: string;
   qtd_rate_of_return: string;
 
   // Year-to-Date - strings for NUMERIC precision
+  ytd_beginning_balance: string;
+  ytd_additions: string;
+  ytd_redemptions: string;
   ytd_net_income: string;
   ytd_ending_balance: string;
   ytd_rate_of_return: string;
 
   // Inception-to-Date - strings for NUMERIC precision
+  itd_beginning_balance?: string;
+  itd_additions?: string;
+  itd_redemptions?: string;
   itd_net_income?: string;
   itd_ending_balance?: string;
   itd_rate_of_return?: string;
