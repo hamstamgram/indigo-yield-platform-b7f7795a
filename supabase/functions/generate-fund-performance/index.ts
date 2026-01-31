@@ -39,6 +39,30 @@ function calculatePerformanceMetrics(
   return { netIncome, rateOfReturn };
 }
 
+/** Returns the canonical number of decimal places for each asset */
+function getAssetDecimals(asset: string): number {
+  switch (asset.toUpperCase()) {
+    case "BTC":
+      return 8;
+    case "ETH":
+    case "SOL":
+    case "XRP":
+    case "XAUT":
+      return 4;
+    case "USDC":
+    case "USDT":
+    case "EURC":
+    default:
+      return 2;
+  }
+}
+
+/** Round to N decimal places (avoids floating-point drift) */
+function roundToDecimals(value: number, decimals: number): number {
+  const factor = Math.pow(10, decimals);
+  return Math.round(value * factor) / factor;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -397,39 +421,70 @@ Deno.serve(async (req) => {
       const totalPrincipal = itdAdditions - itdRedemptions;
       const itdRoR = totalPrincipal > 0 ? (itdMetrics.netIncome / totalPrincipal) * 100 : 0;
 
+      // Use asset-specific decimal precision (BTC=8, ETH=4, stablecoins=2)
+      const decimals = getAssetDecimals(fundAsset);
+      const round = (v: number) => roundToDecimals(v, decimals);
+      const rorRound = (v: number) => Math.round(v * 100) / 100; // RoR always 2dp
+
+      // Round component values first, then DERIVE net_income from rounded values
+      // to guarantee: beginning + additions - redemptions + net_income = ending
+      const mtdBeginR = round(mtdBeginning);
+      const mtdAddR = round(mtdAdditions);
+      const mtdRedR = round(mtdRedemptions);
+      const mtdEndR = round(endingBalance);
+      const mtdNetR = round(mtdEndR - mtdBeginR - mtdAddR + mtdRedR);
+
+      const qtdBeginR = round(qtdBeginning);
+      const qtdAddR = round(qtdAdditions);
+      const qtdRedR = round(qtdRedemptions);
+      const qtdEndR = round(endingBalance);
+      const qtdNetR = round(qtdEndR - qtdBeginR - qtdAddR + qtdRedR);
+
+      const ytdBeginR = round(ytdBeginning);
+      const ytdAddR = round(ytdAdditions);
+      const ytdRedR = round(ytdRedemptions);
+      const ytdEndR = round(endingBalance);
+      const ytdNetR = round(ytdEndR - ytdBeginR - ytdAddR + ytdRedR);
+
+      const itdBeginR = 0;
+      const itdAddR = round(itdAdditions);
+      const itdRedR = round(itdRedemptions);
+      const itdEndR = round(endingBalance);
+      const itdNetR = round(itdEndR - itdBeginR - itdAddR + itdRedR);
+
       performanceRecords.push({
         period_id: periodId,
         investor_id: investorId,
         fund_name: fundAsset,
-        purpose: "reporting", // Always 'reporting' for statement generation
+        purpose: "reporting",
         // MTD
-        mtd_beginning_balance: Math.round(mtdBeginning * 100) / 100,
-        mtd_additions: Math.round(mtdAdditions * 100) / 100,
-        mtd_redemptions: Math.round(mtdRedemptions * 100) / 100,
-        mtd_net_income: Math.round(mtdMetrics.netIncome * 100) / 100,
-        mtd_ending_balance: Math.round(endingBalance * 100) / 100,
-        mtd_rate_of_return: Math.round(mtdMetrics.rateOfReturn * 100) / 100,
+        mtd_beginning_balance: mtdBeginR,
+        mtd_additions: mtdAddR,
+        mtd_redemptions: mtdRedR,
+        mtd_net_income: mtdNetR,
+        mtd_ending_balance: mtdEndR,
+        mtd_rate_of_return: rorRound(mtdMetrics.rateOfReturn),
         // QTD
-        qtd_beginning_balance: Math.round(qtdBeginning * 100) / 100,
-        qtd_additions: Math.round(qtdAdditions * 100) / 100,
-        qtd_redemptions: Math.round(qtdRedemptions * 100) / 100,
-        qtd_net_income: Math.round(qtdMetrics.netIncome * 100) / 100,
-        qtd_ending_balance: Math.round(endingBalance * 100) / 100,
-        qtd_rate_of_return: Math.round(qtdMetrics.rateOfReturn * 100) / 100,
+        qtd_beginning_balance: qtdBeginR,
+        qtd_additions: qtdAddR,
+        qtd_redemptions: qtdRedR,
+        qtd_net_income: qtdNetR,
+        qtd_ending_balance: qtdEndR,
+        qtd_rate_of_return: rorRound(qtdMetrics.rateOfReturn),
         // YTD
-        ytd_beginning_balance: Math.round(ytdBeginning * 100) / 100,
-        ytd_additions: Math.round(ytdAdditions * 100) / 100,
-        ytd_redemptions: Math.round(ytdRedemptions * 100) / 100,
-        ytd_net_income: Math.round(ytdMetrics.netIncome * 100) / 100,
-        ytd_ending_balance: Math.round(endingBalance * 100) / 100,
-        ytd_rate_of_return: Math.round(ytdMetrics.rateOfReturn * 100) / 100,
+        ytd_beginning_balance: ytdBeginR,
+        ytd_additions: ytdAddR,
+        ytd_redemptions: ytdRedR,
+        ytd_net_income: ytdNetR,
+        ytd_ending_balance: ytdEndR,
+        ytd_rate_of_return: rorRound(ytdMetrics.rateOfReturn),
         // ITD
-        itd_beginning_balance: itdBeginning,
-        itd_additions: Math.round(itdAdditions * 100) / 100,
-        itd_redemptions: Math.round(itdRedemptions * 100) / 100,
-        itd_net_income: Math.round(itdMetrics.netIncome * 100) / 100,
-        itd_ending_balance: Math.round(endingBalance * 100) / 100,
-        itd_rate_of_return: Math.round(itdRoR * 100) / 100,
+        itd_beginning_balance: itdBeginR,
+        itd_additions: itdAddR,
+        itd_redemptions: itdRedR,
+        itd_net_income: itdNetR,
+        itd_ending_balance: itdEndR,
+        itd_rate_of_return: rorRound(itdRoR),
       });
     }
 
@@ -611,6 +666,7 @@ function generateFundBlockHtml(record: any, currency: string, hasSpacer: boolean
   const fundName = `${currency} YIELD FUND`;
   const iconUrl = FUND_ICONS[fundName] || FUND_ICONS["USDC YIELD FUND"];
   const spacer = hasSpacer ? '<tr><td style="height:16px;"></td></tr>' : "";
+  const decimals = getAssetDecimals(currency);
 
   return `${spacer}
     <tr>
@@ -642,38 +698,38 @@ function generateFundBlockHtml(record: any, currency: string, hasSpacer: boolean
                 </tr>
                 <tr style="background-color:#f8fafc;">
                   <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Beginning Balance</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_beginning_balance)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_beginning_balance)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_beginning_balance)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_beginning_balance)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_beginning_balance, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_beginning_balance, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_beginning_balance, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_beginning_balance, decimals)}</td>
                 </tr>
                 <tr style="background-color:#ffffff;">
                   <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#ffffff;" bgcolor="#ffffff">Additions</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.mtd_additions)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.qtd_additions)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.ytd_additions)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.itd_additions)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.mtd_additions, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.qtd_additions, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.ytd_additions, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.itd_additions, decimals)}</td>
                 </tr>
                 <tr style="background-color:#f8fafc;">
                   <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Redemptions</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_redemptions)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_redemptions)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_redemptions)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_redemptions)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_redemptions, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_redemptions, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_redemptions, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_redemptions, decimals)}</td>
                 </tr>
                 <tr style="background-color:#ffffff;">
                   <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#ffffff;" bgcolor="#ffffff">Net Income</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.mtd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.mtd_net_income)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.qtd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.qtd_net_income)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.ytd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.ytd_net_income)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.itd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.itd_net_income)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.mtd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.mtd_net_income, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.qtd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.qtd_net_income, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.ytd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.ytd_net_income, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.itd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.itd_net_income, decimals)}</td>
                 </tr>
                 <tr style="background-color:#f8fafc;border-top:1px solid #e2e8f0;">
                   <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">Ending Balance</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_ending_balance)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_ending_balance)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_ending_balance)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_ending_balance)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_ending_balance, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_ending_balance, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_ending_balance, decimals)}</td>
+                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_ending_balance, decimals)}</td>
                 </tr>
                 <tr style="background-color:#e2e8f0;">
                   <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;background-color:#e2e8f0;" bgcolor="#e2e8f0">Rate of Return</td>

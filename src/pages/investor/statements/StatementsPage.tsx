@@ -17,7 +17,7 @@ import {
 } from "@/components/ui";
 import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout";
-import { getAssetConfig, getAssetName } from "@/utils/assets";
+import { formatAssetAmount, getAssetName } from "@/utils/assets";
 import { useToast } from "@/hooks";
 import {
   useMonthlyStatements,
@@ -47,17 +47,6 @@ const StatementsPage = () => {
   const getMonthName = (month: number) => {
     const date = new Date(2000, month - 1, 1);
     return date.toLocaleString("default", { month: "long" });
-  };
-
-  const formatAssetAmount = (value: number, assetCode: string): string => {
-    const config = getAssetConfig(assetCode);
-    const decimals = config?.decimals || 4;
-    const symbol = config?.symbol || assetCode;
-
-    return `${value.toLocaleString("en-US", {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })} ${symbol}`;
   };
 
   const handleDownload = async (statement: MonthlyStatement) => {
