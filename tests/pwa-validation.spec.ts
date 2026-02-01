@@ -1,7 +1,7 @@
 import { test, expect, devices } from "@playwright/test";
 import fs from "fs/promises";
 
-const PREVIEW_URL = "https://indigo-yield-platform-v01-i1gh61jyi-hamstamgrams-projects.vercel.app";
+const PREVIEW_URL = "https://indigo-yield-platform-v01.lovable.app";
 
 test.describe("PWA Service Worker Validation", () => {
   test("validates service worker registration and manifest", async ({ page }) => {

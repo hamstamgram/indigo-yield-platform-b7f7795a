@@ -53,7 +53,7 @@ export function generateCSP(): string {
 export function applySecurityHeaders() {
   // Apply security headers where possible via meta tags
   // NOTE: X-Frame-Options, X-Content-Type-Options, HSTS, etc. MUST be set via HTTP headers
-  // (configured in lovable.json, vercel.json) - browsers ignore these when set via meta tags.
+  // (configured in lovable.json) - browsers ignore these when set via meta tags.
   // Only CSP works as a meta tag via http-equiv.
   const head = document.head;
 

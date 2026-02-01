@@ -51,7 +51,7 @@ serve(async (req) => {
     timestamp: new Date().toISOString(),
     version: Deno.env.get("APP_VERSION") || "1.0.0",
     environment: Deno.env.get("APP_ENV") || "production",
-    commit: Deno.env.get("VERCEL_GIT_COMMIT_SHA") || null,
+    commit: Deno.env.get("GIT_COMMIT_SHA") || null,
     uptime: Date.now() - startTime,
     database: {
       connected: false,

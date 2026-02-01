@@ -1,7 +1,5 @@
 // Allowed origins for CORS - restrict to known domains only
 const ALLOWED_ORIGINS = [
-  "https://indigo-yield-platform.vercel.app",
-  "https://indigo-yield-platform-v01.vercel.app",
   "https://indigo-yield-platform-v01.lovable.app",
   "https://app.indigofund.com",
   "https://www.indigofund.com",

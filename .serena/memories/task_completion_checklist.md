@@ -44,6 +44,6 @@ The project uses Husky with lint-staged. On commit:
 - ERD available in `docs/erd.md`
 
 ## Deployment
-- Deployed via Vercel
-- Check `DEPLOYMENT_STATUS.md` for current status
+- Deployed via Lovable (auto-deploys from git push to main)
+- Production URL: https://indigo-yield-platform-v01.lovable.app/
 - Review `PRODUCTION_DEPLOYMENT_CHECKLIST.md` before production deploys

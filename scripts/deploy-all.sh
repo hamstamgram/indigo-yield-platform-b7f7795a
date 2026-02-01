@@ -78,7 +78,7 @@ echo ""
 
 # Step 4: Environment Variables
 echo -e "${YELLOW}Step 4: Environment Variables${NC}"
-echo "Add these to your .env.local and Vercel environment:"
+echo "Add these to your .env.local:"
 echo ""
 echo "PROJECT_REF=nkfimvovosdehmyyjubn"
 echo "EXCEL_IMPORT_ENABLED=true"
@@ -101,13 +101,10 @@ fi
 echo -e "${YELLOW}Step 6: Checking service health...${NC}"
 npm run check:services
 
-# Step 7: Deploy to Vercel
+# Step 7: Deployment
 echo -e "${YELLOW}Step 7: Deployment${NC}"
-echo "Deploy to Vercel? (y/n)"
-read -r response
-if [[ "$response" == "y" ]]; then
-    vercel --prod
-fi
+echo "Build complete. Push to main branch and Lovable will auto-deploy."
+echo "Production URL: https://indigo-yield-platform-v01.lovable.app/"
 
 echo ""
 echo "========================================="

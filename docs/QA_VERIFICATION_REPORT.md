@@ -175,7 +175,7 @@ A comprehensive 9-phase verification test was executed to validate all critical 
 2. **Audit Logging:** All mutations logged to `audit_log` with actor attribution
 3. **Rate Limiting:** RPC gateway has rate limiting for sensitive mutations
 4. **Enum Validation:** Zod schemas prevent invalid enum values at runtime
-5. **HSTS Enabled:** Security headers configured in `vercel.json`
+5. **HSTS Enabled:** Security headers configured at deployment platform level
 
 ### Recommendations
 1. Add request idempotency keys to all mutation forms

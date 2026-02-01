@@ -108,7 +108,7 @@ SELECT cron.schedule(
 ## Rollback Procedure
 
 ### If Issues Detected:
-1. **Revert to previous deployment** in Vercel dashboard
+1. **Revert to previous deployment** via git revert and push to main
 2. **Restore database** from backup if schema changes caused issues:
    ```bash
    psql $DATABASE_URL < backup_YYYYMMDD_HHMMSS.sql
@@ -125,11 +125,11 @@ SELECT cron.schedule(
 ### Required for Production:
 | Variable | Description | Location |
 |----------|-------------|----------|
-| `SUPABASE_URL` | Supabase project URL | Vercel env vars |
-| `SUPABASE_ANON_KEY` | Public anon key | Vercel env vars |
+| `SUPABASE_URL` | Supabase project URL | Lovable Secrets |
+| `SUPABASE_ANON_KEY` | Public anon key | Lovable Secrets |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key | Edge function secrets |
 | `RESEND_API_KEY` | Email delivery | Edge function secrets |
-| `SENTRY_DSN` | Error tracking | Vercel env vars |
+| `SENTRY_DSN` | Error tracking | Lovable Secrets |
 
 ### Optional:
 | Variable | Description |

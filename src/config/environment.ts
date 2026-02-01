@@ -466,9 +466,7 @@ export function getDatabaseUrl(): string | undefined {
  * Check if running in CI/CD environment
  */
 export function isCIEnvironment(): boolean {
-  return (
-    getBoolEnv("CI", false) || getBoolEnv("GITHUB_ACTIONS", false) || getBoolEnv("VERCEL", false)
-  );
+  return getBoolEnv("CI", false) || getBoolEnv("GITHUB_ACTIONS", false);
 }
 
 /**

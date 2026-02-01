@@ -16,7 +16,7 @@ Multi-platform investment management system for financial/investment portfolio t
 - **Forms**: React Hook Form + Zod validation
 - **Charts**: Recharts + Chart.js
 - **Testing**: Jest (unit), Playwright (E2E), Vitest
-- **Deployment**: Vercel
+- **Deployment**: Lovable (auto-deploys from git)
 - **Analytics**: PostHog
 
 ## Project Structure
