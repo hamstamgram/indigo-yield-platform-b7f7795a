@@ -21,7 +21,7 @@ export {
 } from "../useEmailTracking";
 
 // useIntegrityData
-export { useIntegrityChecks, useAuditEvents } from "../useIntegrityData";
+export { useIntegrityChecks, useAuditEvents, useInvariantChecks } from "../useIntegrityData";
 
 // useIntegrityOperations (P1)
 export {

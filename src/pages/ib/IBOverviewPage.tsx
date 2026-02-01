@@ -15,12 +15,13 @@ import {
   PageLoadingSpinner,
 } from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
-import { BarChart3, Users, Coins, TrendingUp } from "lucide-react";
+import { BarChart3, Users, Coins, TrendingUp, Sprout } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   useIBCommissionSummary,
   useIBTopReferrals,
   useIBReferralCount,
+  useIBYieldOnBalance,
   type PeriodType,
 } from "@/hooks/data/shared";
 import type { CommissionSummary } from "@/services/ib/ibService";
@@ -44,6 +45,7 @@ export default function IBOverviewPage() {
   const { data: commissionSummary, isLoading: summaryLoading } = useIBCommissionSummary(period);
   const { data: topReferrals, isLoading: referralsLoading } = useIBTopReferrals(period);
   const { data: referralCount } = useIBReferralCount();
+  const { data: yieldOnBalance } = useIBYieldOnBalance();
 
   if (summaryLoading || referralsLoading) {
     return <PageLoadingSpinner />;
@@ -68,7 +70,7 @@ export default function IBOverviewPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
@@ -103,6 +105,23 @@ export default function IBOverviewPage() {
               {formatCommissionTotals(commissionSummary || [])}
             </div>
             <p className="text-xs text-muted-foreground">Total for {period}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Yield on Balance</CardTitle>
+            <Sprout className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold font-mono">
+              {yieldOnBalance && Object.keys(yieldOnBalance).length > 0
+                ? Object.entries(yieldOnBalance)
+                    .map(([asset, amount]) => formatAssetAmount(amount, asset))
+                    .join(", ")
+                : "No yield yet"}
+            </div>
+            <p className="text-xs text-muted-foreground">Earned on commission balance</p>
           </CardContent>
         </Card>
       </div>

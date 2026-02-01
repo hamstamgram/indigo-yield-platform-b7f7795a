@@ -177,15 +177,28 @@ export function useIBCommissions(page: number, dateRange: string, pageSize = 20)
 
 // ============ Payout History Hooks ============
 
-export function useIBPayoutHistory(page: number, pageSize = 20) {
+export function useIBPayoutHistory(page: number, pageSize = 20, statusFilter = "all") {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: QUERY_KEYS.ibPayoutHistory(user?.id || "", page),
-    queryFn: () => ibService.getPayoutHistory(user!.id, page, pageSize),
+    queryKey: QUERY_KEYS.ibPayoutHistory(user?.id || "", page, statusFilter),
+    queryFn: () => ibService.getPayoutHistory(user!.id, page, pageSize, statusFilter),
     enabled: !!user?.id,
     staleTime: STALE_TIME.TRANSACTIONS,
     refetchOnWindowFocus: true,
+  });
+}
+
+// ============ Yield on Balance Hook ============
+
+export function useIBYieldOnBalance() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: [...QUERY_KEYS.ibPositions(user?.id || ""), "yield-on-balance"],
+    queryFn: () => ibService.getYieldOnBalance(user!.id),
+    enabled: !!user?.id,
+    staleTime: STALE_TIME.FINANCIAL,
   });
 }
 

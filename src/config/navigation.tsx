@@ -117,6 +117,14 @@ export const adminNavGroups: NavGroup[] = [
         href: "/admin/ib-management",
         icon: <Briefcase className="h-5 w-5" />,
         adminOnly: true,
+        subNav: [
+          {
+            title: "IB Payouts",
+            href: "/admin/ib-payouts",
+            icon: <Wallet className="h-5 w-5" />,
+            adminOnly: true,
+          },
+        ],
       },
     ],
   },

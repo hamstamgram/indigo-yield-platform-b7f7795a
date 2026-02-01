@@ -214,6 +214,7 @@ export {
   useIBReferralCommissions,
   useIBCommissions,
   useIBPayoutHistory,
+  useIBYieldOnBalance,
   useIBProfile,
   useUpdateIBProfile,
   getPeriodStartDate,

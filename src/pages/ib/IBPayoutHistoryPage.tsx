@@ -1,13 +1,26 @@
 /**
  * IB Payout History Page
- * Shows withdrawal/payout history for the IB
+ * Shows all IB commission allocations with status filter (All / Pending / Paid)
  */
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Button, Badge, PageLoadingSpinner,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  PageLoadingSpinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
@@ -19,24 +32,15 @@ const PAGE_SIZE = 20;
 
 export default function IBPayoutHistoryPage() {
   const [page, setPage] = useState(0);
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const { data, isLoading } = useIBPayoutHistory(page, PAGE_SIZE);
+  const { data, isLoading } = useIBPayoutHistory(page, PAGE_SIZE, statusFilter);
 
   const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
-  const getStatusVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
-      case "approved":
-        return "default";
-      case "pending":
-        return "secondary";
-      case "rejected":
-      case "cancelled":
-        return "destructive";
-      default:
-        return "outline";
-    }
+  const handleFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setPage(0);
   };
 
   if (isLoading) {
@@ -45,16 +49,26 @@ export default function IBPayoutHistoryPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Payout History</h1>
-        <p className="text-muted-foreground">Your commission withdrawals and payouts</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Payout History</h1>
+          <p className="text-muted-foreground">Your commission allocations and payout status</p>
+        </div>
+
+        <Tabs value={statusFilter} onValueChange={handleFilterChange}>
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="pending">Pending</TabsTrigger>
+            <TabsTrigger value="paid">Paid</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
-            Payout Records ({data?.total || 0})
+            Commission Records ({data?.total || 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -63,36 +77,34 @@ export default function IBPayoutHistoryPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date Requested</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead>Fund</TableHead>
                     <TableHead>Asset</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Source Investor</TableHead>
+                    <TableHead className="text-right">Commission</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Processed</TableHead>
+                    <TableHead>Paid Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {data.payouts.map((payout) => (
                     <TableRow key={payout.id}>
-                      <TableCell>
-                        {format(new Date(payout.requestedAt), "MMM d, yyyy")}
-                      </TableCell>
+                      <TableCell>{format(new Date(payout.effectiveDate), "MMM d, yyyy")}</TableCell>
                       <TableCell>{payout.fundName}</TableCell>
                       <TableCell>
                         <CryptoIcon symbol={payout.asset} className="h-5 w-5" />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell>{payout.sourceInvestorName}</TableCell>
+                      <TableCell className="text-right font-medium font-mono">
                         {formatAssetAmount(payout.amount, payout.asset)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusVariant(payout.status)}>
-                          {payout.status}
+                        <Badge variant={payout.status === "paid" ? "default" : "secondary"}>
+                          {payout.status === "paid" ? "Paid" : "Pending"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {payout.processedAt
-                          ? format(new Date(payout.processedAt), "MMM d, yyyy")
-                          : "—"}
+                        {payout.paidAt ? format(new Date(payout.paidAt), "MMM d, yyyy") : "—"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -130,7 +142,8 @@ export default function IBPayoutHistoryPage() {
             </>
           ) : (
             <p className="text-muted-foreground text-center py-12">
-              No payout history found
+              No commission records found
+              {statusFilter !== "all" ? ` with status "${statusFilter}"` : ""}
             </p>
           )}
         </CardContent>

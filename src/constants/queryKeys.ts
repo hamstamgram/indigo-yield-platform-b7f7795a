@@ -175,9 +175,9 @@ export const QUERY_KEYS = {
       ? (["ib", "top-referrals", userId, period] as const)
       : (["ib", "top-referrals", userId] as const),
   ibPositions: (userId: string) => ["ib", "positions", userId] as const,
-  ibPayoutHistory: (userId: string, page?: number) =>
+  ibPayoutHistory: (userId: string, page?: number, statusFilter?: string) =>
     page !== undefined
-      ? (["ib", "payout-history", userId, page] as const)
+      ? (["ib", "payout-history", userId, page, statusFilter || "all"] as const)
       : (["ib", "payout-history", userId] as const),
   adminIbPayouts: (statusFilter?: string) =>
     statusFilter

@@ -95,7 +95,35 @@ export async function fetchAuditEvents(limit = 10): Promise<AuditEvent[]> {
   return (data as AuditEvent[]) || [];
 }
 
+/**
+ * Runs the 16-check invariant suite via run_invariant_checks() RPC
+ */
+export interface InvariantCheckResult {
+  name: string;
+  category: string;
+  passed: boolean;
+  violation_count: number;
+  violations: Record<string, unknown>[];
+}
+
+export interface InvariantSuiteResult {
+  run_at: string;
+  total_checks: number;
+  passed: number;
+  failed: number;
+  checks: InvariantCheckResult[];
+}
+
+export async function runInvariantChecks(): Promise<InvariantSuiteResult> {
+  // RPC added via migration; cast fn name until generated types are refreshed
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await supabase.rpc("run_invariant_checks" as any);
+  if (error) throw new Error(error.message);
+  return data as unknown as InvariantSuiteResult;
+}
+
 export const integrityService = {
   fetchIntegrityChecks,
   fetchAuditEvents,
+  runInvariantChecks,
 };

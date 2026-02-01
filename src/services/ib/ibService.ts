@@ -115,8 +115,9 @@ export interface Payout {
   asset: string;
   fundName: string;
   status: string;
-  requestedAt: string;
-  processedAt: string | null;
+  sourceInvestorName: string;
+  effectiveDate: string;
+  paidAt: string | null;
 }
 
 export interface PaginatedPayouts {
@@ -653,51 +654,94 @@ class IBService {
   /**
    * Get payout history (withdrawal requests)
    */
-  async getPayoutHistory(ibId: string, page: number, pageSize: number): Promise<PaginatedPayouts> {
-    const {
-      data: withdrawals,
-      error,
-      count,
-    } = await supabase
-      .from("withdrawal_requests")
+  async getPayoutHistory(
+    ibId: string,
+    page: number,
+    pageSize: number,
+    statusFilter: string = "all"
+  ): Promise<PaginatedPayouts> {
+    let query = supabase
+      .from("ib_allocations")
       .select(
         `
         id,
-        requested_amount,
-        processed_amount,
-        status,
-        request_date,
-        processed_at,
-        funds!inner(name, asset)
+        ib_fee_amount,
+        effective_date,
+        payout_status,
+        paid_at,
+        source_investor_id,
+        funds!inner(name, asset),
+        source_profile:profiles!ib_allocations_source_investor_id_fkey(
+          first_name,
+          last_name
+        )
       `,
         { count: "exact" }
       )
-      .eq("investor_id", ibId)
-      .order("request_date", { ascending: false })
+      .eq("ib_investor_id", ibId)
+      .eq("is_voided", false)
+      .order("effective_date", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
+
+    if (statusFilter !== "all") {
+      query = query.eq("payout_status", statusFilter);
+    }
+
+    const { data: allocations, error, count } = await query;
 
     if (error) {
       console.error("Error fetching payout history:", error);
       return { payouts: [], total: 0 };
     }
 
-    // Type the withdrawal results
-    const typedWithdrawals = (withdrawals || []) as unknown as WithdrawalWithFund[];
+    const payouts: Payout[] = (allocations || []).map((alloc: any) => {
+      const fund = alloc.funds as IBFundRef | null;
+      const sourceProfile = alloc.source_profile as {
+        first_name: string | null;
+        last_name: string | null;
+      } | null;
+      const sourceName = sourceProfile
+        ? `${sourceProfile.first_name || ""} ${sourceProfile.last_name || ""}`.trim() || "Unknown"
+        : "Unknown";
 
-    const payouts: Payout[] = typedWithdrawals.map((w) => {
-      const fund: IBFundRef | null = w.funds;
       return {
-        id: w.id,
-        amount: Number(w.processed_amount || w.requested_amount),
+        id: alloc.id,
+        amount: Number(alloc.ib_fee_amount),
         asset: fund?.asset || "USDT",
         fundName: fund?.name || "Unknown",
-        status: w.status,
-        requestedAt: w.request_date,
-        processedAt: w.processed_at,
+        status: alloc.payout_status || "pending",
+        sourceInvestorName: sourceName,
+        effectiveDate: alloc.effective_date,
+        paidAt: alloc.paid_at,
       };
     });
 
     return { payouts, total: count || 0 };
+  }
+
+  /**
+   * Get yield earned on IB's own balance (from YIELD transactions)
+   */
+  async getYieldOnBalance(ibId: string): Promise<Record<string, number>> {
+    const { data, error } = await supabase
+      .from("transactions_v2")
+      .select("amount, asset")
+      .eq("investor_id", ibId)
+      .eq("type", "YIELD")
+      .eq("is_voided", false);
+
+    if (error) {
+      console.error("Error fetching yield on balance:", error);
+      return {};
+    }
+
+    const totals: Record<string, number> = {};
+    (data || []).forEach((tx) => {
+      const asset = tx.asset || "USDT";
+      totals[asset] = (totals[asset] || 0) + Number(tx.amount);
+    });
+
+    return totals;
   }
 
   /**
