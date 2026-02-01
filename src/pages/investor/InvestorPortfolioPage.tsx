@@ -1,5 +1,5 @@
-import { usePerAssetStats } from "@/hooks";
-import { ResponsiveTable, EmptyState, Button } from "@/components/ui";
+import { usePerAssetStats, useSortableColumns } from "@/hooks";
+import { ResponsiveTable, EmptyState, Button, SortableTableHead } from "@/components/ui";
 import { getAssetName, formatAssetAmount, formatSignedAssetAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Wallet, Loader2, Download, Filter } from "lucide-react";
@@ -19,9 +19,18 @@ export default function InvestorPortfolioPage() {
       lastUpdated: new Date().toISOString(),
     })) || [];
 
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(positions, {
+    column: "assetSymbol",
+    direction: "asc",
+  });
+
   const columns = [
     {
-      header: "Asset",
+      header: (
+        <SortableTableHead column="assetSymbol" currentSort={sortConfig} onSort={requestSort}>
+          Asset
+        </SortableTableHead>
+      ),
       cell: (item: (typeof positions)[0]) => (
         <div className="flex items-center gap-4">
           <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center p-2 shadow-inner">
@@ -35,7 +44,11 @@ export default function InvestorPortfolioPage() {
       ),
     },
     {
-      header: "Token Amount",
+      header: (
+        <SortableTableHead column="tokenAmount" currentSort={sortConfig} onSort={requestSort}>
+          Token Amount
+        </SortableTableHead>
+      ),
       cell: (item: (typeof positions)[0]) => (
         <span className="font-mono font-bold text-lg text-white tracking-tight">
           {formatAssetAmount(item.tokenAmount, item.assetSymbol)}
@@ -51,7 +64,11 @@ export default function InvestorPortfolioPage() {
       ),
     },
     {
-      header: "Net Changes (MTD)",
+      header: (
+        <SortableTableHead column="netChanges" currentSort={sortConfig} onSort={requestSort}>
+          Net Changes (MTD)
+        </SortableTableHead>
+      ),
       cell: (item: (typeof positions)[0]) => (
         <span
           className={cn(
@@ -118,10 +135,10 @@ export default function InvestorPortfolioPage() {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
           </div>
-        ) : positions.length > 0 ? (
+        ) : sortedData.length > 0 ? (
           <div className="p-2">
             <ResponsiveTable
-              data={positions}
+              data={sortedData}
               columns={columns}
               keyExtractor={(item) => item.fundName}
             />

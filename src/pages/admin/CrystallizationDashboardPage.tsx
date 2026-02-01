@@ -32,8 +32,11 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  SortableTableHead,
 } from "@/components/ui";
 import { FinancialValue } from "@/components/common/FinancialValue";
+import { CryptoIcon } from "@/components/CryptoIcons";
+import { useSortableColumns } from "@/hooks";
 import {
   useCrystallizationDashboard,
   useCrystallizationGaps,
@@ -81,6 +84,26 @@ export default function CrystallizationDashboardPage() {
   } = useCrystallizationGaps(selectedFundId);
   const batchCrystallize = useBatchCrystallizeFund();
 
+  // Sorting for Fund Status table
+  const {
+    sortConfig: fundSortConfig,
+    requestSort: fundRequestSort,
+    sortedData: sortedFunds,
+  } = useSortableColumns(dashboardData || [], {
+    column: "fund_code",
+    direction: "asc",
+  });
+
+  // Sorting for Gaps table
+  const {
+    sortConfig: gapSortConfig,
+    requestSort: gapRequestSort,
+    sortedData: sortedGaps,
+  } = useSortableColumns(gaps || [], {
+    column: "days_behind",
+    direction: "desc",
+  });
+
   const handleRefresh = () => {
     refetchDashboard();
     refetchGaps();
@@ -104,7 +127,11 @@ export default function CrystallizationDashboardPage() {
     );
   };
 
-  const totalGaps = dashboardData?.reduce((sum, f) => sum + f.warning_stale + f.critical_stale + f.never_crystallized, 0) || 0;
+  const totalGaps =
+    dashboardData?.reduce(
+      (sum, f) => sum + f.warning_stale + f.critical_stale + f.never_crystallized,
+      0
+    ) || 0;
   const totalPositions = dashboardData?.reduce((sum, f) => sum + f.total_positions, 0) || 0;
 
   if (dashboardLoading) {
@@ -228,14 +255,34 @@ export default function CrystallizationDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {dashboardData && dashboardData.length > 0 ? (
+          {sortedFunds && sortedFunds.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Fund</TableHead>
-                    <TableHead className="text-right">Positions</TableHead>
-                    <TableHead className="text-right">Crystallized</TableHead>
+                    <SortableTableHead
+                      column="fund_code"
+                      currentSort={fundSortConfig}
+                      onSort={fundRequestSort}
+                    >
+                      Fund
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="total_positions"
+                      currentSort={fundSortConfig}
+                      onSort={fundRequestSort}
+                      className="text-right"
+                    >
+                      Positions
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="up_to_date"
+                      currentSort={fundSortConfig}
+                      onSort={fundRequestSort}
+                      className="text-right"
+                    >
+                      Crystallized
+                    </SortableTableHead>
                     <TableHead className="text-right">Gaps</TableHead>
                     <TableHead className="text-right">Oldest Gap</TableHead>
                     <TableHead className="text-right">AUM</TableHead>
@@ -243,12 +290,18 @@ export default function CrystallizationDashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {dashboardData.map((fund) => (
+                  {sortedFunds.map((fund) => (
                     <TableRow key={fund.fund_id}>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{fund.fund_code}</span>
-                          <span className="text-xs text-muted-foreground">{fund.fund_name}</span>
+                        <div className="flex items-center gap-2">
+                          <CryptoIcon
+                            symbol={fund.fund_code.split("-").pop() || fund.fund_code}
+                            className="h-5 w-5"
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-medium">{fund.fund_code}</span>
+                            <span className="text-xs text-muted-foreground">{fund.fund_name}</span>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-mono">{fund.total_positions}</TableCell>
@@ -258,7 +311,7 @@ export default function CrystallizationDashboardPage() {
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        {(fund.warning_stale + fund.critical_stale + fund.never_crystallized) > 0 ? (
+                        {fund.warning_stale + fund.critical_stale + fund.never_crystallized > 0 ? (
                           <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
                             {fund.warning_stale + fund.critical_stale + fund.never_crystallized}
                           </Badge>
@@ -292,7 +345,11 @@ export default function CrystallizationDashboardPage() {
                             onClick={() =>
                               handleBatchCrystallize(fund.fund_id, fund.fund_code, true)
                             }
-                            disabled={batchCrystallize.isPending || (fund.warning_stale + fund.critical_stale + fund.never_crystallized) === 0}
+                            disabled={
+                              batchCrystallize.isPending ||
+                              fund.warning_stale + fund.critical_stale + fund.never_crystallized ===
+                                0
+                            }
                             title="Preview batch crystallization"
                           >
                             <Eye className="h-4 w-4" />
@@ -303,7 +360,11 @@ export default function CrystallizationDashboardPage() {
                             onClick={() =>
                               handleBatchCrystallize(fund.fund_id, fund.fund_code, false)
                             }
-                            disabled={batchCrystallize.isPending || (fund.warning_stale + fund.critical_stale + fund.never_crystallized) === 0}
+                            disabled={
+                              batchCrystallize.isPending ||
+                              fund.warning_stale + fund.critical_stale + fund.never_crystallized ===
+                                0
+                            }
                             title="Execute batch crystallization"
                           >
                             <Play className="h-4 w-4" />
@@ -361,20 +422,40 @@ export default function CrystallizationDashboardPage() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : gaps && gaps.length > 0 ? (
+          ) : sortedGaps && sortedGaps.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Investor</TableHead>
-                    <TableHead>Fund</TableHead>
+                    <SortableTableHead
+                      column="fund_code"
+                      currentSort={gapSortConfig}
+                      onSort={gapRequestSort}
+                    >
+                      Fund
+                    </SortableTableHead>
                     <TableHead>Last Crystallization</TableHead>
-                    <TableHead className="text-right">Days Behind</TableHead>
-                    <TableHead className="text-right">Current Value</TableHead>
+                    <SortableTableHead
+                      column="days_behind"
+                      currentSort={gapSortConfig}
+                      onSort={gapRequestSort}
+                      className="text-right"
+                    >
+                      Days Behind
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="current_value"
+                      currentSort={gapSortConfig}
+                      onSort={gapRequestSort}
+                      className="text-right"
+                    >
+                      Current Value
+                    </SortableTableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                {gaps.map((gap, idx) => (
+                  {sortedGaps.map((gap, idx) => (
                     <TableRow key={`${gap.investor_id}-${gap.fund_id}-${idx}`}>
                       <TableCell>
                         <div className="flex flex-col">
@@ -385,7 +466,13 @@ export default function CrystallizationDashboardPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{gap.fund_code}</Badge>
+                        <div className="flex items-center gap-2">
+                          <CryptoIcon
+                            symbol={gap.fund_code.split("-").pop() || gap.fund_code}
+                            className="h-5 w-5"
+                          />
+                          <Badge variant="outline">{gap.fund_code}</Badge>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {gap.last_yield_crystallization_date ? (

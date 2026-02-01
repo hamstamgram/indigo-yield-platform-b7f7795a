@@ -5,19 +5,42 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Button, Checkbox, Badge,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Button,
+  Checkbox,
+  Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   PageLoadingSpinner,
+  SortableTableHead,
 } from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Coins, CheckCircle, Loader2, DollarSign } from "lucide-react";
 import { useIBAllocationsForPayout, useMarkAllocationsAsPaid } from "@/hooks/data/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { useSortableColumns } from "@/hooks";
 
 export default function IBPayoutsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("pending");
@@ -27,9 +50,14 @@ export default function IBPayoutsPage() {
   const { data, isLoading } = useIBAllocationsForPayout(statusFilter);
   const markAsPaidMutation = useMarkAllocationsAsPaid();
 
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(data || [], {
+    column: "effectiveDate",
+    direction: "desc",
+  });
+
   const handleSelectAll = (checked: boolean) => {
-    if (checked && data) {
-      const pendingIds = data.filter(c => c.payoutStatus === 'pending').map(c => c.id);
+    if (checked && sortedData) {
+      const pendingIds = sortedData.filter((c) => c.payoutStatus === "pending").map((c) => c.id);
       setSelectedIds(new Set(pendingIds));
     } else {
       setSelectedIds(new Set());
@@ -58,18 +86,22 @@ export default function IBPayoutsPage() {
     setConfirmDialogOpen(false);
   };
 
-  const selectedTotals = data
-    ?.filter(c => selectedIds.has(c.id))
-    .reduce((acc, c) => {
-      acc[c.asset] = (acc[c.asset] || 0) + c.ibFeeAmount;
-      return acc;
-    }, {} as Record<string, number>) || {};
+  const selectedTotals =
+    sortedData
+      ?.filter((c) => selectedIds.has(c.id))
+      .reduce(
+        (acc, c) => {
+          acc[c.asset] = (acc[c.asset] || 0) + c.ibFeeAmount;
+          return acc;
+        },
+        {} as Record<string, number>
+      ) || {};
 
   if (isLoading) {
     return <PageLoadingSpinner />;
   }
 
-  const pendingCount = data?.filter(c => c.payoutStatus === 'pending').length || 0;
+  const pendingCount = sortedData?.filter((c) => c.payoutStatus === "pending").length || 0;
 
   return (
     <div className="space-y-6">
@@ -143,7 +175,7 @@ export default function IBPayoutsPage() {
           <CardDescription>Select commissions and mark them as paid when processed</CardDescription>
         </CardHeader>
         <CardContent>
-          {data && data.length > 0 ? (
+          {sortedData && sortedData.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -154,22 +186,44 @@ export default function IBPayoutsPage() {
                       disabled={pendingCount === 0}
                     />
                   </TableHead>
-                  <TableHead>IB</TableHead>
+                  <SortableTableHead column="ibName" currentSort={sortConfig} onSort={requestSort}>
+                    IB
+                  </SortableTableHead>
                   <TableHead>Source Investor</TableHead>
                   <TableHead>Fund</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
+                  <SortableTableHead
+                    column="effectiveDate"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Period
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="ibFeeAmount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-right"
+                  >
+                    Amount
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="payoutStatus"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-center"
+                  >
+                    Status
+                  </SortableTableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((comm) => (
+                {sortedData.map((comm) => (
                   <TableRow key={comm.id}>
                     <TableCell>
                       <Checkbox
                         checked={selectedIds.has(comm.id)}
                         onCheckedChange={(checked) => handleSelectOne(comm.id, !!checked)}
-                        disabled={comm.payoutStatus === 'paid'}
+                        disabled={comm.payoutStatus === "paid"}
                       />
                     </TableCell>
                     <TableCell>
@@ -194,8 +248,8 @@ export default function IBPayoutsPage() {
                       {formatAssetAmount(comm.ibFeeAmount, comm.asset)}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant={comm.payoutStatus === 'paid' ? 'default' : 'outline'}>
-                        {comm.payoutStatus === 'paid' ? 'Paid' : 'Pending'}
+                      <Badge variant={comm.payoutStatus === "paid" ? "default" : "outline"}>
+                        {comm.payoutStatus === "paid" ? "Paid" : "Pending"}
                       </Badge>
                     </TableCell>
                   </TableRow>

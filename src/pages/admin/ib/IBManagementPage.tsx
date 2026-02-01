@@ -1,25 +1,41 @@
 /**
  * IB Management Page
  * Admin page to manage Introducing Brokers (IBs)
- * 
+ *
  * NOTE: IB earnings are displayed per-asset (token-denominated) to avoid USD aggregation
  */
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Button, Input, Label, Badge,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  SortableTableHead,
 } from "@/components/ui";
 import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatCrypto } from "@/utils/financial";
-import {
-  useIBProfiles,
-  useCreateIB,
-  type EarningsByAsset,
-} from "@/hooks";
+import { useIBProfiles, useCreateIB, useSortableColumns, type EarningsByAsset } from "@/hooks";
 
 export default function IBManagementPage() {
   const navigate = useNavigate();
@@ -30,6 +46,11 @@ export default function IBManagementPage() {
 
   // Use extracted hooks
   const { data: ibs, isLoading } = useIBProfiles();
+
+  const { sortedData, sortConfig, requestSort } = useSortableColumns(ibs || [], {
+    column: "createdAt",
+    direction: "desc",
+  });
 
   const createIBMutation = useCreateIB({
     onSuccess: () => {
@@ -198,16 +219,37 @@ export default function IBManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead className="text-center">Referrals</TableHead>
+                  <SortableTableHead
+                    column="firstName"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Name
+                  </SortableTableHead>
+                  <SortableTableHead column="email" currentSort={sortConfig} onSort={requestSort}>
+                    Email
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="referralCount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-center"
+                  >
+                    Referrals
+                  </SortableTableHead>
                   <TableHead className="text-center">Active Funds</TableHead>
                   <TableHead className="text-right">Earnings</TableHead>
-                  <TableHead>Created</TableHead>
+                  <SortableTableHead
+                    column="createdAt"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Created
+                  </SortableTableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ibs.map((ib) => (
+                {sortedData.map((ib) => (
                   <TableRow
                     key={ib.id}
                     className="cursor-pointer hover:bg-muted/50"
@@ -223,7 +265,19 @@ export default function IBManagementPage() {
                       <Badge variant="outline">{ib.referralCount}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary">{ib.activeFunds.length}</Badge>
+                      <div className="flex items-center justify-center gap-1">
+                        {ib.activeFunds.length > 0 ? (
+                          ib.activeFunds.map((fund: string) => (
+                            <CryptoIcon
+                              key={fund}
+                              symbol={fund.split("-").pop() || fund}
+                              className="h-4 w-4"
+                            />
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">
                       {formatEarningsDisplay(ib.earningsByAsset)}

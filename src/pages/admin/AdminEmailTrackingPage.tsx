@@ -1,7 +1,7 @@
 /**
  * Admin Email Tracking Page
  * Track and monitor all emails sent to investors
- * 
+ *
  * Uses statement_email_delivery table as the primary data source
  *
  * Features:
@@ -14,7 +14,12 @@
  */
 
 import { useState } from "react";
-import { useEmailStats, useEmailDeliveries, type EmailFilters, type EmailDelivery } from "@/hooks/data";
+import {
+  useEmailStats,
+  useEmailDeliveries,
+  type EmailFilters,
+  type EmailDelivery,
+} from "@/hooks/data";
 import { getTodayString } from "@/utils/dateUtils";
 import {
   Mail,
@@ -32,12 +37,33 @@ import {
   MousePointerClick,
 } from "lucide-react";
 import {
-  Button, Input, Badge,
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Button,
+  Input,
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SortableTableHead,
 } from "@/components/ui";
+import { useSortableColumns } from "@/hooks";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -70,16 +96,29 @@ export default function AdminEmailTrackingPage() {
   const { data: stats } = useEmailStats(filters); // Pass same filters for consistent stats
   const { data: emailDeliveries, isLoading: logsLoading } = useEmailDeliveries(filters);
 
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(emailDeliveries || [], {
+    column: "created_at",
+    direction: "desc",
+  });
+
   // =====================================================
   // EVENT HANDLERS
   // =====================================================
 
   const handleExportCSV = () => {
-    if (!emailDeliveries || emailDeliveries.length === 0) return;
+    if (!sortedData || sortedData.length === 0) return;
 
     // Create CSV content
-    const headers = ["Date", "Recipient", "Subject", "Status", "Delivered At", "Opened At", "Error"];
-    const rows = emailDeliveries.map((d) => [
+    const headers = [
+      "Date",
+      "Recipient",
+      "Subject",
+      "Status",
+      "Delivered At",
+      "Opened At",
+      "Error",
+    ];
+    const rows = sortedData.map((d) => [
       new Date(d.created_at).toLocaleString(),
       d.recipient_email,
       d.subject,
@@ -159,7 +198,7 @@ export default function AdminEmailTrackingPage() {
             Monitor and track all emails sent to investors
           </p>
         </div>
-        <Button onClick={handleExportCSV} disabled={!emailDeliveries || emailDeliveries.length === 0}>
+        <Button onClick={handleExportCSV} disabled={!sortedData || sortedData.length === 0}>
           <Download className="h-4 w-4 mr-2" />
           Export CSV
         </Button>
@@ -270,7 +309,7 @@ export default function AdminEmailTrackingPage() {
       {/* Email Logs Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Email Deliveries ({emailDeliveries?.length || 0})</CardTitle>
+          <CardTitle>Email Deliveries ({sortedData?.length || 0})</CardTitle>
           <CardDescription>View all emails sent from the platform</CardDescription>
         </CardHeader>
         <CardContent>
@@ -278,21 +317,37 @@ export default function AdminEmailTrackingPage() {
             <div className="flex items-center justify-center py-8">
               <BarChart3 className="h-6 w-6 animate-pulse text-muted-foreground" />
             </div>
-          ) : emailDeliveries && emailDeliveries.length > 0 ? (
+          ) : sortedData && sortedData.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Status</TableHead>
+                  <SortableTableHead
+                    column="created_at"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Date
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="recipient_email"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Recipient
+                  </SortableTableHead>
+                  <SortableTableHead column="subject" currentSort={sortConfig} onSort={requestSort}>
+                    Subject
+                  </SortableTableHead>
+                  <SortableTableHead column="status" currentSort={sortConfig} onSort={requestSort}>
+                    Status
+                  </SortableTableHead>
                   <TableHead>Delivered</TableHead>
                   <TableHead>Opened</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emailDeliveries.map((delivery) => (
+                {sortedData.map((delivery) => (
                   <TableRow key={delivery.id}>
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(delivery.created_at)}
@@ -327,13 +382,14 @@ export default function AdminEmailTrackingPage() {
       </Card>
 
       {/* Email Preview Dialog */}
-      <Dialog open={previewDialog.open} onOpenChange={(open) => setPreviewDialog({ open, delivery: null })}>
+      <Dialog
+        open={previewDialog.open}
+        onOpenChange={(open) => setPreviewDialog({ open, delivery: null })}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Email Details</DialogTitle>
-            <DialogDescription>
-              {previewDialog.delivery?.subject}
-            </DialogDescription>
+            <DialogDescription>{previewDialog.delivery?.subject}</DialogDescription>
           </DialogHeader>
           {previewDialog.delivery && (
             <div className="space-y-4">
@@ -367,7 +423,9 @@ export default function AdminEmailTrackingPage() {
               {previewDialog.delivery.error_message && (
                 <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
                   <p className="text-sm font-medium text-destructive">Error</p>
-                  <p className="text-sm text-destructive/80">{previewDialog.delivery.error_message}</p>
+                  <p className="text-sm text-destructive/80">
+                    {previewDialog.delivery.error_message}
+                  </p>
                   {previewDialog.delivery.error_code && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Code: {previewDialog.delivery.error_code}

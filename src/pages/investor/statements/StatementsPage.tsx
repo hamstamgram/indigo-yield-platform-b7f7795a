@@ -17,6 +17,7 @@ import {
 } from "@/components/ui";
 import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatAssetAmount, getAssetName } from "@/utils/assets";
 import { useToast } from "@/hooks";
 import {
@@ -181,7 +182,8 @@ const StatementsPage = () => {
                         <h3 className="text-lg font-display font-semibold">
                           {getMonthName(statement.period_month)} {statement.period_year}
                         </h3>
-                        <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 inline-flex items-center gap-1">
+                          <CryptoIcon symbol={statement.asset_code} className="h-4 w-4" />
                           {statement.fund_name}
                         </span>
                       </div>

@@ -572,7 +572,10 @@ const InvestorReports = () => {
                         {selectedInvestor.assets.map((asset) => (
                           <TableRow key={asset.asset_code}>
                             <TableCell className="font-medium">
-                              <Badge>{asset.asset_code}</Badge>
+                              <div className="flex items-center gap-2">
+                                <CryptoIcon symbol={asset.asset_code} className="h-5 w-5" />
+                                <Badge>{asset.asset_code}</Badge>
+                              </div>
                             </TableCell>
                             <TableCell className="text-right">
                               {formatAmount(asset.opening_balance, asset.asset_code)}

@@ -24,11 +24,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  SortableTableHead,
 } from "@/components/ui";
 import { Search, Download, Eye, Clock, TrendingUp, Users, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { useFundYieldEvents } from "@/hooks/data/admin/useYieldCrystallization";
-import { useActiveFundsWithAUM } from "@/hooks";
+import { useActiveFundsWithAUM, useSortableColumns } from "@/hooks";
 import { cn } from "@/lib/utils";
 import type { YieldEvent } from "@/types/domains/yieldCrystallization";
 import { FormattedNumber, PercentageValue } from "@/components/common/FormattedNumber";
@@ -71,6 +72,11 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
 
     return filtered;
   }, [yieldEvents, visibilityFilter, searchQuery]);
+
+  const { sortedData, sortConfig, requestSort } = useSortableColumns(filteredEvents, {
+    column: "event_date",
+    direction: "desc",
+  });
 
   // Calculate summary stats
   const stats = useMemo(() => {
@@ -226,19 +232,60 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
+                  <SortableTableHead
+                    column="event_date"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Date
+                  </SortableTableHead>
                   <TableHead>Trigger</TableHead>
-                  <TableHead className="text-right">Balance</TableHead>
-                  <TableHead className="text-right">Share %</TableHead>
+                  <SortableTableHead
+                    column="investor_balance"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-right"
+                  >
+                    Balance
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="investor_share_pct"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-right"
+                  >
+                    Share %
+                  </SortableTableHead>
                   <TableHead className="text-right">Yield %</TableHead>
-                  <TableHead className="text-right">Gross</TableHead>
-                  <TableHead className="text-right">Fees</TableHead>
-                  <TableHead className="text-right">Net</TableHead>
+                  <SortableTableHead
+                    column="gross_yield_amount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-right"
+                  >
+                    Gross
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="fee_amount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-right"
+                  >
+                    Fees
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="net_yield_amount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-right"
+                  >
+                    Net
+                  </SortableTableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEvents.slice(0, 100).map((event) => (
+                {sortedData.slice(0, 100).map((event) => (
                   <TableRow
                     key={event.id}
                     className={cn(event.visibility_scope === "admin_only" && "bg-amber-50/50")}
@@ -274,10 +321,10 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
         )}
 
         {/* Summary Footer */}
-        {filteredEvents.length > 0 && (
+        {sortedData.length > 0 && (
           <div className="flex items-center justify-between text-sm text-muted-foreground pt-2 border-t">
             <span>
-              Showing {Math.min(filteredEvents.length, 100)} of {filteredEvents.length} events
+              Showing {Math.min(sortedData.length, 100)} of {sortedData.length} events
             </span>
             <span>
               Total Net Yield: <FormattedNumber value={stats.totalYield} type="number" />

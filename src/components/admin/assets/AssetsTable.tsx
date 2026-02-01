@@ -1,10 +1,19 @@
 import { useState } from "react";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Input, Button, Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Input,
+  Button,
+  Badge,
+  SortableTableHead,
 } from "@/components/ui";
 import { Search, Edit, TrendingUp } from "lucide-react";
 import { useAssets } from "@/hooks/data/admin";
+import { useSortableColumns } from "@/hooks";
 import { EditAssetDialog } from "./EditAssetDialog";
 import { AssetPriceDialog } from "./AssetPriceDialog";
 import type { Asset } from "@/types/asset";
@@ -17,6 +26,11 @@ export function AssetsTable() {
   const [priceDialogAsset, setPriceDialogAsset] = useState<Asset | null>(null);
 
   const { data: assets, isLoading } = useAssets({ search });
+
+  const { sortedData, sortConfig, requestSort } = useSortableColumns(assets || [], {
+    column: "symbol",
+    direction: "asc",
+  });
 
   if (isLoading) {
     return <div className="text-center py-8">Loading assets...</div>;
@@ -41,25 +55,39 @@ export function AssetsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Symbol</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Kind</TableHead>
+                <SortableTableHead column="symbol" currentSort={sortConfig} onSort={requestSort}>
+                  Symbol
+                </SortableTableHead>
+                <SortableTableHead column="name" currentSort={sortConfig} onSort={requestSort}>
+                  Name
+                </SortableTableHead>
+                <SortableTableHead column="kind" currentSort={sortConfig} onSort={requestSort}>
+                  Kind
+                </SortableTableHead>
                 <TableHead>Chain</TableHead>
                 <TableHead>Decimals</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
+                <SortableTableHead column="is_active" currentSort={sortConfig} onSort={requestSort}>
+                  Status
+                </SortableTableHead>
+                <SortableTableHead
+                  column="created_at"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                >
+                  Created
+                </SortableTableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assets?.length === 0 ? (
+              {sortedData.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground">
                     No assets found
                   </TableCell>
                 </TableRow>
               ) : (
-                assets?.map((asset: Asset) => (
+                sortedData.map((asset: Asset) => (
                   <TableRow key={asset.asset_id}>
                     <TableCell>
                       <div className="flex items-center gap-2">

@@ -11,12 +11,14 @@ import {
   PageLoadingSpinner,
   ResponsiveTable,
   EmptyState,
+  SortableTableHead,
 } from "@/components/ui";
 import { Search, Receipt, Filter, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hooks/data";
+import { useSortableColumns } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
@@ -42,9 +44,18 @@ export default function InvestorTransactionsPage() {
     typeFilter
   );
 
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(items || [], {
+    column: "tx_date",
+    direction: "desc",
+  });
+
   const columns = [
     {
-      header: "Type",
+      header: (
+        <SortableTableHead column="type" currentSort={sortConfig} onSort={requestSort}>
+          Type
+        </SortableTableHead>
+      ),
       cell: (item: any) => (
         <Badge
           variant="outline"
@@ -62,7 +73,11 @@ export default function InvestorTransactionsPage() {
       ),
     },
     {
-      header: "Date",
+      header: (
+        <SortableTableHead column="tx_date" currentSort={sortConfig} onSort={requestSort}>
+          Date
+        </SortableTableHead>
+      ),
       cell: (item: any) => (
         <span className="text-sm text-slate-400 font-mono">
           {format(new Date(item.tx_date || item.created_at), "MMM d, yyyy")}
@@ -79,7 +94,11 @@ export default function InvestorTransactionsPage() {
       ),
     },
     {
-      header: "Amount",
+      header: (
+        <SortableTableHead column="amount" currentSort={sortConfig} onSort={requestSort}>
+          Amount
+        </SortableTableHead>
+      ),
       cell: (item: any) => (
         <span
           className={cn(
@@ -212,8 +231,8 @@ export default function InvestorTransactionsPage() {
             <div className="py-12">
               <PageLoadingSpinner />
             </div>
-          ) : items && items.length > 0 ? (
-            <ResponsiveTable data={items} columns={columns} keyExtractor={(item) => item.id} />
+          ) : sortedData && sortedData.length > 0 ? (
+            <ResponsiveTable data={sortedData} columns={columns} keyExtractor={(item) => item.id} />
           ) : (
             <div className="py-12">
               <EmptyState

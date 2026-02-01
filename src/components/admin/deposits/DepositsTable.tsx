@@ -19,10 +19,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  SortableTableHead,
 } from "@/components/ui";
 import { Search, CheckCircle, XCircle, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useDeposits } from "@/hooks/data/admin";
+import { useSortableColumns } from "@/hooks";
 import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
 import { VoidAndReissueDialog } from "@/features/admin/transactions/VoidAndReissueDialog";
@@ -62,6 +64,11 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
   const { data: deposits, isLoading } = useDeposits({
     search: searchInput || undefined,
     status: statusFilter === "all" ? undefined : statusFilter,
+  });
+
+  const { sortedData, sortConfig, requestSort } = useSortableColumns(deposits || [], {
+    column: "created_at",
+    direction: "desc",
   });
 
   // Map deposit to transaction format for edit/void dialogs
@@ -138,24 +145,36 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
+                <SortableTableHead column="user_name" currentSort={sortConfig} onSort={requestSort}>
+                  User
+                </SortableTableHead>
                 <TableHead>Asset</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
+                <SortableTableHead column="amount" currentSort={sortConfig} onSort={requestSort}>
+                  Amount
+                </SortableTableHead>
+                <SortableTableHead column="status" currentSort={sortConfig} onSort={requestSort}>
+                  Status
+                </SortableTableHead>
                 <TableHead>Transaction Hash</TableHead>
-                <TableHead>Date</TableHead>
+                <SortableTableHead
+                  column="created_at"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                >
+                  Date
+                </SortableTableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {deposits?.length === 0 ? (
+              {sortedData.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground">
                     No deposits found
                   </TableCell>
                 </TableRow>
               ) : (
-                deposits?.map((deposit: Deposit) => (
+                sortedData.map((deposit: Deposit) => (
                   <TableRow key={deposit.id}>
                     <TableCell>
                       <div>

@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useIBReferrals } from "@/hooks/data/shared";
+import { useSortableColumns } from "@/hooks";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
 const PAGE_SIZE = 10;
@@ -34,6 +35,11 @@ export default function IBReferralsPage() {
         fullName.includes(searchLower) || (r.emailMasked || "").toLowerCase().includes(searchLower)
       );
     }) || [];
+
+  const { sortedData } = useSortableColumns(filteredReferrals, {
+    column: "joinedAt",
+    direction: "desc",
+  });
 
   const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
@@ -71,7 +77,7 @@ export default function IBReferralsPage() {
       </div>
 
       <div className="glass-panel rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden min-h-[500px]">
-        {filteredReferrals.length > 0 ? (
+        {sortedData.length > 0 ? (
           <div className="divide-y divide-white/5">
             {/* Table Header-ish (Hidden on mobile, visible on desktop) */}
             <div className="hidden md:grid grid-cols-12 gap-4 p-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
@@ -82,7 +88,7 @@ export default function IBReferralsPage() {
               <div className="col-span-1"></div>
             </div>
 
-            {filteredReferrals.map((referral) => (
+            {sortedData.map((referral) => (
               <div
                 key={referral.id}
                 className="group relative md:grid md:grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors cursor-pointer"

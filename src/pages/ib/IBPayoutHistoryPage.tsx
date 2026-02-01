@@ -21,11 +21,13 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
+  SortableTableHead,
 } from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Wallet, ChevronLeft, ChevronRight } from "lucide-react";
 import { useIBPayoutHistory } from "@/hooks/data/shared";
+import { useSortableColumns } from "@/hooks";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
 const PAGE_SIZE = 20;
@@ -35,6 +37,11 @@ export default function IBPayoutHistoryPage() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const { data, isLoading } = useIBPayoutHistory(page, PAGE_SIZE, statusFilter);
+
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(data?.payouts || [], {
+    column: "effectiveDate",
+    direction: "desc",
+  });
 
   const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
@@ -72,22 +79,41 @@ export default function IBPayoutHistoryPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {data?.payouts && data.payouts.length > 0 ? (
+          {sortedData && sortedData.length > 0 ? (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
+                    <SortableTableHead
+                      column="effectiveDate"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                    >
+                      Date
+                    </SortableTableHead>
                     <TableHead>Fund</TableHead>
                     <TableHead>Asset</TableHead>
                     <TableHead>Source Investor</TableHead>
-                    <TableHead className="text-right">Commission</TableHead>
-                    <TableHead>Status</TableHead>
+                    <SortableTableHead
+                      column="amount"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                      className="text-right"
+                    >
+                      Commission
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="status"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                    >
+                      Status
+                    </SortableTableHead>
                     <TableHead>Paid Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.payouts.map((payout) => (
+                  {sortedData.map((payout) => (
                     <TableRow key={payout.id}>
                       <TableCell>{format(new Date(payout.effectiveDate), "MMM d, yyyy")}</TableCell>
                       <TableCell>{payout.fundName}</TableCell>

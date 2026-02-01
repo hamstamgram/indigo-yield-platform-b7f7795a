@@ -5,15 +5,45 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Button, Input, Badge, Label, Skeleton,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Input,
+  Badge,
+  Label,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  SortableTableHead,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
+import { useSortableColumns } from "@/hooks";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import {
   useAdminInvitesList,
@@ -63,13 +93,13 @@ function AdminInvitesContent() {
     onSuccess: async ({ email, inviteCode }) => {
       const inviteLink = `${window.location.origin}/admin-invite?code=${inviteCode}`;
       navigator.clipboard.writeText(inviteLink);
-      
+
       // Also trigger email send
-      const newInvite = invites?.find(i => i.invite_code === inviteCode);
+      const newInvite = invites?.find((i) => i.invite_code === inviteCode);
       if (newInvite) {
         sendEmailMutation.mutate(newInvite as any);
       }
-      
+
       toast({
         title: "Invite Created",
         description: (
@@ -123,6 +153,11 @@ function AdminInvitesContent() {
     return getInviteStatus(invite) === statusFilter;
   });
 
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(filteredInvites || [], {
+    column: "created_at",
+    direction: "desc",
+  });
+
   const statusBadge = (status: InviteStatus) => {
     switch (status) {
       case "pending":
@@ -162,9 +197,7 @@ function AdminInvitesContent() {
             <Users className="h-8 w-8" />
             Admin Invites
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage administrator invitations
-          </p>
+          <p className="text-muted-foreground mt-1">Manage administrator invitations</p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
@@ -177,9 +210,7 @@ function AdminInvitesContent() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Invitations</CardTitle>
-              <CardDescription>
-                {invites?.length || 0} total invitations
-              </CardDescription>
+              <CardDescription>{invites?.length || 0} total invitations</CardDescription>
             </div>
             <Select
               value={statusFilter}
@@ -207,19 +238,13 @@ function AdminInvitesContent() {
                 </div>
               ))}
             </div>
-          ) : filteredInvites?.length === 0 ? (
+          ) : sortedData?.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto text-muted-foreground/50" />
               <p className="mt-4 text-muted-foreground">
-                {statusFilter === "all"
-                  ? "No invitations yet"
-                  : `No ${statusFilter} invitations`}
+                {statusFilter === "all" ? "No invitations yet" : `No ${statusFilter} invitations`}
               </p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => setShowCreateDialog(true)}
-              >
+              <Button variant="outline" className="mt-4" onClick={() => setShowCreateDialog(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Create First Invite
               </Button>
@@ -228,16 +253,32 @@ function AdminInvitesContent() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email</TableHead>
+                  <SortableTableHead column="email" currentSort={sortConfig} onSort={requestSort}>
+                    Email
+                  </SortableTableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Expires</TableHead>
+                  <SortableTableHead column="used" currentSort={sortConfig} onSort={requestSort}>
+                    Status
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="created_at"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Created
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="expires_at"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                  >
+                    Expires
+                  </SortableTableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvites?.map((invite) => {
+                {sortedData?.map((invite) => {
                   const status = getInviteStatus(invite);
                   return (
                     <TableRow key={invite.id}>
@@ -315,9 +356,7 @@ function AdminInvitesContent() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Admin Invite</DialogTitle>
-            <DialogDescription>
-              Send an invitation to add a new administrator
-            </DialogDescription>
+            <DialogDescription>Send an invitation to add a new administrator</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -332,7 +371,10 @@ function AdminInvitesContent() {
             </div>
             <div className="space-y-2">
               <Label>Role</Label>
-              <Select value={newRole} onValueChange={(v) => setNewRole(v as "admin" | "super_admin")}>
+              <Select
+                value={newRole}
+                onValueChange={(v) => setNewRole(v as "admin" | "super_admin")}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -366,9 +408,7 @@ function AdminInvitesContent() {
               onClick={() => createMutation.mutate({ email: newEmail, role: newRole })}
               disabled={!newEmail || createMutation.isPending}
             >
-              {createMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Create & Copy Link
             </Button>
           </DialogFooter>
@@ -381,9 +421,8 @@ function AdminInvitesContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Revoke Invitation?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will invalidate the invitation sent to{" "}
-              <strong>{revokeInvite?.email}</strong>. They will no longer be able
-              to use this link to become an admin.
+              This will invalidate the invitation sent to <strong>{revokeInvite?.email}</strong>.
+              They will no longer be able to use this link to become an admin.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -392,9 +431,7 @@ function AdminInvitesContent() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => revokeInvite && revokeMutation.mutate(revokeInvite.id)}
             >
-              {revokeMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {revokeMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Revoke
             </AlertDialogAction>
           </AlertDialogFooter>

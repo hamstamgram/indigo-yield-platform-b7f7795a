@@ -5,18 +5,41 @@
 
 import { useState } from "react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   Input,
   Button,
   Badge,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  SortableTableHead,
 } from "@/components/ui";
-import { FileText, Filter, Calendar, User, Activity, Database, Loader2, Download } from "lucide-react";
+import {
+  FileText,
+  Filter,
+  Calendar,
+  User,
+  Activity,
+  Database,
+  Loader2,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import { logError, logWarn } from "@/lib/logger";
 import { auditLogService, type AuditLogFilters } from "@/services/shared";
-import { useRealtimeSubscription } from "@/hooks";
+import { useRealtimeSubscription, useSortableColumns } from "@/hooks";
 import { useAuditLogs, exportAuditLogsToCSV } from "@/hooks/data/admin/useAuditLogs";
 
 const DEFAULT_STATS = {
@@ -42,6 +65,11 @@ const AuditLogViewer = () => {
   const entities = data?.entities ?? [];
   const actions = data?.actions ?? [];
   const stats = data?.stats ?? DEFAULT_STATS;
+
+  const { sortedData, sortConfig, requestSort } = useSortableColumns(logs, {
+    column: "created_at",
+    direction: "desc",
+  });
 
   // Real-time subscription
   useRealtimeSubscription({
@@ -259,16 +287,26 @@ const AuditLogViewer = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Timestamp</TableHead>
+                <SortableTableHead
+                  column="created_at"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                >
+                  Timestamp
+                </SortableTableHead>
                 <TableHead>Actor</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Entity</TableHead>
+                <SortableTableHead column="action" currentSort={sortConfig} onSort={requestSort}>
+                  Action
+                </SortableTableHead>
+                <SortableTableHead column="entity" currentSort={sortConfig} onSort={requestSort}>
+                  Entity
+                </SortableTableHead>
                 <TableHead>Entity ID</TableHead>
                 <TableHead>Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.map((log) => (
+              {sortedData.map((log) => (
                 <>
                   <TableRow
                     key={log.id}
@@ -348,7 +386,7 @@ const AuditLogViewer = () => {
             </TableBody>
           </Table>
 
-          {logs.length === 0 && (
+          {sortedData.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No audit log entries found matching your filters
             </div>
@@ -358,7 +396,7 @@ const AuditLogViewer = () => {
           <div className="flex justify-between items-center mt-4">
             <div className="text-sm text-muted-foreground">
               Showing {(filters.offset || 0) + 1} to{" "}
-              {Math.min((filters.offset || 0) + logs.length, totalCount)} of {totalCount}
+              {Math.min((filters.offset || 0) + sortedData.length, totalCount)} of {totalCount}
             </div>
             <div className="flex gap-2">
               <Button

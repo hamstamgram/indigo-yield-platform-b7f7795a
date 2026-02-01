@@ -14,6 +14,7 @@ import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Coins, Download, ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
 import { useIBCommissions } from "@/hooks/data/shared";
+import { useSortableColumns } from "@/hooks";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 
@@ -41,9 +42,14 @@ export default function IBCommissionsPage() {
     });
   }, [data?.commissions, assetFilter, investorSearch]);
 
+  const { sortedData } = useSortableColumns(filteredCommissions, {
+    column: "effectiveDate",
+    direction: "desc",
+  });
+
   // Export to CSV
   const exportCSV = () => {
-    if (!filteredCommissions.length) return;
+    if (!sortedData.length) return;
 
     const headers = [
       "Date",
@@ -57,7 +63,7 @@ export default function IBCommissionsPage() {
       "Commission",
     ];
 
-    const rows = filteredCommissions.map((c) => [
+    const rows = sortedData.map((c) => [
       c.effectiveDate,
       c.periodStart || "",
       c.periodEnd || "",
@@ -86,12 +92,12 @@ export default function IBCommissionsPage() {
   // Calculate totals by asset
   const totalsByAsset = useMemo(() => {
     const totals: Record<string, number> = {};
-    for (const c of filteredCommissions) {
+    for (const c of sortedData) {
       if (!totals[c.asset]) totals[c.asset] = 0;
       totals[c.asset] += c.ibFeeAmount;
     }
     return totals;
-  }, [filteredCommissions]);
+  }, [sortedData]);
 
   if (isLoading) {
     return <PageLoadingSpinner />;
@@ -116,7 +122,7 @@ export default function IBCommissionsPage() {
         </div>
         <Button
           onClick={exportCSV}
-          disabled={!filteredCommissions.length}
+          disabled={!sortedData.length}
           className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
           variant="outline"
         >
@@ -195,7 +201,7 @@ export default function IBCommissionsPage() {
 
       {/* Commissions Table */}
       <div className="glass-panel rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden min-h-[400px]">
-        {filteredCommissions.length > 0 ? (
+        {sortedData.length > 0 ? (
           <div className="overflow-x-auto">
             {/* Header */}
             <div className="grid grid-cols-12 gap-4 p-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-white/5 bg-black/20 min-w-[800px]">
@@ -208,7 +214,7 @@ export default function IBCommissionsPage() {
             </div>
 
             <div className="divide-y divide-white/5 min-w-[800px]">
-              {filteredCommissions.map((comm) => (
+              {sortedData.map((comm) => (
                 <div
                   key={comm.id}
                   className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors"

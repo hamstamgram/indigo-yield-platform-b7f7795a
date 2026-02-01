@@ -7,18 +7,25 @@ import {
   Badge,
   ResponsiveTable,
   EmptyState,
+  SortableTableHead,
 } from "@/components/ui";
 import { FolderOpen, Download, FileText, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";
+import { useSortableColumns } from "@/hooks";
 import type { InvestorDocument } from "@/services/investor";
 import { logError } from "@/lib/logger";
 
 export default function InvestorDocumentsPage() {
   const { data: documents, isLoading } = useInvestorDocuments();
   const downloadMutation = useDocumentDownload();
+
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(documents || [], {
+    column: "created_at",
+    direction: "desc",
+  });
 
   const handleDownload = (doc: InvestorDocument) => {
     downloadMutation.mutate(
@@ -65,13 +72,21 @@ export default function InvestorDocumentsPage() {
       ),
     },
     {
-      header: "Type",
+      header: (
+        <SortableTableHead column="type" currentSort={sortConfig} onSort={requestSort}>
+          Type
+        </SortableTableHead>
+      ),
       cell: (item: InvestorDocument) => (
         <Badge variant="outline">{getDocumentTypeLabel(item.type)}</Badge>
       ),
     },
     {
-      header: "Date",
+      header: (
+        <SortableTableHead column="created_at" currentSort={sortConfig} onSort={requestSort}>
+          Date
+        </SortableTableHead>
+      ),
       cell: (item: InvestorDocument) => (
         <span className="text-sm text-muted-foreground">
           {format(new Date(item.created_at), "MMM d, yyyy")}
@@ -107,8 +122,8 @@ export default function InvestorDocumentsPage() {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : documents && documents.length > 0 ? (
-            <ResponsiveTable data={documents} columns={columns} keyExtractor={(item) => item.id} />
+          ) : sortedData && sortedData.length > 0 ? (
+            <ResponsiveTable data={sortedData} columns={columns} keyExtractor={(item) => item.id} />
           ) : (
             <EmptyState
               icon={FolderOpen}
