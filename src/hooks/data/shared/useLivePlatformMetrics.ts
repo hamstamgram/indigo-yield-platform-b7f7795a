@@ -4,10 +4,11 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { 
+import { logError } from "@/lib/logger";
+import {
   queryView,
   type VDailyPlatformMetricsLive,
-  type VFundSummaryLive
+  type VFundSummaryLive,
 } from "@/lib/db/viewTypes";
 
 // Re-export types with legacy names for backwards compatibility
@@ -20,19 +21,19 @@ export type LiveFundSummary = VFundSummaryLive;
  */
 export function useLivePlatformMetrics() {
   return useQuery({
-    queryKey: ['live-platform-metrics'],
+    queryKey: ["live-platform-metrics"],
     queryFn: async (): Promise<VDailyPlatformMetricsLive | null> => {
       // Query the live view (computes in real-time, no refresh needed)
       const { data, error } = await queryView("v_daily_platform_metrics_live")
-        .select('*')
+        .select("*")
         .limit(1)
         .maybeSingle();
-      
+
       if (error) {
-        console.error('[LiveMetrics] Error fetching platform metrics:', error);
+        logError("useLivePlatformMetrics.queryFn", error);
         return null;
       }
-      
+
       return data as VDailyPlatformMetricsLive | null;
     },
     staleTime: 5000, // 5 seconds - these are live computed
@@ -46,20 +47,18 @@ export function useLivePlatformMetrics() {
  */
 export function useLiveFundSummary(fundId?: string) {
   return useQuery({
-    queryKey: ['live-fund-summary', fundId],
+    queryKey: ["live-fund-summary", fundId],
     queryFn: async (): Promise<VFundSummaryLive[]> => {
       // Use live view (computes in real-time, no refresh needed)
-      const query = queryView("v_fund_summary_live").select('*');
-      
-      const { data, error } = fundId 
-        ? await query.eq('fund_id', fundId)
-        : await query;
-      
+      const query = queryView("v_fund_summary_live").select("*");
+
+      const { data, error } = fundId ? await query.eq("fund_id", fundId) : await query;
+
       if (error) {
-        console.error('[LiveMetrics] Error fetching fund summary:', error);
+        logError("useLiveFundSummary.queryFn", error);
         return [];
       }
-      
+
       return (data || []) as VFundSummaryLive[];
     },
     staleTime: 5000,

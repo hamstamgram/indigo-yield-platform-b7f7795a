@@ -11,6 +11,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 // =============================================================================
 // VIEW TYPE DEFINITIONS
@@ -236,7 +237,7 @@ export async function fetchView<T extends ViewName>(
   const { data, error } = await query;
 
   if (error) {
-    console.error(`[viewTypes] Error fetching ${viewName}:`, error);
+    logError("viewTypes.fetchView", error, { viewName });
     return [];
   }
 
@@ -256,7 +257,7 @@ export async function fetchViewSingle<T extends ViewName>(
     .maybeSingle();
 
   if (error) {
-    console.error(`[viewTypes] Error fetching single from ${viewName}:`, error);
+    logError("viewTypes.fetchViewSingle", error, { viewName });
     return null;
   }
 

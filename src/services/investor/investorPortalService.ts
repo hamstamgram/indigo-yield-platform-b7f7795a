@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 // ============= Types =============
@@ -259,7 +260,7 @@ export async function getInvestorProfile(userId: string): Promise<InvestorProfil
     .maybeSingle();
 
   if (error) {
-    console.error("Error fetching profile:", error);
+    logError("investorPortal.getInvestorProfile", error, { userId });
     return minimalProfile;
   }
 

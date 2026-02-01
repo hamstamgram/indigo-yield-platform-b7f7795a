@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { AdminGuard } from "@/components/admin";
+import { logError } from "@/lib/logger";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { FinancialValue } from "@/components/common/FinancialValue";
@@ -224,7 +225,7 @@ function YieldDistributionsContent() {
       });
       setInvestorMap(map);
     } catch (error) {
-      console.error("Failed to load yield distributions", error);
+      logError("YieldDistributionsPage.fetchData", error);
     } finally {
       setLoading(false);
     }

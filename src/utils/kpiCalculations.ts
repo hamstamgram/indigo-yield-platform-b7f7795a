@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getTodayString } from "@/utils/dateUtils";
+import { logError, logWarn } from "@/lib/logger";
 
 export interface AssetKPI {
   assetCode: string;
@@ -30,7 +31,7 @@ export const calculateTotalAUM = async () => {
     // Sum up AUM - all values are in native token units
     return data?.reduce((sum, row) => sum + Number(row.aum), 0) || 0;
   } catch (error) {
-    console.error("Error calculating total AUM:", error);
+    logError("kpiCalculations.calculateTotalAUM", error);
     return 0;
   }
 };
@@ -46,7 +47,7 @@ export const calculateInvestorCount = async () => {
       .eq("is_admin", false); // Only count non-admin profiles
     return count || 0;
   } catch (error) {
-    console.error("Error calculating investor count:", error);
+    logError("kpiCalculations.calculateInvestorCount", error);
     return 0;
   }
 };
@@ -112,7 +113,7 @@ async function getCurrentPeriodId(): Promise<string | null> {
 /**
  * Calculate all KPIs for an investor by fetching REAL data from investor_fund_performance
  * This is the single source of truth for performance metrics.
- * 
+ *
  * Formula (canonical):
  * - net_income = ending_balance - beginning_balance - additions + redemptions
  * - rate_of_return = net_income / beginning_balance (0 if beginning_balance <= 0)
@@ -154,21 +155,25 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
 
     // Fallback: Calculate from positions if no performance data exists yet
     // This should only happen for new investors before month-end processing
-    console.warn("No investor_fund_performance data found, falling back to positions calculation");
-    
+    logWarn("kpiCalculations.calculateAllKPIs", {
+      reason: "No investor_fund_performance data found, falling back to positions calculation",
+    });
+
     const { data: positions, error } = await supabase
       .from("investor_positions")
-      .select(`
+      .select(
+        `
         shares,
         cost_basis,
         current_value,
         fund_id,
         fund:funds!fk_investor_positions_fund(id, asset)
-      `)
+      `
+      )
       .eq("investor_id", investorId);
 
     if (error || !positions) {
-      console.error("Error fetching positions:", error);
+      logError("kpiCalculations.calculateAllKPIs", error, { step: "fetchPositions" });
       return [];
     }
 
@@ -177,7 +182,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
     return positions.map((pos: any) => {
       const currentValue = Number(pos.current_value) || 0;
       const costBasis = Number(pos.cost_basis) || 0;
-      
+
       // ITD calculation: current_value - cost_basis (where cost_basis = principal)
       const itdReturn = currentValue - costBasis;
       const itdPercentage = costBasis > 0 ? (itdReturn / costBasis) * 100 : 0;
@@ -201,7 +206,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
       };
     });
   } catch (error) {
-    console.error("Error calculating KPIs:", error);
+    logError("kpiCalculations.calculateAllKPIs", error);
     return [];
   }
 };

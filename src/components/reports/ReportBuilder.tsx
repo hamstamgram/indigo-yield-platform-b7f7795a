@@ -8,12 +8,21 @@ import { format } from "date-fns";
 import { FileText, Download, Calendar, Settings, Loader2, AlertCircle } from "lucide-react";
 import {
   Button,
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Label,
   Checkbox,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 import { ReportsApi } from "@/services/api/reportsApi";
 import {
   ReportType,
@@ -197,7 +206,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         }
       }
     } catch (error) {
-      console.error("Report generation failed:", error);
+      logError("ReportBuilder.handleGenerateReport", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to generate report",

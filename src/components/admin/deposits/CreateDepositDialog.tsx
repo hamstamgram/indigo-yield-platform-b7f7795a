@@ -35,6 +35,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterDeposit } from "@/utils/cacheInvalidation";
 import { NumericInput } from "@/components/common/NumericInput";
 import { FormattedNumber } from "@/components/common/FormattedNumber";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface CreateDepositDialogProps {
   open: boolean;
@@ -254,7 +255,10 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                 <SelectContent>
                   {funds?.map((fund) => (
                     <SelectItem key={fund.id} value={fund.id}>
-                      {fund.name} ({(fund.asset || "").toUpperCase()})
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={fund.asset} className="h-5 w-5" />
+                        <span>{fund.name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

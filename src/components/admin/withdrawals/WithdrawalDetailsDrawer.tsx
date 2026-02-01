@@ -1,12 +1,30 @@
 import { useState } from "react";
 import { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
-import { getAssetLogo } from "@/utils/assets";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { format } from "date-fns";
 import {
-  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose,
-  Badge, Button, Separator, TruncatedText,
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+  Badge,
+  Button,
+  Separator,
+  TruncatedText,
 } from "@/components/ui";
-import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, Play, CheckCircle2, ArrowRightLeft } from "lucide-react";
+import {
+  Loader2,
+  X,
+  ExternalLink,
+  Copy,
+  CheckCircle,
+  XCircle,
+  Play,
+  CheckCircle2,
+  ArrowRightLeft,
+} from "lucide-react";
 import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
@@ -16,7 +34,10 @@ interface WithdrawalDetailsDrawerProps {
   withdrawalId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAction?: (action: "approve" | "reject" | "process" | "complete", withdrawal: Withdrawal) => void;
+  onAction?: (
+    action: "approve" | "reject" | "process" | "complete",
+    withdrawal: Withdrawal
+  ) => void;
 }
 
 const statusColors: Record<WithdrawalFullStatus, string> = {
@@ -35,17 +56,23 @@ export function WithdrawalDetailsDrawer({
   onAction,
 }: WithdrawalDetailsDrawerProps) {
   const [routeToFeesOpen, setRouteToFeesOpen] = useState(false);
-  
-  const { data: withdrawal, isLoading, error, refetch } = useWithdrawalById(open ? withdrawalId : null);
+
+  const {
+    data: withdrawal,
+    isLoading,
+    error,
+    refetch,
+  } = useWithdrawalById(open ? withdrawalId : null);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied to clipboard`);
   };
-  
-  const canRouteToFees = withdrawal?.status === "pending" ||
-                          withdrawal?.status === "approved" || 
-                          withdrawal?.status === "processing";
+
+  const canRouteToFees =
+    withdrawal?.status === "pending" ||
+    withdrawal?.status === "approved" ||
+    withdrawal?.status === "processing";
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -78,15 +105,16 @@ export function WithdrawalDetailsDrawer({
               <>
                 {/* Status & Amount */}
                 <div className="flex items-center justify-between">
-                  <Badge variant="outline" className={`text-sm px-3 py-1 ${statusColors[withdrawal.status]}`}>
+                  <Badge
+                    variant="outline"
+                    className={`text-sm px-3 py-1 ${statusColors[withdrawal.status]}`}
+                  >
                     {withdrawal.status.toUpperCase()}
                   </Badge>
                   <div className="flex items-center gap-2 text-2xl font-bold">
-                    <img
-                      src={getAssetLogo((withdrawal.asset || withdrawal.fund_class || "ASSET").toUpperCase())}
-                      alt={withdrawal.asset || "Asset"}
-                      className="h-6 w-6 rounded-full border"
-                      onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                    <CryptoIcon
+                      symbol={withdrawal.asset || withdrawal.fund_class || "ASSET"}
+                      className="h-6 w-6"
                     />
                     {withdrawal.requested_amount.toLocaleString()}{" "}
                     <span className="text-muted-foreground text-lg font-normal">
@@ -95,11 +123,13 @@ export function WithdrawalDetailsDrawer({
                   </div>
                 </div>
 
-                {withdrawal.processed_amount && withdrawal.processed_amount !== withdrawal.requested_amount && (
-                  <p className="text-sm text-muted-foreground">
-                    Processed amount: {withdrawal.processed_amount.toLocaleString()} {(withdrawal.asset || "").toUpperCase()}
-                  </p>
-                )}
+                {withdrawal.processed_amount &&
+                  withdrawal.processed_amount !== withdrawal.requested_amount && (
+                    <p className="text-sm text-muted-foreground">
+                      Processed amount: {withdrawal.processed_amount.toLocaleString()}{" "}
+                      {(withdrawal.asset || "").toUpperCase()}
+                    </p>
+                  )}
 
                 <Separator />
 
@@ -107,12 +137,12 @@ export function WithdrawalDetailsDrawer({
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-2">Investor</h3>
                   <div className="space-y-1">
-                    <TruncatedText 
+                    <TruncatedText
                       text={withdrawal.investor_name}
                       className="font-medium"
                       maxWidth="100%"
                     />
-                    <TruncatedText 
+                    <TruncatedText
                       text={withdrawal.investor_email}
                       className="text-sm text-muted-foreground"
                       maxWidth="100%"
@@ -133,7 +163,9 @@ export function WithdrawalDetailsDrawer({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Fund</h3>
-                    <p className="font-medium">{withdrawal.fund_name || withdrawal.fund_code || "N/A"}</p>
+                    <p className="font-medium">
+                      {withdrawal.fund_name || withdrawal.fund_code || "N/A"}
+                    </p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Type</h3>
@@ -145,7 +177,9 @@ export function WithdrawalDetailsDrawer({
                   </div>
                   {withdrawal.processed_at && (
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Processed Date</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                        Processed Date
+                      </h3>
                       <p>{format(new Date(withdrawal.processed_at), "MMM d, yyyy")}</p>
                     </div>
                   )}
@@ -156,12 +190,18 @@ export function WithdrawalDetailsDrawer({
                   <>
                     <Separator />
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Transaction Hash</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                        Transaction Hash
+                      </h3>
                       <div className="flex items-center gap-2">
                         <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
                           {withdrawal.tx_hash}
                         </code>
-                        <Button variant="ghost" size="icon" onClick={() => copyToClipboard(withdrawal.tx_hash!, "TX Hash")}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => copyToClipboard(withdrawal.tx_hash!, "TX Hash")}
+                        >
                           <Copy className="h-4 w-4" />
                         </Button>
                       </div>
@@ -170,31 +210,42 @@ export function WithdrawalDetailsDrawer({
                 )}
 
                 {/* Notes */}
-                {(withdrawal.notes || withdrawal.admin_notes || withdrawal.rejection_reason || withdrawal.cancellation_reason) && (
+                {(withdrawal.notes ||
+                  withdrawal.admin_notes ||
+                  withdrawal.rejection_reason ||
+                  withdrawal.cancellation_reason) && (
                   <>
                     <Separator />
                     <div className="space-y-3">
                       {withdrawal.notes && (
                         <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-1">Investor Notes</h3>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                            Investor Notes
+                          </h3>
                           <p className="text-sm">{withdrawal.notes}</p>
                         </div>
                       )}
                       {withdrawal.admin_notes && (
                         <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-1">Admin Notes</h3>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                            Admin Notes
+                          </h3>
                           <p className="text-sm">{withdrawal.admin_notes}</p>
                         </div>
                       )}
                       {withdrawal.rejection_reason && (
                         <div>
-                          <h3 className="text-sm font-medium text-red-600 mb-1">Rejection Reason</h3>
+                          <h3 className="text-sm font-medium text-red-600 mb-1">
+                            Rejection Reason
+                          </h3>
                           <p className="text-sm text-red-600">{withdrawal.rejection_reason}</p>
                         </div>
                       )}
                       {withdrawal.cancellation_reason && (
                         <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-1">Cancellation Reason</h3>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                            Cancellation Reason
+                          </h3>
                           <p className="text-sm">{withdrawal.cancellation_reason}</p>
                         </div>
                       )}
@@ -213,7 +264,11 @@ export function WithdrawalDetailsDrawer({
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Approve
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => onAction("reject", withdrawal)}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => onAction("reject", withdrawal)}
+                        >
                           <XCircle className="h-4 w-4 mr-1" />
                           Reject
                         </Button>
@@ -231,15 +286,14 @@ export function WithdrawalDetailsDrawer({
                         Complete
                       </Button>
                     )}
-                    
                   </div>
                 )}
 
                 {/* Route to INDIGO FEES - always visible for valid statuses */}
                 {canRouteToFees && (
                   <div className="flex gap-2 pt-2">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => setRouteToFeesOpen(true)}
                       className="border-primary/50 text-primary hover:bg-primary/10"
@@ -254,7 +308,9 @@ export function WithdrawalDetailsDrawer({
 
                 {/* Audit Timeline */}
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-4">Activity History</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-4">
+                    Activity History
+                  </h3>
                   <WithdrawalAuditTimeline withdrawalId={withdrawal.id} />
                 </div>
               </>
@@ -262,7 +318,7 @@ export function WithdrawalDetailsDrawer({
           </div>
         </div>
       </DrawerContent>
-      
+
       {/* Route to INDIGO FEES Dialog */}
       <RouteToFeesDialog
         open={routeToFeesOpen}

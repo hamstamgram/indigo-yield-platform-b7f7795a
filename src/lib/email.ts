@@ -1,7 +1,8 @@
 // Email service configuration for transactional emails
 // Production implementation uses Supabase Edge Functions for secure server-side SMTP
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
+import { logError, logWarn, logInfo } from "@/lib/logger";
 
 export interface EmailTemplate {
   to: string;
@@ -25,58 +26,66 @@ class EmailService {
 
   constructor() {
     // Get Supabase URL from environment
-    this.edgeFunctionUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    this.edgeFunctionUrl = import.meta.env.VITE_SUPABASE_URL || "";
 
     if (!this.edgeFunctionUrl) {
-      console.error("❌ VITE_SUPABASE_URL not configured. Email functionality disabled.");
+      logError(
+        "EmailService.constructor",
+        new Error("VITE_SUPABASE_URL not configured. Email functionality disabled.")
+      );
     } else {
-      console.log("✅ Email service initialized (Edge Function)");
+      logInfo("EmailService.constructor", { status: "initialized", transport: "Edge Function" });
     }
   }
 
   async sendEmail(template: EmailTemplate): Promise<boolean> {
     if (!this.edgeFunctionUrl) {
-      console.error("Email service not configured. Missing VITE_SUPABASE_URL");
+      logError(
+        "EmailService.sendEmail",
+        new Error("Email service not configured. Missing VITE_SUPABASE_URL")
+      );
       return false;
     }
 
     try {
       // Get current session for authentication
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
-        console.error("Authentication required to send email:", sessionError);
+        logError("EmailService.sendEmail", sessionError, { reason: "Authentication required" });
         return false;
       }
 
       // Call Supabase Edge Function
       const response = await fetch(`${this.edgeFunctionUrl}/functions/v1/send-email`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(template),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        console.error("Email send failed:", error);
+        logError("EmailService.sendEmail", error, { status: response.status });
 
         // Check for rate limit
         if (response.status === 429) {
-          console.warn("⚠️ Rate limit exceeded. Please wait before sending more emails.");
+          logWarn("EmailService.sendEmail", { reason: "Rate limit exceeded" });
         }
 
         return false;
       }
 
       const result = await response.json();
-      console.log("✅ Email sent successfully:", result.messageId);
+      logInfo("EmailService.sendEmail", { messageId: result.messageId });
       return true;
-
     } catch (error) {
-      console.error("Failed to send email:", error);
+      logError("EmailService.sendEmail", error);
       return false;
     }
   }
@@ -156,7 +165,7 @@ class EmailService {
     const results = await Promise.allSettled(promises);
     const successful = results.filter((r) => r.status === "fulfilled" && r.value).length;
 
-    console.log(`📧 Admin notification sent to ${successful}/${adminEmails.length} recipients`);
+    logInfo("EmailService.sendAdminNotification", { successful, total: adminEmails.length });
     return successful > 0;
   }
 
@@ -176,7 +185,9 @@ class EmailService {
     const start = performance.now();
     try {
       // Check if Edge Function is accessible
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         return {

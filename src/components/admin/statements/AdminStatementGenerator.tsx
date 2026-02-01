@@ -1,10 +1,17 @@
 import { useState } from "react";
 import {
-  Button, Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Alert, AlertDescription,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { FileText, Loader2, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { checkStatementExists } from "@/services/core/reportUpsertService";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
@@ -42,17 +49,25 @@ const AdminStatementGenerator: React.FC = () => {
       );
 
       if (!period) {
-        toast({ title: "Error", description: "Statement period not found for selected date.", variant: "destructive" });
+        toast({
+          title: "Error",
+          description: "Statement period not found for selected date.",
+          variant: "destructive",
+        });
         return;
       }
 
       // 2. Loop and generate
       for (let i = 0; i < total; i++) {
         const investor = investors[i];
-        const investorFullName = `${investor.firstName || ""} ${investor.lastName || ""}`.trim() || investor.email;
+        const investorFullName =
+          `${investor.firstName || ""} ${investor.lastName || ""}`.trim() || investor.email;
 
         // Fetch report data via service
-        const reports = await profileService.getInvestorFundPerformanceByPeriod(investor.id, period.id);
+        const reports = await profileService.getInvestorFundPerformanceByPeriod(
+          investor.id,
+          period.id
+        );
 
         // Prepare statement data
         const statementData = {
@@ -90,11 +105,11 @@ const AdminStatementGenerator: React.FC = () => {
         // Upload via service
         const fileName = `statement-${selectedYear}-${selectedMonth.padStart(2, "0")}-${investor.id}.pdf`;
         const storagePath = `${investor.id}/${fileName}`;
-        
+
         try {
           await statementsService.uploadStatementPDF(storagePath, pdfBlob);
         } catch (uploadError) {
-          console.error("Upload failed", uploadError);
+          logError("AdminStatementGenerator.uploadStatement", uploadError);
           continue;
         }
 
@@ -106,7 +121,7 @@ const AdminStatementGenerator: React.FC = () => {
           period_start: statementData.period.start,
           period_end: statementData.period.end,
         });
-        
+
         successCount++;
       }
 
@@ -115,7 +130,7 @@ const AdminStatementGenerator: React.FC = () => {
         description: `Successfully generated ${successCount}/${total} statements.`,
       });
     } catch (error: any) {
-      console.error("Batch generation error:", error);
+      logError("AdminStatementGenerator.handleGenerateStatements", error);
       toast({
         title: "Error",
         description: error.message,
@@ -204,7 +219,8 @@ const AdminStatementGenerator: React.FC = () => {
         <Alert>
           <RefreshCw className="h-4 w-4" />
           <AlertDescription>
-            If a statement already exists for an investor + period, it will be updated (not duplicated).
+            If a statement already exists for an investor + period, it will be updated (not
+            duplicated).
           </AlertDescription>
         </Alert>
 

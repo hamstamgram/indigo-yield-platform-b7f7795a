@@ -4,6 +4,7 @@
  */
 
 import { Navigate, useLocation } from "react-router-dom";
+import { logError } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -35,7 +36,7 @@ export function IBRoute({ children }: IBRouteProps) {
         .maybeSingle();
 
       if (error) {
-        console.error("Error checking IB role:", error);
+        logError("IBRoute.queryFn", error);
         return false;
       }
 

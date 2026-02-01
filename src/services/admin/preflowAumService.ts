@@ -1,5 +1,6 @@
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { profileService } from "@/services/shared/profileService";
+import { logError, logWarn } from "@/lib/logger";
 
 export type AumPurpose = "transaction" | "reporting";
 
@@ -98,15 +99,18 @@ export const preflowAumService = {
     });
 
     if (error) {
-      console.error("[preflowAumService] RPC error:", error);
+      logError("preflowAumService.getFundAumAsOf", error);
       throw error;
     }
 
     // Runtime shape validation - RPC returns TABLE with exactly 1 row
     if (!data || !Array.isArray(data) || data.length === 0) {
-      if (import.meta.env.DEV) {
-        console.warn("[preflowAumService] Unexpected empty result:", { fundId, asOfDate, purpose });
-      }
+      logWarn("preflowAumService.getFundAumAsOf", {
+        fundId,
+        asOfDate,
+        purpose,
+        reason: "unexpected empty result",
+      });
       return null;
     }
 
@@ -114,7 +118,11 @@ export const preflowAumService = {
 
     // Validate expected shape
     if (typeof row !== "object" || row === null) {
-      console.error("[preflowAumService] Unexpected RPC return shape:", row);
+      logError(
+        "preflowAumService.getFundAumAsOf",
+        new Error("Unexpected AUM data shape from backend"),
+        { row }
+      );
       throw new Error("Unexpected AUM data shape from backend");
     }
 
@@ -128,7 +136,9 @@ export const preflowAumService = {
 
     // Validate numeric result
     if (!Number.isFinite(aumValue)) {
-      console.error("[preflowAumService] Invalid AUM value:", row.aum_value);
+      logError("preflowAumService.getFundAumAsOf", new Error("Invalid AUM value from backend"), {
+        aumValue: row.aum_value,
+      });
       throw new Error("Invalid AUM value from backend");
     }
 

@@ -1,4 +1,5 @@
 import { lazy, ComponentType, LazyExoticComponent } from "react";
+import { logError, logWarn } from "@/lib/logger";
 
 interface RetryOptions {
   maxRetries?: number;
@@ -26,7 +27,7 @@ export function lazyWithRetry<T extends ComponentType<any>>(
 
         if (retries === maxRetries) {
           // On final retry failure, try to recover by reloading
-          console.error(`Failed to load module after ${maxRetries} retries:`, error);
+          logError("lazyWithRetry", error, { maxRetries });
 
           // Check if it's a chunk loading error
           if (error instanceof Error && error.message.includes("Loading chunk")) {
@@ -60,8 +61,7 @@ export function preloadComponent(lazyComponent: LazyExoticComponent<any>): void 
   const componentPromise = (lazyComponent as any)._payload?._result;
   if (componentPromise && typeof componentPromise.then === "function") {
     componentPromise.catch(() => {
-      // Silently handle preload errors
-      console.warn("Failed to preload component");
+      logWarn("preloadComponent", { reason: "Failed to preload component" });
     });
   }
 }
@@ -79,7 +79,7 @@ export function lazyWithPreload<T extends ComponentType<any>>(
 
   LazyComponent.preload = () => {
     importFn().catch((error) => {
-      console.warn("Failed to preload component:", error);
+      logWarn("lazyWithPreload.preload", { reason: "Failed to preload component" });
     });
   };
 

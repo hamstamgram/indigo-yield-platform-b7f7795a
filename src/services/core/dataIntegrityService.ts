@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 import { getTodayString } from "@/utils/dateUtils";
 
 export interface IntegrityIssue {
@@ -129,7 +130,7 @@ export const dataIntegrityService = {
         }
       }
     } catch (error) {
-      console.error("Error checking orphaned transactions:", error);
+      logError("dataIntegrity.checkOrphanedTransactions", error);
     }
 
     return orphaned;
@@ -144,7 +145,10 @@ export const dataIntegrityService = {
     const zeroAmountTransactions: any[] = [];
 
     // Check for invalid email formats in profiles
-    const { data: profiles } = await supabase.from("profiles").select("id, email, first_name, last_name").eq("is_admin", false);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .eq("is_admin", false);
 
     if (profiles) {
       profiles.forEach((p) => {
@@ -217,7 +221,7 @@ export const dataIntegrityService = {
         }
       }
     } catch (error) {
-      console.error("Error checking orphaned positions:", error);
+      logError("dataIntegrity.checkOrphanedPositions", error);
     }
 
     return issues;
@@ -301,7 +305,8 @@ export const dataIntegrityService = {
             .eq("type", "WITHDRAWAL");
 
           const totalDeposits = deposits?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
-          const totalWithdrawals = withdrawals?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
+          const totalWithdrawals =
+            withdrawals?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
           const totalInvested = totalDeposits - totalWithdrawals;
           const costBasis = Number(position.cost_basis || 0);
 
@@ -313,18 +318,18 @@ export const dataIntegrityService = {
               table: "investor_positions",
               record_id: position.investor_id,
               description: `Transaction total (${totalInvested}) doesn't match cost basis (${costBasis}) for investor ${position.investor_id}`,
-                details: {
-                  investor_name: position.investor_id,
-                  total_invested: totalInvested,
-                  cost_basis: costBasis,
-                  difference: totalInvested - costBasis,
-                },
-              });
-            }
+              details: {
+                investor_name: position.investor_id,
+                total_invested: totalInvested,
+                cost_basis: costBasis,
+                difference: totalInvested - costBasis,
+              },
+            });
           }
         }
+      }
     } catch (error) {
-      console.error("Error checking inconsistent totals:", error);
+      logError("dataIntegrity.checkInconsistentTotals", error);
     }
 
     return issues;

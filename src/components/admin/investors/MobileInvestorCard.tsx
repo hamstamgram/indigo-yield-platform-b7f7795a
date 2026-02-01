@@ -3,13 +3,10 @@
  * Refactored to use useUpdateInvestorStatus data hook
  */
 import { useState, useEffect } from "react";
-import {
-  Card, CardContent, CardFooter,
-  Button, Input,
-  TruncatedText,
-} from "@/components/ui";
+import { Card, CardContent, CardFooter, Button, Input, TruncatedText } from "@/components/ui";
 import { Send, Save } from "lucide-react";
 import { useToast } from "@/hooks";
+import { logError } from "@/lib/logger";
 import { useUpdateInvestorStatus } from "@/hooks/data";
 import { AssetRef as Asset } from "@/types/asset";
 import type { AdminInvestorSummary } from "@/services/admin";
@@ -104,7 +101,7 @@ const MobileInvestorCard = ({
         onSaveSuccess(); // Refresh data
       }, 500); // Small delay to ensure UI feedback
     } catch (error) {
-      console.error("Error saving investor data:", error);
+      logError("MobileInvestorCard.handleSave", error);
       toast({
         title: "Error",
         description: "Failed to update investor portfolio",
@@ -142,12 +139,14 @@ const MobileInvestorCard = ({
               ) : (
                 <div>
                   {investor.portfolioDetails.assetBreakdown[asset.symbol] ? (
-                    <FinancialValue 
-                      value={investor.portfolioDetails.assetBreakdown[asset.symbol]} 
+                    <FinancialValue
+                      value={investor.portfolioDetails.assetBreakdown[asset.symbol]}
                       asset={asset.symbol}
                       showAsset={false}
                     />
-                  ) : "-"}
+                  ) : (
+                    "-"
+                  )}
                 </div>
               )}
             </div>
@@ -187,10 +186,7 @@ const MobileInvestorCard = ({
               <Send className="h-4 w-4 mr-1" />
               Send Invite
             </Button>
-            <FundAssetDropdown
-              investorId={investor.id}
-              onFundAdded={onSaveSuccess}
-            />
+            <FundAssetDropdown investorId={investor.id} onFundAdded={onSaveSuccess} />
           </>
         )}
       </CardFooter>

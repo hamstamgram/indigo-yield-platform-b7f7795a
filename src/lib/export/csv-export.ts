@@ -5,6 +5,7 @@
 
 import { format } from "date-fns";
 import { formatAUM, formatPercentage } from "@/utils/formatters";
+import { logError } from "@/lib/logger";
 
 export interface ExportColumn {
   key: string;
@@ -49,7 +50,7 @@ export class CSVExporter {
         rowCount: data.length,
       };
     } catch (error) {
-      console.error("CSV export failed:", error);
+      logError("CSVExporter.exportToCSV", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Export failed",

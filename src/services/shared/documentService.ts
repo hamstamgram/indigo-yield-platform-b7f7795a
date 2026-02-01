@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db/index";
+import { logError, logWarn } from "@/lib/logger";
 import type { Document, DocumentFilter } from "@/types/domains/document";
 import { sanitizeSearchInput } from "@/utils/searchSanitizer";
 
@@ -44,7 +45,7 @@ export const documentService = {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching documents:", error);
+      logError("documentService.listDocuments", error);
       throw error;
     }
 
@@ -90,7 +91,7 @@ export const documentService = {
       .createSignedUrl(doc.storage_path, 3600); // 1 hour expiry
 
     if (error) {
-      console.error("Error generating signed URL:", error);
+      logError("documentService.getSignedUrl", error, { docId });
       throw error;
     }
 
@@ -124,7 +125,7 @@ export const documentService = {
     const { error: uploadError } = await supabase.storage.from("documents").upload(filePath, file);
 
     if (uploadError) {
-      console.error("Error uploading file:", uploadError);
+      logError("documentService.uploadDocument", uploadError);
       throw uploadError;
     }
 
@@ -202,7 +203,7 @@ export const documentService = {
       .remove([doc.storage_path]);
 
     if (storageError) {
-      console.error("Error deleting from storage:", storageError);
+      logWarn("documentService.deleteDocument", { docId, storageError: storageError.message });
     }
 
     // Delete database record

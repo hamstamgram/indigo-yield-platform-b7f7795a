@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { db } from "@/lib/db/index";
+import { logError, logWarn } from "@/lib/logger";
 import type { Database } from "@/integrations/supabase/types";
 import {
   generateMonthlyStatementHTML,
@@ -115,7 +116,7 @@ export async function fetchStatementPeriods(): Promise<StatementPeriodWithStats[
       };
     });
   } catch (error) {
-    console.error("Error fetching statement periods:", error);
+    logError("statementsApi.fetchStatementPeriods", error);
     throw new Error("Failed to fetch statement periods");
   }
 }
@@ -152,7 +153,7 @@ export async function createStatementPeriod(data: {
     if (error) throw error;
     return period;
   } catch (error) {
-    console.error("Error creating statement period:", error);
+    logError("statementsApi.createStatementPeriod", error);
     throw new Error("Failed to create statement period");
   }
 }
@@ -236,7 +237,7 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
       .in("investor_id", investorIds);
 
     if (emailsError) {
-      console.warn("Error fetching investor_emails:", emailsError);
+      logWarn("statementsApi.fetchPeriodInvestors", { error: emailsError });
     }
 
     // Group emails by investor
@@ -297,7 +298,7 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
 
     return investors.sort((a, b) => a.name.localeCompare(b.name));
   } catch (error) {
-    console.error("Error fetching period investors:", error);
+    logError("statementsApi.fetchPeriodInvestors", error);
     throw new Error("Failed to fetch period investors");
   }
 }
@@ -325,7 +326,7 @@ export async function fetchPeriodSummary(periodId: string): Promise<PeriodSummar
       statements_pending: 0,
     };
   } catch (error) {
-    console.error("Error fetching period summary:", error);
+    logError("statementsApi.fetchPeriodSummary", error);
     throw new Error("Failed to fetch period summary");
   }
 }
@@ -442,7 +443,7 @@ export async function generateInvestorStatement(
       statement_id: statement.id,
     };
   } catch (error) {
-    console.error("Error generating investor statement:", error);
+    logError("statementsApi.generateInvestorStatement", error);
     throw new Error("Failed to generate investor statement");
   }
 }
@@ -474,7 +475,7 @@ export async function generateAllStatements(
 
     return results;
   } catch (error) {
-    console.error("Error generating all statements:", error);
+    logError("statementsApi.generateAllStatements", error);
     throw new Error("Failed to generate all statements");
   }
 }
@@ -505,7 +506,7 @@ export async function previewInvestorStatement(periodId: string, userId: string)
     const { html } = await generateInvestorStatement(periodId, userId);
     return generateStatementPreview(html);
   } catch (error) {
-    console.error("Error previewing investor statement:", error);
+    logError("statementsApi.previewInvestorStatement", error);
     throw new Error("Failed to preview investor statement");
   }
 }
@@ -546,7 +547,7 @@ export async function sendInvestorStatement(
       .eq("investor_id", userId);
 
     if (recipientsError) {
-      console.error("Error fetching investor_emails:", recipientsError);
+      logError("statementsApi.sendInvestorStatement", recipientsError);
     }
 
     // Build recipient list: use investor_emails if available, fallback to profile.email
@@ -638,7 +639,7 @@ export async function sendInvestorStatement(
 
     return { recipients: recipientEmails };
   } catch (error) {
-    console.error("Error sending investor statement:", error);
+    logError("statementsApi.sendInvestorStatement", error);
     throw error instanceof Error ? error : new Error("Failed to send investor statement");
   }
 }
@@ -681,7 +682,7 @@ export async function getReportFreshness(
 
     return { isOutdated, generatedAt, dataUpdatedAt };
   } catch (error) {
-    console.error("Error getting report freshness:", error);
+    logError("statementsApi.getReportFreshness", error);
     return { isOutdated: false, generatedAt: null, dataUpdatedAt: null };
   }
 }
@@ -715,7 +716,7 @@ export async function sendAllStatements(
 
     return results;
   } catch (error) {
-    console.error("Error sending all statements:", error);
+    logError("statementsApi.sendAllStatements", error);
     throw new Error("Failed to send all statements");
   }
 }
@@ -755,10 +756,10 @@ export async function finalizePeriod(periodId: string): Promise<void> {
 
     const { success } = await db.insert("audit_log", auditData);
     if (!success) {
-      console.warn("Failed to log audit event for period finalization");
+      logWarn("statementsApi.finalizePeriod", { detail: "audit event not logged" });
     }
   } catch (error) {
-    console.error("Error finalizing period:", error);
+    logError("statementsApi.finalizePeriod", error);
     throw new Error("Failed to finalize period");
   }
 }
@@ -790,7 +791,7 @@ export async function saveInvestorFundPerformance(
     if (error) throw error;
     return performance as InvestorFundPerformance;
   } catch (error) {
-    console.error("Error saving investor fund performance:", error);
+    logError("statementsApi.saveInvestorFundPerformance", error);
     throw new Error("Failed to save investor fund performance");
   }
 }
@@ -813,7 +814,7 @@ export async function fetchInvestorFundPerformance(
     if (error) throw error;
     return (data || []) as InvestorFundPerformance[];
   } catch (error) {
-    console.error("Error fetching investor fund performance:", error);
+    logError("statementsApi.fetchInvestorFundPerformance", error);
     throw new Error("Failed to fetch investor fund performance");
   }
 }

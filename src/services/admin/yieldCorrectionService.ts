@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
+import { logError } from "@/lib/logger";
 
 export interface CorrectionSummary {
   fund_id: string;
@@ -174,7 +175,7 @@ export async function previewYieldCorrectionV2(
   });
 
   if (error) {
-    console.error("Preview yield correction V2 error:", error);
+    logError("yieldCorrectionService.previewYieldCorrectionV2", error);
     return { success: false, error: error.message };
   }
 
@@ -204,7 +205,7 @@ export async function applyYieldCorrectionV2(
   });
 
   if (error) {
-    console.error("Apply yield correction V2 error:", error);
+    logError("yieldCorrectionService.applyYieldCorrectionV2", error);
     return { success: false, error: error.message };
   }
 
@@ -224,7 +225,7 @@ export async function rollbackYieldCorrection(
   });
 
   if (error) {
-    console.error("Rollback yield correction error:", error);
+    logError("yieldCorrectionService.rollbackYieldCorrection", error);
     return { success: false, error: error.message };
   }
 
@@ -240,7 +241,7 @@ export async function regenerateAffectedReports(correctionId: string): Promise<R
   });
 
   if (error) {
-    console.error("Regenerate reports error:", error);
+    logError("yieldCorrectionService.regenerateAffectedReports", error);
     return { success: false, error: error.message };
   }
 
@@ -262,7 +263,7 @@ export async function getYieldCorrectionHistory(
   });
 
   if (error) {
-    console.error("Get yield corrections error:", error);
+    logError("yieldCorrectionService.getYieldCorrectionHistory", error);
     return [];
   }
 

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 import { getTodayString, formatDateForDB } from "@/utils/dateUtils";
 
 export interface OperationsMetrics {
@@ -36,11 +37,11 @@ interface ProfileIdRow {
 
 /** Typed tuple for parallel query results */
 type MetricsQueryResults = [
-  { count: number | null; error: unknown },    // withdrawals
-  CountQueryResult,                             // deposits (mock)
-  CountQueryResult,                             // investments (mock)
-  { count: number | null; error: unknown },    // transactions
-  { count: number | null; error: unknown },    // investors
+  { count: number | null; error: unknown }, // withdrawals
+  CountQueryResult, // deposits (mock)
+  CountQueryResult, // investments (mock)
+  { count: number | null; error: unknown }, // transactions
+  { count: number | null; error: unknown }, // investors
   { data: PositionRow[] | null; error: unknown }, // AUM positions
   { data: ProfileIdRow[] | null; error: unknown }, // investor profiles
 ];
@@ -86,12 +87,9 @@ export const operationsService = {
           .from("investor_positions")
           .select("current_value, investor_id")
           .gt("current_value", 0),
-        
+
         // Get investor account profiles
-        supabase
-          .from("profiles")
-          .select("id")
-          .eq("account_type", "investor"),
+        supabase.from("profiles").select("id").eq("account_type", "investor"),
       ]);
 
       const [
@@ -105,16 +103,11 @@ export const operationsService = {
       ] = results as MetricsQueryResults;
 
       // Calculate total AUM (only for investor account types)
-      const investorIds = new Set(
-        (investorProfilesResult.data || []).map((p) => p.id)
-      );
+      const investorIds = new Set((investorProfilesResult.data || []).map((p) => p.id));
       const totalAUM =
         aumResult.data
           ?.filter((position) => investorIds.has(position.investor_id))
-          .reduce(
-            (sum, position) => sum + (position.current_value || 0),
-            0
-          ) || 0;
+          .reduce((sum, position) => sum + (position.current_value || 0), 0) || 0;
 
       const pendingWithdrawals = withdrawalsResult.count || 0;
       const pendingDeposits = depositsResult.count || 0;
@@ -130,7 +123,7 @@ export const operationsService = {
         pendingInvestments,
       };
     } catch (error) {
-      console.error("Error fetching operations metrics:", error);
+      logError("operationsService.getMetrics", error);
       throw error;
     }
   },
@@ -156,7 +149,7 @@ export const operationsService = {
       if (error) throw error;
       return count || 0;
     } catch (error) {
-      console.error("Error fetching yesterday transactions:", error);
+      logError("operationsService.getYesterdayTransactions", error);
       return 0;
     }
   },

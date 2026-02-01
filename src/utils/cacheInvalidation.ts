@@ -23,6 +23,7 @@
 
 import { QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logDebug } from "@/lib/logger";
 import {
   QUERY_KEYS,
   YIELD_RELATED_KEYS,
@@ -113,9 +114,10 @@ function invalidateByGraph(
 
   // Log in development
   if (import.meta.env.DEV) {
-    console.log(`[CacheInvalidation] ${operation}:`, {
+    logDebug("cacheInvalidation.invalidateByGraph", {
+      operation,
       keyCount: keysToInvalidate.size,
-      context,
+      ...context,
     });
   }
 

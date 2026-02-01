@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { auditLogService } from "@/services/shared/auditLogService";
+import { logError } from "@/lib/logger";
 
 interface RateLimitConfig {
   windowMs: number;
@@ -82,7 +83,7 @@ class RateLimiter {
         },
       });
     } catch (error) {
-      console.error("Failed to log rate limit violation:", error);
+      logError("RateLimiter.logRateLimitViolation", error);
     }
   }
 

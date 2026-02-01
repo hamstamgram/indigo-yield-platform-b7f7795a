@@ -103,12 +103,14 @@ class ProfileService {
   /**
    * Get all active funds
    */
-  async getActiveFunds(): Promise<Array<{ id: string; name: string; code: string; asset: string }>> {
+  async getActiveFunds(): Promise<
+    Array<{ id: string; name: string; code: string; asset: string }>
+  > {
     const { data, error } = await supabase
       .from("funds")
       .select("id, name, code, asset")
       .eq("status", "active")
-      .order("name");
+      .order("asset", { ascending: true });
 
     if (error) throw error;
     return data || [];
@@ -118,7 +120,9 @@ class ProfileService {
    * Get current user's profile
    */
   async getMyProfile(): Promise<ProfileSummary | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return null;
 
     return this.getById(user.id);
@@ -197,12 +201,14 @@ class ProfileService {
   /**
    * Get non-system users for deposit forms
    */
-  async getUsersForDeposits(): Promise<Array<{
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-  }>> {
+  async getUsersForDeposits(): Promise<
+    Array<{
+      id: string;
+      first_name: string | null;
+      last_name: string | null;
+      email: string;
+    }>
+  > {
     const { data, error } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, email, is_system_account")

@@ -28,7 +28,9 @@ import { type InvestmentFormData } from "@/types/domains";
 import { investmentService } from "@/services/investor";
 import { getTodayString } from "@/utils/dateUtils";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { useInvestors, useActiveFunds } from "@/hooks/data";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface CreateInvestmentDialogProps {
   open: boolean;
@@ -82,7 +84,7 @@ export function CreateInvestmentDialog({
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error("Error creating investment:", error);
+      logError("CreateInvestmentDialog.onSubmit", error);
       toast.error(error.message || "Failed to create investment");
     } finally {
       setLoading(false);
@@ -141,7 +143,10 @@ export function CreateInvestmentDialog({
                     <SelectContent>
                       {funds.map((fund) => (
                         <SelectItem key={fund.id} value={fund.id}>
-                          {fund.name} ({fund.code})
+                          <div className="flex items-center gap-2">
+                            <CryptoIcon symbol={fund.asset} className="h-5 w-5" />
+                            <span>{fund.name}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

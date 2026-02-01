@@ -48,7 +48,7 @@ export async function listFunds(): Promise<Fund[]> {
   const { data, error } = await supabase
     .from("funds")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("asset", { ascending: true });
 
   if (error) throw error;
   return (data || []).map(mapDbFundToFund);
@@ -281,7 +281,7 @@ export async function getActiveFunds(): Promise<
     .from("funds")
     .select("id, code, name, asset")
     .eq("status", "active")
-    .order("name");
+    .order("asset", { ascending: true });
 
   if (error) throw error;
   return data || [];

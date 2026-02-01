@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logWarn } from "@/lib/logger";
 
 // Fund icon mapping from CDN
 const FUND_ICON_MAP: Record<string, string> = {
@@ -318,15 +319,19 @@ export async function fetchInvestorReportData(
       .maybeSingle();
 
     if (profileError) {
-      console.error("Error fetching investor profile:", profileError);
+      logError("emailReportGenerator.fetchInvestorReportData", profileError, { investorId });
       return null;
     }
     if (!profile) {
-      console.error("Investor profile not found:", investorId);
+      logWarn("emailReportGenerator.fetchInvestorReportData", {
+        reason: "profile not found",
+        investorId,
+      });
       return null;
     }
 
-    const investorName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Valued Investor";
+    const investorName =
+      `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Valued Investor";
 
     // 2. Fetch Emails (using relinked investor_emails table)
     const { data: emailRecords } = await supabase
@@ -362,7 +367,10 @@ export async function fetchInvestorReportData(
       .maybeSingle();
 
     if (!period) {
-      console.warn(`No statement period found for ${reportMonth}`);
+      logWarn("emailReportGenerator.fetchInvestorReportData", {
+        reason: "no statement period",
+        reportMonth,
+      });
       return null;
     }
 
@@ -374,12 +382,19 @@ export async function fetchInvestorReportData(
       .eq("investor_id", investorId);
 
     if (perfError) {
-      console.error("Error fetching performance data:", perfError);
+      logError("emailReportGenerator.fetchInvestorReportData", perfError, {
+        investorId,
+        reportMonth,
+      });
       return null;
     }
 
     if (!performanceData || performanceData.length === 0) {
-      console.warn(`No performance data found for investor ${investorId} in ${reportMonth}`);
+      logWarn("emailReportGenerator.fetchInvestorReportData", {
+        reason: "no performance data",
+        investorId,
+        reportMonth,
+      });
       return null;
     }
 
@@ -419,7 +434,7 @@ export async function fetchInvestorReportData(
 
     return reportData;
   } catch (error) {
-    console.error("Error in fetchInvestorReportData:", error);
+    logError("emailReportGenerator.fetchInvestorReportData", error, { investorId, reportMonth });
     return null;
   }
 }
@@ -457,7 +472,7 @@ export async function generateReportsForAllInvestors(
       .eq("is_admin", false);
 
     if (error || !investors) {
-      console.error("Error fetching investors:", error);
+      logError("emailReportGenerator.generateReportsForAllInvestors", error, { reportMonth });
       return [];
     }
 
@@ -474,7 +489,7 @@ export async function generateReportsForAllInvestors(
       (report): report is { html: string; data: InvestorReportData } => report !== null
     );
   } catch (error) {
-    console.error("Error in generateReportsForAllInvestors:", error);
+    logError("emailReportGenerator.generateReportsForAllInvestors", error, { reportMonth });
     return [];
   }
 }

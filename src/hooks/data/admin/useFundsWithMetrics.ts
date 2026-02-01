@@ -4,6 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { logError } from "@/lib/logger";
 import { toast } from "sonner";
 import { fundService } from "@/services/admin";
 import { auditLogService } from "@/services/shared";
@@ -78,7 +79,7 @@ export function useArchiveFund() {
       toast.success(`Fund "${fund.name}" archived successfully`);
     },
     onError: (error: Error) => {
-      console.error("Error archiving fund:", error);
+      logError("useArchiveFund.onError", error);
       toast.error(error.message || "Failed to archive fund");
     },
   });
@@ -111,7 +112,7 @@ export function useRestoreFund() {
       toast.success(`Fund "${fund.name}" restored successfully`);
     },
     onError: (error: Error) => {
-      console.error("Error restoring fund:", error);
+      logError("useRestoreFund.onError", error);
       toast.error(error.message || "Failed to restore fund");
     },
   });

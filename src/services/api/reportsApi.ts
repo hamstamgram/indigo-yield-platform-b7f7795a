@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { db } from "@/lib/db/index";
+import { rpc } from "@/lib/rpc/index";
+import { logError, logWarn } from "@/lib/logger";
 import {
   ReportEngineLazy,
   generatePDFReportLazy,
@@ -109,7 +111,7 @@ export class ReportsApi {
 
       return { success: false, error: "Unsupported format" };
     } catch (error) {
-      console.error("Immediate report generation failed:", error);
+      logError("reportsApi.generateReportNow", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -156,7 +158,7 @@ export class ReportsApi {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching user reports:", error);
+      logError("reportsApi.getUserReports", error);
       return [];
     }
 
@@ -174,7 +176,7 @@ export class ReportsApi {
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching report:", error);
+      logError("reportsApi.getReport", error);
       return null;
     }
 
@@ -206,7 +208,7 @@ export class ReportsApi {
         contentType: data.type,
       };
     } catch (error) {
-      console.error("Error downloading report:", error);
+      logError("reportsApi.downloadReport", error);
       return { success: false, error: "Failed to download report" };
     }
   }
@@ -229,7 +231,7 @@ export class ReportsApi {
       }
       return { success: true };
     } catch (error) {
-      console.error("Error deleting report:", error);
+      logError("reportsApi.deleteReport", error);
       return { success: false, error: "Failed to delete report" };
     }
   }
@@ -244,7 +246,7 @@ export class ReportsApi {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("getReportSchedules error:", error);
+      logError("reportsApi.getReportSchedules", error);
       return [];
     }
 
@@ -287,7 +289,7 @@ export class ReportsApi {
       .single();
 
     if (error || !data) {
-      console.error("createReportSchedule error:", error);
+      logError("reportsApi.createReportSchedule", error);
       return { success: false, error: error?.message || "Failed to create report schedule" };
     }
 
@@ -328,7 +330,7 @@ export class ReportsApi {
     const { error } = await supabase.from("report_schedules").update(patch).eq("id", _scheduleId);
 
     if (error) {
-      console.error("updateReportSchedule error:", error);
+      logError("reportsApi.updateReportSchedule", error);
       return { success: false, error: error.message };
     }
 
@@ -344,7 +346,7 @@ export class ReportsApi {
     const { error } = await supabase.from("report_schedules").delete().eq("id", _scheduleId);
 
     if (error) {
-      console.error("deleteReportSchedule error:", error);
+      logError("reportsApi.deleteReportSchedule", error);
       return { success: false, error: error.message };
     }
 
@@ -362,13 +364,13 @@ export class ReportsApi {
     const startDate = start.toISOString().split("T")[0];
     const endDate = end.toISOString().split("T")[0];
 
-    const { data, error } = await supabase.rpc("get_report_statistics", {
+    const { data, error } = await rpc.call("get_report_statistics", {
       p_period_start: startDate,
       p_period_end: endDate,
     });
 
     if (error) {
-      console.error("getReportStatistics error:", error);
+      logError("reportsApi.getReportStatistics", error);
       return [];
     }
 
@@ -402,7 +404,7 @@ export class ReportsApi {
     });
 
     if (error) {
-      console.warn("logReportAccess error:", error.message);
+      logWarn("reportsApi.logReportAccess", { error: error.message });
     }
   }
 

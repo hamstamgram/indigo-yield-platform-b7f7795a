@@ -16,7 +16,7 @@ import {
 } from "@/components/ui";
 import { Info, Loader2 } from "lucide-react";
 import { useActiveFunds, useInvestorsForTransaction } from "@/hooks";
-import { getAssetLogo } from "@/utils/assets";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -235,12 +235,8 @@ export function AddTransactionDialog({
                   {funds?.map((fund) => (
                     <SelectItem key={fund.id} value={fund.id}>
                       <div className="flex items-center gap-2">
-                        <img
-                          src={getAssetLogo(fund.asset)}
-                          alt={fund.asset}
-                          className="h-5 w-5 rounded-full"
-                        />
-                        <span>{fund.asset}</span>
+                        <CryptoIcon symbol={fund.asset} className="h-5 w-5" />
+                        <span>{fund.name}</span>
                       </div>
                     </SelectItem>
                   ))}

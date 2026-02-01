@@ -94,7 +94,7 @@ class IBAllocationService {
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching IB config:", error);
+      logError("ibAllocations.getInvestorIBConfig", error, { investorId });
       return { ibParentId: null, ibPercentage: null };
     }
 
@@ -145,7 +145,7 @@ class IBAllocationService {
     });
 
     if (error) {
-      console.error("Error fetching IB referrals:", error);
+      logError("ibAllocations.getIBReferralIds", error);
       return [];
     }
 
@@ -174,7 +174,7 @@ class IBAllocationService {
       .eq("is_voided", false);
 
     if (error) {
-      console.error("Error fetching allocations:", error);
+      logError("ibAllocations.getAllocationsForDistribution", error, { distributionId });
       return [];
     }
 

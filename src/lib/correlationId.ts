@@ -1,9 +1,11 @@
 /**
  * Correlation ID Utility for Operation Tracing
- * 
+ *
  * Provides a way to trace operations across service calls for debugging and audit purposes.
  * Each operation can have a unique correlation ID that is passed through all related calls.
  */
+
+import { logError, logWarn, logInfo, logDebug } from "@/lib/logger";
 
 type CorrelationContext = {
   correlationId: string;
@@ -19,7 +21,7 @@ const activeCorrelations = new Map<string, CorrelationContext>();
  * Generate a new correlation ID
  * Format: {prefix}_{timestamp}_{random}
  */
-export function generateCorrelationId(prefix: string = 'op'): string {
+export function generateCorrelationId(prefix: string = "op"): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
   return `${prefix}_${timestamp}_${random}`;
@@ -34,14 +36,14 @@ export function startOperation(
   metadata: Record<string, unknown> = {}
 ): string {
   const correlationId = generateCorrelationId(operationType.substring(0, 3).toLowerCase());
-  
+
   activeCorrelations.set(correlationId, {
     correlationId,
     operationType,
     startedAt: new Date(),
     metadata,
   });
-  
+
   return correlationId;
 }
 
@@ -76,22 +78,18 @@ export function addCorrelationMetadata(
  * Create a logger with correlation context
  */
 export function createCorrelatedLogger(correlationId: string) {
-  const prefix = `[${correlationId}]`;
-  
   return {
     info: (message: string, data?: Record<string, unknown>) => {
-      console.info(prefix, message, data ? JSON.stringify(data) : '');
+      logInfo(`correlated.${correlationId}`, { message, ...data });
     },
     warn: (message: string, data?: Record<string, unknown>) => {
-      console.warn(prefix, message, data ? JSON.stringify(data) : '');
+      logWarn(`correlated.${correlationId}`, { message, ...data });
     },
     error: (message: string, error?: Error | unknown, data?: Record<string, unknown>) => {
-      console.error(prefix, message, error, data ? JSON.stringify(data) : '');
+      logError(`correlated.${correlationId}`, error, { message, ...data });
     },
     debug: (message: string, data?: Record<string, unknown>) => {
-      if (import.meta.env.DEV) {
-        console.debug(prefix, message, data ? JSON.stringify(data) : '');
-      }
+      logDebug(`correlated.${correlationId}`, { message, ...data });
     },
   };
 }
@@ -106,7 +104,7 @@ export async function withCorrelation<T>(
 ): Promise<{ result: T; correlationId: string }> {
   const correlationId = startOperation(operationType, metadata);
   const log = createCorrelatedLogger(correlationId);
-  
+
   try {
     log.info(`Starting ${operationType}`, metadata);
     const result = await operation(correlationId, log);
@@ -126,7 +124,7 @@ export async function withCorrelation<T>(
 export function useCorrelation(operationType: string) {
   let correlationId: string | null = null;
   let log: ReturnType<typeof createCorrelatedLogger> | null = null;
-  
+
   return {
     start: (metadata: Record<string, unknown> = {}) => {
       correlationId = startOperation(operationType, metadata);
@@ -134,7 +132,7 @@ export function useCorrelation(operationType: string) {
       log.info(`Starting ${operationType}`, metadata);
       return correlationId;
     },
-    
+
     end: () => {
       if (correlationId) {
         log?.info(`Completed ${operationType}`);
@@ -143,7 +141,7 @@ export function useCorrelation(operationType: string) {
         log = null;
       }
     },
-    
+
     fail: (error: Error | unknown) => {
       if (correlationId && log) {
         log.error(`Failed ${operationType}`, error);
@@ -152,11 +150,11 @@ export function useCorrelation(operationType: string) {
         log = null;
       }
     },
-    
+
     log: () => log,
-    
+
     getId: () => correlationId,
-    
+
     addMetadata: (metadata: Record<string, unknown>) => {
       if (correlationId) {
         addCorrelationMetadata(correlationId, metadata);

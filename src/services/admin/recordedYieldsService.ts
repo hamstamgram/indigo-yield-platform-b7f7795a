@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { db } from "@/lib/db/index";
+import { logError } from "@/lib/logger";
 
 export type AumPurpose = "reporting" | "transaction";
 
@@ -106,7 +107,7 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching yield records:", error);
+    logError("recordedYieldsService.getYieldRecords", error);
     throw new Error(`Failed to fetch yield records: ${error.message}`);
   }
 
@@ -183,7 +184,7 @@ export async function updateYieldRecord(
   });
 
   if (auditResult.error) {
-    console.error("Error logging yield edit:", auditResult.error);
+    logError("recordedYieldsService.updateYieldRecord", auditResult.error);
     // Don't throw - audit should not block updates
   }
 
@@ -221,7 +222,7 @@ export async function getYieldEditHistory(recordId: string): Promise<any[]> {
     .order("edited_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching yield edit history:", error);
+    logError("recordedYieldsService.getYieldEditHistory", error);
     throw new Error(`Failed to fetch edit history: ${error.message}`);
   }
 
@@ -234,7 +235,7 @@ export async function getYieldEditHistory(recordId: string): Promise<any[]> {
 export async function canEditYields(): Promise<boolean> {
   const { data, error } = await rpc.callNoArgs("is_super_admin");
   if (error) {
-    console.error("Error checking super admin status:", error);
+    logError("recordedYieldsService.canEditYields", error);
     return false;
   }
   return !!data;
@@ -272,7 +273,7 @@ export async function getInvestorVisibleAUM(
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching investor visible AUM:", error);
+    logError("recordedYieldsService.getInvestorVisibleAUM", error);
     throw new Error(`Failed to fetch AUM: ${error.message}`);
   }
 

@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { formatAUM, formatPercentage } from "@/utils/formatters";
+import { logWarn } from "@/lib/logger";
 
 // Fund icons and branding URLs (same as shared template)
 const FUND_ICONS: Record<string, string> = {
@@ -171,7 +172,7 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
       doc.addImage(logoData, "PNG", margin + 4, yPos + 4, 12, 12);
     }
   } catch (e) {
-    console.warn("Failed to load logo for PDF", e);
+    logWarn("statementGenerator.generateModernPDF", { reason: "Failed to load logo for PDF" });
   }
 
   doc.setFontSize(18);
@@ -414,7 +415,7 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
     const logoData = await loadImage("/icons/icon-192.png");
     doc.addImage(logoData, "PNG", 14, 10, 12, 12);
   } catch (e) {
-    console.warn("Failed to load logo for PDF", e);
+    logWarn("statementGenerator.generateLegacyPDF", { reason: "Failed to load logo for PDF" });
   }
 
   doc.setFontSize(20);

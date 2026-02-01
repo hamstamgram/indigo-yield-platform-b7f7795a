@@ -6,6 +6,7 @@ import Header from "./Header";
 import ContentArea from "./ContentArea";
 import { useAuth } from "@/services/auth";
 import { useUserRole } from "@/hooks/auth";
+import { logWarn } from "@/lib/logger";
 import { GlobalShortcuts } from "@/components/global";
 import { FinancialErrorBoundary } from "@/components/error/FinancialErrorBoundary";
 
@@ -71,7 +72,7 @@ const DashboardLayout = () => {
       navigate("/admin", { replace: true });
     } else if (isAdminRoute && !verifiedIsAdmin) {
       // Non-admin trying to access admin routes -> redirect to investor portal
-      console.warn("[DashboardLayout] Non-admin accessing admin route, redirecting to /investor");
+      logWarn("DashboardLayout.redirect", { reason: "non-admin accessing admin route" });
       navigate("/investor", { replace: true });
     }
   }, [

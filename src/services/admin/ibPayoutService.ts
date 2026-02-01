@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { IBAllocationWithJoins, IBProfileRef, IBFundRef } from "@/types/domains/ibAllocation";
 import { generateUUID } from "@/lib/utils";
+import { logError } from "@/lib/logger";
 
 export interface PendingCommission {
   id: string;
@@ -63,7 +64,7 @@ class IBPayoutService {
     const { data: allocations, error } = await query;
 
     if (error) {
-      console.error("Error fetching IB allocations:", error);
+      logError("ibPayoutService.getAllocationsForPayout", error);
       return [];
     }
 

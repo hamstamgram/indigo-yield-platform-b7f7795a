@@ -13,6 +13,7 @@
  */
 
 import Decimal from "decimal.js";
+import { logWarn } from "@/lib/logger";
 
 // Configure Decimal.js for financial calculations
 Decimal.set({
@@ -392,7 +393,10 @@ export function parseFinancial(value: string | number | null | undefined): Decim
   try {
     return new Decimal(String(value));
   } catch {
-    console.warn(`parseFinancial: Invalid value "${value}", defaulting to 0`);
+    logWarn("financial.parseFinancial", {
+      reason: "Invalid value, defaulting to 0",
+      value: String(value),
+    });
     return new Decimal(0);
   }
 }

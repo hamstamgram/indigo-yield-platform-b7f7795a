@@ -31,7 +31,8 @@ import {
 import { toast } from "sonner";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
+import { formatAssetAmount } from "@/utils/assets";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { NumericInput } from "@/components/common/NumericInput";
 import {
   useInvestorOptions,
@@ -160,7 +161,7 @@ export function CreateWithdrawalDialog({
     // Check if amount exceeds AVAILABLE balance (position minus pending withdrawals)
     const maxAmountRaw =
       availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? 0;
-    const maxAmount = typeof maxAmountRaw === 'string' ? Number(maxAmountRaw) : maxAmountRaw;
+    const maxAmount = typeof maxAmountRaw === "string" ? Number(maxAmountRaw) : maxAmountRaw;
     if (amount > maxAmount) {
       const hasPending = availableBalanceData && availableBalanceData.pendingWithdrawals > 0;
       toast.error(
@@ -325,11 +326,7 @@ export function CreateWithdrawalDialog({
                 {positions.map((position) => (
                   <SelectItem key={position.fund_id} value={position.fund_id}>
                     <div className="flex items-center gap-2">
-                      <img
-                        src={getAssetLogo(position.fund.asset)}
-                        alt={position.fund.asset}
-                        className="h-5 w-5 rounded-full"
-                      />
+                      <CryptoIcon symbol={position.fund.asset} className="h-5 w-5" />
                       <span>
                         {position.fund.name} -{" "}
                         {formatAssetAmount(position.current_value, position.fund.asset)} available

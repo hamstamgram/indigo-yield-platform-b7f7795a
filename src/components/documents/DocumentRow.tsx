@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { logError } from "@/lib/logger";
 import { Button, Badge } from "@/components/ui";
 import { Download, Eye, FileText, Calendar, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -68,7 +69,7 @@ export default function DocumentRow({
       link.click();
       window.document.body.removeChild(link);
     } catch (error) {
-      console.error("Failed to download document:", error);
+      logError("DocumentRow.handleDownload", error);
     } finally {
       setDownloading(false);
     }

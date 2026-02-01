@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { logError } from "@/lib/logger";
 import { Button } from "@/components/ui";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { WizardProvider, useWizard } from "./WizardContext";
@@ -49,8 +50,8 @@ const WizardContent: React.FC<WizardContentProps> = ({ onSubmit, isLoading, onCa
                 idx < stepIndex
                   ? "bg-primary text-primary-foreground"
                   : idx === stepIndex
-                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
-                  : "bg-muted text-muted-foreground"
+                    ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                    : "bg-muted text-muted-foreground"
               )}
             >
               {idx + 1}
@@ -76,9 +77,7 @@ const WizardContent: React.FC<WizardContentProps> = ({ onSubmit, isLoading, onCa
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-y-auto min-h-[300px]">
-        {renderStep()}
-      </div>
+      <div className="flex-1 overflow-y-auto min-h-[300px]">{renderStep()}</div>
 
       {/* Navigation Buttons */}
       <div className="flex justify-between pt-6 mt-6 border-t">
@@ -120,11 +119,7 @@ interface AddInvestorWizardProps {
   onCancel: () => void;
 }
 
-const AddInvestorWizard: React.FC<AddInvestorWizardProps> = ({
-  assets,
-  onSuccess,
-  onCancel,
-}) => {
+const AddInvestorWizard: React.FC<AddInvestorWizardProps> = ({ assets, onSuccess, onCancel }) => {
   return (
     <WizardProvider assets={assets}>
       <WizardContentWrapper onSuccess={onSuccess} onCancel={onCancel} />
@@ -146,34 +141,28 @@ const WizardContentWrapper: React.FC<{
       // Import dynamically to avoid circular dependencies
       const { createInvestorWithWizard } = await import("@/services/admin/investorWizardService");
       const { toast } = await import("sonner");
-      
+
       const result = await createInvestorWithWizard(data, (message, status) => {
         if (status === "info") toast.info(message);
         else if (status === "success") toast.success(message);
         else if (status === "error") toast.error(message);
       });
-      
+
       if (!result.success) {
         throw new Error(result.error);
       }
-      
+
       reset();
       onSuccess();
     } catch (error) {
-      console.error("Wizard submit error:", error);
+      logError("AddInvestorWizard.handleSubmit", error);
       throw error; // Will be caught by the dialog
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <WizardContent
-      onSubmit={handleSubmit}
-      isLoading={isLoading}
-      onCancel={onCancel}
-    />
-  );
+  return <WizardContent onSubmit={handleSubmit} isLoading={isLoading} onCancel={onCancel} />;
 };
 
 export default AddInvestorWizard;

@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface AdminUserProfile {
   id: string;
@@ -51,9 +52,7 @@ export async function sendAdminInvite(params: AdminInviteParams): Promise<void> 
   const { email, createdBy } = params;
 
   // Generate invite code (random string)
-  const inviteCode = [...Array(24)]
-    .map(() => Math.floor(Math.random() * 36).toString(36))
-    .join("");
+  const inviteCode = [...Array(24)].map(() => Math.floor(Math.random() * 36).toString(36)).join("");
 
   // Set expiration date (7 days from now)
   const expiresAt = new Date();
@@ -95,7 +94,7 @@ export async function checkSuperAdminRole(userId: string): Promise<boolean> {
     .maybeSingle();
 
   if (error) {
-    console.error("Error checking super admin role:", error);
+    logError("adminUsersService.checkSuperAdminRole", error);
     return false;
   }
 

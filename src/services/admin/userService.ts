@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorFormValues } from "@/components/admin/investors/forms/InvestorForm";
 import { addCsrfHeader } from "@/lib/security/csrf";
+import { logError } from "@/lib/logger";
 
 /**
  * Helper to verify session and throw a user-friendly error if expired
@@ -36,7 +37,7 @@ export const createOrFindInvestorUser = async (
     });
 
     if (error) {
-      console.error("Error creating user via Edge Function:", error);
+      logError("userService.createOrFindInvestorUser", error);
       let errorMessage = "Failed to create user";
 
       // Extract error message from various sources
@@ -94,7 +95,7 @@ export const createOrFindInvestorUser = async (
       throw new Error("User created but no ID returned from Edge Function");
     }
   } catch (error) {
-    console.error("Error in createOrFindInvestorUser:", error);
+    logError("userService.createOrFindInvestorUser", error);
     throw error;
   }
 };
@@ -113,7 +114,7 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
     });
 
     if (error) {
-      console.error("Error deleting user via Edge Function:", error);
+      logError("userService.deleteInvestorUser", error);
 
       // Handle network/connection errors
       if (error.message?.includes("Failed to send") || error.message?.includes("fetch")) {
@@ -140,7 +141,7 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
       throw new Error(data.error);
     }
   } catch (error) {
-    console.error("Error in deleteInvestorUser:", error);
+    logError("userService.deleteInvestorUser", error);
     throw error;
   }
 };
@@ -159,7 +160,7 @@ export const forceDeleteInvestorUser = async (userId: string): Promise<void> => 
     });
 
     if (error) {
-      console.error("Error force deleting user via Edge Function:", error);
+      logError("userService.forceDeleteInvestorUser", error);
 
       // Handle network/connection errors
       if (error.message?.includes("Failed to send") || error.message?.includes("fetch")) {
@@ -186,7 +187,7 @@ export const forceDeleteInvestorUser = async (userId: string): Promise<void> => 
       throw new Error(data.error);
     }
   } catch (error) {
-    console.error("Error in forceDeleteInvestorUser:", error);
+    logError("userService.forceDeleteInvestorUser", error);
     throw error;
   }
 };

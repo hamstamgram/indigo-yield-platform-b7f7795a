@@ -4,12 +4,13 @@
  */
 
 import { lazy, ComponentType } from "react";
+import { logDebug } from "@/lib/logger";
 
 // Google Analytics gtag function type definition
 declare global {
   interface Window {
     gtag?: (
-      command: 'event' | 'config' | 'set',
+      command: "event" | "config" | "set",
       targetId: string,
       params?: Record<string, unknown>
     ) => void;
@@ -202,7 +203,7 @@ export class PerformanceTracker {
       const startTime = this.marks.get(startMark);
       if (startTime !== undefined) {
         const duration = performance.now() - startTime;
-        console.log(`[Performance] ${name}: ${duration.toFixed(2)}ms`);
+        logDebug("PerformanceTracker.measure", { name, durationMs: duration.toFixed(2) });
         return duration;
       }
     }
@@ -218,9 +219,7 @@ export class PerformanceTracker {
  * Utility to batch multiple state updates
  * Useful for avoiding unnecessary re-renders
  */
-export function batchUpdates<T>(
-  updates: Array<() => T>
-): Promise<T[]> {
+export function batchUpdates<T>(updates: Array<() => T>): Promise<T[]> {
   return Promise.all(updates.map((update) => Promise.resolve(update())));
 }
 
@@ -246,11 +245,7 @@ export function calculateVisibleRange(
  * Image optimization helper
  * Returns optimized image URL based on device pixel ratio
  */
-export function getOptimizedImageUrl(
-  baseUrl: string,
-  width: number,
-  quality: number = 85
-): string {
+export function getOptimizedImageUrl(baseUrl: string, width: number, quality: number = 85): string {
   const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
   const optimizedWidth = Math.round(width * dpr);
 
@@ -270,7 +265,7 @@ export function reportWebVitals(metric: {
 }): void {
   // Log to console in development
   if (process.env.NODE_ENV === "development") {
-    console.log(`[Web Vitals] ${metric.name}:`, metric.value);
+    logDebug("reportWebVitals", { name: metric.name, value: metric.value });
   }
 
   // In production, send to analytics
@@ -331,9 +326,7 @@ export function prefetchResource(href: string): void {
 export function logBundleSize(componentName: string, size?: number): void {
   if (process.env.NODE_ENV === "development") {
     const actualSize = size || 0;
-    console.log(
-      `[Bundle] ${componentName}: ${(actualSize / 1024).toFixed(2)}KB`
-    );
+    logDebug("logBundleSize", { componentName, sizeKB: (actualSize / 1024).toFixed(2) });
   }
 }
 

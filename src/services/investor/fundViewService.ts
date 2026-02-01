@@ -1,11 +1,11 @@
 /**
  * Fund View Service - Investor-facing fund queries
- * 
+ *
  * ARCHITECTURE NOTE (P1 Consolidation 2026-01-19):
  * This service provides investor-facing fund queries with null-safe returns.
  * For admin operations that should throw on not-found, use:
  *   import { getFund, listFunds } from '@/services/admin/fundService'
- * 
+ *
  * Key differences from admin/fundService:
  * - getFundById() returns null instead of throwing
  * - getAllFunds() filters to active funds only
@@ -43,7 +43,7 @@ export async function getAllFunds(): Promise<Fund[]> {
     .from("funds")
     .select("*")
     .eq("status", "active")
-    .order("name");
+    .order("asset", { ascending: true });
 
   if (error) {
     logError("fundView.getAllFunds", error);
@@ -62,7 +62,7 @@ export async function getActiveFundsForList(): Promise<
     .from("funds")
     .select("id, code, name, asset")
     .eq("status", "active")
-    .order("code");
+    .order("asset", { ascending: true });
 
   if (error) {
     logError("fundView.getActiveFundsForList", error);
@@ -125,7 +125,9 @@ export async function addFundToInvestor(
  * Get investor positions by investor ID with nested fund data
  * Filters out zero-value positions (deleted or fully withdrawn)
  */
-export async function getInvestorPositionsWithFunds(investorId: string): Promise<InvestorPositionWithFund[]> {
+export async function getInvestorPositionsWithFunds(
+  investorId: string
+): Promise<InvestorPositionWithFund[]> {
   const { data, error } = await supabase
     .from("investor_positions")
     .select(
@@ -213,9 +215,7 @@ export async function getAvailableFundsForInvestor(investorId: string): Promise<
   const existingFundIds = new Set(positions?.map((p) => p.fund_id) || []);
 
   // Filter out funds where investor already has positions and map to Fund type
-  return (allFunds || [])
-    .filter((fund) => !existingFundIds.has(fund.id))
-    .map(mapDbFundToFund);
+  return (allFunds || []).filter((fund) => !existingFundIds.has(fund.id)).map(mapDbFundToFund);
 }
 
 /**
@@ -248,7 +248,8 @@ export async function getFundPerformanceSummary(fundId: string) {
       totalInvestors: positions?.length || 0,
       totalAUM: positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0,
       totalCostBasis: positions?.reduce((sum, p) => sum + Number(p.cost_basis || 0), 0) || 0,
-      totalUnrealizedPnL: positions?.reduce((sum, p) => sum + Number(p.unrealized_pnl || 0), 0) || 0,
+      totalUnrealizedPnL:
+        positions?.reduce((sum, p) => sum + Number(p.unrealized_pnl || 0), 0) || 0,
       totalRealizedPnL: positions?.reduce((sum, p) => sum + Number(p.realized_pnl || 0), 0) || 0,
     };
 

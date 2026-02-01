@@ -12,6 +12,7 @@ import { rpc } from "@/lib/rpc/index";
 import { queryView } from "@/lib/db/viewTypes";
 import type { IntegrityViolation, LastActivityRow } from "@/types/domains/integrity";
 import { generateUUID } from "@/lib/utils";
+import { logError } from "@/lib/logger";
 
 // ============ Types ============
 
@@ -574,7 +575,7 @@ export async function getLatestHealthStatus(): Promise<HealthSnapshot | null> {
     .maybeSingle();
 
   if (error) {
-    console.error("Failed to get latest health status:", error);
+    logError("systemAdminService.getLatestHealthStatus", error);
     return null;
   }
 

@@ -10,6 +10,7 @@ import { ReportData, ReportStyles } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
 import { formatAssetWithSymbol } from "@/utils/formatters";
 import type { AutoTableCellHookData, AutoTablePageHookData } from "@/types/jspdf-autotable";
+import { logError, logWarn } from "@/lib/logger";
 
 /** Convert string or number to number for calculations */
 const toNum = (value: string | number | undefined | null): number => {
@@ -87,7 +88,7 @@ export class PDFReportGenerator {
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.warn(`Failed to load image: ${url}`, error);
+      logWarn("pdfGenerator.loadImage", { url, error });
       return null;
     }
   }
@@ -155,7 +156,7 @@ export class PDFReportGenerator {
         fileSizeBytes: pdfData.byteLength,
       };
     } catch (error) {
-      console.error("PDF generation failed:", error);
+      logError("pdfGenerator.generate", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -323,7 +324,10 @@ export class PDFReportGenerator {
         performanceData.push(["Year-to-Date", this.formatPercentage(toNum(summary.ytdReturn))]);
       }
       if (summary.itdReturn !== undefined) {
-        performanceData.push(["Inception-to-Date", this.formatPercentage(toNum(summary.itdReturn))]);
+        performanceData.push([
+          "Inception-to-Date",
+          this.formatPercentage(toNum(summary.itdReturn)),
+        ]);
       }
 
       this.doc.autoTable({

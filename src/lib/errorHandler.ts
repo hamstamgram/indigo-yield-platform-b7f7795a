@@ -9,6 +9,7 @@
  */
 
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 
 // ============================================================================
 // Error Types
@@ -127,13 +128,7 @@ export function parseError(error: unknown, context?: Record<string, unknown>): A
 
   // Standard Error
   if (error instanceof Error) {
-    return createAppError(
-      ErrorCode.UNKNOWN,
-      error.message,
-      error.message,
-      context,
-      error
-    );
+    return createAppError(ErrorCode.UNKNOWN, error.message, error.message, context, error);
   }
 
   // String error
@@ -142,13 +137,7 @@ export function parseError(error: unknown, context?: Record<string, unknown>): A
   }
 
   // Unknown
-  return createAppError(
-    ErrorCode.UNKNOWN,
-    "Unknown error",
-    undefined,
-    context,
-    error
-  );
+  return createAppError(ErrorCode.UNKNOWN, "Unknown error", undefined, context, error);
 }
 
 /**
@@ -167,7 +156,9 @@ export function isAppError(error: unknown): error is AppError {
 /**
  * Check if error is from Supabase
  */
-function isSupabaseError(error: unknown): error is { message: string; code?: string; details?: string } {
+function isSupabaseError(
+  error: unknown
+): error is { message: string; code?: string; details?: string } {
   return (
     typeof error === "object" &&
     error !== null &&
@@ -188,22 +179,58 @@ function parseSupabaseError(
 
   // Map PostgreSQL error codes
   if (pgCode === "23505") {
-    return createAppError(ErrorCode.DUPLICATE, message, "This record already exists.", context, error);
+    return createAppError(
+      ErrorCode.DUPLICATE,
+      message,
+      "This record already exists.",
+      context,
+      error
+    );
   }
   if (pgCode === "23503") {
-    return createAppError(ErrorCode.NOT_FOUND, message, "Referenced record not found.", context, error);
+    return createAppError(
+      ErrorCode.NOT_FOUND,
+      message,
+      "Referenced record not found.",
+      context,
+      error
+    );
   }
   if (pgCode === "42501" || message.includes("permission denied") || message.includes("policy")) {
-    return createAppError(ErrorCode.AUTH_FORBIDDEN, message, "You don't have permission for this action.", context, error);
+    return createAppError(
+      ErrorCode.AUTH_FORBIDDEN,
+      message,
+      "You don't have permission for this action.",
+      context,
+      error
+    );
   }
   if (message.includes("Admin only") || message.includes("admin privileges")) {
-    return createAppError(ErrorCode.AUTH_FORBIDDEN, message, "Admin access required.", context, error);
+    return createAppError(
+      ErrorCode.AUTH_FORBIDDEN,
+      message,
+      "Admin access required.",
+      context,
+      error
+    );
   }
   if (message.includes("locked") || message.includes("already applied")) {
-    return createAppError(ErrorCode.PERIOD_LOCKED, message, "This period is locked and cannot be modified.", context, error);
+    return createAppError(
+      ErrorCode.PERIOD_LOCKED,
+      message,
+      "This period is locked and cannot be modified.",
+      context,
+      error
+    );
   }
   if (message.includes("insufficient") || message.includes("negative")) {
-    return createAppError(ErrorCode.INSUFFICIENT_BALANCE, message, "Insufficient balance for this operation.", context, error);
+    return createAppError(
+      ErrorCode.INSUFFICIENT_BALANCE,
+      message,
+      "Insufficient balance for this operation.",
+      context,
+      error
+    );
   }
 
   return createAppError(ErrorCode.DB_ERROR, message, message, context, error);
@@ -250,10 +277,10 @@ export function handleError(
 
   // Log to console
   if (opts.log) {
-    console.error(`[${operation}]`, appError.message, {
+    logError(operation, appError.originalError, {
       code: appError.code,
-      context: appError.context,
-      originalError: appError.originalError,
+      message: appError.message,
+      ...appError.context,
     });
   }
 

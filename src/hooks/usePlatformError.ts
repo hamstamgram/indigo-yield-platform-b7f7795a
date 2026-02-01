@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useState } from "react";
+import { logError } from "@/lib/logger";
 import { toast } from "sonner";
 import {
   PlatformError,
@@ -103,11 +104,10 @@ export function usePlatformError(): UseErrorHandlerResult {
 
       // Log if enabled
       if (logError) {
-        console.error("[Platform Error]", {
+        logError("usePlatformError.handleError", platformError, {
           code: platformError.code,
           category: platformError.category,
           message: platformError.message,
-          details: platformError.details,
         });
       }
 

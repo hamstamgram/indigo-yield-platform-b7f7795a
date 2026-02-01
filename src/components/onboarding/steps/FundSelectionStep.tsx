@@ -10,7 +10,7 @@ import {
   Alert,
   AlertDescription,
 } from "@/components/ui";
-import { Target, Shield, CheckCircle, Info, Bitcoin, Coins } from "lucide-react";
+import { Target, Shield, CheckCircle, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import type { OnboardingData, FundConfiguration } from "@/types/domains";
 
@@ -92,19 +92,6 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
     }
   };
 
-  const getFundIcon = (benchmark: string) => {
-    switch (benchmark) {
-      case "BTC":
-        return <Bitcoin className="w-6 h-6 text-orange-500" />;
-      case "ETH":
-        return <CryptoIcon symbol="ETH" className="w-6 h-6" />;
-      case "STABLE":
-        return <Coins className="w-6 h-6 text-blue-500" />;
-      default:
-        return <Target className="w-6 h-6 text-gray-500" />;
-    }
-  };
-
   const getRiskLevel = (volatility: number) => {
     if (volatility < 5) return { level: "Low", color: "text-green-600", bg: "bg-green-100" };
     if (volatility < 15) return { level: "Medium", color: "text-yellow-600", bg: "bg-yellow-100" };
@@ -175,7 +162,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
                     <div className="p-2 rounded-lg bg-white dark:bg-gray-800 border">
-                      {getFundIcon(fund.benchmark)}
+                      <CryptoIcon symbol={fund.currency || fund.benchmark} className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
                       <CardTitle className="text-base flex items-center gap-2">

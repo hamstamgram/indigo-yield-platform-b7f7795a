@@ -3,6 +3,8 @@
  * Provides user-friendly error messages for database RPC errors
  */
 
+import { logError } from "@/lib/logger";
+
 /**
  * Known error patterns and their user-friendly messages
  */
@@ -187,7 +189,10 @@ export function handleRPCError(
       originalError: error instanceof Error ? error.message : String(error),
     });
   } else {
-    console.error(`[${context}]`, error);
+    logError(context, error, {
+      userMessage,
+      originalError: error instanceof Error ? error.message : String(error),
+    });
   }
 
   return userMessage;

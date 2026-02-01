@@ -40,13 +40,14 @@ function toNum(value: string | number | null | undefined): number {
  */
 export function formatAssetAmount(amount: string | number, symbol: string): string {
   const numAmount = toNum(amount);
-  const config = getAssetConfig(symbol);
+  const safeSymbol = symbol || "ASSET";
+  const config = getAssetConfig(safeSymbol);
   const decimals = config?.decimals || 8;
-  
+
   // Use full precision for each asset type
-  const normalized = symbol.toUpperCase();
+  const normalized = safeSymbol.toUpperCase();
   let displayDecimals: number;
-  
+
   switch (normalized) {
     case "BTC":
     case "ETH":

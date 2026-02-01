@@ -12,6 +12,7 @@ import {
   TransactionData,
   PerformancePeriod,
 } from "@/types/domains";
+import { logError } from "@/lib/logger";
 
 /** Convert string or number to number for calculations */
 const toNum = (value: string | number | undefined | null): number => {
@@ -107,7 +108,7 @@ export class ExcelReportGenerator {
         fileSizeBytes: buffer.byteLength,
       };
     } catch (error) {
-      console.error("Excel generation failed:", error);
+      logError("excelGenerator.generate", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

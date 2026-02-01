@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, memo } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalFullStatus } from "@/types/domains";
-import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
+import { formatAssetAmount } from "@/utils/assets";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Input,
   Button,
@@ -279,12 +280,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
       header: "Amount",
       cell: (w) => (
         <div className="flex items-center gap-2">
-          <img
-            src={getAssetLogo((w.fund_class || "ASSET").toUpperCase())}
-            alt={w.fund_class || "ASSET"}
-            className="h-5 w-5 rounded-full border"
-            onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-          />
+          <CryptoIcon symbol={w.fund_class || "ASSET"} className="h-5 w-5" />
           <FinancialValue value={w.requested_amount} asset={w.fund_class || "UNITS"} showAsset />
         </div>
       ),
@@ -338,12 +334,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
         <div className="flex items-center gap-2">
           <Coins className="h-4 w-4 text-muted-foreground" />
           <div className="flex items-center gap-1.5">
-            <img
-              src={getAssetLogo((withdrawal.fund_class || "ASSET").toUpperCase())}
-              alt={withdrawal.fund_class || "ASSET"}
-              className="h-4 w-4 rounded-full border"
-              onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-            />
+            <CryptoIcon symbol={withdrawal.fund_class || "ASSET"} className="h-4 w-4" />
             <FinancialValue
               value={withdrawal.requested_amount}
               asset={withdrawal.fund_class || "UNITS"}

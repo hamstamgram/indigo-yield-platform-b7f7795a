@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { generateStatementFilename } from "./statementPdfGenerator";
+import { logError } from "@/lib/logger";
 
 // IMPORTANT: Statement operations must be done server-side with service role key.
 // On Lovable/production, use an Edge Function to generate a signed URL and upload there.
@@ -12,8 +13,11 @@ export async function uploadStatementToStorage(
 ): Promise<{ storage_path: string; signed_url: string } | null> {
   // Block direct client uploads in production to avoid anon-key misuse.
   if (import.meta.env.PROD) {
-    console.error(
-      "uploadStatementToStorage called in production; route this through an Edge Function with the service role key."
+    logError(
+      "statementStorage.uploadStatementToStorage",
+      new Error(
+        "Called in production; route this through an Edge Function with the service role key."
+      )
     );
     return null;
   }
@@ -32,7 +36,7 @@ export async function uploadStatementToStorage(
       });
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
+      logError("statementStorage.uploadStatementToStorage", uploadError);
 
       // If bucket doesn't exist, create it
       if (uploadError.message?.includes("Bucket not found")) {
@@ -43,7 +47,9 @@ export async function uploadStatementToStorage(
         });
 
         if (createError) {
-          console.error("Bucket creation error:", createError);
+          logError("statementStorage.uploadStatementToStorage", createError, {
+            step: "bucketCreation",
+          });
           return null;
         }
 
@@ -56,7 +62,9 @@ export async function uploadStatementToStorage(
           });
 
         if (retryError) {
-          console.error("Retry upload error:", retryError);
+          logError("statementStorage.uploadStatementToStorage", retryError, {
+            step: "retryUpload",
+          });
           return null;
         }
       } else {
@@ -70,7 +78,7 @@ export async function uploadStatementToStorage(
       .createSignedUrl(storagePath, 300); // 5 minutes expiry
 
     if (signedUrlError) {
-      console.error("Signed URL error:", signedUrlError);
+      logError("statementStorage.uploadStatementToStorage", signedUrlError, { step: "signedUrl" });
       return null;
     }
 
@@ -79,7 +87,7 @@ export async function uploadStatementToStorage(
       signed_url: signedUrlData.signedUrl,
     };
   } catch (error) {
-    console.error("Storage error:", error);
+    logError("statementStorage.uploadStatementToStorage", error);
     return null;
   }
 }
@@ -91,20 +99,23 @@ export async function getStatementSignedUrl(storage_path: string): Promise<strin
       .createSignedUrl(storage_path, 300); // 5 minutes expiry
 
     if (error) {
-      console.error("Error creating signed URL:", error);
+      logError("statementStorage.getStatementSignedUrl", error);
       return null;
     }
 
     return data.signedUrl;
   } catch (error) {
-    console.error("Error:", error);
+    logError("statementStorage.getStatementSignedUrl", error);
     return null;
   }
 }
 
 export async function deleteStatement(storage_path: string): Promise<boolean> {
   if (import.meta.env.PROD) {
-    console.error("deleteStatement is disabled in production; use a backend/Edge Function.");
+    logError(
+      "statementStorage.deleteStatement",
+      new Error("Disabled in production; use a backend/Edge Function.")
+    );
     return false;
   }
 
@@ -112,13 +123,13 @@ export async function deleteStatement(storage_path: string): Promise<boolean> {
     const { error } = await supabase.storage.from("statements").remove([storage_path]);
 
     if (error) {
-      console.error("Delete error:", error);
+      logError("statementStorage.deleteStatement", error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("Error:", error);
+    logError("statementStorage.deleteStatement", error);
     return false;
   }
 }

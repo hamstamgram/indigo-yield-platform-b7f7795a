@@ -7,6 +7,8 @@
  * @module config/environment
  */
 
+import { logWarn } from "@/lib/logger";
+
 // ============================================================================
 // Types & Interfaces
 // ============================================================================
@@ -219,7 +221,9 @@ function getSentryConfig(): SentryConfig | undefined {
 
   if (!dsn) {
     if (IS_PRODUCTION) {
-      console.warn("⚠️ Sentry DSN not configured for production environment");
+      logWarn("environment.getSentryConfig", {
+        reason: "Sentry DSN not configured for production environment",
+      });
     }
     return undefined;
   }
@@ -240,7 +244,9 @@ function getPostHogConfig(): PostHogConfig | undefined {
 
   if (!apiKey) {
     if (IS_PRODUCTION) {
-      console.warn("⚠️ PostHog API key not configured for production environment");
+      logWarn("environment.getPostHogConfig", {
+        reason: "PostHog API key not configured for production environment",
+      });
     }
     return undefined;
   }
@@ -390,13 +396,13 @@ function validateConfig(): void {
   // Production-specific validations
   if (IS_PRODUCTION) {
     if (!config.sentry?.dsn) {
-      console.warn("⚠️ Sentry not configured for production");
+      logWarn("environment.validateConfig", { reason: "Sentry not configured for production" });
     }
     if (!config.posthog?.apiKey) {
-      console.warn("⚠️ PostHog not configured for production");
+      logWarn("environment.validateConfig", { reason: "PostHog not configured for production" });
     }
     if (config.features.demoMode) {
-      console.warn("⚠️ Demo mode is enabled in production");
+      logWarn("environment.validateConfig", { reason: "Demo mode is enabled in production" });
     }
   }
 

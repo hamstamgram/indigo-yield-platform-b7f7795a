@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getTodayString } from "@/utils/dateUtils";
+import { logError } from "@/lib/logger";
 
 // =====================================================
 // TYPES
@@ -67,9 +68,7 @@ export async function getEmailStats(filters?: EmailFilters): Promise<EmailStats>
   }
 
   if (filters?.search) {
-    query = query.or(
-      `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
-    );
+    query = query.or(`recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`);
   }
 
   if (filters?.dateFrom) {
@@ -83,7 +82,7 @@ export async function getEmailStats(filters?: EmailFilters): Promise<EmailStats>
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching email stats:", error);
+    logError("emailTrackingService.getEmailStats", error);
     return {
       totalSent: 0,
       delivered: 0,
@@ -137,9 +136,7 @@ export async function getEmailDeliveries(filters: EmailFilters): Promise<EmailDe
   }
 
   if (filters.search) {
-    query = query.or(
-      `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
-    );
+    query = query.or(`recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`);
   }
 
   if (filters.dateFrom) {
@@ -153,7 +150,7 @@ export async function getEmailDeliveries(filters: EmailFilters): Promise<EmailDe
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching email deliveries:", error);
+    logError("emailTrackingService.getEmailDeliveries", error);
     return [];
   }
 

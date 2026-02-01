@@ -4,6 +4,7 @@
  */
 
 import html2canvas from "html2canvas";
+import { logError } from "@/lib/logger";
 
 export interface ChartExportOptions {
   width: number;
@@ -52,7 +53,7 @@ export class ChartExporter {
       const base64 = canvas.toDataURL(`image/${defaultOptions.format}`, defaultOptions.quality);
       return base64;
     } catch (error) {
-      console.error("Chart export failed:", error);
+      logError("ChartExporter.exportChartAsImage", error);
       throw new Error(
         `Failed to export chart: ${error instanceof Error ? error.message : "Unknown error"}`
       );
@@ -71,7 +72,7 @@ export class ChartExporter {
       try {
         results[name] = await this.exportChartAsImage(element, options);
       } catch (error) {
-        console.error(`Failed to export chart "${name}":`, error);
+        logError("ChartExporter.exportMultipleCharts", error, { chartName: name });
         // Create a placeholder image for failed exports
         results[name] = this.createPlaceholderImage(options?.width || 800, options?.height || 400);
       }

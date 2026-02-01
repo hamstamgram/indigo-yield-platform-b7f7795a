@@ -3,6 +3,7 @@ import { fundService } from "@/services/admin";
 import { transactionsV2Service } from "@/services/investor";
 import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";
+import { logError } from "@/lib/logger";
 
 // Re-export StatementTransaction as the canonical type for statement views
 export type { StatementTransaction } from "@/types/domains/transaction";
@@ -80,7 +81,9 @@ export async function computeStatement(
     const investor = await profileService.getProfileById(investor_id);
 
     if (!investor) {
-      console.error("Investor profile not found");
+      logError("statementCalculations.computeStatement", new Error("Investor profile not found"), {
+        investor_id,
+      });
       return null;
     }
 
@@ -232,7 +235,7 @@ export async function computeStatement(
       summary,
     };
   } catch (error) {
-    console.error("Error computing statement:", error);
+    logError("statementCalculations.computeStatement", error);
     return null;
   }
 }

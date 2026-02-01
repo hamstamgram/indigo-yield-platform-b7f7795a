@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
+import { logWarn } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { useUserRole } from "@/hooks/auth";
 import { useAdminInitialPrefetch } from "@/hooks/useAdminInitialPrefetch";
@@ -39,10 +40,9 @@ export function AdminRoute({ children }: AdminRouteProps) {
   const isVerifiedAdmin = authIsAdmin || roleIsAdmin;
 
   if (!isVerifiedAdmin) {
-    console.warn("[AdminRoute] Access denied - admin verification failed", {
+    logWarn("AdminRoute.accessDenied", {
       authIsAdmin,
       roleIsAdmin,
-      userId: user.id,
     });
     // User is authenticated but not verified admin - redirect to investor portal
     return <Navigate to="/investor" replace />;

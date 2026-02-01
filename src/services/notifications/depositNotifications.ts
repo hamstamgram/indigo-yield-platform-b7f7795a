@@ -1,4 +1,5 @@
 import { db } from "@/lib/db/index";
+import { logError } from "@/lib/logger";
 
 type DepositNotificationEvent = "pending" | "confirmed" | "failed";
 
@@ -75,10 +76,18 @@ export async function notifyDepositEvent(
     ]);
 
     if (error) {
-      console.error("Failed to create deposit notification:", error);
+      logError("depositNotifications.notifyDepositEvent", error, {
+        userId,
+        event,
+        depositId: data.depositId,
+      });
     }
   } catch (err) {
-    console.error("Error creating deposit notification:", err);
+    logError("depositNotifications.notifyDepositEvent", err, {
+      userId,
+      event,
+      depositId: data.depositId,
+    });
   }
 }
 

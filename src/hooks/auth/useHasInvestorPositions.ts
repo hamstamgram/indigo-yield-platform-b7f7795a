@@ -5,6 +5,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { logError } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -33,7 +34,7 @@ export function useHasInvestorPositions(): UseHasInvestorPositionsResult {
         .gt("current_value", 0);
 
       if (error) {
-        console.error("Error checking investor positions:", error);
+        logError("useHasInvestorPositions.queryFn", error);
         return { count: 0 };
       }
 

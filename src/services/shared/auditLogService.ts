@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db/index";
+import { logError } from "@/lib/logger";
 
 /**
  * Sensitive fields that should be masked in audit logs to protect PII and secrets
@@ -141,7 +142,7 @@ class AuditLogService {
         count: count || 0,
       };
     } catch (error) {
-      console.error("Error fetching audit logs:", error);
+      logError("auditLogService.fetchAuditLogs", error);
       throw error;
     }
   }
@@ -158,7 +159,7 @@ class AuditLogService {
       const uniqueEntities = Array.from(new Set((data || []).map((row) => row.entity)));
       return uniqueEntities.sort();
     } catch (error) {
-      console.error("Error fetching unique entities:", error);
+      logError("auditLogService.getUniqueEntities", error);
       return [];
     }
   }
@@ -175,7 +176,7 @@ class AuditLogService {
       const uniqueActions = Array.from(new Set((data || []).map((row) => row.action)));
       return uniqueActions.sort();
     } catch (error) {
-      console.error("Error fetching unique actions:", error);
+      logError("auditLogService.getUniqueActions", error);
       return [];
     }
   }
@@ -254,7 +255,7 @@ class AuditLogService {
         topActors,
       };
     } catch (error) {
-      console.error("Error getting audit log summary:", error);
+      logError("auditLogService.getAuditLogSummary", error);
       return {
         totalEntries: 0,
         actionCounts: {},
@@ -369,7 +370,7 @@ class AuditLogService {
       }
       return { success: true };
     } catch (error) {
-      console.error("Error logging audit event:", error);
+      logError("auditLogService.logEvent", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to log audit event",

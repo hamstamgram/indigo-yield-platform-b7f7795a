@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db/index";
+import { logError } from "@/lib/logger";
 import { investorDataService } from "@/services/investor/investorDataService";
 import type { InvestorPositionDetail } from "@/services/investor/investorDataService";
 import { requireAdmin } from "@/utils/authorizationHelper";
@@ -65,7 +66,7 @@ class AdminInvestorService {
         interest24h,
       };
     } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
+      logError("adminService.getDashboardStats", error);
       throw error;
     }
   }
@@ -96,7 +97,7 @@ class AdminInvestorService {
         },
       }));
     } catch (error) {
-      console.error("Error in getAllInvestorsWithSummary:", error);
+      logError("adminService.getAllInvestorsWithSummary", error);
       throw error;
     }
   }
@@ -125,7 +126,7 @@ class AdminInvestorService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error("Error fetching withdrawal requests:", error);
+      logError("adminService.getWithdrawalRequests", error);
       throw error;
     }
   }
@@ -181,7 +182,7 @@ class AdminInvestorService {
         };
       });
     } catch (error) {
-      console.error("Error fetching fund performance:", error);
+      logError("adminService.getFundPerformance", error);
       throw error; // Throw instead of silently returning empty array
     }
   }
@@ -199,7 +200,7 @@ class AdminInvestorService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error("Error fetching transaction history:", error);
+      logError("adminService.getTransactionHistory", error);
       throw error;
     }
   }
@@ -232,7 +233,7 @@ class AdminInvestorService {
       // Updated logic: Update profile if exists, else error (must invite)
       throw new Error("To add an investor, please use the 'Invite Investor' feature.");
     } catch (error) {
-      console.error("Error creating investor:", error);
+      logError("adminService.createInvestor", error);
       throw error;
     }
   }
@@ -244,7 +245,7 @@ class AdminInvestorService {
 
       if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
-      console.error("Error updating investor status:", error);
+      logError("adminService.updateInvestorStatus", error);
       throw error;
     }
   }
@@ -258,7 +259,7 @@ class AdminInvestorService {
 
       if (result.error) throw new Error(result.error.userMessage);
     } catch (error) {
-      console.error("Error in bulk update:", error);
+      logError("adminService.bulkUpdateInvestors", error);
       throw error;
     }
   }
@@ -277,7 +278,7 @@ class AdminInvestorService {
         timeRange,
       };
     } catch (error) {
-      console.error("Error fetching investor analytics:", error);
+      logError("adminService.getInvestorAnalytics", error);
       throw error;
     }
   }
@@ -302,7 +303,7 @@ class AdminInvestorService {
 
       return investors;
     } catch (error) {
-      console.error("Error exporting investor data:", error);
+      logError("adminService.exportInvestorData", error);
       throw error;
     }
   }
@@ -320,7 +321,7 @@ class AdminInvestorService {
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
-      console.error("Health check failed:", error);
+      logError("adminService.performHealthCheck", error);
       return {
         status: "error",
         error: error instanceof Error ? error.message : "Unknown error",
@@ -341,7 +342,7 @@ class AdminInvestorService {
 
       return JSON.stringify(backup, null, 2);
     } catch (error) {
-      console.error("Error creating backup:", error);
+      logError("adminService.backupData", error);
       throw error;
     }
   }

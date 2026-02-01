@@ -7,6 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { FundDailyAUM } from "@/types/domains/yield";
 import { formatDateForDB, getTodayString, getMonthStartDate } from "@/utils/dateUtils";
+import { logError } from "@/lib/logger";
 
 /** Position with fund join result */
 interface PositionWithFundJoin {
@@ -53,7 +54,7 @@ export async function getFundAUMHistory(
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching AUM history:", error);
+    logError("yieldHistoryService.getFundAUMHistory", error);
     throw new Error(`Failed to fetch AUM history: ${error.message}`);
   }
 
@@ -74,7 +75,7 @@ export async function getLatestFundAUM(fundId: string): Promise<FundDailyAUM | n
     .maybeSingle();
 
   if (error) {
-    console.error("Error fetching latest AUM:", error);
+    logError("yieldHistoryService.getLatestFundAUM", error);
     throw new Error(`Failed to fetch latest AUM: ${error.message}`);
   }
 
@@ -97,7 +98,7 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
     .gt("current_value", 0);
 
   if (error) {
-    console.error("Error fetching current AUM:", error);
+    logError("yieldHistoryService.getCurrentFundAUM", error);
     throw new Error(`Failed to fetch current AUM: ${error.message}`);
   }
 
@@ -176,7 +177,7 @@ export async function saveDraftAUMEntry(
       .single();
 
     if (error) {
-      console.error("Error updating AUM entry:", error);
+      logError("yieldHistoryService.saveDraftAUMEntry", error);
       if (error.code === "42501" || error.message?.includes("policy")) {
         throw new Error("Permission denied: Admin access required to record AUM.");
       }
@@ -200,7 +201,7 @@ export async function saveDraftAUMEntry(
       .single();
 
     if (error) {
-      console.error("Error inserting AUM entry:", error);
+      logError("yieldHistoryService.saveDraftAUMEntry", error);
       if (error.code === "42501" || error.message?.includes("policy")) {
         throw new Error("Permission denied: Admin access required to record AUM.");
       }
@@ -398,7 +399,7 @@ export async function getStatementPeriodId(year: number, month: number): Promise
     .maybeSingle();
 
   if (error) {
-    console.error("Error looking up period:", error);
+    logError("yieldHistoryService.getStatementPeriodId", error);
     return null;
   }
 

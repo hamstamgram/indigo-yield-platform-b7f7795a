@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 
 export interface TransactionFormInvestor {
   id: string;
@@ -30,7 +31,7 @@ export interface BalanceCheckResult {
 export async function fetchInvestorsForTransactionForm(): Promise<TransactionFormInvestor[]> {
   const { fetchInvestorsForSelector } = await import("@/services/investor/investorDataService");
   const items = await fetchInvestorsForSelector(false); // exclude system accounts
-  
+
   return items.map((p) => ({
     id: p.id,
     name: p.displayName,
@@ -64,10 +65,10 @@ export async function checkAumExists(fundId: string, date: string): Promise<bool
     .maybeSingle();
 
   if (error) {
-    console.error("Error checking AUM:", error);
+    logError("transactionFormDataService.checkAumExists", error);
     return false;
   }
-  
+
   return !!data;
 }
 

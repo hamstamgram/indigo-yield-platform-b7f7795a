@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db/index";
 import { getTodayString } from "@/utils/dateUtils";
+import { logError } from "@/lib/logger";
 
 export interface FeeScheduleRow {
   fund_code: string;
@@ -27,7 +28,7 @@ class FeeScheduleService {
       .order("effective_date", { ascending: false });
 
     if (error) {
-      console.error("getInvestorFeeSchedule", error);
+      logError("feeScheduleService.getInvestorFeeSchedule", error);
       return [];
     }
 

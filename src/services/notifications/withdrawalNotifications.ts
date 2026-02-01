@@ -1,4 +1,5 @@
 import { db } from "@/lib/db/index";
+import { logError } from "@/lib/logger";
 
 type WithdrawalNotificationEvent = "approved" | "rejected" | "processing" | "completed";
 
@@ -77,10 +78,18 @@ export async function notifyWithdrawalEvent(
     ]);
 
     if (error) {
-      console.error("Failed to create withdrawal notification:", error);
+      logError("withdrawalNotifications.notifyWithdrawalEvent", error, {
+        userId,
+        event,
+        withdrawalId: data.withdrawalId,
+      });
     }
   } catch (err) {
-    console.error("Error creating withdrawal notification:", err);
+    logError("withdrawalNotifications.notifyWithdrawalEvent", err, {
+      userId,
+      event,
+      withdrawalId: data.withdrawalId,
+    });
   }
 }
 

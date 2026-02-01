@@ -470,7 +470,7 @@ class IBService {
       .limit(limit);
 
     if (error) {
-      console.error("Error fetching commissions:", error);
+      logError("ibService.getReferralCommissions", error, { referralId, ibId });
       return [];
     }
 
@@ -521,7 +521,7 @@ class IBService {
     const { data: allocations, error, count } = await query;
 
     if (error) {
-      console.error("Error fetching commissions:", error);
+      logError("ibService.getCommissions", error, { ibId });
       return { commissions: [], total: 0, assets: [] };
     }
 
@@ -584,7 +584,7 @@ class IBService {
       .limit(500);
 
     if (error) {
-      console.error("Error fetching allocations:", error);
+      logError("ibService.getAllocations", error, { ibId });
       return [];
     }
 
@@ -636,7 +636,7 @@ class IBService {
       .gt("current_value", 0);
 
     if (error) {
-      console.error("Error fetching IB positions:", error);
+      logError("ibService.getIBPositions", error, { ibId });
       return [];
     }
 
@@ -690,7 +690,7 @@ class IBService {
     const { data: allocations, error, count } = await query;
 
     if (error) {
-      console.error("Error fetching payout history:", error);
+      logError("ibService.getPayoutHistory", error, { ibId });
       return { payouts: [], total: 0 };
     }
 
@@ -731,7 +731,7 @@ class IBService {
       .eq("is_voided", false);
 
     if (error) {
-      console.error("Error fetching yield on balance:", error);
+      logError("ibService.getYieldOnBalance", error, { ibId });
       return {};
     }
 
@@ -755,7 +755,7 @@ class IBService {
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching profile:", error);
+      logError("ibService.getIBProfile", error, { ibId });
       return null;
     }
 

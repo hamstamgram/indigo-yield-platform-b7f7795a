@@ -37,6 +37,7 @@ import {
 } from "@/components/ui";
 import { Plus, Trash2, Percent, History } from "lucide-react";
 import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { format } from "date-fns";
 import { feeScheduleService } from "@/services/admin";
 import { useInvestorFeeSchedule, useActiveFunds } from "@/hooks/data";
@@ -97,7 +98,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       await refetchFees();
       onUpdate?.();
     } catch (error: unknown) {
-      console.error("Error adding fee:", error);
+      logError("InvestorFeeManager.handleAddFee", error);
       const err = error as { code?: string };
       // Handle specific constraint violations
       if (err?.code === "23P01") {
@@ -121,7 +122,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       await refetchFees();
       onUpdate?.();
     } catch (error) {
-      console.error("Error deleting fee:", error);
+      logError("InvestorFeeManager.handleDeleteFee", error);
       toast.error("Failed to delete fee entry");
     }
   };
