@@ -57,7 +57,26 @@ security-scan-results/
 
 # Test artifacts
 test-results/
+test-reports/
 test-reports/playwright/
+
+# Dev artifacts — never commit
+.tmp/
+.venv/
+.serena/
+memory/
+tools/
+architecture/
+artifacts/
+
+# One-time script data
+scripts/*.json
+scripts/python/
+scripts/archive/
+scripts/diagnostic/
+
+# iOS (removed)
+ios/
 
 # SECURITY: Credential files - NEVER commit these
 **/credentials*.json
