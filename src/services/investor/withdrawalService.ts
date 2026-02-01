@@ -597,56 +597,6 @@ export const withdrawalService = {
   },
 
   /**
-   * Check if user has MFA enabled
-   */
-  async hasMFAEnabled(): Promise<boolean> {
-    const { data: factors } = await supabase.auth.mfa.listFactors();
-    // factors is { totp: Factor[], phone: Factor[] }, not an array
-    const totpFactors = factors?.totp || [];
-    const totpFactor = totpFactors.find(
-      (f: any) => f.factor_type === "totp" && f.status === "verified"
-    );
-    return Boolean(totpFactor);
-  },
-
-  /**
-   * Verify MFA TOTP code for withdrawal submission
-   * SECURITY: Users without MFA must enable it before withdrawing
-   */
-  async verifyMFAForWithdrawal(
-    totpCode: string
-  ): Promise<{ verified: boolean; error?: string; requiresMfaSetup?: boolean }> {
-    const { data: factors } = await supabase.auth.mfa.listFactors();
-    // factors is { totp: Factor[], phone: Factor[] }, not an array
-    const totpFactors = factors?.totp || [];
-    const totpFactor = totpFactors.find(
-      (f: any) => f.factor_type === "totp" && f.status === "verified"
-    );
-
-    if (!totpFactor) {
-      // SECURITY FIX: Do NOT allow withdrawal without MFA
-      console.warn("No verified TOTP factor found for user - MFA required for withdrawals");
-      return {
-        verified: false,
-        error:
-          "Two-factor authentication (2FA) is required for withdrawals. Please enable 2FA in your security settings first.",
-        requiresMfaSetup: true,
-      };
-    }
-
-    const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({
-      factorId: totpFactor.id,
-      code: totpCode,
-    });
-
-    if (verifyError) {
-      return { verified: false, error: "Invalid 2FA code" };
-    }
-
-    return { verified: true };
-  },
-
-  /**
    * Submit investor withdrawal request (for investor portal)
    */
   async submitInvestorWithdrawal(params: {
@@ -655,7 +605,6 @@ export const withdrawalService = {
     destinationAddress?: string;
     reason?: string;
     notes?: string;
-    totpCode?: string;
   }): Promise<string> {
     // Get current user
     const {
@@ -664,14 +613,6 @@ export const withdrawalService = {
     if (!user) throw new Error("User not authenticated");
 
     const investorId = user.id;
-
-    // Verify TOTP if provided
-    if (params.totpCode) {
-      const mfaResult = await withdrawalService.verifyMFAForWithdrawal(params.totpCode);
-      if (!mfaResult.verified) {
-        throw new Error(mfaResult.error || "MFA verification failed");
-      }
-    }
 
     // Combine notes with destination and reason
     const combinedNotes = [

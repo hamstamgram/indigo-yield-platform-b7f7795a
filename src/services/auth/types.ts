@@ -42,21 +42,6 @@ export interface UserMetadata {
   last_name?: string;
 }
 
-// MFA types
-export interface TOTPEnrollment {
-  id: string;
-  secret: string;
-  qrCode: string;
-  uri: string;
-}
-
-export type TotpStatus = "disabled" | "pending" | "enabled";
-
-export interface InitTotpResult {
-  otpauth_url: string;
-  secret_masked?: string;
-}
-
 // Profile type used in context
 export interface AuthProfile {
   id: string;
@@ -64,6 +49,4 @@ export interface AuthProfile {
   first_name?: string;
   last_name?: string;
   is_admin: boolean;
-  totp_enabled?: boolean;
-  totp_verified?: boolean;
 }

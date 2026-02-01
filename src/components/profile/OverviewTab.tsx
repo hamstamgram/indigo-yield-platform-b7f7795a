@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import { CheckCircle, Loader2 } from "lucide-react";
 import {
-  Card, CardContent, CardHeader, CardTitle,
-  Button, Badge, Progress, Separator,
-  Avatar, AvatarFallback, AvatarImage,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  Progress,
+  Separator,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
 } from "@/components/ui";
 import { useAuth } from "@/services/auth";
 import { profileService } from "@/services/shared";
@@ -70,7 +78,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
           country: undefined,
           dateOfBirth: undefined,
           accountCreated: undefined,
-          twoFactorEnabled: profile?.totp_verified || false,
+          twoFactorEnabled: false,
           emailVerified: user.email_confirmed_at != null,
           phoneVerified: false,
         });
@@ -198,18 +206,24 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Invested</span>
-                <span className="font-semibold font-mono">{stats.totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold font-mono">
+                  {stats.totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Current Value</span>
-                <span className="font-semibold font-mono">{stats.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold font-mono">
+                  {stats.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Return</span>
                 <span
                   className={`font-semibold font-mono ${stats.totalReturn >= 0 ? "text-green-600" : "text-red-600"}`}
                 >
-                  {Math.abs(stats.totalReturn).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  {Math.abs(stats.totalReturn).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                  })}
                 </span>
               </div>
               <Separator />

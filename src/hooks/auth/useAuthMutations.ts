@@ -7,8 +7,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as authService from "@/services/auth/authService";
-import * as mfaService from "@/services/auth/mfaService";
-import QRCode from "qrcode";
 import { logError } from "@/lib/logger";
 
 interface LoginData {
@@ -34,7 +32,7 @@ export function useLoginMutation() {
     mutationFn: async (data: LoginData) => {
       const result = await authService.signIn(data);
       if (result.error) throw result.error;
-      
+
       // Check admin status after successful login
       let isAdmin = false;
       try {
@@ -43,7 +41,7 @@ export function useLoginMutation() {
         // If admin check fails, default to non-admin (safer for production)
         logError("useLoginMutation:adminCheck", adminCheckError as Error);
       }
-      
+
       return { ...result.data, isAdmin };
     },
     onSuccess: ({ isAdmin }) => {
@@ -103,60 +101,6 @@ export function useRegisterMutation() {
 }
 
 /**
- * Hook for MFA enrollment
- */
-export function useMFAEnrollment() {
-  return useQuery({
-    queryKey: ["mfa-enrollment"],
-    queryFn: async () => {
-      const result = await mfaService.enrollMFA();
-      if (!result.success || !result.data) throw result.error || new Error("Failed to enroll");
-      
-      const qrCodeUrl = await QRCode.toDataURL(result.data.qrCode);
-      return {
-        secret: result.data.secret,
-        qrCodeUrl,
-      };
-    },
-    staleTime: Infinity,
-    retry: false,
-  });
-}
-
-/**
- * Hook for MFA verification
- */
-export function useMFAVerification() {
-  const navigate = useNavigate();
-
-  return useMutation({
-    mutationFn: async (code: string) => {
-      const factorsResult = await mfaService.listMFAFactors();
-      if (factorsResult.error) throw factorsResult.error;
-
-      const totpFactors = factorsResult.data?.totp;
-      if (!totpFactors || totpFactors.length === 0) {
-        throw new Error("No MFA factor found");
-      }
-
-      const factorId = totpFactors[0].id;
-      const verifyResult = await mfaService.verifyMFA(factorId, code);
-      if (verifyResult.error) throw verifyResult.error;
-      
-      return verifyResult.data;
-    },
-    onSuccess: () => {
-      toast.success("MFA setup complete!");
-      setTimeout(() => navigate("/dashboard"), 2000);
-    },
-    onError: (error: Error) => {
-      logError("useMFAVerification", error);
-      toast.error("Invalid verification code");
-    },
-  });
-}
-
-/**
  * Hook for email verification via OTP
  */
 export function useEmailVerification(tokenHash: string | null) {
@@ -166,7 +110,7 @@ export function useEmailVerification(tokenHash: string | null) {
     queryKey: ["email-verification", tokenHash],
     queryFn: async () => {
       if (!tokenHash) throw new Error("No token provided");
-      
+
       const result = await authService.verifyOtp(tokenHash);
       if (result.error) throw result.error;
       return result.data;
@@ -193,14 +137,14 @@ export function useResendVerificationEmail() {
   return useMutation({
     mutationFn: async (email?: string) => {
       let targetEmail = email;
-      
+
       if (!targetEmail) {
         const user = await authService.getUser();
         targetEmail = user?.email;
       }
-      
+
       if (!targetEmail) throw new Error("No email address found");
-      
+
       const result = await authService.resendVerificationEmail(targetEmail);
       if (result.error) throw result.error;
       return result.data;

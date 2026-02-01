@@ -38,8 +38,6 @@ export interface InvestorProfile {
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
-  totp_enabled: boolean;
-  totp_verified: boolean;
   avatar_url: string | null;
 }
 
@@ -250,8 +248,6 @@ export async function getInvestorProfile(userId: string): Promise<InvestorProfil
     first_name: null,
     last_name: null,
     phone: null,
-    totp_enabled: false,
-    totp_verified: false,
     avatar_url: null,
   };
 
@@ -274,8 +270,6 @@ export async function getInvestorProfile(userId: string): Promise<InvestorProfil
       first_name: profileData.first_name,
       last_name: profileData.last_name,
       phone: profileData.phone,
-      totp_enabled: profileData.totp_enabled || false,
-      totp_verified: profileData.totp_verified || false,
       avatar_url: profileData.avatar_url,
     };
   }

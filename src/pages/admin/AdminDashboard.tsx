@@ -28,7 +28,7 @@ import {
   Badge,
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { AdminGuard, FinancialSnapshot, TwoFactorWarningBanner } from "@/components/admin";
+import { AdminGuard, FinancialSnapshot } from "@/components/admin";
 import {
   LiquidityRiskPanel,
   ConcentrationRiskPanel,
@@ -78,9 +78,6 @@ function AdminDashboardContent() {
 
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto animate-fade-in pb-20">
-      {/* 2FA Warning Banner for Admins */}
-      <TwoFactorWarningBanner />
-
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-display font-bold tracking-tight text-white flex items-center gap-4">

@@ -3,16 +3,13 @@
  */
 
 // Context and hooks
-export { AuthProvider, useAuth } from './context';
+export { AuthProvider, useAuth } from "./context";
 
 // Core auth operations
-export * from './authService';
+export * from "./authService";
 
 // Invite handling
-export * from './inviteService';
-
-// MFA operations
-export * from './mfaService';
+export * from "./inviteService";
 
 // Types
-export type * from './types';
+export type * from "./types";

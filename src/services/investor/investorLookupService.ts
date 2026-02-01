@@ -1,14 +1,14 @@
 /**
  * Investor Lookup Service
  * CANONICAL SOURCE for all investor fetching operations
- * 
+ *
  * P1-04: Standardize Investor Lookup Functions
- * 
+ *
  * Migration guide:
  * - Direct supabase.from("profiles") queries → use getInvestorById()
  * - getAllInvestorsWithSummary() → use getInvestorsForList()
  * - fetchInvestorDetail() → use getInvestorById()
- * 
+ *
  * This service consolidates investor lookup patterns that were previously
  * scattered across multiple services with duplicate logic.
  */
@@ -35,8 +35,6 @@ export interface InvestorLookup {
   phone: string | null;
   ibParentId: string | null;
   avatarUrl: string | null;
-  totpEnabled: boolean;
-  totpVerified: boolean;
   isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
@@ -96,8 +94,6 @@ function transformToInvestorLookup(row: {
   phone: string | null;
   ib_parent_id: string | null;
   avatar_url: string | null;
-  totp_enabled: boolean | null;
-  totp_verified: boolean | null;
   is_admin: boolean | null;
   created_at: string;
   updated_at: string;
@@ -115,8 +111,6 @@ function transformToInvestorLookup(row: {
     phone: row.phone,
     ibParentId: row.ib_parent_id,
     avatarUrl: row.avatar_url,
-    totpEnabled: row.totp_enabled ?? false,
-    totpVerified: row.totp_verified ?? false,
     isAdmin: row.is_admin ?? false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -151,7 +145,8 @@ function transformToInvestorRef(row: {
 export async function getInvestorById(id: string): Promise<InvestorLookup | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select(`
+    .select(
+      `
       id,
       email,
       first_name,
@@ -162,13 +157,12 @@ export async function getInvestorById(id: string): Promise<InvestorLookup | null
       phone,
       ib_parent_id,
       avatar_url,
-      totp_enabled,
-      totp_verified,
       is_admin,
       created_at,
       updated_at,
       onboarding_date
-    `)
+    `
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -200,7 +194,8 @@ export async function getInvestorsForList(
 
   let query = supabase
     .from("profiles")
-    .select(`
+    .select(
+      `
       id,
       email,
       first_name,
@@ -211,13 +206,12 @@ export async function getInvestorsForList(
       phone,
       ib_parent_id,
       avatar_url,
-      totp_enabled,
-      totp_verified,
       is_admin,
       created_at,
       updated_at,
       onboarding_date
-    `)
+    `
+    )
     .order("created_at", { ascending: false })
     .limit(limit);
 

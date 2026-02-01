@@ -59,7 +59,6 @@ interface SubmitWithdrawalParams {
   destinationAddress?: string;
   reason?: string;
   notes?: string;
-  totpCode?: string;
 }
 
 /**
@@ -76,7 +75,6 @@ export function useSubmitWithdrawal() {
         destinationAddress: params.destinationAddress,
         reason: params.reason,
         notes: params.notes,
-        totpCode: params.totpCode,
       });
 
       // Log audit event

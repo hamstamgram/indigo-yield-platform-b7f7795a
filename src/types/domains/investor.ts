@@ -3,7 +3,7 @@
  * CANONICAL SOURCE - All investor-related types should be imported from here
  *
  * Database Schema Mapping:
- * - profiles table: id, email, first_name, last_name, is_admin, totp_enabled, totp_verified, status, phone, onboarding_date
+ * - profiles table: id, email, first_name, last_name, is_admin, status, phone, onboarding_date
  * - investor_positions table: investor_id, fund_id, shares, cost_basis, etc.
  */
 
@@ -40,8 +40,6 @@ export interface InvestorWithProfile extends Investor {
   first_name: string | null;
   last_name: string | null;
   is_admin: boolean;
-  totp_enabled: boolean;
-  totp_verified: boolean;
   avatar_url: string | null;
 }
 
@@ -56,8 +54,6 @@ export interface InvestorProfile {
   phone: string | null;
   is_admin: boolean;
   avatar_url: string | null;
-  totp_enabled: boolean;
-  totp_verified: boolean;
   status: InvestorStatus;
   created_at: string;
   updated_at: string;
@@ -118,7 +114,6 @@ export interface InvestorRef {
   email: string;
 }
 
-
 /**
  * Convert database profile row to application Investor type
  */
@@ -177,7 +172,9 @@ export function isInvestorWithProfile(
  * Get display name from investor (with or without profile)
  * Falls back to email prefix when name is empty for better UX
  */
-export function getInvestorDisplayName(investor: Investor | InvestorWithProfile | InvestorRef): string {
+export function getInvestorDisplayName(
+  investor: Investor | InvestorWithProfile | InvestorRef
+): string {
   if (isInvestorWithProfile(investor as Investor | InvestorWithProfile)) {
     const inv = investor as InvestorWithProfile;
     if (inv.first_name && inv.last_name) {

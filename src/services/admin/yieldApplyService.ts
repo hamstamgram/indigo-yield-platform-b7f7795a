@@ -81,6 +81,7 @@ export async function applyYieldDistribution(
   }
 
   // Call ADB apply RPC (time-weighted allocation with loss carryforward)
+  // p_distribution_date = today (when admin runs the distribution), distinct from period_end
   const { data, error } = await callRPC("apply_adb_yield_distribution_v3", {
     p_fund_id: fundId,
     p_period_start: formatDateForDB(periodStartDate),
@@ -88,6 +89,7 @@ export async function applyYieldDistribution(
     p_gross_yield_amount: grossYieldAmount,
     p_admin_id: adminId,
     p_purpose: purpose,
+    p_distribution_date: formatDateForDB(new Date()),
   });
 
   if (error) {

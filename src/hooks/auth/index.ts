@@ -9,8 +9,6 @@ export {
   useLoginMutation,
   useGoogleLoginMutation,
   useRegisterMutation,
-  useMFAEnrollment,
-  useMFAVerification,
   useEmailVerification,
   useResendVerificationEmail,
 } from "./useAuthMutations";

@@ -1,11 +1,9 @@
 /**
  * Withdrawal Request Form Component
  *
- * PHASE 2: Feature Completion
  * Allows investors to request withdrawals with multi-step validation
  *
  * Security Features:
- * - TOTP 2FA required
  * - Amount validation with available balance check
  * - Wallet address validation
  * - Rate limiting on submission
@@ -15,12 +13,26 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validation/schemas";
-import { toDecimal, formatCrypto } from "@/utils/financial";
+import { toDecimal } from "@/utils/financial";
+import { formatAssetAmount } from "@/utils/assets";
 import {
-  Button, Input, Label, Textarea,
-  Alert, AlertDescription,
-  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Alert,
+  AlertDescription,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
 import { useSubmitWithdrawal } from "@/hooks/data";
@@ -69,8 +81,10 @@ export function WithdrawalRequestForm({
 
   // Check if this is a full withdrawal attempt (>= 95% of balance)
   const isFullWithdrawal =
-    availableBalance && requestedAmount
-      ? toDecimal(requestedAmount).dividedBy(toDecimal(availableBalance.amount)).greaterThanOrEqualTo(0.95)
+    availableBalance && requestedAmount && availableBalance.amount > 0
+      ? toDecimal(requestedAmount)
+          .dividedBy(toDecimal(availableBalance.amount))
+          .greaterThanOrEqualTo(0.95)
       : false;
 
   const onSubmit = async (data: WithdrawalRequestInput) => {
@@ -91,7 +105,6 @@ export function WithdrawalRequestForm({
         destinationAddress: data.destinationAddress,
         reason: data.reason,
         notes: data.notes,
-        totpCode: data.totpCode,
       },
       {
         onSuccess: () => {
@@ -118,7 +131,9 @@ export function WithdrawalRequestForm({
             <Label htmlFor="assetCode">Asset</Label>
             <Select
               value={selectedAsset}
-              onValueChange={(value) => setValue("assetCode", value as WithdrawalRequestInput["assetCode"])}
+              onValueChange={(value) =>
+                setValue("assetCode", value as WithdrawalRequestInput["assetCode"])
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select asset to withdraw" />
@@ -132,7 +147,7 @@ export function WithdrawalRequestForm({
                         <span>{position.asset_symbol}</span>
                       </div>
                       <span className="text-sm text-muted-foreground ml-4">
-                        {formatCrypto(position.amount, 8, position.asset_symbol)}
+                        {formatAssetAmount(position.amount, position.asset_symbol)}
                       </span>
                     </div>
                   </SelectItem>
@@ -149,7 +164,8 @@ export function WithdrawalRequestForm({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Available: {formatCrypto(availableBalance.amount, 8, availableBalance.asset_symbol)}
+                Available:{" "}
+                {formatAssetAmount(availableBalance.amount, availableBalance.asset_symbol)}
               </AlertDescription>
             </Alert>
           )}
@@ -165,7 +181,7 @@ export function WithdrawalRequestForm({
               {...register("amount", { valueAsNumber: true })}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
-              {requestedAmount && availableBalance && !isAmountValid && (
+            {requestedAmount && availableBalance && !isAmountValid && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>Amount exceeds available balance</AlertDescription>
@@ -207,7 +223,9 @@ export function WithdrawalRequestForm({
             <Label htmlFor="reason">Reason for Withdrawal</Label>
             <Select
               value={watch("reason")}
-              onValueChange={(value) => setValue("reason", value as WithdrawalRequestInput["reason"])}
+              onValueChange={(value) =>
+                setValue("reason", value as WithdrawalRequestInput["reason"])
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select reason" />
@@ -234,22 +252,6 @@ export function WithdrawalRequestForm({
             {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
           </div>
 
-          {/* TOTP Code (2FA) */}
-          <div className="space-y-2">
-            <Label htmlFor="totpCode">2FA Code</Label>
-            <Input
-              id="totpCode"
-              type="text"
-              maxLength={6}
-              placeholder="000000"
-              {...register("totpCode")}
-            />
-            {errors.totpCode && (
-              <p className="text-sm text-destructive">{errors.totpCode.message}</p>
-            )}
-            <p className="text-sm text-muted-foreground">Enter your 6-digit authenticator code</p>
-          </div>
-
           {/* Warning Notice */}
           <Alert>
             <AlertTriangle className="h-4 w-4" />
@@ -262,10 +264,18 @@ export function WithdrawalRequestForm({
         </CardContent>
 
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={submitMutation.isPending}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={submitMutation.isPending}
+          >
             Cancel
           </Button>
-          <Button type="submit" disabled={submitMutation.isPending || !isAmountValid || isFullWithdrawal}>
+          <Button
+            type="submit"
+            disabled={submitMutation.isPending || !isAmountValid || isFullWithdrawal}
+          >
             {submitMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

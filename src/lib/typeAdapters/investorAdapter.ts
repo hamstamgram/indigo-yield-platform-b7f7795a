@@ -19,8 +19,6 @@ export interface InvestorProfile {
   is_admin: boolean;
   fee_percentage: number;
   avatar_url: string | null;
-  totp_enabled: boolean;
-  totp_verified: boolean;
   status: InvestorProfileStatus;
   created_at: string;
   updated_at: string;
@@ -39,8 +37,6 @@ export function toInvestorProfile(row: SupabaseProfile): InvestorProfile {
     is_admin: row.is_admin ?? false,
     fee_percentage: row.fee_pct ?? 0,
     avatar_url: row.avatar_url,
-    totp_enabled: row.totp_enabled ?? false,
-    totp_verified: row.totp_verified ?? false,
     status: (row.status as InvestorProfileStatus) ?? "pending",
     created_at: row.created_at,
     updated_at: row.updated_at,

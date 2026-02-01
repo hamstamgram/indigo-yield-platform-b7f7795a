@@ -22,8 +22,6 @@ export { default as FundAUMBar } from "./FundAUMBar";
 export { default as QuickLinks } from "./QuickLinks";
 export { RealtimeNotifications } from "./RealtimeNotifications";
 export { RoleChangeConfirmDialog } from "./RoleChangeConfirmDialog";
-export { TwoFactorWarningBanner } from "./TwoFactorWarningBanner";
-
 // ============================================
 // SUBDIRECTORY RE-EXPORTS
 // ============================================

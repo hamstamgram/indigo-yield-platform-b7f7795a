@@ -27,19 +27,21 @@ export const strictUuidSchema = z
  * Withdrawal creation schema with strict UUID validation and DB transform.
  * Prevents race conditions via advisory lock in create_withdrawal_request RPC.
  */
-export const withdrawalCreationDbSchema = z.object({
-  investorId: strictUuidSchema,
-  fundId: strictUuidSchema,
-  amount: z.number().positive("Amount must be positive"),
-  type: z.enum(["partial", "full"]),
-  notes: z.string().max(500).optional(),
-}).transform((data) => ({
-  p_investor_id: data.investorId,
-  p_fund_id: data.fundId,
-  p_amount: data.amount,
-  p_type: data.type,
-  p_notes: data.notes,
-}));
+export const withdrawalCreationDbSchema = z
+  .object({
+    investorId: strictUuidSchema,
+    fundId: strictUuidSchema,
+    amount: z.number().positive("Amount must be positive"),
+    type: z.enum(["partial", "full"]),
+    notes: z.string().max(500).optional(),
+  })
+  .transform((data) => ({
+    p_investor_id: data.investorId,
+    p_fund_id: data.fundId,
+    p_amount: data.amount,
+    p_type: data.type,
+    p_notes: data.notes,
+  }));
 
 export type WithdrawalCreationInput = z.input<typeof withdrawalCreationDbSchema>;
 export type WithdrawalCreationDbParams = z.output<typeof withdrawalCreationDbSchema>;
@@ -48,13 +50,15 @@ export type WithdrawalCreationDbParams = z.output<typeof withdrawalCreationDbSch
  * Data edit audit query schema for retrieving audit records by UUID.
  * Ensures record_id is properly validated as UUID before query.
  */
-export const dataEditAuditQuerySchema = z.object({
-  recordId: strictUuidSchema,
-  tableName: z.string().min(1, "Table name required"),
-}).transform((data) => ({
-  record_id: data.recordId,
-  table_name: data.tableName,
-}));
+export const dataEditAuditQuerySchema = z
+  .object({
+    recordId: strictUuidSchema,
+    tableName: z.string().min(1, "Table name required"),
+  })
+  .transform((data) => ({
+    record_id: data.recordId,
+    table_name: data.tableName,
+  }));
 
 export type DataEditAuditQueryInput = z.input<typeof dataEditAuditQuerySchema>;
 export type DataEditAuditQueryDbParams = z.output<typeof dataEditAuditQuerySchema>;
@@ -80,11 +84,6 @@ export const loginSchema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters")
     .max(100, "Password too long"),
-  totpCode: z
-    .string()
-    .length(6, "TOTP code must be 6 digits")
-    .regex(/^\d{6}$/, "TOTP code must be numeric")
-    .optional(),
   recaptchaToken: z.string().optional(),
 });
 
@@ -163,10 +162,6 @@ export const withdrawalRequestSchema = z.object({
     }, "Invalid wallet address"),
   reason: z.enum(["personal", "investment", "emergency", "other"]),
   notes: z.string().max(500, "Notes too long").optional(),
-  totpCode: z
-    .string()
-    .length(6, "TOTP code must be 6 digits")
-    .regex(/^\d{6}$/, "TOTP code must be numeric"),
 });
 
 // ===============================
@@ -326,55 +321,68 @@ function sanitizeObject(obj: any): any {
  * Admin transaction schema with camelCase → snake_case transform
  * Ensures frontend data maps correctly to database columns
  */
-export const adminTransactionDbSchema = z.object({
-  investorId: strictUuidSchema,
-  fundId: strictUuidSchema,
-  amount: z.number().positive("Amount must be positive").multipleOf(0.00000001, "Invalid decimal precision"),
-  type: z.enum(["DEPOSIT", "WITHDRAWAL", "YIELD"]),
-  txDate: z.string().or(z.date()),
-  valueDate: z.string().or(z.date()).optional(),
-  asset: z.string().min(1, "Asset is required"),
-  fundClass: z.string().min(1, "Fund class is required"),
-  notes: z.string().max(1000, "Notes too long").optional(),
-  source: z.string().optional(),
-}).transform((data) => ({
-  investor_id: data.investorId,
-  fund_id: data.fundId,
-  amount: data.amount,
-  type: data.type,
-  tx_date: typeof data.txDate === 'string' ? data.txDate : formatDateForDB(data.txDate),
-  value_date: data.valueDate 
-    ? (typeof data.valueDate === 'string' ? data.valueDate : formatDateForDB(data.valueDate))
-    : (typeof data.txDate === 'string' ? data.txDate : formatDateForDB(data.txDate)),
-  asset: data.asset,
-  fund_class: data.fundClass,
-  notes: data.notes,
-  source: data.source || 'manual_admin',
-}));
+export const adminTransactionDbSchema = z
+  .object({
+    investorId: strictUuidSchema,
+    fundId: strictUuidSchema,
+    amount: z
+      .number()
+      .positive("Amount must be positive")
+      .multipleOf(0.00000001, "Invalid decimal precision"),
+    type: z.enum(["DEPOSIT", "WITHDRAWAL", "YIELD"]),
+    txDate: z.string().or(z.date()),
+    valueDate: z.string().or(z.date()).optional(),
+    asset: z.string().min(1, "Asset is required"),
+    fundClass: z.string().min(1, "Fund class is required"),
+    notes: z.string().max(1000, "Notes too long").optional(),
+    source: z.string().optional(),
+  })
+  .transform((data) => ({
+    investor_id: data.investorId,
+    fund_id: data.fundId,
+    amount: data.amount,
+    type: data.type,
+    tx_date: typeof data.txDate === "string" ? data.txDate : formatDateForDB(data.txDate),
+    value_date: data.valueDate
+      ? typeof data.valueDate === "string"
+        ? data.valueDate
+        : formatDateForDB(data.valueDate)
+      : typeof data.txDate === "string"
+        ? data.txDate
+        : formatDateForDB(data.txDate),
+    asset: data.asset,
+    fund_class: data.fundClass,
+    notes: data.notes,
+    source: data.source || "manual_admin",
+  }));
 
 /**
  * Void transaction schema with camelCase → snake_case transform
  */
-export const voidTransactionDbSchema = z.object({
-  transactionId: strictUuidSchema,  // Use strictUuidSchema for enhanced validation
-  reason: z.string().min(3, "Reason must be at least 3 characters").max(500, "Reason too long"),
-}).transform((data) => ({
-  transaction_id: data.transactionId,
-  void_reason: data.reason,
-}));
+export const voidTransactionDbSchema = z
+  .object({
+    transactionId: strictUuidSchema, // Use strictUuidSchema for enhanced validation
+    reason: z.string().min(3, "Reason must be at least 3 characters").max(500, "Reason too long"),
+  })
+  .transform((data) => ({
+    transaction_id: data.transactionId,
+    void_reason: data.reason,
+  }));
 
 /**
  * Withdrawal approval schema with DB transform
  */
-export const withdrawalApprovalDbSchema = z.object({
-  requestId: strictUuidSchema,
-  status: z.enum(["approved", "rejected"]),
-  notes: z.string().max(500).optional(),
-}).transform((data) => ({
-  request_id: data.requestId,
-  status: data.status,
-  admin_notes: data.notes,
-}));
+export const withdrawalApprovalDbSchema = z
+  .object({
+    requestId: strictUuidSchema,
+    status: z.enum(["approved", "rejected"]),
+    notes: z.string().max(500).optional(),
+  })
+  .transform((data) => ({
+    request_id: data.requestId,
+    status: data.status,
+    admin_notes: data.notes,
+  }));
 
 // Export type inference helpers
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -396,45 +404,48 @@ export type WithdrawalApprovalDbInput = z.output<typeof withdrawalApprovalDbSche
 /**
  * Yield distribution preview schema with DB transform
  */
-export const yieldPreviewDbSchema = z.object({
-  fundId: strictUuidSchema,
-  targetDate: z.string().or(z.date()),
-  purpose: z.enum(["reporting", "transaction"]),
-}).transform((data) => ({
-  p_fund_id: data.fundId,
-  p_target_date: typeof data.targetDate === 'string' 
-    ? data.targetDate 
-    : formatDateForDB(data.targetDate),
-  p_purpose: data.purpose,
-}));
+export const yieldPreviewDbSchema = z
+  .object({
+    fundId: strictUuidSchema,
+    targetDate: z.string().or(z.date()),
+    purpose: z.enum(["reporting", "transaction"]),
+  })
+  .transform((data) => ({
+    p_fund_id: data.fundId,
+    p_target_date:
+      typeof data.targetDate === "string" ? data.targetDate : formatDateForDB(data.targetDate),
+    p_purpose: data.purpose,
+  }));
 
 /**
  * AUM record schema with DB transform
  */
-export const aumRecordDbSchema = z.object({
-  fundId: strictUuidSchema,
-  aumDate: z.string().or(z.date()),
-  totalAum: z.number().positive("AUM must be positive"),
-  purpose: z.enum(["reporting", "transaction"]),
-}).transform((data) => ({
-  fund_id: data.fundId,
-  aum_date: typeof data.aumDate === 'string' 
-    ? data.aumDate 
-    : formatDateForDB(data.aumDate),
-  total_aum: data.totalAum,
-  purpose: data.purpose,
-}));
+export const aumRecordDbSchema = z
+  .object({
+    fundId: strictUuidSchema,
+    aumDate: z.string().or(z.date()),
+    totalAum: z.number().positive("AUM must be positive"),
+    purpose: z.enum(["reporting", "transaction"]),
+  })
+  .transform((data) => ({
+    fund_id: data.fundId,
+    aum_date: typeof data.aumDate === "string" ? data.aumDate : formatDateForDB(data.aumDate),
+    total_aum: data.totalAum,
+    purpose: data.purpose,
+  }));
 
 /**
  * Investor position query schema with DB transform
  */
-export const investorPositionQueryDbSchema = z.object({
-  investorId: strictUuidSchema,
-  fundId: strictUuidSchema.optional(),
-}).transform((data) => ({
-  p_investor_id: data.investorId,
-  p_fund_id: data.fundId,
-}));
+export const investorPositionQueryDbSchema = z
+  .object({
+    investorId: strictUuidSchema,
+    fundId: strictUuidSchema.optional(),
+  })
+  .transform((data) => ({
+    p_investor_id: data.investorId,
+    p_fund_id: data.fundId,
+  }));
 
 // Export additional transformed types
 export type YieldPreviewDbInput = z.output<typeof yieldPreviewDbSchema>;

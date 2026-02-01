@@ -10,8 +10,6 @@ interface Profile {
   first_name?: string;
   last_name?: string;
   is_admin: boolean;
-  totp_enabled?: boolean;
-  totp_verified?: boolean;
 }
 
 interface AuthContextType {
@@ -124,22 +122,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // User is admin if they have ANY admin/super_admin role
       const isAdmin = adminRoles && adminRoles.length > 0;
 
-      // Try to get TOTP status
-      let totpData: { enabled?: boolean; verified_at?: string | null } | null = null;
-      try {
-        const totpResponse = await supabase
-          .from("user_totp_settings")
-          .select("enabled, verified_at")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (!totpResponse.error && totpResponse.data) {
-          totpData = totpResponse.data as { enabled?: boolean; verified_at?: string | null };
-        }
-      } catch (e) {
-        logWarn("fetchProfile.totp", { error: e });
-      }
-
       if (profileData) {
         setProfile({
           id: userId,
@@ -147,9 +129,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           first_name: profileData.first_name ?? undefined,
           last_name: profileData.last_name ?? undefined,
           is_admin: isAdmin,
-          totp_enabled: totpData?.enabled || false,
-          totp_verified:
-            (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
       } else {
         // SECURITY: Fail closed - never trust user_metadata for admin status
@@ -162,9 +141,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           id: userId,
           email: user?.email || "",
           is_admin: false, // Always default to false for security
-          totp_enabled: totpData?.enabled || false,
-          totp_verified:
-            (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
       }
     } catch (error) {
@@ -177,8 +153,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id: userId,
         email: user?.email || "",
         is_admin: false, // Always default to false for security
-        totp_enabled: false,
-        totp_verified: false,
       });
     } finally {
       setProfileLoading(false);

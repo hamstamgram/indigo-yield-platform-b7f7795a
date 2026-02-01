@@ -16,10 +16,9 @@ export { z };
 export const uuidSchema = z.string().uuid("Invalid UUID format");
 
 /** ISO date string (YYYY-MM-DD) */
-export const dateSchema = z.string().regex(
-  /^\d{4}-\d{2}-\d{2}$/,
-  "Date must be in YYYY-MM-DD format"
-);
+export const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format");
 
 /** ISO datetime string */
 export const datetimeSchema = z.string().datetime("Invalid ISO datetime format");
@@ -43,9 +42,11 @@ export const paginationSchema = z.object({
 // Portfolio API Schemas
 // ============================================
 
-export const portfolioRequestSchema = z.object({
-  user_id: uuidSchema.optional(),
-}).strict();
+export const portfolioRequestSchema = z
+  .object({
+    user_id: uuidSchema.optional(),
+  })
+  .strict();
 
 // ============================================
 // Report Schemas
@@ -62,13 +63,15 @@ export const reportTypeSchema = z.enum([
 
 export const reportFormatSchema = z.enum(["pdf", "html", "json", "csv"]);
 
-export const generateReportRequestSchema = z.object({
-  reportId: uuidSchema,
-  reportType: z.string().min(1, "Report type is required"),
-  format: z.string().min(1, "Format is required"),
-  filters: z.record(z.unknown()).optional(),
-  parameters: z.record(z.unknown()).optional(),
-}).strict();
+export const generateReportRequestSchema = z
+  .object({
+    reportId: uuidSchema,
+    reportType: z.string().min(1, "Report type is required"),
+    format: z.string().min(1, "Format is required"),
+    filters: z.record(z.unknown()).optional(),
+    parameters: z.record(z.unknown()).optional(),
+  })
+  .strict();
 
 // ============================================
 // Investor Audit Schemas
@@ -83,40 +86,48 @@ export const auditReportTypeSchema = z.enum([
   "full_report",
 ]);
 
-export const auditRequestSchema = z.object({
-  report_type: auditReportTypeSchema.optional().default("overview"),
-  investor_id: uuidSchema.optional(),
-  format: z.enum(["json", "summary"]).optional().default("json"),
-}).strict();
+export const auditRequestSchema = z
+  .object({
+    report_type: auditReportTypeSchema.optional().default("overview"),
+    investor_id: uuidSchema.optional(),
+    format: z.enum(["json", "summary"]).optional().default("json"),
+  })
+  .strict();
 
 // ============================================
 // Monthly Statement Schemas
 // ============================================
 
-export const monthlyStatementRequestSchema = z.object({
-  investor_id: uuidSchema,
-  report_date: dateSchema,
-}).strict();
+export const monthlyStatementRequestSchema = z
+  .object({
+    investor_id: uuidSchema,
+    report_date: dateSchema,
+  })
+  .strict();
 
 // ============================================
 // Email Schemas
 // ============================================
 
-export const sendEmailRequestSchema = z.object({
-  to: z.union([emailSchema, z.array(emailSchema)]),
-  subject: z.string().min(1, "Subject is required").max(200, "Subject too long"),
-  html: z.string().min(1, "HTML content is required"),
-  from: emailSchema.optional(),
-  reply_to: emailSchema.optional(),
-  email_type: z.string().optional(),
-}).strict();
+export const sendEmailRequestSchema = z
+  .object({
+    to: z.union([emailSchema, z.array(emailSchema)]),
+    subject: z.string().min(1, "Subject is required").max(200, "Subject too long"),
+    html: z.string().min(1, "HTML content is required"),
+    from: emailSchema.optional(),
+    reply_to: emailSchema.optional(),
+    email_type: z.string().optional(),
+  })
+  .strict();
 
-export const investorReportEmailSchema = z.object({
-  to: emailSchema,
-  investorName: z.string().min(1, "Investor name is required"),
-  reportMonth: z.string().regex(/^\d{4}-\d{2}$/, "Report month must be YYYY-MM"),
-  htmlContent: z.string().min(1, "HTML content is required"),
-}).strict();
+export const investorReportEmailSchema = z
+  .object({
+    to: emailSchema,
+    investorName: z.string().min(1, "Investor name is required"),
+    reportMonth: z.string().regex(/^\d{4}-\d{2}$/, "Report month must be YYYY-MM"),
+    htmlContent: z.string().min(1, "HTML content is required"),
+  })
+  .strict();
 
 // ============================================
 // Webhook Schemas
@@ -141,25 +152,18 @@ export const webhookPayloadSchema = z.object({
 });
 
 // ============================================
-// MFA Schemas
-// ============================================
-
-export const totpCodeSchema = z.string().regex(/^\d{6}$/, "TOTP code must be 6 digits");
-
-export const mfaDisableRequestSchema = z.object({
-  code: totpCodeSchema,
-}).strict();
-
-// ============================================
 // User Management Schemas
 // ============================================
 
-export const setPasswordRequestSchema = z.object({
-  email: emailSchema,
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password too long"),
-}).strict();
+export const setPasswordRequestSchema = z
+  .object({
+    email: emailSchema,
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password too long"),
+  })
+  .strict();
 
 // ============================================
 // Helper Functions
@@ -213,13 +217,10 @@ export async function parseAndValidate<T extends z.ZodSchema>(
   } catch {
     return {
       success: false,
-      response: new Response(
-        JSON.stringify({ error: "Invalid JSON in request body" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      ),
+      response: new Response(JSON.stringify({ error: "Invalid JSON in request body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }),
     };
   }
 }

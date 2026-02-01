@@ -170,6 +170,7 @@ export async function processDepositWithYield(
         p_admin_id: user.id,
         p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
         p_purpose: "transaction",
+        p_tx_hash: txHash || null,
       }
     );
 
