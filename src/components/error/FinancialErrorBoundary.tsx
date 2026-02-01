@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { db } from "@/lib/db/index";
+import type { Json } from "@/integrations/supabase/types";
 
 interface FinancialErrorBoundaryProps {
   children: ReactNode;
@@ -133,12 +134,12 @@ export class FinancialErrorBoundary extends Component<
           error_id: errorId,
           level: isSafeMode ? "critical" : isUIError ? "warning" : "error",
           message: error.message,
-          stack: error.stack?.slice(0, 2000),
+          stack: error.stack?.slice(0, 2000) ?? null,
           safe_mode_activated: isSafeMode,
           is_ui_error: isUIError,
           timestamp: new Date().toISOString(),
-        },
-      } as any);
+        } as Json,
+      });
 
       if (auditError) {
         logError(

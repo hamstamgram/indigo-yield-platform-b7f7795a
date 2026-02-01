@@ -50,7 +50,7 @@ export function TruncatedText({
   if (!showTooltip) {
     return (
       <Component
-        ref={textRef as any}
+        ref={textRef as React.RefObject<never>}
         className={cn("block truncate", className)}
         style={{ maxWidth }}
       >
@@ -63,7 +63,7 @@ export function TruncatedText({
     <Tooltip>
       <TooltipTrigger asChild>
         <Component
-          ref={textRef as any}
+          ref={textRef as React.RefObject<never>}
           className={cn("block truncate cursor-default", className)}
           style={{ maxWidth }}
           title="" // Prevent native tooltip

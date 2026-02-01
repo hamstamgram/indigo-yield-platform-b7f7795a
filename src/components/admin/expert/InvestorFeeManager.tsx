@@ -22,7 +22,7 @@ import { ExpertInvestor } from "@/services/investor";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 import { useToast } from "@/hooks";
 import { feeScheduleService } from "@/services/admin";
-import { type FeeScheduleRow, type FeeHistoryRow } from "@/services/shared";
+import { type FeeScheduleRow, type FeeHistoryRow } from "@/services/admin/feeScheduleService";
 
 interface InvestorFeeManagerProps {
   investor: ExpertInvestor;

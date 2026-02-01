@@ -22,7 +22,7 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { adminToolsService } from "@/services/admin";
-import { type ToolResult } from "@/services/shared";
+import { type ToolResult } from "@/services/admin/adminToolsService";
 import { AdminGuard } from "@/components/admin";
 import {
   Wrench,

@@ -11,7 +11,7 @@
     "start": "vite preview",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
-    "type-check": "tsc --noEmit",
+    "type-check": "NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md,json}\"",
     "test": "vitest run",
     "test:watch": "vitest",
