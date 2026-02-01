@@ -198,7 +198,7 @@ async function enrichInvestorsHelper(
 
     supabase
       .from("generated_statements")
-      .select("investor_id, period_id, created_at")
+      .select("investor_id, period_id, created_at, statement_periods!period_id(period_name)")
       .in("investor_id", investorIds)
       .order("created_at", { ascending: false }),
 
@@ -222,9 +222,10 @@ async function enrichInvestorsHelper(
   });
 
   const lastReports = new Map<string, string>();
-  (reportsResult.data || []).forEach((r) => {
+  (reportsResult.data || []).forEach((r: any) => {
     if (!lastReports.has(r.investor_id)) {
-      lastReports.set(r.investor_id, r.period_id);
+      const periodName = r.statement_periods?.period_name;
+      lastReports.set(r.investor_id, periodName || r.period_id);
     }
   });
 

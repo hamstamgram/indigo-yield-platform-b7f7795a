@@ -315,7 +315,9 @@ function YieldDistributionsContent() {
             <AccordionTrigger className="px-4 py-3 hover:no-underline">
               <div className="flex flex-1 items-center gap-3 text-left">
                 <div className="text-lg font-semibold">{year}</div>
-                <Badge variant="outline">{Object.keys(months).length} months</Badge>
+                <Badge variant="outline">
+                  {Object.keys(months).length} month{Object.keys(months).length === 1 ? "" : "s"}
+                </Badge>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
