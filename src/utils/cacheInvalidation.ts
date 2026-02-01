@@ -54,6 +54,7 @@ const INVALIDATION_GRAPH = {
     QUERY_KEYS.yieldDistributions(),
     QUERY_KEYS.feeAllocations(),
     QUERY_KEYS.ibAllocations(),
+    QUERY_KEYS.perAssetStats,
   ],
   withdrawal: [...WITHDRAWAL_RELATED_KEYS],
   deposit: [QUERY_KEYS.deposits, QUERY_KEYS.depositsAdmin, QUERY_KEYS.depositStats],
@@ -64,7 +65,7 @@ const INVALIDATION_GRAPH = {
     QUERY_KEYS.recordedYields(),
     QUERY_KEYS.yieldDistributions(),
   ],
-  investor: [...INVESTOR_RELATED_KEYS, QUERY_KEYS.profiles],
+  investor: [...INVESTOR_RELATED_KEYS, QUERY_KEYS.profiles, QUERY_KEYS.perAssetStats],
   statement: [
     ...STATEMENT_RELATED_KEYS,
     QUERY_KEYS.generatedStatements(),

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function InvestorOverviewPage() {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ export default function InvestorOverviewPage() {
     channel: `investor-overview-positions-${user?.id}`,
     table: "investor_positions",
     filter: user?.id ? `investor_id=eq.${user.id}` : undefined,
-    onChange: () => queryClient.invalidateQueries({ queryKey: ["per-asset-stats"] }),
+    onChange: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.perAssetStats }),
   });
 
   useRealtimeSubscription({

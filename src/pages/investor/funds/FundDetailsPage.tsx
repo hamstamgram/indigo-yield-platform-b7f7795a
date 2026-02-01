@@ -2,6 +2,9 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@/components/ui";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useInvestorPerformance, useAssetMeta } from "@/hooks";
+import { useAuth } from "@/services/auth";
+import { useQuery } from "@tanstack/react-query";
+import { getInvestorPositions } from "@/services/investor/investorPositionService";
 import { Loader2, TrendingUp, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toNum } from "@/utils/numeric";
@@ -12,6 +15,12 @@ export default function FundDetailsPage() {
 
   const { data: performance, isLoading } = useInvestorPerformance(assetCode);
   const { data: assetMeta } = useAssetMeta(assetCode);
+  const { user } = useAuth();
+  const { data: livePositions } = useQuery({
+    queryKey: ["investor-live-positions", user?.id],
+    queryFn: () => getInvestorPositions(user!.id),
+    enabled: !!user,
+  });
 
   if (isLoading) {
     return (
@@ -24,7 +33,8 @@ export default function FundDetailsPage() {
   const latestRecord = performance?.[0];
   const mtdYield = toNum(latestRecord?.mtd_rate_of_return ?? 0);
   const ytdYield = toNum(latestRecord?.ytd_rate_of_return ?? 0);
-  const balance = toNum(latestRecord?.mtd_ending_balance ?? 0);
+  const livePosition = livePositions?.find((p) => p.asset === assetCode);
+  const balance = livePosition?.currentValue ?? toNum(latestRecord?.mtd_ending_balance ?? 0);
 
   return (
     <div className="relative w-full p-4 lg:p-8 space-y-8 animate-fade-in-up">
@@ -54,8 +64,8 @@ export default function FundDetailsPage() {
             </span>
           </h1>
           <p className="text-lg text-indigo-200/60 font-light tracking-wide max-w-2xl flex items-center gap-2 justify-center md:justify-start">
-            <CryptoIcon symbol={assetCode} className="h-5 w-5 opacity-50" />{" "}
-            Strategy • Institutional Grade DeFi Yield
+            <CryptoIcon symbol={assetCode} className="h-5 w-5 opacity-50" /> Strategy •
+            Institutional Grade DeFi Yield
           </p>
         </div>
 
@@ -82,8 +92,7 @@ export default function FundDetailsPage() {
               {balance.toFixed(4)}
             </p>
             <div className="flex items-center gap-2 text-sm text-indigo-200/40 font-medium">
-              <CryptoIcon symbol={assetCode} className="h-4 w-4 opacity-50" />{" "}
-              Tokens
+              <CryptoIcon symbol={assetCode} className="h-4 w-4 opacity-50" /> Tokens
             </div>
           </div>
         </div>

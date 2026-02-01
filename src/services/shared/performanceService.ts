@@ -44,6 +44,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
 import { logError } from "@/lib/logger";
 import type { PerformanceWithPeriod } from "@/types/domains/yield";
+import { getInvestorPositions } from "@/services/investor/investorPositionService";
 
 export const performanceService = {
   /**
@@ -137,7 +138,10 @@ export const performanceService = {
    * Falls back to investor_positions for new investors without performance history
    */
   async getPerAssetStats(userId: string) {
-    const records = await this.getInvestorPerformance({ userId });
+    const [records, livePositions] = await Promise.all([
+      this.getInvestorPerformance({ userId }),
+      getInvestorPositions(userId).catch(() => []),
+    ]);
 
     // Fetch funds to get asset symbols and names
     const { data: funds } = await supabase.from("funds").select("id, name, asset, code");
@@ -152,6 +156,12 @@ export const performanceService = {
       fundIdToAsset.set(f.id, f.asset);
     });
 
+    // Build map: asset ticker -> live balance from investor_positions
+    const liveBalanceByAsset = new Map<string, number>();
+    livePositions.forEach((pos) => {
+      liveBalanceByAsset.set(pos.asset, pos.currentValue);
+    });
+
     // Get latest record for each unique fund
     const latestByFund = new Map<string, PerformanceRecord>();
 
@@ -162,160 +172,98 @@ export const performanceService = {
     });
 
     // Return per-asset data (no aggregation)
-    // Filter out zero-value positions (ending balance <= 0 means position is inactive)
-    let perAssetStats = Array.from(latestByFund.values())
-      .filter((rec) => Number(rec.mtd_ending_balance || 0) > 0)
-      .map((rec) => ({
-        fundName: rec.fund_name,
-        assetSymbol: fundToAsset.get(rec.fund_name) || rec.fund_name,
-        periodName: rec.period?.period_name || "Current",
-        mtd: {
-          beginningBalance: Number(rec.mtd_beginning_balance || 0),
-          additions: Number(rec.mtd_additions || 0),
-          redemptions: Number(rec.mtd_redemptions || 0),
-          netIncome: Number(rec.mtd_net_income || 0),
-          endingBalance: Number(rec.mtd_ending_balance || 0),
-          rateOfReturn: Number(rec.mtd_rate_of_return || 0),
-        },
-        qtd: {
-          beginningBalance: Number(rec.qtd_beginning_balance || 0),
-          additions: Number(rec.qtd_additions || 0),
-          redemptions: Number(rec.qtd_redemptions || 0),
-          netIncome: Number(rec.qtd_net_income || 0),
-          endingBalance: Number(rec.qtd_ending_balance || 0),
-          rateOfReturn: Number(rec.qtd_rate_of_return || 0),
-        },
-        ytd: {
-          beginningBalance: Number(rec.ytd_beginning_balance || 0),
-          additions: Number(rec.ytd_additions || 0),
-          redemptions: Number(rec.ytd_redemptions || 0),
-          netIncome: Number(rec.ytd_net_income || 0),
-          endingBalance: Number(rec.ytd_ending_balance || 0),
-          rateOfReturn: Number(rec.ytd_rate_of_return || 0),
-        },
-        itd: {
-          beginningBalance: Number(rec.itd_beginning_balance || 0),
-          additions: Number(rec.itd_additions || 0),
-          redemptions: Number(rec.itd_redemptions || 0),
-          netIncome: Number(rec.itd_net_income || 0),
-          endingBalance: Number(rec.itd_ending_balance || 0),
-          rateOfReturn: Number(rec.itd_rate_of_return || 0),
-        },
-      }));
+    // Filter out positions where both live balance and snapshot are zero/missing
+    const perAssetStats = Array.from(latestByFund.values())
+      .filter((rec) => {
+        const live = liveBalanceByAsset.get(rec.fund_name);
+        return (live != null && live > 0) || Number(rec.mtd_ending_balance || 0) > 0;
+      })
+      .map((rec) => {
+        const liveBalance = liveBalanceByAsset.get(rec.fund_name);
+        const endingBalance = liveBalance ?? Number(rec.mtd_ending_balance || 0);
 
-    // Fallback: If no performance records, check investor_positions directly
-    // This handles new investors who have deposits but no yield distributions yet
-    if (perAssetStats.length === 0) {
-      const { data: positions, error: positionsError } = await supabase
-        .from("investor_positions")
-        .select("fund_id, current_value, shares, is_active")
-        .eq("investor_id", userId)
-        .eq("is_active", true)
-        .gt("current_value", 0);
-
-      // Also fetch yield events to calculate actual returns
-      const { data: yieldEvents } = await supabase
-        .from("investor_yield_events")
-        .select("fund_id, net_yield_amount, event_date, visibility_scope, is_voided")
-        .eq("investor_id", userId)
-        .eq("is_voided", false)
-        .eq("visibility_scope", "investor_visible");
-
-      // Aggregate yields by fund
-      const yieldByFund = new Map<string, { mtd: number; qtd: number; ytd: number; itd: number }>();
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-      const currentQuarter = Math.floor(currentMonth / 3);
-
-      yieldEvents?.forEach((event) => {
-        const fundId = event.fund_id;
-        const amount = Number(event.net_yield_amount || 0);
-        const eventDate = new Date(event.event_date);
-        const eventYear = eventDate.getFullYear();
-        const eventMonth = eventDate.getMonth();
-        const eventQuarter = Math.floor(eventMonth / 3);
-
-        if (!yieldByFund.has(fundId)) {
-          yieldByFund.set(fundId, { mtd: 0, qtd: 0, ytd: 0, itd: 0 });
-        }
-
-        const fundYields = yieldByFund.get(fundId)!;
-
-        // ITD: All yields
-        fundYields.itd += amount;
-
-        // YTD: Same year
-        if (eventYear === currentYear) {
-          fundYields.ytd += amount;
-
-          // QTD: Same quarter and year
-          if (eventQuarter === currentQuarter) {
-            fundYields.qtd += amount;
-
-            // MTD: Same month and year
-            if (eventMonth === currentMonth) {
-              fundYields.mtd += amount;
-            }
-          }
-        }
+        return {
+          fundName: rec.fund_name,
+          assetSymbol: fundToAsset.get(rec.fund_name) || rec.fund_name,
+          periodName: rec.period?.period_name || "Current",
+          mtd: {
+            beginningBalance: Number(rec.mtd_beginning_balance || 0),
+            additions: Number(rec.mtd_additions || 0),
+            redemptions: Number(rec.mtd_redemptions || 0),
+            netIncome: Number(rec.mtd_net_income || 0),
+            endingBalance,
+            rateOfReturn: Number(rec.mtd_rate_of_return || 0),
+          },
+          qtd: {
+            beginningBalance: Number(rec.qtd_beginning_balance || 0),
+            additions: Number(rec.qtd_additions || 0),
+            redemptions: Number(rec.qtd_redemptions || 0),
+            netIncome: Number(rec.qtd_net_income || 0),
+            endingBalance,
+            rateOfReturn: Number(rec.qtd_rate_of_return || 0),
+          },
+          ytd: {
+            beginningBalance: Number(rec.ytd_beginning_balance || 0),
+            additions: Number(rec.ytd_additions || 0),
+            redemptions: Number(rec.ytd_redemptions || 0),
+            netIncome: Number(rec.ytd_net_income || 0),
+            endingBalance,
+            rateOfReturn: Number(rec.ytd_rate_of_return || 0),
+          },
+          itd: {
+            beginningBalance: Number(rec.itd_beginning_balance || 0),
+            additions: Number(rec.itd_additions || 0),
+            redemptions: Number(rec.itd_redemptions || 0),
+            netIncome: Number(rec.itd_net_income || 0),
+            endingBalance,
+            rateOfReturn: Number(rec.itd_rate_of_return || 0),
+          },
+        };
       });
 
-      if (!positionsError && positions && positions.length > 0) {
-        perAssetStats = positions.map((pos) => {
-          const fundName = fundIdToName.get(pos.fund_id) || "Unknown Fund";
-          const assetSymbol = fundIdToAsset.get(pos.fund_id) || "UNKNOWN";
-          const balance = Number(pos.current_value || 0);
-          const yields = yieldByFund.get(pos.fund_id) || { mtd: 0, qtd: 0, ytd: 0, itd: 0 };
-
-          // Calculate rate of return: (netIncome / balance) * 100
-          // Use beginning balance approximation (balance - yields) for more accurate RoR
-          const calcRoR = (netIncome: number, endBal: number) => {
-            const beginBal = endBal - netIncome;
-            if (beginBal <= 0) return netIncome > 0 ? 100 : 0;
-            return (netIncome / beginBal) * 100;
-          };
-
-          return {
-            fundName,
-            assetSymbol,
-            periodName: "Current",
-            mtd: {
-              beginningBalance: balance - yields.mtd,
-              additions: 0,
-              redemptions: 0,
-              netIncome: yields.mtd,
-              endingBalance: balance,
-              rateOfReturn: calcRoR(yields.mtd, balance),
-            },
-            qtd: {
-              beginningBalance: balance - yields.qtd,
-              additions: 0,
-              redemptions: 0,
-              netIncome: yields.qtd,
-              endingBalance: balance,
-              rateOfReturn: calcRoR(yields.qtd, balance),
-            },
-            ytd: {
-              beginningBalance: balance - yields.ytd,
-              additions: 0,
-              redemptions: 0,
-              netIncome: yields.ytd,
-              endingBalance: balance,
-              rateOfReturn: calcRoR(yields.ytd, balance),
-            },
-            itd: {
-              beginningBalance: 0,
-              additions: balance - yields.itd,
-              redemptions: 0,
-              netIncome: yields.itd,
-              endingBalance: balance,
-              rateOfReturn: calcRoR(yields.itd, balance),
-            },
-          };
+    // Handle positions that exist live but have no performance record yet
+    const fundsInStats = new Set(perAssetStats.map((s) => s.fundName));
+    livePositions.forEach((pos) => {
+      if (pos.currentValue > 0 && !fundsInStats.has(pos.asset)) {
+        perAssetStats.push({
+          fundName: pos.asset,
+          assetSymbol: pos.asset,
+          periodName: "Current",
+          mtd: {
+            beginningBalance: 0,
+            additions: 0,
+            redemptions: 0,
+            netIncome: 0,
+            endingBalance: pos.currentValue,
+            rateOfReturn: 0,
+          },
+          qtd: {
+            beginningBalance: 0,
+            additions: 0,
+            redemptions: 0,
+            netIncome: 0,
+            endingBalance: pos.currentValue,
+            rateOfReturn: 0,
+          },
+          ytd: {
+            beginningBalance: 0,
+            additions: 0,
+            redemptions: 0,
+            netIncome: 0,
+            endingBalance: pos.currentValue,
+            rateOfReturn: 0,
+          },
+          itd: {
+            beginningBalance: 0,
+            additions: pos.currentValue,
+            redemptions: 0,
+            netIncome: 0,
+            endingBalance: pos.currentValue,
+            rateOfReturn: 0,
+          },
         });
       }
-    }
+    });
 
     return {
       assets: perAssetStats,
