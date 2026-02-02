@@ -101,7 +101,7 @@ export function InvestorDrawerQuickView({
 
   const handleViewReports = () => {
     onClose?.();
-    navigate(`/admin/reports?investorId=${investorId}`);
+    navigate(`/admin/investor-reports?investorId=${investorId}`);
   };
 
   return (

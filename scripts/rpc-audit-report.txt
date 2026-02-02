@@ -1,0 +1,458 @@
+Loaded 256 frontend RPC signatures
+Loaded 360 database functions
+
+═══════════════════════════════════════════════════════════════
+  RPC SIGNATURE AUDIT REPORT
+═══════════════════════════════════════════════════════════════
+
+Total RPCs checked: 253
+Total mismatches found: 763
+
+
+───────────────────────────────────────────────────────────────
+MISSING_IN_DB (3)
+───────────────────────────────────────────────────────────────
+
+🔴 fix_cost_basis_anomalies
+   RPC exists in frontend contract but not in database
+   Frontend: required: p_admin_id | optional: p_dry_run, p_reason
+
+🔴 fix_doubled_cost_basis
+   RPC exists in frontend contract but not in database
+   Frontend: required:  | optional: 
+
+🔴 fix_position_metadata
+   RPC exists in frontend contract but not in database
+   Frontend: required:  | optional: 
+
+───────────────────────────────────────────────────────────────
+MISSING_IN_FRONTEND (102)
+───────────────────────────────────────────────────────────────
+
+🔴 alert_on_aum_position_mismatch
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 alert_on_ledger_position_drift
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 alert_on_yield_conservation_violation
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 apply_daily_yield_to_fund_v2
+   RPC exists in DB but not in frontend contract
+   DB:       p_fund_id uuid, p_date date, p_gross_yield numeric, p_purpose text DEFAULT 'reporting'::text, p_notes text DEFAULT NULL::text -> jsonb
+
+🔴 assign_admin_role_from_invite
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 audit_delta_trigger
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 audit_fee_schedule_changes
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 audit_ib_allocation_payout
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 audit_investor_fund_performance_changes
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 audit_transaction_changes
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 audit_user_role_changes
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 auto_close_previous_fee_schedule
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 auto_heal_aum_drift
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 block_test_profiles
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 calculate_unrealized_pnl
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 cascade_void_from_transaction
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 cascade_void_to_allocations
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 cascade_void_to_yield_events
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 check_concentration_risk
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+🔴 check_duplicate_profile
+   RPC exists in DB but not in frontend contract
+   DB:        -> trigger
+
+   ... and 82 more
+
+───────────────────────────────────────────────────────────────
+REQUIRED_PARAM_COUNT_MISMATCH (7)
+───────────────────────────────────────────────────────────────
+
+🔴 adjust_investor_position
+   DB has 4 required params, frontend has 2
+   DB:       p_investor_id, p_fund_id, p_amount, p_reason
+   Frontend: p_fund_id, p_investor_id
+
+🔴 batch_crystallize_fund
+   DB has 3 required params, frontend has 1
+   DB:       p_fund_id, p_effective_date, p_force_override
+   Frontend: p_fund_id
+
+🔴 force_delete_investor
+   DB has 2 required params, frontend has 1
+   DB:       p_investor_id, p_admin_id
+   Frontend: p_investor_id
+
+🔴 get_kpi_metrics
+   DB has 2 required params, frontend has 0
+   DB:       metric_type, user_id
+
+🔴 require_super_admin
+   DB has 2 required params, frontend has 1
+   DB:       p_operation, p_actor_id
+   Frontend: p_operation
+
+🔴 route_withdrawal_to_fees
+   DB has 2 required params, frontend has 1
+   DB:       p_request_id, p_actor_id
+   Frontend: p_request_id
+
+🔴 upsert_fund_aum_after_yield
+   DB has 5 required params, frontend has 2
+   DB:       p_fund_id, p_aum_date, p_yield_amount, p_purpose, p_actor_id
+   Frontend: p_aum_date, p_fund_id
+
+───────────────────────────────────────────────────────────────
+REQUIRED_PARAM_NAME_MISMATCH (282)
+───────────────────────────────────────────────────────────────
+
+🔴 _resolve_investor_fee_pct
+   Required param #1: DB has "p_investor_id", frontend has "p_date"
+
+🔴 _resolve_investor_fee_pct
+   Required param #3: DB has "p_date", frontend has "p_investor_id"
+
+🔴 acquire_position_lock
+   Required param #1: DB has "p_investor_id", frontend has "p_fund_id"
+
+🔴 acquire_position_lock
+   Required param #2: DB has "p_fund_id", frontend has "p_investor_id"
+
+🔴 add_fund_to_investor
+   Required param #1: DB has "p_investor_id", frontend has "p_fund_id"
+
+🔴 add_fund_to_investor
+   Required param #2: DB has "p_fund_id", frontend has "p_investor_id"
+
+🔴 admin_create_transaction
+   Required param #1: DB has "p_investor_id", frontend has "p_amount"
+
+🔴 admin_create_transaction
+   Required param #3: DB has "p_type", frontend has "p_investor_id"
+
+🔴 admin_create_transaction
+   Required param #4: DB has "p_amount", frontend has "p_tx_date"
+
+🔴 admin_create_transaction
+   Required param #5: DB has "p_tx_date", frontend has "p_type"
+
+🔴 apply_adb_yield_distribution_v3
+   Required param #2: DB has "p_period_start", frontend has "p_gross_yield_amount"
+
+🔴 apply_adb_yield_distribution_v3
+   Required param #4: DB has "p_gross_yield_amount", frontend has "p_period_start"
+
+🔴 apply_daily_yield_to_fund_v3
+   Required param #2: DB has "p_yield_date", frontend has "p_gross_yield_pct"
+
+🔴 apply_daily_yield_to_fund_v3
+   Required param #3: DB has "p_gross_yield_pct", frontend has "p_yield_date"
+
+🔴 apply_daily_yield_with_validation
+   Required param #1: DB has "p_fund_id", frontend has "p_created_by"
+
+🔴 apply_daily_yield_with_validation
+   Required param #2: DB has "p_yield_date", frontend has "p_fund_id"
+
+🔴 apply_daily_yield_with_validation
+   Required param #4: DB has "p_created_by", frontend has "p_yield_date"
+
+🔴 apply_deposit_with_crystallization
+   Required param #1: DB has "p_fund_id", frontend has "p_admin_id"
+
+🔴 apply_deposit_with_crystallization
+   Required param #2: DB has "p_investor_id", frontend has "p_amount"
+
+🔴 apply_deposit_with_crystallization
+   Required param #3: DB has "p_amount", frontend has "p_closing_aum"
+
+   ... and 262 more
+
+───────────────────────────────────────────────────────────────
+OPTIONAL_PARAM_COUNT_MISMATCH (8)
+───────────────────────────────────────────────────────────────
+
+🔴 adjust_investor_position
+   DB has 2 optional params, frontend has 8
+   DB:       p_tx_date, p_admin_id
+   Frontend: p_admin_id, p_amount, p_reason, p_tx_date, p_delta, p_note, p_reference_id, p_tx_type
+
+🔴 apply_transaction_with_crystallization
+   DB has 5 optional params, frontend has 4
+   DB:       p_notes, p_admin_id, p_new_total_aum, p_purpose, p_distribution_id
+   Frontend: p_admin_id, p_new_total_aum, p_notes, p_purpose
+
+🔴 batch_crystallize_fund
+   DB has 0 optional params, frontend has 5
+   Frontend: p_admin_id, p_dry_run, p_new_total_aum, p_target_date, p_force_override
+
+🔴 force_delete_investor
+   DB has 0 optional params, frontend has 1
+   Frontend: p_admin_id
+
+🔴 get_kpi_metrics
+   DB has 0 optional params, frontend has 3
+   Frontend: metric_type, user_id, p_date_range
+
+🔴 require_super_admin
+   DB has 0 optional params, frontend has 1
+   Frontend: p_actor_id
+
+🔴 route_withdrawal_to_fees
+   DB has 1 optional params, frontend has 2
+   DB:       p_reason
+   Frontend: p_actor_id, p_reason
+
+🔴 upsert_fund_aum_after_yield
+   DB has 0 optional params, frontend has 5
+   Frontend: p_source, p_total_aum, p_actor_id, p_purpose, p_yield_amount
+
+───────────────────────────────────────────────────────────────
+OPTIONAL_PARAM_NAME_MISMATCH (73)
+───────────────────────────────────────────────────────────────
+
+🔴 acquire_delivery_batch
+   Optional param #1: DB has "p_channel", frontend has "p_batch_size"
+
+🔴 acquire_delivery_batch
+   Optional param #2: DB has "p_batch_size", frontend has "p_channel"
+
+🔴 add_fund_to_investor
+   Optional param #1: DB has "p_initial_shares", frontend has "p_cost_basis"
+
+🔴 add_fund_to_investor
+   Optional param #2: DB has "p_cost_basis", frontend has "p_initial_shares"
+
+🔴 admin_create_transaction
+   Optional param #1: DB has "p_notes", frontend has "p_admin_id"
+
+🔴 admin_create_transaction
+   Optional param #2: DB has "p_reference_id", frontend has "p_notes"
+
+🔴 admin_create_transaction
+   Optional param #3: DB has "p_admin_id", frontend has "p_reference_id"
+
+🔴 apply_adb_yield_distribution_v3
+   Optional param #2: DB has "p_purpose", frontend has "p_distribution_date"
+
+🔴 apply_adb_yield_distribution_v3
+   Optional param #3: DB has "p_distribution_date", frontend has "p_purpose"
+
+🔴 approve_withdrawal
+   Optional param #1: DB has "p_approved_amount", frontend has "p_admin_notes"
+
+🔴 approve_withdrawal
+   Optional param #2: DB has "p_admin_notes", frontend has "p_approved_amount"
+
+🔴 assert_integrity_or_raise
+   Optional param #1: DB has "p_scope_fund_id", frontend has "p_context"
+
+🔴 assert_integrity_or_raise
+   Optional param #2: DB has "p_scope_investor_id", frontend has "p_scope_fund_id"
+
+🔴 assert_integrity_or_raise
+   Optional param #3: DB has "p_context", frontend has "p_scope_investor_id"
+
+🔴 check_and_fix_aum_integrity
+   Optional param #1: DB has "p_fund_id", frontend has "p_dry_run"
+
+🔴 check_and_fix_aum_integrity
+   Optional param #2: DB has "p_start_date", frontend has "p_end_date"
+
+🔴 check_and_fix_aum_integrity
+   Optional param #3: DB has "p_end_date", frontend has "p_fund_id"
+
+🔴 check_and_fix_aum_integrity
+   Optional param #4: DB has "p_dry_run", frontend has "p_start_date"
+
+🔴 complete_withdrawal
+   Optional param #1: DB has "p_event_ts", frontend has "p_admin_notes"
+
+🔴 complete_withdrawal
+   Optional param #2: DB has "p_transaction_hash", frontend has "p_event_ts"
+
+   ... and 53 more
+
+───────────────────────────────────────────────────────────────
+SECURITY_DEFINER_MISMATCH (244)
+───────────────────────────────────────────────────────────────
+
+🔴 _resolve_investor_fee_pct
+   DB has securityDefiner=true, frontend has false
+
+🔴 acquire_delivery_batch
+   DB has securityDefiner=true, frontend has false
+
+🔴 acquire_position_lock
+   DB has securityDefiner=true, frontend has false
+
+🔴 acquire_withdrawal_lock
+   DB has securityDefiner=true, frontend has false
+
+🔴 acquire_yield_lock
+   DB has securityDefiner=true, frontend has false
+
+🔴 add_fund_to_investor
+   DB has securityDefiner=true, frontend has false
+
+🔴 adjust_investor_position
+   DB has securityDefiner=true, frontend has false
+
+🔴 admin_create_transactions_batch
+   DB has securityDefiner=true, frontend has false
+
+🔴 apply_adb_yield_distribution_v3
+   DB has securityDefiner=true, frontend has false
+
+🔴 apply_daily_yield_to_fund_v3
+   DB has securityDefiner=true, frontend has false
+
+🔴 apply_daily_yield_with_validation
+   DB has securityDefiner=true, frontend has false
+
+🔴 apply_deposit_with_crystallization
+   DB has securityDefiner=true, frontend has false
+
+🔴 apply_transaction_with_crystallization
+   DB has securityDefiner=true, frontend has false
+
+🔴 apply_withdrawal_with_crystallization
+   DB has securityDefiner=true, frontend has false
+
+🔴 apply_yield_correction_v2
+   DB has securityDefiner=true, frontend has false
+
+🔴 approve_mfa_reset
+   DB has securityDefiner=true, frontend has false
+
+🔴 approve_request
+   DB has securityDefiner=true, frontend has false
+
+🔴 approve_staging_promotion
+   DB has securityDefiner=true, frontend has false
+
+🔴 approve_withdrawal
+   DB has securityDefiner=true, frontend has false
+
+🔴 assert_integrity_or_raise
+   DB has securityDefiner=true, frontend has false
+
+   ... and 224 more
+
+───────────────────────────────────────────────────────────────
+RETURNS_SET_MISMATCH (44)
+───────────────────────────────────────────────────────────────
+
+🔴 acquire_delivery_batch
+   DB has returnsSet=true, frontend has false
+
+🔴 check_all_funds_transaction_aum
+   DB has returnsSet=true, frontend has false
+
+🔴 check_approval_integrity
+   DB has returnsSet=true, frontend has false
+
+🔴 check_aum_position_health
+   DB has returnsSet=true, frontend has false
+
+🔴 check_transaction_sources
+   DB has returnsSet=true, frontend has false
+
+🔴 cleanup_test_profiles
+   DB has returnsSet=true, frontend has false
+
+🔴 get_aum_position_reconciliation
+   DB has returnsSet=true, frontend has false
+
+🔴 get_existing_preflow_aum
+   DB has returnsSet=true, frontend has false
+
+🔴 get_fund_aum_as_of
+   DB has returnsSet=true, frontend has false
+
+🔴 get_fund_composition
+   DB has returnsSet=true, frontend has false
+
+🔴 get_fund_nav_history
+   DB has returnsSet=true, frontend has false
+
+🔴 get_fund_net_flows
+   DB has returnsSet=true, frontend has false
+
+🔴 get_fund_summary
+   DB has returnsSet=true, frontend has false
+
+🔴 get_funds_with_aum
+   DB has returnsSet=true, frontend has false
+
+🔴 get_health_trend
+   DB has returnsSet=true, frontend has false
+
+🔴 get_historical_nav
+   DB has returnsSet=true, frontend has false
+
+🔴 get_latest_health_status
+   DB has returnsSet=true, frontend has false
+
+🔴 get_monthly_platform_aum
+   DB has returnsSet=true, frontend has false
+
+🔴 get_pending_approval
+   DB has returnsSet=true, frontend has false
+
+🔴 get_position_reconciliation
+   DB has returnsSet=true, frontend has false
+
+   ... and 24 more
+
+═══════════════════════════════════════════════════════════════
+
+❌ 292 CRITICAL mismatches found that could cause runtime errors
+

@@ -97,7 +97,7 @@ export function InvestorHeader({
   };
 
   const handleOpenReports = () => {
-    navigate(`/admin/reports?investorId=${investorId}`);
+    navigate(`/admin/investor-reports?investorId=${investorId}`);
   };
 
   const scrollToSection = (sectionId: string, tab: string) => {
