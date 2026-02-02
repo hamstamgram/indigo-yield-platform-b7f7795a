@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useWizard } from "../WizardContext";
-import { ASSET_PRECISION } from "../types";
-import { getAssetLogo } from "@/utils/assets";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from "@/components/ui";
-import { User, Users, Percent, Wallet, CheckCircle2 } from "lucide-react";
+import { User, Users, Percent, CheckCircle2 } from "lucide-react";
 
 const ReviewStep: React.FC = () => {
   const { data, setCanProceed } = useWizard();
@@ -36,8 +34,6 @@ const ReviewStep: React.FC = () => {
 
     fetchIBName();
   }, [data.ib]);
-
-  const nonZeroPositions = Object.entries(data.positions).filter(([_, val]) => val > 0);
 
   return (
     <div className="space-y-6">
@@ -145,42 +141,6 @@ const ReviewStep: React.FC = () => {
                 <span className="text-muted-foreground">IB Commission:</span>
                 <span className="font-medium">{data.fees.ib_commission_pct}%</span>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Positions Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Wallet className="h-4 w-4" />
-              Initial Positions
-            </CardTitle>
-            <CardDescription>
-              {nonZeroPositions.length} asset{nonZeroPositions.length !== 1 ? "s" : ""} with balance
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {nonZeroPositions.length > 0 ? (
-              <div className="space-y-2">
-                {nonZeroPositions.map(([symbol, value]) => (
-                  <div key={symbol} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={getAssetLogo(symbol)}
-                        alt={symbol}
-                        className="w-5 h-5 rounded-full"
-                      />
-                      <span className="text-muted-foreground">{symbol}</span>
-                    </div>
-                    <span className="font-mono font-medium">
-                      {value.toFixed(ASSET_PRECISION[symbol] || 8)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">No positions configured</p>
             )}
           </CardContent>
         </Card>

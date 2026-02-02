@@ -88,12 +88,11 @@ export interface IBUser {
   last_name: string | null;
 }
 
-export type WizardStep = "identity" | "ib" | "fees" | "positions" | "review";
+export type WizardStep = "identity" | "ib" | "fees" | "review";
 
 export const WIZARD_STEPS: { id: WizardStep; label: string }[] = [
   { id: "identity", label: "Identity" },
   { id: "ib", label: "IB" },
   { id: "fees", label: "Fees" },
-  { id: "positions", label: "Positions" },
   { id: "review", label: "Review" },
 ];

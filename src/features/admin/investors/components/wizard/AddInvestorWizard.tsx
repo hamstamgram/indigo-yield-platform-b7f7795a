@@ -7,7 +7,6 @@ import { WIZARD_STEPS, WizardStep } from "./types";
 import IdentityStep from "./steps/IdentityStep";
 import IBStep from "./steps/IBStep";
 import FeesStep from "./steps/FeesStep";
-import PositionsStep from "./steps/PositionsStep";
 import ReviewStep from "./steps/ReviewStep";
 import { AssetRef as Asset } from "@/types/asset";
 import { cn } from "@/lib/utils";
@@ -29,8 +28,6 @@ const WizardContent: React.FC<WizardContentProps> = ({ onSubmit, isLoading, onCa
         return <IBStep />;
       case "fees":
         return <FeesStep />;
-      case "positions":
-        return <PositionsStep />;
       case "review":
         return <ReviewStep />;
       default:

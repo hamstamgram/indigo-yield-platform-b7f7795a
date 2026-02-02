@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { WizardFormData } from "@/features/admin/investors/components/wizard/types";
 import { addCsrfHeader } from "@/lib/security/csrf";
 import { logError, logWarn } from "@/lib/logger";
-import { callRPC } from "@/lib/supabase/typedRPC";
 import { getTodayString } from "@/utils/dateUtils";
 
 interface CreateIBResponse {
@@ -152,7 +151,7 @@ export async function createInvestorWithWizard(
   wizardData: WizardFormData,
   onProgress?: WizardProgressCallback
 ): Promise<WizardResult> {
-  const { identity, ib, fees, positions, reportEmails } = wizardData;
+  const { identity, ib, fees, reportEmails } = wizardData;
 
   try {
     let ibParentId: string | null = null;
@@ -214,77 +213,7 @@ export async function createInvestorWithWizard(
       logWarn("createInvestorWithWizard.feeSchedule", { investorId, error: feeError.message });
     }
 
-    // Step 5: Create initial positions via admin_create_transaction RPC
-    // This ensures ledger transactions are always created alongside positions
-    const positivePositions = Object.entries(positions).filter(([_, value]) => value > 0);
-
-    if (positivePositions.length > 0) {
-      // Get the effective date from wizard data (with fallback to today)
-      const effectiveDate = wizardData.positionsEffectiveDate || getTodayString();
-
-      // CRITICAL: Only select ACTIVE funds to prevent duplicate positions on deprecated funds
-      const { data: allFunds } = await supabase
-        .from("funds")
-        .select("id, asset")
-        .eq("status", "active")
-        .in(
-          "asset",
-          positivePositions.map(([s]) => s)
-        );
-
-      // Deduplicate funds by asset - ensure only ONE fund per asset
-      const fundsByAsset = new Map<string, { id: string; asset: string }>();
-      allFunds?.forEach((fund) => {
-        if (!fundsByAsset.has(fund.asset)) {
-          fundsByAsset.set(fund.asset, fund);
-        }
-      });
-      const funds = Array.from(fundsByAsset.values());
-
-      if (funds && funds.length > 0) {
-        onProgress?.("Creating initial deposit transactions...", "info");
-
-        // Use admin_create_transaction RPC for each position
-        // This ensures proper ledger entries and position updates
-        for (const fund of funds) {
-          const amount = positions[fund.asset] || 0;
-          if (amount <= 0) continue;
-
-          // Create deterministic reference_id for idempotency
-          const referenceId = `init_deposit:${investorId}:${fund.id}:${effectiveDate}`;
-
-          // Call admin_create_transaction RPC which handles both transaction creation
-          // and position update atomically
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
-          const { error: txError } = await callRPC("admin_create_transaction", {
-            p_investor_id: investorId,
-            p_fund_id: fund.id,
-            p_type: "DEPOSIT",
-            p_amount: amount,
-            p_tx_date: effectiveDate,
-            p_notes: "Initial position on investor creation",
-            p_reference_id: referenceId,
-            p_admin_id: user?.id || null,
-          });
-
-          if (txError) {
-            // Log the error but do NOT attempt direct insert fallback
-            // Direct inserts to transactions_v2 bypass crystallization and position triggers
-            logError("createInvestorWithWizard.transaction", txError, {
-              fundAsset: fund.asset,
-              investorId,
-              amount,
-              message: "RPC failed - no fallback to direct insert per governance rules",
-            });
-            // Continue to next fund rather than throwing - partial success is acceptable
-          }
-        }
-      }
-    }
-
-    // Step 6: Save report recipient emails
+    // Step 5: Save report recipient emails
     if (reportEmails.length > 0) {
       const emailRecords = reportEmails.map((email, index) => ({
         investor_id: investorId,
