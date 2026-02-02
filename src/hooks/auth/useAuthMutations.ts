@@ -32,7 +32,7 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: async (data: LoginData) => {
       const result = await authService.signIn(data);
-      if (result.error) throw result.error;
+      if (result.error || !result.data) throw result.error || new Error("No data returned");
 
       // Check admin status after successful login
       let isAdmin = false;

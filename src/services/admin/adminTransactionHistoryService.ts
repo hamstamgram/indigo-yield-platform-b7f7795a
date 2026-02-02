@@ -256,7 +256,7 @@ async function voidAndReissueTransaction(
         ? parseFloat(params.newValues.amount)
         : params.newValues.amount,
     p_new_date: params.newValues.tx_date,
-    p_new_notes: mergedNotes,
+    p_new_notes: mergedNotes ?? undefined,
     p_closing_aum:
       typeof params.closingAum === "string" ? parseFloat(params.closingAum) : params.closingAum,
     p_admin_id: user.id,

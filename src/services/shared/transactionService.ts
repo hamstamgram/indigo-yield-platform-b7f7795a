@@ -223,7 +223,7 @@ export async function createAdminTransaction(
               p_admin_id: user.id,
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
               p_purpose: "transaction",
-              p_tx_hash: params.tx_hash || null,
+              p_tx_hash: params.tx_hash ?? undefined,
               p_tx_subtype: params.type.toLowerCase(), // Store original selection
             })
           : await rpc.call("apply_withdrawal_with_crystallization", {
@@ -235,7 +235,7 @@ export async function createAdminTransaction(
               p_admin_id: user.id,
               p_notes: params.notes || `${dbType} - ${triggerReference}`,
               p_purpose: "transaction",
-              p_tx_hash: params.tx_hash || null,
+              p_tx_hash: params.tx_hash ?? undefined,
               p_tx_subtype: params.type.toLowerCase(), // Store original selection
             });
 
@@ -337,7 +337,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
           p_admin_id: user.id,
           p_notes: params.description || `${params.type} - ${triggerReference}`,
           p_purpose: "transaction",
-          p_tx_hash: params.txHash || null,
+          p_tx_hash: params.txHash ?? undefined,
         })
       : await rpc.call("apply_withdrawal_with_crystallization", {
           p_fund_id: params.fundId,
@@ -348,7 +348,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
           p_admin_id: user.id,
           p_notes: params.description || `${params.type} - ${triggerReference}`,
           p_purpose: "transaction",
-          p_tx_hash: params.txHash || null,
+          p_tx_hash: params.txHash ?? undefined,
         });
 
   if (result.error) {

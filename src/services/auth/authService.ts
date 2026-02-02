@@ -20,7 +20,11 @@ export async function signIn(
     password: data.password,
   });
 
-  return { data: authData, error, success: !error };
+  if (error || !authData.user || !authData.session) {
+    return { data: authData as any, error, success: false };
+  }
+
+  return { data: authData as { user: User; session: Session }, error: null, success: true };
 }
 
 /**
@@ -82,7 +86,10 @@ export async function signInWithOAuth(
     provider,
     options: { redirectTo: redirectTo ?? `${window.location.origin}/dashboard` },
   });
-  return { data, error, success: !error };
+  if (error) {
+    return { data: null, error, success: false };
+  }
+  return { data: data.url ? { url: data.url } : null, error: null, success: true };
 }
 
 /**

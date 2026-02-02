@@ -99,11 +99,11 @@ export async function createWithdrawalRequest(
     p_fund_id: fundId,
     p_amount: amount,
     p_type: withdrawalType,
-    p_notes: notes ?? null,
+    p_notes: notes ?? undefined,
   });
 
   if (error) throw error;
-  return data;
+  return data as string;
 }
 
 /**

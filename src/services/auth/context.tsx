@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .in("role", ["admin", "super_admin"]);
 
       // User is admin if they have ANY admin/super_admin role
-      const isAdmin = adminRoles && adminRoles.length > 0;
+      const isAdmin = !!(adminRoles && adminRoles.length > 0);
 
       if (profileData) {
         setProfile({

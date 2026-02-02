@@ -308,7 +308,7 @@ export class PortfolioService extends ApiClient {
     investorId: string,
     fundId: string,
     updates: Partial<PortfolioPosition>
-  ): Promise<ApiResponse<PortfolioPosition>> {
+  ): Promise<ApiResponse<null>> {
     return this.execute(async () => {
       void investorId;
       void fundId;

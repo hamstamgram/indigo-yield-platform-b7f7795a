@@ -33,8 +33,8 @@ export type DeliveryChannel = "email" | "download_link";
  * Investor profile joined to delivery record
  */
 export interface DeliveryProfile {
-  first_name: string | null;
-  last_name: string | null;
+  first_name: string | null | undefined;
+  last_name: string | null | undefined;
   email: string;
 }
 

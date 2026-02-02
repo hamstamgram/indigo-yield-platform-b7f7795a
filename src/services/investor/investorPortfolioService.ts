@@ -151,7 +151,7 @@ export const investorPortfolioService = {
       p_fund_id: params.fundId,
       p_amount: params.amount,
       p_type: params.type,
-      p_notes: params.notes ?? null,
+      p_notes: params.notes ?? undefined,
     });
 
     if (error) throw error;

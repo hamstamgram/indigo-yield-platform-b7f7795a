@@ -2,15 +2,14 @@ import { useEffect, useState } from "react";
 import { X, Download } from "lucide-react";
 import { logInfo, logError } from "@/lib/logger";
 
-// Use existing BeforeInstallPromptEvent from lib.dom if available, otherwise define
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
-};
-
 // iOS-specific Navigator extension
 interface IOSNavigator extends Navigator {
   standalone?: boolean;
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
 const DISMISS_KEY = "pwa-install-dismissed";
@@ -45,9 +44,9 @@ export function InstallPrompt() {
     }
 
     // Listen for install prompt
-    const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
+    const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowPrompt(true);
     };
 

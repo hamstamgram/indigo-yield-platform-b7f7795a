@@ -285,13 +285,13 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
       if (statement) {
         investor.statement_generated = true;
         investor.statement_id = statement.id;
-        investor.generated_at = statement.created_at;
+        investor.generated_at = statement.created_at ?? undefined;
 
         const delivery = deliveries?.find((d) => d.user_id === investor.id);
         if (delivery) {
           investor.statement_sent = delivery.status === "SENT";
           investor.delivery_status = delivery.status;
-          investor.sent_at = delivery.sent_at || undefined;
+          investor.sent_at = delivery.sent_at ?? undefined;
         }
       }
     }

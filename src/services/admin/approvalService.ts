@@ -113,7 +113,11 @@ class ApprovalService {
       p_requester_id: requesterId,
       p_reason: input.reason,
       p_metadata: (input.metadata ?? null) as unknown as Json,
-      p_amount: input.amount ? (typeof input.amount === 'string' ? parseFloat(input.amount) : input.amount) : null,
+      p_amount: input.amount
+        ? typeof input.amount === "string"
+          ? parseFloat(input.amount)
+          : input.amount
+        : undefined,
       p_expiry_hours: input.expiryHours || 72,
     });
 
@@ -147,7 +151,7 @@ class ApprovalService {
     const { data, error } = await callRPC("approve_request", {
       p_approval_id: approvalId,
       p_approver_id: approverId,
-      p_notes: notes || null,
+      p_notes: notes ?? undefined,
     });
 
     if (error) {
@@ -210,7 +214,7 @@ class ApprovalService {
   async requiresApproval(operationType: string, amount?: number): Promise<boolean> {
     const { data, error } = await callRPC("requires_dual_approval", {
       p_operation: operationType,
-      p_amount: amount || null,
+      p_amount: amount ?? undefined,
     });
 
     if (error) {
@@ -309,7 +313,7 @@ class ApprovalService {
       p_period_start: periodStart,
       p_period_end: periodEnd,
       p_admin_id: adminId,
-      p_notes: notes || null,
+      p_notes: notes ?? undefined,
     });
 
     if (error) {

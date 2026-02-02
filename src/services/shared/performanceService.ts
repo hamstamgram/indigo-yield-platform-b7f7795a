@@ -156,10 +156,10 @@ export const performanceService = {
       fundIdToAsset.set(f.id, f.asset);
     });
 
-    // Build map: asset ticker -> live balance from investor_positions
+    // Build map: fund name -> live balance from investor_positions
     const liveBalanceByAsset = new Map<string, number>();
     livePositions.forEach((pos) => {
-      liveBalanceByAsset.set(pos.asset, pos.currentValue);
+      liveBalanceByAsset.set(pos.fundName, pos.currentValue);
     });
 
     // Get latest record for each unique fund
@@ -224,9 +224,9 @@ export const performanceService = {
     // Handle positions that exist live but have no performance record yet
     const fundsInStats = new Set(perAssetStats.map((s) => s.fundName));
     livePositions.forEach((pos) => {
-      if (pos.currentValue > 0 && !fundsInStats.has(pos.asset)) {
+      if (pos.currentValue > 0 && !fundsInStats.has(pos.fundName)) {
         perAssetStats.push({
-          fundName: pos.asset,
+          fundName: pos.fundName,
           assetSymbol: pos.asset,
           periodName: "Current",
           mtd: {

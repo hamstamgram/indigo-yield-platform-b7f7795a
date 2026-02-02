@@ -148,7 +148,7 @@ class IBManagementService {
   async getReferralsByParentIds(parentIds: string[]): Promise<
     Array<{
       id: string;
-      ib_parent_id: string;
+      ib_parent_id: string | null;
     }>
   > {
     if (!parentIds.length) return [];
@@ -168,8 +168,8 @@ class IBManagementService {
   async getIBCredits(ibUserIds: string[]): Promise<
     Array<{
       investor_id: string;
-      fund_id: string | null;
-      asset: string | null;
+      fund_id: string;
+      asset: string;
       amount: number;
     }>
   > {
@@ -183,7 +183,12 @@ class IBManagementService {
       .eq("is_voided", false);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((row) => ({
+      investor_id: row.investor_id,
+      fund_id: row.fund_id ?? "",
+      asset: row.asset ?? "",
+      amount: Number(row.amount),
+    }));
   }
 
   /**

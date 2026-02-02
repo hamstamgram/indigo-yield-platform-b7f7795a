@@ -15,7 +15,7 @@ export interface PendingTransactionDetail {
   asset: string;
   created_at?: string;
   transaction_hash?: string;
-  rejection_reason?: string;
+  rejection_reason?: string | null;
   [key: string]: unknown;
 }
 

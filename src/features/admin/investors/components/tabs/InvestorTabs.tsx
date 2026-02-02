@@ -199,7 +199,7 @@ export function InvestorTabs({
         open={addTxDialogOpen}
         onOpenChange={setAddTxDialogOpen}
         investorId={investorId}
-        fundId={defaultFundId}
+        fundId={defaultFundId ?? undefined}
         onSuccess={handleAddTxSuccess}
       />
     </Tabs>

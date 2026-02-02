@@ -155,8 +155,8 @@ export function AddTransactionDialog({
     let amountDec;
     let closingAumDec;
     try {
-      amountDec = toDecimal(amount);
-      closingAumDec = toDecimal(closingAum);
+      amountDec = toDecimal(amount ?? "0");
+      closingAumDec = toDecimal(closingAum ?? "0");
     } catch {
       setDepositYieldPreview(null);
       setDepositPreviewError(null);

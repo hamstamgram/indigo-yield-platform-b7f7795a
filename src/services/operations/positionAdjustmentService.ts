@@ -6,9 +6,9 @@ import { getTodayString } from "@/utils/dateUtils";
 
 /**
  * Position Adjustment Service
- * 
- * IMPORTANT: All position adjustments MUST go through the canonical 
- * adjust_investor_position RPC to ensure atomic transaction + position 
+ *
+ * IMPORTANT: All position adjustments MUST go through the canonical
+ * adjust_investor_position RPC to ensure atomic transaction + position
  * updates with invariant checks.
  */
 
@@ -17,10 +17,10 @@ import { getTodayString } from "@/utils/dateUtils";
  * This is the ONLY way to safely modify positions
  */
 export async function adjustPosition(
-  input: { 
-    investor_id: string; 
-    fund_id: string; 
-    delta: string | number; 
+  input: {
+    investor_id: string;
+    fund_id: string;
+    delta: string | number;
     note?: string;
     type?: string;
     tx_date?: string;
@@ -43,23 +43,24 @@ export async function adjustPosition(
     logError("adjustPosition", error, { investor_id, fund_id, delta });
     return { success: false, error: error.message };
   }
-  
+
   // DB returns: { transaction_id, old_balance, new_balance } - not out_* prefixed
-  const result = data?.[0];
+  const result = (
+    data as Array<{ transaction_id: string; old_balance: number; new_balance: number }>
+  )?.[0];
   if (!result?.transaction_id) {
     return { success: false, error: "No transaction created" };
   }
-  
-  return { 
-    success: true, 
+
+  return {
+    success: true,
     data: {
       transactionId: result.transaction_id,
       oldBalance: result.old_balance,
       newBalance: result.new_balance,
-    }
+    },
   };
 }
-
 
 /**
  * Get a position for adjustment display
@@ -108,12 +109,12 @@ export async function reconcileAllPositions(dryRun: boolean = true) {
   const { data, error } = await callRPC("reconcile_all_positions", {
     p_dry_run: dryRun,
   });
-  
+
   if (error) {
     logError("reconcileAllPositions", error, { dryRun });
     return { success: false, error: error.message, mismatches: [] };
   }
-  
+
   return { success: true, mismatches: data || [] };
 }
 
@@ -125,11 +126,11 @@ export async function recomputePosition(investorId: string, fundId: string) {
     p_investor_id: investorId,
     p_fund_id: fundId,
   });
-  
+
   if (error) {
     logError("recomputePosition", error, { investorId, fundId });
     return { success: false, error: error.message };
   }
-  
+
   return { success: true };
 }

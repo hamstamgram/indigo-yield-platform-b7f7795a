@@ -71,12 +71,14 @@ async function enrichInvestorsHelper(
 
   const withdrawalCounts = new Map<string, number>();
   (withdrawalsResult.data || []).forEach((w) => {
-    withdrawalCounts.set(w.investor_id, (withdrawalCounts.get(w.investor_id) || 0) + 1);
+    if (w.investor_id) {
+      withdrawalCounts.set(w.investor_id, (withdrawalCounts.get(w.investor_id) || 0) + 1);
+    }
   });
 
   const lastActivityDates = new Map<string, string>();
   (activityResult.data || []).forEach((p) => {
-    if (p.last_activity_at) {
+    if (p.id && p.last_activity_at) {
       lastActivityDates.set(p.id, p.last_activity_at);
     }
   });
@@ -90,7 +92,11 @@ async function enrichInvestorsHelper(
   });
 
   const ibParentIds = [
-    ...new Set((profilesResult.data || []).map((p) => p.ib_parent_id).filter(Boolean)),
+    ...new Set(
+      (profilesResult.data || [])
+        .map((p) => p.ib_parent_id)
+        .filter((id): id is string => Boolean(id))
+    ),
   ];
   const ibParentNames = new Map<string, string>();
 
@@ -101,14 +107,16 @@ async function enrichInvestorsHelper(
       .in("id", ibParentIds);
 
     (parents || []).forEach((p) => {
-      const name = [p.first_name, p.last_name].filter(Boolean).join(" ");
-      ibParentNames.set(p.id, name);
+      if (p.id) {
+        const name = [p.first_name, p.last_name].filter(Boolean).join(" ");
+        ibParentNames.set(p.id, name);
+      }
     });
   }
 
   const investorIbParents = new Map<string, string>();
   (profilesResult.data || []).forEach((p) => {
-    if (p.ib_parent_id && ibParentNames.has(p.ib_parent_id)) {
+    if (p.id && p.ib_parent_id && ibParentNames.has(p.ib_parent_id)) {
       investorIbParents.set(p.id, ibParentNames.get(p.ib_parent_id)!);
     }
   });

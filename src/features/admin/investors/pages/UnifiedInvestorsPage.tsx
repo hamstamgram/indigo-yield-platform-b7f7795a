@@ -164,7 +164,10 @@ function UnifiedInvestorsContent() {
             <UnifiedInvestorsTable
               investors={filteredInvestors}
               sortedData={sortedData}
-              sortConfig={sortConfig}
+              sortConfig={{
+                column: sortConfig.column,
+                direction: sortConfig.direction || "asc",
+              }}
               selectedInvestorId={selectedInvestorId}
               hasFilters={!!searchTerm || hasActiveFilters}
               onSort={requestSort}

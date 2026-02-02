@@ -344,9 +344,9 @@ export const withdrawalService = {
 
     const { error } = await rpc.call("start_processing_withdrawal", {
       p_request_id: withdrawalId,
-      p_processed_amount: null,
-      p_tx_hash: txHash || null,
-      p_settlement_date: null,
+      p_processed_amount: undefined,
+      p_tx_hash: txHash ?? undefined,
+      p_settlement_date: undefined,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
     });
 
@@ -385,7 +385,7 @@ export const withdrawalService = {
       p_request_id: withdrawalId,
       p_closing_aum: parseFloat(closingAum),
       p_event_ts: new Date().toISOString(),
-      p_transaction_hash: txHash || null,
+      p_transaction_hash: txHash ?? undefined,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
     });
 
@@ -523,7 +523,7 @@ export const withdrawalService = {
           ? parseFloat(params.requestedAmount)
           : params.requestedAmount,
       p_withdrawal_type: params.withdrawalType,
-      p_notes: params.notes || null,
+      p_notes: params.notes ?? undefined,
       p_reason: params.reason,
     });
 

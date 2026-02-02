@@ -15,7 +15,7 @@ export interface FundAUMData {
   name: string;
   asset: string;
   fund_class: string;
-  inception_date: string;
+  inception_date: string | null;
   status: string;
   latest_aum: number;
   latest_aum_date: string | null;

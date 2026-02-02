@@ -215,7 +215,7 @@ export function InvestorLedgerTab({
         open={addTxDialogOpen}
         onOpenChange={setAddTxDialogOpen}
         investorId={investorId}
-        fundId={defaultFundId}
+        fundId={defaultFundId ?? undefined}
         onSuccess={handleAddTxSuccess}
       />
 

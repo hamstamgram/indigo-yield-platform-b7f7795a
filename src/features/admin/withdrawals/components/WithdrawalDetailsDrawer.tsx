@@ -118,7 +118,7 @@ export function WithdrawalDetailsDrawer({
                     />
                     {withdrawal.requested_amount.toLocaleString()}{" "}
                     <span className="text-muted-foreground text-lg font-normal">
-                      {(withdrawal.asset || withdrawal.fund_class || "UNITS").toUpperCase()}
+                      {(withdrawal.asset ?? withdrawal.fund_class ?? "UNITS").toUpperCase()}
                     </span>
                   </div>
                 </div>
@@ -127,7 +127,7 @@ export function WithdrawalDetailsDrawer({
                   withdrawal.processed_amount !== withdrawal.requested_amount && (
                     <p className="text-sm text-muted-foreground">
                       Processed amount: {withdrawal.processed_amount.toLocaleString()}{" "}
-                      {(withdrawal.asset || "").toUpperCase()}
+                      {(withdrawal.asset ?? "").toUpperCase()}
                     </p>
                   )}
 

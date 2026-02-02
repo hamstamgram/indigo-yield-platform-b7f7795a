@@ -252,15 +252,15 @@ class IBAllocationService {
 
     return (data || []).map((row) => ({
       id: row.id,
-      periodId: row.period_id,
+      periodId: row.period_id ?? undefined,
       ibInvestorId: row.ib_investor_id,
       sourceInvestorId: row.source_investor_id,
-      fundId: row.fund_id,
+      fundId: row.fund_id ?? undefined,
       sourceNetIncome: Number(row.source_net_income),
       ibPercentage: Number(row.ib_percentage),
       ibFeeAmount: Number(row.ib_fee_amount),
       effectiveDate: row.effective_date,
-      createdAt: row.created_at,
+      createdAt: row.created_at ?? undefined,
     }));
   }
 }

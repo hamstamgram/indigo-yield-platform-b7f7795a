@@ -15,7 +15,7 @@ export interface EmailDelivery {
   id: string;
   recipient_email: string;
   subject: string;
-  status: string;
+  status: string | null;
   channel: string;
   provider: string | null;
   provider_message_id: string | null;

@@ -73,23 +73,23 @@ export function WithdrawalAuditTimeline({ withdrawalId }: WithdrawalAuditTimelin
                   <div className="mt-2 rounded-md bg-muted/50 p-2 text-xs">
                     {log.details.notes && (
                       <p>
-                        <span className="font-medium">Notes:</span> {String(log.details.notes)}
+                        <span className="font-medium">Notes:</span> {log.details.notes as string}
                       </p>
                     )}
                     {log.details.reason && (
                       <p>
-                        <span className="font-medium">Reason:</span> {String(log.details.reason)}
+                        <span className="font-medium">Reason:</span> {log.details.reason as string}
                       </p>
                     )}
                     {log.details.amount && (
                       <p>
-                        <span className="font-medium">Amount:</span> {String(log.details.amount)}
+                        <span className="font-medium">Amount:</span> {log.details.amount as string}
                       </p>
                     )}
                     {log.details.tx_hash && (
                       <p>
                         <span className="font-medium">TX Hash:</span>{" "}
-                        <code className="text-xs">{String(log.details.tx_hash)}</code>
+                        <code className="text-xs">{log.details.tx_hash as string}</code>
                       </p>
                     )}
                   </div>

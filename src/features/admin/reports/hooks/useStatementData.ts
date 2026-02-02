@@ -17,7 +17,7 @@ export interface GeneratedStatement {
   fund_names: string[];
   html_content: string;
   pdf_url: string | null;
-  created_at: string;
+  created_at: string | null;
   generated_by: string;
   investor?: {
     id: string;
@@ -41,7 +41,7 @@ export interface StatementPeriod {
   period_name: string;
   period_end_date: string;
   status: string | null;
-  created_at: string;
+  created_at: string | null;
 }
 
 export interface StatementFilters {

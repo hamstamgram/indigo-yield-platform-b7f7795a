@@ -145,16 +145,26 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
   }
 
   // Enrich with investor and fund details
-  const investorIds = [...new Set(feeTxData.map((t) => t.investor_id))];
-  const fundIds = [...new Set(feeTxData.map((t) => t.fund_id))];
+  const investorIds = [
+    ...new Set(feeTxData.map((t) => t.investor_id).filter((id): id is string => Boolean(id))),
+  ];
+  const fundIds = [
+    ...new Set(feeTxData.map((t) => t.fund_id).filter((id): id is string => Boolean(id))),
+  ];
 
   const [investorResult, fundResult] = await Promise.all([
-    supabase.from("profiles").select("id, email, first_name, last_name").in("id", investorIds),
-    supabase.from("funds").select("id, name, asset").in("id", fundIds),
+    supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .in("id", investorIds.length > 0 ? investorIds : [""]),
+    supabase
+      .from("funds")
+      .select("id, name, asset")
+      .in("id", fundIds.length > 0 ? fundIds : [""]),
   ]);
 
-  const investorMap = new Map((investorResult.data || []).map((p) => [p.id, p]));
-  const fundMap = new Map((fundResult.data || []).map((f) => [f.id, f]));
+  const investorMap = new Map((investorResult.data ?? []).map((p) => [p.id, p]));
+  const fundMap = new Map((fundResult.data ?? []).map((f) => [f.id, f]));
 
   return feeTxData.map((tx) => {
     const investor = investorMap.get(tx.investor_id);
@@ -163,12 +173,12 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       id: tx.id,
       investorId: tx.investor_id,
       investorName: investor
-        ? `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email
+        ? `${investor.first_name ?? ""} ${investor.last_name ?? ""}`.trim() || investor.email
         : "Unknown",
-      investorEmail: investor?.email || "",
+      investorEmail: investor?.email ?? "",
       fundId: tx.fund_id,
-      fundName: fund?.name || "Unknown",
-      asset: tx.asset || fund?.asset || "",
+      fundName: fund?.name ?? "Unknown",
+      asset: tx.asset ?? fund?.asset ?? "",
       amount: Number(tx.amount),
       type: tx.type,
       txDate: tx.tx_date,
@@ -269,8 +279,12 @@ export async function getFeeAllocations(): Promise<FeeAllocation[]> {
   }
 
   // Enrich with investor emails and fund names
-  const investorIds = [...new Set(ledgerData.map((a) => a.investor_id))];
-  const fundIds = [...new Set(ledgerData.map((a) => a.fund_id))];
+  const investorIds = [
+    ...new Set(ledgerData.map((a) => a.investor_id).filter((id): id is string => Boolean(id))),
+  ];
+  const fundIds = [
+    ...new Set(ledgerData.map((a) => a.fund_id).filter((id): id is string => Boolean(id))),
+  ];
 
   const [profileResult, fundResult, distributionResult] = await Promise.all([
     supabase.from("profiles").select("id, email, first_name, last_name").in("id", investorIds),
