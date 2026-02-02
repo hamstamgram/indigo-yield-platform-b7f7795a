@@ -250,7 +250,7 @@ BEGIN
         void_reason = 'Cascade: distribution ' || NEW.id::text || ' voided'
     WHERE fund_id = NEW.fund_id
       AND aum_date = NEW.period_end
-      AND purpose = NEW.purpose::text
+      AND purpose = NEW.purpose
       AND source = 'yield_distribution'
       AND is_voided = false;
   END IF;
@@ -574,7 +574,7 @@ BEGIN
       created_by = v_admin
   WHERE fund_id = p_fund_id
     AND aum_date = v_period_end
-    AND purpose = p_purpose::text
+    AND purpose = p_purpose
     AND is_voided = false;
 
   IF NOT FOUND THEN
