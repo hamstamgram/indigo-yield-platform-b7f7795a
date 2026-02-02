@@ -172,24 +172,15 @@ export function YieldInputForm({
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-aum">
-              New AUM ({selectedFund?.asset}){isReporting ? " (not required for reporting)" : ""}
-            </Label>
+            <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
             <NumericInput
               id="new-aum"
               asset={selectedFund?.asset}
               value={newAUM}
               onChange={setNewAUM}
-              placeholder={isReporting ? "Not required for reporting yield" : "Enter new total AUM"}
+              placeholder="Enter new total AUM after yield"
               showFormatted
-              disabled={isReporting}
             />
-            {isReporting && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Info className="h-3 w-3" />
-                Reporting uses latest fund transactions and sums YIELD entries for the month.
-              </p>
-            )}
           </div>
         </div>
 
@@ -382,7 +373,7 @@ export function YieldInputForm({
         <Button
           onClick={handlePreviewYield}
           disabled={
-            (!newAUM && yieldPurpose !== "reporting") ||
+            !newAUM ||
             previewLoading ||
             Boolean(existingDistributionDate) ||
             (yieldPurpose === "reporting" && !validationResult.valid)

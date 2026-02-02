@@ -307,23 +307,21 @@ export function useYieldOperationsState() {
   const handlePreviewYield = useCallback(async () => {
     if (!state.selectedFund) return;
     const isReporting = state.yieldPurpose === "reporting";
-    const newAUMValue = isReporting ? NaN : parseFloat(state.newAUM);
-    if (!isReporting && (isNaN(newAUMValue) || newAUMValue < 0)) {
-      toast.error("Please enter a valid non-negative number.");
+    const newAUMValue = parseFloat(state.newAUM);
+    if (isNaN(newAUMValue) || newAUMValue < 0) {
+      toast.error("Please enter a valid non-negative AUM value.");
       return;
     }
 
-    if (!isReporting) {
-      // Use as-of AUM for comparison instead of current positions
-      const baseAum = asOfAum ?? state.selectedFund.total_aum;
+    // Use as-of AUM for comparison instead of current positions
+    const baseAum = asOfAum ?? state.selectedFund.total_aum;
 
-      // Enforce non-negative yields (business rule)
-      if (newAUMValue < baseAum) {
-        toast.error("New AUM cannot be lower than period AUM. Yield must be >= 0.");
-        return;
-      } else if (newAUMValue === baseAum) {
-        toast.info("New AUM equals period AUM. No yield to distribute.");
-      }
+    // Enforce non-negative yields (business rule)
+    if (newAUMValue < baseAum) {
+      toast.error("New AUM cannot be lower than current AUM. Yield must be >= 0.");
+      return;
+    } else if (newAUMValue === baseAum) {
+      toast.info("New AUM equals current AUM. No yield to distribute.");
     }
 
     setState((prev) => ({ ...prev, previewLoading: true }));
@@ -355,7 +353,7 @@ export function useYieldOperationsState() {
       const result = await previewYieldDistribution({
         fundId: state.selectedFund.id,
         targetDate: state.aumDate,
-        newTotalAUM: String(isReporting ? 0 : newAUMValue),
+        newTotalAUM: String(newAUMValue),
         purpose: state.yieldPurpose,
       });
       setState((prev) => ({
@@ -421,7 +419,7 @@ export function useYieldOperationsState() {
         {
           fundId: state.selectedFund.id,
           targetDate: state.aumDate,
-          newTotalAUM: state.yieldPurpose === "reporting" ? "0" : state.newAUM,
+          newTotalAUM: state.newAUM,
         },
         user.id,
         state.yieldPurpose
