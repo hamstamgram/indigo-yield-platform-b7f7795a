@@ -467,14 +467,19 @@ BEGIN
   WHERE id = v_distribution_id;
 
   -- Ensure a reporting AUM record exists for recorded yields
-  IF NOT EXISTS (
-    SELECT 1
-    FROM fund_daily_aum
-    WHERE fund_id = p_fund_id
-      AND aum_date = v_period_end
-      AND purpose = p_purpose
-      AND is_voided = false
-  ) THEN
+  -- Use UPDATE-then-INSERT to handle stale entries from voided distributions
+  UPDATE fund_daily_aum
+  SET total_aum = v_current_aum + v_gross_yield_amount,
+      as_of_date = v_period_end,
+      is_month_end = v_is_month_end,
+      source = 'yield_distribution',
+      created_by = v_admin
+  WHERE fund_id = p_fund_id
+    AND aum_date = v_period_end
+    AND purpose = p_purpose
+    AND is_voided = false;
+
+  IF NOT FOUND THEN
     INSERT INTO fund_daily_aum (
       id,
       fund_id,
