@@ -24,6 +24,7 @@ import {
   ReportSchedule,
   ReportDefinition,
   ReportStatistics,
+  ReportData,
 } from "@/types/domains";
 
 export class ReportsApi {
@@ -411,20 +412,19 @@ export class ReportsApi {
   /**
    * Helper: Generate CSV from report data
    */
-  private static generateCSV(data: Record<string, unknown>): string {
+  private static generateCSV(data: ReportData): string {
     const lines: string[] = [];
 
     // Add header
-    if (data.transactions && Array.isArray(data.transactions) && data.transactions.length > 0) {
-      lines.push("Date,Type,Asset,Amount,Value Date,Status/Notes");
+    if (data.transactions && data.transactions.length > 0) {
+      lines.push("Date,Type,Asset,Amount,Value,Status/Notes");
 
-      data.transactions.forEach((tx: any) => {
-        // Compute status display from is_voided
+      data.transactions.forEach((tx) => {
         const statusDisplay = tx.is_voided ? "Voided" : "Active";
-        const notesOrStatus = tx.notes || statusDisplay;
+        const notesOrStatus = tx.note || statusDisplay;
 
         lines.push(
-          `${tx.tx_date},${tx.type},${tx.asset},${tx.amount},${tx.value_date},${notesOrStatus}`
+          `${tx.date},${tx.type},${tx.assetCode},${tx.amount},${tx.value},${notesOrStatus}`
         );
       });
     }

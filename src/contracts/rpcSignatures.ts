@@ -854,7 +854,7 @@ export const RPC_SIGNATURES = {
     name: "crystallize_yield_before_flow" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
+    securityDefiner: true,
     requiredParams: [
       "p_admin_id",
       "p_closing_aum",
@@ -2455,7 +2455,7 @@ export const RPC_SIGNATURES = {
     name: "void_yield_distribution" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
+    securityDefiner: true,
     requiredParams: ["p_admin_id", "p_distribution_id"] as const,
     optionalParams: ["p_reason"] as const,
   },

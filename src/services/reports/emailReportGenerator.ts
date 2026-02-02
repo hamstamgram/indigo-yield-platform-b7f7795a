@@ -340,7 +340,7 @@ export async function fetchInvestorReportData(
       .eq("investor_id", investorId)
       .order("is_primary", { ascending: false });
 
-    const emails = (emailRecords || []).map((e: any) => ({
+    const emails = (emailRecords || []).map((e) => ({
       email: e.email,
       isPrimary: e.is_primary,
       verified: e.verified,
@@ -407,7 +407,7 @@ export async function fetchInvestorReportData(
       email: primaryEmail,
       emails,
       reportMonth,
-      positions: performanceData.map((rec: any) => {
+      positions: performanceData.map((rec) => {
         // Map Asset Code to Display Name
         let fundName = rec.fund_name || "Unknown Fund";
         const assetCode = rec.fund_name; // Assuming fund_name holds 'BTC', 'ETH' etc.

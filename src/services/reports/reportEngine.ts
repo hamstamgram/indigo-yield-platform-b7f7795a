@@ -1,6 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { reportService } from "@/services/admin";
-import { GenerateReportRequest, GenerateReportResponse } from "@/types/domains";
+import {
+  GenerateReportRequest,
+  GenerateReportResponse,
+  ReportFilters,
+  ReportParameters,
+  ReportData,
+} from "@/types/domains";
 import { logError } from "@/lib/logger";
 
 // Lazy load PDF/Excel generators to reduce initial bundle size
@@ -14,28 +20,27 @@ export class ReportEngine {
   static async generateReport(request: GenerateReportRequest): Promise<GenerateReportResponse> {
     try {
       // 1. Fetch Data
-      const req = request as any;
-      const userId = req.userId || (await supabase.auth.getUser()).data.user?.id || "";
+      const userId = request.userId || (await supabase.auth.getUser()).data.user?.id || "";
 
       const reportData = await this.fetchReportData(
         userId,
-        req.reportType,
-        req.filters || {},
-        req.parameters || {}
+        request.reportType,
+        request.filters || {},
+        request.parameters || {}
       );
 
       // 2. Generate File (lazy load to reduce bundle size)
       let result;
-      if (req.format === "pdf") {
+      if (request.format === "pdf") {
         const { generatePDFReport } = await loadPDFGenerator();
         result = await generatePDFReport(reportData, {
-          includeCharts: req.parameters?.includeCharts,
-          confidential: req.parameters?.confidential,
+          includeCharts: request.parameters?.includeCharts,
+          confidential: request.parameters?.confidential,
         });
-      } else if (req.format === "excel") {
+      } else if (request.format === "excel") {
         const { generateExcelReport } = await loadExcelGenerator();
         result = await generateExcelReport(reportData, {
-          includeCharts: req.parameters?.includeCharts,
+          includeCharts: request.parameters?.includeCharts,
         });
       } else {
         return { success: false, error: "Unsupported format" };
@@ -48,7 +53,7 @@ export class ReportEngine {
       // 3. Return result (caller handles storage/upload)
       return {
         success: true,
-        reportId: req.reportId,
+        reportId: request.reportId,
       };
     } catch (error) {
       logError("ReportEngine.generateReport", error);
@@ -65,9 +70,9 @@ export class ReportEngine {
   static async fetchReportData(
     userId: string,
     reportType: string,
-    filters: Record<string, any>,
-    parameters: Record<string, any>
-  ): Promise<any> {
+    filters: ReportFilters,
+    parameters: ReportParameters
+  ) {
     const endDate = filters.dateRangeEnd ? new Date(filters.dateRangeEnd) : new Date();
     const startDate = filters.dateRangeStart
       ? new Date(filters.dateRangeStart)
@@ -76,61 +81,59 @@ export class ReportEngine {
     // userId IS the investorId (One ID)
     const investorId = userId;
     const dateRange = { start: startDate, end: endDate };
+    void parameters; // reserved for future use
 
     // Fetch data using service layer
-    const [positions, transactions, performanceStatements] = await Promise.all([
+    const [positions, transactions] = await Promise.all([
       reportService.getInvestorPositions(investorId),
       reportService.getInvestorTransactions(investorId, dateRange),
-      reportService.getInvestorPerformanceStatements(investorId, dateRange),
     ]);
 
-    // Map V2 performance data to legacy statements structure for compatibility
-    const statements = performanceStatements.map((r: any) => ({
-      id: r.id,
-      investor_id: r.investor_id,
-      report_month: r.period?.period_end_date,
-      asset_code: r.fund_name,
-      opening_balance: Number(r.mtd_beginning_balance || 0),
-      closing_balance: Number(r.mtd_ending_balance || 0),
-      additions: Number(r.mtd_additions || 0),
-      withdrawals: Number(r.mtd_redemptions || 0),
-      yield_earned: Number(r.mtd_net_income || 0),
-      rate_of_return: Number(r.mtd_rate_of_return || 0),
-    }));
+    // Build report data matching ReportData interface (what generators expect)
+    const formatDate = (d: Date) => d.toISOString().split("T")[0];
+    const totalValue = positions.reduce((sum, p) => sum + Number(p.current_value), 0);
 
-    // Build report data structure matching what generators expect
-    return {
+    const reportData: ReportData = {
       title: reportType
         .split("_")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" "),
-      generatedDate: new Date().toISOString(),
-      reportPeriod: {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      },
+      generatedDate: new Date(),
+      reportPeriod: `${formatDate(startDate)} to ${formatDate(endDate)}`,
       summary: {
-        totalValue: positions.reduce((sum, p) => sum + Number(p.current_value), 0),
-        positionCount: positions.length,
-        transactionCount: transactions.length,
+        totalValue: String(totalValue),
       },
-      holdings: positions.map((p: any) => ({
-        asset: p.funds?.asset || "UNK",
-        amount: p.shares,
-        value: p.current_value,
-        fundName: p.funds?.name,
-      })),
-      transactions: transactions.map((tx: any) => ({
+      holdings: positions.map((p) => {
+        const funds = p.funds as { asset?: string; name?: string } | null;
+        const currentValue = Number(p.current_value);
+        const costBasis = Number(p.cost_basis || 0);
+        const unrealizedGain = currentValue - costBasis;
+        return {
+          assetCode: funds?.asset || "UNK",
+          assetName: funds?.name || "Unknown Fund",
+          quantity: String(p.shares),
+          currentPrice: "0",
+          currentValue: String(currentValue),
+          costBasis: String(costBasis),
+          allocationPercentage:
+            totalValue > 0 ? String(((currentValue / totalValue) * 100).toFixed(2)) : "0",
+          unrealizedGain: String(unrealizedGain),
+          unrealizedGainPercentage:
+            costBasis > 0 ? String(((unrealizedGain / costBasis) * 100).toFixed(2)) : "0",
+        };
+      }),
+      transactions: transactions.map((tx) => ({
         date: tx.tx_date,
         type: tx.type,
         assetCode: tx.asset,
-        amount: Number(tx.amount) || 0,
-        value: Number(tx.amount) || 0, // For reports, value is typically same as amount
+        amount: String(tx.amount),
+        value: String(tx.amount),
         is_voided: tx.is_voided || false,
         note: tx.notes || undefined,
         txHash: tx.tx_hash || undefined,
       })),
-      statements,
     };
+
+    return reportData;
   }
 }

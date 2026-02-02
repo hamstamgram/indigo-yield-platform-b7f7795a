@@ -50,22 +50,32 @@ export async function applyYieldDistribution(
   const periodStartDate = periodStart || startOfMonth(targetDate);
 
   // Get current AUM (investor + IB accounts) to calculate gross yield amount
-  const { data: positions } = await supabase
+  const { data: positions, error: positionsError } = await supabase
     .from("investor_positions")
     .select("investor_id,current_value")
     .eq("fund_id", fundId)
     .eq("is_active", true);
 
+  if (positionsError) {
+    logError("applyYieldDistribution.positions", positionsError, { fundId });
+    throw new Error(`Failed to fetch positions: ${positionsError.message}`);
+  }
+
   const investorIds = Array.from(
     new Set(positions?.map((p) => p.investor_id).filter(Boolean) || [])
   );
-  const { data: profiles } = investorIds.length
+  const { data: profiles, error: profilesError } = investorIds.length
     ? await supabase
         .from("profiles")
         .select("id")
         .in("id", investorIds)
         .in("account_type", ["investor", "ib"])
-    : { data: [] };
+    : { data: [], error: null };
+
+  if (profilesError) {
+    logError("applyYieldDistribution.profiles", profilesError, { fundId });
+    throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
+  }
 
   const investorSet = new Set(profiles?.map((p) => p.id) || []);
   const currentAUM =

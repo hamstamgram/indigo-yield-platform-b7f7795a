@@ -7,13 +7,9 @@
 // Withdrawal Types
 // ============================================================================
 
-export type WithdrawalStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "completed"
-  | "processing"
-  | "cancelled";
+// Re-export from canonical source to prevent enum drift
+import type { WithdrawalStatus as _WithdrawalStatus } from "@/contracts/dbEnums";
+export type WithdrawalStatus = _WithdrawalStatus;
 
 export interface WithdrawalRequestProfile {
   first_name?: string | null;

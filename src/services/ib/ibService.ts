@@ -410,12 +410,13 @@ class IBService {
       p_referral_id: referralId,
     });
 
-    const record = (data || [])[0] as ReferralDetail | undefined;
-
-    if (error || !record) {
+    if (error) {
       logError("ibService.getReferralDetail", error, { referralId, ibId });
       return null;
     }
+
+    const record = (data || [])[0] as ReferralDetail | undefined;
+    if (!record) return null;
 
     return record;
   }
@@ -448,7 +449,7 @@ class IBService {
   /**
    * Get commission history for a referral
    */
-  async getReferralCommissions(referralId: string, ibId: string, limit = 50): Promise<any[]> {
+  async getReferralCommissions(referralId: string, ibId: string, limit = 50) {
     const { data, error } = await supabase
       .from("ib_allocations")
       .select(
@@ -694,12 +695,20 @@ class IBService {
       return { payouts: [], total: 0 };
     }
 
-    const payouts: Payout[] = (allocations || []).map((alloc: any) => {
-      const fund = alloc.funds as IBFundRef | null;
-      const sourceProfile = alloc.source_profile as {
-        first_name: string | null;
-        last_name: string | null;
-      } | null;
+    interface PayoutRow {
+      id: string;
+      ib_fee_amount: number;
+      effective_date: string;
+      payout_status: string | null;
+      paid_at: string | null;
+      source_investor_id: string;
+      funds: IBFundRef | null;
+      source_profile: { first_name: string | null; last_name: string | null } | null;
+    }
+
+    const payouts: Payout[] = ((allocations || []) as unknown as PayoutRow[]).map((alloc) => {
+      const fund = alloc.funds;
+      const sourceProfile = alloc.source_profile;
       const sourceName = sourceProfile
         ? `${sourceProfile.first_name || ""} ${sourceProfile.last_name || ""}`.trim() || "Unknown"
         : "Unknown";
