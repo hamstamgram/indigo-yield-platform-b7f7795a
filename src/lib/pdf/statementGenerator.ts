@@ -367,8 +367,8 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
   }
 
   // --- Footer ---
-  // Intentional: jsPDF internal API not exposed in type definitions
-  const totalPages = (doc as any).internal.getNumberOfPages();
+  // @ts-expect-error jsPDF internal API not exposed in type definitions
+  const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -489,8 +489,8 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
   });
 
   // --- Footer ---
-  // Intentional: jsPDF internal API not exposed in type definitions
-  const pageCount = (doc as any).internal.getNumberOfPages();
+  // @ts-expect-error jsPDF internal API not exposed in type definitions
+  const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);

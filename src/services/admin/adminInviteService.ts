@@ -21,7 +21,7 @@ class AdminInviteService {
   async isSuperAdmin(): Promise<boolean> {
     const { data, error } = await callRPCNoArgs("is_super_admin");
     if (error) {
-      if ((error as any).code === "42883") return false; // Function not found
+      if ((error as { code?: string }).code === "42883") return false; // Function not found
       throw error;
     }
     return !!data;
@@ -56,9 +56,9 @@ class AdminInviteService {
       email: email.toLowerCase().trim(),
       invite_code: inviteCode,
       expires_at: expiresAt.toISOString(),
-      created_by: user?.id,
+      created_by: user?.id ?? null,
       intended_role: role,
-    } as any);
+    });
 
     if (error) throw new Error(error.userMessage || error.message);
     return { email, inviteCode };
@@ -78,6 +78,13 @@ class AdminInviteService {
    */
   generateInviteLink(inviteCode: string): string {
     return `${window.location.origin}/admin-invite?code=${inviteCode}`;
+  }
+
+  /**
+   * Get the current auth session (used by invite callback page)
+   */
+  async getSession() {
+    return supabase.auth.getSession();
   }
 
   /**

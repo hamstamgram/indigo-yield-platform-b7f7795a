@@ -3,6 +3,9 @@ import { db } from "@/lib/db/index";
 import { logError, logWarn } from "@/lib/logger";
 import type { Document, DocumentFilter } from "@/types/domains/document";
 import { sanitizeSearchInput } from "@/utils/searchSanitizer";
+import type { Database } from "@/integrations/supabase/types";
+
+type DocumentType = Database["public"]["Enums"]["document_type"];
 
 export interface CreateStatementDocumentParams {
   user_id: string;
@@ -135,7 +138,7 @@ export const documentService = {
       .insert({
         user_id: user.id,
         storage_path: filePath,
-        type: metadata.type as any,
+        type: metadata.type as DocumentType,
         title: metadata.title,
         fund_id: metadata.fund_id || null,
         period_start: metadata.period_start || null,
@@ -167,7 +170,7 @@ export const documentService = {
       .insert({
         user_id: params.user_id,
         storage_path: params.storage_path,
-        type: "statement" as any,
+        type: "statement" as DocumentType,
         title: params.title,
         period_start: params.period_start || null,
         period_end: params.period_end || null,

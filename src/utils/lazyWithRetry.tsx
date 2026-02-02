@@ -58,8 +58,8 @@ export function lazyWithRetry<T extends ComponentType<any>>(
  */
 export function preloadComponent(lazyComponent: LazyExoticComponent<any>): void {
   // Trigger the lazy loading without rendering
-  // Intentional: React.lazy internal _payload structure is not exposed in public types
-  const componentPromise = (lazyComponent as any)._payload?._result;
+  // @ts-expect-error React.lazy internal _payload structure is not exposed in public types
+  const componentPromise = lazyComponent._payload?._result;
   if (componentPromise && typeof componentPromise.then === "function") {
     componentPromise.catch(() => {
       logWarn("preloadComponent", { reason: "Failed to preload component" });

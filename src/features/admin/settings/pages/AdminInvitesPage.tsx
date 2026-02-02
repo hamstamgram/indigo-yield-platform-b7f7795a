@@ -104,7 +104,7 @@ function AdminInvitesContent() {
     // Also trigger email send
     const newInvite = invites?.find((i) => i.invite_code === inviteCode);
     if (newInvite) {
-      sendEmailMutation.mutate(newInvite as any);
+      sendEmailMutation.mutate(newInvite);
     }
 
     toast({
@@ -311,7 +311,7 @@ function AdminInvitesContent() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => sendEmailMutation.mutate(invite as any)}
+                                onClick={() => sendEmailMutation.mutate(invite)}
                                 disabled={sendEmailMutation.isPending}
                                 title="Send invitation email"
                               >

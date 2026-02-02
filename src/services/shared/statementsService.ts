@@ -10,6 +10,7 @@ import type { ProfileRelation } from "@/types/domains/relations";
 import type { Database } from "@/integrations/supabase/types";
 
 type AssetCode = Database["public"]["Enums"]["asset_code"];
+type DocumentType = Database["public"]["Enums"]["document_type"];
 
 export interface StatementUpsertData {
   investor_id: string;
@@ -87,7 +88,7 @@ class StatementsService {
       .from("documents")
       .insert({
         user_id: params.investorId,
-        type: "statement" as any,
+        type: "statement" as DocumentType,
         title: params.title,
         storage_path: params.storagePath,
         period_start: params.periodStart,

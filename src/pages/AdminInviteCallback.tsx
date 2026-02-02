@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { adminInviteService } from "@/services/admin/adminInviteService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,10 @@ export default function AdminInviteCallback() {
     const handleCallback = async () => {
       try {
         // Get the current session - Supabase should have processed the magic link
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const {
+          data: { session },
+          error: sessionError,
+        } = await adminInviteService.getSession();
 
         if (sessionError) {
           logError("AdminInviteCallback.sessionError", sessionError);
@@ -31,8 +34,11 @@ export default function AdminInviteCallback() {
 
         if (!session) {
           // Try to get session from URL hash (magic link)
-          const { data: { session: urlSession }, error: urlError } = await supabase.auth.getSession();
-          
+          const {
+            data: { session: urlSession },
+            error: urlError,
+          } = await adminInviteService.getSession();
+
           if (urlError || !urlSession) {
             logError("AdminInviteCallback.noSession", urlError);
             setStatus("error");
@@ -43,9 +49,9 @@ export default function AdminInviteCallback() {
 
         // Session exists - the database trigger should have assigned the role
         logInfo("AdminInviteCallback.sessionEstablished", { email: session?.user?.email });
-        
+
         // Brief delay to ensure trigger has executed
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         setStatus("success");
         setMessage("Welcome! Your admin account has been activated.");
@@ -54,7 +60,6 @@ export default function AdminInviteCallback() {
         setTimeout(() => {
           navigate("/admin/dashboard", { replace: true });
         }, 2000);
-
       } catch (error) {
         logError("AdminInviteCallback.callbackError", error);
         setStatus("error");
@@ -92,13 +97,11 @@ export default function AdminInviteCallback() {
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-muted-foreground">{message}</p>
-          
+
           {status === "success" && (
-            <p className="text-sm text-muted-foreground">
-              Redirecting to dashboard...
-            </p>
+            <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
           )}
-          
+
           {status === "error" && (
             <Button onClick={() => navigate("/login")} variant="outline">
               Go to Login

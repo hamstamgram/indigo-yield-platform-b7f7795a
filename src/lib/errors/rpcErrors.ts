@@ -149,7 +149,7 @@ export function isRPCError(error: unknown): error is { message: string; code?: s
     error !== null &&
     typeof error === "object" &&
     "message" in error &&
-    typeof (error as any).message === "string"
+    typeof (error as { message?: unknown }).message === "string"
   );
 }
 
