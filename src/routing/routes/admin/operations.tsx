@@ -7,11 +7,13 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const YieldOperationsPage = lazy(() => import("@/pages/admin/YieldOperationsPage"));
-const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
-const RecordedYieldsPage = lazy(() => import("@/pages/admin/RecordedYieldsPage"));
-const YieldDistributionsPage = lazy(() => import("@/pages/admin/YieldDistributionsPage"));
-const FundManagementPage = lazy(() => import("@/pages/admin/FundManagementPage"));
+const YieldOperationsPage = lazy(() => import("@/features/admin/yields/pages/YieldOperationsPage"));
+const InvestorReports = lazy(() => import("@/features/admin/reports/pages/InvestorReports"));
+const RecordedYieldsPage = lazy(() => import("@/features/admin/yields/pages/RecordedYieldsPage"));
+const YieldDistributionsPage = lazy(
+  () => import("@/features/admin/yields/pages/YieldDistributionsPage")
+);
+const FundManagementPage = lazy(() => import("@/features/admin/funds/pages/FundManagementPage"));
 
 export function OperationsRoutes() {
   return (

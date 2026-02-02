@@ -9,6 +9,7 @@ import { rpc } from "@/lib/rpc/index";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 import { profileService } from "@/services/shared";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export interface UserProfile {
   id: string;
@@ -18,13 +19,6 @@ export interface UserProfile {
   is_admin: boolean;
   created_at: string;
 }
-
-const QUERY_KEYS = {
-  profiles: ["profiles"] as const,
-  profile: (id: string) => ["profiles", id] as const,
-  currentProfile: ["profiles", "current"] as const,
-  isSuperAdmin: ["profiles", "is-super-admin"] as const,
-};
 
 /**
  * Fetch all user profiles (admin only)
@@ -199,7 +193,7 @@ export function useUpdateProfile() {
  */
 export function useInvestorsForTransaction(enabled: boolean = true) {
   return useQuery({
-    queryKey: ["investors", "forTransaction"],
+    queryKey: QUERY_KEYS.investorsForTransaction,
     queryFn: () => profileService.getInvestorsForTransaction(),
     enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -211,7 +205,7 @@ export function useInvestorsForTransaction(enabled: boolean = true) {
  */
 export function useInvestorProfileWithFund(investorId: string | undefined) {
   return useQuery({
-    queryKey: ["investor", "profileWithFund", investorId],
+    queryKey: QUERY_KEYS.investorProfileWithFund(investorId || ""),
     queryFn: async () => {
       // Get profile
       const { data: profile, error: profileError } = await supabase

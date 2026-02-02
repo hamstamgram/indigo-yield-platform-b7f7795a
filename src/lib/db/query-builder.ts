@@ -6,6 +6,12 @@ import { Tables, DBResult } from "./types";
 import { validateSelect } from "./validators";
 import { normalizeError } from "./normalization";
 
+/**
+ * NOTE: This file contains intentional `as any` casts for dynamic query building.
+ * These are required for the fluent API pattern where method chaining requires
+ * runtime type flexibility. Type safety is preserved through generic constraints.
+ */
+
 // =============================================================================
 // QUERY BUILDER WRAPPER
 // =============================================================================

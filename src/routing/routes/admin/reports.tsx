@@ -8,11 +8,11 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const HistoricalReportsDashboard = lazy(
-  () => import("@/components/admin/investors/reports/HistoricalReportsDashboard")
+  () => import("@/features/admin/investors/components/reports/HistoricalReportsDashboard")
 );
 
 const ReportDeliveryCenter = lazy(
-  () => import("@/components/admin/reports/ReportDeliveryCenter")
+  () => import("@/features/admin/reports/components/ReportDeliveryCenter")
 );
 
 export function ReportsRoutes() {

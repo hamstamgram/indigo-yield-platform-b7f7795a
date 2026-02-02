@@ -15,7 +15,7 @@ const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 // Invite pages (public access for new user setup)
-const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
+const AdminInvite = lazy(() => import("@/features/admin/settings/pages/AdminInvite"));
 const AdminInviteCallback = lazy(() => import("@/pages/AdminInviteCallback"));
 const InvestorInvite = lazy(() => import("@/pages/InvestorInvite"));
 

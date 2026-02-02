@@ -1,26 +1,13 @@
 /**
- * Transaction-related admin hooks
+ * Transaction-related admin hooks - Re-exports from features/admin
  */
 
-// useAdminTransactionHistory
-export { useAdminActiveFunds, useAdminTransactions } from "../useAdminTransactionHistory";
-
-// useTransactionMutations
-export { useTransactionMutations } from "../useTransactionMutations";
-
-// useTransactionFormData
+export * from "@/features/admin/transactions/hooks/useAdminTransactionHistory";
+export * from "@/features/admin/transactions/hooks/useTransactionMutations";
 export {
   useTransactionFormInvestors,
   useTransactionFormFunds,
   useAumCheck as useTransactionFormAumCheck,
   useInvestorBalanceCheck as useTransactionFormBalanceCheck,
-  type TransactionFormInvestor,
-  type TransactionFormFund,
-  type BalanceCheckResult as TransactionFormBalanceCheckResult,
-} from "../useTransactionFormData";
-
-// usePendingTransactionDetails
-export {
-  usePendingTransactionDetails,
-  type PendingTransactionDetail,
-} from "../usePendingTransactionDetails";
+} from "@/features/admin/transactions/hooks/useTransactionFormData";
+export * from "@/features/admin/transactions/hooks/usePendingTransactionDetails";

@@ -8,7 +8,9 @@ import { lazy, Suspense } from "react";
 import { AdminRoute } from "@/routing/AdminRoute";
 import { PageLoadingSpinner } from "@/components/ui";
 
-const AdminOnboardingPage = lazy(() => import("@/pages/admin/AdminOnboardingPage"));
+const AdminOnboardingPage = lazy(
+  () => import("@/features/admin/investors/pages/AdminOnboardingPage")
+);
 
 /**
  * Training Routes

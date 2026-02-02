@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as authService from "@/services/auth/authService";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { logError } from "@/lib/logger";
 
 interface LoginData {
@@ -107,7 +108,7 @@ export function useEmailVerification(tokenHash: string | null) {
   const navigate = useNavigate();
 
   return useQuery({
-    queryKey: ["email-verification", tokenHash],
+    queryKey: QUERY_KEYS.emailVerification(tokenHash || ""),
     queryFn: async () => {
       if (!tokenHash) throw new Error("No token provided");
 

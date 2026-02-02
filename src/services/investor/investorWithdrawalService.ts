@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
+import type { FundRelation } from "@/types/domains/relations";
 
 // ============================================
 // Types
@@ -56,24 +57,27 @@ export async function getWithdrawalRequests(): Promise<WithdrawalRequest[]> {
 
   if (error) throw error;
 
-  return (data || []).map((request) => ({
-    id: request.id,
-    fund_id: request.fund_id,
-    fund_name: (request.funds as any)?.name || "Unknown",
-    fund_class: (request.funds as any)?.fund_class || "Standard",
-    asset: (request.funds as any)?.asset || "Unknown",
-    requested_amount: Number(request.requested_amount),
-    approved_amount: request.approved_amount ? Number(request.approved_amount) : undefined,
-    processed_amount: request.processed_amount ? Number(request.processed_amount) : undefined,
-    withdrawal_type: request.withdrawal_type,
-    status: request.status,
-    notes: request.notes,
-    rejection_reason: request.rejection_reason,
-    created_at: request.request_date,
-    approved_at: request.approved_at,
-    settlement_date: request.settlement_date,
-    tx_hash: request.tx_hash,
-  }));
+  return (data || []).map((request) => {
+    const fund = request.funds as unknown as FundRelation | null;
+    return {
+      id: request.id,
+      fund_id: request.fund_id,
+      fund_name: fund?.name || "Unknown",
+      fund_class: fund?.fund_class || "Standard",
+      asset: fund?.asset || "Unknown",
+      requested_amount: Number(request.requested_amount),
+      approved_amount: request.approved_amount ? Number(request.approved_amount) : undefined,
+      processed_amount: request.processed_amount ? Number(request.processed_amount) : undefined,
+      withdrawal_type: request.withdrawal_type,
+      status: request.status,
+      notes: request.notes,
+      rejection_reason: request.rejection_reason,
+      created_at: request.request_date,
+      approved_at: request.approved_at,
+      settlement_date: request.settlement_date,
+      tx_hash: request.tx_hash,
+    };
+  });
 }
 
 /**

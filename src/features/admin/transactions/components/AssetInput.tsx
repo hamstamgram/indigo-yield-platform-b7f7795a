@@ -4,6 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { Input, Label, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui";
 import { Info } from "lucide-react";
 import { fundService } from "@/services/admin";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { TransactionFormData } from "../hooks/useTransactionForm";
 
 interface PreflowAumInputProps {
@@ -24,7 +25,7 @@ export function AssetInput({ fundId, txDate, asset }: PreflowAumInputProps) {
 
   // Fetch LIVE AUM from positions - always use this as the source of truth
   const { data: liveNavData, isLoading } = useQuery({
-    queryKey: ["fund-live-aum", fundId],
+    queryKey: QUERY_KEYS.fundLiveAum(fundId),
     queryFn: async () => {
       if (!fundId) return null;
       return fundService.getLatestNav(fundId);

@@ -1,118 +1,39 @@
 /**
- * Miscellaneous admin hooks (IB, email, audit, reports, etc.)
+ * Miscellaneous admin hooks - Re-exports from features/admin
  */
 
-// useAdminStats
-export { useAdminStats, type AdminStats } from "../useAdminStats";
+// Shared hooks
+export * from "@/features/admin/shared/hooks/useAdminStats";
+export * from "@/features/admin/shared/hooks/useActionBar";
+export * from "@/features/admin/shared/hooks/useCommandPalette";
 
-// useDeliveryData
-export { usePeriodsWithCounts, useDeliveryStats, useDeliveries } from "../useDeliveryData";
+// Reports hooks
+export * from "@/features/admin/reports/hooks/useDeliveryData";
+export * from "@/features/admin/reports/hooks/useDeliveryMutations";
+export * from "@/features/admin/reports/hooks/useReportData";
+export * from "@/features/admin/reports/hooks/useReportRecipients";
 
-// useDeliveryMutations
-export { useDeliveryMutations, type SendProgress } from "../useDeliveryMutations";
+// Operations hooks
+export * from "@/features/admin/operations/hooks/useEmailTracking";
+export * from "@/features/admin/operations/hooks/useOperationsHub";
 
-// useEmailTracking
-export {
-  useEmailStats,
-  useEmailDeliveries,
-  type EmailStats,
-  type EmailDelivery,
-  type EmailFilters,
-} from "../useEmailTracking";
+// System hooks
+export * from "@/features/admin/system/hooks/useIntegrityData";
+export * from "@/features/admin/system/hooks/useIntegrityOperations";
+export * from "@/features/admin/system/hooks/useAuditLogs";
+export * from "@/features/admin/system/hooks/useRealtimeAlerts";
 
-// useIntegrityData
-export { useIntegrityChecks, useAuditEvents, useInvariantChecks } from "../useIntegrityData";
+// Investor hooks
+export * from "@/features/admin/investors/hooks/useMonthlyReports";
+export * from "@/features/admin/investors/hooks/useInternalRoute";
 
-// useIntegrityOperations (P1)
-export {
-  useIntegrityRuns,
-  useAdminAlerts,
-  useRunIntegrityCheck,
-  useAcknowledgeAlert,
-} from "../useIntegrityOperations";
+// IB hooks
+export * from "@/features/admin/ib/hooks/useIBUsers";
+export * from "@/features/admin/ib/hooks/useIBManagementPage";
+export * from "@/features/admin/ib/hooks/useIBPayoutMutations";
 
-// useMonthlyReports
-export {
-  useInvestorMonthlyReports,
-  useCreateMonthlyTemplate,
-  useUpdateMonthlyReportField,
-  type MonthlyReport,
-} from "../useMonthlyReports";
+// Deposits hooks
+export * from "@/features/admin/deposits/hooks/useDeposits";
 
-// useOperationsHub
-export { useRecentAuditLogs, useOperationsRealtime, type AuditLogEntry } from "../useOperationsHub";
-
-// useReportData
-export {
-  useHistoricalDataSummary,
-  useActiveInvestorsForReports,
-  useStatementPeriod,
-  useInvestorReportData,
-  useGenerateTemplates,
-  useSendInvestorReport,
-  useReportGenerationData,
-} from "../useReportData";
-
-// useActionBar
-export { usePendingCounts, type PendingCounts } from "../useActionBar";
-
-// useCommandPalette
-export {
-  useCommandPaletteInvestors,
-  type InvestorSearchResult as CommandPaletteInvestorResult,
-} from "../useCommandPalette";
-
-// useInternalRoute
-export {
-  useInvestorPositionsForRoute,
-  useInternalRouteMutation,
-  type InvestorPositionForRoute,
-  type InternalRouteParams,
-  type InternalRouteResult,
-} from "../useInternalRoute";
-
-// useReportRecipients
-export { useReportRecipients, useUpdateReportRecipients } from "../useReportRecipients";
-
-// useIBUsers
-export { useIBUsers, type IBUser } from "../useIBUsers";
-
-// useDeposits
-export {
-  useDepositStats,
-  useDeposits,
-  type DepositStats,
-  type DepositFilters,
-} from "../useDeposits";
-
-// useAssets
-export {
-  useAssetStats,
-  useAssets,
-  useAssetPrices,
-  useLatestAssetPrice,
-  type AssetStats,
-  type AssetFilters,
-} from "../useAssets";
-
-// useIBManagementPage
-export {
-  useIBProfiles,
-  useCreateIB,
-  type IBProfile,
-  type EarningsByAsset,
-} from "../useIBManagementPage";
-
-// useIBPayoutMutations
-export { useIBAllocationsForPayout, useMarkAllocationsAsPaid } from "../useIBPayoutMutations";
-
-// useAuditLogs
-export {
-  useAuditLogs,
-  exportAuditLogsToCSV,
-  type AuditLogsData,
-  type AuditLogStats,
-} from "../useAuditLogs";
-
-// useRealtimeAlerts
-export { useRealtimeAlerts, useUnacknowledgedAlertCount } from "../useRealtimeAlerts";
+// Fund/Asset hooks
+export * from "@/features/admin/funds/hooks/useAssets";

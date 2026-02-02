@@ -4,6 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   getInvestorProfileForSettings,
   deleteInvestorProfile,
@@ -17,7 +18,7 @@ import {
  */
 export function useInvestorProfileSettings(investorId: string) {
   return useQuery<InvestorProfileData>({
-    queryKey: ["investor-profile-settings", investorId],
+    queryKey: QUERY_KEYS.investorProfileSettings(investorId),
     queryFn: () => getInvestorProfileForSettings(investorId),
     enabled: !!investorId,
   });
@@ -32,8 +33,8 @@ export function useDeleteInvestorProfile() {
   return useMutation({
     mutationFn: deleteInvestorProfile,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["investors"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-profile-settings"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorProfileSettings("") });
     },
   });
 }
@@ -43,7 +44,7 @@ export function useDeleteInvestorProfile() {
  */
 export function useInvestorReportPeriods(investorId: string) {
   return useQuery<{ periods: ReportPeriod[]; latestPeriod: ReportPeriod | null }>({
-    queryKey: ["investor-report-periods", investorId],
+    queryKey: QUERY_KEYS.investorReportPeriods(investorId),
     queryFn: () => getInvestorReportPeriods(investorId),
     enabled: !!investorId,
   });

@@ -126,9 +126,6 @@ export async function updateFund(fundId: string, updates: Partial<Fund>): Promis
   return mapDbFundToFund(result.data[0]);
 }
 
-// Deprecated functions listDailyNav and upsertDailyNav have been removed.
-// Use Monthly Reports (investor_monthly_reports table) instead.
-
 /**
  * Get fund KPIs
  * Note: total_aum is calculated from investor_positions.current_value
@@ -164,9 +161,6 @@ export async function getFundKPIs() {
     active_investors: 0,
   })) as FundKPI[];
 }
-
-// Deprecated function calculateFundReturns has been removed.
-// Use getFundKPIs() or getFundPerformance() instead.
 
 /**
  * Get latest NAV for a fund

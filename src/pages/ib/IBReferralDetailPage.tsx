@@ -22,6 +22,7 @@ import {
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { ArrowLeft, User, Wallet, History } from "lucide-react";
+import type { FundRelation } from "@/types/domains/relations";
 import {
   useIBReferralDetail,
   useIBReferralPositions,
@@ -127,7 +128,7 @@ export default function IBReferralDetailPage() {
               </TableHeader>
               <TableBody>
                 {positions.map((pos) => {
-                  const fund = pos.funds as any;
+                  const fund = (pos as { funds?: unknown }).funds as FundRelation | undefined;
                   const asset = fund?.asset || "USDT";
                   return (
                     <TableRow key={pos.fund_id}>
@@ -178,7 +179,7 @@ export default function IBReferralDetailPage() {
               </TableHeader>
               <TableBody>
                 {commissions.map((comm) => {
-                  const fund = comm.funds as any;
+                  const fund = (comm as { funds?: unknown }).funds as FundRelation | undefined;
                   const asset = fund?.asset || "USDT";
                   return (
                     <TableRow key={comm.id}>

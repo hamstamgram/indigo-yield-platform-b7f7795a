@@ -90,11 +90,16 @@ export function QueryErrorBoundary({
           }}
           onError={(error) => {
             logError("QueryErrorBoundary", error);
-            onError?.(error);
+            if (error instanceof Error) {
+              onError?.(error);
+            }
           }}
-          fallbackRender={({ error, resetErrorBoundary }) => (
-            <FallbackComponent error={error} resetErrorBoundary={resetErrorBoundary} />
-          )}
+          fallbackRender={({ error, resetErrorBoundary }) => {
+            const normalizedError = error instanceof Error ? error : new Error(String(error));
+            return (
+              <FallbackComponent error={normalizedError} resetErrorBoundary={resetErrorBoundary} />
+            );
+          }}
         >
           {children}
         </ErrorBoundary>

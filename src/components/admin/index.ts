@@ -1,41 +1,42 @@
 /**
  * Admin Components - Main Barrel Export
- * Organized by functional category
+ * Re-exports from features/admin structure
  */
 
 // ============================================
-// GUARDS
+// GUARDS & SHARED
 // ============================================
-export { AdminGuard } from "./AdminGuard";
-export { SuperAdminGuard, useSuperAdmin } from "./SuperAdminGuard";
+export { AdminGuard } from "@/features/admin/shared/AdminGuard";
+export { SuperAdminGuard, useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
+export { default as AdminPageHeader } from "@/features/admin/shared/AdminPageHeader";
+export { default as QuickLinks } from "@/features/admin/shared/QuickLinks";
+export { RealtimeNotifications } from "@/features/admin/shared/RealtimeNotifications";
 
 // ============================================
-// ROOT-LEVEL COMPONENTS
+// SETTINGS COMPONENTS
 // ============================================
-export { default as AddTransactionDialog } from "@/features/admin/transactions/AddTransactionDialog";
-export { default as AdminInvites } from "./AdminInvites";
-export { default as AdminPageHeader } from "./AdminPageHeader";
-export { default as AdminUsersList } from "./AdminUsersList";
-export { DataIntegrityPanel } from "./DataIntegrityPanel";
-export { FinancialSnapshot } from "./FinancialSnapshot";
-export { default as FundAUMBar } from "./FundAUMBar";
-export { default as QuickLinks } from "./QuickLinks";
-export { RealtimeNotifications } from "./RealtimeNotifications";
-export { RoleChangeConfirmDialog } from "./RoleChangeConfirmDialog";
+export { default as AdminInvites } from "@/features/admin/settings/components/AdminInvites";
+export { default as AdminUsersList } from "@/features/admin/settings/components/AdminUsersList";
+export { RoleChangeConfirmDialog } from "@/features/admin/settings/components/RoleChangeConfirmDialog";
+
 // ============================================
-// SUBDIRECTORY RE-EXPORTS
+// SYSTEM COMPONENTS
+// ============================================
+export { DataIntegrityPanel } from "@/features/admin/system/components/DataIntegrityPanel";
+export { FinancialSnapshot } from "@/features/admin/system/components/FinancialSnapshot";
+export { default as FundAUMBar } from "@/features/admin/system/components/FundAUMBar";
+
+// ============================================
+// DOMAIN RE-EXPORTS
 // ============================================
 export * from "@/features/admin/dashboard";
 export * from "./investors";
-export * from "./withdrawals";
-export * from "./deposits";
-export * from "./yields";
-export * from "./funds";
-// Operations components
-export { OperationsStats, PendingItemsBreakdown, QuickLinksGrid, SystemStatus } from "./operations";
-export * from "./reports";
+export * from "@/features/admin/withdrawals/components";
+export * from "@/features/admin/deposits/components";
+export * from "@/features/admin/yields/components";
+export * from "@/features/admin/funds/components";
+export * from "@/features/admin/operations/components";
+export * from "@/features/admin/reports/components";
 export * from "@/features/admin/transactions";
-export * from "./statements";
-export * from "./assets";
-export * from "./investments";
-export * from "./maintenance";
+export { default as AddTransactionDialog } from "@/features/admin/transactions/AddTransactionDialog";
+export * from "@/features/admin/system/components";

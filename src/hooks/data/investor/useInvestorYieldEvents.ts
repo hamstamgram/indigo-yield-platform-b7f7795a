@@ -4,6 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   getInvestorVisibleYield,
   getInvestorYieldSummaryByFund,
@@ -23,7 +24,13 @@ export function useInvestorYieldEvents(
   }
 ) {
   return useQuery({
-    queryKey: ["investorYieldEvents", investorId, options],
+    queryKey: QUERY_KEYS.investorYieldEventsInvestor(
+      investorId,
+      options?.year,
+      options?.month,
+      options?.fundId,
+      options?.limit
+    ),
     queryFn: () => getInvestorVisibleYield(investorId, options),
     enabled: !!investorId,
   });
@@ -32,13 +39,9 @@ export function useInvestorYieldEvents(
 /**
  * Hook to get yield summary by fund for an investor
  */
-export function useInvestorYieldSummary(
-  investorId: string,
-  year?: number,
-  month?: number
-) {
+export function useInvestorYieldSummary(investorId: string, year?: number, month?: number) {
   return useQuery({
-    queryKey: ["investorYieldSummary", investorId, year, month],
+    queryKey: QUERY_KEYS.investorYieldSummary(investorId, year, month),
     queryFn: () => getInvestorYieldSummaryByFund(investorId, year, month),
     enabled: !!investorId,
   });
@@ -49,7 +52,7 @@ export function useInvestorYieldSummary(
  */
 export function useInvestorCumulativeYield(investorId: string) {
   return useQuery({
-    queryKey: ["investorCumulativeYield", investorId],
+    queryKey: QUERY_KEYS.investorCumulativeYield(investorId),
     queryFn: () => getInvestorCumulativeYield(investorId),
     enabled: !!investorId,
   });

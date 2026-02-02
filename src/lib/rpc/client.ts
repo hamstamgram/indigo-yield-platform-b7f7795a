@@ -97,7 +97,9 @@ export async function call<T extends RPCFunctionName>(
     validateParams(functionName, params);
 
     // Check rate limiting for sensitive mutations
-    const isMutation = Object.values(CANONICAL_MUTATION_RPCS).includes(functionName as any);
+    const isMutation = (Object.values(CANONICAL_MUTATION_RPCS) as string[]).includes(
+      String(functionName)
+    );
     if (isMutation) {
       // Extract actor ID from params if available
       const p = params as Record<string, unknown>;

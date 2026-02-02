@@ -36,6 +36,7 @@ export async function callRpc<T extends keyof RpcFunctions>(
   functionName: T,
   args: RpcArgs<T>
 ): Promise<{ data: RpcReturns<T> | null; error: any }> {
+  // Intentional: Generic RPC wrapper requires dynamic args type - validated at compile time via RpcArgs<T>
   const result = await rpc.call(functionName, args as any);
   return {
     data: result.data as RpcReturns<T> | null,
@@ -59,6 +60,7 @@ export async function callRpcOrThrow<T extends keyof RpcFunctions>(
   functionName: T,
   args: RpcArgs<T>
 ): Promise<RpcReturns<T>> {
+  // Intentional: Generic RPC wrapper requires dynamic args type - validated at compile time via RpcArgs<T>
   const result = await rpc.call(functionName, args as any);
 
   if (result.error) {

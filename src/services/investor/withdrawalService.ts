@@ -439,8 +439,6 @@ export const withdrawalService = {
     return { correlationId: corrId };
   },
 
-  // REMOVED: fetchInvestorOptions() - Use fetchInvestorsForSelector from investorDataService directly
-
   /**
    * Fetch investor positions with positive balance for withdrawal forms
    * Returns only positions with current_value > 0

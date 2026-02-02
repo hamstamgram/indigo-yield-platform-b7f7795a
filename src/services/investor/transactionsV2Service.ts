@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { logError } from "@/lib/logger";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface TransactionRecord {
   id: string;
@@ -57,7 +58,7 @@ class TransactionsRecordService {
     }
 
     if (filters?.type) {
-      query = query.eq("type", filters.type as any);
+      query = query.eq("type", filters.type as Database["public"]["Enums"]["tx_type"]);
     }
 
     if (filters?.startDate) {

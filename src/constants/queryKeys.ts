@@ -28,6 +28,11 @@ export const QUERY_KEYS = {
   fundsWithAum: (fundIds?: string[]) =>
     fundIds ? (["funds-with-aum", fundIds] as const) : (["funds-with-aum"] as const),
   aumExists: (fundId: string, txDate: string) => ["aum-exists", fundId, txDate] as const,
+  fundLiveAum: (fundId?: string) =>
+    fundId ? (["fund-live-aum", fundId] as const) : (["fund-live-aum"] as const),
+  fundAumEvents: (fundId?: string, dateRange?: string, includeVoided?: boolean) =>
+    ["fund-aum-events", fundId, dateRange, includeVoided] as const,
+  fundsAvailable: ["funds", "available"] as const,
 
   // ============ Investors (Unified Namespace) ============
   /**
@@ -74,6 +79,18 @@ export const QUERY_KEYS = {
   perAssetStats: ["investors", "per-asset-stats"] as const,
   unifiedInvestors: ["investors", "unified"] as const,
   adminInvestors: ["investors", "admin"] as const,
+  investorsForTransaction: ["investors", "for-transaction"] as const,
+  investorProfileWithFund: (investorId: string) =>
+    ["investor", "profile-with-fund", investorId] as const,
+  investorLivePositions: (userId?: string) =>
+    userId
+      ? (["investor-live-positions", userId] as const)
+      : (["investor-live-positions"] as const),
+  investorProfileSettings: (investorId: string) =>
+    ["investor-profile-settings", investorId] as const,
+  investorReportPeriods: (investorId: string) => ["investor-report-periods", investorId] as const,
+  availableBalance: (investorId: string, fundId: string) =>
+    ["available-balance", investorId, fundId] as const,
 
   // ============ Transactions (Unified Namespace) ============
   /**
@@ -82,6 +99,7 @@ export const QUERY_KEYS = {
    */
   transactions: (filters?: unknown) =>
     filters ? (["transactions", "list", filters] as const) : (["transactions"] as const),
+  adminTransactions: ["admin", "transactions"] as const,
   adminTransactionsHistory: (filters?: Record<string, unknown>) =>
     filters
       ? (["transactions", "admin-history", filters] as const)
@@ -90,6 +108,9 @@ export const QUERY_KEYS = {
     limit
       ? (["transactions", "investor", investorId, limit] as const)
       : (["transactions", "investor", investorId] as const),
+  investorTransactionSummary: (investorId: string) =>
+    ["investor", "transaction-summary", investorId] as const,
+  investorRecentTransactions: ["investor-recent-transactions"] as const,
   pendingTransactions: (searchTerm?: string) =>
     searchTerm
       ? (["transactions", "pending", searchTerm] as const)
@@ -101,6 +122,11 @@ export const QUERY_KEYS = {
     searchTerm ? (["transactions", "v2", searchTerm] as const) : (["transactions", "v2"] as const),
   pendingTransactionDetails: (type: string, id: string) =>
     ["transactions", "pending-details", type, id] as const,
+  adminTransactionFormInvestors: ["admin", "transaction-form", "investors"] as const,
+  adminTransactionFormFunds: ["admin", "transaction-form", "funds"] as const,
+  adminAumCheck: (fundId: string, date: string) => ["admin", "aum-check", fundId, date] as const,
+  adminBalanceCheck: (investorId: string, fundId: string) =>
+    ["admin", "balance-check", investorId, fundId] as const,
 
   // ============ Yield ============
   yieldDistributions: (fundId?: string) =>
@@ -115,6 +141,7 @@ export const QUERY_KEYS = {
     fundId ? (["yield-corrections", fundId] as const) : (["yield-corrections"] as const),
   yieldCorrectionHistory: (fundId?: string, startDate?: string, endDate?: string) =>
     ["yield-correction-history", fundId, startDate, endDate] as const,
+  deprecatedFundYieldSnapshots: ["deprecated-fund-yield-snapshots"] as const,
 
   // ============ Allocations ============
   feeAllocations: (fundId?: string) =>
@@ -130,6 +157,7 @@ export const QUERY_KEYS = {
       ? (["withdrawals", "requests", searchTerm] as const)
       : (["withdrawals", "requests"] as const),
   withdrawalRequestsAdmin: ["withdrawals", "requests-admin"] as const,
+  adminWithdrawalRequests: ["admin", "withdrawal-requests"] as const,
   pendingWithdrawals: ["withdrawals", "pending"] as const,
   pendingWithdrawalsCount: ["withdrawals", "pending-count"] as const,
   withdrawalDetails: (id: string) => ["withdrawals", "details", id] as const,
@@ -137,6 +165,8 @@ export const QUERY_KEYS = {
   withdrawalAuditLogs: (id: string) => ["withdrawals", "audit-logs", id] as const,
   withdrawalHistory: (userId?: string) =>
     userId ? (["withdrawals", "history", userId] as const) : (["withdrawals", "history"] as const),
+  adminInvestorWithdrawals: (investorId: string, statusFilter?: string) =>
+    ["admin", "investor-withdrawals", investorId, statusFilter] as const,
 
   // ============ Deposits ============
   deposits: ["deposits"] as const,
@@ -147,6 +177,13 @@ export const QUERY_KEYS = {
   // ============ Dashboard ============
   dashboardStats: ["dashboard", "stats"] as const,
   adminDashboard: ["dashboard", "admin"] as const,
+  recentActivities: ["recent-activities"] as const,
+  liquidityRisk: ["liquidity-risk"] as const,
+  concentrationRisk: ["concentration-risk"] as const,
+  platformMetrics: ["platform-metrics"] as const,
+  livePlatformMetrics: ["live-platform-metrics"] as const,
+  liveFundSummary: (fundId?: string) =>
+    fundId ? (["live-fund-summary", fundId] as const) : (["live-fund-summary"] as const),
 
   // ============ IB (Introducing Broker) ============
   ibSettings: ["ib", "settings"] as const,
@@ -187,6 +224,9 @@ export const QUERY_KEYS = {
 
   // ============ Reports & Statements ============
   reports: ["reports"] as const,
+  reportsHistory: (filters?: Record<string, unknown>) =>
+    filters ? (["reports", "history", filters] as const) : (["reports", "history"] as const),
+  reportRecipients: (investorId: string) => ["admin", "report-recipients", investorId] as const,
   statements: ["statements"] as const,
   statementsAdmin: ["statements", "admin"] as const,
   statementsMonth: (month: string) => ["statements", "month", month] as const,
@@ -208,6 +248,7 @@ export const QUERY_KEYS = {
   statementDeliveryStatus: (statementId?: string, investorId?: string, periodId?: string) =>
     ["statements", "delivery-status", statementId, investorId, periodId] as const,
   lastStatementPeriod: ["statements", "last-period"] as const,
+  performanceHistoryGrouped: ["performance-history-grouped"] as const,
 
   // ============ Deliveries ============
   deliveries: (periodId?: string, filters?: Record<string, unknown>) =>
@@ -236,18 +277,34 @@ export const QUERY_KEYS = {
   // ============ Admin Settings ============
   platformSettings: ["admin", "platform-settings"] as const,
   ibs: ["admin", "ibs"] as const,
+  ibUsers: ["admin", "ib-users"] as const,
+
+  // ============ Approvals ============
+  approvals: ["approvals"] as const,
+  approvalsPending: ["approvals", "pending"] as const,
+  approvalsPendingForUser: (userId: string) =>
+    ["approvals", "pending", "for-user", userId] as const,
+  approvalsMyRequests: (userId: string) => ["approvals", "pending", "my-requests", userId] as const,
+  approvalsHistory: ["approvals", "history"] as const,
+  approvalsThresholds: ["approvals", "thresholds"] as const,
+  approvalsPendingCount: (userId: string) => ["approvals", "pending-count", userId] as const,
+  approvalsIntegrity: ["approvals", "integrity"] as const,
 
   // ============ User & Auth ============
   userRoles: (userId?: string) =>
     userId ? (["user", "roles", userId] as const) : (["user", "roles"] as const),
   userIbRole: (userId?: string) =>
     userId ? (["user", "ib-role", userId] as const) : (["user", "ib-role"] as const),
+  emailVerification: (tokenHash: string) => ["email-verification", tokenHash] as const,
 
   // ============ Integrity & System ============
   integrityDashboard: ["integrity", "dashboard"] as const,
   integrityAuditEvents: ["integrity", "audit-events"] as const,
   dataIntegrity: ["integrity", "data"] as const,
   auditLog: ["audit-log"] as const,
+  auditLogs: (filters?: Record<string, unknown> | undefined) =>
+    filters ? (["audit-logs", filters] as const) : (["audit-logs"] as const),
+  adminAlertsCount: ["admin-alerts-count"] as const,
   // P1 Integrity Operations
   adminIntegrityRuns: (limit?: number) =>
     limit !== undefined
@@ -289,6 +346,8 @@ export const QUERY_KEYS = {
   // ============ Profiles ============
   profiles: ["profiles"] as const,
   profile: (id: string) => ["profiles", id] as const,
+  currentProfile: ["profiles", "current"] as const,
+  isSuperAdmin: ["profiles", "is-super-admin"] as const,
 
   // ============ Notifications ============
   notifications: ["notifications"] as const,
@@ -296,6 +355,7 @@ export const QUERY_KEYS = {
 
   // ============ Admin Fees ============
   adminFeesOverview: ["admin", "fees-overview"] as const,
+  feeSchedule: (investorId: string) => ["fee-schedule", investorId] as const,
 
   // ============ Positions ============
   // REMOVED: positions() - use investorPositions() instead (line 42-45)
@@ -327,17 +387,17 @@ export const QUERY_KEYS = {
 
   // ============ Admin Investor Detail ============
   adminInvestorOpsIndicators: (investorId: string) =>
-    ["admin", "investor", "opsIndicators", investorId] as const,
+    ["admin", "investor", "ops-indicators", investorId] as const,
   adminInvestorPositions: (investorId: string) =>
     ["admin", "investor", "positions", investorId] as const,
   adminInvestorActivePositions: (investorId: string) =>
-    ["admin", "investor", "activePositions", investorId] as const,
+    ["admin", "investor", "active-positions", investorId] as const,
   adminInvestorPerformance: ["admin", "investor-performance"] as const,
   adminPendingWithdrawalsCount: (investorId: string) =>
     ["admin", "pending-withdrawals-count", investorId] as const,
 
   // ============ Command Palette ============
-  adminInvestorSearch: ["admin", "investorSearch"] as const,
+  adminInvestorSearch: ["admin", "investor-search"] as const,
 
   // ============ Report Data ============
   historicalDataSummary: ["historical-data-summary"] as const,
@@ -352,17 +412,17 @@ export const QUERY_KEYS = {
     ["report-statements", investorId, start, end] as const,
 
   // ============ Portfolio (Investor) ============
-  withdrawalFormPositions: ["withdrawalFormPositions"] as const,
-  myWithdrawalsWithFunds: ["myWithdrawalsWithFunds"] as const,
+  withdrawalFormPositions: ["withdrawal-form-positions"] as const,
+  myWithdrawalsWithFunds: ["my-withdrawals-with-funds"] as const,
 
   // ============ System Admin ============
-  resetHistory: ["resetHistory"] as const,
-  positionResetPreview: ["positionResetPreview"] as const,
-  adminUsers: ["adminUsers"] as const,
-  adminUsersWithRoles: ["adminUsersWithRoles"] as const,
+  resetHistory: ["reset-history"] as const,
+  positionResetPreview: ["position-reset-preview"] as const,
+  adminUsers: ["admin-users"] as const,
+  adminUsersWithRoles: ["admin-users-with-roles"] as const,
   adminUsersAll: ["admin", "users", "all"] as const,
-  adminSuperAdmin: (userId: string) => ["admin", "superAdmin", userId] as const,
-  adminPendingCounts: ["admin", "pendingCounts"] as const,
+  adminSuperAdmin: (userId: string) => ["admin", "super-admin", userId] as const,
+  adminPendingCounts: ["admin", "pending-counts"] as const,
   adminFundsActive: ["admin", "funds", "active"] as const,
 
   // ============ Operations Hub ============
@@ -387,7 +447,7 @@ export const QUERY_KEYS = {
   latestPerformance: (investorId: string, assetCode: string) =>
     ["latest-performance", investorId, assetCode] as const,
   activeInvestorsStatements: ["active-investors-statements"] as const,
-  investorMonthlyReports: (investorId: string) => ["investorMonthlyReports", investorId] as const,
+  investorMonthlyReports: (investorId: string) => ["investor-monthly-reports", investorId] as const,
 
   // ============ Withdrawal Form ============
   investorOptions: ["investor-options"] as const,
@@ -397,15 +457,15 @@ export const QUERY_KEYS = {
   // ============ AUM Reconciliation ============
   aumReconciliation: (fundId?: string, tolerancePct?: number) =>
     fundId
-      ? (["aumReconciliation", fundId, tolerancePct] as const)
-      : (["aumReconciliation"] as const),
+      ? (["aum-reconciliation", fundId, tolerancePct] as const)
+      : (["aum-reconciliation"] as const),
 
   // ============ Yield Operations ============
   activeFundsWithAUM: ["active-funds-with-aum"] as const,
   fundInvestorComposition: (fundId?: string) =>
     fundId
-      ? (["fundInvestorComposition", fundId] as const)
-      : (["fundInvestorComposition"] as const),
+      ? (["fund-investor-composition", fundId] as const)
+      : (["fund-investor-composition"] as const),
   /** Historical AUM as of a specific date - authoritative read path for yield ops */
   fundAumAsOf: (fundId?: string | null, asOfDate?: string | null, purpose?: string) =>
     fundId && asOfDate
@@ -419,37 +479,37 @@ export const QUERY_KEYS = {
     month?: number,
     fundId?: string,
     limit?: number
-  ) => ["investorYieldEvents", investorId, year, month, fundId, limit] as const,
+  ) => ["investor-yield-events-investor", investorId, year, month, fundId, limit] as const,
   investorYieldSummary: (investorId?: string, year?: number, month?: number) =>
-    ["investorYieldSummary", investorId, year, month] as const,
+    ["investor-yield-summary", investorId, year, month] as const,
   investorCumulativeYield: (investorId?: string) =>
-    ["investorCumulativeYield", investorId] as const,
+    ["investor-cumulative-yield", investorId] as const,
 
   // ============ Investor Yield Data ============
-  statementPeriodId: (year: number, month: number) => ["statementPeriodId", year, month] as const,
+  statementPeriodId: (year: number, month: number) => ["statement-period-id", year, month] as const,
   investorPositionsWithFunds: (investorId: string) =>
-    ["investorPositionsWithFunds", investorId] as const,
+    ["investor-positions-with-funds", investorId] as const,
   investorPerformanceForPeriod: (investorId: string, periodId?: string) =>
-    ["investorPerformanceForPeriod", investorId, periodId] as const,
-  investorFeeSchedule: (investorId: string) => ["investorFeeSchedule", investorId] as const,
+    ["investor-performance-for-period", investorId, periodId] as const,
+  investorFeeSchedule: (investorId: string) => ["investor-fee-schedule", investorId] as const,
 
   // ============ Investor Portal ============
   investorProfile: (userId?: string) =>
-    userId ? (["investorProfile", userId] as const) : (["investorProfile"] as const),
+    userId ? (["investor-profile", userId] as const) : (["investor-profile"] as const),
   userPreferences: (userId?: string) =>
-    userId ? (["userPreferences", userId] as const) : (["userPreferences"] as const),
+    userId ? (["user-preferences", userId] as const) : (["user-preferences"] as const),
   activeSessions: (userId?: string) =>
-    userId ? (["activeSessions", userId] as const) : (["activeSessions"] as const),
+    userId ? (["active-sessions", userId] as const) : (["active-sessions"] as const),
   accessLogs: (userId?: string, limit?: number) =>
     limit !== undefined
-      ? (["accessLogs", userId, limit] as const)
-      : (["accessLogs", userId] as const),
+      ? (["access-logs", userId, limit] as const)
+      : (["access-logs", userId] as const),
 
   // ============ Profile Settings ============
-  personalInfo: (userId: string) => ["profile", "personalInfo", userId] as const,
-  notificationPrefs: (userId: string) => ["profile", "notificationPrefs", userId] as const,
-  userEmail: ["profile", "userEmail"] as const,
-  localPreferences: ["profile", "localPreferences"] as const,
+  personalInfo: (userId: string) => ["profile", "personal-info", userId] as const,
+  notificationPrefs: (userId: string) => ["profile", "notification-prefs", userId] as const,
+  userEmail: ["profile", "user-email"] as const,
+  localPreferences: ["profile", "local-preferences"] as const,
 
   // ============ Transaction History ============
   transactionHistory: (investorId?: string, fundId?: string) =>

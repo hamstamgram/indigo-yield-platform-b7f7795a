@@ -57,7 +57,7 @@ export function usePerformanceHistory() {
   const { user, loading } = useAuth();
 
   return useQuery({
-    queryKey: ["performance-history-grouped"],
+    queryKey: QUERY_KEYS.performanceHistoryGrouped,
     queryFn: async (): Promise<Record<string, PerformanceHistoryRecord[]>> => {
       if (!user) throw new Error("Not authenticated");
       return performanceService.getPerformanceHistoryGrouped(user.id);

@@ -1,17 +1,6 @@
 /**
- * Fund-related admin hooks
+ * Fund-related admin hooks - Re-exports from features/admin
  */
 
-// useFundsWithMetrics
-export {
-  useFundsWithMetrics,
-  useArchiveFund,
-  useRestoreFund,
-  type FundWithMetrics,
-} from "../useFundsWithMetrics";
-
-// useFundAUMEvents
-export {
-  useFundAUMEvents,
-  type FundAUMEvent,
-} from "../useFundAUMEvents";
+export * from "@/features/admin/funds/hooks/useFundsWithMetrics";
+export * from "@/features/admin/funds/hooks/useFundAUMEvents";

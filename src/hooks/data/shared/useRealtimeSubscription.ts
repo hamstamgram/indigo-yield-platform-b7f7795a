@@ -47,6 +47,7 @@ export function useRealtimeSubscription(config: SubscriptionConfig) {
     const channel = supabase
       .channel(finalChannelName)
       .on(
+        // Intentional: Supabase realtime channel type definition incomplete for postgres_changes
         "postgres_changes" as any,
         {
           event: "*",
@@ -95,6 +96,7 @@ export function useLedgerSubscription(investorId: string, onInvalidate: () => vo
     const channel = supabase
       .channel(`ledger-${investorId}`)
       .on(
+        // Intentional: Supabase realtime channel type definition incomplete for postgres_changes
         "postgres_changes" as any,
         {
           event: "*",

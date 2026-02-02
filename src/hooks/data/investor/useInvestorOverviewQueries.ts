@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { STALE_TIME } from "@/constants/queryConfig";
+import type { StatementPeriodRelation } from "@/types/domains/relations";
 
 /**
  * Fetch recent transactions for the current investor
@@ -90,7 +91,10 @@ export function useLastStatementPeriod() {
         .maybeSingle();
 
       if (error || !data) return null;
-      return (data?.period as any)?.period_name || null;
+      return (
+        ((data as { period?: unknown })?.period as StatementPeriodRelation | undefined)
+          ?.period_name || null
+      );
     },
     staleTime: STALE_TIME.REFERENCE,
     refetchOnWindowFocus: true,

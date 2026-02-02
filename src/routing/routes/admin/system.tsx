@@ -7,19 +7,21 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettings"));
-const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
-const MaintenancePage = lazy(() => import("@/pages/admin/MaintenancePage"));
-const AdminListPage = lazy(() => import("@/pages/admin/settings/AdminList"));
-const AdminToolsPage = lazy(() => import("@/pages/admin/settings/AdminToolsPage"));
-const AdminInvitesPage = lazy(() => import("@/pages/admin/settings/AdminInvitesPage"));
-const SystemHealthPage = lazy(() => import("@/pages/admin/system-health/SystemHealthPage"));
-const IntegrityDashboardPage = lazy(() => import("@/pages/admin/IntegrityDashboardPage"));
-const CrystallizationDashboardPage = lazy(
-  () => import("@/pages/admin/CrystallizationDashboardPage")
+const AdminSettingsPage = lazy(() => import("@/features/admin/settings/pages/AdminSettings"));
+const AdminAuditLogs = lazy(() => import("@/features/admin/system/pages/AuditLogViewer"));
+const MaintenancePage = lazy(() => import("@/features/admin/system/pages/MaintenancePage"));
+const AdminListPage = lazy(() => import("@/features/admin/settings/pages/AdminList"));
+const AdminToolsPage = lazy(() => import("@/features/admin/settings/pages/AdminToolsPage"));
+const AdminInvitesPage = lazy(() => import("@/features/admin/settings/pages/AdminInvitesPage"));
+const SystemHealthPage = lazy(() => import("@/features/admin/system/pages/SystemHealthPage"));
+const IntegrityDashboardPage = lazy(
+  () => import("@/features/admin/system/pages/IntegrityDashboardPage")
 );
-const DuplicatesPage = lazy(() => import("@/pages/admin/DuplicatesPage"));
-const BypassAttemptsPage = lazy(() => import("@/pages/admin/BypassAttemptsPage"));
+const CrystallizationDashboardPage = lazy(
+  () => import("@/features/admin/yields/pages/CrystallizationDashboardPage")
+);
+const DuplicatesPage = lazy(() => import("@/features/admin/operations/pages/DuplicatesPage"));
+const BypassAttemptsPage = lazy(() => import("@/features/admin/system/pages/BypassAttemptsPage"));
 
 export function SystemRoutes() {
   return (

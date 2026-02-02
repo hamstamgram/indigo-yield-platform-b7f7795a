@@ -27,6 +27,7 @@ import {
   Button,
   Badge,
 } from "@/components/ui";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { cn } from "@/lib/utils";
 import { AdminGuard, FinancialSnapshot } from "@/components/admin";
 import {
@@ -39,7 +40,7 @@ import { useAdminStats } from "@/hooks";
 import {
   useUnacknowledgedAlertCount,
   useRealtimeAlerts,
-} from "@/hooks/data/admin/useRealtimeAlerts";
+} from "@/features/admin/system/hooks/useRealtimeAlerts";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -57,9 +58,9 @@ function AdminDashboardContent() {
   const handleRefreshRiskData = async () => {
     setIsRefreshing(true);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["liquidity-risk"] }),
-      queryClient.invalidateQueries({ queryKey: ["concentration-risk"] }),
-      queryClient.invalidateQueries({ queryKey: ["platform-metrics"] }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.liquidityRisk }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.concentrationRisk }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.platformMetrics }),
     ]);
     setIsRefreshing(false);
   };

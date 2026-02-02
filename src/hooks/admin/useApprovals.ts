@@ -7,28 +7,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { approvalService } from "@/services/admin/approvalService";
 import { useAuth } from "@/services/auth";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import type {
   PendingApproval,
   ApprovalHistoryItem,
   RequestApprovalInput,
 } from "@/types/domains/approval";
 
-const APPROVAL_KEYS = {
-  pending: ["approvals", "pending"],
-  pendingForUser: (userId: string) => ["approvals", "pending", "forUser", userId],
-  myRequests: (userId: string) => ["approvals", "pending", "myRequests", userId],
-  history: ["approvals", "history"],
-  thresholds: ["approvals", "thresholds"],
-  pendingCount: (userId: string) => ["approvals", "pendingCount", userId],
-  integrity: ["approvals", "integrity"],
-};
-
 /**
  * Fetch all pending approvals
  */
 export function usePendingApprovals() {
   return useQuery({
-    queryKey: APPROVAL_KEYS.pending,
+    queryKey: QUERY_KEYS.approvalsPending,
     queryFn: () => approvalService.getPendingApprovals(),
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refresh every minute
@@ -43,7 +34,7 @@ export function usePendingForUser() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: APPROVAL_KEYS.pendingForUser(user?.id || ""),
+    queryKey: QUERY_KEYS.approvalsPendingForUser(user?.id || ""),
     queryFn: () => approvalService.getPendingForUser(user!.id),
     enabled: !!user?.id,
     staleTime: 30000,
@@ -58,7 +49,7 @@ export function useMyPendingRequests() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: APPROVAL_KEYS.myRequests(user?.id || ""),
+    queryKey: QUERY_KEYS.approvalsMyRequests(user?.id || ""),
     queryFn: () => approvalService.getMyPendingRequests(user!.id),
     enabled: !!user?.id,
     staleTime: 30000,
@@ -70,7 +61,7 @@ export function useMyPendingRequests() {
  */
 export function useApprovalHistory(limit = 50) {
   return useQuery({
-    queryKey: APPROVAL_KEYS.history,
+    queryKey: QUERY_KEYS.approvalsHistory,
     queryFn: () => approvalService.getApprovalHistory(limit),
     staleTime: 60000,
   });
@@ -81,7 +72,7 @@ export function useApprovalHistory(limit = 50) {
  */
 export function useApprovalThresholds() {
   return useQuery({
-    queryKey: APPROVAL_KEYS.thresholds,
+    queryKey: QUERY_KEYS.approvalsThresholds,
     queryFn: () => approvalService.getThresholds(),
     staleTime: 300000, // 5 minutes - thresholds don't change often
   });
@@ -94,7 +85,7 @@ export function usePendingApprovalCount() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: APPROVAL_KEYS.pendingCount(user?.id || ""),
+    queryKey: QUERY_KEYS.approvalsPendingCount(user?.id || ""),
     queryFn: () => approvalService.getPendingCount(user!.id),
     enabled: !!user?.id,
     staleTime: 30000,
@@ -107,7 +98,7 @@ export function usePendingApprovalCount() {
  */
 export function useApprovalIntegrity() {
   return useQuery({
-    queryKey: APPROVAL_KEYS.integrity,
+    queryKey: QUERY_KEYS.approvalsIntegrity,
     queryFn: () => approvalService.checkIntegrity(),
     staleTime: 300000,
   });
@@ -121,7 +112,7 @@ export function useApprovalMutations() {
   const { user } = useAuth();
 
   const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ["approvals"] });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.approvals });
   };
 
   // Request approval

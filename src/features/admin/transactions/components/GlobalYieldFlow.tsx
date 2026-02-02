@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useYieldOperationsState } from "@/hooks/admin/useYieldOperationsState";
-import { YieldInputForm, YieldPreviewResults, YieldConfirmDialog } from "@/components/admin/yields";
-import { usePendingYieldEvents } from "@/hooks/data/admin/useYieldCrystallization";
-import { useAUMReconciliation } from "@/hooks/data/admin/useAUMReconciliation";
+import { YieldInputForm } from "@/features/admin/yields/components/YieldInputForm";
+import { YieldPreviewResults } from "@/features/admin/yields/components/YieldPreviewResults";
+import { YieldConfirmDialog } from "@/features/admin/yields/components/YieldConfirmDialog";
+import { usePendingYieldEvents } from "@/features/admin/yields/hooks/useYieldCrystallization";
+import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { getMonth, getYear } from "date-fns";
 
 interface GlobalYieldFlowProps {

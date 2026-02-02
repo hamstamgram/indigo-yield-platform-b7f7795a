@@ -1,22 +1,5 @@
 /**
- * Fee-related admin hooks
+ * Fee-related admin hooks - Re-exports from features/admin
  */
 
-// useFees
-export { 
-  useFeesOverview,
-  useFeeFunds,
-  useFeeTransactions,
-  useIndigoFeesBalance,
-  useFeeAllocations,
-  useRoutingAuditEntries,
-  useYieldEarned,
-  type FeesOverviewData,
-  type FeeRecord,
-  type Fund as FeeFund,
-  type FeeAllocation,
-  type RoutingAuditEntry,
-  type RoutingSummary,
-  type YieldEarned,
-  type FeeSummary,
-} from "../useFees";
+export * from "@/features/admin/fees/hooks/useFees";

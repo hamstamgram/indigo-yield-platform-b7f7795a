@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { WizardFormData } from "@/components/admin/investors/wizard/types";
+import { WizardFormData } from "@/features/admin/investors/components/wizard/types";
 import { addCsrfHeader } from "@/lib/security/csrf";
 import { logError, logWarn } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
@@ -92,9 +92,9 @@ async function createInvestorUser(params: {
   if (error) {
     // Check if user already exists
     let errorMessage = error.message || "Failed to create investor";
-    
+
     try {
-      if (error.context && typeof error.context.json === 'function') {
+      if (error.context && typeof error.context.json === "function") {
         const errorBody = await error.context.json();
         errorMessage = errorBody?.error || errorMessage;
       }
@@ -196,18 +196,19 @@ export async function createInvestorWithWizard(
       .eq("id", investorId);
 
     if (profileError) {
-      logWarn("createInvestorWithWizard.profileUpdate", { investorId, error: profileError.message });
+      logWarn("createInvestorWithWizard.profileUpdate", {
+        investorId,
+        error: profileError.message,
+      });
       // Don't throw - investor is created, just log warning
     }
 
     // Step 4: Create fee schedule entry
-    const { error: feeError } = await supabase
-      .from("investor_fee_schedule")
-      .insert({
-        investor_id: investorId,
-        fee_pct: fees.investor_fee_pct,
-        effective_date: getTodayString(),
-      });
+    const { error: feeError } = await supabase.from("investor_fee_schedule").insert({
+      investor_id: investorId,
+      fee_pct: fees.investor_fee_pct,
+      effective_date: getTodayString(),
+    });
 
     if (feeError) {
       logWarn("createInvestorWithWizard.feeSchedule", { investorId, error: feeError.message });
@@ -220,17 +221,20 @@ export async function createInvestorWithWizard(
     if (positivePositions.length > 0) {
       // Get the effective date from wizard data (with fallback to today)
       const effectiveDate = wizardData.positionsEffectiveDate || getTodayString();
-      
+
       // CRITICAL: Only select ACTIVE funds to prevent duplicate positions on deprecated funds
       const { data: allFunds } = await supabase
         .from("funds")
         .select("id, asset")
         .eq("status", "active")
-        .in("asset", positivePositions.map(([s]) => s));
+        .in(
+          "asset",
+          positivePositions.map(([s]) => s)
+        );
 
       // Deduplicate funds by asset - ensure only ONE fund per asset
       const fundsByAsset = new Map<string, { id: string; asset: string }>();
-      allFunds?.forEach(fund => {
+      allFunds?.forEach((fund) => {
         if (!fundsByAsset.has(fund.asset)) {
           fundsByAsset.set(fund.asset, fund);
         }
@@ -239,7 +243,7 @@ export async function createInvestorWithWizard(
 
       if (funds && funds.length > 0) {
         onProgress?.("Creating initial deposit transactions...", "info");
-        
+
         // Use admin_create_transaction RPC for each position
         // This ensures proper ledger entries and position updates
         for (const fund of funds) {
@@ -251,7 +255,9 @@ export async function createInvestorWithWizard(
 
           // Call admin_create_transaction RPC which handles both transaction creation
           // and position update atomically
-          const { data: { user } } = await supabase.auth.getUser();
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
           const { error: txError } = await callRPC("admin_create_transaction", {
             p_investor_id: investorId,
             p_fund_id: fund.id,
@@ -266,11 +272,11 @@ export async function createInvestorWithWizard(
           if (txError) {
             // Log the error but do NOT attempt direct insert fallback
             // Direct inserts to transactions_v2 bypass crystallization and position triggers
-            logError("createInvestorWithWizard.transaction", txError, { 
-              fundAsset: fund.asset, 
+            logError("createInvestorWithWizard.transaction", txError, {
+              fundAsset: fund.asset,
               investorId,
               amount,
-              message: "RPC failed - no fallback to direct insert per governance rules"
+              message: "RPC failed - no fallback to direct insert per governance rules",
             });
             // Continue to next fund rather than throwing - partial success is acceptable
           }
@@ -287,16 +293,17 @@ export async function createInvestorWithWizard(
         verified: false,
       }));
 
-      const { error: emailError } = await supabase
-        .from("investor_emails")
-        .insert(emailRecords);
+      const { error: emailError } = await supabase.from("investor_emails").insert(emailRecords);
 
       if (emailError) {
         logWarn("createInvestorWithWizard.reportEmails", { investorId, error: emailError.message });
       }
     }
 
-    onProgress?.(`Investor ${identity.first_name} ${identity.last_name} created successfully`, "success");
+    onProgress?.(
+      `Investor ${identity.first_name} ${identity.last_name} created successfully`,
+      "success"
+    );
     return { success: true, investorId };
   } catch (error) {
     logError("createInvestorWithWizard", error, { email: identity.email });

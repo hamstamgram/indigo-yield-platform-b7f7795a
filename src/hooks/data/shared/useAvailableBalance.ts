@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 
@@ -23,12 +24,9 @@ export interface AvailableBalanceResult {
  * @param fundId - The fund's UUID
  * @returns Query result with available balance breakdown
  */
-export function useAvailableBalance(
-  investorId: string | null,
-  fundId: string | null
-) {
+export function useAvailableBalance(investorId: string | null, fundId: string | null) {
   return useQuery<AvailableBalanceResult | null>({
-    queryKey: ["available-balance", investorId, fundId],
+    queryKey: QUERY_KEYS.availableBalance(investorId, fundId),
     queryFn: async () => {
       if (!investorId || !fundId) return null;
 

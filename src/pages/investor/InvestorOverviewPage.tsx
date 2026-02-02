@@ -46,7 +46,8 @@ export default function InvestorOverviewPage() {
     channel: `investor-overview-transactions-${user?.id}`,
     table: "transactions_v2",
     filter: user?.id ? `investor_id=eq.${user.id}` : undefined,
-    onChange: () => queryClient.invalidateQueries({ queryKey: ["investor-recent-transactions"] }),
+    onChange: () =>
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorRecentTransactions }),
   });
 
   const isLoading = isLoadingStats || isLoadingTxs || isLoadingWithdrawals;

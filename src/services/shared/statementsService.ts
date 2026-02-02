@@ -5,12 +5,17 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db/index";
+import type { ProfileRelation } from "@/types/domains/relations";
+
+import type { Database } from "@/integrations/supabase/types";
+
+type AssetCode = Database["public"]["Enums"]["asset_code"];
 
 export interface StatementUpsertData {
   investor_id: string;
   period_year: number;
   period_month: number;
-  asset_code: string;
+  asset_code: AssetCode;
   begin_balance: number;
   additions: number;
   redemptions: number;
@@ -37,14 +42,14 @@ class StatementsService {
       investor_id: data.investor_id,
       period_year: data.period_year,
       period_month: data.period_month,
-      asset_code: data.asset_code as any,
+      asset_code: data.asset_code,
       begin_balance: data.begin_balance,
       additions: data.additions,
       redemptions: data.redemptions,
       net_income: data.net_income,
       end_balance: data.end_balance,
       storage_path: data.storage_path || null,
-    } as any);
+    });
 
     if (error) throw new Error(error.userMessage || error.message);
   }
@@ -112,7 +117,7 @@ class StatementsService {
     if (error) throw error;
 
     return (data || []).map((stmt) => {
-      const profile = stmt.profile as any;
+      const profile = (stmt as { profile?: unknown }).profile as ProfileRelation | undefined;
       return {
         ...stmt,
         investor_name: profile

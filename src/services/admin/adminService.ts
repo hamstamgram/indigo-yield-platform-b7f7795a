@@ -131,21 +131,6 @@ class AdminInvestorService {
     }
   }
 
-  // ============================================================================
-  // DEPRECATED METHODS REMOVED (P0 Security Fix - 2026-01-19)
-  // ============================================================================
-  // The following methods were removed because they bypassed RLS, audit logging,
-  // and validation by writing directly to the database:
-  //
-  // - updateWithdrawalStatus() - Use withdrawalService.updateWithdrawalStatus() instead
-  // - approveWithdrawal() - Use withdrawalService.approveWithdrawal() instead
-  // - rejectWithdrawal() - Use withdrawalService.rejectWithdrawal() instead
-  // - startProcessingWithdrawal() - Use withdrawalService.startProcessing() instead
-  //
-  // All withdrawal operations MUST go through the RPC layer via withdrawalService
-  // to ensure proper audit trails, RLS enforcement, and data integrity.
-  // ============================================================================
-
   // Get fund performance data
   async getFundPerformance(fundId?: string): Promise<any[]> {
     try {

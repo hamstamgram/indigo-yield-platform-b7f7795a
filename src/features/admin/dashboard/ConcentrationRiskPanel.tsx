@@ -12,7 +12,10 @@ import {
   TableRow,
 } from "@/components/ui";
 import { PieChart, AlertTriangle } from "lucide-react";
-import { useConcentrationRisk, type ConcentrationRisk } from "@/hooks/data/admin/useRiskAlerts";
+import {
+  useConcentrationRisk,
+  type ConcentrationRisk,
+} from "@/features/admin/system/hooks/useRiskAlerts";
 import { logWarn } from "@/lib/logger";
 
 const concentrationConfig = {

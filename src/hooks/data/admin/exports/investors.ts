@@ -1,8 +1,8 @@
 /**
- * Investor-related admin hooks
+ * Investor-related admin hooks - Re-exports from features/admin
  */
 
-// useInvestorDetail
+// Shared hooks (still in shared location)
 export {
   useInvestorDetail,
   useInvestorOpsIndicators,
@@ -12,10 +12,6 @@ export {
   type OpsIndicators,
   type InvestorPosition as AdminInvestorPosition,
   type InvestorPositionsData as AdminInvestorPositionsData,
-} from "@/hooks/data/shared/useInvestorHooks";
-
-// useAdminInvestorsWithAssets
-export {
   useAdminInvestorsWithAssets,
   useAdminInvestorsList,
   useAdminAssets,
@@ -23,20 +19,16 @@ export {
   type AdminInvestorSummary as AdminInvestorListItem,
 } from "@/hooks/data/shared/useInvestorHooks";
 
-// useAdminInvestorMutations
+// Admin investor hooks from new location
 export {
   usePendingWithdrawalsCount as useAdminPendingWithdrawalsCount,
   useUpdateInvestorStatus as useAdminUpdateInvestorStatus,
   useCleanupInactiveInvestors,
   useUpdateFundPerformance,
-} from "../useAdminInvestorMutations";
+} from "@/features/admin/investors/hooks/useAdminInvestorMutations";
+export * from "@/features/admin/investors/hooks/useInvestorFeeSchedule";
+export * from "@/features/admin/investors/hooks/useAdminInvestorWithdrawals";
 
 // Re-export types from services
 export type { InvestorStatus, CleanupResult } from "@/services/admin/investorLifecycleService";
 export type { PerformanceUpdateData as AdminPerformanceUpdateData } from "@/services/admin/investorPerformanceService";
-
-// useInvestorFeeSchedule
-export { useInvestorFeeSchedule, type FeeScheduleEntry } from "../useInvestorFeeSchedule";
-
-// useAdminInvestorWithdrawals
-export { useAdminInvestorWithdrawals } from "../useAdminInvestorWithdrawals";

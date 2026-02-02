@@ -1,26 +1,7 @@
 /**
- * Withdrawal-related admin hooks
+ * Withdrawal-related admin hooks - Re-exports from features/admin
  */
 
-// useAdminWithdrawals
-export { 
-  useAdminWithdrawals, 
-  useWithdrawalStats,
-  useWithdrawalById,
-  useWithdrawalAuditLogs,
-  useWithdrawalsWithStats,
-  type WithdrawalFilters,
-  type WithdrawalStats,
-  type PaginatedWithdrawals,
-  type Withdrawal,
-  type WithdrawalAuditLog,
-} from "../useAdminWithdrawals";
-
-// useRequestsQueueData
-export { 
-  useWithdrawalRequests, 
-  useDepositsQueue,
-} from "../useRequestsQueueData";
-
-// useRequestsQueueMutations
-export { useRequestsQueueMutations } from "../useRequestsQueueMutations";
+export * from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
+export * from "@/features/admin/operations/hooks/useRequestsQueueData";
+export * from "@/features/admin/operations/hooks/useRequestsQueueMutations";

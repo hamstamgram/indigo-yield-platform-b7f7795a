@@ -26,7 +26,7 @@ export function useFundsWithAUM(baseFunds: Fund[] | undefined) {
  */
 export function useRecentActivities() {
   return useQuery({
-    queryKey: ["recent-activities"],
+    queryKey: QUERY_KEYS.recentActivities,
     queryFn: fetchRecentActivities,
   });
 }

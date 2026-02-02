@@ -35,7 +35,9 @@ export const useUserAssets = () => {
         .eq("investor_id", user.id);
 
       if (!reportsError && reports && reports.length > 0) {
-        const uniqueAssetCodes = Array.from(new Set((reports as any[]).map((r) => r.fund_name)));
+        const uniqueAssetCodes = Array.from(
+          new Set((reports as Array<{ fund_name: string }>).map((r) => r.fund_name))
+        );
         return uniqueAssetCodes.map((code) => ({
           symbol: String(code).toLowerCase(),
           name: assetNames[code] || code,

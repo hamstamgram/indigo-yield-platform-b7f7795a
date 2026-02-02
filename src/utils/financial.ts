@@ -36,9 +36,6 @@ export function toDecimal(value: string | number | Decimal): Decimal {
   return new Decimal(value);
 }
 
-// formatMoney has been removed as it violates the platform's requirement that all assets
-// must be displayed in their native currency. Use formatCrypto() or getAssetConfig() instead.
-
 /**
  * Format cryptocurrency amount
  * @param value - The amount to format
@@ -146,19 +143,6 @@ export function calculateNetAmount(
   const fee = calculateFee(amountDecimal, feePercentage);
   return amountDecimal.minus(fee);
 }
-
-/**
- * REMOVED: calculatePortfolioValue
- *
- * This function has been removed because it violated the platform's fundamental requirement:
- * ALL ASSETS MUST BE DISPLAYED IN THEIR NATIVE CURRENCY.
- *
- * This function was aggregating different asset types (BTC, ETH, SOL, USDT, etc.) into a single
- * USD value, which is strictly prohibited. Each asset must be tracked and displayed separately
- * in its native denomination.
- *
- * For per-asset calculations, use the native asset utilities in utils/assetFormatting.ts
- */
 
 /**
  * Calculate percentage change

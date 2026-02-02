@@ -1,8 +1,8 @@
 /**
- * System administration hooks
+ * System administration hooks - Re-exports from features/admin
  */
 
-// useSystemAdmin
+// useSystemAdmin - with aliases
 export {
   useResetHistory,
   usePositionResetPreview,
@@ -11,85 +11,23 @@ export {
   useAdminUsersWithRoles,
   useRemoveAdminRole,
   useUpdateAdminRole,
+  useCreateAdminInvite,
   useCreateAdminInvite as useCreateSystemAdminInvite,
+  useCreateAdminInvite as useCreateAdminInvitePage,
   useSendAdminInviteEmail,
   useForceResetPassword,
   useDeliveryQueueMetrics,
   useDataIntegrityStatus,
-  type ResetLogEntry,
-  type PositionResetPreview,
-  type PositionResetResult,
-  type AdminProfile,
-  type AdminUser,
-  type DeliveryQueueMetrics,
-  type IntegrityData,
-  type IntegrityCheck,
-} from "../useSystemAdmin";
+} from "@/features/admin/settings/hooks/useSystemAdmin";
+export type { AdminUser } from "@/features/admin/settings/hooks/useSystemAdmin";
 
-// useSystemHealth
-export {
-  useSystemHealth,
-  useOverallSystemStatus,
-  type SystemHealth,
-  type ServiceStatus,
-} from "../useSystemHealth";
-
-// usePlatformSettings
-export {
-  usePlatformSettings,
-  usePlatformSettingsForm,
-  defaultPlatformSettings,
-  type PlatformSettings,
-} from "../usePlatformSettings";
-
-// useAdminUsers (for AdminUsersList component)
-export {
-  useAdminUsersAll as useAdminUsersList,
-  useToggleAdminStatusMutation,
-  useSendAdminInviteMutation,
-  useSuperAdminCheck,
-  type AdminUserProfile,
-  type AdminInviteParams,
-} from "../useAdminUsers";
-
-// useAdminInvites
-export {
-  useIsSuperAdmin,
-  useAdminInvites,
-  useCreateAdminInvite,
-  useSendAdminInvite,
-  useDeleteAdminInvite,
-  useCopyInviteLink,
-  type AdminInvite,
-} from "../useAdminInvites";
-
-// useAdminInvitesPage
-export {
-  useAdminInvitesList,
-  useCreateAdminInvite as useCreateAdminInvitePage,
-  useRevokeAdminInvite,
-  type AdminInvite as AdminInviteItem,
-} from "../useAdminInvitesPage";
-
-// P1 Integrity Operations
-export {
-  useIntegrityRuns,
-  useAdminAlerts,
-  useRunIntegrityCheck,
-  useAcknowledgeAlert,
-  useCrystallizationDashboard,
-  useCrystallizationGaps,
-  useBatchCrystallizeFund,
-  useDuplicateProfiles,
-  useMergeDuplicateProfiles,
-  useBypassAttempts,
-  useLedgerReconciliation,
-} from "../useIntegrityOperations";
-
-// Operations Hub Metrics
-export {
-  useOperationsMetrics,
-  useOperationsSystemHealth,
-  type OperationsMetricsData,
-  type PendingBreakdown,
-} from "../useOperationsMetrics";
+export * from "@/features/admin/system/hooks/useSystemHealth";
+export * from "@/features/admin/settings/hooks/usePlatformSettings";
+export * from "@/features/admin/settings/hooks/useAdminUsers";
+export { useAdminUsersAll as useAdminUsersList } from "@/features/admin/settings/hooks/useAdminUsers";
+export * from "@/features/admin/settings/hooks/useAdminInvites";
+export * from "@/features/admin/settings/hooks/useAdminInvitesPage";
+export type { AdminInvite as AdminInviteItem } from "@/features/admin/settings/hooks/useAdminInvitesPage";
+export * from "@/features/admin/system/hooks/useIntegrityOperations";
+export * from "@/features/admin/operations/hooks/useOperationsMetrics";
+export * from "@/features/admin/system/hooks/useRiskAlerts";

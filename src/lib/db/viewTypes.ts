@@ -206,10 +206,11 @@ export type ViewRow<T extends ViewName> = ViewRegistry[T];
  * Returns a Supabase query builder. Results should be cast to the appropriate ViewRow type.
  *
  * @example
- * const { data } = await queryView("v_liquidity_risk").select("*");
+ * const { data} = await queryView("v_liquidity_risk").select("*");
  * const typedData = data as VLiquidityRisk[];
  */
 export function queryView(viewName: ViewName) {
+  // Intentional: Dynamic view access requires bypassing Supabase's generated table types
   return (supabase as any).from(viewName);
 }
 

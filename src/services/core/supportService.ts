@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 // Adapted to existing support_tickets table schema
 export interface SupportTicket {
@@ -48,8 +49,9 @@ export const supportService = {
           messages_jsonb: [
             { text: payload.description, timestamp: new Date().toISOString(), sender: "user" },
           ],
-          priority: payload.priority as any,
-          category: (payload.category || "general") as any,
+          priority: payload.priority as Database["public"]["Enums"]["ticket_priority"],
+          category: (payload.category ||
+            "general") as Database["public"]["Enums"]["ticket_category"],
           user_id: user.id,
         },
       ])
@@ -64,14 +66,17 @@ export const supportService = {
     // Use JOIN to fetch profiles in a single query (fixes N+1)
     const { data, error, count } = await supabase
       .from("support_tickets")
-      .select(`
+      .select(
+        `
         *,
         profiles!support_tickets_user_id_fkey (
           email,
           first_name,
           last_name
         )
-      `, { count: "exact" })
+      `,
+        { count: "exact" }
+      )
       .order("created_at", { ascending: false });
 
     if (error) throw error;

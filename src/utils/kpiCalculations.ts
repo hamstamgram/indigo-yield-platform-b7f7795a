@@ -36,8 +36,6 @@ export const calculateTotalAUM = async () => {
   }
 };
 
-// calculateDailyInterest has been removed - use the Yield Engine for all yield calculations
-
 export const calculateInvestorCount = async () => {
   try {
     const { count } = await supabase

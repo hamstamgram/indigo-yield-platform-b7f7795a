@@ -5,6 +5,15 @@ import { logError, logInfo } from "@/lib/logger";
 import { Tables, DBResult, DBError, isProtectedTable } from "./types";
 import { normalizeError } from "./normalization";
 
+/**
+ * NOTE: This file contains intentional `as any` casts for generic database operations.
+ * These are necessary for dynamic table/column access where TypeScript cannot infer
+ * the exact types at compile time. Type safety is enforced through:
+ * - Generic constraints (T extends keyof Tables)
+ * - Runtime validation (hasCompositePK, isProtectedTable)
+ * - Normalized error handling
+ */
+
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
@@ -31,6 +40,7 @@ export async function getById<T extends keyof Tables>(
   const { data, error } = await supabase
     .from(table)
     .select("*")
+    // Intentional: Dynamic column name for generic function - type safety ensured by hasCompositePK check
     .eq("id" as any, id)
     .single();
 

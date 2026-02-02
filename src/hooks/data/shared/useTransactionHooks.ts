@@ -208,7 +208,7 @@ export function useTransactionFormData() {
  */
 export function useInvestorTransactionSummary(investorId: string | undefined) {
   return useQuery({
-    queryKey: ["investor", "transactionSummary", investorId],
+    queryKey: QUERY_KEYS.investorTransactionSummary(investorId || ""),
     queryFn: () => transactionsV2Service.getSummary(investorId!),
     enabled: !!investorId,
   });

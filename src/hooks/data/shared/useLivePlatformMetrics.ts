@@ -4,6 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { logError } from "@/lib/logger";
 import {
   queryView,
@@ -21,7 +22,7 @@ export type LiveFundSummary = VFundSummaryLive;
  */
 export function useLivePlatformMetrics() {
   return useQuery({
-    queryKey: ["live-platform-metrics"],
+    queryKey: QUERY_KEYS.livePlatformMetrics,
     queryFn: async (): Promise<VDailyPlatformMetricsLive | null> => {
       // Query the live view (computes in real-time, no refresh needed)
       const { data, error } = await queryView("v_daily_platform_metrics_live")
@@ -47,7 +48,7 @@ export function useLivePlatformMetrics() {
  */
 export function useLiveFundSummary(fundId?: string) {
   return useQuery({
-    queryKey: ["live-fund-summary", fundId],
+    queryKey: QUERY_KEYS.liveFundSummary(fundId),
     queryFn: async (): Promise<VFundSummaryLive[]> => {
       // Use live view (computes in real-time, no refresh needed)
       const query = queryView("v_fund_summary_live").select("*");

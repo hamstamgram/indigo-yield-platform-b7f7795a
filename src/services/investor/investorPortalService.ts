@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import type { Database } from "@/integrations/supabase/types";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 // ============= Types =============
@@ -99,7 +100,7 @@ export async function getInvestorTransactionsList(
   }
 
   if (typeFilter && typeFilter !== "all") {
-    query = query.eq("type", typeFilter as any);
+    query = query.eq("type", typeFilter as Database["public"]["Enums"]["tx_type"]);
   }
 
   const { data, error } = await query

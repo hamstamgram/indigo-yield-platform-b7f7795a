@@ -3,11 +3,11 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const AdminManualTransaction = lazy(
-  () => import("@/pages/admin/transactions/AdminManualTransaction")
+  () => import("@/features/admin/transactions/pages/AdminManualTransaction")
 );
 
 const AdminTransactionsPage = lazy(
-  () => import("@/pages/admin/transactions/AdminTransactionsPage")
+  () => import("@/features/admin/transactions/pages/AdminTransactionsPage")
 );
 
 export function TransactionRoutes() {

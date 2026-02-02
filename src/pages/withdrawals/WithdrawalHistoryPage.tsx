@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatAssetAmount } from "@/utils/assets";
+import type { FundRelation } from "@/types/domains/relations";
 
 export default function WithdrawalHistoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +53,10 @@ export default function WithdrawalHistoryPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
                           <CryptoIcon symbol={item.fund_class || "ASSET"} className="h-6 w-6" />
-                          <h3 className="font-semibold">{(item as any).funds?.name || "Fund"}</h3>
+                          <h3 className="font-semibold">
+                            {((item as { funds?: unknown }).funds as FundRelation | undefined)
+                              ?.name || "Fund"}
+                          </h3>
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${
                               item.status === "completed"

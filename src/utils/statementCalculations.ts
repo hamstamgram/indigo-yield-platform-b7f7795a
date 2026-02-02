@@ -125,8 +125,7 @@ export async function computeStatement(
 
     // Process transactions
     transactions?.forEach((transaction) => {
-      const tx = transaction as any;
-      const assetCode = tx.asset;
+      const assetCode = transaction.asset;
       if (!assetsMap[assetCode]) {
         const fund = fundMap.get(assetCode);
         assetsMap[assetCode] = {
@@ -144,12 +143,12 @@ export async function computeStatement(
       }
 
       const assetStat = assetsMap[assetCode];
-      const txDate = new Date(tx.tx_date);
-      const amount = Number(tx.amount);
+      const txDate = new Date(transaction.tx_date);
+      const amount = Number(transaction.amount);
 
       // Identify if transaction is before this period (Beginning Balance)
       if (txDate < period_start) {
-        if (tx.type === "WITHDRAWAL" || tx.type === "FEE") {
+        if (transaction.type === "WITHDRAWAL" || transaction.type === "FEE") {
           assetStat.begin_balance -= amount;
         } else {
           assetStat.begin_balance += amount;
@@ -157,26 +156,26 @@ export async function computeStatement(
       } else {
         // Transaction is within this period
         let type: StatementTransaction["type"] = "deposit";
-        if (tx.type === "DEPOSIT") {
+        if (transaction.type === "DEPOSIT") {
           assetStat.deposits += amount;
           type = "deposit";
-        } else if (tx.type === "WITHDRAWAL") {
+        } else if (transaction.type === "WITHDRAWAL") {
           assetStat.withdrawals += amount;
           type = "withdrawal";
-        } else if (tx.type === "INTEREST" || tx.type === "YIELD") {
+        } else if (transaction.type === "INTEREST" || transaction.type === "YIELD") {
           assetStat.interest += amount;
           type = "interest";
-        } else if (tx.type === "FEE") {
+        } else if (transaction.type === "FEE") {
           assetStat.fees += amount;
           type = "fee";
         }
 
         assetStat.transactions.push({
-          id: tx.id,
-          date: tx.tx_date,
+          id: transaction.id,
+          date: transaction.tx_date,
           type,
           amount: String(amount), // Convert back to string for type safety
-          description: tx.notes || tx.type,
+          description: transaction.notes || transaction.type,
         });
       }
     });
@@ -254,9 +253,6 @@ export function formatTokenAmount(amount: number, asset?: string, decimals?: num
   }).format(amount);
   return asset ? `${formatted} ${asset}` : formatted;
 }
-
-// Deprecated function formatCurrency has been removed.
-// Use formatTokenAmount instead - this platform uses native tokens, not fiat.
 
 export function formatPercent(value: number, decimals: number = 2): string {
   // Handle NaN/Infinity cases

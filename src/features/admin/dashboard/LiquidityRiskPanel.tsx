@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, Badge, Progress } from "@/components/ui";
 import { Droplets, TrendingDown, AlertTriangle } from "lucide-react";
-import { useLiquidityRisk, type LiquidityRisk } from "@/hooks/data/admin/useRiskAlerts";
+import { useLiquidityRisk, type LiquidityRisk } from "@/features/admin/system/hooks/useRiskAlerts";
 import { logWarn } from "@/lib/logger";
 
 const riskLevelConfig = {

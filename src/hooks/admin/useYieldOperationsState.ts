@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { startOfMonth, endOfMonth, isWithinInterval, format } from "date-fns";
 import { useAuth } from "@/services/auth";
 import { useActiveFundsWithAUM } from "@/hooks";
-import { useFundAumAsOf } from "@/hooks/data/admin/useFundAumAsOf";
+import { useFundAumAsOf } from "@/features/admin/funds/hooks/useFundAumAsOf";
 import {
   previewYieldDistribution,
   applyYieldDistribution,

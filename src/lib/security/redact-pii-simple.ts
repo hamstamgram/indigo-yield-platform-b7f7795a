@@ -34,7 +34,7 @@ export function redactObject<T extends Record<string, any>>(
 ): T {
   if (!obj || typeof obj !== "object") return obj;
 
-  const result = { ...obj } as any;
+  const result: Record<string, unknown> = { ...obj };
   const { keys = [] } = options;
 
   if (keys.length > 0) {
@@ -53,7 +53,7 @@ export function redactObject<T extends Record<string, any>>(
     }
   }
 
-  return result;
+  return result as T;
 }
 
 export function redactPII<T>(data: T, options: RedactionOptions = {}): T {

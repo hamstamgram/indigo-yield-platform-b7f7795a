@@ -23,7 +23,10 @@ import * as path from "path";
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
 const SUPABASE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "";
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env");
@@ -175,8 +178,8 @@ function scanForRawEnumUsages(): RawEnumUsage[] {
     }
   }
 
-  // Directories to scan for raw usage
-  const scanDirs = ["pages", "components", "hooks"];
+  // Directories to scan for raw usage (includes features/ for new structure)
+  const scanDirs = ["pages", "components", "hooks", "features", "services"];
 
   // Files/patterns to exclude (these are allowed to use raw values)
   const excludePatterns = [

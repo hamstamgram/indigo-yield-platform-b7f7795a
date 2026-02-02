@@ -1,16 +1,8 @@
 /**
- * Yield-related admin hooks
+ * Yield-related admin hooks - Re-exports from features/admin
  */
 
-// useYieldOperations
-export { 
-  useActiveFundsWithAUM, 
-  useFundInvestorComposition, 
-  useApplyYieldDistribution,
-  type YieldCalculationInput,
-} from "../useYieldOperations";
-
-// useRecordedYieldsPage
+export * from "@/features/admin/yields/hooks/useYieldOperations";
 export {
   useYieldRecords as useRecordedYieldsData,
   useYieldCorrectionHistory,
@@ -18,7 +10,10 @@ export {
   useVoidYieldRecord as useVoidYieldMutation,
   useVoidYieldDistribution,
   useUpdateYieldAum,
-  type YieldRecord as RecordedYieldRecord,
-  type YieldFilters as RecordedYieldFilters,
-  type CorrectionHistoryItem,
-} from "../useRecordedYieldsPage";
+} from "@/features/admin/yields/hooks/useRecordedYieldsPage";
+export type {
+  YieldRecord,
+  YieldRecord as RecordedYieldRecord,
+  CorrectionHistoryItem,
+  YieldFilters as RecordedYieldFilters,
+} from "@/features/admin/yields/hooks/useRecordedYieldsPage";

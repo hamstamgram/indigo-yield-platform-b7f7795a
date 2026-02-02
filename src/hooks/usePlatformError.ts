@@ -93,7 +93,7 @@ export function usePlatformError(): UseErrorHandlerResult {
         onUIAction,
         customMessage,
         showToast = true,
-        logError = process.env.NODE_ENV === "development",
+        logError: shouldLogError = process.env.NODE_ENV === "development",
       } = options;
 
       // Parse the error into a typed PlatformError
@@ -103,7 +103,7 @@ export function usePlatformError(): UseErrorHandlerResult {
       setError(platformError);
 
       // Log if enabled
-      if (logError) {
+      if (shouldLogError) {
         logError("usePlatformError.handleError", platformError, {
           code: platformError.code,
           category: platformError.category,

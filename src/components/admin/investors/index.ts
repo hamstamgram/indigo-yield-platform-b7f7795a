@@ -1,45 +1,37 @@
 /**
  * Admin Investor Components
- * Investor management, tables, forms, and detail views
- * 
- * Components are organized into subdirectories by function:
- * - detail/   - Single investor views and panels
- * - list/     - Investor tables and filtering
- * - tabs/     - Tab content components
- * - forms/    - Forms and dialogs
- * - yields/   - Yield and fee management
- * - reports/  - Report components
- * - bulk/     - Bulk operations
- * - shared/   - Miscellaneous shared components
- * - ledger/   - Ledger tab components
- * - wizard/   - Onboarding wizard
+ * Re-exports from features/admin/investors structure
  */
 
 // Detail views
-export * from "./detail";
+export * from "@/features/admin/investors/components/detail";
 
 // List/table views
-export * from "./list";
+export * from "@/features/admin/investors/components/list";
 
 // Tab components
-export * from "./tabs";
+export * from "@/features/admin/investors/components/tabs";
 
 // Forms & dialogs
-export * from "./forms";
+export * from "@/features/admin/investors/components/forms";
 
 // Yield management
-export * from "./yields";
+export * from "@/features/admin/investors/components/yields";
 
 // Reports
-export * from "./reports";
+export * from "@/features/admin/investors/components/reports";
 
 // Bulk operations
-export * from "./bulk";
+export * from "@/features/admin/investors/components/bulk";
 
 // Shared components
-export * from "./shared";
+export * from "@/features/admin/investors/components/shared";
 
-// Existing subdirectories
-export { InvestorLedgerTab } from "./ledger";
-export * from "./wizard";
-export { default as MobileInvestorCard } from "./MobileInvestorCard";
+// Ledger
+export { InvestorLedgerTab } from "@/features/admin/investors/components/ledger";
+
+// Wizard
+export * from "@/features/admin/investors/components/wizard";
+
+// Mobile card
+export { default as MobileInvestorCard } from "@/features/admin/investors/components/MobileInvestorCard";

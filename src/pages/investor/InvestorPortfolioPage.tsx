@@ -14,7 +14,10 @@ export default function InvestorPortfolioPage() {
       fundName: asset.fundName,
       assetSymbol: asset.assetSymbol,
       tokenAmount: asset.mtd.endingBalance || 0,
-      totalValueItd: (asset as any).itd?.endingBalance || asset.mtd.endingBalance || 0,
+      totalValueItd:
+        (asset as { itd?: { endingBalance?: number } }).itd?.endingBalance ||
+        asset.mtd.endingBalance ||
+        0,
       netChanges: asset.mtd.netIncome || 0,
       lastUpdated: new Date().toISOString(),
     })) || [];

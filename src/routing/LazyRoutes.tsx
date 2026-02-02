@@ -16,31 +16,49 @@ export const Terms = lazy(() => import("@/pages/Terms"));
 // ============================================================================
 // ADMIN PAGES
 // ============================================================================
-export const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
+export const AdminAuditLogs = lazy(() => import("@/features/admin/system/pages/AuditLogViewer"));
 export const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 // AdminDepositsPage removed - consolidated into AdminTransactionsPage
-export const AdminEmailTrackingPage = lazy(() => import("@/pages/admin/AdminEmailTrackingPage"));
-export const AdminOperationsHub = lazy(() => import("@/pages/admin/AdminOperationsHub"));
-export const AdminRequestsQueuePage = lazy(() => import("@/pages/admin/AdminRequestsQueuePage"));
-export const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
-export const AdminStatementsPage = lazy(() => import("@/pages/admin/AdminStatementsPage"));
+export const AdminEmailTrackingPage = lazy(
+  () => import("@/features/admin/operations/pages/AdminEmailTrackingPage")
+);
+export const AdminOperationsHub = lazy(
+  () => import("@/features/admin/operations/pages/AdminOperationsHub")
+);
+export const AdminRequestsQueuePage = lazy(
+  () => import("@/features/admin/operations/pages/AdminRequestsQueuePage")
+);
+export const AdminSettings = lazy(() => import("@/features/admin/settings/pages/AdminSettings"));
+export const AdminStatementsPage = lazy(
+  () => import("@/features/admin/reports/pages/AdminStatementsPage")
+);
 
-export const AdminUserManagement = lazy(() => import("@/pages/admin/AdminUserManagement"));
-export const AdminWithdrawalsPage = lazy(() => import("@/pages/admin/AdminWithdrawalsPage"));
+export const AdminUserManagement = lazy(
+  () => import("@/features/admin/settings/pages/AdminUserManagement")
+);
+export const AdminWithdrawalsPage = lazy(
+  () => import("@/features/admin/withdrawals/pages/AdminWithdrawalsPage")
+);
 
-export const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
+export const InvestorReports = lazy(() => import("@/features/admin/reports/pages/InvestorReports"));
 // MonthlyDataEntry removed - duplicate of YieldOperationsPage (P1 cleanup 2026-01-19)
 
 // Admin Sub-pages
-export const InvestorManagement = lazy(() => import("@/pages/admin/investors/InvestorManagement"));
-export const WithdrawalsPage = lazy(() => import("@/pages/admin/investors/WithdrawalsPage"));
-export const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
-export const SystemHealthPage = lazy(() => import("@/pages/admin/system-health/SystemHealthPage"));
+export const InvestorManagement = lazy(
+  () => import("@/features/admin/investors/pages/InvestorManagement")
+);
+export const WithdrawalsPage = lazy(
+  () => import("@/features/admin/withdrawals/pages/WithdrawalsPage")
+);
+export const AdminInvite = lazy(() => import("@/features/admin/settings/pages/AdminInvite"));
+export const SystemHealthPage = lazy(
+  () => import("@/features/admin/system/pages/SystemHealthPage")
+);
 export const AdminTransactionsPage = lazy(
-  () => import("@/pages/admin/transactions/AdminTransactionsPage")
+  () => import("@/features/admin/transactions/pages/AdminTransactionsPage")
 );
 export const AdminManualTransaction = lazy(
-  () => import("@/pages/admin/transactions/AdminManualTransaction")
+  () => import("@/features/admin/transactions/pages/AdminManualTransaction")
 );
 
 // ============================================================================

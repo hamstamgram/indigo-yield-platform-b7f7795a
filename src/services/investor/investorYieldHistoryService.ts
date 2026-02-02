@@ -7,6 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { formatDateForDB } from "@/utils/dateUtils";
+import type { FundRelation } from "@/types/domains/relations";
 
 // ============================================
 // Types
@@ -34,7 +35,7 @@ export interface InvestorDocument {
 
 export interface PendingTransaction {
   id: string;
-  type: 'DEPOSIT' | 'WITHDRAWAL';
+  type: "DEPOSIT" | "WITHDRAWAL";
   amount: number;
   asset: string;
   created_at: string;
@@ -133,9 +134,7 @@ export async function getInvestorDocuments(userId: string): Promise<InvestorDocu
  * Download a document from storage
  */
 export async function downloadDocument(storagePath: string): Promise<Blob> {
-  const { data, error } = await supabase.storage
-    .from("documents")
-    .download(storagePath);
+  const { data, error } = await supabase.storage.from("documents").download(storagePath);
 
   if (error) {
     logError("investorYieldHistory.downloadDocument", error, { storagePath });
@@ -149,7 +148,7 @@ export async function downloadDocument(storagePath: string): Promise<Blob> {
  * Get pending transactions (deposits + withdrawals)
  */
 export async function getPendingTransactions(
-  userId: string, 
+  userId: string,
   searchTerm?: string
 ): Promise<PendingTransaction[]> {
   // Get Pending Withdrawals (deposits now go through transactions_v2)
@@ -161,15 +160,18 @@ export async function getPendingTransactions(
 
   if (withdrawalError) throw withdrawalError;
 
-  const normalizedWithdrawals: PendingTransaction[] = (withdrawals || []).map((w) => ({
-    id: w.id,
-    type: "WITHDRAWAL" as const,
-    amount: w.requested_amount,
-    asset: (w.funds as any)?.asset || "Unknown",
-    created_at: w.request_date || "",
-    status: w.status || "pending",
-    note: `Withdrawal from ${(w.funds as any)?.name || "Fund"}`,
-  }));
+  const normalizedWithdrawals: PendingTransaction[] = (withdrawals || []).map((w) => {
+    const fund = (w as { funds?: unknown }).funds as FundRelation | undefined;
+    return {
+      id: w.id,
+      type: "WITHDRAWAL" as const,
+      amount: w.requested_amount,
+      asset: fund?.asset || "Unknown",
+      created_at: w.request_date || "",
+      status: w.status || "pending",
+      note: `Withdrawal from ${fund?.name || "Fund"}`,
+    };
+  });
 
   let allItems = [...normalizedWithdrawals];
 

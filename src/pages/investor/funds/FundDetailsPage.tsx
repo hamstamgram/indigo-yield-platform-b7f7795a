@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@/components/ui";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useInvestorPerformance, useAssetMeta } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -17,7 +18,7 @@ export default function FundDetailsPage() {
   const { data: assetMeta } = useAssetMeta(assetCode);
   const { user } = useAuth();
   const { data: livePositions } = useQuery({
-    queryKey: ["investor-live-positions", user?.id],
+    queryKey: QUERY_KEYS.investorLivePositions(user?.id),
     queryFn: () => getInvestorPositions(user!.id),
     enabled: !!user,
   });

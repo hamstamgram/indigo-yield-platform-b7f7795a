@@ -7,7 +7,7 @@ import { lazy } from "react";
 import { Route } from "react-router-dom";
 import { AdminRoute } from "../../AdminRoute";
 
-const FeesOverviewPage = lazy(() => import("@/pages/admin/FeesOverviewPage"));
+const FeesOverviewPage = lazy(() => import("@/features/admin/fees/pages/FeesOverviewPage"));
 
 export function FeesRoutes() {
   return (
