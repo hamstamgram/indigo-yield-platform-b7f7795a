@@ -46,7 +46,7 @@ serve(async (req) => {
   // Get dynamic CORS headers based on request origin
   const origin = req.headers.get("Origin");
   const corsHeaders = getCorsHeaders(origin);
-  
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -64,8 +64,11 @@ serve(async (req) => {
 
     // Verify user from token
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
     if (userError || !user) {
       throw new Error("Invalid authorization token");
     }
@@ -154,9 +157,9 @@ async function createUser(params: CreateUserRequest): Promise<any> {
   console.log(`Created user with ID: ${newUser.user.id}`);
 
   // Create profile record directly using admin client (bypasses RLS)
-  const { error: profileError } = await supabaseAdmin
-    .from("profiles")
-    .insert({
+  // Use UPSERT to merge with trigger-created row (on_auth_user_created)
+  const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
+    {
       id: newUser.user.id,
       email: email,
       first_name: firstName,
@@ -164,8 +167,10 @@ async function createUser(params: CreateUserRequest): Promise<any> {
       phone: phone || null,
       is_admin: role === "admin",
       status: "active",
-      fee_pct: 0.20, // 20% default fee
-    });
+      fee_pct: 0.2, // 20% default fee
+    },
+    { onConflict: "id" }
+  );
 
   if (profileError) {
     // Clean up the auth user if profile creation fails
@@ -244,7 +249,11 @@ async function createUser(params: CreateUserRequest): Promise<any> {
   };
 }
 
-async function createIB(params: { email: string; firstName: string; lastName: string }): Promise<any> {
+async function createIB(params: {
+  email: string;
+  firstName: string;
+  lastName: string;
+}): Promise<any> {
   const { email, firstName, lastName } = params;
   console.log(`Creating IB account for ${email}`);
 
@@ -269,17 +278,19 @@ async function createIB(params: { email: string; firstName: string; lastName: st
   }
 
   // Create profile record with account_type = 'ib'
-  const { error: profileError } = await supabaseAdmin
-    .from("profiles")
-    .insert({
+  // Use UPSERT to merge with trigger-created row (on_auth_user_created)
+  const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
+    {
       id: newUser.user.id,
       email: email,
       first_name: firstName,
       last_name: lastName,
       is_admin: false,
       status: "active",
-      account_type: "ib", // NEW: Set account type
-    });
+      account_type: "ib",
+    },
+    { onConflict: "id" }
+  );
 
   if (profileError) {
     await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
@@ -287,12 +298,10 @@ async function createIB(params: { email: string; firstName: string; lastName: st
   }
 
   // Insert BOTH 'ib' AND 'investor' roles so IB can access investor portal
-  const { error: roleError } = await supabaseAdmin
-    .from("user_roles")
-    .insert([
-      { user_id: newUser.user.id, role: "ib" },
-      { user_id: newUser.user.id, role: "investor" },
-    ]);
+  const { error: roleError } = await supabaseAdmin.from("user_roles").insert([
+    { user_id: newUser.user.id, role: "ib" },
+    { user_id: newUser.user.id, role: "investor" },
+  ]);
 
   if (roleError) {
     console.error("Failed to assign IB role:", roleError);
@@ -368,14 +377,16 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
     .select("fund_id, current_value")
     .eq("investor_id", userId);
 
-  const activePositions = positions?.filter(p => p.current_value > 0) || [];
+  const activePositions = positions?.filter((p) => p.current_value > 0) || [];
   if (activePositions.length > 0) {
-    throw new Error("Cannot delete investor with active fund positions. Please redeem all positions first.");
+    throw new Error(
+      "Cannot delete investor with active fund positions. Please redeem all positions first."
+    );
   }
 
   // Check if auth user exists
   const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
-  
+
   // Delete auth user if it exists
   if (userData?.user) {
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
@@ -414,9 +425,9 @@ async function forceDeleteUser(userId: string, adminUserId: string): Promise<any
   }
 
   // Call the database function to clean up all related data
-  const { error: rpcError } = await supabaseAdmin.rpc('force_delete_investor', {
+  const { error: rpcError } = await supabaseAdmin.rpc("force_delete_investor", {
     p_investor_id: userId,
-    p_admin_id: adminUserId
+    p_admin_id: adminUserId,
   });
 
   if (rpcError) {
@@ -504,15 +515,15 @@ async function updateReportRecipients(params: UpdateReportRecipientsRequest): Pr
   for (const email of emails) {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) continue;
-    
+
     if (!emailRegex.test(trimmed)) {
       throw new Error(`Invalid email format: ${email}`);
     }
-    
+
     if (seen.has(trimmed)) {
       continue; // Skip duplicates silently
     }
-    
+
     seen.add(trimmed);
     validEmails.push(trimmed);
   }
@@ -535,9 +546,7 @@ async function updateReportRecipients(params: UpdateReportRecipientsRequest): Pr
       is_primary: index === 0,
     }));
 
-    const { error: insertError } = await supabaseAdmin
-      .from("investor_emails")
-      .insert(insertData);
+    const { error: insertError } = await supabaseAdmin.from("investor_emails").insert(insertData);
 
     if (insertError) {
       throw new Error(`Failed to add recipients: ${insertError.message}`);
