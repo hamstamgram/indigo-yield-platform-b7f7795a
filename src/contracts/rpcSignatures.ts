@@ -360,7 +360,7 @@ export const RPC_SIGNATURES = {
     name: "apply_adb_yield_distribution_v3" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
+    securityDefiner: true,
     requiredParams: [
       "p_fund_id",
       "p_gross_yield_amount",
@@ -412,7 +412,7 @@ export const RPC_SIGNATURES = {
     name: "apply_transaction_with_crystallization" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
+    securityDefiner: true,
     requiredParams: [
       "p_amount",
       "p_fund_id",
@@ -421,7 +421,13 @@ export const RPC_SIGNATURES = {
       "p_tx_date",
       "p_tx_type",
     ] as const,
-    optionalParams: ["p_admin_id", "p_new_total_aum", "p_notes", "p_purpose"] as const,
+    optionalParams: [
+      "p_admin_id",
+      "p_distribution_id",
+      "p_new_total_aum",
+      "p_notes",
+      "p_purpose",
+    ] as const,
   },
   apply_withdrawal_with_crystallization: {
     name: "apply_withdrawal_with_crystallization" as const,
@@ -1661,7 +1667,7 @@ export const RPC_SIGNATURES = {
     name: "preview_adb_yield_distribution_v3" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
+    securityDefiner: true,
     requiredParams: [
       "p_fund_id",
       "p_gross_yield_amount",
