@@ -14,7 +14,7 @@ import {
   Label,
   Input,
 } from "@/components/ui";
-import { Info, Loader2 } from "lucide-react";
+import { AlertTriangle, Info, Loader2 } from "lucide-react";
 import { useActiveFunds, useInvestorsForTransaction } from "@/hooks";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui";
@@ -78,16 +78,17 @@ export function AddTransactionDialog({
   const amount = watch("amount");
   const closingAum = watch("closing_aum");
 
-  const { onSubmit, loading } = useTransactionSubmit({
-    selectedInvestorId,
-    hasExistingPosition: Boolean(hasExistingPosition),
-    queryClient,
-    onSuccess,
-    onOpenChange,
-    resetForm: reset,
-    setInvestorError,
-    fundId: selectedFundId,
-  });
+  const { onSubmit, loading, pendingLargeDeposit, confirmLargeDeposit, cancelLargeDeposit } =
+    useTransactionSubmit({
+      selectedInvestorId,
+      hasExistingPosition: Boolean(hasExistingPosition),
+      queryClient,
+      onSuccess,
+      onOpenChange,
+      resetForm: reset,
+      setInvestorError,
+      fundId: selectedFundId,
+    });
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -376,6 +377,45 @@ export function AddTransactionDialog({
                   </div>
                 )}
 
+                {/* Bug #3: Large deposit confirmation */}
+                {pendingLargeDeposit && (
+                  <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="space-y-3">
+                      <p className="font-semibold text-amber-800 dark:text-amber-200">
+                        Large deposit — please confirm
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        You are depositing{" "}
+                        <strong>
+                          {Number(pendingLargeDeposit.amount).toLocaleString()}{" "}
+                          {selectedFund?.asset}
+                        </strong>
+                        {closingAum && Number(closingAum) > 0 && (
+                          <>
+                            {" "}
+                            — this is{" "}
+                            <strong>
+                              {(Number(pendingLargeDeposit.amount) / Number(closingAum)).toFixed(1)}
+                              x
+                            </strong>{" "}
+                            the current fund AUM of {Number(closingAum).toLocaleString()}{" "}
+                            {selectedFund?.asset}
+                          </>
+                        )}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="destructive" onClick={confirmLargeDeposit}>
+                          Confirm Amount is Correct
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={cancelLargeDeposit}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
                     Cancel
@@ -388,7 +428,8 @@ export function AddTransactionDialog({
                       isLoadingInvestors ||
                       (isDeposit && (depositPreviewLoading || !!depositPreviewError)) ||
                       (isDeposit && requiresYieldPreview && !depositYieldPreview) ||
-                      yieldPreviewValidation.hasError
+                      yieldPreviewValidation.hasError ||
+                      !!pendingLargeDeposit
                     }
                   >
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

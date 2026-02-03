@@ -26,7 +26,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui";
-import { ChevronDown, Clock, Eye, TrendingUp, Wallet } from "lucide-react";
+import { ChevronDown, Clock, Eye, TrendingUp, Wallet, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { useInvestorYieldEventsAdmin } from "@/features/admin/yields/hooks/useYieldCrystallization";
 import { useActiveFundsWithAUM } from "@/hooks";
@@ -49,19 +49,23 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
   const { data: yieldEvents = [], isLoading } = useInvestorYieldEventsAdmin(investorId, {
     fundId: selectedFundId === "all" ? undefined : selectedFundId,
     visibilityScope: "all", // Admin sees both pending and visible
+    includeVoided: true, // Bug #10: Admin sees voided entries with visual distinction
   });
 
-  // Calculate summary stats
+  // Calculate summary stats (exclude voided from totals)
   const stats = useMemo(() => {
-    const pending = yieldEvents.filter((e) => e.visibility_scope === "admin_only");
-    const visible = yieldEvents.filter((e) => e.visibility_scope === "investor_visible");
-    const totalGross = yieldEvents.reduce((sum, e) => sum + e.gross_yield_amount, 0);
-    const totalFees = yieldEvents.reduce((sum, e) => sum + e.fee_amount, 0);
-    const totalNet = yieldEvents.reduce((sum, e) => sum + e.net_yield_amount, 0);
+    const active = yieldEvents.filter((e) => !e.is_voided);
+    const pending = active.filter((e) => e.visibility_scope === "admin_only");
+    const visible = active.filter((e) => e.visibility_scope === "investor_visible");
+    const voidedCount = yieldEvents.filter((e) => e.is_voided).length;
+    const totalGross = active.reduce((sum, e) => sum + e.gross_yield_amount, 0);
+    const totalFees = active.reduce((sum, e) => sum + e.fee_amount, 0);
+    const totalNet = active.reduce((sum, e) => sum + e.net_yield_amount, 0);
 
     return {
       pendingCount: pending.length,
       visibleCount: visible.length,
+      voidedCount,
       pendingYield: pending.reduce((sum, e) => sum + e.net_yield_amount, 0),
       totalGross,
       totalFees,
@@ -238,34 +242,62 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                     {yieldEvents.map((event) => (
                       <TableRow
                         key={event.id}
-                        className={cn(event.visibility_scope === "admin_only" && "bg-amber-50/50")}
+                        className={cn(
+                          event.is_voided && "opacity-60",
+                          !event.is_voided &&
+                            event.visibility_scope === "admin_only" &&
+                            "bg-amber-50/50"
+                        )}
                       >
                         <TableCell className="font-mono text-sm">
                           {format(new Date(event.event_date), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell>{getTriggerBadge(event.trigger_type)}</TableCell>
-                        <TableCell className="text-right font-mono">
+                        <TableCell
+                          className={cn("text-right font-mono", event.is_voided && "line-through")}
+                        >
                           {formatNumber(event.investor_balance, 4)}
                         </TableCell>
-                        <TableCell className="text-right font-mono">
+                        <TableCell
+                          className={cn("text-right font-mono", event.is_voided && "line-through")}
+                        >
                           {formatPercent(event.fund_yield_pct)}
                         </TableCell>
-                        <TableCell className="text-right font-mono">
+                        <TableCell
+                          className={cn("text-right font-mono", event.is_voided && "line-through")}
+                        >
                           {formatNumber(event.gross_yield_amount)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-muted-foreground">
+                        <TableCell
+                          className={cn(
+                            "text-right font-mono text-muted-foreground",
+                            event.is_voided && "line-through"
+                          )}
+                        >
                           -{formatNumber(event.fee_amount)}
                         </TableCell>
                         <TableCell
                           className={cn(
                             "text-right font-mono font-medium",
-                            event.net_yield_amount >= 0 ? "text-emerald-600" : "text-red-600"
+                            event.is_voided
+                              ? "line-through text-muted-foreground"
+                              : event.net_yield_amount >= 0
+                                ? "text-emerald-600"
+                                : "text-red-600"
                           )}
                         >
                           {formatNumber(event.net_yield_amount)}
                         </TableCell>
                         <TableCell>
-                          {event.visibility_scope === "admin_only" ? (
+                          {event.is_voided ? (
+                            <Badge
+                              variant="outline"
+                              className="bg-red-50 text-red-700 border-red-200 text-xs"
+                            >
+                              <Ban className="h-3 w-3 mr-1" />
+                              Voided
+                            </Badge>
+                          ) : event.visibility_scope === "admin_only" ? (
                             <Badge
                               variant="outline"
                               className="bg-amber-50 text-amber-700 border-amber-200"

@@ -1,0 +1,16 @@
+function_name,arguments,return_type,security_definer,category
+_resolve_investor_fee_pct,"p_investor_id uuid, p_fund_id uuid, p_date date",numeric,true,fee_calculation
+acquire_delivery_batch,"p_period_id uuid, p_channel text, p_batch_size integer, p_worker_id uuid",TABLE,true,reporting
+acquire_position_lock,"p_investor_id uuid, p_fund_id uuid",void,true,locking
+acquire_withdrawal_lock,"p_request_id uuid",void,true,locking
+acquire_yield_lock,"p_fund_id uuid, p_yield_date date",void,true,locking
+add_fund_to_investor,"p_investor_id uuid, p_fund_id text, p_initial_shares numeric, p_cost_basis numeric",uuid,true,position_management
+adjust_investor_position,"p_investor_id uuid, p_fund_id uuid, p_amount numeric, p_reason text, p_tx_date date, p_admin_id uuid",jsonb,true,position_management
+admin_create_transaction,"p_investor_id uuid, p_fund_id uuid, p_type text, p_amount numeric, p_tx_date date, p_notes text, p_reference_id text, p_admin_id uuid",uuid,false,transaction_management
+admin_create_transactions_batch,"p_requests jsonb",jsonb,true,transaction_management
+apply_adb_yield_distribution_v3,"p_fund_id uuid, p_period_start date, p_period_end date, p_gross_yield_amount numeric, p_admin_id uuid, p_purpose aum_purpose, p_distribution_date date",jsonb,true,yield_distribution
+preview_adb_yield_distribution_v3,"p_fund_id uuid, p_period_start date, p_period_end date, p_gross_yield_amount numeric, p_purpose text",jsonb,true,yield_distribution
+apply_transaction_with_crystallization,"p_investor_id uuid, p_fund_id uuid, p_tx_type text, p_amount numeric, p_tx_date date, p_reference_id text, p_notes text, p_admin_id uuid, p_new_total_aum numeric, p_purpose aum_purpose, p_distribution_id uuid",jsonb,true,transaction_management
+void_yield_distribution,"p_distribution_id uuid, p_admin_id uuid, p_reason text",json,true,yield_distribution
+force_delete_investor,"p_investor_id uuid, p_admin_id uuid",boolean,true,admin_operations
+crystallize_yield_before_flow,"p_fund_id uuid, p_closing_aum numeric, p_trigger_type text, p_trigger_reference text, p_event_ts timestamp, p_admin_id uuid, p_purpose aum_purpose",jsonb,true,crystallization

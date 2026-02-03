@@ -400,7 +400,8 @@ export async function batchCrystallizeFund(
 ): Promise<BatchCrystallizeResult> {
   const { data, error } = await callRPC("batch_crystallize_fund", {
     p_fund_id: fundId,
-    p_dry_run: dryRun,
+    p_effective_date: new Date().toISOString().split("T")[0],
+    p_force_override: !dryRun,
   });
 
   if (error) {

@@ -32,12 +32,10 @@ export async function adjustPosition(
   const { data, error } = await callRPC("adjust_investor_position", {
     p_investor_id: investor_id,
     p_fund_id: fund_id,
-    p_delta: deltaFixed,
-    p_note: note || "",
+    p_amount: deltaFixed,
+    p_reason: note || "",
     p_admin_id: adminId,
-    p_tx_type: type || "ADJUSTMENT",
     p_tx_date: tx_date || getTodayString(),
-    p_reference_id: `adj:${fund_id}:${investor_id}:${Date.now()}`,
   });
   if (error) {
     logError("adjustPosition", error, { investor_id, fund_id, delta });

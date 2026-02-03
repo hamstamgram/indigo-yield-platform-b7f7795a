@@ -42,6 +42,7 @@ export interface WithdrawalPosition {
   fund_id: string;
   asset_symbol: string;
   amount: number;
+  min_withdrawal_amount?: number | null;
 }
 
 interface WithdrawalRequestFormProps {
@@ -77,6 +78,12 @@ export function WithdrawalRequestForm({
   const isAmountValid =
     availableBalance && requestedAmount
       ? toDecimal(requestedAmount).lessThanOrEqualTo(toDecimal(availableBalance.amount))
+      : false;
+
+  // Check if amount is below fund minimum withdrawal
+  const isBelowMinimum =
+    availableBalance?.min_withdrawal_amount != null && requestedAmount
+      ? toDecimal(requestedAmount).lessThan(toDecimal(availableBalance.min_withdrawal_amount))
       : false;
 
   // Check if this is a full withdrawal attempt (>= 95% of balance)
@@ -181,12 +188,37 @@ export function WithdrawalRequestForm({
               {...register("amount", { valueAsNumber: true })}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
+            {availableBalance?.min_withdrawal_amount != null && (
+              <p className="text-xs text-muted-foreground">
+                Minimum:{" "}
+                {formatAssetAmount(
+                  availableBalance.min_withdrawal_amount,
+                  availableBalance.asset_symbol
+                )}{" "}
+                {availableBalance.asset_symbol}
+              </p>
+            )}
             {requestedAmount && availableBalance && !isAmountValid && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>Amount exceeds available balance</AlertDescription>
               </Alert>
             )}
+            {requestedAmount &&
+              isBelowMinimum &&
+              availableBalance?.min_withdrawal_amount != null && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Minimum withdrawal is{" "}
+                    {formatAssetAmount(
+                      availableBalance.min_withdrawal_amount,
+                      availableBalance.asset_symbol
+                    )}{" "}
+                    {availableBalance.asset_symbol}
+                  </AlertDescription>
+                </Alert>
+              )}
             {isAmountValid && isFullWithdrawal && (
               <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
                 <Info className="h-4 w-4 text-amber-600" />
@@ -274,7 +306,9 @@ export function WithdrawalRequestForm({
           </Button>
           <Button
             type="submit"
-            disabled={submitMutation.isPending || !isAmountValid || isFullWithdrawal}
+            disabled={
+              submitMutation.isPending || !isAmountValid || isFullWithdrawal || isBelowMinimum
+            }
           >
             {submitMutation.isPending ? (
               <>

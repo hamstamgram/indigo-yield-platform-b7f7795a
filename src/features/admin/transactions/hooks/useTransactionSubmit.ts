@@ -30,6 +30,8 @@ export function useTransactionSubmit({
   fundId: initialFundId,
 }: UseTransactionSubmitParams) {
   const [loading, setLoading] = useState(false);
+  const [pendingLargeDeposit, setPendingLargeDeposit] = useState<TransactionFormData | null>(null);
+  const [largeDepositConfirmed, setLargeDepositConfirmed] = useState(false);
 
   const onSubmit = async (data: TransactionFormData) => {
     // Validate investor selection
@@ -56,6 +58,24 @@ export function useTransactionSubmit({
         "Cannot use 'First Investment' - investor already has a position. Use 'Deposit' instead."
       );
       return;
+    }
+
+    // Bug #3: Large deposit confirmation
+    const isDeposit = data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT";
+    const numericAmount = typeof data.amount === "string" ? parseFloat(data.amount) : data.amount;
+    const closingAumNum = data.closing_aum ? parseFloat(String(data.closing_aum)) : 0;
+    const isLargeAmount =
+      isDeposit &&
+      (numericAmount > 1_000_000 || (closingAumNum > 0 && numericAmount > closingAumNum * 10));
+
+    if (isLargeAmount && !largeDepositConfirmed) {
+      setPendingLargeDeposit(data);
+      return;
+    }
+
+    // Reset confirmation state after use
+    if (largeDepositConfirmed) {
+      setLargeDepositConfirmed(false);
     }
 
     try {
@@ -114,8 +134,25 @@ export function useTransactionSubmit({
     }
   };
 
+  const confirmLargeDeposit = () => {
+    setLargeDepositConfirmed(true);
+    if (pendingLargeDeposit) {
+      const data = pendingLargeDeposit;
+      setPendingLargeDeposit(null);
+      onSubmit(data);
+    }
+  };
+
+  const cancelLargeDeposit = () => {
+    setPendingLargeDeposit(null);
+    setLargeDepositConfirmed(false);
+  };
+
   return {
     onSubmit,
     loading,
+    pendingLargeDeposit,
+    confirmLargeDeposit,
+    cancelLargeDeposit,
   };
 }

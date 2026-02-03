@@ -126,6 +126,7 @@ export function useInvestorYieldEventsAdmin(
     startDate?: Date;
     endDate?: Date;
     visibilityScope?: "all" | "admin_only" | "investor_visible";
+    includeVoided?: boolean;
   }
 ) {
   return useQuery({

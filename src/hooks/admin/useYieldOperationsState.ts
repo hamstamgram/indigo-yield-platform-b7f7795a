@@ -239,6 +239,13 @@ export function useYieldOperationsState() {
 
   // Validate effective date is within reporting month
   const validateEffectiveDate = useCallback((): { valid: boolean; error?: string } => {
+    // Bug #8: Block future dates for yield distribution
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (state.aumDate > today) {
+      return { valid: false, error: "Yield cannot be distributed for future dates." };
+    }
+
     if (state.yieldPurpose !== "reporting" || !state.reportingMonth) {
       return { valid: true };
     }

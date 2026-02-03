@@ -33,6 +33,8 @@ export interface Fund {
   min_investment: string | null;
   /** @precision NUMERIC(28,10) from database */
   high_water_mark: string | null;
+  /** @precision NUMERIC(20,8) from database - minimum withdrawal in fund asset */
+  min_withdrawal_amount: string | null;
   lock_period_days?: number | null;
   logo_url?: string | null;
   strategy?: string | null;
@@ -133,6 +135,8 @@ export function mapDbFundToFund(dbFund: DbFund): Fund {
     perf_fee_bps: dbFund.perf_fee_bps != null ? String(dbFund.perf_fee_bps) : null,
     min_investment: dbFund.min_investment != null ? String(dbFund.min_investment) : null,
     high_water_mark: dbFund.high_water_mark != null ? String(dbFund.high_water_mark) : null,
+    min_withdrawal_amount:
+      dbFund.min_withdrawal_amount != null ? String(dbFund.min_withdrawal_amount) : null,
     lock_period_days: dbFund.lock_period_days,
     logo_url: dbFund.logo_url,
     strategy: dbFund.strategy,

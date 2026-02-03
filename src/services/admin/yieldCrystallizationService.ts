@@ -85,13 +85,13 @@ export async function crystallizeYieldBeforeFlow(
   // crystallize_yield_before_flow(p_fund_id, p_closing_aum, p_trigger_type,
   //   p_trigger_reference, p_event_ts, p_admin_id, p_purpose)
   const { data, error } = await callRPC("crystallize_yield_before_flow", {
-    p_fund_id: fundId,                           // 1. uuid
-    p_closing_aum: Number(closingAum),           // 2. numeric
-    p_trigger_type: triggerType,                 // 3. text
+    p_fund_id: fundId, // 1. uuid
+    p_closing_aum: Number(closingAum), // 2. numeric
+    p_trigger_type: triggerType, // 3. text
     p_trigger_reference: triggerReference || null, // 4. text (nullable)
-    p_event_ts: eventTs.toISOString(),           // 5. timestamptz
-    p_admin_id: adminId || null,                 // 6. uuid (nullable)
-    p_purpose: "transaction",                    // 7. aum_purpose enum
+    p_event_ts: eventTs.toISOString(), // 5. timestamptz
+    p_admin_id: adminId || null, // 6. uuid (nullable)
+    p_purpose: "transaction", // 7. aum_purpose enum
   });
 
   if (error) {
@@ -173,14 +173,18 @@ export async function getYieldEventsForInvestor(
     startDate?: Date;
     endDate?: Date;
     visibilityScope?: "all" | "admin_only" | "investor_visible";
+    includeVoided?: boolean;
   }
 ): Promise<YieldEvent[]> {
   let query = supabase
     .from("investor_yield_events")
     .select("*")
     .eq("investor_id", investorId)
-    .eq("is_voided", false)
     .order("event_date", { ascending: false });
+
+  if (!options?.includeVoided) {
+    query = query.eq("is_voided", false);
+  }
 
   if (options?.fundId) {
     query = query.eq("fund_id", options.fundId);
@@ -209,13 +213,15 @@ export async function getAggregatedYieldForPeriod(
   periodStart: Date,
   periodEnd: Date,
   visibilityFilter?: "all" | "admin_only" | "investor_visible"
-): Promise<{
-  investor_id: string;
-  total_gross_yield: number;
-  total_fees: number;
-  total_net_yield: number;
-  crystallization_count: number;
-}[]> {
+): Promise<
+  {
+    investor_id: string;
+    total_gross_yield: number;
+    total_fees: number;
+    total_net_yield: number;
+    crystallization_count: number;
+  }[]
+> {
   const startStr = formatDateForDB(periodStart);
   const endStr = formatDateForDB(periodEnd);
 
@@ -236,13 +242,16 @@ export async function getAggregatedYieldForPeriod(
   if (error) throw error;
 
   // Aggregate in JS since Supabase doesn't support GROUP BY in select
-  const aggregated = new Map<string, {
-    investor_id: string;
-    total_gross_yield: number;
-    total_fees: number;
-    total_net_yield: number;
-    crystallization_count: number;
-  }>();
+  const aggregated = new Map<
+    string,
+    {
+      investor_id: string;
+      total_gross_yield: number;
+      total_fees: number;
+      total_net_yield: number;
+      crystallization_count: number;
+    }
+  >();
 
   for (const row of data || []) {
     const existing = aggregated.get(row.investor_id);
