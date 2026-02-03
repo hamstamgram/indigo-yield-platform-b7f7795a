@@ -338,8 +338,10 @@ function TransactionHistoryContent() {
                 <SelectItem value="all">All Base Types</SelectItem>
                 <SelectItem value="DEPOSIT">Deposits</SelectItem>
                 <SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
-                <SelectItem value="FEE">Fees</SelectItem>
                 <SelectItem value="YIELD">Yield</SelectItem>
+                <SelectItem value="FEE_CREDIT">Fee Credits</SelectItem>
+                <SelectItem value="IB_CREDIT">IB Credits</SelectItem>
+                <SelectItem value="ADJUSTMENT">Adjustments</SelectItem>
               </SelectContent>
             </Select>
 
@@ -353,8 +355,10 @@ function TransactionHistoryContent() {
                 <SelectItem value="Top-up">Top-up</SelectItem>
                 <SelectItem value="Withdrawal">Withdrawal</SelectItem>
                 <SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
-                <SelectItem value="Fee">Fee</SelectItem>
                 <SelectItem value="Yield">Yield</SelectItem>
+                <SelectItem value="Fee Credit">Fee Credit</SelectItem>
+                <SelectItem value="IB Credit">IB Credit</SelectItem>
+                <SelectItem value="Adjustment">Adjustment</SelectItem>
               </SelectContent>
             </Select>
 
