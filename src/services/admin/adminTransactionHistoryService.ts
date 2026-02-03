@@ -73,7 +73,7 @@ const SUBTYPE_DISPLAY_MAP: Record<string, string> = {
   redemption: "Withdrawal",
   full_redemption: "Withdrawal All",
   fee_charge: "Fee",
-  yield_credit: "Interest/Yield",
+  yield_credit: "Yield",
   adjustment: "Adjustment",
 };
 
@@ -155,7 +155,7 @@ async function fetchTransactions(
       // Fallback for any data without tx_subtype (legacy safety)
       if (tx.type === "DEPOSIT") displayType = "Top-up";
       else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
-      else if (tx.type === "INTEREST") displayType = "Interest/Yield";
+      else if (tx.type === "INTEREST") displayType = "Yield";
       else if (tx.type === "FEE") displayType = "Fee";
     }
 

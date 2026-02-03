@@ -339,7 +339,7 @@ function TransactionHistoryContent() {
                 <SelectItem value="DEPOSIT">Deposits</SelectItem>
                 <SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
                 <SelectItem value="FEE">Fees</SelectItem>
-                <SelectItem value="INTEREST">Interest/Yield</SelectItem>
+                <SelectItem value="YIELD">Yield</SelectItem>
               </SelectContent>
             </Select>
 
@@ -354,7 +354,7 @@ function TransactionHistoryContent() {
                 <SelectItem value="Withdrawal">Withdrawal</SelectItem>
                 <SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
                 <SelectItem value="Fee">Fee</SelectItem>
-                <SelectItem value="Interest/Yield">Interest/Yield</SelectItem>
+                <SelectItem value="Yield">Yield</SelectItem>
               </SelectContent>
             </Select>
 
