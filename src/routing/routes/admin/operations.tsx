@@ -72,6 +72,8 @@ export function OperationsRoutes() {
       <Route path="/admin/monthly-data-entry" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/operations" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
+      <Route path="/admin/yields" element={<Navigate to="/admin/yield" replace />} />
+      <Route path="/admin/yield-operations" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/requests" element={<Navigate to="/admin/withdrawals" replace />} />
       <Route path="/admin/statements" element={<Navigate to="/admin/investor-reports" replace />} />
       <Route

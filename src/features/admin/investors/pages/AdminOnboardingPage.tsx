@@ -243,7 +243,7 @@ export default function AdminOnboardingPage() {
         description="Step-by-step guide to yield distribution and the temporal lock"
         completed={completion.yield}
         onComplete={() => markComplete("yield")}
-        linkTo="/admin/yields"
+        linkTo="/admin/yield"
         linkLabel="Go to Yield Operations"
       >
         <Accordion type="single" collapsible className="w-full">
@@ -682,7 +682,7 @@ export default function AdminOnboardingPage() {
         <CardContent>
           <div className="grid md:grid-cols-2 gap-2">
             <Button variant="outline" asChild className="justify-start">
-              <Link to="/admin/yields">
+              <Link to="/admin/yield">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Yield Operations
               </Link>

@@ -123,7 +123,7 @@ const DashboardLayout = () => {
         <Header toggleSidebar={toggleSidebar} />
 
         {/* Scrollable Content Canvas */}
-        <main className="flex-1 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+        <main className="flex-1 overflow-y-auto px-4 pb-24 scroll-pb-24 sm:px-6 sm:pb-24 lg:px-8 lg:pb-10">
           <FinancialErrorBoundary context={isAdmin ? "admin" : "investor"}>
             <div className="min-h-full w-full rounded-2xl animate-fade-in relative z-10 mx-auto max-w-[1600px]">
               <Outlet />
