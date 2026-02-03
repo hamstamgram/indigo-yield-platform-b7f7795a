@@ -130,7 +130,6 @@ export default function IBPayoutsPage() {
                   <div key={asset} className="flex items-center gap-2">
                     <CryptoIcon symbol={asset} className="h-4 w-4" />
                     <span className="text-lg font-bold">{formatAssetAmount(amount, asset)}</span>
-                    <span className="text-xs text-muted-foreground">{asset}</span>
                   </div>
                 ))}
               </div>

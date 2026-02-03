@@ -84,12 +84,6 @@ export default function IBManagementPage() {
     });
   });
 
-  // Format earnings display for a single IB
-  const formatEarningsDisplay = (earnings: EarningsByAsset) => {
-    const entries = Object.entries(earnings);
-    if (entries.length === 0) return "—";
-    return entries.map(([asset, amount]) => formatCrypto(amount, 4, asset)).join(", ");
-  };
 
   return (
     <div className="space-y-6">
@@ -190,7 +184,8 @@ export default function IBManagementPage() {
                 <div className="text-2xl font-bold text-muted-foreground">—</div>
               ) : (
                 Object.entries(allEarningsByAsset).map(([asset, amount]) => (
-                  <div key={asset} className="text-lg font-semibold font-mono">
+                  <div key={asset} className="flex items-center gap-2 text-lg font-semibold font-mono">
+                    <CryptoIcon symbol={asset} className="h-5 w-5" />
                     {formatCrypto(amount, 4, asset)}
                   </div>
                 ))
@@ -287,8 +282,19 @@ export default function IBManagementPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {formatEarningsDisplay(ib.earningsByAsset)}
+                    <TableCell className="text-right">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        {Object.entries(ib.earningsByAsset).length === 0 ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          Object.entries(ib.earningsByAsset).map(([asset, amount]) => (
+                            <div key={asset} className="flex items-center gap-1">
+                              <CryptoIcon symbol={asset} className="h-4 w-4" />
+                              <span className="font-mono text-sm">{formatCrypto(amount, 4, asset)}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(ib.createdAt).toLocaleDateString()}
