@@ -43,11 +43,14 @@ describe("Yield Distribution Idempotency", () => {
       const constraint = {
         table: "ib_allocations",
         name: "ib_allocations_idempotency",
-        columns: ["distribution_id", "source_investor_id", "ib_investor_id"],
+        columns: ["source_investor_id", "fund_id", "effective_date", "ib_investor_id", "distribution_id"],
       };
       
+      expect(constraint.columns).toHaveLength(5);
       expect(constraint.columns).toContain("source_investor_id");
       expect(constraint.columns).toContain("ib_investor_id");
+      expect(constraint.columns).toContain("fund_id");
+      expect(constraint.columns).toContain("effective_date");
     });
 
     it("should have unique constraint on transactions_v2 reference_id", () => {
