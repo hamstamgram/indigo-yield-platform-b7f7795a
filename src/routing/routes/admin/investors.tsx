@@ -3,7 +3,7 @@
  * Unified investor management with slide-out drawer
  */
 
-import { Route, Navigate } from "react-router-dom";
+import { Route, Navigate, useParams } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
@@ -13,6 +13,11 @@ const UnifiedInvestorsPage = lazy(
 const InvestorManagement = lazy(
   () => import("@/features/admin/investors/pages/InvestorManagement")
 );
+
+function RedirectToInvestor() {
+  const { id } = useParams();
+  return <Navigate to={`/admin/investors/${id}`} replace />;
+}
 
 export function InvestorRoutes() {
   return (
@@ -39,14 +44,8 @@ export function InvestorRoutes() {
 
       {/* Redirects for old routes */}
       <Route path="/admin/investors/new" element={<Navigate to="/admin/investors" replace />} />
-      <Route
-        path="/admin/investors/:id/edit"
-        element={<Navigate to="/admin/investors/:id" replace />}
-      />
-      <Route
-        path="/admin/expert-investor/:id"
-        element={<Navigate to="/admin/investors/:id" replace />}
-      />
+      <Route path="/admin/investors/:id/edit" element={<RedirectToInvestor />} />
+      <Route path="/admin/expert-investor/:id" element={<RedirectToInvestor />} />
     </>
   );
 }

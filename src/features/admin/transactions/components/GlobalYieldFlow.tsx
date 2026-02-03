@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useYieldOperationsState } from "@/hooks/admin/useYieldOperationsState";
 import { YieldInputForm } from "@/features/admin/yields/components/YieldInputForm";
 import { YieldPreviewResults } from "@/features/admin/yields/components/YieldPreviewResults";
@@ -14,8 +14,8 @@ interface GlobalYieldFlowProps {
 }
 
 export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlowProps) {
-  // Use the full yield operations state hook
   const ops = useYieldOperationsState();
+  const hasInitialized = useRef(false);
 
   // Sync selected fund from parent dialog
   useEffect(() => {
@@ -27,87 +27,26 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
     }
   }, [fundId, ops.funds, ops.setSelectedFund]);
 
-  // Force purpose to 'transaction' and defaults when mounting
+  // Force purpose to 'transaction' and initialize dialog state
   useEffect(() => {
     ops.setYieldPurpose("transaction");
+    ops.setShowYieldDialog(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Hook into success to close parent
-  // We monitor the closure of the internal confirm dialog as a proxy for success if applyLoading was true
-  // But reliable way is to wrap handleApplyYield.
-  // Since we can't easily wrap the hook's internal function without re-implementing it,
-  // we'll rely on the side effect: if showConfirmDialog becomes false AND we just finished applying...
-  // Actually, ops returns `handleApplyYield`. We can wrap that if we pass it to the child.
-
-  // Better: The `YieldConfirmDialog` calls `onApply`. We can pass a wrapped handler there.
-
-  const handleApplyWrapper = async () => {
-    await ops.handleApplyYield();
-    // After apply, if successful (no error thrown in hook, but hook catches errors),
-    // we need to know if it succeeded.
-    // The hook clears `showConfirmDialog` on success.
-    // Queries are invalidated.
-    // We can assume if confirmation dialog closes and we are not loading, it's done.
-    // But `onApply` is void.
-
-    // Check if we can detect success.
-    // The hook `handleApplyYield` sets `showConfirmDialog: false` on success.
-    // We can infer success if we trigger it and then the dialog closes.
-    // However, simpler to just let the user see the success toast and close the main dialog manually?
-    // "onSuccess" prop is passed to AddTransactionDialog to close it.
-    // We should call `onSuccess()` after successful application.
-
-    // Since `handleApplyYield` is async, we can await it.
-    // But `handleApplyYield` in the hook catches errors and doesn't return success status.
-    // This is a limitation of the current hook design.
-    // Workaround: We can observe `ops.showConfirmDialog` transition from true to false while `ops.applyLoading` goes false.
-    // Or we can just let the user close the main dialog.
-    // User request: "operate the same way". In the main page, the dialog closes.
-    // Here, we want `AddTransactionDialog` to close.
-  };
-
-  // Watch for successful completion
+  // Track when the component is initialized (dialog set to true)
   useEffect(() => {
-    // If we were applying, and now we are not, and the confirm dialog is gone, and the yield dialog state (internal to hook) is closed...
-    // The hook sets `showYieldDialog: false` on success.
-    if (!ops.showYieldDialog && !ops.showConfirmDialog && !ops.applyLoading && ops.yieldPreview) {
-      // This state combination suggests completion (or cancellation).
-      // But initially showYieldDialog is false in the hook (we ignore that).
-      // Let's rely on the fact that `handleApplyYield` sets `showYieldDialog` to false.
-      // We can initialize `showYieldDialog` to true in our effect.
-    }
-  }, [ops, onSuccess]);
-
-  // Initialize internal dialog state to true to match hook expectations (though we don't render the hook's ValidDialog)
-  useEffect(() => {
-    ops.setShowYieldDialog(true);
-  }, [ops.setShowYieldDialog]);
-
-  // When hook sets showYieldDialog to false (after success), we call onSuccess
-  useEffect(() => {
-    if (!ops.showYieldDialog) {
-      // If we stand up the component, we set it true. If it becomes false, it means success (per hook logic).
-      // However, initial state is false. We set true in effect.
-      // Need to be careful about race conditions.
-      // Let's add a ref or flag to track "active".
+    if (ops.showYieldDialog) {
+      hasInitialized.current = true;
     }
   }, [ops.showYieldDialog]);
 
-  // Wrap the apply handler to call onSuccess
-  const onApplyWithSuccess = async () => {
-    await ops.handleApplyYield();
-    // The hook swallows errors, so we can't know for sure if it succeeded just by awaiting.
-    // But it sets `showConfirmDialog` to false on success.
-    // And `showYieldDialog` to false.
-    // If we check those...
-    // Let's defer closing the parent to the user or a separate effect if needed.
-    // Actually, if we just await, the toast appears. The user can then close the "Add Transaction" dialog or we can close it.
-    // If the hook sets showYieldDialog to false, that's our signal.
-    if (ops.showYieldDialog === false) {
+  // Detect success: showYieldDialog transitions from true to false after initialization
+  useEffect(() => {
+    if (hasInitialized.current && !ops.showYieldDialog && !ops.applyLoading) {
       onSuccess();
     }
-  };
+  }, [ops.showYieldDialog, ops.applyLoading, onSuccess]);
 
   const reportingMonthDate = ops.reportingMonth ? new Date(ops.reportingMonth) : null;
   const { data: pendingEvents } = usePendingYieldEvents(
@@ -196,7 +135,7 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
         setAcknowledgeDiscrepancy={ops.setAcknowledgeDiscrepancy}
         reconciliation={reconciliation}
         formatValue={ops.formatValue}
-        onApply={onApplyWithSuccess}
+        onApply={ops.handleApplyYield}
         applyLoading={ops.applyLoading}
         existingDistributionDate={ops.existingDistributionDate}
       />

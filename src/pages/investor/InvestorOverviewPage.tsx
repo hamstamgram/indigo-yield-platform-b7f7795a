@@ -8,6 +8,7 @@ import {
   useRealtimeSubscription,
 } from "@/hooks/data";
 import { useAuth } from "@/services/auth";
+import { useMemo } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Button, Skeleton } from "@/components/ui";
 import {
@@ -26,7 +27,17 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 export default function InvestorOverviewPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+
+  const displayName = useMemo(() => {
+    if (profile?.first_name) {
+      return [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+    }
+    const email = user?.email || "";
+    if (!email) return "";
+    const [local] = email.split("@");
+    return local.charAt(0) + "***@" + email.split("@")[1];
+  }, [profile, user]);
 
   const { data: assetStats, isLoading: isLoadingStats } = usePerAssetStats();
   const { data: recentTransactions, isLoading: isLoadingTxs } = useRecentInvestorTransactions(5);
@@ -76,21 +87,21 @@ export default function InvestorOverviewPage() {
             </span>
           </h1>
           <p className="text-slate-400 mt-2 text-lg">
-            Welcome back, <span className="text-white font-medium">{user?.email}</span>
+            Welcome back, <span className="text-white font-medium">{displayName}</span>
           </p>
         </div>
         <div className="flex gap-3">
           <Button
             variant="outline"
             className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
-            onClick={() => navigate("/documents")}
+            onClick={() => navigate("/investor/statements")}
           >
             <FileText className="h-4 w-4 mr-2" />
             Statements
           </Button>
           <Button
             className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/20"
-            onClick={() => navigate("/transactions")}
+            onClick={() => navigate("/investor/transactions")}
           >
             <History className="h-4 w-4 mr-2" />
             Transaction History
@@ -236,7 +247,7 @@ export default function InvestorOverviewPage() {
                   <div
                     key={tx.id}
                     className="group flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/5"
-                    onClick={() => navigate("/transactions")}
+                    onClick={() => navigate("/investor/transactions")}
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -293,7 +304,7 @@ export default function InvestorOverviewPage() {
                 <Button
                   variant="ghost"
                   className="w-full mt-2 text-xs text-slate-400 hover:text-white hover:bg-white/5"
-                  onClick={() => navigate("/transactions")}
+                  onClick={() => navigate("/investor/transactions")}
                 >
                   View All History
                 </Button>

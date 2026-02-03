@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { usePerAssetStats } from "@/hooks";
-import { PeriodSelector, PERIOD_LABELS, PerformanceCard, type PerformancePeriod } from "@/components/investor";
+import {
+  PeriodSelector,
+  PERIOD_LABELS,
+  PerformanceCard,
+  type PerformancePeriod,
+} from "@/components/investor";
 import { EmptyState } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
 import { TrendingUp, Loader2 } from "lucide-react";
@@ -9,7 +14,8 @@ export default function InvestorPerformancePage() {
   const [period, setPeriod] = useState<PerformancePeriod>("mtd");
   const { data: assetStats, isLoading } = usePerAssetStats();
 
-  const getPerformanceData = (asset: any) => {
+  type AssetStat = NonNullable<typeof assetStats>["assets"][number];
+  const getPerformanceData = (asset: AssetStat) => {
     switch (period) {
       case "mtd":
         return {
@@ -61,18 +67,12 @@ export default function InvestorPerformancePage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-20 px-4 md:px-6 lg:px-0">
-      <PageHeader
-        title="Performance"
-        subtitle="Track your investment returns"
-        icon={TrendingUp}
-      />
+      <PageHeader title="Performance" subtitle="Track your investment returns" icon={TrendingUp} />
 
       {/* Period Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <PeriodSelector value={period} onChange={setPeriod} />
-        <p className="text-sm text-muted-foreground">
-          Showing {PERIOD_LABELS[period]} performance
-        </p>
+        <p className="text-sm text-muted-foreground">Showing {PERIOD_LABELS[period]} performance</p>
       </div>
 
       {/* Performance Cards */}

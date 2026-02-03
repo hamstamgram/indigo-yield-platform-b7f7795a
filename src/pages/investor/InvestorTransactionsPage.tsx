@@ -56,7 +56,7 @@ export default function InvestorTransactionsPage() {
           Type
         </SortableTableHead>
       ),
-      cell: (item: any) => (
+      cell: (item: Record<string, unknown>) => (
         <Badge
           variant="outline"
           className={cn(
@@ -68,7 +68,9 @@ export default function InvestorTransactionsPage() {
                 : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
           )}
         >
-          {item.type?.replace(/_/g, " ").toLowerCase() || "transaction"}
+          {String(item.type || "transaction")
+            .replace(/_/g, " ")
+            .toLowerCase()}
         </Badge>
       ),
     },
@@ -78,18 +80,18 @@ export default function InvestorTransactionsPage() {
           Date
         </SortableTableHead>
       ),
-      cell: (item: any) => (
+      cell: (item: Record<string, unknown>) => (
         <span className="text-sm text-slate-400 font-mono">
-          {format(new Date(item.tx_date || item.created_at), "MMM d, yyyy")}
+          {format(new Date(String(item.tx_date || item.created_at)), "MMM d, yyyy")}
         </span>
       ),
     },
     {
       header: "Asset",
-      cell: (item: any) => (
+      cell: (item: Record<string, unknown>) => (
         <div className="flex items-center gap-2">
-          <CryptoIcon symbol={item.asset} className="h-5 w-5" />
-          <span className="font-bold text-white">{item.asset}</span>
+          <CryptoIcon symbol={String(item.asset)} className="h-5 w-5" />
+          <span className="font-bold text-white">{String(item.asset)}</span>
         </div>
       ),
     },
@@ -99,35 +101,37 @@ export default function InvestorTransactionsPage() {
           Amount
         </SortableTableHead>
       ),
-      cell: (item: any) => (
-        <span
-          className={cn(
-            "font-mono font-bold text-lg",
-            item.amount >= 0 ? "text-emerald-400" : "text-rose-400"
-          )}
-        >
-          {item.amount >= 0 ? "+" : ""}
-          {formatAssetAmount(item.amount, item.asset)}
-        </span>
-      ),
+      cell: (item: Record<string, unknown>) => {
+        const amount = Number(item.amount);
+        return (
+          <span
+            className={cn(
+              "font-mono font-bold text-lg",
+              amount >= 0 ? "text-emerald-400" : "text-rose-400"
+            )}
+          >
+            {amount >= 0 ? "+" : ""}
+            {formatAssetAmount(amount, String(item.asset))}
+          </span>
+        );
+      },
     },
     {
       header: "Status",
-      cell: (item: any) => {
-        const status = (item.status || "completed").toLowerCase();
+      cell: (item: Record<string, unknown>) => {
+        const status = String(item.status || "completed").toLowerCase();
         const isPending = status === "pending" || status === "processing";
-        const color = isPending ? "amber" : "emerald";
         return (
           <span
             className={cn(
               "flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider",
-              `text-${color}-500`
+              isPending ? "text-amber-500" : "text-emerald-500"
             )}
           >
             <span
               className={cn(
                 "h-1.5 w-1.5 rounded-full",
-                `bg-${color}-500`,
+                isPending ? "bg-amber-500" : "bg-emerald-500",
                 !isPending && "shadow-[0_0_8px_rgba(16,185,129,0.5)]",
                 isPending && "shadow-[0_0_8px_rgba(245,158,11,0.5)]"
               )}
@@ -141,14 +145,14 @@ export default function InvestorTransactionsPage() {
     },
     {
       header: "Actions",
-      cell: (item: any) => (
+      cell: (item: Record<string, unknown>) => (
         <Button
           variant="ghost"
           size="sm"
           asChild
           className="text-indigo-400 hover:text-white hover:bg-white/5"
         >
-          <Link to={`/transactions/${item.id}`}>View Details</Link>
+          <Link to={`/investor/transactions/${item.id}`}>View Details</Link>
         </Button>
       ),
     },
@@ -174,6 +178,28 @@ export default function InvestorTransactionsPage() {
           <Button
             variant="outline"
             className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
+            onClick={() => {
+              if (!sortedData?.length) return;
+              const headers = ["Type", "Date", "Asset", "Amount", "Status"];
+              const rows = sortedData.map((item) => [
+                String(item.type || ""),
+                String(item.tx_date || item.created_at || ""),
+                String(item.asset || ""),
+                String(item.amount ?? ""),
+                "completed",
+              ]);
+              const csv = [headers, ...rows]
+                .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+                .join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `transactions-${format(new Date(), "yyyy-MM-dd")}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            disabled={!sortedData?.length}
           >
             <Download className="h-4 w-4 mr-2" />
             Export CSV
@@ -232,7 +258,11 @@ export default function InvestorTransactionsPage() {
               <PageLoadingSpinner />
             </div>
           ) : sortedData && sortedData.length > 0 ? (
-            <ResponsiveTable data={sortedData} columns={columns} keyExtractor={(item) => item.id} />
+            <ResponsiveTable
+              data={sortedData}
+              columns={columns}
+              keyExtractor={(item) => String(item.id)}
+            />
           ) : (
             <div className="py-12">
               <EmptyState

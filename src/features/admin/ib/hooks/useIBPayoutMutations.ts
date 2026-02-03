@@ -10,6 +10,13 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 
+export function useIBPayoutDashboard() {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.adminIbPayouts(), "dashboard"] as const,
+    queryFn: () => ibPayoutService.getDashboard(),
+  });
+}
+
 export function useIBAllocationsForPayout(statusFilter: string) {
   return useQuery({
     queryKey: QUERY_KEYS.adminIbPayouts(statusFilter),

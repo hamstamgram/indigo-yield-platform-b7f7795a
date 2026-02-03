@@ -2,12 +2,12 @@ import { usePerAssetStats, useSortableColumns } from "@/hooks";
 import { ResponsiveTable, EmptyState, Button, SortableTableHead } from "@/components/ui";
 import { getAssetName, formatAssetAmount, formatSignedAssetAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { Wallet, Loader2, Download, Filter } from "lucide-react";
+import { Wallet, Loader2, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function InvestorPortfolioPage() {
-  const { data: assetStats, isLoading } = usePerAssetStats();
+  const { data: assetStats, isLoading, dataUpdatedAt } = usePerAssetStats();
 
   const positions =
     assetStats?.assets?.map((asset) => ({
@@ -19,7 +19,7 @@ export default function InvestorPortfolioPage() {
         asset.mtd.endingBalance ||
         0,
       netChanges: asset.mtd.netIncome || 0,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: asset.mtd.endingBalance > 0 ? new Date().toISOString() : null,
     })) || [];
 
   const { sortConfig, requestSort, sortedData } = useSortableColumns(positions, {
@@ -87,9 +87,9 @@ export default function InvestorPortfolioPage() {
     },
     {
       header: "Last Updated",
-      cell: (item: (typeof positions)[0]) => (
+      cell: () => (
         <span className="text-slate-500 text-xs font-mono uppercase">
-          {format(new Date(item.lastUpdated), "MMM d, yyyy")}
+          {dataUpdatedAt ? format(new Date(dataUpdatedAt), "MMM d, yyyy") : "-"}
         </span>
       ),
     },
@@ -109,13 +109,27 @@ export default function InvestorPortfolioPage() {
           <Button
             variant="outline"
             className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Button
-            variant="outline"
-            className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
+            onClick={() => {
+              if (!sortedData?.length) return;
+              const headers = ["Asset", "Token Amount", "Total Value (ITD)", "Net Changes (MTD)"];
+              const rows = sortedData.map((item) => [
+                item.assetSymbol,
+                String(item.tokenAmount),
+                String(item.totalValueItd),
+                String(item.netChanges),
+              ]);
+              const csv = [headers, ...rows]
+                .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))
+                .join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `portfolio-${format(new Date(), "yyyy-MM-dd")}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            disabled={!sortedData?.length}
           >
             <Download className="h-4 w-4 mr-2" />
             Export CSV
