@@ -198,9 +198,6 @@ export async function createAdminTransaction(
 
     // For DEPOSIT/WITHDRAWAL, use crystallize-before-flow RPCs (no manual position writes).
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
-      const note = params.notes || `${dbType} of ${params.amount} ${params.asset}`;
-      void note;
-
       const closingAum = params.closing_aum;
       if (!closingAum) {
         throw new Error(
@@ -314,8 +311,6 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const note = params.description || `${params.type} transaction`;
-
   const closingAum = params.closingAum;
   if (!closingAum) {
     throw new Error(
@@ -361,8 +356,6 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   if (!data?.success) {
     throw new Error(`Failed to create ${params.type}`);
   }
-
-  void note;
 }
 
 export const transactionService = {

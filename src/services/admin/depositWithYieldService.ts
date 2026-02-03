@@ -138,7 +138,6 @@ export async function processDepositWithYield(
   params: DepositWithYieldParams
 ): Promise<DepositWithYieldResult> {
   const { investorId, fundId, amount, newTotalAum, txDate, notes, txHash } = params;
-  void notes;
 
   // Get current user
   const {

@@ -207,7 +207,7 @@ export async function deposit(params: {
   fundId: string;
   investorId: string;
   amount: number;
-  newTotalAum: number;
+  closingAum: number;
   txDate: string;
   adminId: string;
   notes?: string;
@@ -217,7 +217,7 @@ export async function deposit(params: {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_amount: params.amount,
-    p_closing_aum: params.newTotalAum,
+    p_closing_aum: params.closingAum,
     p_effective_date: params.txDate,
     p_admin_id: params.adminId,
     p_notes: params.notes,

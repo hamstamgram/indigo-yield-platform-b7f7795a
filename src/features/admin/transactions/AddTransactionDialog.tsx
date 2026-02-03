@@ -105,7 +105,9 @@ export function AddTransactionDialog({
 
   const selectedFund = funds?.find((f) => f.id === selectedFundId);
   const isDeposit = txnType === "FIRST_INVESTMENT" || txnType === "DEPOSIT";
-  const requiresYieldPreview = Boolean(isDeposit && selectedFundId && amount && closingAum);
+  const requiresYieldPreview = Boolean(
+    isDeposit && selectedFundId && amount && closingAum && Number(closingAum) > 0
+  );
 
   const [depositYieldPreview, setDepositYieldPreview] = useState<YieldPreviewResult | null>(null);
   const [depositPreviewLoading, setDepositPreviewLoading] = useState(false);
@@ -165,7 +167,7 @@ export function AddTransactionDialog({
       return;
     }
 
-    if (amountDec.lte(0) || closingAumDec.lt(0)) {
+    if (amountDec.lte(0) || closingAumDec.lte(0)) {
       setDepositYieldPreview(null);
       setDepositPreviewError(null);
       return;

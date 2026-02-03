@@ -1,8 +1,8 @@
 import { NavItem } from "@/types/navigation";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { usePrefetchOnHover } from "@/hooks/usePrefetchOnHover";
 
 type NavSectionProps = {
@@ -107,24 +107,41 @@ const NavSection = ({
           if (item.subNav) {
             return (
               <li key={index} role="none">
-                <div
+                <button
+                  onClick={() => {
+                    const isExpanded = expandedSubNavs[index];
+                    setExpandedSubNavs((prev) => ({ ...prev, [index]: !isExpanded }));
+                    handleNavigation(item.href);
+                  }}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg text-sm font-bold text-sidebar-foreground flex items-center space-x-3 mb-1 mt-2"
+                    "w-full text-left px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center space-x-3 mb-1 mt-2 cursor-pointer",
+                    isItemActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/20"
                   )}
+                  role="menuitem"
                 >
                   <span className="flex items-center space-x-3">
                     {item.icon}
                     <span className="flex-1 truncate">{item.title}</span>
                   </span>
-                </div>
-                <div className="pl-0">
-                  <NavSection
-                    title=""
-                    items={item.subNav}
-                    onItemClick={onItemClick}
-                    showTitle={false}
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      !isSubNavExpanded && "-rotate-90"
+                    )}
                   />
-                </div>
+                </button>
+                {isSubNavExpanded && (
+                  <div className="pl-0">
+                    <NavSection
+                      title=""
+                      items={item.subNav}
+                      onItemClick={onItemClick}
+                      showTitle={false}
+                    />
+                  </div>
+                )}
               </li>
             );
           }
@@ -148,10 +165,12 @@ const NavSection = ({
                 aria-current={isItemActive ? "page" : undefined}
                 tabIndex={0}
               >
-                <span className={cn(
-                  "flex items-center shrink-0 transition-colors",
-                  isItemActive ? "text-sidebar-primary-foreground" : ""
-                )}>
+                <span
+                  className={cn(
+                    "flex items-center shrink-0 transition-colors",
+                    isItemActive ? "text-sidebar-primary-foreground" : ""
+                  )}
+                >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : item.icon}
                 </span>
                 <span className="flex-1 truncate">{item.title}</span>
