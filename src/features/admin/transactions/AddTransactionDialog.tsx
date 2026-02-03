@@ -173,7 +173,7 @@ export function AddTransactionDialog({
 
     const newTotalAum = closingAumDec.plus(amountDec).toFixed(10);
     setDepositPreviewLoading(true);
-    previewDepositYield(selectedFundId, amountDec.toFixed(10), newTotalAum, txDate)
+    previewDepositYield(selectedFundId, amountDec.toFixed(10), newTotalAum)
       .then((preview) => {
         setDepositYieldPreview(preview);
         setDepositPreviewError(null);
@@ -185,7 +185,7 @@ export function AddTransactionDialog({
         );
       })
       .finally(() => setDepositPreviewLoading(false));
-  }, [requiresYieldPreview, amount, closingAum, selectedFundId, txDate]);
+  }, [requiresYieldPreview, amount, closingAum, selectedFundId]);
 
   const handleCancel = () => {
     reset();
