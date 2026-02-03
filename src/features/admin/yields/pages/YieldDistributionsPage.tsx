@@ -420,7 +420,13 @@ function YieldDistributionsContent() {
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                           {formatPercentage(
-                                                            (allocation.ownership_pct || 0) * 100,
+                                                            allocation.ownership_pct
+                                                              ? allocation.ownership_pct * 100
+                                                              : totalAdb > 0
+                                                                ? ((allocation.adb_share || 0) /
+                                                                    totalAdb) *
+                                                                  100
+                                                                : 0,
                                                             4
                                                           )}
                                                         </TableCell>
