@@ -274,8 +274,12 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
             ))}
 
             {Object.keys(reportsByMonth).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No monthly reports found. Generate templates to get started.
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Calendar className="h-10 w-10 text-muted-foreground/50 mb-3" />
+                <p className="font-medium text-foreground mb-1">No monthly reports yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Generate templates to start tracking monthly performance.
+                </p>
               </div>
             )}
           </div>

@@ -48,6 +48,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction, invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { toDecimal } from "@/utils/financial";
+import { formatAUM } from "@/utils/formatters";
 import {
   useTransactionFormInvestors,
   useTransactionFormFunds,
@@ -173,6 +174,7 @@ export default function AdminManualTransaction() {
     currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
   const isDeposit = txnType === "DEPOSIT" || txnType === "FIRST_INVESTMENT";
   const isLoading = investorsLoading || fundsLoading;
+  const selectedFundAsset = funds.find((f) => f.id === selectedFundId)?.asset || "tokens";
   const yieldPreviewAum = yieldPreview ? toDecimal(yieldPreview.currentAum) : null;
   const yieldPreviewGross = yieldPreview ? toDecimal(yieldPreview.preDepositYield) : null;
   const yieldPreviewPct = yieldPreview ? toDecimal(yieldPreview.yieldPercentage) : null;
@@ -270,7 +272,7 @@ export default function AdminManualTransaction() {
 
         const yieldMsg =
           result.yieldDistributed > 0
-            ? ` Yield of ${result.yieldDistributed.toFixed(8)} ${selectedFund.asset} distributed to ${result.yieldInvestorsAffected} investors.`
+            ? ` Yield of ${formatAUM(result.yieldDistributed, selectedFund.asset)} ${selectedFund.asset} distributed to ${result.yieldInvestorsAffected} investors.`
             : "";
 
         toast({
@@ -421,8 +423,9 @@ export default function AdminManualTransaction() {
                     </span>
                   ) : (
                     <span>
-                      <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit"
-                      for top-ups
+                      <strong>Current balance:</strong>{" "}
+                      {formatAUM(currentBalance ?? 0, selectedFundAsset)} — Use "Deposit" for
+                      top-ups
                     </span>
                   )}
                 </AlertDescription>
@@ -523,13 +526,16 @@ export default function AdminManualTransaction() {
                 />
                 {currentAum !== null && (
                   <p className="text-xs text-muted-foreground">
-                    Current AUM: {currentAum.toFixed(8)}
+                    Current AUM: {formatAUM(currentAum, selectedFundAsset)}
                     {depositAmount && (
                       <span className="ml-2 text-primary">
                         (Expected after deposit:{" "}
-                        {toDecimal(currentAum)
-                          .plus(toDecimal(depositAmount || "0"))
-                          .toFixed(8)}
+                        {formatAUM(
+                          toDecimal(currentAum)
+                            .plus(toDecimal(depositAmount || "0"))
+                            .toNumber(),
+                          selectedFundAsset
+                        )}
                         )
                       </span>
                     )}
@@ -571,7 +577,8 @@ export default function AdminManualTransaction() {
                     <div>
                       <p className="text-muted-foreground">Current AUM</p>
                       <p className="font-medium">
-                        {yieldPreviewAum?.toFixed(8)} {yieldPreview.fundAsset}
+                        {formatAUM(yieldPreviewAum?.toNumber() ?? 0, yieldPreview.fundAsset)}{" "}
+                        {yieldPreview.fundAsset}
                       </p>
                     </div>
                     <div>
@@ -583,7 +590,8 @@ export default function AdminManualTransaction() {
                         )}
                       >
                         {yieldPreviewGross?.gt(0) ? "+" : ""}
-                        {yieldPreviewGross?.toFixed(8)} {yieldPreview.fundAsset}
+                        {formatAUM(yieldPreviewGross?.toNumber() ?? 0, yieldPreview.fundAsset)}{" "}
+                        {yieldPreview.fundAsset}
                         {yieldPreviewGross?.gt(0) && (
                           <span className="text-xs ml-1">({yieldPreviewPct?.toFixed(4)}%)</span>
                         )}
@@ -592,7 +600,9 @@ export default function AdminManualTransaction() {
                     <div>
                       <p className="text-muted-foreground">This Deposit</p>
                       <p className="font-medium">
-                        +{depositAmountDec?.abs().toFixed(8)} {yieldPreview.fundAsset}
+                        +
+                        {formatAUM(depositAmountDec?.abs().toNumber() ?? 0, yieldPreview.fundAsset)}{" "}
+                        {yieldPreview.fundAsset}
                       </p>
                     </div>
                     <div>

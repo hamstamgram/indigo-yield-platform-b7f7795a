@@ -35,6 +35,7 @@ import {
   type YieldPreviewResult,
 } from "@/services/admin/depositWithYieldService";
 import { toDecimal } from "@/utils/financial";
+import { formatAUM } from "@/utils/formatters";
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -172,7 +173,7 @@ export function AddTransactionDialog({
 
     const newTotalAum = closingAumDec.plus(amountDec).toFixed(10);
     setDepositPreviewLoading(true);
-    previewDepositYield(selectedFundId, amountDec.toFixed(10), newTotalAum)
+    previewDepositYield(selectedFundId, amountDec.toFixed(10), newTotalAum, txDate)
       .then((preview) => {
         setDepositYieldPreview(preview);
         setDepositPreviewError(null);
@@ -184,7 +185,7 @@ export function AddTransactionDialog({
         );
       })
       .finally(() => setDepositPreviewLoading(false));
-  }, [requiresYieldPreview, amount, closingAum, selectedFundId]);
+  }, [requiresYieldPreview, amount, closingAum, selectedFundId, txDate]);
 
   const handleCancel = () => {
     reset();
@@ -287,7 +288,8 @@ export function AddTransactionDialog({
                         </span>
                       ) : (
                         <span>
-                          <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use
+                          <strong>Current balance:</strong>{" "}
+                          {formatAUM(currentBalance ?? 0, selectedFund?.asset || "tokens")} — Use
                           "Deposit" for top-ups
                         </span>
                       )}
@@ -337,7 +339,10 @@ export function AddTransactionDialog({
                         <div>
                           <p className="text-xs text-muted-foreground">Opening AUM</p>
                           <p className="font-medium">
-                            {toDecimal(depositYieldPreview.currentAum).toFixed(8)}{" "}
+                            {formatAUM(
+                              toDecimal(depositYieldPreview.currentAum).toNumber(),
+                              depositYieldPreview.fundAsset
+                            )}{" "}
                             {depositYieldPreview.fundAsset}
                           </p>
                         </div>
@@ -352,7 +357,10 @@ export function AddTransactionDialog({
                             )}
                           >
                             {toDecimal(depositYieldPreview.preDepositYield).gt(0) ? "+" : ""}
-                            {toDecimal(depositYieldPreview.preDepositYield).toFixed(8)}{" "}
+                            {formatAUM(
+                              toDecimal(depositYieldPreview.preDepositYield).toNumber(),
+                              depositYieldPreview.fundAsset
+                            )}{" "}
                             {depositYieldPreview.fundAsset}
                           </p>
                         </div>

@@ -21,6 +21,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui";
 import { useAuth } from "@/services/auth";
 import { Loader2, UserCheck, UserMinus } from "lucide-react";
@@ -147,18 +150,24 @@ const AdminUsersList = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleToggleAdmin(userItem.id, userItem.is_admin)}
-                          title={userItem.is_admin ? "Revoke admin access" : "Grant admin access"}
-                        >
-                          {userItem.is_admin ? (
-                            <UserMinus className="h-4 w-4" />
-                          ) : (
-                            <UserCheck className="h-4 w-4" />
-                          )}
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleToggleAdmin(userItem.id, userItem.is_admin)}
+                            >
+                              {userItem.is_admin ? (
+                                <UserMinus className="h-4 w-4" />
+                              ) : (
+                                <UserCheck className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {userItem.is_admin ? "Revoke admin access" : "Grant admin access"}
+                          </TooltipContent>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))

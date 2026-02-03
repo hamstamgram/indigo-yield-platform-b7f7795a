@@ -25,6 +25,9 @@ import {
   TableHeader,
   TableRow,
   SortableTableHead,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui";
 import { Search, Download, Eye, Clock, TrendingUp, Users, Filter } from "lucide-react";
 import { format } from "date-fns";
@@ -213,9 +216,14 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
             />
           </div>
 
-          <Button variant="outline" size="icon" title="Export CSV">
-            <Download className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Download className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export CSV</TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Table */}

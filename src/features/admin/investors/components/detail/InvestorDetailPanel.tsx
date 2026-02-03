@@ -6,7 +6,16 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, Button, Badge, Skeleton } from "@/components/ui";
+import {
+  Card,
+  CardContent,
+  Button,
+  Badge,
+  Skeleton,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui";
 import { X, ExternalLink, User, Loader2, AlertCircle, RotateCcw, Copy, Check } from "lucide-react";
 import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
 import { useAdminPendingWithdrawalsCount as usePendingWithdrawalsCount } from "@/hooks/data/admin";
@@ -134,19 +143,23 @@ export function InvestorDetailPanel({
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground truncate">{investorSummary.email}</p>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 shrink-0"
-                onClick={handleCopyId}
-                title="Copy investor ID"
-              >
-                {copied ? (
-                  <Check className="h-3 w-3 text-green-500" />
-                ) : (
-                  <Copy className="h-3 w-3 text-muted-foreground" />
-                )}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 shrink-0"
+                    onClick={handleCopyId}
+                  >
+                    {copied ? (
+                      <Check className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{copied ? "Copied!" : "Copy investor ID"}</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -155,9 +168,14 @@ export function InvestorDetailPanel({
             <ExternalLink className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Open Workspace</span>
           </Button>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Close panel</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
