@@ -1,57 +1,210 @@
 
-# Fix: Transaction Filters and Rename Interest/Yield to Yield
 
-## Issues Found
+# Fix: Align All Transaction & Withdrawal Filters with Database
 
-### Problem 1: Filter Not Working Correctly
-The "Interest/Yield" base type filter in the admin transactions page sends `type=INTEREST` to the database, but the system also uses `YIELD` as a separate transaction type. This means transactions with `type=YIELD` are excluded from filter results.
+## Analysis Summary
 
-### Problem 2: Inconsistent Naming
-The label "Interest/Yield" appears in multiple places, which is confusing since:
-- The database has two separate enum values: `INTEREST` and `YIELD`
-- The system primarily uses `YIELD` for yield distribution transactions
-- "Interest" is legacy terminology
+### Transaction Page Filters vs Database Reality
 
-## Root Cause
-In `AdminTransactionsPage.tsx` line 342:
-```typescript
-<SelectItem value="INTEREST">Interest/Yield</SelectItem>
+| UI Filter Value | UI Label | Database Reality | Match? |
+|-----------------|----------|------------------|--------|
+| `DEPOSIT` | Deposits | 8 records exist | Yes |
+| `WITHDRAWAL` | Withdrawals | 0 records (valid type) | Yes |
+| `FEE` | Fees | **0 records - type not used** | **BROKEN** |
+| `YIELD` | Yield | 8 records exist | Yes |
+| - | - | `FEE_CREDIT`: 7 records | **Missing** |
+| - | - | `IB_CREDIT`: 7 records | **Missing** |
+
+### Database tx_type Enum (Full List)
 ```
-This only filters for `type=INTEREST`, missing all `type=YIELD` transactions.
+DEPOSIT, WITHDRAWAL, INTEREST, FEE, ADJUSTMENT, 
+FEE_CREDIT, IB_CREDIT, YIELD, INTERNAL_WITHDRAWAL, 
+INTERNAL_CREDIT, IB_DEBIT
+```
 
-## Solution
+### Withdrawal Page Filters vs Database Reality
 
-### Changes Required
+| UI Filter Value | UI Label | Database Reality | Match? |
+|-----------------|----------|------------------|--------|
+| `pending` | Pending | Valid enum value | Yes |
+| `approved` | Approved | Valid enum value | Yes |
+| `processing` | Processing | Valid enum value | Yes |
+| `completed` | Completed | Valid enum value | Yes |
+| `rejected` | Rejected | Valid enum value | Yes |
+| `cancelled` | Cancelled | Valid enum value | Yes |
 
-**1. `src/features/admin/transactions/pages/AdminTransactionsPage.tsx`**
-- Line 342: Change filter value from `INTEREST` to `YIELD` and label from "Interest/Yield" to "Yield"
-- Line 357: Change display category label from "Interest/Yield" to "Yield"
+**Withdrawal filters are already correct** - they match the database `withdrawal_status` enum exactly.
 
-**2. `src/services/admin/adminTransactionHistoryService.ts`**
-- Line 76: Change `yield_credit: "Interest/Yield"` to `yield_credit: "Yield"`
-- Line 158: Change fallback from `"Interest/Yield"` to `"Yield"`
+---
 
-**3. `src/types/domains/transaction.ts`**
-- Line 294: Keep `INTEREST: "Interest"` but ensure it's separate from Yield labeling
+## Changes Required
 
-## Technical Details
+### File 1: `src/features/admin/transactions/pages/AdminTransactionsPage.tsx`
 
-The database enum `tx_type` includes both:
-- `INTEREST` - Legacy/external interest 
-- `YIELD` - Platform yield distributions
+**Lines 337-358: Update Base Type and Category filters**
 
-The yield distribution RPC (`apply_adb_yield_distribution_v3`) creates transactions with `type=YIELD`, so the filter should use `YIELD` to capture these.
+Current Base Type filter options:
+```typescript
+<SelectItem value="DEPOSIT">Deposits</SelectItem>
+<SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
+<SelectItem value="FEE">Fees</SelectItem>          // BROKEN - no data
+<SelectItem value="YIELD">Yield</SelectItem>
+```
 
-## Files to Modify
-| File | Lines | Change |
-|------|-------|--------|
-| `AdminTransactionsPage.tsx` | 342, 357 | Update filter value and labels |
-| `adminTransactionHistoryService.ts` | 76, 158 | Update display mapping |
+Updated Base Type filter options:
+```typescript
+<SelectItem value="DEPOSIT">Deposits</SelectItem>
+<SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
+<SelectItem value="YIELD">Yield</SelectItem>
+<SelectItem value="FEE_CREDIT">Fee Credits</SelectItem>     // NEW
+<SelectItem value="IB_CREDIT">IB Credits</SelectItem>       // NEW
+<SelectItem value="ADJUSTMENT">Adjustments</SelectItem>     // NEW (for completeness)
+```
 
-## Testing
+Current Category filter options:
+```typescript
+<SelectItem value="First Investment">First Investment</SelectItem>
+<SelectItem value="Top-up">Top-up</SelectItem>
+<SelectItem value="Withdrawal">Withdrawal</SelectItem>
+<SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
+<SelectItem value="Fee">Fee</SelectItem>              // BROKEN - no data matches
+<SelectItem value="Yield">Yield</SelectItem>
+```
+
+Updated Category filter options:
+```typescript
+<SelectItem value="First Investment">First Investment</SelectItem>
+<SelectItem value="Top-up">Top-up</SelectItem>
+<SelectItem value="Withdrawal">Withdrawal</SelectItem>
+<SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
+<SelectItem value="Yield">Yield</SelectItem>
+<SelectItem value="Fee Credit">Fee Credit</SelectItem>      // NEW
+<SelectItem value="IB Credit">IB Credit</SelectItem>        // NEW
+<SelectItem value="Adjustment">Adjustment</SelectItem>      // NEW
+```
+
+### File 2: `src/services/admin/adminTransactionHistoryService.ts`
+
+**Lines 70-78: Update SUBTYPE_DISPLAY_MAP**
+
+Add mappings for fee credit and IB credit subtypes:
+```typescript
+const SUBTYPE_DISPLAY_MAP: Record<string, string> = {
+  first_investment: "First Investment",
+  deposit: "Top-up",
+  redemption: "Withdrawal",
+  full_redemption: "Withdrawal All",
+  fee_charge: "Fee",
+  yield_credit: "Yield",
+  adjustment: "Adjustment",
+  fee_credit: "Fee Credit",      // NEW
+  ib_credit: "IB Credit",        // NEW
+};
+```
+
+**Lines 154-160: Update fallback displayType logic**
+
+Current:
+```typescript
+if (tx.type === "DEPOSIT") displayType = "Top-up";
+else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
+else if (tx.type === "INTEREST") displayType = "Yield";
+else if (tx.type === "FEE") displayType = "Fee";
+```
+
+Updated:
+```typescript
+if (tx.type === "DEPOSIT") displayType = "Top-up";
+else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
+else if (tx.type === "INTEREST" || tx.type === "YIELD") displayType = "Yield";
+else if (tx.type === "FEE") displayType = "Fee";
+else if (tx.type === "FEE_CREDIT") displayType = "Fee Credit";
+else if (tx.type === "IB_CREDIT") displayType = "IB Credit";
+else if (tx.type === "ADJUSTMENT") displayType = "Adjustment";
+```
+
+---
+
+## Withdrawals Page Status
+
+The withdrawal filters in `WithdrawalsTable.tsx` (lines 391-399) are already correctly aligned with the database:
+
+```typescript
+<SelectItem value="all">All Status</SelectItem>
+<SelectItem value="pending">Pending</SelectItem>
+<SelectItem value="approved">Approved</SelectItem>
+<SelectItem value="processing">Processing</SelectItem>
+<SelectItem value="completed">Completed</SelectItem>
+<SelectItem value="rejected">Rejected</SelectItem>
+<SelectItem value="cancelled">Cancelled</SelectItem>
+```
+
+These match the database enum `withdrawal_status` exactly. **No changes needed.**
+
+---
+
+## Visual Summary of Changes
+
+```text
+TRANSACTION FILTERS
+===================
+
+Base Type Dropdown (Before):
++------------------+
+| Deposits         |  -> DEPOSIT (works)
+| Withdrawals      |  -> WITHDRAWAL (works)
+| Fees             |  -> FEE (BROKEN - 0 records)
+| Yield            |  -> YIELD (works)
++------------------+
+
+Base Type Dropdown (After):
++------------------+
+| Deposits         |  -> DEPOSIT
+| Withdrawals      |  -> WITHDRAWAL
+| Yield            |  -> YIELD
+| Fee Credits      |  -> FEE_CREDIT (7 records)
+| IB Credits       |  -> IB_CREDIT (7 records)
+| Adjustments      |  -> ADJUSTMENT
++------------------+
+
+Category Dropdown (Before):
++------------------+
+| First Investment |
+| Top-up           |
+| Withdrawal       |
+| Withdrawal All   |
+| Fee              |  <- BROKEN
+| Yield            |
++------------------+
+
+Category Dropdown (After):
++------------------+
+| First Investment |
+| Top-up           |
+| Withdrawal       |
+| Withdrawal All   |
+| Yield            |
+| Fee Credit       |  <- NEW
+| IB Credit        |  <- NEW
+| Adjustment       |  <- NEW
++------------------+
+```
+
+---
+
+## Testing Verification
+
 After implementation:
-1. Navigate to Admin > Transactions
-2. Apply "Yield" base type filter
-3. Verify yield distribution transactions appear
-4. Apply "Yield" category filter
-5. Verify transactions with `displayType="Yield"` appear
+
+1. Navigate to `/admin/transactions`
+2. Apply "Fee Credits" base type filter -> Should show 7 FEE_CREDIT transactions
+3. Apply "IB Credits" base type filter -> Should show 7 IB_CREDIT transactions
+4. Apply "Yield" base type filter -> Should show 8 YIELD transactions
+5. Apply "Deposits" base type filter -> Should show 8 DEPOSIT transactions
+6. Try Category filter "Fee Credit" -> Should match `displayType="Fee Credit"`
+7. Try Category filter "IB Credit" -> Should match `displayType="IB Credit"`
+
+For withdrawals (no changes needed):
+1. Navigate to `/admin/withdrawals`
+2. Verify all status filters work (pending, approved, processing, completed, rejected, cancelled)
+
