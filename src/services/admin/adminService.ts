@@ -21,6 +21,7 @@ export interface AdminInvestorSummary {
   totalAum: number;
   status: string;
   onboardingDate: string | null;
+  createdAt: string | null;
   lastStatementDate: string | null;
   isSystemAccount?: boolean;
   portfolioDetails: {
@@ -85,6 +86,7 @@ class AdminInvestorService {
         totalAum: summary.totalAUM,
         status: summary.status,
         onboardingDate: summary.onboardingDate || null,
+        createdAt: summary.createdAt || null,
         lastStatementDate: null,
         isSystemAccount: summary.isSystemAccount || false,
         portfolioDetails: {

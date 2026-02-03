@@ -91,6 +91,14 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
             Last Report
           </SortableTableHead>
           <SortableTableHead
+            column="createdAt"
+            currentSort={sortConfig}
+            onSort={onSort}
+            className="w-[90px]"
+          >
+            Joined
+          </SortableTableHead>
+          <SortableTableHead
             column="ibParentName"
             currentSort={sortConfig}
             onSort={onSort}
@@ -103,7 +111,7 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
       <TableBody>
         {investors.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+            <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
               {hasFilters ? "No investors match your filters" : "No investors found"}
             </TableCell>
           </TableRow>
@@ -177,6 +185,9 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
               </TableCell>
               <TableCell className="text-sm text-muted-foreground truncate max-w-[100px]">
                 {investor.lastReportPeriod || "—"}
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground">
+                {investor.createdAt ? format(new Date(investor.createdAt), "MMM d, yy") : "—"}
               </TableCell>
               <TableCell>
                 {investor.ibParentName ? (

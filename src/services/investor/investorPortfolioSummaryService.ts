@@ -23,6 +23,7 @@ export interface InvestorSummary {
   positionCount: number;
   assetBreakdown: Record<string, number>;
   onboardingDate?: string | null;
+  createdAt?: string | null;
   isSystemAccount?: boolean;
 }
 
@@ -97,6 +98,7 @@ export async function getInvestorSummary(investorId: string): Promise<InvestorSu
     positionCount: positions.length,
     assetBreakdown,
     onboardingDate: investor.onboarding_date || investor.created_at,
+    createdAt: investor.created_at,
   };
 }
 
@@ -186,10 +188,7 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     const positions = positionsByInvestor.get(investor.id) || [];
 
     const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
-    const totalEarned = positions.reduce(
-      (sum, pos) => sum + Number(pos.unrealized_pnl || 0),
-      0
-    );
+    const totalEarned = positions.reduce((sum, pos) => sum + Number(pos.unrealized_pnl || 0), 0);
     const totalPrincipal = positions.reduce((sum, pos) => sum + Number(pos.cost_basis || 0), 0);
 
     // Calculate asset breakdown
@@ -203,7 +202,7 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     });
 
     const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
-    const isSystemAccount = investor.account_type === 'fees_account';
+    const isSystemAccount = investor.account_type === "fees_account";
 
     return {
       id: investor.id,
@@ -216,6 +215,7 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
       positionCount: positions.length,
       assetBreakdown,
       onboardingDate: investor.onboarding_date || investor.created_at,
+      createdAt: investor.created_at,
       isSystemAccount,
     };
   });
