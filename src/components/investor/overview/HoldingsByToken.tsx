@@ -1,5 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
 import { getAssetLogo, getAssetName, formatAssetAmount } from "@/utils/assets";
+import { formatPercentage } from "@/utils/formatters";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Coins } from "lucide-react";
 
 interface TokenHolding {
   symbol: string;
@@ -43,9 +46,12 @@ export function HoldingsByToken({ holdings, isLoading }: HoldingsByTokenProps) {
           <CardTitle>Holdings by Token</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            No holdings found. Your token balances will appear here.
-          </p>
+          <EmptyState
+            title="No holdings found"
+            description="Your token balances will appear here."
+            icon={Coins}
+            className="border-0 shadow-none py-12"
+          />
         </CardContent>
       </Card>
     );
@@ -82,7 +88,7 @@ export function HoldingsByToken({ holdings, isLoading }: HoldingsByTokenProps) {
                     }`}
                   >
                     {holding.ytdReturn >= 0 ? "+" : ""}
-                    {(holding.ytdReturn * 100).toFixed(2)}% YTD
+                    {formatPercentage(holding.ytdReturn * 100)} YTD
                   </p>
                 )}
               </div>

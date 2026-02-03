@@ -12,6 +12,9 @@ import {
 import { CheckCircle, XCircle, Clock, Eye } from "lucide-react";
 import type { Investment } from "@/types/domains";
 import { InvestmentApprovalDialog } from "./InvestmentApprovalDialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui";
+import { FileText } from "lucide-react";
 
 interface InvestmentsTableProps {
   investments: Investment[];
@@ -65,13 +68,13 @@ export function InvestmentsTable({ investments, onRefresh }: InvestmentsTablePro
           <TableBody>
             {investments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center">
-                  <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                    <p className="font-medium">No investments found</p>
-                    <p className="text-sm">
-                      Investment requests will appear here when investors submit them.
-                    </p>
-                  </div>
+                <TableCell colSpan={8} className="h-64">
+                  <EmptyState
+                    icon={FileText}
+                    title="No investments found"
+                    description="Investment requests will appear here when investors submit them."
+                    className="border-0 shadow-none h-full"
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -106,9 +109,14 @@ export function InvestmentsTable({ investments, onRefresh }: InvestmentsTablePro
                         Review
                       </Button>
                     ) : (
-                      <Button size="sm" variant="ghost">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View Details</TooltipContent>
+                      </Tooltip>
                     )}
                   </TableCell>
                 </TableRow>

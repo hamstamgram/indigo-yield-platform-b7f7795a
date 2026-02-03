@@ -24,9 +24,10 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  EmptyState,
 } from "@/components/ui";
 import { useAuth } from "@/services/auth";
-import { Loader2, UserCheck, UserMinus } from "lucide-react";
+import { Loader2, UserCheck, UserMinus, Users } from "lucide-react";
 import {
   useAdminUsersList,
   useToggleAdminStatusMutation,
@@ -126,8 +127,13 @@ const AdminUsersList = () => {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6">
-                      No users found
+                    <TableCell colSpan={5} className="h-64">
+                      <EmptyState
+                        title="No users found"
+                        description="There are no users in the system yet."
+                        icon={Users}
+                        className="border-0 shadow-none h-full"
+                      />
                     </TableCell>
                   </TableRow>
                 ) : (

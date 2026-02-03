@@ -54,7 +54,8 @@ export interface DepositWithYieldResult {
 export async function previewDepositYield(
   fundId: string,
   depositAmount: string | number,
-  newTotalAum: string | number
+  newTotalAum: string | number,
+  txDate?: string
 ): Promise<YieldPreviewResult> {
   // Get fund info
   const { data: fund, error: fundError } = await supabase
@@ -78,12 +79,19 @@ export async function previewDepositYield(
     throw new Error("Invalid AUM inputs: newTotalAum must be >= depositAmount");
   }
 
-  // Query fund_aum_events - table exists in schema but not in generated types
-  const { data: lastCheckpointRaw } = await supabase
+  // Query fund_aum_events - use checkpoint valid at or before the transaction date
+  let checkpointQuery = supabase
     .from("fund_aum_events")
     .select("closing_aum, post_flow_aum, event_ts")
     .eq("fund_id", fundId)
-    .eq("is_voided", false)
+    .eq("is_voided", false);
+
+  if (txDate) {
+    // For backdated transactions, find the checkpoint closest to (but not after) the tx date
+    checkpointQuery = checkpointQuery.lte("event_ts", `${txDate}T23:59:59.999Z`);
+  }
+
+  const { data: lastCheckpointRaw } = await checkpointQuery
     .order("event_ts", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -102,11 +110,18 @@ export async function previewDepositYield(
     ? preDepositYieldDec.div(openingAumDec).times(100)
     : toDecimal(0);
 
+  // Count active investors with positions in this fund
+  const { count: activeInvestorCount } = await supabase
+    .from("investor_positions")
+    .select("investor_id", { count: "exact", head: true })
+    .eq("fund_id", fundId)
+    .gt("current_value", 0);
+
   return {
     currentAum: openingAumDec.toFixed(10),
     preDepositYield: preDepositYieldDec.toFixed(10),
     yieldPercentage: yieldPercentageDec.toFixed(10),
-    investorCount: 0,
+    investorCount: activeInvestorCount ?? 0,
     fundAsset: fund.asset,
     fundCode: fund.code,
   };

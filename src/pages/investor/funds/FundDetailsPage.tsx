@@ -9,6 +9,7 @@ import { getInvestorPositions } from "@/services/investor/investorPositionServic
 import { Loader2, TrendingUp, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toNum } from "@/utils/numeric";
+import { formatAUM, formatPercentage } from "@/utils/formatters";
 
 export default function FundDetailsPage() {
   const { assetId } = useParams();
@@ -90,7 +91,7 @@ export default function FundDetailsPage() {
           </div>
           <div className="space-y-1">
             <p className="text-3xl font-mono font-bold text-white tracking-tighter">
-              {balance.toFixed(4)}
+              {formatAUM(balance, assetCode)}
             </p>
             <div className="flex items-center gap-2 text-sm text-indigo-200/40 font-medium">
               <CryptoIcon symbol={assetCode} className="h-4 w-4 opacity-50" /> Tokens
@@ -112,7 +113,7 @@ export default function FundDetailsPage() {
           </div>
           <div className="space-y-1 relative z-10">
             <p className="text-3xl font-mono font-bold text-yield-neon tracking-tighter">
-              +{(mtdYield * 100).toFixed(2)}%
+              +{formatPercentage(mtdYield * 100)}
             </p>
             <p className="text-sm text-yield-neon/50 font-medium">Month to Date</p>
           </div>
@@ -132,7 +133,7 @@ export default function FundDetailsPage() {
           </div>
           <div className="space-y-1 relative z-10">
             <p className="text-3xl font-mono font-bold text-indigo-400 tracking-tighter">
-              +{(ytdYield * 100).toFixed(2)}%
+              +{formatPercentage(ytdYield * 100)}
             </p>
             <p className="text-sm text-indigo-400/50 font-medium">Year to Date</p>
           </div>
@@ -151,17 +152,12 @@ export default function FundDetailsPage() {
             {performance && performance.length > 0 ? (
               <PerformanceReportTable data={performance} />
             ) : (
-              <div className="p-12 flex flex-col items-center justify-center text-center space-y-4 text-muted-foreground">
-                <div className="p-4 rounded-full bg-white/5">
-                  <Info className="h-8 w-8 opacity-50" />
-                </div>
-                <div>
-                  <p className="font-medium text-white">No Data Available</p>
-                  <p className="text-sm opacity-50">
-                    Performance metrics will appear here once available.
-                  </p>
-                </div>
-              </div>
+              <EmptyState
+                title="No Data Available"
+                description="Performance metrics will appear here once available."
+                icon={Info}
+                className="border-0 shadow-none py-12"
+              />
             )}
           </div>
         </div>

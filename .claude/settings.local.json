@@ -39,7 +39,11 @@
       "mcp__MCP_DOCKER__browser_run_code",
       "mcp__MCP_DOCKER__browser_network_requests",
       "mcp__MCP_DOCKER__read_graph",
-      "mcp__MCP_DOCKER__mcp-find"
+      "mcp__MCP_DOCKER__mcp-find",
+      "mcp__MCP_DOCKER__sequentialthinking",
+      "mcp__MCP_DOCKER__browser_hover",
+      "mcp__MCP_DOCKER__browser_select_option",
+      "mcp__MCP_DOCKER__browser_install"
     ],
     "deny": [],
     "ask": []
