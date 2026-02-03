@@ -16,6 +16,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui";
 import { ArrowUpRight, ArrowDownRight, RefreshCw, MoreHorizontal, Ban, Lock } from "lucide-react";
 import { format } from "date-fns";
@@ -120,11 +123,16 @@ export function LedgerTable({ transactions, onEdit, onReissue, onVoid }: LedgerT
               <TableCell className="py-2">
                 {!tx.is_voided && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <MoreHorizontal className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>Actions</TooltipContent>
+                    </Tooltip>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleCorrection(tx)}>
                         <RefreshCw className="h-3.5 w-3.5 mr-2" />

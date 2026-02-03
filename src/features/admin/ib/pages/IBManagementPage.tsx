@@ -212,8 +212,16 @@ export default function IBManagementPage() {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !ibs || ibs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No Introducing Brokers found. Click "Add IB" to create one.
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Users className="h-10 w-10 text-muted-foreground/50 mb-3" />
+              <p className="font-medium text-foreground mb-1">No Introducing Brokers yet</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Add your first IB to start tracking referrals and commissions.
+              </p>
+              <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add IB
+              </Button>
             </div>
           ) : (
             <Table>

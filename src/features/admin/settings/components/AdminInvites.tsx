@@ -19,6 +19,9 @@ import {
   Label,
   Alert,
   AlertDescription,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, Copy, Send, Trash, ShieldAlert } from "lucide-react";
@@ -194,44 +197,56 @@ const AdminInvites = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => copyInviteLink(invite.invite_code)}
-                              title="Copy invite link"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => sendInvite(invite)}
-                              disabled={sendInviteMutation.isPending || !!invite.used}
-                              title="Send invitation email"
-                            >
-                              {sendInviteMutation.isPending &&
-                              sendInviteMutation.variables?.id === invite.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Send className="h-4 w-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => deleteInvite(invite.id)}
-                              disabled={deleteInviteMutation.isPending || !isSuperAdmin}
-                              title={
-                                !isSuperAdmin ? "Only super admins can delete" : "Delete invite"
-                              }
-                            >
-                              {deleteInviteMutation.isPending &&
-                              deleteInviteMutation.variables === invite.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Trash className="h-4 w-4" />
-                              )}
-                            </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => copyInviteLink(invite.invite_code)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Copy invite link</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => sendInvite(invite)}
+                                  disabled={sendInviteMutation.isPending || !!invite.used}
+                                >
+                                  {sendInviteMutation.isPending &&
+                                  sendInviteMutation.variables?.id === invite.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Send className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Send invitation email</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => deleteInvite(invite.id)}
+                                  disabled={deleteInviteMutation.isPending || !isSuperAdmin}
+                                >
+                                  {deleteInviteMutation.isPending &&
+                                  deleteInviteMutation.variables === invite.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {!isSuperAdmin ? "Only super admins can delete" : "Delete invite"}
+                              </TooltipContent>
+                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>

@@ -90,9 +90,10 @@ const DashboardLayout = () => {
   ]);
 
   // Set sidebar open state based on screen size
+  // Use lg breakpoint (1024px) to match sidebar's lg:static CSS classes
   useEffect(() => {
-    // Close sidebar on mobile by default, keep open on desktop
-    setSidebarOpen(!isMobile);
+    const isDesktop = window.innerWidth >= 1024;
+    setSidebarOpen(isDesktop);
   }, [isMobile]);
 
   // Function to toggle sidebar visibility

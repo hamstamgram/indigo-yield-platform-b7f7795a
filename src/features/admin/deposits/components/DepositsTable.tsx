@@ -169,8 +169,13 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
             <TableBody>
               {sortedData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    No deposits found
+                  <TableCell colSpan={7} className="h-32 text-center">
+                    <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                      <p className="font-medium">No deposits found</p>
+                      <p className="text-sm">
+                        Deposits will appear here once transactions are recorded.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (

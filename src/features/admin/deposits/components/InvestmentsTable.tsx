@@ -65,8 +65,13 @@ export function InvestmentsTable({ investments, onRefresh }: InvestmentsTablePro
           <TableBody>
             {investments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
-                  No investments found
+                <TableCell colSpan={8} className="h-32 text-center">
+                  <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                    <p className="font-medium">No investments found</p>
+                    <p className="text-sm">
+                      Investment requests will appear here when investors submit them.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

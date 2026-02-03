@@ -36,7 +36,7 @@ export function AssetInput({ fundId, txDate, asset }: PreflowAumInputProps) {
 
   const hasLiveAum = liveNavData?.aum !== undefined && liveNavData.aum !== null;
 
-  // Auto-populate AUM value with LIVE AUM from positions
+  // Auto-populate AUM with live value — always keep in sync so crystallization uses correct AUM
   useEffect(() => {
     if (liveNavData?.aum !== undefined && liveNavData.aum !== null) {
       setValue("closing_aum", String(liveNavData.aum), { shouldValidate: true });

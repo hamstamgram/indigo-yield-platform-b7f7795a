@@ -7,7 +7,7 @@ import { useInvestorBalance, useTransactionHistory } from "@/hooks";
 
 // Transaction validation schema
 export const transactionSchema = z.object({
-  txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "YIELD", "INTEREST", "FEE"], {
+  txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "YIELD"], {
     required_error: "Transaction type is required",
   }),
   fund_id: z.string().uuid("Please select a valid fund"),
