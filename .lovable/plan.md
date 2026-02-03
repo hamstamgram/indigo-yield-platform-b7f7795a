@@ -1,210 +1,156 @@
 
 
-# Fix: Align All Transaction & Withdrawal Filters with Database
+# Add Asset Logos to IB Management Pages
 
-## Analysis Summary
+## Summary
 
-### Transaction Page Filters vs Database Reality
-
-| UI Filter Value | UI Label | Database Reality | Match? |
-|-----------------|----------|------------------|--------|
-| `DEPOSIT` | Deposits | 8 records exist | Yes |
-| `WITHDRAWAL` | Withdrawals | 0 records (valid type) | Yes |
-| `FEE` | Fees | **0 records - type not used** | **BROKEN** |
-| `YIELD` | Yield | 8 records exist | Yes |
-| - | - | `FEE_CREDIT`: 7 records | **Missing** |
-| - | - | `IB_CREDIT`: 7 records | **Missing** |
-
-### Database tx_type Enum (Full List)
-```
-DEPOSIT, WITHDRAWAL, INTEREST, FEE, ADJUSTMENT, 
-FEE_CREDIT, IB_CREDIT, YIELD, INTERNAL_WITHDRAWAL, 
-INTERNAL_CREDIT, IB_DEBIT
-```
-
-### Withdrawal Page Filters vs Database Reality
-
-| UI Filter Value | UI Label | Database Reality | Match? |
-|-----------------|----------|------------------|--------|
-| `pending` | Pending | Valid enum value | Yes |
-| `approved` | Approved | Valid enum value | Yes |
-| `processing` | Processing | Valid enum value | Yes |
-| `completed` | Completed | Valid enum value | Yes |
-| `rejected` | Rejected | Valid enum value | Yes |
-| `cancelled` | Cancelled | Valid enum value | Yes |
-
-**Withdrawal filters are already correct** - they match the database `withdrawal_status` enum exactly.
-
----
+The IB Management page currently displays asset earnings as plain text (e.g., "0.0012 BTC, 1.50 USDT") without logos. This update will add CryptoIcon logos next to asset amounts and remove redundant ticker text where logos are already present.
 
 ## Changes Required
 
-### File 1: `src/features/admin/transactions/pages/AdminTransactionsPage.tsx`
+### File 1: `src/features/admin/ib/pages/IBManagementPage.tsx`
 
-**Lines 337-358: Update Base Type and Category filters**
+#### Change 1: Update Total IB Earnings card (lines 188-197)
 
-Current Base Type filter options:
-```typescript
-<SelectItem value="DEPOSIT">Deposits</SelectItem>
-<SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
-<SelectItem value="FEE">Fees</SelectItem>          // BROKEN - no data
-<SelectItem value="YIELD">Yield</SelectItem>
+**Current:**
+```tsx
+{Object.entries(allEarningsByAsset).map(([asset, amount]) => (
+  <div key={asset} className="text-lg font-semibold font-mono">
+    {formatCrypto(amount, 4, asset)}
+  </div>
+))}
 ```
 
-Updated Base Type filter options:
-```typescript
-<SelectItem value="DEPOSIT">Deposits</SelectItem>
-<SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
-<SelectItem value="YIELD">Yield</SelectItem>
-<SelectItem value="FEE_CREDIT">Fee Credits</SelectItem>     // NEW
-<SelectItem value="IB_CREDIT">IB Credits</SelectItem>       // NEW
-<SelectItem value="ADJUSTMENT">Adjustments</SelectItem>     // NEW (for completeness)
+**Updated:**
+```tsx
+{Object.entries(allEarningsByAsset).map(([asset, amount]) => (
+  <div key={asset} className="flex items-center gap-2 text-lg font-semibold font-mono">
+    <CryptoIcon symbol={asset} className="h-5 w-5" />
+    {formatCrypto(amount, 4, asset)}
+  </div>
+))}
 ```
 
-Current Category filter options:
-```typescript
-<SelectItem value="First Investment">First Investment</SelectItem>
-<SelectItem value="Top-up">Top-up</SelectItem>
-<SelectItem value="Withdrawal">Withdrawal</SelectItem>
-<SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
-<SelectItem value="Fee">Fee</SelectItem>              // BROKEN - no data matches
-<SelectItem value="Yield">Yield</SelectItem>
+#### Change 2: Update Earnings column in IB table (lines 290-292)
+
+Replace the simple text-based `formatEarningsDisplay` output with a flex container that includes logos.
+
+**Current:**
+```tsx
+<TableCell className="text-right font-mono text-sm">
+  {formatEarningsDisplay(ib.earningsByAsset)}
+</TableCell>
 ```
 
-Updated Category filter options:
-```typescript
-<SelectItem value="First Investment">First Investment</SelectItem>
-<SelectItem value="Top-up">Top-up</SelectItem>
-<SelectItem value="Withdrawal">Withdrawal</SelectItem>
-<SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
-<SelectItem value="Yield">Yield</SelectItem>
-<SelectItem value="Fee Credit">Fee Credit</SelectItem>      // NEW
-<SelectItem value="IB Credit">IB Credit</SelectItem>        // NEW
-<SelectItem value="Adjustment">Adjustment</SelectItem>      // NEW
+**Updated:**
+```tsx
+<TableCell className="text-right">
+  <div className="flex flex-wrap items-center justify-end gap-2">
+    {Object.entries(ib.earningsByAsset).length === 0 ? (
+      <span className="text-muted-foreground">—</span>
+    ) : (
+      Object.entries(ib.earningsByAsset).map(([asset, amount]) => (
+        <div key={asset} className="flex items-center gap-1">
+          <CryptoIcon symbol={asset} className="h-4 w-4" />
+          <span className="font-mono text-sm">{formatCrypto(amount, 4, asset)}</span>
+        </div>
+      ))
+    )}
+  </div>
+</TableCell>
 ```
 
-### File 2: `src/services/admin/adminTransactionHistoryService.ts`
+#### Change 3: Remove unused `formatEarningsDisplay` function (lines 87-92)
 
-**Lines 70-78: Update SUBTYPE_DISPLAY_MAP**
-
-Add mappings for fee credit and IB credit subtypes:
-```typescript
-const SUBTYPE_DISPLAY_MAP: Record<string, string> = {
-  first_investment: "First Investment",
-  deposit: "Top-up",
-  redemption: "Withdrawal",
-  full_redemption: "Withdrawal All",
-  fee_charge: "Fee",
-  yield_credit: "Yield",
-  adjustment: "Adjustment",
-  fee_credit: "Fee Credit",      // NEW
-  ib_credit: "IB Credit",        // NEW
-};
-```
-
-**Lines 154-160: Update fallback displayType logic**
-
-Current:
-```typescript
-if (tx.type === "DEPOSIT") displayType = "Top-up";
-else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
-else if (tx.type === "INTEREST") displayType = "Yield";
-else if (tx.type === "FEE") displayType = "Fee";
-```
-
-Updated:
-```typescript
-if (tx.type === "DEPOSIT") displayType = "Top-up";
-else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
-else if (tx.type === "INTEREST" || tx.type === "YIELD") displayType = "Yield";
-else if (tx.type === "FEE") displayType = "Fee";
-else if (tx.type === "FEE_CREDIT") displayType = "Fee Credit";
-else if (tx.type === "IB_CREDIT") displayType = "IB Credit";
-else if (tx.type === "ADJUSTMENT") displayType = "Adjustment";
-```
+This function will no longer be needed since we're replacing it with inline rendering that includes logos.
 
 ---
 
-## Withdrawals Page Status
+### File 2: `src/features/admin/ib/pages/IBPayoutsPage.tsx`
 
-The withdrawal filters in `WithdrawalsTable.tsx` (lines 391-399) are already correctly aligned with the database:
+#### Change 1: Remove redundant asset ticker text (line 133)
 
-```typescript
-<SelectItem value="all">All Status</SelectItem>
-<SelectItem value="pending">Pending</SelectItem>
-<SelectItem value="approved">Approved</SelectItem>
-<SelectItem value="processing">Processing</SelectItem>
-<SelectItem value="completed">Completed</SelectItem>
-<SelectItem value="rejected">Rejected</SelectItem>
-<SelectItem value="cancelled">Cancelled</SelectItem>
+**Current:**
+```tsx
+<div key={asset} className="flex items-center gap-2">
+  <CryptoIcon symbol={asset} className="h-4 w-4" />
+  <span className="text-lg font-bold">{formatAssetAmount(amount, asset)}</span>
+  <span className="text-xs text-muted-foreground">{asset}</span>  {/* REDUNDANT */}
+</div>
 ```
 
-These match the database enum `withdrawal_status` exactly. **No changes needed.**
+**Updated:**
+```tsx
+<div key={asset} className="flex items-center gap-2">
+  <CryptoIcon symbol={asset} className="h-4 w-4" />
+  <span className="text-lg font-bold">{formatAssetAmount(amount, asset)}</span>
+</div>
+```
+
+The `formatAssetAmount` function already appends the asset symbol (e.g., "1,500.00 BTC"), so the separate `{asset}` text is redundant when a logo is present.
 
 ---
 
-## Visual Summary of Changes
+## Visual Summary
 
 ```text
-TRANSACTION FILTERS
-===================
+BEFORE (IBManagementPage - Total IB Earnings card):
+┌────────────────────────┐
+│ Total IB Earnings      │
+│ 0.0012 BTC            │  <- No logo
+│ 1.50 USDT             │  <- No logo
+└────────────────────────┘
 
-Base Type Dropdown (Before):
-+------------------+
-| Deposits         |  -> DEPOSIT (works)
-| Withdrawals      |  -> WITHDRAWAL (works)
-| Fees             |  -> FEE (BROKEN - 0 records)
-| Yield            |  -> YIELD (works)
-+------------------+
+AFTER:
+┌────────────────────────┐
+│ Total IB Earnings      │
+│ [₿] 0.0012 BTC        │  <- With logo
+│ [T] 1.50 USDT         │  <- With logo
+└────────────────────────┘
 
-Base Type Dropdown (After):
-+------------------+
-| Deposits         |  -> DEPOSIT
-| Withdrawals      |  -> WITHDRAWAL
-| Yield            |  -> YIELD
-| Fee Credits      |  -> FEE_CREDIT (7 records)
-| IB Credits       |  -> IB_CREDIT (7 records)
-| Adjustments      |  -> ADJUSTMENT
-+------------------+
 
-Category Dropdown (Before):
-+------------------+
-| First Investment |
-| Top-up           |
-| Withdrawal       |
-| Withdrawal All   |
-| Fee              |  <- BROKEN
-| Yield            |
-+------------------+
+BEFORE (IBManagementPage - IB Table Earnings column):
+┌──────────────────┐
+│ 0.0012 BTC       │  <- Plain text, no logo
+└──────────────────┘
 
-Category Dropdown (After):
-+------------------+
-| First Investment |
-| Top-up           |
-| Withdrawal       |
-| Withdrawal All   |
-| Yield            |
-| Fee Credit       |  <- NEW
-| IB Credit        |  <- NEW
-| Adjustment       |  <- NEW
-+------------------+
+AFTER:
+┌──────────────────────┐
+│ [₿] 0.0012 BTC       │  <- Logo + amount
+│ [T] 1.50 USDT        │  <- Logo + amount (if multiple assets)
+└──────────────────────────┘
+
+
+BEFORE (IBPayoutsPage - Total Commission card):
+┌────────────────────────────────┐
+│ [₿] 0.0012 BTC  BTC           │  <- Redundant "BTC" text
+└────────────────────────────────┘
+
+AFTER:
+┌────────────────────────────────┐
+│ [₿] 0.0012 BTC                │  <- Clean with logo only
+└────────────────────────────────┘
 ```
 
 ---
 
-## Testing Verification
+## Files to Modify
+
+| File | Lines | Change |
+|------|-------|--------|
+| `IBManagementPage.tsx` | 87-92 | Remove unused `formatEarningsDisplay` function |
+| `IBManagementPage.tsx` | 193-196 | Add CryptoIcon to Total IB Earnings card |
+| `IBManagementPage.tsx` | 290-292 | Replace text earnings with logo + amount flex layout |
+| `IBPayoutsPage.tsx` | 133 | Remove redundant `{asset}` text after amount |
+
+---
+
+## Testing
 
 After implementation:
-
-1. Navigate to `/admin/transactions`
-2. Apply "Fee Credits" base type filter -> Should show 7 FEE_CREDIT transactions
-3. Apply "IB Credits" base type filter -> Should show 7 IB_CREDIT transactions
-4. Apply "Yield" base type filter -> Should show 8 YIELD transactions
-5. Apply "Deposits" base type filter -> Should show 8 DEPOSIT transactions
-6. Try Category filter "Fee Credit" -> Should match `displayType="Fee Credit"`
-7. Try Category filter "IB Credit" -> Should match `displayType="IB Credit"`
-
-For withdrawals (no changes needed):
-1. Navigate to `/admin/withdrawals`
-2. Verify all status filters work (pending, approved, processing, completed, rejected, cancelled)
+1. Navigate to `/admin/ib-management`
+2. Verify Total IB Earnings card shows logos next to each asset amount
+3. Verify IB table Earnings column shows logos next to each asset amount
+4. Navigate to `/admin/ib-payouts`
+5. Verify Total Commission card shows logos without redundant ticker text
 
