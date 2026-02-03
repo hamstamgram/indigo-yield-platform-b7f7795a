@@ -23,6 +23,7 @@ import {
 import { ArrowUpRight, ArrowDownRight, RefreshCw, MoreHorizontal, Ban, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { FinancialValue } from "@/components/common/FinancialValue";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { isFinancialGte } from "@/utils/financial";
 import type { LedgerTransaction } from "./types";
 
@@ -109,7 +110,12 @@ export function LedgerTable({ transactions, onEdit, onReissue, onVoid }: LedgerT
                   )}
                 </div>
               </TableCell>
-              <TableCell className="py-2">{tx.fund?.name || "-"}</TableCell>
+              <TableCell className="py-2">
+                <div className="flex items-center gap-1.5">
+                  <CryptoIcon symbol={tx.asset} className="h-4 w-4" />
+                  <span>{tx.fund?.name || "-"}</span>
+                </div>
+              </TableCell>
               <TableCell className="py-2 text-right">
                 <FinancialValue
                   value={tx.amount}

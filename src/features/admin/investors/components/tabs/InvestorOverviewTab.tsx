@@ -6,6 +6,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, Button, Badge, Skeleton } from "@/components/ui";
 import { FinancialValue } from "@/components/common/FinancialValue";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Plus,
   ArrowDownToLine,
@@ -130,7 +131,12 @@ export function InvestorOverviewTab({
             </div>
             <div className="flex flex-wrap gap-1.5">
               {data.tokenBalances.slice(0, 4).map((tb, idx) => (
-                <Badge key={idx} variant="secondary" className="font-mono text-xs">
+                <Badge
+                  key={idx}
+                  variant="secondary"
+                  className="font-mono text-xs flex items-center gap-1.5"
+                >
+                  <CryptoIcon symbol={tb.asset} className="h-4 w-4" />
                   <FinancialValue value={tb.amount} asset={tb.asset} displayDecimals={4} />
                 </Badge>
               ))}

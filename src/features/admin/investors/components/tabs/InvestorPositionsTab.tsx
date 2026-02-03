@@ -90,7 +90,10 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
                       <FinancialValue value={pos.current_value} asset={pos.funds?.asset} />
                     </TableCell>
                     <TableCell>
-                      <CryptoIcon symbol={pos.funds?.asset || ""} className="h-5 w-5" />
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={pos.funds?.asset || ""} className="h-5 w-5" />
+                        <span className="text-sm font-medium">{pos.funds?.asset}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="font-mono">
                       <FinancialValue

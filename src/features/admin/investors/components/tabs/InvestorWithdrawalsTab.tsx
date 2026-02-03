@@ -32,6 +32,7 @@ import { ApproveWithdrawalDialog } from "@/features/admin/withdrawals/components
 import { RejectWithdrawalDialog } from "@/features/admin/withdrawals/components/RejectWithdrawalDialog";
 import { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
 import { formatAssetAmount } from "@/utils/assets";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { useAdminInvestorWithdrawals } from "@/hooks/data";
 
 interface InvestorWithdrawalsTabProps {
@@ -148,7 +149,8 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-medium">
+                      <span className="font-mono font-medium flex items-center gap-1.5">
+                        <CryptoIcon symbol={withdrawal.fund_class || "UNITS"} className="h-4 w-4" />
                         {formatAssetAmount(
                           withdrawal.requested_amount,
                           withdrawal.fund_class || "UNITS"
