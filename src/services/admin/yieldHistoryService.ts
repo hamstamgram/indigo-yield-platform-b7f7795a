@@ -214,8 +214,8 @@ export async function saveDraftAUMEntry(
 /**
  * Get active funds with AUM and record counts
  * Optimized: batch queries instead of N+1
- * NOTE: Only includes account_type='investor' with current_value > 0
- * to match the RPC `get_funds_with_aum` filter pattern
+ * AUM includes all active position holders (investor + fees_account + ib).
+ * Investor count remains investor-only for UI readability.
  */
 export async function getActiveFundsWithAUM(): Promise<
   Array<{
@@ -246,18 +246,15 @@ export async function getActiveFundsWithAUM(): Promise<
     .in("fund_id", fundIds)
     .gt("current_value", 0); // Exclude zero-balance positions
 
-  // Fetch profiles to filter by account_type = 'investor'
+  // Fetch profiles to count investor-only participants.
   const investorIds = [...new Set((allPositions || []).map((p) => p.investor_id).filter(Boolean))];
-  const { data: profiles } = await supabase
+  const { data: investorProfiles } = await supabase
     .from("profiles")
-    .select("id, account_type")
+    .select("id")
     .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"])
     .eq("account_type", "investor");
 
-  const investorSet = new Set(profiles?.map((p) => p.id) || []);
-
-  // Filter positions to only include investor accounts
-  const investorPositions = (allPositions || []).filter((p) => investorSet.has(p.investor_id));
+  const investorSet = new Set(investorProfiles?.map((p) => p.id) || []);
 
   // Batch fetch all AUM record counts
   const { data: aumRecords } = await supabase
@@ -266,11 +263,20 @@ export async function getActiveFundsWithAUM(): Promise<
     .in("fund_id", fundIds);
 
   // Build lookup maps
-  const positionsByFund = new Map<string, typeof investorPositions>();
-  investorPositions.forEach((p) => {
+  type FundPositionRow = { fund_id: string; current_value: number | null; investor_id: string };
+  const positionsByFund = new Map<string, FundPositionRow[]>();
+  const investorCountByFund = new Map<string, Set<string>>();
+
+  (allPositions || []).forEach((p) => {
     const existing = positionsByFund.get(p.fund_id) || [];
-    existing.push(p);
+    existing.push(p as FundPositionRow);
     positionsByFund.set(p.fund_id, existing);
+
+    if (investorSet.has(p.investor_id)) {
+      const investorIdsForFund = investorCountByFund.get(p.fund_id) || new Set<string>();
+      investorIdsForFund.add(p.investor_id);
+      investorCountByFund.set(p.fund_id, investorIdsForFund);
+    }
   });
 
   const aumCountByFund = new Map<string, number>();
@@ -281,12 +287,12 @@ export async function getActiveFundsWithAUM(): Promise<
   const fundsWithAUM = fundsData.map((fund) => {
     const positions = positionsByFund.get(fund.id) || [];
     const total_aum = positions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
-    const uniqueInvestors = new Set(positions.map((p) => p.investor_id).filter(Boolean));
+    const investorCount = investorCountByFund.get(fund.id)?.size || 0;
 
     return {
       ...fund,
       total_aum,
-      investor_count: uniqueInvestors.size,
+      investor_count: investorCount,
       aum_record_count: aumCountByFund.get(fund.id) || 0,
     };
   });
@@ -296,8 +302,7 @@ export async function getActiveFundsWithAUM(): Promise<
 
 /**
  * Get investor composition for a fund with MTD yield
- * NOTE: Only includes account_type='investor' with current_value > 0
- * to match the RPC `get_funds_with_aum` filter pattern
+ * NOTE: Composition is investor-only by design (fees/IB omitted).
  */
 export async function getFundInvestorCompositionWithYield(fundId: string): Promise<
   Array<{

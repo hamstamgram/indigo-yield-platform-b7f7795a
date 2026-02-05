@@ -49,39 +49,21 @@ export async function applyYieldDistribution(
   const periodEndDate = targetDate;
   const periodStartDate = periodStart || startOfMonth(targetDate);
 
-  // Get current AUM (investor + IB accounts) to calculate gross yield amount
+  // Get current AUM from all active positions so NAV stays conserved
+  // when fees/IB are reclassified as internal ownership.
   const { data: positions, error: positionsError } = await supabase
     .from("investor_positions")
-    .select("investor_id,current_value")
+    .select("current_value")
     .eq("fund_id", fundId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .gt("current_value", 0);
 
   if (positionsError) {
     logError("applyYieldDistribution.positions", positionsError, { fundId });
     throw new Error(`Failed to fetch positions: ${positionsError.message}`);
   }
 
-  const investorIds = Array.from(
-    new Set(positions?.map((p) => p.investor_id).filter(Boolean) || [])
-  );
-  const { data: profiles, error: profilesError } = investorIds.length
-    ? await supabase
-        .from("profiles")
-        .select("id")
-        .in("id", investorIds)
-        .in("account_type", ["investor", "ib"])
-    : { data: [], error: null };
-
-  if (profilesError) {
-    logError("applyYieldDistribution.profiles", profilesError, { fundId });
-    throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
-  }
-
-  const investorSet = new Set(profiles?.map((p) => p.id) || []);
-  const currentAUM =
-    positions
-      ?.filter((p) => investorSet.has(p.investor_id))
-      .reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
   const parsedAum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
   const hasNewAum = typeof parsedAum === "number" && !Number.isNaN(parsedAum);
   const newTotalAUMNum = hasNewAum ? parsedAum : currentAUM;

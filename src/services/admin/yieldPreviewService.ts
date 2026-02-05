@@ -67,37 +67,21 @@ export async function previewYieldDistribution(
     throw new Error("Authentication required");
   }
 
-  // Get fund info and current AUM
-  // FIX: Match UI filter - include investor + IB accounts with current_value > 0
-  // This ensures grossYield calculation matches backend ADB ownership logic
+  // Get fund info and current AUM from all active positions.
+  // Fees/IB balances are ownership reallocations and must remain in total NAV.
   const [fundResult, positionsResult] = await Promise.all([
     supabase.from("funds").select("code, asset, name").eq("id", fundId).maybeSingle(),
     supabase
       .from("investor_positions")
-      .select("current_value, investor_id")
+      .select("current_value")
       .eq("fund_id", fundId)
       .eq("is_active", true)
       .gt("current_value", 0),
   ]);
 
-  // Filter to investor + IB account types (exclude fees_account)
-  const investorIds = positionsResult.data?.map((p) => p.investor_id).filter(Boolean) || [];
-  const { data: profiles } =
-    investorIds.length > 0
-      ? await supabase
-          .from("profiles")
-          .select("id")
-          .in("id", investorIds)
-          .in("account_type", ["investor", "ib"])
-      : { data: [] };
-
-  const investorSet = new Set(profiles?.map((p) => p.id) || []);
-
   const fund = fundResult.data;
   const currentAUM =
-    positionsResult.data
-      ?.filter((p) => investorSet.has(p.investor_id))
-      .reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+    positionsResult.data?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
   // Calculate gross yield amount from AUM difference when provided
   // For reporting: use explicit AUM delta if given, otherwise fall back to backend logic.
