@@ -33,6 +33,16 @@ import { useDuplicateProfiles, useMergeDuplicateProfiles } from "@/hooks/data";
 import { CheckCircle2, AlertTriangle, RefreshCw, Users, Copy, Merge, Shield } from "lucide-react";
 import { useState } from "react";
 
+function toSafeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+function getArrayValue(value: unknown, index: number, fallback = ""): string {
+  const items = toSafeStringArray(value);
+  return items[index] ?? fallback;
+}
+
 export default function DuplicatesPage() {
   const [mergeDialog, setMergeDialog] = useState<{
     open: boolean;
@@ -51,19 +61,23 @@ export default function DuplicatesPage() {
   const mergeDuplicates = useMergeDuplicateProfiles();
 
   const handleOpenMerge = (dup: { profile_ids: string[]; emails: string[]; names: string[] }) => {
+    const profileIds = toSafeStringArray(dup.profile_ids);
+    const emails = toSafeStringArray(dup.emails);
+    const names = toSafeStringArray(dup.names);
+
     setMergeDialog({
       open: true,
       profile1: {
-        id: dup.profile_ids[0] || "",
-        email: dup.emails[0] || "",
-        name: dup.names[0] || "",
+        id: profileIds[0] || "",
+        email: emails[0] || "",
+        name: names[0] || "",
       },
       profile2: {
-        id: dup.profile_ids[1] || "",
-        email: dup.emails[1] || "",
-        name: dup.names[1] || "",
+        id: profileIds[1] || "",
+        email: emails[1] || "",
+        name: names[1] || "",
       },
-      keepId: dup.profile_ids[0] || "", // Default to first profile
+      keepId: profileIds[0] || "", // Default to first profile
     });
   };
 
@@ -201,53 +215,60 @@ export default function DuplicatesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {duplicates.map((dup, idx) => (
-                    <TableRow key={`${dup.match_key}-${idx}`}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{dup.names[0] || "N/A"}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {dup.emails[0] || "N/A"}
-                          </span>
-                          <span className="text-xs text-muted-foreground font-mono">
-                            {(dup.profile_ids[0] || "").slice(0, 8)}...
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{dup.names[1] || "N/A"}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {dup.emails[1] || "N/A"}
-                          </span>
-                          <span className="text-xs text-muted-foreground font-mono">
-                            {(dup.profile_ids[1] || "").slice(0, 8)}...
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getTypeBadge(dup.duplicate_type)}>
-                          {dup.duplicate_type.replace(/_/g, " ")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                          {dup.profile_count} profiles
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenMerge(dup)}
-                          disabled={mergeDuplicates.isPending}
-                        >
-                          <Merge className="h-4 w-4 mr-1" />
-                          Merge
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {duplicates.map((dup, idx) => {
+                    const profileIds = toSafeStringArray(dup.profile_ids);
+                    const emails = toSafeStringArray(dup.emails);
+                    const names = toSafeStringArray(dup.names);
+                    const canMerge = profileIds.length >= 2;
+
+                    return (
+                      <TableRow key={`${dup.match_key || "duplicate"}-${idx}`}>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{names[0] || "N/A"}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {emails[0] || "N/A"}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {(profileIds[0] || "").slice(0, 8)}...
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{names[1] || "N/A"}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {emails[1] || "N/A"}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {(profileIds[1] || "").slice(0, 8)}...
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getTypeBadge(dup.duplicate_type)}>
+                            {dup.duplicate_type.replace(/_/g, " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            {dup.profile_count} profiles
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenMerge(dup)}
+                            disabled={mergeDuplicates.isPending || !canMerge}
+                          >
+                            <Merge className="h-4 w-4 mr-1" />
+                            {canMerge ? "Merge" : "Insufficient Data"}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
