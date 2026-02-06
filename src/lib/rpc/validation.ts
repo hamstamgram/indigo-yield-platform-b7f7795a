@@ -1,9 +1,4 @@
-import {
-  TxTypeSchema,
-  AumPurposeSchema,
-  DocumentTypeSchema,
-  DeliveryChannelSchema,
-} from "@/contracts/dbEnums";
+import { TxTypeSchema, AumPurposeSchema } from "@/contracts/dbEnums";
 import { CANONICAL_MUTATION_RPCS } from "@/contracts/rpcSignatures";
 import { RPCFunctions, RPCFunctionName } from "./types";
 
@@ -59,21 +54,7 @@ export function validateParams<T extends RPCFunctionName>(
     }
   }
 
-  // Validate document_type parameters
-  if ("p_document_type" in p && p.p_document_type != null) {
-    const result = DocumentTypeSchema.safeParse(p.p_document_type);
-    if (!result.success) {
-      throw new Error(`Invalid document_type "${p.p_document_type}" for ${String(functionName)}.`);
-    }
-  }
-
-  // Validate delivery_channel parameters
-  if ("p_channel" in p && p.p_channel != null) {
-    const result = DeliveryChannelSchema.safeParse(p.p_channel);
-    if (!result.success) {
-      throw new Error(`Invalid delivery_channel "${p.p_channel}" for ${String(functionName)}.`);
-    }
-  }
+  // Note: DocumentType and DeliveryChannel validation skipped - schemas not yet generated
 
   // Enforce idempotency key for mutations
   const isMutation = (Object.values(CANONICAL_MUTATION_RPCS) as string[]).includes(

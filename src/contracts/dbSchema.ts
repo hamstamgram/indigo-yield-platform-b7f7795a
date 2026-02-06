@@ -178,7 +178,7 @@ export const DB_TABLES = {
   },
   investor_positions: {
     name: "investor_positions" as const,
-    primaryKey: null as const,
+    primaryKey: null,
     columns: [
       "cost_basis",
       "cumulative_yield_earned",

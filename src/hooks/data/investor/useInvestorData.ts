@@ -77,16 +77,8 @@ export function useInvestorsForSelector(includeSystemAccounts = true) {
   });
 }
 
-/**
- * Hook to fetch investor positions (re-export from existing hook for consistency)
- */
-export function useInvestorPositions(investorId: string) {
-  return useQuery<InvestorPositionRow[], Error>({
-    queryKey: QUERY_KEYS.investorPositions(investorId),
-    queryFn: () => fetchInvestorPositions(investorId),
-    enabled: !!investorId,
-  });
-}
+// NOTE: useInvestorPositions is exported from ./useInvestorPositions.ts
+// Do not duplicate here to prevent cache key confusion
 
 /**
  * Hook to fetch investor quick view data (for drawer)
