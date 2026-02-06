@@ -47,7 +47,7 @@ import { FinancialValue } from "@/components/common/FinancialValue";
 import usePlatformError, { routeErrorAction } from "@/hooks/usePlatformError";
 import { PlatformErrorCode } from "@/types/errors/platformErrors";
 import { preflowAumService } from "@/services/admin";
-import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services/shared";
 import { logError } from "@/lib/logger";
 
 const reissueSchema = z.object({
@@ -225,14 +225,9 @@ export function VoidAndReissueDialog({
 
     // Ensure preflow exists for fund/date (idempotent). If one exists, it will be reused.
     if (transaction.fundId) {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user?.id) throw new Error("Authentication required");
-
       try {
+        const user = await authService.getCurrentUser();
+
         await preflowAumService.ensure(
           transaction.fundId,
           data.tx_date,

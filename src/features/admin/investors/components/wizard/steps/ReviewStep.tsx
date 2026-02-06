@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useWizard } from "../WizardContext";
-import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services/shared";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from "@/components/ui";
 import { User, Users, Percent, CheckCircle2 } from "lucide-react";
 
@@ -16,11 +16,7 @@ const ReviewStep: React.FC = () => {
   useEffect(() => {
     const fetchIBName = async () => {
       if (data.ib.existingIbId) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("id", data.ib.existingIbId)
-          .maybeSingle();
+        const profile = await profileService.getProfileById(data.ib.existingIbId);
 
         if (profile) {
           setIbName(`${profile.first_name} ${profile.last_name}`);

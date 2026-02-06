@@ -15,13 +15,12 @@ import {
   AlertDescription,
 } from "@/components/ui";
 import { withdrawalService } from "@/services/investor";
+import { fundAumEventService } from "@/services/admin";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatAssetAmount } from "@/utils/assets";
 import { NumericInput } from "@/components/common/NumericInput";
-import { supabase } from "@/integrations/supabase/client";
-import type { FundAumEventCheckpoint } from "@/types/domains/fund";
 
 interface CompleteWithdrawalDialogProps {
   open: boolean;
@@ -62,21 +61,13 @@ export function CompleteWithdrawalDialog({
 
     (async () => {
       try {
-        const { data: lastCheckpointRaw } = await supabase
-          .from("fund_aum_events")
-          .select("closing_aum, post_flow_aum, event_ts")
-          .eq("fund_id", withdrawal.fund_id)
-          .eq("is_voided", false)
-          .order("event_ts", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        const lastCheckpoint = lastCheckpointRaw as FundAumEventCheckpoint | null;
-        const opening = lastCheckpoint?.post_flow_aum ?? lastCheckpoint?.closing_aum ?? 0;
+        const { openingAum, hasCheckpoint } = await fundAumEventService.getOpeningAum(
+          withdrawal.fund_id!
+        );
 
         if (!active) return;
-        setOpeningAum(opening ?? 0);
-        setHasCheckpoint(!!lastCheckpoint?.event_ts);
+        setOpeningAum(openingAum);
+        setHasCheckpoint(hasCheckpoint);
       } catch {
         if (!active) return;
         setOpeningAum(0);

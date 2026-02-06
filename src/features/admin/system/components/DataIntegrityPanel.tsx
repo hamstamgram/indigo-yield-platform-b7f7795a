@@ -23,38 +23,25 @@ import {
   RefreshCw,
   Ban,
   Scale,
-  Bell,
   Zap,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDataIntegrityStatus } from "@/hooks/data";
-import { useRealtimeAlerts } from "@/features/admin/system/hooks/useRealtimeAlerts";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  useRealtimeAlerts,
+  useRealtimeConnectionStatus,
+} from "@/features/admin/system/hooks/useRealtimeAlerts";
 
 export function DataIntegrityPanel() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [realtimeConnected, setRealtimeConnected] = useState(false);
   const { data, isLoading, refetch } = useDataIntegrityStatus();
 
   // Subscribe to real-time alerts
   useRealtimeAlerts();
 
   // Track realtime connection status
-  useEffect(() => {
-    const channel = supabase
-      .channel("integrity-panel-status")
-      .on("presence", { event: "sync" }, () => {
-        setRealtimeConnected(true);
-      })
-      .subscribe((status) => {
-        setRealtimeConnected(status === "SUBSCRIBED");
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  const realtimeConnected = useRealtimeConnectionStatus();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

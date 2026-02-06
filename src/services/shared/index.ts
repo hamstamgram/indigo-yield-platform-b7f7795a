@@ -69,3 +69,7 @@ export { inviteService } from "./inviteService";
 
 // Storage service (new)
 export { storageService, type UploadResult } from "./storageService";
+
+// Auth service
+export { authService, getCurrentUser, getCurrentUserOptional } from "./authService";
+export type { CurrentUser } from "./authService";

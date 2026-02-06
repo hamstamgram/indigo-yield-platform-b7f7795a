@@ -223,3 +223,12 @@ export { commandPaletteService, type InvestorSearchResult } from "./commandPalet
 export { adminToolsService, type ToolResult } from "./adminToolsService";
 export { yieldRatesService, type Asset, type YieldRate } from "./yieldRatesService";
 export { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "./feeScheduleService";
+
+// =============================================================================
+// FUND AUM EVENTS
+// =============================================================================
+export {
+  fundAumEventService,
+  getLatestAumCheckpoint,
+  getOpeningAum,
+} from "./fundAumEventService";
