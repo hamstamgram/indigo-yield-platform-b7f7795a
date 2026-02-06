@@ -30,7 +30,6 @@ export * from "@/features/admin/investors/hooks/useInternalRoute";
 // IB hooks
 export * from "@/features/admin/ib/hooks/useIBUsers";
 export * from "@/features/admin/ib/hooks/useIBManagementPage";
-export * from "@/features/admin/ib/hooks/useIBPayoutMutations";
 
 // Deposits hooks
 export * from "@/features/admin/deposits/hooks/useDeposits";

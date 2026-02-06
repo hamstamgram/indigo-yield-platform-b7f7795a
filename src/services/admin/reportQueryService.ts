@@ -555,3 +555,35 @@ export async function fetchActiveInvestorsForStatements(): Promise<
     email: p.email,
   }));
 }
+/**
+ * Delete a performance report record with audit trail
+ */
+export async function deletePerformanceReport(id: string): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: report } = await supabase
+    .from("investor_fund_performance")
+    .select("id, investor_id, fund_name, period_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  const { error } = await supabase.from("investor_fund_performance").delete().eq("id", id);
+  if (error) throw error;
+
+  await supabase.from("audit_log").insert({
+    actor_user: user?.id ?? null,
+    action: "PERFORMANCE_REPORT_DELETED",
+    entity: "investor_fund_performance",
+    entity_id: id,
+    old_values: report
+      ? {
+          investor_id: report.investor_id,
+          fund_name: report.fund_name,
+          period_id: report.period_id,
+        }
+      : null,
+    new_values: null,
+  });
+}

@@ -60,14 +60,8 @@ function RecordedYieldsContent() {
     clearFilters,
   } = useUrlFilters({
     keys: ["fundId", "purpose", "dateFrom", "dateTo"],
-    defaults: { fundId: "all", purpose: "all" },
+    defaults: { fundId: "all", purpose: "reporting" },
   });
-
-  // Force purpose to "all" on page load to ensure all records are visible
-  useEffect(() => {
-    setFilter("purpose", "all");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency - run only on mount
 
   const filters: YieldFilters = {
     fundId: urlFilters.fundId || "all",
@@ -167,7 +161,7 @@ function RecordedYieldsContent() {
         onEdit={setEditAumRecord}
         onVoid={setVoidRecord}
         onCorrect={setCorrectionRecord}
-        onViewHistory={() => {}}
+        onViewHistory={setCorrectionHistoryRecord}
         onViewCorrectionHistory={setCorrectionHistoryRecord}
       />
 

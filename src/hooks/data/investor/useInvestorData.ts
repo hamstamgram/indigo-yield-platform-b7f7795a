@@ -5,7 +5,11 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchInvestorPositions, fetchInvestorsForSelector, InvestorPositionRow } from "@/services/investor";
+import {
+  fetchInvestorPositions,
+  fetchInvestorsForSelector,
+  InvestorPositionRow,
+} from "@/services/investor";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateInvestorData } from "@/utils/cacheInvalidation";
@@ -193,14 +197,14 @@ export function useInvestorRecentActivity(investorId: string, limit = 5) {
 
       // Combine and sort
       const activities: ActivityItem[] = [
-        ...(txData || []).map((tx: any) => ({
+        ...(txData || []).map((tx) => ({
           id: tx.id,
           type: "transaction" as const,
           amount: tx.amount,
           date: tx.tx_date,
           description: tx.type,
         })),
-        ...(wdData || []).map((wd: any) => ({
+        ...(wdData || []).map((wd) => ({
           id: wd.id,
           type: "withdrawal" as const,
           amount: wd.requested_amount,
@@ -220,27 +224,31 @@ export function useInvestorRecentActivity(investorId: string, limit = 5) {
 
 /**
  * Hook to update investor status or other profile fields
+ * Uses secure RPC to update profiles (protected table)
  */
 export function useUpdateInvestorStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      investorId, 
+    mutationFn: async ({
+      investorId,
       status,
-      updates 
-    }: { 
-      investorId: string; 
+      updates,
+    }: {
+      investorId: string;
       status?: string;
-      updates?: Record<string, any>;
+      updates?: Record<string, string | number | null | undefined>;
     }) => {
-      const updateData = updates || (status ? { status } : {});
-      updateData.updated_at = new Date().toISOString();
-      
-      const { error } = await supabase
-        .from("profiles")
-        .update(updateData)
-        .eq("id", investorId);
+      const fields = updates || {};
+      if (status) fields.status = status;
+
+      const { error } = await supabase.rpc("update_user_profile_secure", {
+        p_user_id: investorId,
+        p_first_name: fields.first_name != null ? String(fields.first_name) : null,
+        p_last_name: fields.last_name != null ? String(fields.last_name) : null,
+        p_phone: fields.phone != null ? String(fields.phone) : null,
+        p_status: fields.status != null ? String(fields.status) : null,
+      });
 
       if (error) throw error;
     },
