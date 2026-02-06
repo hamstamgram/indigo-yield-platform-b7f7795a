@@ -3,18 +3,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { formatAUM, formatPercentage } from "@/utils/formatters";
 import { logWarn } from "@/lib/logger";
-
-// Fund icons and branding URLs (same as shared template)
-const FUND_ICONS: Record<string, string> = {
-  BTC: "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  ETH: "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  USDC: "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  USDT: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  SOL: "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
-  EURC: "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
-  XRP: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
-  XAUT: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
-};
+import { getFundIconByAsset } from "@/types/domains/report";
 
 const COMPANY_LOGO =
   "https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png";
@@ -219,7 +208,7 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
 
     // Try to load fund icon
     try {
-      const iconUrl = FUND_ICONS[asset] || FUND_ICONS.BTC;
+      const iconUrl = getFundIconByAsset(asset);
       const iconData = await loadImage(iconUrl);
       if (iconData) {
         doc.addImage(iconData, "PNG", margin + 6, yPos + 4, 8, 8);

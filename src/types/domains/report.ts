@@ -393,7 +393,43 @@ export const FUND_ICONS: Record<string, string> = {
     "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
   "XRP YIELD FUND":
     "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+  // Legacy name aliases (for backward compatibility with existing data)
+  "STABLECOIN FUND":
+    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  "TOKENIZED GOLD":
+    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+  "Tokenized Gold":
+    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+  "Stablecoin Fund":
+    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
 };
+
+/**
+ * Asset code → fund display name mapping
+ * Used to look up FUND_ICONS by asset code (BTC, ETH, etc.)
+ */
+export const FUND_NAME_BY_ASSET: Record<string, string> = {
+  BTC: "BTC YIELD FUND",
+  ETH: "ETH YIELD FUND",
+  SOL: "SOL YIELD FUND",
+  USDT: "USDT YIELD FUND",
+  USDC: "USDC YIELD FUND",
+  EURC: "EURC YIELD FUND",
+  XAUT: "XAUT YIELD FUND",
+  xAUT: "XAUT YIELD FUND",
+  XRP: "XRP YIELD FUND",
+};
+
+/**
+ * Get fund icon URL by asset code (e.g., "BTC" → CDN URL)
+ */
+export function getFundIconByAsset(assetCode: string): string {
+  const fundName = FUND_NAME_BY_ASSET[assetCode] || FUND_NAME_BY_ASSET[assetCode.toUpperCase()];
+  if (fundName && FUND_ICONS[fundName]) {
+    return FUND_ICONS[fundName];
+  }
+  return FUND_ICONS["BTC YIELD FUND"]; // fallback
+}
 
 export const LOGO_URL =
   "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
