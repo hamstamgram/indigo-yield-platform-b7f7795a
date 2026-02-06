@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { BrowserRouter } from "react-router-dom";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 
 // Mock the auth service
 vi.mock("@/services/auth", () => ({

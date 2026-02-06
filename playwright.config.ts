@@ -12,7 +12,7 @@ export default defineConfig({
     ["list"],
   ],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8080",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8081",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -46,7 +46,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         baseURL:
-          process.env.QA_BASE_URL || process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8080",
+          process.env.QA_BASE_URL || process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8081",
         screenshot: "on",
         trace: "on",
       },
@@ -55,7 +55,7 @@ export default defineConfig({
 
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:8080",
+    url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

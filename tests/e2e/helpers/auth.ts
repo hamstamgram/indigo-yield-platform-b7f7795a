@@ -7,7 +7,7 @@ import { Page, expect } from "@playwright/test";
 
 export const TEST_CREDENTIALS = {
   admin: {
-    email: "H.monoja@gmail.com",
+    email: "qa.admin@indigo.fund",
     password: "TestAdmin2026!",
   },
   investor: {

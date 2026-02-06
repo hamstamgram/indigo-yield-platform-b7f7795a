@@ -86,17 +86,22 @@ interface SchemaTruthPack {
 function parseEnumsFromSupabaseTypes(content: string): SchemaEnum[] {
   const enums: SchemaEnum[] = [];
 
-  // Find the Enums section
-  const enumsMatch = content.match(/Enums:\s*\{([^}]+(?:\{[^}]*\}[^}]*)*)\}/s);
-  if (!enumsMatch) return enums;
+  // Find the public section by looking for its start
+  const publicParts = content.split("\n  public: {");
+  if (publicParts.length < 2) return enums;
 
-  const enumsSection = enumsMatch[1];
+  const publicSection = publicParts[1];
+
+  // Use robust extraction
+  const enumsContent = extractSection(publicSection, "Enums: {");
+  if (!enumsContent) return enums;
 
   // Extract each enum
-  const enumPattern = /(\w+):\s*([^;]+);/g;
+  // Values can be multi-line (union types with |)
+  const enumPattern = /(\w+):\s*([\s\S]+?)(?=\s*\w+:\s*|$)/g;
   let match;
 
-  while ((match = enumPattern.exec(enumsSection)) !== null) {
+  while ((match = enumPattern.exec(enumsContent)) !== null) {
     const name = match[1];
     const valuesStr = match[2];
 
@@ -122,15 +127,21 @@ function parseEnumsFromSupabaseTypes(content: string): SchemaEnum[] {
 function parseTablesFromSupabaseTypes(content: string): SchemaTable[] {
   const tables: SchemaTable[] = [];
 
-  // Find the Tables section
-  const tablesMatch = content.match(/Tables:\s*\{([\s\S]*?)(?=\n\s*Views:|$)/);
-  if (!tablesMatch) return tables;
+  // Find the public section by looking for its start
+  const publicParts = content.split("\n  public: {");
+  if (publicParts.length < 2) return tables;
 
-  // Extract each table
+  const publicSection = publicParts[1];
+
+  // Use robust extraction
+  const tablesContent = extractSection(publicSection, "Tables: {");
+  if (!tablesContent) return tables;
+
+  // Extract each table from the public tables content
   const tablePattern = /(\w+):\s*\{\s*Row:\s*\{([^}]+)\}/g;
   let match;
 
-  while ((match = tablePattern.exec(content)) !== null) {
+  while ((match = tablePattern.exec(tablesContent)) !== null) {
     const name = match[1];
     const columnsStr = match[2];
 
@@ -175,8 +186,15 @@ function parseTablesFromSupabaseTypes(content: string): SchemaTable[] {
 function parseFunctionsFromSupabaseTypes(content: string): SchemaFunction[] {
   const functions: SchemaFunction[] = [];
 
-  // Find the Functions section by brace matching (regex is too brittle)
-  const lines = content.split("\n");
+  // Find the public section by looking for its start
+  // Note: Use "\n  public: {" to avoid matching "graphql_public: {"
+  const publicParts = content.split("\n  public: {");
+  if (publicParts.length < 2) return functions;
+
+  const publicSection = publicParts[1];
+
+  // Find the Functions section by brace matching
+  const lines = publicSection.split("\n");
   const startIndex = lines.findIndex((line) => line.includes("Functions: {"));
   if (startIndex === -1) return functions;
 
@@ -340,6 +358,13 @@ function generateDbEnums(enums: SchemaEnum[]): string {
     lines.push(`export const ${schemaName} = z.enum(${constName}, {`);
     lines.push("  errorMap: (issue, ctx) => {");
     lines.push('    if (issue.code === "invalid_enum_value") {');
+    if (e.name === "tx_type") {
+      lines.push('      if (ctx.data === "FIRST_INVESTMENT") {');
+      lines.push(
+        "        return { message: `Invalid tx_type: FIRST_INVESTMENT is UI-only. Use mapUITypeToDb() to convert to DEPOSIT.` };"
+      );
+      lines.push("      }");
+    }
     lines.push(
       `      return { message: \`Invalid ${e.name}: "\${ctx.data}". Valid: \${${constName}.join(", ")}\` };`
     );
@@ -381,7 +406,14 @@ function generateDbEnums(enums: SchemaEnum[]): string {
     lines.push("  return TxTypeSchema.parse(uiType);");
     lines.push("}");
     lines.push("");
-    lines.push("/** Get default tx_subtype for a UI transaction type */");
+    /** Safe map UI type to DB type, returns null if invalid */
+    lines.push("export function safeMapUITypeToDb(uiType: string): TxType | null {");
+    lines.push("  const result = UITxTypeSchema.safeParse(uiType);");
+    lines.push("  if (!result.success) return null;");
+    lines.push("  return mapUITypeToDb(result.data);");
+    lines.push("}");
+    lines.push("");
+    /** Get default tx_subtype for a UI transaction type */
     lines.push("export function getDefaultSubtype(uiType: UITxType): string {");
     lines.push("  switch (uiType) {");
     lines.push('    case "FIRST_INVESTMENT": return "first_investment";');
@@ -391,6 +423,27 @@ function generateDbEnums(enums: SchemaEnum[]): string {
     lines.push('    case "YIELD":');
     lines.push('    case "INTEREST": return "yield_credit";');
     lines.push('    default: return "adjustment";');
+    lines.push("  }");
+    lines.push("}");
+    lines.push("");
+    lines.push("/** Check if value is a valid UI transaction type */");
+    lines.push("export function isValidUITxType(value: unknown): value is UITxType {");
+    lines.push("  return UITxTypeSchema.safeParse(value).success;");
+    lines.push("}");
+    lines.push("");
+    /** Assertion for valid transaction type */
+    lines.push(
+      "export function assertValidTxType(type: string, context?: string): asserts type is TxType {"
+    );
+    lines.push('  if (type === "FIRST_INVESTMENT") {');
+    lines.push(
+      '    throw new Error(`FIRST_INVESTMENT must be mapped to DEPOSIT${context ? ` (in ${context})` : ""}`);'
+    );
+    lines.push("  }");
+    lines.push("  if (!isValidTxType(type)) {");
+    lines.push(
+      '    throw new Error(`Invalid transaction type: ${type}${context ? ` (in ${context})` : ""}`);'
+    );
     lines.push("  }");
     lines.push("}");
     lines.push("");
@@ -708,6 +761,31 @@ export * from "./rpcSignatures";
   console.log("Next steps:");
   console.log("  1. Run: npm run type-check");
   console.log("  2. Run: npm run contracts:verify");
+}
+
+/**
+ * Robustly extract a section between braces
+ */
+function extractSection(content: string, startMarker: string): string | null {
+  const startIndex = content.indexOf(startMarker);
+  if (startIndex === -1) return null;
+
+  const blockStart = startIndex + startMarker.length - 1; // Position of the opening {
+  let depth = 0;
+  let endPos = -1;
+
+  for (let i = blockStart; i < content.length; i++) {
+    if (content[i] === "{") depth++;
+    else if (content[i] === "}") depth--;
+
+    if (depth === 0) {
+      endPos = i;
+      break;
+    }
+  }
+
+  if (endPos === -1) return null;
+  return content.substring(blockStart + 1, endPos);
 }
 
 main().catch((error) => {

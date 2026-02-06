@@ -9,94 +9,154 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 // =============================================================================
-// TYPE ALIGNMENT VERIFICATION
-// =============================================================================
-// These compile-time checks ensure our contracts match Supabase types
-
-// =============================================================================
-// TX_TYPE ENUM
+// ACCOUNT_TYPE ENUM
 // =============================================================================
 
-export const TX_TYPE_VALUES = [
-  "DEPOSIT",
-  "WITHDRAWAL",
-  "INTEREST",
-  "FEE",
-  "ADJUSTMENT",
-  "FEE_CREDIT",
-  "IB_CREDIT",
-  "YIELD",
-  "INTERNAL_WITHDRAWAL",
-  "INTERNAL_CREDIT",
-  "IB_DEBIT",
+export const ACCOUNT_TYPE_VALUES = ["investor", "ib", "fees_account"] as const;
+
+export const AccountTypeSchema = z.enum(ACCOUNT_TYPE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid account_type: "${ctx.data}". Valid: ${ACCOUNT_TYPE_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type AccountType = z.infer<typeof AccountTypeSchema>;
+
+export const DB_ACCOUNT_TYPE = {
+  investor: "investor",
+  ib: "ib",
+  fees_account: "fees_account",
+} as const satisfies Record<string, AccountType>;
+
+export function isValidAccountType(value: string): value is AccountType {
+  return AccountTypeSchema.safeParse(value).success;
+}
+
+// =============================================================================
+// ASSET_CODE ENUM
+// =============================================================================
+
+export const ASSET_CODE_VALUES = [
+  "BTC",
+  "ETH",
+  "SOL",
+  "USDT",
+  "USDC",
+  "EURC",
+  "xAUT",
+  "XRP",
+  "ADA",
 ] as const;
 
-export type TxType = (typeof TX_TYPE_VALUES)[number];
-export const TxTypeSchema = z.enum(TX_TYPE_VALUES);
+export const AssetCodeSchema = z.enum(ASSET_CODE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid asset_code: "${ctx.data}". Valid: ${ASSET_CODE_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
 
-/** Check if a value is a valid DB transaction type */
-export function isValidTxType(value: unknown): value is TxType {
-  return TX_TYPE_VALUES.includes(value as TxType);
+export type AssetCode = z.infer<typeof AssetCodeSchema>;
+
+export const DB_ASSET_CODE = {
+  BTC: "BTC",
+  ETH: "ETH",
+  SOL: "SOL",
+  USDT: "USDT",
+  USDC: "USDC",
+  EURC: "EURC",
+  xAUT: "xAUT",
+  XRP: "XRP",
+  ADA: "ADA",
+} as const satisfies Record<string, AssetCode>;
+
+export function isValidAssetCode(value: string): value is AssetCode {
+  return AssetCodeSchema.safeParse(value).success;
 }
 
 // =============================================================================
 // AUM_PURPOSE ENUM
 // =============================================================================
 
-export const AUM_PURPOSE_VALUES = ["reporting", "transaction"] as const;
+export const AUM_PURPOSE_VALUES = [
+  "reporting",
+  "transaction",
+  "daily",
+  "monthly",
+  "quarterly",
+  "special",
+] as const;
 
-export type AumPurpose = (typeof AUM_PURPOSE_VALUES)[number];
-export const AumPurposeSchema = z.enum(AUM_PURPOSE_VALUES);
+export const AumPurposeSchema = z.enum(AUM_PURPOSE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid aum_purpose: "${ctx.data}". Valid: ${AUM_PURPOSE_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type AumPurpose = z.infer<typeof AumPurposeSchema>;
+
+export const DB_AUM_PURPOSE = {
+  reporting: "reporting",
+  transaction: "transaction",
+  daily: "daily",
+  monthly: "monthly",
+  quarterly: "quarterly",
+  special: "special",
+} as const satisfies Record<string, AumPurpose>;
+
+export function isValidAumPurpose(value: string): value is AumPurpose {
+  return AumPurposeSchema.safeParse(value).success;
+}
 
 // =============================================================================
-// DOCUMENT_TYPE ENUM
+// FUND_STATUS ENUM
 // =============================================================================
 
-export const DOCUMENT_TYPE_VALUES = ["statement", "notice", "terms", "tax", "other"] as const;
-
-export type DocumentType = (typeof DOCUMENT_TYPE_VALUES)[number];
-export const DocumentTypeSchema = z.enum(DOCUMENT_TYPE_VALUES);
-
-// =============================================================================
-// DELIVERY_CHANNEL ENUM
-// =============================================================================
-
-export const DELIVERY_CHANNEL_VALUES = ["email", "app", "sms"] as const;
-
-export type DeliveryChannel = (typeof DELIVERY_CHANNEL_VALUES)[number];
-export const DeliveryChannelSchema = z.enum(DELIVERY_CHANNEL_VALUES);
-
-// =============================================================================
-// WITHDRAWAL_STATUS ENUM
-// =============================================================================
-
-export const WITHDRAWAL_STATUS_VALUES = [
+export const FUND_STATUS_VALUES = [
+  "active",
+  "inactive",
+  "suspended",
+  "deprecated",
   "pending",
-  "approved",
-  "processing",
-  "completed",
-  "rejected",
-  "cancelled",
 ] as const;
 
-export type WithdrawalStatus = (typeof WITHDRAWAL_STATUS_VALUES)[number];
-export const WithdrawalStatusSchema = z.enum(WITHDRAWAL_STATUS_VALUES);
+export const FundStatusSchema = z.enum(FUND_STATUS_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid fund_status: "${ctx.data}". Valid: ${FUND_STATUS_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
 
-// =============================================================================
-// YIELD_DISTRIBUTION_STATUS ENUM
-// =============================================================================
+export type FundStatus = z.infer<typeof FundStatusSchema>;
 
-export const YIELD_DISTRIBUTION_STATUS_VALUES = [
-  "draft",
-  "applied",
-  "voided",
-  "previewed",
-  "corrected",
-  "rolled_back",
-] as const;
+export const DB_FUND_STATUS = {
+  active: "active",
+  inactive: "inactive",
+  suspended: "suspended",
+  deprecated: "deprecated",
+  pending: "pending",
+} as const satisfies Record<string, FundStatus>;
 
-export type YieldDistributionStatus = (typeof YIELD_DISTRIBUTION_STATUS_VALUES)[number];
-export const YieldDistributionStatusSchema = z.enum(YIELD_DISTRIBUTION_STATUS_VALUES);
+export function isValidFundStatus(value: string): value is FundStatus {
+  return FundStatusSchema.safeParse(value).success;
+}
 
 // =============================================================================
 // TX_SOURCE ENUM
@@ -119,72 +179,320 @@ export const TX_SOURCE_VALUES = [
   "stress_test",
 ] as const;
 
-export type TxSource = (typeof TX_SOURCE_VALUES)[number];
-export const TxSourceSchema = z.enum(TX_SOURCE_VALUES);
+export const TxSourceSchema = z.enum(TX_SOURCE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return { message: `Invalid tx_source: "${ctx.data}". Valid: ${TX_SOURCE_VALUES.join(", ")}` };
+    }
+    return { message: ctx.defaultError };
+  },
+});
 
-// =============================================================================
-// FUND_STATUS ENUM
-// =============================================================================
+export type TxSource = z.infer<typeof TxSourceSchema>;
 
-export const FUND_STATUS_VALUES = [
-  "active",
-  "inactive",
-  "suspended",
-  "deprecated",
-  "pending",
-] as const;
+export const DB_TX_SOURCE = {
+  manual_admin: "manual_admin",
+  yield_distribution: "yield_distribution",
+  fee_allocation: "fee_allocation",
+  ib_allocation: "ib_allocation",
+  system_bootstrap: "system_bootstrap",
+  investor_wizard: "investor_wizard",
+  internal_routing: "internal_routing",
+  yield_correction: "yield_correction",
+  withdrawal_completion: "withdrawal_completion",
+  rpc_canonical: "rpc_canonical",
+  crystallization: "crystallization",
+  system: "system",
+  migration: "migration",
+  stress_test: "stress_test",
+} as const satisfies Record<string, TxSource>;
 
-export type FundStatus = (typeof FUND_STATUS_VALUES)[number];
-export const FundStatusSchema = z.enum(FUND_STATUS_VALUES);
-
-// =============================================================================
-// APP_ROLE ENUM
-// =============================================================================
-
-export const APP_ROLE_VALUES = [
-  "super_admin",
-  "admin",
-  "moderator",
-  "ib",
-  "user",
-  "investor",
-] as const;
-
-export type AppRole = (typeof APP_ROLE_VALUES)[number];
-export const AppRoleSchema = z.enum(APP_ROLE_VALUES);
-
-// =============================================================================
-// UI TYPE MAPPING (FIRST_INVESTMENT -> DEPOSIT)
-// =============================================================================
-
-/**
- * UI may display "First Investment" but DB stores it as DEPOSIT.
- * This maps UI types to the canonical DB types.
- */
-export function mapUITypeToDb(uiType: string): TxType {
-  if (uiType === "FIRST_INVESTMENT") {
-    return "DEPOSIT";
-  }
-  if (isValidTxType(uiType)) {
-    return uiType;
-  }
-  throw new Error(`Unknown UI transaction type: ${uiType}`);
+export function isValidTxSource(value: string): value is TxSource {
+  return TxSourceSchema.safeParse(value).success;
 }
 
 // =============================================================================
-// TYPE ALIGNMENT VERIFICATION (compile-time)
+// TX_TYPE ENUM
 // =============================================================================
-// These ensure our contracts match the generated Supabase types
 
-type SupabaseTxType = Database["public"]["Enums"]["tx_type"];
+export const TX_TYPE_VALUES = [
+  "DEPOSIT",
+  "WITHDRAWAL",
+  "INTEREST",
+  "FEE",
+  "ADJUSTMENT",
+  "FEE_CREDIT",
+  "IB_CREDIT",
+  "YIELD",
+  "INTERNAL_WITHDRAWAL",
+  "INTERNAL_CREDIT",
+  "IB_DEBIT",
+] as const;
+
+export const TxTypeSchema = z.enum(TX_TYPE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      if (ctx.data === "FIRST_INVESTMENT") {
+        return {
+          message: `Invalid tx_type: FIRST_INVESTMENT is UI-only. Use mapUITypeToDb() to convert to DEPOSIT.`,
+        };
+      }
+      return { message: `Invalid tx_type: "${ctx.data}". Valid: ${TX_TYPE_VALUES.join(", ")}` };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type TxType = z.infer<typeof TxTypeSchema>;
+
+export const DB_TX_TYPE = {
+  DEPOSIT: "DEPOSIT",
+  WITHDRAWAL: "WITHDRAWAL",
+  INTEREST: "INTEREST",
+  FEE: "FEE",
+  ADJUSTMENT: "ADJUSTMENT",
+  FEE_CREDIT: "FEE_CREDIT",
+  IB_CREDIT: "IB_CREDIT",
+  YIELD: "YIELD",
+  INTERNAL_WITHDRAWAL: "INTERNAL_WITHDRAWAL",
+  INTERNAL_CREDIT: "INTERNAL_CREDIT",
+  IB_DEBIT: "IB_DEBIT",
+} as const satisfies Record<string, TxType>;
+
+export function isValidTxType(value: string): value is TxType {
+  return TxTypeSchema.safeParse(value).success;
+}
+
+// =============================================================================
+// VISIBILITY_SCOPE ENUM
+// =============================================================================
+
+export const VISIBILITY_SCOPE_VALUES = ["investor_visible", "admin_only"] as const;
+
+export const VisibilityScopeSchema = z.enum(VISIBILITY_SCOPE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid visibility_scope: "${ctx.data}". Valid: ${VISIBILITY_SCOPE_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type VisibilityScope = z.infer<typeof VisibilityScopeSchema>;
+
+export const DB_VISIBILITY_SCOPE = {
+  investor_visible: "investor_visible",
+  admin_only: "admin_only",
+} as const satisfies Record<string, VisibilityScope>;
+
+export function isValidVisibilityScope(value: string): value is VisibilityScope {
+  return VisibilityScopeSchema.safeParse(value).success;
+}
+
+// =============================================================================
+// WITHDRAWAL_STATUS ENUM
+// =============================================================================
+
+export const WITHDRAWAL_STATUS_VALUES = [
+  "pending",
+  "approved",
+  "processing",
+  "completed",
+  "rejected",
+  "cancelled",
+] as const;
+
+export const WithdrawalStatusSchema = z.enum(WITHDRAWAL_STATUS_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid withdrawal_status: "${ctx.data}". Valid: ${WITHDRAWAL_STATUS_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type WithdrawalStatus = z.infer<typeof WithdrawalStatusSchema>;
+
+export const DB_WITHDRAWAL_STATUS = {
+  pending: "pending",
+  approved: "approved",
+  processing: "processing",
+  completed: "completed",
+  rejected: "rejected",
+  cancelled: "cancelled",
+} as const satisfies Record<string, WithdrawalStatus>;
+
+export function isValidWithdrawalStatus(value: string): value is WithdrawalStatus {
+  return WithdrawalStatusSchema.safeParse(value).success;
+}
+
+// =============================================================================
+// YIELD_DISTRIBUTION_STATUS ENUM
+// =============================================================================
+
+export const YIELD_DISTRIBUTION_STATUS_VALUES = [
+  "pending",
+  "applied",
+  "voided",
+  "failed",
+  "draft",
+  "previewed",
+  "corrected",
+  "rolled_back",
+] as const;
+
+export const YieldDistributionStatusSchema = z.enum(YIELD_DISTRIBUTION_STATUS_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid yield_distribution_status: "${ctx.data}". Valid: ${YIELD_DISTRIBUTION_STATUS_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type YieldDistributionStatus = z.infer<typeof YieldDistributionStatusSchema>;
+
+export const DB_YIELD_DISTRIBUTION_STATUS = {
+  pending: "pending",
+  applied: "applied",
+  voided: "voided",
+  failed: "failed",
+  draft: "draft",
+  previewed: "previewed",
+  corrected: "corrected",
+  rolled_back: "rolled_back",
+} as const satisfies Record<string, YieldDistributionStatus>;
+
+export function isValidYieldDistributionStatus(value: string): value is YieldDistributionStatus {
+  return YieldDistributionStatusSchema.safeParse(value).success;
+}
+
+// =============================================================================
+// UI EXTENSIONS
+// =============================================================================
+
+/** UI-only transaction types that get mapped to DB types */
+export const UI_TX_TYPE_VALUES = [...TX_TYPE_VALUES, "FIRST_INVESTMENT"] as const;
+export const UITxTypeSchema = z.enum(UI_TX_TYPE_VALUES);
+export type UITxType = z.infer<typeof UITxTypeSchema>;
+
+/** Map UI transaction type to DB type */
+export function mapUITypeToDb(uiType: UITxType): TxType {
+  if (uiType === "FIRST_INVESTMENT") return "DEPOSIT";
+  return TxTypeSchema.parse(uiType);
+}
+
+export function safeMapUITypeToDb(uiType: string): TxType | null {
+  const result = UITxTypeSchema.safeParse(uiType);
+  if (!result.success) return null;
+  return mapUITypeToDb(result.data);
+}
+
+export function getDefaultSubtype(uiType: UITxType): string {
+  switch (uiType) {
+    case "FIRST_INVESTMENT":
+      return "first_investment";
+    case "DEPOSIT":
+      return "top_up";
+    case "WITHDRAWAL":
+      return "redemption";
+    case "FEE":
+      return "fee_charge";
+    case "YIELD":
+    case "INTEREST":
+      return "yield_credit";
+    default:
+      return "adjustment";
+  }
+}
+
+/** Check if value is a valid UI transaction type */
+export function isValidUITxType(value: unknown): value is UITxType {
+  return UITxTypeSchema.safeParse(value).success;
+}
+
+export function assertValidTxType(type: string, context?: string): asserts type is TxType {
+  if (type === "FIRST_INVESTMENT") {
+    throw new Error(
+      `FIRST_INVESTMENT must be mapped to DEPOSIT${context ? ` (in ${context})` : ""}`
+    );
+  }
+  if (!isValidTxType(type)) {
+    throw new Error(`Invalid transaction type: ${type}${context ? ` (in ${context})` : ""}`);
+  }
+}
+
+// =============================================================================
+// TYPE ALIGNMENT VERIFICATION
+// =============================================================================
+// These compile-time checks ensure our contracts match Supabase types
+
+type SupabaseAccountType = Database["public"]["Enums"]["account_type"];
+const _account_typeCheck: AccountType extends SupabaseAccountType
+  ? SupabaseAccountType extends AccountType
+    ? true
+    : false
+  : false = true;
+void _account_typeCheck;
+type SupabaseAssetCode = Database["public"]["Enums"]["asset_code"];
+const _asset_codeCheck: AssetCode extends SupabaseAssetCode
+  ? SupabaseAssetCode extends AssetCode
+    ? true
+    : false
+  : false = true;
+void _asset_codeCheck;
 type SupabaseAumPurpose = Database["public"]["Enums"]["aum_purpose"];
-type SupabaseDocumentType = Database["public"]["Enums"]["document_type"];
-
-// Compile-time checks: these will fail if enums drift
-type _AssertTxType = TxType extends SupabaseTxType ? true : false;
-type _AssertAumPurpose = AumPurpose extends SupabaseAumPurpose ? true : false;
-type _AssertDocumentType = DocumentType extends SupabaseDocumentType ? true : false;
-
-// Force usage to prevent "declared but never used" warnings
-const _typeChecks: [_AssertTxType, _AssertAumPurpose, _AssertDocumentType] = [true, true, true];
-void _typeChecks;
+const _aum_purposeCheck: AumPurpose extends SupabaseAumPurpose
+  ? SupabaseAumPurpose extends AumPurpose
+    ? true
+    : false
+  : false = true;
+void _aum_purposeCheck;
+type SupabaseFundStatus = Database["public"]["Enums"]["fund_status"];
+const _fund_statusCheck: FundStatus extends SupabaseFundStatus
+  ? SupabaseFundStatus extends FundStatus
+    ? true
+    : false
+  : false = true;
+void _fund_statusCheck;
+type SupabaseTxSource = Database["public"]["Enums"]["tx_source"];
+const _tx_sourceCheck: TxSource extends SupabaseTxSource
+  ? SupabaseTxSource extends TxSource
+    ? true
+    : false
+  : false = true;
+void _tx_sourceCheck;
+type SupabaseTxType = Database["public"]["Enums"]["tx_type"];
+const _tx_typeCheck: TxType extends SupabaseTxType
+  ? SupabaseTxType extends TxType
+    ? true
+    : false
+  : false = true;
+void _tx_typeCheck;
+type SupabaseVisibilityScope = Database["public"]["Enums"]["visibility_scope"];
+const _visibility_scopeCheck: VisibilityScope extends SupabaseVisibilityScope
+  ? SupabaseVisibilityScope extends VisibilityScope
+    ? true
+    : false
+  : false = true;
+void _visibility_scopeCheck;
+type SupabaseWithdrawalStatus = Database["public"]["Enums"]["withdrawal_status"];
+const _withdrawal_statusCheck: WithdrawalStatus extends SupabaseWithdrawalStatus
+  ? SupabaseWithdrawalStatus extends WithdrawalStatus
+    ? true
+    : false
+  : false = true;
+void _withdrawal_statusCheck;
+type SupabaseYieldDistributionStatus = Database["public"]["Enums"]["yield_distribution_status"];
+const _yield_distribution_statusCheck: YieldDistributionStatus extends SupabaseYieldDistributionStatus
+  ? SupabaseYieldDistributionStatus extends YieldDistributionStatus
+    ? true
+    : false
+  : false = true;
+void _yield_distribution_statusCheck;
