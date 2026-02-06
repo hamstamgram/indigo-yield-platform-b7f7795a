@@ -284,7 +284,23 @@ export function getTransactionInvestorName(tx: TransactionWithProfile): string {
 }
 
 /**
- * Format transaction type for display
+ * Display type mapping from tx_subtype to user-friendly labels
+ * Used by both transaction.ts and adminTransactionHistoryService.ts
+ */
+export const SUBTYPE_DISPLAY_MAP: Record<string, string> = {
+  first_investment: "First Investment",
+  deposit: "Top-up",
+  redemption: "Withdrawal",
+  full_redemption: "Withdrawal All",
+  fee_charge: "Fee",
+  yield_credit: "Yield",
+  adjustment: "Adjustment",
+  fee_credit: "Fee Credit",
+  ib_credit: "IB Credit",
+};
+
+/**
+ * Format transaction type for display (basic type-only mapping)
  */
 export function formatTransactionType(type: TransactionType | string): string {
   const typeMap: Record<string, string> = {
@@ -295,11 +311,38 @@ export function formatTransactionType(type: TransactionType | string): string {
     YIELD: "Yield",
     ADJUSTMENT: "Adjustment",
     FIRST_INVESTMENT: "First Investment",
+    FEE_CREDIT: "Fee Credit",
+    IB_CREDIT: "IB Credit",
   };
   return (
     typeMap[type] ||
     (typeof type === "string" ? type.charAt(0) + type.slice(1).toLowerCase() : String(type))
   );
+}
+
+/**
+ * Get display type for a transaction based on subtype (preferred) or type (fallback)
+ * This is the canonical function for determining user-facing transaction labels.
+ */
+export function getTransactionDisplayType(type: TransactionType | string, subtype?: string | null): string {
+  // Prefer subtype if available and mapped
+  if (subtype && SUBTYPE_DISPLAY_MAP[subtype]) {
+    return SUBTYPE_DISPLAY_MAP[subtype];
+  }
+  
+  // Fallback to type-based mapping for legacy data
+  const fallbackMap: Record<string, string> = {
+    DEPOSIT: "Top-up",
+    WITHDRAWAL: "Withdrawal",
+    INTEREST: "Yield",
+    YIELD: "Yield",
+    FEE: "Fee",
+    FEE_CREDIT: "Fee Credit",
+    IB_CREDIT: "IB Credit",
+    ADJUSTMENT: "Adjustment",
+  };
+  
+  return fallbackMap[type] || formatTransactionType(type);
 }
 
 /**

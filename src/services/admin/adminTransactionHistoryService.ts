@@ -16,6 +16,7 @@ import type {
   VoidAndReissueParams,
   VoidAndReissueResult,
 } from "@/types/domains/transaction";
+import { getTransactionDisplayType } from "@/types/domains/transaction";
 
 const PAGE_SIZE = 50;
 
@@ -66,18 +67,7 @@ interface VoidReissueRPCResult {
   message?: string;
 }
 
-// Display type mapping from tx_subtype to user-friendly labels
-const SUBTYPE_DISPLAY_MAP: Record<string, string> = {
-  first_investment: "First Investment",
-  deposit: "Top-up",
-  redemption: "Withdrawal",
-  full_redemption: "Withdrawal All",
-  fee_charge: "Fee",
-  yield_credit: "Yield",
-  adjustment: "Adjustment",
-  fee_credit: "Fee Credit",
-  ib_credit: "IB Credit",
-};
+// SUBTYPE_DISPLAY_MAP is now imported from @/types/domains/transaction
 
 /**
  * Fetch active funds for filter dropdowns
@@ -149,20 +139,8 @@ async function fetchTransactions(
     const profile = Array.isArray(tx.profiles) ? tx.profiles[0] : tx.profiles;
     const fund = funds.find((f) => f.id === tx.fund_id);
 
-    // Use explicit tx_subtype for display - NO HEURISTICS!
-    let displayType = tx.type;
-    if (tx.tx_subtype && SUBTYPE_DISPLAY_MAP[tx.tx_subtype]) {
-      displayType = SUBTYPE_DISPLAY_MAP[tx.tx_subtype];
-    } else {
-      // Fallback for any data without tx_subtype (legacy safety)
-      if (tx.type === "DEPOSIT") displayType = "Top-up";
-      else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
-      else if (tx.type === "INTEREST" || tx.type === "YIELD") displayType = "Yield";
-      else if (tx.type === "FEE") displayType = "Fee";
-      else if (tx.type === "FEE_CREDIT") displayType = "Fee Credit";
-      else if (tx.type === "IB_CREDIT") displayType = "IB Credit";
-      else if (tx.type === "ADJUSTMENT") displayType = "Adjustment";
-    }
+    // Use centralized display type function
+    const displayType = getTransactionDisplayType(tx.type, tx.tx_subtype);
 
     return {
       id: tx.id,
