@@ -15,32 +15,19 @@
 
 import { toDecimal } from "@/utils/financial";
 import Decimal from "decimal.js";
-
-// Fund icon CDN URLs
-const FUND_ICONS: Record<string, string> = {
-  "BTC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  "ETH YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "SOL YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
-  "STABLECOIN FUND":
-    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  "EURC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
-  "TOKENIZED GOLD":
-    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  // XRP YIELD FUND - CDN logo URL needed
-};
+import { FUND_ICONS } from "@/types/domains/report";
 
 // Currency mapping
 const FUND_CURRENCY: Record<string, string> = {
   "BTC YIELD FUND": "BTC",
   "ETH YIELD FUND": "ETH",
   "SOL YIELD FUND": "SOL",
+  "USDT YIELD FUND": "USDT",
   "STABLECOIN FUND": "USDT",
   "EURC YIELD FUND": "EURC",
+  "XAUT YIELD FUND": "xAUT",
   "TOKENIZED GOLD": "xAUT",
+  "USDC YIELD FUND": "USDC",
   "XRP YIELD FUND": "XRP",
 };
 

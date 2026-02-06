@@ -1,21 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError, logWarn } from "@/lib/logger";
-
-// Fund icon mapping from CDN
-const FUND_ICON_MAP: Record<string, string> = {
-  "BTC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  "ETH YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "Tokenized Gold":
-    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  "Stablecoin Fund":
-    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  "SOL YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFQ.png",
-  "EURC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
-};
+import { FUND_ICONS, FUND_NAME_BY_ASSET } from "@/types/domains/report";
 
 interface InvestorReportData {
   investorId: string;
@@ -57,13 +42,16 @@ function getReturnColor(rateOfReturn: number): string {
 }
 
 /**
- * Get fund icon URL from CDN
+ * Get fund icon URL from centralized CDN map
  */
 function getFundIcon(fundName: string): string {
-  return (
-    FUND_ICON_MAP[fundName] ||
-    "https://storage.mlcdn.com/account_image/855106/default-fund-icon.png"
-  );
+  // Direct lookup by fund display name
+  if (FUND_ICONS[fundName]) return FUND_ICONS[fundName];
+  // Normalize to uppercase for lookup
+  const upper = fundName.toUpperCase();
+  if (FUND_ICONS[upper]) return FUND_ICONS[upper];
+  // Fallback to BTC icon
+  return FUND_ICONS["BTC YIELD FUND"];
 }
 
 /**
@@ -412,12 +400,9 @@ export async function fetchInvestorReportData(
         let fundName = rec.fund_name || "Unknown Fund";
         const assetCode = rec.fund_name; // Assuming fund_name holds 'BTC', 'ETH' etc.
 
-        // Branding Logic
-        if (assetCode === "BTC") fundName = "BTC YIELD FUND";
-        if (assetCode === "ETH") fundName = "ETH YIELD FUND";
-        if (assetCode === "SOL") fundName = "SOL YIELD FUND";
-        if (assetCode === "USDT") fundName = "USDT YIELD FUND";
-        if (assetCode === "xAUT") fundName = "Tokenized Gold";
+        // Branding Logic - use centralized map for all assets
+        const mappedName = FUND_NAME_BY_ASSET[assetCode] || FUND_NAME_BY_ASSET[assetCode?.toUpperCase()];
+        if (mappedName) fundName = mappedName;
 
         return {
           fundName,
