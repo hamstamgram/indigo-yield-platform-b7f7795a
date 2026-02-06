@@ -15,7 +15,6 @@ import {
   Briefcase,
   DollarSign,
   FolderOpen,
-  PieChart,
   Wallet,
   Coins,
   LayoutDashboard,
@@ -82,12 +81,6 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "Fund Management",
-        href: "/admin/funds",
-        icon: <PieChart className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
         title: "INDIGO Fees",
         href: "/admin/fees",
         icon: <DollarSign className="h-5 w-5" />,
@@ -122,14 +115,6 @@ export const adminNavGroups: NavGroup[] = [
         href: "/admin/ib-management",
         icon: <Briefcase className="h-5 w-5" />,
         adminOnly: true,
-        subNav: [
-          {
-            title: "IB Payouts",
-            href: "/admin/ib-payouts",
-            icon: <Wallet className="h-5 w-5" />,
-            adminOnly: true,
-          },
-        ],
       },
     ],
   },

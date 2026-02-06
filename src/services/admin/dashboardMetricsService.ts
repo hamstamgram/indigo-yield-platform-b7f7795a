@@ -69,6 +69,7 @@ export interface InvestorComposition {
   email: string;
   balance: number;
   ownership_pct: number;
+  account_type: string;
 }
 
 export interface DeliveryRecord {
@@ -215,8 +216,7 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
 
 /**
  * Fetch investor composition for a fund
- * NOTE: Only includes account_type='investor' with current_value > 0
- * to match the RPC `get_funds_with_aum` filter pattern
+ * Includes all account types (investor, fees_account, ib) with current_value > 0
  */
 export async function getFundInvestorComposition(fundId: string): Promise<InvestorComposition[]> {
   const { data: positions, error } = await supabase
@@ -228,19 +228,15 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
     `
     )
     .eq("fund_id", fundId)
-    .gt("current_value", 0) // Exclude zero-balance positions
+    .gt("current_value", 0)
     .limit(100);
 
   if (error) throw error;
 
-  // Filter to investor accounts only (exclude fee accounts, IB accounts)
-  const investorPositions = ((positions as PositionWithProfile[] | null) || []).filter(
-    (p) => p.profile?.account_type === "investor"
-  );
+  const allPositions = (positions as PositionWithProfile[] | null) || [];
+  const totalValue = allPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 
-  const totalValue = investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
-
-  return investorPositions.map((p) => ({
+  return allPositions.map((p) => ({
     investor_name:
       `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
       p.profile?.email ||
@@ -248,6 +244,7 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
     email: p.profile?.email || "",
     balance: p.current_value || 0,
     ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
+    account_type: p.profile?.account_type || "investor",
   }));
 }
 

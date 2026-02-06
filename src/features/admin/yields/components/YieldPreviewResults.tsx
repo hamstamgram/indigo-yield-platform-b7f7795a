@@ -328,7 +328,21 @@ export function YieldPreviewResults({
               {/* ADB columns */}
               {yieldPreview.calculationMethod === "adb_v3" && (
                 <>
-                  <TableHead className="text-right">ADB</TableHead>
+                  <TableHead className="text-right">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help underline decoration-dotted underline-offset-4">
+                          ADB
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[280px]">
+                        <p className="text-xs">
+                          Average Daily Balance: Time-weighted balance used to calculate each
+                          investor's proportional share of the yield
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableHead>
                   <TableHead className="text-right">Weight</TableHead>
                 </>
               )}

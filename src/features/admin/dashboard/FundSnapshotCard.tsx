@@ -1,7 +1,9 @@
 import React, { memo, useMemo } from "react";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, Badge } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatAUM } from "@/utils/formatters";
 import type { FundAUMData } from "@/hooks";
@@ -29,6 +31,7 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
   date,
   onClick,
 }) {
+  const navigate = useNavigate();
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
   const dateStr = useMemo(() => (date ? format(date, "yyyy-MM-dd") : null), [date]);
   const isToday = dateStr === todayStr;
@@ -51,7 +54,20 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
             <p className="text-xs text-muted-foreground">{fund.name}</p>
           </div>
         </div>
-        {isSelected && <Badge className="bg-primary">Selected</Badge>}
+        <div className="flex items-center gap-2">
+          {isSelected && <Badge className="bg-primary">Selected</Badge>}
+          <button
+            type="button"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title="Fund Management"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("/admin/funds");
+            }}
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        </div>
       </CardHeader>
       <CardContent>
         {/* Main AUM */}

@@ -124,105 +124,8 @@ export function YieldInputForm({
           </div>
         </div>
 
-        {/* Reporting Month Selector */}
-        {yieldPurpose === "reporting" && (
-          <div className="space-y-2 mb-4">
-            <Label>Reporting Month</Label>
-            <Select value={reportingMonth} onValueChange={handleReportingMonthChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select month to close" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableMonths.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Select the reporting month this yield applies to
-            </p>
-          </div>
-        )}
-
-        {/* AUM Input */}
-        <div className="grid grid-cols-2 gap-6 mb-4">
-          <div className="space-y-2">
-            <Label className="text-muted-foreground">
-              {isUsingHistoricalAum
-                ? `AUM as of ${reportingMonth ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy") : "selected month"}`
-                : "Current AUM"}
-            </Label>
-            {asOfAumLoading ? (
-              <div className="flex items-center gap-2 text-2xl">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                <span className="text-muted-foreground">Loading...</span>
-              </div>
-            ) : (
-              <div className="text-2xl font-mono font-semibold">
-                {selectedFund && formatValue(displayedAum, selectedFund.asset)}{" "}
-                <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
-                {!isUsingHistoricalAum && selectedFund && (
-                  <span className="block text-xs text-amber-600 dark:text-amber-400 mt-1">
-                    (current positions - no historical data)
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
-            <NumericInput
-              id="new-aum"
-              asset={selectedFund?.asset}
-              value={newAUM}
-              onChange={setNewAUM}
-              placeholder="Enter new total AUM after yield"
-              showFormatted
-            />
-          </div>
-        </div>
-
-        {/* Date Picker */}
-        <div className="space-y-2 mb-4">
-          <Label>Effective Date</Label>
-          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !aumDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={aumDate}
-                onSelect={(date) => {
-                  if (date) {
-                    setAumDate(date);
-                    setDatePickerOpen(false);
-                  }
-                }}
-                disabled={(date) => date > new Date()}
-                initialFocus
-                className="p-3 pointer-events-auto"
-                captionLayout="dropdown-buttons"
-                fromYear={2024}
-                toYear={new Date().getFullYear()}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
         {/* Purpose Selector */}
-        <div className="space-y-3">
+        <div className="space-y-3 mb-4">
           <Label className="text-sm font-medium">Purpose</Label>
           <div className="grid grid-cols-2 gap-3">
             <div
@@ -290,6 +193,103 @@ export function YieldInputForm({
                 </>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Reporting Month Selector */}
+        {yieldPurpose === "reporting" && (
+          <div className="space-y-2 mb-4">
+            <Label>Reporting Month</Label>
+            <Select value={reportingMonth} onValueChange={handleReportingMonthChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select month to close" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Select the reporting month this yield applies to
+            </p>
+          </div>
+        )}
+
+        {/* Effective Date */}
+        <div className="space-y-2 mb-4">
+          <Label>Effective Date</Label>
+          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !aumDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={aumDate}
+                onSelect={(date) => {
+                  if (date) {
+                    setAumDate(date);
+                    setDatePickerOpen(false);
+                  }
+                }}
+                disabled={(date) => date > new Date()}
+                initialFocus
+                className="p-3 pointer-events-auto"
+                captionLayout="dropdown-buttons"
+                fromYear={2024}
+                toYear={new Date().getFullYear()}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* AUM Input */}
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">
+              {isUsingHistoricalAum
+                ? `AUM as of ${reportingMonth ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy") : "selected month"}`
+                : "Current AUM"}
+            </Label>
+            {asOfAumLoading ? (
+              <div className="flex items-center gap-2 text-2xl">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground">Loading...</span>
+              </div>
+            ) : (
+              <div className="text-2xl font-mono font-semibold">
+                {selectedFund && formatValue(displayedAum, selectedFund.asset)}{" "}
+                <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
+                {!isUsingHistoricalAum && selectedFund && (
+                  <span className="block text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    (current positions - no historical data)
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
+            <NumericInput
+              id="new-aum"
+              asset={selectedFund?.asset}
+              value={newAUM}
+              onChange={setNewAUM}
+              placeholder="Enter new total AUM after yield"
+              showFormatted
+            />
           </div>
         </div>
       </div>

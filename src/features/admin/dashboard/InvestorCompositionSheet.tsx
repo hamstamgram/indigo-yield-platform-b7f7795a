@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, Radio, Info } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Radio } from "lucide-react";
 import {
   Badge,
   TruncatedText,
@@ -14,10 +14,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatAUM } from "@/utils/formatters";
@@ -31,6 +27,7 @@ interface CompositionItem {
   email: string;
   balance: number;
   ownership_pct: number;
+  account_type: string;
 }
 
 interface InvestorCompositionSheetProps {
@@ -114,7 +111,7 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
               <SheetTitle className="text-xl">
                 {fund?.name || "Fund"} - Investor Composition
               </SheetTitle>
-              <SheetDescription>Investor-only ownership breakdown</SheetDescription>
+              <SheetDescription>Full fund ownership breakdown</SheetDescription>
             </div>
           </div>
           {fund && (
@@ -146,22 +143,8 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <p className="text-xs text-muted-foreground">
-                        Investor Holdings ({compositionData.length} investors)
+                        All Holdings ({compositionData.length} accounts)
                       </p>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="max-w-[280px]">
-                            <p className="text-xs">
-                              This total shows investor holdings only. The difference from Total
-                              Fund AUM represents platform fees and IB allocations which are held in
-                              internal accounts.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
                     </div>
                   </div>
                   {fund.latest_aum > 0 && (
@@ -237,7 +220,25 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                 sortedData.map((investor, idx) => (
                   <TableRow key={idx}>
                     <TableCell className="font-medium">
-                      <TruncatedText text={investor.investor_name} maxLength={20} />
+                      <div className="flex items-center gap-2">
+                        <TruncatedText text={investor.investor_name} maxLength={20} />
+                        {investor.account_type === "fees_account" && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400"
+                          >
+                            FEE
+                          </Badge>
+                        )}
+                        {investor.account_type === "ib" && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/30 dark:text-purple-400"
+                          >
+                            IB
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <TruncatedText text={investor.email} maxLength={25} />
