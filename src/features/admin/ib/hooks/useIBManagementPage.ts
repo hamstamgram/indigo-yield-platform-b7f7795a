@@ -22,7 +22,8 @@ export interface IBProfile {
   createdAt: string;
   referralCount: number;
   earningsByAsset: EarningsByAsset;
-  activeFunds: string[];
+  /** Asset symbols (e.g., "BTC", "ETH") for active funds - used for CryptoIcon display */
+  activeAssets: string[];
 }
 
 /**
@@ -61,9 +62,9 @@ export function useIBProfiles() {
         const refs = (referrals || []).filter((r) => r.ib_parent_id === p.id);
 
         const txEarnings = (ibCredits || []).filter((t) => t.investor_id === p.id);
-        const activeFundIds = [
-          ...new Set(txEarnings.map((t) => t.fund_id).filter(Boolean)),
-        ] as string[];
+        const activeFundIds = new Set<string>(
+          txEarnings.map((t) => t.fund_id).filter(Boolean) as string[]
+        );
 
         const earningsByAsset: EarningsByAsset = {};
         txEarnings.forEach((t) => {
@@ -77,14 +78,15 @@ export function useIBProfiles() {
             if (a.fund_id) {
               const asset = fundToAsset.get(a.fund_id) || "UNKNOWN";
               earningsByAsset[asset] = (earningsByAsset[asset] || 0) + Number(a.ib_fee_amount || 0);
-            }
-          });
-          allocs.forEach((a) => {
-            if (a.fund_id && !activeFundIds.includes(a.fund_id)) {
-              activeFundIds.push(a.fund_id);
+              activeFundIds.add(a.fund_id);
             }
           });
         }
+
+        // Convert fund IDs to asset symbols for CryptoIcon display
+        const activeAssets = [...activeFundIds]
+          .map((fundId) => fundToAsset.get(fundId))
+          .filter((asset): asset is string => !!asset && asset !== "UNKNOWN");
 
         return {
           id: p.id,
@@ -94,7 +96,7 @@ export function useIBProfiles() {
           createdAt: p.created_at,
           referralCount: refs.length,
           earningsByAsset,
-          activeFunds: activeFundIds,
+          activeAssets,
         };
       });
 

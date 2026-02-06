@@ -269,11 +269,11 @@ export default function IBManagementPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1">
-                        {ib.activeFunds.length > 0 ? (
-                          ib.activeFunds.map((fund: string) => (
+                        {ib.activeAssets.length > 0 ? (
+                          ib.activeAssets.map((asset: string) => (
                             <CryptoIcon
-                              key={fund}
-                              symbol={fund.split("-").pop() || fund}
+                              key={asset}
+                              symbol={asset}
                               className="h-4 w-4"
                             />
                           ))
