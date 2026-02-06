@@ -1,128 +1,96 @@
 
-# Phase 3: Code Quality Improvements
 
-## Summary
+# Fix Report Logos - Centralize Fund Icons
 
-This phase addresses code quality issues identified in the architecture audit, focusing on reducing code duplication, improving test organization, and completing the IB asset logos fix from the earlier approved plan.
+## Problem
 
----
+There are **5 duplicate fund icon maps** across the codebase, each with different keys and several with **wrong URLs**:
 
-## Task 3.1: Use `formatTransactionType()` in Transaction History Service
+| File | Key Format | Issues |
+|------|-----------|--------|
+| `src/types/domains/report.ts` (FUND_ICONS) | "BTC YIELD FUND" | Most complete; canonical source for reports |
+| `src/services/reports/emailReportGenerator.ts` (FUND_ICON_MAP) | "BTC YIELD FUND" | **Tokenized Gold shows USDC logo**, SOL URL has typo, missing USDT/XRP |
+| `src/lib/statements/monthlyEmailGenerator.ts` (FUND_ICONS) | "BTC YIELD FUND" | **Tokenized Gold shows USDC logo**, missing XRP |
+| `src/lib/pdf/statementGenerator.ts` (FUND_ICONS) | "BTC" (asset code) | Uses external coingecko URLs for XRP/XAUT |
+| `src/types/asset.ts` (ASSET_CONFIGS logoUrl) | "BTC" (asset code) | Uses coingecko for XAUT/XRP; no CDN URLs |
 
-**File:** `src/services/admin/adminTransactionHistoryService.ts`
+### Specific bugs found:
 
-**Issue:** Lines 153-165 duplicate display type mapping logic that already exists in `src/types/domains/transaction.ts`:
+1. **Tokenized Gold shows USDC logo** in 2 files: `emailReportGenerator.ts` line 11 and `monthlyEmailGenerator.ts` line 32 both map gold to `770YUb...` which is USDC's icon
+2. **SOL URL typo** in `emailReportGenerator.ts` line 15: `...IRFQ.png` (missing 'S', should be `...IRFSQ.png`)
+3. **Missing assets** in `emailReportGenerator.ts`: no USDT YIELD FUND, no XRP, no USDC entries
+4. **Incomplete branding logic** in `emailReportGenerator.ts` lines 416-420: missing EURC, USDC, XRP fund name mappings
 
-```typescript
-// Current duplicate logic in service (lines 153-165):
-if (tx.type === "DEPOSIT") displayType = "Top-up";
-else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
-// etc.
+## Solution
 
-// Already exists in transaction.ts:
-export function formatTransactionType(type: TransactionType): string {...}
-```
-
-**Solution:** 
-1. Import `formatTransactionType` from `@/types/domains/transaction`
-2. Extend `formatTransactionType` to support subtype display (or create a new `formatDisplayType` helper)
-3. Replace inline mapping with utility call
-
-**Changes:**
-- Add `SUBTYPE_DISPLAY_MAP` and a new `getTransactionDisplayType(type, subtype)` function to `src/types/domains/transaction.ts`
-- Update `adminTransactionHistoryService.ts` to use the centralized function
+Centralize all fund icon URLs into `src/types/domains/report.ts` (already the most complete map) and have all other files import from there. Also update `ASSET_CONFIGS` in `src/types/asset.ts` with CDN URLs for XAUT and XRP.
 
 ---
 
-## Task 3.2: Fix IB Active Assets (from earlier approved plan)
+## Changes
 
-**Files:** 
-- `src/features/admin/ib/hooks/useIBManagementPage.ts`
-- `src/features/admin/ib/pages/IBManagementPage.tsx`
+### 1. Update `src/types/domains/report.ts` - Add asset-code lookup helper
 
-**Issue:** The "Active Funds" column shows broken logos because `activeFunds` contains fund UUIDs, not asset symbols.
+The existing `FUND_ICONS` map (keyed by fund display name) is already correct. Add:
+- A `FUND_NAME_BY_ASSET` map: asset code to fund display name
+- A `getFundIconByAsset(assetCode)` helper function
 
-**Solution:**
-1. In hook: Rename `activeFunds: string[]` to `activeAssets: string[]` in the `IBProfile` interface
-2. In hook: Convert `activeFundIds` to asset symbols using the existing `fundToAsset` map
-3. In page: Update column to use `ib.activeAssets` directly with CryptoIcon
+### 2. Update `src/types/asset.ts` - Fix XAUT and XRP logo URLs
 
----
+Replace coingecko URLs with CDN URLs for XAUT and XRP to match the report icons:
+- XAUT: use `eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png` (CDN)
+- XRP: use `mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png` (CDN)
 
-## Task 3.3: Organize Test Directory Structure
+### 3. Fix `src/services/reports/emailReportGenerator.ts`
 
-**Current state:** Tests directory has 40+ markdown reports and spec files at root level mixed with organized subdirectories.
+- Remove local `FUND_ICON_MAP` (lines 4-18)
+- Import `FUND_ICONS` and `FUND_NAME_BY_ASSET` from `@/types/domains`
+- Fix `getFundIcon()` to use the centralized map
+- Fix branding logic (lines 416-420) to cover all 8 assets using `FUND_NAME_BY_ASSET`
 
-**Solution:** Move all report files to `tests/reports/` subdirectory:
+### 4. Fix `src/lib/statements/monthlyEmailGenerator.ts`
 
-```text
-tests/
-  ├── reports/                    <- NEW: Move all .md and .json reports here
-  │   ├── ACCOUNTING_COMPARISON_2026-01-25.md
-  │   ├── ADMIN_PORTAL_TESTING_REPORT.md
-  │   └── ... (35+ report files)
-  ├── accessibility/              (keep)
-  ├── e2e/                        (keep)
-  ├── fixtures/                   (keep)
-  ├── integration/                (keep)
-  ├── qa/                         (keep)
-  ├── screenshots/                (keep)
-  ├── sql/                        (keep)
-  ├── unit/                       (keep)
-  ├── utils/                      (keep)
-  ├── README.md                   (keep at root)
-  └── *.spec.ts                   (move to e2e/ or integration/)
-```
+- Remove local `FUND_ICONS` (lines 20-34)
+- Import from `@/types/domains`
 
-**Files to move:**
-- All `*.md` (except README files) → `tests/reports/`
-- All `*.json` (report files) → `tests/reports/`
-- Consider moving root-level `*.spec.ts` files to appropriate subdirectories
+### 5. Fix `src/lib/pdf/statementGenerator.ts`
+
+- Remove local `FUND_ICONS` (lines 8-17)
+- Import `getFundIconByAsset` from `@/types/domains`
+- Update icon lookup on line 222 to use `getFundIconByAsset(asset)`
+
+### 6. `src/utils/statementPdfGenerator.ts` - Already correct
+
+This file already imports `FUND_ICONS` from `@/types/domains` -- no change needed.
+
+### 7. `src/components/reports/InvestorReportTemplate.tsx` - Already correct
+
+Already imports from `@/types/domains` -- no change needed.
 
 ---
 
-## Task 3.4: Document Deprecated Shim Files
-
-**Location:** `src/hooks/data/index.ts` contains a deprecation note:
-
-```typescript
-// Individual shim files in this directory are deprecated and will be removed in v2.0.
-```
-
-**Solution:** Create `docs/DEPRECATED_SHIMS.md` to track:
-1. List of deprecated shim files
-2. Migration path for each
-3. Target removal version (v2.0)
-
----
-
-## Implementation Order
-
-| # | Task | Effort | Files |
-|---|------|--------|-------|
-| 1 | Fix IB activeAssets (complete earlier plan) | Low | 2 files |
-| 2 | Centralize displayType mapping | Low | 2 files |
-| 3 | Organize test reports | Medium | 35+ files moved |
-| 4 | Document deprecated shims | Low | 1 new doc file |
-
----
-
-## Files to Modify
+## Files Modified
 
 | File | Change |
 |------|--------|
-| `src/types/domains/transaction.ts` | Add `getTransactionDisplayType()` helper |
-| `src/services/admin/adminTransactionHistoryService.ts` | Use centralized display type function |
-| `src/features/admin/ib/hooks/useIBManagementPage.ts` | Change `activeFunds` → `activeAssets` with conversion |
-| `src/features/admin/ib/pages/IBManagementPage.tsx` | Update Active Funds column to use `activeAssets` |
-| `tests/reports/` (new directory) | Move 35+ report files |
-| `docs/DEPRECATED_SHIMS.md` (new file) | Document deprecation plan |
+| `src/types/domains/report.ts` | Add `FUND_NAME_BY_ASSET` map and `getFundIconByAsset()` helper |
+| `src/types/asset.ts` | Update XAUT and XRP `logoUrl` to CDN URLs |
+| `src/services/reports/emailReportGenerator.ts` | Remove local icon map, import centralized, fix branding logic for all 8 assets |
+| `src/lib/statements/monthlyEmailGenerator.ts` | Remove local icon map, import centralized |
+| `src/lib/pdf/statementGenerator.ts` | Remove local icon map, import centralized helper |
 
----
+## Corrected Icon Map (Single Source of Truth)
 
-## Testing
+```text
+Asset   Fund Display Name       CDN Logo
+-----   -----------------       --------
+BTC     BTC YIELD FUND          8Pf2dt...
+ETH     ETH YIELD FUND          iuulK6...
+SOL     SOL YIELD FUND          14fmAP...IRFSQ  (fixes typo)
+USDT    USDT YIELD FUND         2p3Y0l...
+USDC    USDC YIELD FUND         770YUb...
+EURC    EURC YIELD FUND         kwV87o...
+XAUT    XAUT YIELD FUND         eX8YQ2...  (fixes wrong logo)
+XRP     XRP YIELD FUND          mlmOJ9...
+```
 
-After implementation:
-1. Navigate to `/admin/ib-management` - verify Active Funds column shows proper crypto logos
-2. Navigate to `/admin/transactions` - verify transaction display types still render correctly
-3. Run `npm run test` to ensure test discovery still works after file reorganization
