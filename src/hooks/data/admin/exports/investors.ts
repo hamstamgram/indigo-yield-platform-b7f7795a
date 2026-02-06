@@ -6,11 +6,11 @@
 export {
   useInvestorDetail,
   useInvestorOpsIndicators,
-  useInvestorPositions as useAdminInvestorPositions,
+  useAdminInvestorPositions,
   useInvestorActivePositions,
   type InvestorDetailData,
   type OpsIndicators,
-  type InvestorPosition as AdminInvestorPosition,
+  type AdminInvestorPosition,
   type InvestorPositionsData as AdminInvestorPositionsData,
   useAdminInvestorsWithAssets,
   useAdminInvestorsList,

@@ -15,7 +15,8 @@ export {
 export {
   useInvestorDetail,
   useInvestorOpsIndicators,
-  useInvestorPositions,
+  useAdminInvestorPositions,
+  useInvestorPositions, // Deprecated alias for useAdminInvestorPositions
   useInvestorActivePositions,
 } from "./useInvestorDetailHooks";
 

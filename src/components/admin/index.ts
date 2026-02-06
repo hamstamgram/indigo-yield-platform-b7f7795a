@@ -30,7 +30,7 @@ export { default as FundAUMBar } from "@/features/admin/system/components/FundAU
 // DOMAIN RE-EXPORTS
 // ============================================
 export * from "@/features/admin/dashboard";
-export * from "./investors";
+export * from "@/features/admin/investors/components";
 export * from "@/features/admin/withdrawals/components";
 export * from "@/features/admin/deposits/components";
 export * from "@/features/admin/yields/components";
