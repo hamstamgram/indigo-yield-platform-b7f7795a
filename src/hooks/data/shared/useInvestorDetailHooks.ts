@@ -40,14 +40,18 @@ export function useInvestorOpsIndicators(
 
 /**
  * Hook to fetch investor positions with fund details and totals
+ * NOTE: For admin context only. For investor portal, use useInvestorPositions from @/hooks/data/investor
  */
-export function useInvestorPositions(investorId: string | undefined) {
+export function useAdminInvestorPositions(investorId: string | undefined) {
   return useQuery<InvestorPositionsData>({
     queryKey: QUERY_KEYS.adminInvestorPositions(investorId || ""),
     queryFn: () => investorDetailService.fetchInvestorPositionsWithTotals(investorId!),
     enabled: !!investorId,
   });
 }
+
+/** @deprecated Use useAdminInvestorPositions instead */
+export const useInvestorPositions = useAdminInvestorPositions;
 
 /**
  * Hook to fetch investor active positions (for delete confirmation)
