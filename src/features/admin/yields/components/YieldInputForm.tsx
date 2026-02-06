@@ -106,8 +106,8 @@ export function YieldInputForm({
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
               This fund has no historical AUM records. Before distributing yield, you should record
-              AUM data via the <span className="font-medium">Daily Rates Management</span> page or
-              by completing this form. The first yield distribution will establish the baseline.
+              AUM data by completing this form. The first yield distribution will establish the
+              baseline.
             </p>
           </div>
         </div>

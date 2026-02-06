@@ -4,15 +4,7 @@
  */
 
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowDownCircle,
-  ArrowUpCircle,
-  TrendingUp,
-  FileText,
-  Calculator,
-  Users,
-  Zap,
-} from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, TrendingUp, FileText, Users, Zap } from "lucide-react";
 import {
   Button,
   Card,
@@ -67,12 +59,6 @@ const QUICK_ACTIONS: QuickAction[] = [
     icon: <Users className="h-4 w-4" />,
     href: "/admin/investors",
     shortcut: SHORTCUTS.QUICK_INVESTOR,
-  },
-  {
-    id: "rates",
-    label: "Daily Rates",
-    icon: <Calculator className="h-4 w-4" />,
-    href: "/admin/rates",
   },
 ];
 

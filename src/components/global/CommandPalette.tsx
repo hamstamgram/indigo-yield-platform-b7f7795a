@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   FileText,
   Settings,
-  TrendingUp,
   Wallet,
   ArrowUpCircle,
   Mail,
@@ -44,24 +43,121 @@ interface SearchResult {
 }
 
 const ADMIN_PAGES: SearchResult[] = [
-  { id: "dashboard", type: "page", title: "Dashboard", subtitle: "Overview & metrics", icon: <LayoutDashboard className="h-4 w-4" />, href: "/admin" },
-  { id: "investors", type: "page", title: "Investors", subtitle: "Manage investors", icon: <Users className="h-4 w-4" />, href: "/admin/investors" },
-  { id: "withdrawals", type: "page", title: "Withdrawals", subtitle: "Withdrawal requests", icon: <ArrowUpCircle className="h-4 w-4" />, href: "/admin/withdrawals" },
-  { id: "reports", type: "page", title: "Investor Reports", subtitle: "Generate & send reports", icon: <FileText className="h-4 w-4" />, href: "/admin/investor-reports" },
-  { id: "monthly-data", type: "page", title: "Monthly Data Entry", subtitle: "Fund AUM & yields", icon: <Calculator className="h-4 w-4" />, href: "/admin/monthly-data-entry" },
-  { id: "rates", type: "page", title: "Daily Rates", subtitle: "Asset prices", icon: <TrendingUp className="h-4 w-4" />, href: "/admin/rates" },
-  { id: "transactions", type: "page", title: "Transactions", subtitle: "All transactions", icon: <Wallet className="h-4 w-4" />, href: "/admin/transactions" },
-  { id: "email-tracking", type: "page", title: "Email Tracking", subtitle: "Email delivery logs", icon: <Mail className="h-4 w-4" />, href: "/admin/email-tracking" },
-  { id: "system-health", type: "page", title: "System Health", subtitle: "Platform status", icon: <Shield className="h-4 w-4" />, href: "/admin/system-health" },
-  { id: "settings", type: "page", title: "Settings", subtitle: "Admin settings", icon: <Settings className="h-4 w-4" />, href: "/admin/settings" },
+  {
+    id: "dashboard",
+    type: "page",
+    title: "Dashboard",
+    subtitle: "Overview & metrics",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+    href: "/admin",
+  },
+  {
+    id: "investors",
+    type: "page",
+    title: "Investors",
+    subtitle: "Manage investors",
+    icon: <Users className="h-4 w-4" />,
+    href: "/admin/investors",
+  },
+  {
+    id: "withdrawals",
+    type: "page",
+    title: "Withdrawals",
+    subtitle: "Withdrawal requests",
+    icon: <ArrowUpCircle className="h-4 w-4" />,
+    href: "/admin/withdrawals",
+  },
+  {
+    id: "reports",
+    type: "page",
+    title: "Investor Reports",
+    subtitle: "Generate & send reports",
+    icon: <FileText className="h-4 w-4" />,
+    href: "/admin/investor-reports",
+  },
+  {
+    id: "monthly-data",
+    type: "page",
+    title: "Monthly Data Entry",
+    subtitle: "Fund AUM & yields",
+    icon: <Calculator className="h-4 w-4" />,
+    href: "/admin/monthly-data-entry",
+  },
+  {
+    id: "transactions",
+    type: "page",
+    title: "Transactions",
+    subtitle: "All transactions",
+    icon: <Wallet className="h-4 w-4" />,
+    href: "/admin/transactions",
+  },
+  {
+    id: "email-tracking",
+    type: "page",
+    title: "Email Tracking",
+    subtitle: "Email delivery logs",
+    icon: <Mail className="h-4 w-4" />,
+    href: "/admin/email-tracking",
+  },
+  {
+    id: "system-health",
+    type: "page",
+    title: "System Health",
+    subtitle: "Platform status",
+    icon: <Shield className="h-4 w-4" />,
+    href: "/admin/system-health",
+  },
+  {
+    id: "settings",
+    type: "page",
+    title: "Settings",
+    subtitle: "Admin settings",
+    icon: <Settings className="h-4 w-4" />,
+    href: "/admin/settings",
+  },
 ];
 
 const INVESTOR_PAGES: SearchResult[] = [
-  { id: "dashboard", type: "page", title: "Dashboard", subtitle: "Your portfolio", icon: <LayoutDashboard className="h-4 w-4" />, href: "/dashboard" },
-  { id: "statements", type: "page", title: "Statements", subtitle: "Monthly statements", icon: <FileText className="h-4 w-4" />, href: "/statements" },
-  { id: "withdraw", type: "page", title: "Withdraw", subtitle: "Request withdrawal", icon: <ArrowUpCircle className="h-4 w-4" />, href: "/withdraw" },
-  { id: "profile", type: "page", title: "Profile", subtitle: "Your profile", icon: <Users className="h-4 w-4" />, href: "/profile" },
-  { id: "settings", type: "page", title: "Settings", subtitle: "Account settings", icon: <Settings className="h-4 w-4" />, href: "/settings" },
+  {
+    id: "dashboard",
+    type: "page",
+    title: "Dashboard",
+    subtitle: "Your portfolio",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+    href: "/dashboard",
+  },
+  {
+    id: "statements",
+    type: "page",
+    title: "Statements",
+    subtitle: "Monthly statements",
+    icon: <FileText className="h-4 w-4" />,
+    href: "/statements",
+  },
+  {
+    id: "withdraw",
+    type: "page",
+    title: "Withdraw",
+    subtitle: "Request withdrawal",
+    icon: <ArrowUpCircle className="h-4 w-4" />,
+    href: "/withdraw",
+  },
+  {
+    id: "profile",
+    type: "page",
+    title: "Profile",
+    subtitle: "Your profile",
+    icon: <Users className="h-4 w-4" />,
+    href: "/profile",
+  },
+  {
+    id: "settings",
+    type: "page",
+    title: "Settings",
+    subtitle: "Account settings",
+    icon: <Settings className="h-4 w-4" />,
+    href: "/settings",
+  },
 ];
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
@@ -100,7 +196,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     if (!search) return { pages: pages.slice(0, 5), investors: [], actions: [] };
 
     const searchLower = search.toLowerCase();
-    
+
     const filteredPages = pages.filter(
       (p) =>
         p.title.toLowerCase().includes(searchLower) ||
