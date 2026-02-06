@@ -34,6 +34,5 @@ BEGIN
   ORDER BY f.name;
 END;
 $$;
-
 COMMENT ON FUNCTION "public"."get_funds_with_aum"() IS
 'Returns fund totals with conserved NAV. total_aum sums all positive positions (investor + fees_account + ib); investor_count remains investor-only.';

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, Radio } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Radio, Info } from "lucide-react";
 import {
   Badge,
   TruncatedText,
@@ -14,6 +14,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatAUM } from "@/utils/formatters";
@@ -95,6 +99,11 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
     });
   }, [compositionData, sortColumn, sortDirection]);
 
+  // Calculate investor-only total from composition data
+  const investorTotal = useMemo(() => {
+    return compositionData.reduce((sum, item) => sum + item.balance, 0);
+  }, [compositionData]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:w-[600px] sm:max-w-[600px] overflow-y-auto">
@@ -105,21 +114,65 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
               <SheetTitle className="text-xl">
                 {fund?.name || "Fund"} - Investor Composition
               </SheetTitle>
-              <SheetDescription>Live ownership breakdown</SheetDescription>
+              <SheetDescription>Investor-only ownership breakdown</SheetDescription>
             </div>
           </div>
           {fund && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-foreground">
-                {formatAUM(fund.latest_aum, fund.asset)}{" "}
-                <span className="text-sm text-muted-foreground font-normal">{fund.asset}</span>
+            <div className="mt-4 space-y-3">
+              {/* Total Fund AUM */}
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold text-foreground">
+                  {formatAUM(fund.latest_aum, fund.asset)}{" "}
+                  <span className="text-sm text-muted-foreground font-normal">{fund.asset}</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-muted-foreground">Total Fund AUM</p>
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <Radio className="h-2 w-2 text-green-500 animate-pulse" />
+                    Live
+                  </Badge>
+                </div>
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-xs text-muted-foreground">Total Fund Size</p>
-                <Badge variant="outline" className="text-xs gap-1">
-                  <Radio className="h-2 w-2 text-green-500 animate-pulse" />
-                  Live
-                </Badge>
+
+              {/* Investor Total with Explanation */}
+              <div className="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-lg font-semibold text-foreground">
+                      {formatAUM(investorTotal, fund.asset)}{" "}
+                      <span className="text-sm text-muted-foreground font-normal">
+                        {fund.asset}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        Investor Holdings ({compositionData.length} investors)
+                      </p>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[280px]">
+                            <p className="text-xs">
+                              This total shows investor holdings only. The difference from Total
+                              Fund AUM represents platform fees and IB allocations which are held in
+                              internal accounts.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                  {fund.latest_aum > 0 && (
+                    <div className="text-right">
+                      <div className="text-sm font-mono font-medium text-indigo-400">
+                        {((investorTotal / fund.latest_aum) * 100).toFixed(1)}%
+                      </div>
+                      <p className="text-xs text-muted-foreground">of Fund AUM</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -414,7 +414,6 @@ begin
   );
 end;
 $_$;
-
 COMMENT ON FUNCTION "public"."crystallize_yield_before_flow"("p_fund_id" "uuid", "p_closing_aum" numeric, "p_trigger_type" "text", "p_trigger_reference" "text", "p_event_ts" timestamp with time zone, "p_admin_id" "uuid", "p_purpose" "public"."aum_purpose") IS 'Crystallizes yield before a flow event (deposit/withdrawal).
 FIX 2026-01-28: Fee calculation now correctly divides by 100 since fee_pct is stored as percentage (15 for 15%), not decimal (0.15).
 FIX 2026-02-03: Added idempotency guards - voids orphaned yield events, snapshots, and distributions before creating new ones to support retry scenarios.';

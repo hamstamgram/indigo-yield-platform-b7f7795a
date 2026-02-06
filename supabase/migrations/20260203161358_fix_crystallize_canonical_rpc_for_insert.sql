@@ -1,20 +1,10 @@
+
 -- Fix: crystallize_yield_before_flow needs set_canonical_rpc(true) before
 -- inserting into yield_distributions, since the enforce_canonical_yield_mutation
 -- trigger blocks all INSERT/UPDATE/DELETE without it.
 --
--- Previously the idempotency cleanup set canonical_rpc(true) then turned it off,
--- leaving the subsequent INSERT unprotected. Also, the caller
--- (apply_deposit_with_crystallization) sets canonical_rpc(true) for its own
--- transactions_v2 INSERT, but crystallize turning it off broke that too.
---
--- Fix: enable canonical_rpc at the start of the yield distribution block and
--- do NOT disable it - let the caller manage the flag lifecycle. The flag resets
--- automatically when the transaction ends.
---
--- Also: Remove trigger_type filter from investor_yield_events idempotency cleanup.
--- The unique constraint (reference_id_active_key) is on reference_id alone, and
--- reference_id doesn't include trigger_type. Without this fix, orphans from a
--- 'withdrawal' crystallization block a 'deposit' retry.
+-- The idempotency cleanup already sets it for the UPDATE (void), but then
+-- turns it off. We need to turn it back on for the INSERT.
 
 CREATE OR REPLACE FUNCTION public.crystallize_yield_before_flow(
   p_fund_id uuid,
@@ -166,20 +156,13 @@ begin
 
   if v_opening_aum > 0 and v_yield_amount > 0 then
 
-    -- Enable canonical RPC for the yield distribution block.
-    -- NOTE: Do NOT disable at the end - the caller (e.g. apply_deposit_with_crystallization)
-    -- also needs canonical RPC for its own INSERT into transactions_v2.
-    -- The flag resets automatically when the transaction ends.
+    -- IDEMPOTENCY: Void orphaned yield artifacts from previous failed attempts
+    -- Enable canonical RPC for the entire yield distribution block
     perform set_canonical_rpc(true);
 
-    -- IDEMPOTENCY: Void orphaned yield artifacts from previous failed attempts.
-    -- NOTE: Do NOT filter investor_yield_events by trigger_type because the
-    -- unique constraint (reference_id_active_key) is on reference_id alone,
-    -- and reference_id format YLD:{fund}:{date}:{investor} has no trigger_type.
-    -- A withdrawal orphan would block a deposit retry if we filter by type.
     update investor_yield_events
     set is_voided = true, voided_at = now(), voided_by = p_admin_id
-    where fund_id = p_fund_id and event_date = v_event_date
+    where fund_id = p_fund_id and event_date = v_event_date and trigger_type = p_trigger_type
       and is_voided = false
       and reference_id like 'YLD:' || p_fund_id::text || ':' || v_event_date::text || ':%';
     get diagnostics v_orphaned_yield_events = row_count;
@@ -314,8 +297,8 @@ begin
       v_total_net_allocated := v_total_net_allocated + v_dust_amount;
     end if;
 
-    -- Do NOT call set_canonical_rpc(false) here.
-    -- The caller manages the flag lifecycle and the transaction reset handles cleanup.
+    -- Disable canonical RPC after all yield_distributions operations
+    perform set_canonical_rpc(false);
 
   end if;
 
@@ -344,3 +327,4 @@ begin
   );
 end;
 $function$;
+;

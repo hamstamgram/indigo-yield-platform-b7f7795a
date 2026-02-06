@@ -5,6 +5,7 @@
 
 -- Step 1: Drop the duplicate partial index that conflicts with the named constraint
 DROP INDEX IF EXISTS public.ib_allocations_distribution_unique;
+
 -- Step 2: Update the trigger function with proper ON CONFLICT handling
 CREATE OR REPLACE FUNCTION public.sync_ib_allocations_from_commission_ledger()
 RETURNS trigger
@@ -66,4 +67,4 @@ BEGIN
 
   RETURN new;
 END;
-$function$;
+$function$;;

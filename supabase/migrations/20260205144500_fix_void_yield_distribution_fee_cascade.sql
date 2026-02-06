@@ -186,6 +186,5 @@ EXCEPTION
     RETURN json_build_object('success', false, 'error', SQLERRM, 'error_code', SQLSTATE);
 END;
 $$;
-
 COMMENT ON FUNCTION "public"."void_yield_distribution"("p_distribution_id" "uuid", "p_admin_id" "uuid", "p_reason" "text") IS
 'Voids a yield distribution with full cascade to transactions, fee_allocations, ib_allocations, yield_allocations, investor_yield_events, platform_fee_ledger, ib_commission_ledger. Fix: includes fee_credit_<dist> references and direct fee_allocations void.';

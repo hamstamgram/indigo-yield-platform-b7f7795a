@@ -1,20 +1,12 @@
--- Fix: crystallize_yield_before_flow needs set_canonical_rpc(true) before
--- inserting into yield_distributions, since the enforce_canonical_yield_mutation
--- trigger blocks all INSERT/UPDATE/DELETE without it.
+
+-- Fix: The idempotency cleanup in crystallize_yield_before_flow filters
+-- investor_yield_events by trigger_type, but the unique constraint
+-- (investor_yield_events_reference_id_active_key) is on reference_id alone.
+-- The reference_id format YLD:{fund_id}:{date}:{investor_id} doesn't include
+-- trigger_type. So orphans from a 'withdrawal' crystallization block a
+-- 'deposit' crystallization because the cleanup doesn't find them.
 --
--- Previously the idempotency cleanup set canonical_rpc(true) then turned it off,
--- leaving the subsequent INSERT unprotected. Also, the caller
--- (apply_deposit_with_crystallization) sets canonical_rpc(true) for its own
--- transactions_v2 INSERT, but crystallize turning it off broke that too.
---
--- Fix: enable canonical_rpc at the start of the yield distribution block and
--- do NOT disable it - let the caller manage the flag lifecycle. The flag resets
--- automatically when the transaction ends.
---
--- Also: Remove trigger_type filter from investor_yield_events idempotency cleanup.
--- The unique constraint (reference_id_active_key) is on reference_id alone, and
--- reference_id doesn't include trigger_type. Without this fix, orphans from a
--- 'withdrawal' crystallization block a 'deposit' retry.
+-- Fix: Remove trigger_type filter from investor_yield_events cleanup.
 
 CREATE OR REPLACE FUNCTION public.crystallize_yield_before_flow(
   p_fund_id uuid,
@@ -167,9 +159,7 @@ begin
   if v_opening_aum > 0 and v_yield_amount > 0 then
 
     -- Enable canonical RPC for the yield distribution block.
-    -- NOTE: Do NOT disable at the end - the caller (e.g. apply_deposit_with_crystallization)
-    -- also needs canonical RPC for its own INSERT into transactions_v2.
-    -- The flag resets automatically when the transaction ends.
+    -- Do NOT disable at the end - the caller also needs it.
     perform set_canonical_rpc(true);
 
     -- IDEMPOTENCY: Void orphaned yield artifacts from previous failed attempts.
@@ -289,7 +279,6 @@ begin
 
     v_dust_amount := v_yield_amount - v_total_gross_allocated;
 
-    -- INSERT into yield_distributions (canonical RPC already enabled above)
     insert into yield_distributions (
       fund_id, effective_date, purpose, is_month_end, recorded_aum, previous_aum,
       gross_yield, net_yield, total_fees, investor_count, distribution_type, status,
@@ -313,9 +302,6 @@ begin
       v_total_gross_allocated := v_total_gross_allocated + v_dust_amount;
       v_total_net_allocated := v_total_net_allocated + v_dust_amount;
     end if;
-
-    -- Do NOT call set_canonical_rpc(false) here.
-    -- The caller manages the flag lifecycle and the transaction reset handles cleanup.
 
   end if;
 
@@ -344,3 +330,4 @@ begin
   );
 end;
 $function$;
+;

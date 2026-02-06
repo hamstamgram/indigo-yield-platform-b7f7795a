@@ -66,7 +66,6 @@ BEGIN
   );
 END;
 $$;
-
 -- Also fix the non-date variant used by apply_transaction_with_crystallization,
 -- apply_yield_correction_v2, replace_aum_snapshot, set_fund_daily_aum, etc.
 

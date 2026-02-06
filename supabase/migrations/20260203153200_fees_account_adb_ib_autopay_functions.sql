@@ -1,22 +1,8 @@
--- Migration: Include fees_account in ADB yield distribution + auto-mark IB allocations as paid
--- Fixes:
---   1.1: fees_account now participates in ADB yield distribution (earns yield at 0% fee)
---   1.2: IB allocations auto-marked as 'paid' during reporting yield distribution
---   1.3: Void orphaned yield_distributions with NULL gross_yield_amount
+-- Apply the three function updates for:
+-- 1.1: fees_account in ADB yield distribution
+-- 1.2: IB auto-payout during reporting yield
+-- These are DDL (CREATE OR REPLACE FUNCTION) not DML on protected tables
 
--- ============================================================================
--- Fix 1.3: Void stale yield_distributions with NULL gross_yield_amount
--- ============================================================================
-UPDATE yield_distributions
-SET is_voided = true, voided_at = NOW()
-WHERE gross_yield_amount IS NULL
-  AND (is_voided IS NULL OR is_voided = false);
--- ============================================================================
--- Fix 1.1 + 1.2: Update apply_adb_yield_distribution_v3
--- Changes:
---   - Include 'fees_account' in account_type filters (AUM + ADB + investor loop)
---   - Auto-mark ib_allocations as 'paid' when purpose = 'reporting'
--- ============================================================================
 CREATE OR REPLACE FUNCTION "public"."apply_adb_yield_distribution_v3"(
   "p_fund_id" "uuid",
   "p_period_start" "date",
@@ -356,9 +342,8 @@ BEGIN
   );
 END;
 $$;
--- ============================================================================
--- Fix 1.1: Update preview_adb_yield_distribution_v3 to match apply (include fees_account)
--- ============================================================================
+
+-- Preview function
 CREATE OR REPLACE FUNCTION "public"."preview_adb_yield_distribution_v3"(
   "p_fund_id" "uuid",
   "p_period_start" "date",
@@ -391,7 +376,7 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Fund not found');
   END IF;
 
-  -- FIX 1.1: Include fees_account in total ADB (matches apply)
+  -- FIX 1.1: Include fees_account in total ADB
   SELECT COALESCE(SUM(calc_avg_daily_balance(ip.investor_id, p_fund_id, p_period_start, p_period_end)), 0)
   INTO v_total_adb
   FROM investor_positions ip
@@ -408,7 +393,7 @@ BEGIN
     );
   END IF;
 
-  -- FIX 1.1: Include fees_account in investor loop (matches apply)
+  -- FIX 1.1: Include fees_account in investor loop
   FOR v_investor IN
     SELECT
       ip.investor_id,
@@ -416,7 +401,6 @@ BEGIN
       COALESCE(p.first_name || ' ' || p.last_name, p.email) as investor_name,
       p.account_type,
       calc_avg_daily_balance(ip.investor_id, p_fund_id, p_period_start, p_period_end) as adb,
-      -- IB and fees_account are fee-exempt (matches apply)
       CASE WHEN p.account_type IN ('ib', 'fees_account') THEN 0
       ELSE COALESCE(
         (SELECT ifs.fee_pct FROM investor_fee_schedule ifs
@@ -511,9 +495,8 @@ BEGIN
   );
 END;
 $$;
--- ============================================================================
--- Fix 1.2: Update sync trigger to auto-mark IB allocations as paid for reporting
--- ============================================================================
+
+-- Sync trigger function
 CREATE OR REPLACE FUNCTION public.sync_ib_allocations_from_commission_ledger()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -524,12 +507,12 @@ DECLARE
   v_allocation_id uuid;
   v_purpose aum_purpose;
 BEGIN
-  -- Guard: Skip if no valid distribution_id (prevents ON CONFLICT issues with NULL)
+  -- Guard: Skip if no valid distribution_id
   IF new.yield_distribution_id IS NULL THEN
     RETURN new;
   END IF;
 
-  -- Guard: Skip if distribution doesn't exist (prevents orphan allocations)
+  -- Guard: Skip if distribution doesn't exist
   IF NOT EXISTS (SELECT 1 FROM public.yield_distributions WHERE id = new.yield_distribution_id) THEN
     RETURN new;
   END IF;
@@ -588,4 +571,4 @@ BEGIN
 
   RETURN new;
 END;
-$function$;
+$function$;;

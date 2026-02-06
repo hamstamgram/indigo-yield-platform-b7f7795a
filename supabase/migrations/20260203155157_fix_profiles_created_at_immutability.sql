@@ -1,5 +1,6 @@
+
 -- Migration: Fix corrupted profiles.created_at and add immutability guard
---
+-- 
 -- Problem: 7 investor profiles had their created_at overwritten by past bulk UPDATE operations.
 -- The auth.users.created_at is the source of truth for account creation time.
 --
@@ -16,7 +17,7 @@ FROM auth.users au
 WHERE au.id = p.id
   AND p.created_at != au.created_at
   AND ABS(EXTRACT(EPOCH FROM (p.created_at - au.created_at))) > 60;
--- Only fix rows where the difference is more than 60 seconds
+  -- Only fix rows where the difference is more than 60 seconds
   -- (sub-second differences are normal due to trigger vs edge function timing)
 
 -- ============================================================
@@ -34,9 +35,12 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
+
 -- Fire BEFORE UPDATE, before other triggers
 DROP TRIGGER IF EXISTS trg_preserve_created_at ON public.profiles;
+
 CREATE TRIGGER trg_preserve_created_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW
   EXECUTE FUNCTION preserve_created_at();
+;
