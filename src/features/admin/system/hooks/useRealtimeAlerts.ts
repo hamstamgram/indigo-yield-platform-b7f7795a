@@ -3,7 +3,7 @@
  * Provides live push notifications for integrity violations and system alerts
  */
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -79,6 +79,31 @@ export function useRealtimeAlerts() {
       supabase.removeChannel(channel);
     };
   }, [queryClient, showAlertToast]);
+}
+
+/**
+ * Hook to track realtime connection status
+ * Returns whether the realtime channel is connected
+ */
+export function useRealtimeConnectionStatus() {
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime-status-check")
+      .on("presence", { event: "sync" }, () => {
+        setIsConnected(true);
+      })
+      .subscribe((status) => {
+        setIsConnected(status === "SUBSCRIBED");
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return isConnected;
 }
 
 /**

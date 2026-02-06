@@ -26,8 +26,7 @@ import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { depositService } from "@/services/investor";
 import { preflowAumService, fundService } from "@/services/admin";
-import { profileService } from "@/services/shared";
-import { supabase } from "@/integrations/supabase/client";
+import { profileService, authService } from "@/services/shared";
 import type { DepositFormData } from "@/types/domains";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -110,12 +109,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       if (!selectedFundId || !aumValue) {
         throw new Error("Fund and AUM value are required");
       }
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.id) {
-        throw new Error("Authentication required");
-      }
+      const user = await authService.getCurrentUser();
 
       await preflowAumService.ensure(
         selectedFundId,
