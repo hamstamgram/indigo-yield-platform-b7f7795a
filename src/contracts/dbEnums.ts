@@ -46,7 +46,6 @@ export const ASSET_CODE_VALUES = [
   "ETH",
   "SOL",
   "USDT",
-  "USDC",
   "EURC",
   "xAUT",
   "XRP",
@@ -71,7 +70,6 @@ export const DB_ASSET_CODE = {
   ETH: "ETH",
   SOL: "SOL",
   USDT: "USDT",
-  USDC: "USDC",
   EURC: "EURC",
   xAUT: "xAUT",
   XRP: "XRP",
@@ -86,14 +84,7 @@ export function isValidAssetCode(value: string): value is AssetCode {
 // AUM_PURPOSE ENUM
 // =============================================================================
 
-export const AUM_PURPOSE_VALUES = [
-  "reporting",
-  "transaction",
-  "daily",
-  "monthly",
-  "quarterly",
-  "special",
-] as const;
+export const AUM_PURPOSE_VALUES = ["reporting", "transaction"] as const;
 
 export const AumPurposeSchema = z.enum(AUM_PURPOSE_VALUES, {
   errorMap: (issue, ctx) => {
@@ -111,10 +102,6 @@ export type AumPurpose = z.infer<typeof AumPurposeSchema>;
 export const DB_AUM_PURPOSE = {
   reporting: "reporting",
   transaction: "transaction",
-  daily: "daily",
-  monthly: "monthly",
-  quarterly: "quarterly",
-  special: "special",
 } as const satisfies Record<string, AumPurpose>;
 
 export function isValidAumPurpose(value: string): value is AumPurpose {
@@ -335,11 +322,9 @@ export function isValidWithdrawalStatus(value: string): value is WithdrawalStatu
 // =============================================================================
 
 export const YIELD_DISTRIBUTION_STATUS_VALUES = [
-  "pending",
+  "draft",
   "applied",
   "voided",
-  "failed",
-  "draft",
   "previewed",
   "corrected",
   "rolled_back",
@@ -359,11 +344,9 @@ export const YieldDistributionStatusSchema = z.enum(YIELD_DISTRIBUTION_STATUS_VA
 export type YieldDistributionStatus = z.infer<typeof YieldDistributionStatusSchema>;
 
 export const DB_YIELD_DISTRIBUTION_STATUS = {
-  pending: "pending",
+  draft: "draft",
   applied: "applied",
   voided: "voided",
-  failed: "failed",
-  draft: "draft",
   previewed: "previewed",
   corrected: "corrected",
   rolled_back: "rolled_back",

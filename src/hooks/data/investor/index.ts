@@ -11,7 +11,6 @@ export { useInvestorBalance, useTransactionHistory, useAUMExists } from "./useIn
 export {
   useInvestorList,
   useInvestorsForSelector,
-  useInvestorPositions,
   useInvestorQuickView,
   useInvestorRecentActivity,
   useUpdateInvestorStatus,
@@ -21,6 +20,9 @@ export {
   type InvestorSelectorItem,
   type InvestorPositionRow,
 } from "./useInvestorData";
+
+// Position hooks (canonical export)
+export { useInvestorPositions } from "./useInvestorPositions";
 
 // Invite hooks
 export { useInvestorInvite } from "./useInvestorInvite";
@@ -71,7 +73,7 @@ export {
   type MonthlyStatement,
 } from "./useInvestorPortal";
 
-// Position detail hooks
+// Position detail hooks (alias for backwards compatibility)
 export { useInvestorPositions as useInvestorPositionsDetail } from "./useInvestorPositions";
 
 // Search hooks
