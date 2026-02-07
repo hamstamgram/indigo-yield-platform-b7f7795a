@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
+import { parseFinancial } from "@/utils/financial";
 
 export interface CrystallizationResult {
   success: boolean;
@@ -256,16 +257,22 @@ export async function getAggregatedYieldForPeriod(
   for (const row of data || []) {
     const existing = aggregated.get(row.investor_id);
     if (existing) {
-      existing.total_gross_yield += Number(row.gross_yield_amount);
-      existing.total_fees += Number(row.fee_amount);
-      existing.total_net_yield += Number(row.net_yield_amount);
+      existing.total_gross_yield = parseFinancial(existing.total_gross_yield)
+        .plus(parseFinancial(row.gross_yield_amount))
+        .toNumber();
+      existing.total_fees = parseFinancial(existing.total_fees)
+        .plus(parseFinancial(row.fee_amount))
+        .toNumber();
+      existing.total_net_yield = parseFinancial(existing.total_net_yield)
+        .plus(parseFinancial(row.net_yield_amount))
+        .toNumber();
       existing.crystallization_count += 1;
     } else {
       aggregated.set(row.investor_id, {
         investor_id: row.investor_id,
-        total_gross_yield: Number(row.gross_yield_amount),
-        total_fees: Number(row.fee_amount),
-        total_net_yield: Number(row.net_yield_amount),
+        total_gross_yield: parseFinancial(row.gross_yield_amount).toNumber(),
+        total_fees: parseFinancial(row.fee_amount).toNumber(),
+        total_net_yield: parseFinancial(row.net_yield_amount).toNumber(),
         crystallization_count: 1,
       });
     }
@@ -300,7 +307,10 @@ export async function getPendingYieldEventsCount(
   if (error) throw error;
 
   const count = data?.length || 0;
-  const totalYield = data?.reduce((sum, row) => sum + Number(row.net_yield_amount), 0) || 0;
+  const totalYield =
+    data
+      ?.reduce((sum, row) => sum.plus(parseFinancial(row.net_yield_amount)), parseFinancial(0))
+      .toNumber() || 0;
 
   return { count, totalYield };
 }

@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 interface AdminInvite {
   id: string;
@@ -20,12 +17,12 @@ interface RequestBody {
 }
 
 const generateInviteEmailHtml = (inviteLink: string, role: string, expiresAt: string) => {
-  const roleDisplay = role === 'super_admin' ? 'Super Administrator' : 'Administrator';
-  const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const roleDisplay = role === "super_admin" ? "Super Administrator" : "Administrator";
+  const expiryDate = new Date(expiresAt).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return `
@@ -111,6 +108,8 @@ const generateInviteEmailHtml = (inviteLink: string, role: string, expiresAt: st
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -121,19 +120,43 @@ serve(async (req) => {
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (!RESEND_API_KEY) {
       console.error("RESEND_API_KEY not configured");
-      return new Response(
-        JSON.stringify({ error: "Email service not configured" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "Email service not configured" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       console.error("Missing authorization header");
-      return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Verify JWT and check admin role
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid authorization token" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const adminCheck = await checkAdminAccess(supabaseAdmin, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(corsHeaders, "Only admins can send admin invites");
     }
 
     const { invite }: RequestBody = await req.json();
@@ -141,17 +164,11 @@ serve(async (req) => {
 
     if (!invite?.email || !invite?.invite_code) {
       console.error("Missing required invite data");
-      return new Response(
-        JSON.stringify({ error: "Missing required invite data" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "Missing required invite data" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
 
     // Check if user already exists via profiles table (more reliable than listUsers)
     console.log("Checking if user exists in profiles table:", invite.email);
@@ -167,15 +184,21 @@ serve(async (req) => {
     }
 
     if (existingProfile) {
-      console.log("User already exists, assigning role directly:", existingProfile.id, "->", invite.intended_role);
-      
+      console.log(
+        "User already exists, assigning role directly:",
+        existingProfile.id,
+        "->",
+        invite.intended_role
+      );
+
       // Insert or update the role
-      const { error: roleError } = await supabaseAdmin
-        .from("user_roles")
-        .upsert({
+      const { error: roleError } = await supabaseAdmin.from("user_roles").upsert(
+        {
           user_id: existingProfile.id,
-          role: invite.intended_role || "admin"
-        }, { onConflict: "user_id,role", ignoreDuplicates: false });
+          role: invite.intended_role || "admin",
+        },
+        { onConflict: "user_id,role", ignoreDuplicates: false }
+      );
 
       if (roleError) {
         console.error("Error assigning role:", roleError);
@@ -195,20 +218,17 @@ serve(async (req) => {
       }
 
       // Mark invite as used
-      await supabaseAdmin
-        .from("admin_invites")
-        .update({ used: true })
-        .eq("id", invite.id);
+      await supabaseAdmin.from("admin_invites").update({ used: true }).eq("id", invite.id);
 
       console.log("Role assigned successfully to existing user:", invite.intended_role);
-      
+
       return new Response(
-        JSON.stringify({ 
-          success: true, 
+        JSON.stringify({
+          success: true,
           userId: existingProfile.id,
           email: invite.email,
           role: invite.intended_role || "admin",
-          message: "User already exists - role assigned directly"
+          message: "User already exists - role assigned directly",
         }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
@@ -216,26 +236,31 @@ serve(async (req) => {
 
     // User doesn't exist - create user and send invite email via Resend
     console.log("User doesn't exist, creating user and sending invite email via Resend");
-    
-    const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || Deno.env.get("SITE_URL") || "https://indigo.fund";
-    
+
+    const siteUrl =
+      Deno.env.get("PUBLIC_SITE_URL") || Deno.env.get("SITE_URL") || "https://indigo.fund";
+
     // Generate a magic link for the new user
-    const { data: magicLinkData, error: magicLinkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: invite.email,
-      options: {
-        redirectTo: `${siteUrl}/admin-invite-callback`,
-        data: {
-          invite_code: invite.invite_code,
-          intended_role: invite.intended_role || "admin",
-        }
-      }
-    });
+    const { data: magicLinkData, error: magicLinkError } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: invite.email,
+        options: {
+          redirectTo: `${siteUrl}/admin-invite-callback`,
+          data: {
+            invite_code: invite.invite_code,
+            intended_role: invite.intended_role || "admin",
+          },
+        },
+      });
 
     if (magicLinkError) {
       console.error("Error generating magic link:", magicLinkError);
       return new Response(
-        JSON.stringify({ error: "Failed to generate invite link", details: magicLinkError.message }),
+        JSON.stringify({
+          error: "Failed to generate invite link",
+          details: magicLinkError.message,
+        }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -243,10 +268,10 @@ serve(async (req) => {
     const inviteLink = magicLinkData.properties?.action_link;
     if (!inviteLink) {
       console.error("No action_link in magic link response");
-      return new Response(
-        JSON.stringify({ error: "Failed to generate invite link" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "Failed to generate invite link" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     console.log("Generated magic link, sending email via Resend");
@@ -286,22 +311,21 @@ serve(async (req) => {
     console.log("Invite email sent successfully via Resend:", resendResult.id);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         userId: magicLinkData.user?.id,
         email: invite.email,
         emailId: resendResult.id,
-        message: "Invite email sent via Resend"
+        message: "Invite email sent via Resend",
       }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
-
   } catch (error: unknown) {
     console.error("Error in send-admin-invite:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: "Internal server error", details: errorMessage }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error", details: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 });

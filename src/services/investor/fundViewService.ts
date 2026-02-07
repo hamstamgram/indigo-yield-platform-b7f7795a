@@ -17,6 +17,7 @@ import type { Fund } from "@/types/domains/fund";
 import { mapDbFundToFund } from "@/types/domains/fund";
 import type { InvestorPosition } from "@/types/domains/investor";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 // Note: Fund should be imported from @/types/domains/fund
 // Note: InvestorPosition should be imported from @/types/domains/investor
@@ -41,9 +42,12 @@ export interface InvestorPositionWithFund extends InvestorPosition {
 export async function getAllFunds(): Promise<Fund[]> {
   const { data, error } = await supabase
     .from("funds")
-    .select("*")
+    .select(
+      "id, code, name, fund_class, asset, status, inception_date, mgmt_fee_bps, perf_fee_bps, min_investment, high_water_mark, min_withdrawal_amount, lock_period_days, logo_url, strategy, cooling_off_hours, large_withdrawal_threshold, max_daily_yield_pct, created_at, updated_at"
+    )
     .eq("status", "active")
-    .order("asset", { ascending: true });
+    .order("asset", { ascending: true })
+    .limit(100);
 
   if (error) {
     logError("fundView.getAllFunds", error);
@@ -62,7 +66,8 @@ export async function getActiveFundsForList(): Promise<
     .from("funds")
     .select("id, code, name, asset")
     .eq("status", "active")
-    .order("asset", { ascending: true });
+    .order("asset", { ascending: true })
+    .limit(100);
 
   if (error) {
     logError("fundView.getActiveFundsForList", error);
@@ -80,7 +85,8 @@ export async function getActiveInvestorPositions(): Promise<
   const { data, error } = await supabase
     .from("investor_positions")
     .select("investor_id, fund_id")
-    .gt("current_value", 0);
+    .gt("current_value", 0)
+    .limit(500);
 
   if (error) {
     logError("fundView.getActiveInvestorPositions", error);
@@ -94,7 +100,13 @@ export async function getActiveInvestorPositions(): Promise<
  */
 export async function getFundById(fundId: string): Promise<Fund | null> {
   try {
-    const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
+    const { data, error } = await supabase
+      .from("funds")
+      .select(
+        "id, code, name, fund_class, asset, status, inception_date, mgmt_fee_bps, perf_fee_bps, min_investment, high_water_mark, min_withdrawal_amount, lock_period_days, logo_url, strategy, cooling_off_hours, large_withdrawal_threshold, max_daily_yield_pct, created_at, updated_at"
+      )
+      .eq("id", fundId)
+      .maybeSingle();
 
     if (error) throw error;
     return data ? mapDbFundToFund(data) : null;
@@ -161,7 +173,8 @@ export async function getInvestorPositionsWithFunds(
     .eq("investor_id", investorId)
     // Filter out zero-value positions
     .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0")
-    .order("current_value", { ascending: false });
+    .order("current_value", { ascending: false })
+    .limit(100);
 
   if (error) {
     logError("fundView.getInvestorPositions", error, { investorId });
@@ -193,8 +206,11 @@ export async function getAvailableFundsForInvestor(investorId: string): Promise<
   // Get all active funds
   const { data: allFunds, error: fundsError } = await supabase
     .from("funds")
-    .select("*")
-    .eq("status", "active");
+    .select(
+      "id, code, name, fund_class, asset, status, inception_date, mgmt_fee_bps, perf_fee_bps, min_investment, high_water_mark, min_withdrawal_amount, lock_period_days, logo_url, strategy, cooling_off_hours, large_withdrawal_threshold, max_daily_yield_pct, created_at, updated_at"
+    )
+    .eq("status", "active")
+    .limit(100);
 
   if (fundsError) {
     logError("fundView.getAvailableFundsForInvestor.funds", fundsError, { investorId });
@@ -205,7 +221,8 @@ export async function getAvailableFundsForInvestor(investorId: string): Promise<
   const { data: positions, error: positionsError } = await supabase
     .from("investor_positions")
     .select("fund_id")
-    .eq("investor_id", investorId);
+    .eq("investor_id", investorId)
+    .limit(100);
 
   if (positionsError) {
     logError("fundView.getAvailableFundsForInvestor.positions", positionsError, { investorId });
@@ -239,18 +256,30 @@ export async function getFundPerformanceSummary(fundId: string) {
   try {
     const { data: positions, error } = await supabase
       .from("investor_positions")
-      .select("*")
-      .eq("fund_id", fundId);
+      .select("current_value, cost_basis, unrealized_pnl, realized_pnl")
+      .eq("fund_id", fundId)
+      .limit(500);
 
     if (error) throw error;
 
     const summary = {
       totalInvestors: positions?.length || 0,
-      totalAUM: positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0,
-      totalCostBasis: positions?.reduce((sum, p) => sum + Number(p.cost_basis || 0), 0) || 0,
+      totalAUM:
+        positions
+          ?.reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
+          .toNumber() || 0,
+      totalCostBasis:
+        positions
+          ?.reduce((sum, p) => sum.plus(parseFinancial(p.cost_basis)), parseFinancial(0))
+          .toNumber() || 0,
       totalUnrealizedPnL:
-        positions?.reduce((sum, p) => sum + Number(p.unrealized_pnl || 0), 0) || 0,
-      totalRealizedPnL: positions?.reduce((sum, p) => sum + Number(p.realized_pnl || 0), 0) || 0,
+        positions
+          ?.reduce((sum, p) => sum.plus(parseFinancial(p.unrealized_pnl)), parseFinancial(0))
+          .toNumber() || 0,
+      totalRealizedPnL:
+        positions
+          ?.reduce((sum, p) => sum.plus(parseFinancial(p.realized_pnl)), parseFinancial(0))
+          .toNumber() || 0,
     };
 
     return summary;

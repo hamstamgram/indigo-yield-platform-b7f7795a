@@ -69,7 +69,9 @@ export interface AumCheckResult {
 export async function getTransactionById(id: string): Promise<TransactionDetail | null> {
   const { data, error } = await supabase
     .from("transactions_v2")
-    .select("*")
+    .select(
+      "id, investor_id, fund_id, type, amount, asset, tx_date, tx_hash, notes, purpose, visibility_scope, created_at, is_voided"
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -80,7 +82,9 @@ export async function getTransactionById(id: string): Promise<TransactionDetail 
 /**
  * Get a transaction with related investor and fund data
  */
-export async function getTransactionWithRelated(id: string): Promise<TransactionWithRelated | null> {
+export async function getTransactionWithRelated(
+  id: string
+): Promise<TransactionWithRelated | null> {
   const transaction = await getTransactionById(id);
   if (!transaction) return null;
 
@@ -114,7 +118,8 @@ export async function getInvestorsForTransaction(): Promise<InvestorForTransacti
     .select("id, first_name, last_name, email")
     .eq("status", "active")
     .eq("is_admin", false)
-    .order("first_name");
+    .order("first_name")
+    .limit(500);
 
   if (error) throw error;
 
@@ -132,7 +137,8 @@ export async function getFundsForTransaction(): Promise<FundForTransaction[]> {
   const { data, error } = await supabase
     .from("funds")
     .select("id, name, code, asset")
-    .eq("status", "active");
+    .eq("status", "active")
+    .limit(100);
 
   if (error) throw error;
   return data || [];

@@ -38,7 +38,8 @@ class ApprovalService {
     const { data, error } = await supabase
       .from("v_pending_approvals")
       .select("*")
-      .order("requested_at", { ascending: false });
+      .order("requested_at", { ascending: false })
+      .limit(500);
 
     if (error) {
       logError("getPendingApprovals", error);
@@ -71,7 +72,8 @@ class ApprovalService {
       .from("v_pending_approvals")
       .select("*")
       .neq("requested_by", userId)
-      .order("requested_at", { ascending: false });
+      .order("requested_at", { ascending: false })
+      .limit(500);
 
     if (error) {
       logError("getPendingForUser", error);
@@ -89,7 +91,8 @@ class ApprovalService {
       .from("v_pending_approvals")
       .select("*")
       .eq("requested_by", userId)
-      .order("requested_at", { ascending: false });
+      .order("requested_at", { ascending: false })
+      .limit(500);
 
     if (error) {
       logError("getMyPendingRequests", error);

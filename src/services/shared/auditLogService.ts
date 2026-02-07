@@ -152,7 +152,11 @@ class AuditLogService {
    */
   async getUniqueEntities(): Promise<string[]> {
     try {
-      const { data, error } = await supabase.from("audit_log").select("entity").order("entity");
+      const { data, error } = await supabase
+        .from("audit_log")
+        .select("entity")
+        .order("entity")
+        .limit(1000);
 
       if (error) throw error;
 
@@ -169,7 +173,11 @@ class AuditLogService {
    */
   async getUniqueActions(): Promise<string[]> {
     try {
-      const { data, error } = await supabase.from("audit_log").select("action").order("action");
+      const { data, error } = await supabase
+        .from("audit_log")
+        .select("action")
+        .order("action")
+        .limit(1000);
 
       if (error) throw error;
 
@@ -233,7 +241,8 @@ class AuditLogService {
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, email")
-        .in("id", topActorIds);
+        .in("id", topActorIds)
+        .limit(100);
 
       const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
 
@@ -275,7 +284,8 @@ class AuditLogService {
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, email")
-      .in("id", uniqueActorIds);
+      .in("id", uniqueActorIds)
+      .limit(500);
 
     const profileMap = new Map(
       (profiles || []).map((p) => [

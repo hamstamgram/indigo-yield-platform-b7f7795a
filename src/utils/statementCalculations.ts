@@ -4,6 +4,7 @@ import { transactionsV2Service } from "@/services/investor";
 import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 // Re-export StatementTransaction as the canonical type for statement views
 export type { StatementTransaction } from "@/types/domains/transaction";
@@ -144,29 +145,31 @@ export async function computeStatement(
 
       const assetStat = assetsMap[assetCode];
       const txDate = new Date(transaction.tx_date);
-      const amount = Number(transaction.amount);
+      const amount = parseFinancial(transaction.amount);
 
       // Identify if transaction is before this period (Beginning Balance)
       if (txDate < period_start) {
         if (transaction.type === "WITHDRAWAL" || transaction.type === "FEE") {
-          assetStat.begin_balance -= amount;
+          assetStat.begin_balance = parseFinancial(assetStat.begin_balance)
+            .minus(amount)
+            .toNumber();
         } else {
-          assetStat.begin_balance += amount;
+          assetStat.begin_balance = parseFinancial(assetStat.begin_balance).plus(amount).toNumber();
         }
       } else {
         // Transaction is within this period
         let type: StatementTransaction["type"] = "deposit";
         if (transaction.type === "DEPOSIT") {
-          assetStat.deposits += amount;
+          assetStat.deposits = parseFinancial(assetStat.deposits).plus(amount).toNumber();
           type = "deposit";
         } else if (transaction.type === "WITHDRAWAL") {
-          assetStat.withdrawals += amount;
+          assetStat.withdrawals = parseFinancial(assetStat.withdrawals).plus(amount).toNumber();
           type = "withdrawal";
         } else if (transaction.type === "INTEREST" || transaction.type === "YIELD") {
-          assetStat.interest += amount;
+          assetStat.interest = parseFinancial(assetStat.interest).plus(amount).toNumber();
           type = "interest";
         } else if (transaction.type === "FEE") {
-          assetStat.fees += amount;
+          assetStat.fees = parseFinancial(assetStat.fees).plus(amount).toNumber();
           type = "fee";
         }
 
@@ -174,48 +177,51 @@ export async function computeStatement(
           id: transaction.id,
           date: transaction.tx_date,
           type,
-          amount: String(amount), // Convert back to string for type safety
+          amount: amount.toFixed(10),
           description: transaction.notes || transaction.type,
         });
       }
     });
 
-    // Calculate End Balances using correct formula
+    // Calculate End Balances using correct formula with Decimal.js
     Object.values(assetsMap).forEach((asset) => {
-      asset.end_balance =
-        asset.begin_balance + asset.deposits - asset.withdrawals + asset.interest - asset.fees;
+      asset.end_balance = parseFinancial(asset.begin_balance)
+        .plus(parseFinancial(asset.deposits))
+        .minus(parseFinancial(asset.withdrawals))
+        .plus(parseFinancial(asset.interest))
+        .minus(parseFinancial(asset.fees))
+        .toNumber();
     });
 
-    // Calculate summary from all assets
+    // Calculate summary from all assets using Decimal.js
     const assetKeys = Object.keys(assetsMap);
     if (assetKeys.length >= 1) {
-      // Sum across all assets for summary
-      let totalBeginBalance = 0;
-      let totalAdditions = 0;
-      let totalRedemptions = 0;
-      let totalFees = 0;
-      let totalEndBalance = 0;
+      let totalBeginBalance = parseFinancial(0);
+      let totalAdditions = parseFinancial(0);
+      let totalRedemptions = parseFinancial(0);
+      let totalFees = parseFinancial(0);
+      let totalEndBalance = parseFinancial(0);
 
       Object.values(assetsMap).forEach((asset) => {
-        totalBeginBalance += asset.begin_balance;
-        totalAdditions += asset.deposits;
-        totalRedemptions += asset.withdrawals;
-        totalFees += asset.fees;
-        totalEndBalance += asset.end_balance;
+        totalBeginBalance = totalBeginBalance.plus(parseFinancial(asset.begin_balance));
+        totalAdditions = totalAdditions.plus(parseFinancial(asset.deposits));
+        totalRedemptions = totalRedemptions.plus(parseFinancial(asset.withdrawals));
+        totalFees = totalFees.plus(parseFinancial(asset.fees));
+        totalEndBalance = totalEndBalance.plus(parseFinancial(asset.end_balance));
       });
 
-      summary.begin_balance = totalBeginBalance;
-      summary.additions = totalAdditions;
-      summary.redemptions = totalRedemptions;
-      summary.fees = totalFees;
-      summary.end_balance = totalEndBalance;
+      summary.begin_balance = totalBeginBalance.toNumber();
+      summary.additions = totalAdditions.toNumber();
+      summary.redemptions = totalRedemptions.toNumber();
+      summary.fees = totalFees.toNumber();
+      summary.end_balance = totalEndBalance.toNumber();
 
       // Calculate RoR using the CORRECT formula
       const { netIncome, rateOfReturn } = calculateRateOfReturn(
-        totalBeginBalance,
-        totalEndBalance,
-        totalAdditions,
-        totalRedemptions
+        totalBeginBalance.toNumber(),
+        totalEndBalance.toNumber(),
+        totalAdditions.toNumber(),
+        totalRedemptions.toNumber()
       );
 
       summary.net_income = netIncome;

@@ -131,7 +131,7 @@ export interface MergeDuplicatesResult {
 export async function fetchIntegrityRuns(limit = 20): Promise<IntegrityRun[]> {
   const { data, error } = await supabase
     .from("admin_integrity_runs")
-    .select("*")
+    .select("id, run_at, status, violations, runtime_ms, triggered_by")
     .order("run_at", { ascending: false })
     .limit(limit);
 
@@ -165,7 +165,9 @@ export async function fetchAdminAlerts(
 ): Promise<AdminAlert[]> {
   let query = supabase
     .from("admin_alerts")
-    .select("*")
+    .select(
+      "id, alert_type, severity, title, message, metadata, related_run_id, created_at, acknowledged_at, acknowledged_by"
+    )
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -263,7 +265,11 @@ async function autoResolveStaleAlerts(): Promise<void> {
 export async function fetchCrystallizationDashboard(
   fundId?: string
 ): Promise<CrystallizationDashboardRow[]> {
-  let query = supabase.from("v_crystallization_dashboard").select("*");
+  let query = supabase
+    .from("v_crystallization_dashboard")
+    .select(
+      "fund_id, fund_code, fund_name, total_positions, up_to_date, warning_stale, critical_stale, never_crystallized, newest_crystallization, oldest_crystallization"
+    );
 
   if (fundId) {
     query = query.eq("fund_id", fundId);
@@ -299,7 +305,9 @@ export async function fetchCrystallizationGaps(
 ): Promise<CrystallizationGap[]> {
   let query = supabase
     .from("v_crystallization_gaps")
-    .select("*")
+    .select(
+      "investor_id, fund_id, investor_email, fund_code, last_yield_crystallization_date, days_behind, current_value, gap_type, cumulative_yield_earned"
+    )
     .order("days_behind", { ascending: false })
     .limit(limit);
 
@@ -333,7 +341,9 @@ export async function fetchCrystallizationGaps(
 export async function fetchDuplicateProfiles(): Promise<DuplicateProfile[]> {
   const { data, error } = await supabase
     .from("v_potential_duplicate_profiles")
-    .select("*")
+    .select(
+      "duplicate_type, emails, names, profile_ids, profile_count, match_key, first_created, last_created, total_funds_affected, total_value_affected"
+    )
     .order("profile_count", { ascending: false });
 
   if (error) {
@@ -361,7 +371,9 @@ export async function fetchDuplicateProfiles(): Promise<DuplicateProfile[]> {
 export async function fetchBypassAttempts(limit = 50): Promise<BypassAttempt[]> {
   const { data, error } = await supabase
     .from("transaction_bypass_attempts")
-    .select("*")
+    .select(
+      "id, attempted_at, attempted_type, attempted_source, attempted_amount, error_message, investor_id, fund_id, user_id, client_info"
+    )
     .order("attempted_at", { ascending: false })
     .limit(limit);
 

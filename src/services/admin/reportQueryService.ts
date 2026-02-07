@@ -165,7 +165,9 @@ export async function fetchInvestorPerformanceReports(
     }
   }
 
-  const { data, error } = await query.order("period(period_end_date)", { ascending: false });
+  const { data, error } = await query
+    .order("period(period_end_date)", { ascending: false })
+    .limit(500);
 
   if (error) {
     logError("fetchInvestorPerformanceReports", error);
@@ -224,7 +226,8 @@ export async function fetchAdminInvestorReports(
     .from("profiles")
     .select("id, first_name, last_name, email")
     .eq("is_admin", false)
-    .order("first_name");
+    .order("first_name")
+    .limit(500);
 
   if (investorsError) throw investorsError;
 
@@ -237,7 +240,8 @@ export async function fetchAdminInvestorReports(
   const { data: investorEmailsData } = await supabase
     .from("investor_emails")
     .select("investor_id, email, is_primary, verified")
-    .in("investor_id", investorIds);
+    .in("investor_id", investorIds)
+    .limit(500);
 
   // Build email lookup, starting with profile email as fallback
   const emailsByInvestor: Record<string, InvestorReportEmail[]> = {};
@@ -299,7 +303,8 @@ export async function fetchAdminInvestorReports(
     .from("investor_fund_performance")
     .select("*")
     .eq("period_id", period.id)
-    .order("investor_id, fund_name");
+    .order("investor_id, fund_name")
+    .limit(500);
 
   if (reportsError) throw reportsError;
 
@@ -481,7 +486,8 @@ export async function fetchLatestPerformance(
     `
     )
     .eq("investor_id", investorId)
-    .eq("fund_name", assetCode);
+    .eq("fund_name", assetCode)
+    .limit(500);
 
   if (perfError) {
     logError("fetchLatestPerformance", perfError, { investorId, assetCode });
@@ -545,7 +551,8 @@ export async function fetchActiveInvestorsForStatements(): Promise<
     .select("id, first_name, last_name, email, status")
     .eq("status", "active")
     .eq("is_admin", false)
-    .order("first_name");
+    .order("first_name")
+    .limit(500);
 
   if (error) throw error;
 

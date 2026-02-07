@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { FundDailyAUM } from "@/types/domains/yield";
 import { formatDateForDB, getTodayString, getMonthStartDate } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 /** Position with fund join result */
 interface PositionWithFundJoin {
@@ -38,7 +39,9 @@ export async function getFundAUMHistory(
 ): Promise<FundDailyAUM[]> {
   let query = supabase
     .from("fund_daily_aum")
-    .select("*")
+    .select(
+      "id, fund_id, aum_date, as_of_date, total_aum, nav_per_share, total_shares, source, created_at, updated_at, is_voided, purpose"
+    )
     .eq("fund_id", fundId)
     .eq("is_voided", false)
     .order("aum_date", { ascending: false })
@@ -67,7 +70,9 @@ export async function getFundAUMHistory(
 export async function getLatestFundAUM(fundId: string): Promise<FundDailyAUM | null> {
   const { data, error } = await supabase
     .from("fund_daily_aum")
-    .select("*")
+    .select(
+      "id, fund_id, aum_date, as_of_date, total_aum, nav_per_share, total_shares, source, created_at, updated_at, is_voided, purpose"
+    )
     .eq("fund_id", fundId)
     .eq("is_voided", false)
     .order("aum_date", { ascending: false })
@@ -95,7 +100,8 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
     .from("investor_positions")
     .select("investor_id, current_value, updated_at")
     .eq("fund_id", fundId)
-    .gt("current_value", 0);
+    .gt("current_value", 0)
+    .limit(500);
 
   if (error) {
     logError("yieldHistoryService.getCurrentFundAUM", error);
@@ -118,7 +124,9 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
   // Filter to investor + IB accounts
   const investorPositions = (positions || []).filter((p) => investorSet.has(p.investor_id));
 
-  const totalAUM = investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+  const totalAUM = investorPositions
+    .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
+    .toNumber();
 
   const lastUpdated =
     investorPositions.reduce(
@@ -232,7 +240,8 @@ export async function getActiveFundsWithAUM(): Promise<
     .from("funds")
     .select("id, code, name, asset")
     .eq("status", "active")
-    .order("code");
+    .order("code")
+    .limit(100);
 
   if (error) throw new Error(`Failed to fetch funds: ${error.message}`);
   if (!fundsData || fundsData.length === 0) return [];
@@ -244,7 +253,8 @@ export async function getActiveFundsWithAUM(): Promise<
     .from("investor_positions")
     .select("fund_id, current_value, investor_id")
     .in("fund_id", fundIds)
-    .gt("current_value", 0); // Exclude zero-balance positions
+    .gt("current_value", 0) // Exclude zero-balance positions
+    .limit(500);
 
   // Fetch profiles to count investor-only participants.
   const investorIds = [...new Set((allPositions || []).map((p) => p.investor_id).filter(Boolean))];
@@ -252,7 +262,8 @@ export async function getActiveFundsWithAUM(): Promise<
     .from("profiles")
     .select("id")
     .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"])
-    .eq("account_type", "investor");
+    .eq("account_type", "investor")
+    .limit(500);
 
   const investorSet = new Set(investorProfiles?.map((p) => p.id) || []);
 
@@ -260,7 +271,8 @@ export async function getActiveFundsWithAUM(): Promise<
   const { data: aumRecords } = await supabase
     .from("fund_daily_aum")
     .select("fund_id")
-    .in("fund_id", fundIds);
+    .in("fund_id", fundIds)
+    .limit(500);
 
   // Build lookup maps
   type FundPositionRow = { fund_id: string; current_value: number | null; investor_id: string };
@@ -286,7 +298,9 @@ export async function getActiveFundsWithAUM(): Promise<
 
   const fundsWithAUM = fundsData.map((fund) => {
     const positions = positionsByFund.get(fund.id) || [];
-    const total_aum = positions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+    const total_aum = positions
+      .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
+      .toNumber();
     const investorCount = investorCountByFund.get(fund.id)?.size || 0;
 
     return {
@@ -319,7 +333,8 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     .from("investor_positions")
     .select("investor_id, current_value")
     .eq("fund_id", fundId)
-    .gt("current_value", 0); // Exclude zero-balance positions
+    .gt("current_value", 0) // Exclude zero-balance positions
+    .limit(500);
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
 
@@ -329,7 +344,8 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, email, account_type")
-    .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"]);
+    .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"])
+    .limit(500);
 
   // Filter to investor accounts only (exclude fee accounts, IB accounts)
   const investorProfiles = (profiles || []).filter((p) => p.account_type === "investor");
@@ -339,7 +355,9 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
   // Filter positions to only include investor accounts
   const investorPositions = (positions || []).filter((p) => investorProfileIds.has(p.investor_id));
 
-  const totalAUM = investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+  const totalAUM = investorPositions
+    .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
+    .toNumber();
 
   // Calculate MTD period
   const now = new Date();
@@ -359,16 +377,23 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     .in("type", ["INTEREST", "FEE"])
     .gte("tx_date", mtdStart)
     .lte("tx_date", mtdEnd)
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .limit(500);
 
   // Calculate MTD yield per investor
   const mtdYieldMap = new Map<string, number>();
   (yieldTransactions || []).forEach((tx) => {
     const currentYield = mtdYieldMap.get(tx.investor_id!) || 0;
     if (tx.type === "INTEREST") {
-      mtdYieldMap.set(tx.investor_id!, currentYield + Number(tx.amount || 0));
+      mtdYieldMap.set(
+        tx.investor_id!,
+        parseFinancial(currentYield).plus(parseFinancial(tx.amount)).toNumber()
+      );
     } else if (tx.type === "FEE") {
-      mtdYieldMap.set(tx.investor_id!, currentYield - Math.abs(Number(tx.amount || 0)));
+      mtdYieldMap.set(
+        tx.investor_id!,
+        parseFinancial(currentYield).minus(parseFinancial(tx.amount).abs()).toNumber()
+      );
     }
   });
 
@@ -433,7 +458,8 @@ export async function getInvestorPositionsWithFunds(investorId: string): Promise
       funds!fk_investor_positions_fund(name, asset, status)
     `
     )
-    .eq("investor_id", investorId);
+    .eq("investor_id", investorId)
+    .limit(100);
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
 

@@ -1,11 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.3";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-csrf-token",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -29,6 +24,8 @@ interface BootstrapRequest {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -41,8 +38,11 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
     if (userError || !user) {
       throw new Error("Invalid authorization token");
     }
@@ -63,9 +63,7 @@ serve(async (req) => {
 
     // Bootstrap INDIGO FEES account
     if (params.createFeesAccount !== false) {
-      results.feesAccount = await bootstrapFeesAccount(
-        params.feesEmail || "indigo.lp@example.com"
-      );
+      results.feesAccount = await bootstrapFeesAccount(params.feesEmail || "indigo.lp@example.com");
     }
 
     // Bootstrap default IB accounts
@@ -107,20 +105,20 @@ async function bootstrapFeesAccount(email: string) {
   console.log("Bootstrapping INDIGO FEES account...");
 
   // Check if auth user exists
-  const { data: existingAuth } = await supabaseAdmin.auth.admin.getUserById(
-    INDIGO_FEES_ACCOUNT_ID
-  );
+  const { data: existingAuth } = await supabaseAdmin.auth.admin.getUserById(INDIGO_FEES_ACCOUNT_ID);
 
   let authUserCreated = false;
 
   if (!existingAuth?.user) {
     // Create auth user with the canonical ID
     console.log("Creating auth user for INDIGO FEES...");
-    
+
     // First try to find by email
-    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
-    const existingByEmail = users.find(u => u.email === email);
-    
+    const {
+      data: { users },
+    } = await supabaseAdmin.auth.admin.listUsers();
+    const existingByEmail = users.find((u) => u.email === email);
+
     if (existingByEmail && existingByEmail.id !== INDIGO_FEES_ACCOUNT_ID) {
       // User exists with different ID - we need to use that ID
       console.log(`Found existing user with email ${email} but different ID`);
@@ -129,7 +127,7 @@ async function bootstrapFeesAccount(email: string) {
         .from("profiles")
         .update({ id: existingByEmail.id })
         .eq("id", INDIGO_FEES_ACCOUNT_ID);
-        
+
       return {
         success: true,
         user_id: existingByEmail.id,
@@ -164,7 +162,7 @@ async function bootstrapFeesAccount(email: string) {
         // This is complex - for now just log a warning
         console.warn(
           `INDIGO FEES auth user ID (${newUser.user.id}) differs from canonical ID (${INDIGO_FEES_ACCOUNT_ID}). ` +
-          `Manual update may be required.`
+            `Manual update may be required.`
         );
       }
     }
@@ -198,14 +196,16 @@ async function bootstrapFeesAccount(email: string) {
   if (!existingRoles || existingRoles.length === 0) {
     // Add a role - try 'investor' first, fallback to inserting nothing
     // The user can still access as a basic authenticated user
-    console.log("No roles found for INDIGO FEES - account is authenticated but has no special role");
+    console.log(
+      "No roles found for INDIGO FEES - account is authenticated but has no special role"
+    );
   }
 
   return {
     success: true,
     user_id: INDIGO_FEES_ACCOUNT_ID,
     action: authUserCreated ? "created" : "verified",
-    message: authUserCreated 
+    message: authUserCreated
       ? "Created auth user and updated profile"
       : "Verified existing auth user and updated profile",
   };
@@ -225,10 +225,7 @@ async function bootstrapIBAccount(ib: { email: string; firstName: string; lastNa
     // Just ensure they have IB role
     await supabaseAdmin
       .from("user_roles")
-      .upsert(
-        { user_id: existingProfile.id, role: "ib" },
-        { onConflict: "user_id,role" }
-      );
+      .upsert({ user_id: existingProfile.id, role: "ib" }, { onConflict: "user_id,role" });
 
     // Update account type
     await supabaseAdmin

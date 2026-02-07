@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 import type {
   IBFundRef,
   IBAllocationCommissionRow,
@@ -221,12 +222,12 @@ class IBService {
       if (!byAsset[asset]) {
         byAsset[asset] = { total: 0, pending: 0, paid: 0 };
       }
-      const amount = Number(allocation.ib_fee_amount);
-      byAsset[asset].total += amount;
+      const amount = parseFinancial(allocation.ib_fee_amount);
+      byAsset[asset].total = parseFinancial(byAsset[asset].total).plus(amount).toNumber();
       if (allocation.payout_status === "paid") {
-        byAsset[asset].paid += amount;
+        byAsset[asset].paid = parseFinancial(byAsset[asset].paid).plus(amount).toNumber();
       } else {
-        byAsset[asset].pending += amount;
+        byAsset[asset].pending = parseFinancial(byAsset[asset].pending).plus(amount).toNumber();
       }
     }
 
@@ -253,7 +254,8 @@ class IBService {
       `
       )
       .eq("ib_investor_id", ibId)
-      .eq("is_voided", false);
+      .eq("is_voided", false)
+      .limit(500);
 
     if (startDate) {
       query = query.gte("effective_date", format(startDate, "yyyy-MM-dd"));
@@ -288,7 +290,11 @@ class IBService {
       if (!byInvestor[investorId].commissions[asset]) {
         byInvestor[investorId].commissions[asset] = 0;
       }
-      byInvestor[investorId].commissions[asset] += Number(allocation.ib_fee_amount);
+      byInvestor[investorId].commissions[asset] = parseFinancial(
+        byInvestor[investorId].commissions[asset]
+      )
+        .plus(parseFinancial(allocation.ib_fee_amount))
+        .toNumber();
     }
 
     // Sort by total commissions and take top N
@@ -347,7 +353,8 @@ class IBService {
       const { data: positions } = await supabase
         .from("investor_positions")
         .select("investor_id, fund_id, current_value, funds!inner(asset)")
-        .in("investor_id", referralIds);
+        .in("investor_id", referralIds)
+        .limit(500);
       positionsData = (positions || []) as unknown as PositionWithFundAsset[];
     }
 
@@ -359,12 +366,14 @@ class IBService {
 
       for (const pos of investorPositions) {
         const asset = pos.funds?.asset;
-        const currentValue = Number(pos.current_value);
+        const currentValue = parseFinancial(pos.current_value).toNumber();
         if (!asset) continue;
         if (currentValue > 0) {
           activeFundIds.add(pos.fund_id);
           if (!holdings[asset]) holdings[asset] = 0;
-          holdings[asset] += currentValue;
+          holdings[asset] = parseFinancial(holdings[asset])
+            .plus(parseFinancial(pos.current_value))
+            .toNumber();
         }
       }
 
@@ -436,7 +445,8 @@ class IBService {
         funds!fk_investor_positions_fund(name, asset, code)
       `
       )
-      .eq("investor_id", investorId);
+      .eq("investor_id", investorId)
+      .limit(100);
 
     if (error) {
       logError("ibService.getReferralPositions", error, { investorId });
@@ -541,9 +551,9 @@ class IBService {
         asset: fund?.asset || "Unknown",
         investorName,
         investorId: alloc.source_investor_id,
-        sourceNetIncome: Number(alloc.source_net_income),
-        ibPercentage: Number(alloc.ib_percentage),
-        ibFeeAmount: Number(alloc.ib_fee_amount),
+        sourceNetIncome: parseFinancial(alloc.source_net_income).toNumber(),
+        ibPercentage: parseFinancial(alloc.ib_percentage).toNumber(),
+        ibFeeAmount: parseFinancial(alloc.ib_fee_amount).toNumber(),
         payoutStatus: (alloc.payout_status || "pending") as "pending" | "paid",
         paidAt: alloc.paid_at || null,
       };
@@ -611,9 +621,9 @@ class IBService {
       sourceInvestorId: a.source_investor_id,
       periodStart: a.period_start || "",
       periodEnd: a.period_end || "",
-      sourceNetIncome: Number(a.source_net_income || 0),
-      ibPercentage: Number(a.ib_percentage || 0),
-      ibFeeAmount: Number(a.ib_fee_amount || 0),
+      sourceNetIncome: parseFinancial(a.source_net_income).toNumber(),
+      ibPercentage: parseFinancial(a.ib_percentage).toNumber(),
+      ibFeeAmount: parseFinancial(a.ib_fee_amount).toNumber(),
       source: a.source || "unknown",
       createdAt: a.created_at || "",
     }));
@@ -634,7 +644,8 @@ class IBService {
       `
       )
       .eq("investor_id", ibId)
-      .gt("current_value", 0);
+      .gt("current_value", 0)
+      .limit(100);
 
     if (error) {
       logError("ibService.getIBPositions", error, { ibId });
@@ -648,7 +659,7 @@ class IBService {
       fundId: p.fund_id,
       fundName: p.funds?.name || p.fund_id,
       asset: p.funds?.asset || "USDT",
-      currentValue: Number(p.current_value || 0),
+      currentValue: parseFinancial(p.current_value).toNumber(),
     }));
   }
 
@@ -715,7 +726,7 @@ class IBService {
 
       return {
         id: alloc.id,
-        amount: Number(alloc.ib_fee_amount),
+        amount: parseFinancial(alloc.ib_fee_amount).toNumber(),
         asset: fund?.asset || "USDT",
         fundName: fund?.name || "Unknown",
         status: alloc.payout_status || "pending",
@@ -737,7 +748,8 @@ class IBService {
       .select("amount, asset")
       .eq("investor_id", ibId)
       .eq("type", "YIELD")
-      .eq("is_voided", false);
+      .eq("is_voided", false)
+      .limit(500);
 
     if (error) {
       logError("ibService.getYieldOnBalance", error, { ibId });
@@ -747,7 +759,9 @@ class IBService {
     const totals: Record<string, number> = {};
     (data || []).forEach((tx) => {
       const asset = tx.asset || "USDT";
-      totals[asset] = (totals[asset] || 0) + Number(tx.amount);
+      totals[asset] = parseFinancial(totals[asset] || 0)
+        .plus(parseFinancial(tx.amount))
+        .toNumber();
     });
 
     return totals;

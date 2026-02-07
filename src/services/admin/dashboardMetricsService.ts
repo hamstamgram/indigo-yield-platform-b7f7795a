@@ -7,6 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { format } from "date-fns";
+import { parseFinancial } from "@/utils/financial";
 
 // ============================================================================
 // Types
@@ -121,7 +122,8 @@ export async function getAUMHistory(): Promise<AUMHistoryPoint[]> {
   const { data: historyData, error } = await supabase
     .from("daily_nav")
     .select("nav_date, aum")
-    .order("nav_date", { ascending: true });
+    .order("nav_date", { ascending: true })
+    .limit(500);
 
   if (error) throw error;
 
@@ -129,8 +131,12 @@ export async function getAUMHistory(): Promise<AUMHistoryPoint[]> {
   const aumByDate = new Map<string, number>();
   historyData?.forEach((d) => {
     const date = d.nav_date;
-    const val = Number(d.aum);
-    aumByDate.set(date, (aumByDate.get(date) || 0) + val);
+    aumByDate.set(
+      date,
+      parseFinancial(aumByDate.get(date) || 0)
+        .plus(parseFinancial(d.aum))
+        .toNumber()
+    );
   });
 
   return Array.from(aumByDate.entries())
@@ -145,19 +151,22 @@ export async function getTransactionFlowMetrics(): Promise<FlowMetrics> {
   const { data: transactions, error } = await supabase
     .from("transactions_v2")
     .select("amount, type, tx_date")
-    .eq("is_voided", false); // Exclude voided transactions
+    .eq("is_voided", false) // Exclude voided transactions
+    .limit(500);
 
   if (error) throw error;
 
   const totalDeposits =
     transactions
       ?.filter((t) => t.type === "DEPOSIT")
-      .reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+      .reduce((acc, t) => acc.plus(parseFinancial(t.amount)), parseFinancial(0))
+      .toNumber() || 0;
 
   const totalWithdrawals =
     transactions
       ?.filter((t) => t.type === "WITHDRAWAL")
-      .reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+      .reduce((acc, t) => acc.plus(parseFinancial(t.amount)), parseFinancial(0))
+      .toNumber() || 0;
 
   return {
     totalDeposits,
@@ -234,7 +243,9 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
   if (error) throw error;
 
   const allPositions = (positions as PositionWithProfile[] | null) || [];
-  const totalValue = allPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+  const totalValue = allPositions
+    .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
+    .toNumber();
 
   return allPositions.map((p) => ({
     investor_name:
@@ -262,7 +273,9 @@ export async function getDeliveryStatus(
 ): Promise<DeliveryRecord[]> {
   let query = supabase
     .from("statement_email_delivery")
-    .select("*")
+    .select(
+      "id, status, recipient_email, channel, attempt_count, last_attempt_at, sent_at, failed_at, error_message, created_at"
+    )
     .order("created_at", { ascending: false });
 
   if (statementId) {
@@ -298,7 +311,8 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
   const { data: statements, error: stmtError } = await supabase
     .from("generated_statements")
     .select("id, investor_id")
-    .eq("period_id", periodId);
+    .eq("period_id", periodId)
+    .limit(500);
 
   if (stmtError) throw stmtError;
 
@@ -307,7 +321,8 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
   const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, email")
-    .in("id", investorIds);
+    .in("id", investorIds)
+    .limit(500);
 
   if (profileError) throw profileError;
 
@@ -318,7 +333,8 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
   const { data: deliveries, error: delError } = await supabase
     .from("statement_email_delivery")
     .select("id, investor_id, status, recipient_email")
-    .eq("period_id", periodId);
+    .eq("period_id", periodId)
+    .limit(500);
 
   if (delError) throw delError;
 
@@ -391,7 +407,8 @@ export async function getDeliveryExclusionBreakdown(periodId: string): Promise<E
   const { data: deliveryData } = await supabase
     .from("statement_email_delivery")
     .select("status, error_message")
-    .eq("period_id", periodId);
+    .eq("period_id", periodId)
+    .limit(500);
 
   const deliveries = deliveryData || [];
 

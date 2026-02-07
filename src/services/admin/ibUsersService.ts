@@ -20,7 +20,8 @@ export async function fetchIBUsers(): Promise<IBUser[]> {
   const { data: roleData, error: roleError } = await supabase
     .from("user_roles")
     .select("user_id")
-    .eq("role", "ib");
+    .eq("role", "ib")
+    .limit(100);
 
   if (roleError) throw roleError;
 
@@ -32,7 +33,8 @@ export async function fetchIBUsers(): Promise<IBUser[]> {
   const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id, email, first_name, last_name")
-    .in("id", userIds);
+    .in("id", userIds)
+    .limit(100);
 
   if (profileError) throw profileError;
   return profiles || [];

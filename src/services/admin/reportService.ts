@@ -1,6 +1,6 @@
 /**
  * Report Service
- * 
+ *
  * Consolidates all Supabase operations for report generation and management.
  * This service handles:
  * - Fetching active investors for report generation
@@ -120,7 +120,8 @@ export const reportService = {
       .select("id, first_name, last_name, email")
       .eq("status", "active")
       .eq("is_admin", false)
-      .order("first_name");
+      .order("first_name")
+      .limit(500);
 
     if (error) throw error;
 
@@ -157,7 +158,8 @@ export const reportService = {
       .from("investor_fund_performance")
       .select("*")
       .eq("investor_id", investorId)
-      .eq("period_id", periodId);
+      .eq("period_id", periodId)
+      .limit(100);
 
     if (error) throw error;
     return data || [];
@@ -169,7 +171,8 @@ export const reportService = {
   async getHistoricalDataSummary(): Promise<HistoricalDataSummary> {
     const { data: summary } = await supabase
       .from("investor_fund_performance")
-      .select("fund_name, investor_id, period:statement_periods(period_end_date)");
+      .select("fund_name, investor_id, period:statement_periods(period_end_date)")
+      .limit(500);
 
     if (!summary || summary.length === 0) {
       return {
@@ -181,7 +184,10 @@ export const reportService = {
       };
     }
 
-    const months = summary.map((r: any) => r.period?.period_end_date).filter(Boolean).sort();
+    const months = summary
+      .map((r: any) => r.period?.period_end_date)
+      .filter(Boolean)
+      .sort();
     const uniqueInvestors = new Set(summary.map((r) => r.investor_id));
     const uniqueAssets = new Set(summary.map((r) => r.fund_name));
 
@@ -201,7 +207,8 @@ export const reportService = {
     const { data, error } = await supabase
       .from("investor_positions")
       .select("*, funds(name, code, asset)")
-      .eq("investor_id", investorId);
+      .eq("investor_id", investorId)
+      .limit(100);
 
     if (error) throw error;
     return data || [];
@@ -219,7 +226,8 @@ export const reportService = {
       .gte("tx_date", formatDateForDB(dateRange.start))
       .lte("tx_date", formatDateForDB(dateRange.end))
       .order("tx_date", { ascending: false })
-      .order("id", { ascending: false });
+      .order("id", { ascending: false })
+      .limit(500);
 
     if (error) throw error;
     return data || [];
@@ -231,10 +239,12 @@ export const reportService = {
   async getInvestorPerformanceStatements(investorId: string, dateRange: DateRange) {
     const { data, error } = await supabase
       .from("investor_fund_performance")
-      .select(`
+      .select(
+        `
         *,
         period:statement_periods(period_end_date, year, month)
-      `)
+      `
+      )
       .eq("investor_id", investorId)
       .gte("period.period_end_date", formatDateForDB(dateRange.start))
       .lte("period.period_end_date", formatDateForDB(dateRange.end))
@@ -273,7 +283,8 @@ export const reportService = {
         .from("profiles")
         .select("id")
         .eq("status", "active")
-        .eq("is_admin", false);
+        .eq("is_admin", false)
+        .limit(500);
 
       investors = investorData?.map((i) => i.id) || [];
     }
@@ -284,7 +295,8 @@ export const reportService = {
       const { data: assetData } = await supabase
         .from("assets")
         .select("symbol")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .limit(100);
 
       assets = assetData?.map((a) => a.symbol) || [];
     }
@@ -304,7 +316,10 @@ export const reportService = {
     const errors: string[] = [];
 
     // Fetch all periods once for efficiency
-    const { data: periods } = await supabase.from("statement_periods").select("id, year, month");
+    const { data: periods } = await supabase
+      .from("statement_periods")
+      .select("id, year, month")
+      .limit(500);
     const { data: authData } = await supabase.auth.getUser();
     const currentUserId = authData.user?.id;
 

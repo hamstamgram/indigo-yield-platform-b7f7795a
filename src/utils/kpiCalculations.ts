@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getTodayString } from "@/utils/dateUtils";
 import { logError, logWarn } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export interface AssetKPI {
   assetCode: string;
@@ -29,7 +30,9 @@ export const calculateTotalAUM = async () => {
     if (error) throw error;
 
     // Sum up AUM - all values are in native token units
-    return data?.reduce((sum, row) => sum + Number(row.aum), 0) || 0;
+    return (data || [])
+      .reduce((sum, row) => sum.plus(parseFinancial(row.aum)), parseFinancial(0))
+      .toNumber();
   } catch (error) {
     logError("kpiCalculations.calculateTotalAUM", error);
     return 0;
@@ -178,24 +181,26 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
     // For fallback, we can only calculate ITD from positions
     // MTD/QTD/YTD require the generate-fund-performance edge function to be run
     return positions.map((pos: any) => {
-      const currentValue = Number(pos.current_value) || 0;
-      const costBasis = Number(pos.cost_basis) || 0;
+      const currentValue = parseFinancial(pos.current_value);
+      const costBasis = parseFinancial(pos.cost_basis);
 
       // ITD calculation: current_value - cost_basis (where cost_basis = principal)
-      const itdReturn = currentValue - costBasis;
-      const itdPercentage = costBasis > 0 ? (itdReturn / costBasis) * 100 : 0;
+      const itdReturn = currentValue.minus(costBasis);
+      const itdPercentage = costBasis.gt(0)
+        ? itdReturn.dividedBy(costBasis).times(100).toNumber()
+        : 0;
 
       return {
         assetCode: pos.fund?.asset || "UNKNOWN",
-        currentBalance: currentValue,
-        principal: costBasis,
+        currentBalance: currentValue.toNumber(),
+        principal: costBasis.toNumber(),
         metrics: {
           // Cannot calculate MTD/QTD/YTD without historical data
           // These will be 0 until generate-fund-performance is run
           mtd: 0,
           qtd: 0,
           ytd: 0,
-          itd: itdReturn,
+          itd: itdReturn.toNumber(),
           mtdPercentage: 0,
           qtdPercentage: 0,
           ytdPercentage: 0,

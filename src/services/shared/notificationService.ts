@@ -22,9 +22,10 @@ class NotificationService {
 
     const { data, error } = await supabase
       .from("notifications")
-      .select("*")
+      .select("id, user_id, type, title, body, priority, read_at, data_jsonb, created_at")
       .eq("user_id", userData.user.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(500);
 
     if (error) throw error;
     return toNotifications(data || []);
@@ -36,7 +37,7 @@ class NotificationService {
   async getNotificationsForUser(userId: string, limit = 50): Promise<Notification[]> {
     const { data, error } = await supabase
       .from("notifications")
-      .select("*")
+      .select("id, user_id, type, title, body, priority, read_at, data_jsonb, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -91,7 +92,7 @@ class NotificationService {
 
     const { count, error } = await supabase
       .from("notifications")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("user_id", userData.user.id)
       .is("read_at", null);
 
@@ -109,7 +110,9 @@ class NotificationService {
   async getSettings(userId: string): Promise<NotificationSettings | null> {
     const { data, error } = await supabase
       .from("notification_settings")
-      .select("*")
+      .select(
+        "id, user_id, email_enabled, push_enabled, in_app_enabled, transaction_notifications, alert_notifications, system_notifications, security_notifications, document_notifications, support_notifications, yield_notifications, portfolio_notifications, email_frequency, quiet_hours_start, quiet_hours_end, created_at, updated_at"
+      )
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -169,9 +172,12 @@ class NotificationService {
   async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
     const { data, error } = await supabase
       .from("price_alerts")
-      .select("*")
+      .select(
+        "id, user_id, asset_code, alert_type, threshold_value, current_value, is_active, triggered_at, created_at, updated_at"
+      )
       .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(100);
 
     if (error) throw error;
     return (data as unknown as PriceAlert[]) || [];

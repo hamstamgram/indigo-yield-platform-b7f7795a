@@ -7,6 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getInvestorPositions, type InvestorPositionDetail } from "./investorPositionService";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 // ============================================
 // Types
@@ -149,7 +150,8 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     .from("profiles")
     .select("id, email, first_name, last_name, status, onboarding_date, created_at, account_type")
     .eq("is_admin", false)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (error) {
     logError("getAllInvestorsWithSummary", error);
@@ -173,7 +175,8 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     `
     )
     .in("investor_id", investorIds)
-    .gt("shares", 0);
+    .gt("shares", 0)
+    .limit(500);
 
   // Step 3: Group positions by investor_id for O(1) lookup
   const positionsByInvestor = new Map<string, typeof allPositions>();
@@ -187,9 +190,15 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
   const summaries = investors.map((investor) => {
     const positions = positionsByInvestor.get(investor.id) || [];
 
-    const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
-    const totalEarned = positions.reduce((sum, pos) => sum + Number(pos.unrealized_pnl || 0), 0);
-    const totalPrincipal = positions.reduce((sum, pos) => sum + Number(pos.cost_basis || 0), 0);
+    const totalAUM = positions
+      .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
+      .toNumber();
+    const totalEarned = positions
+      .reduce((sum, pos) => sum.plus(parseFinancial(pos.unrealized_pnl)), parseFinancial(0))
+      .toNumber();
+    const totalPrincipal = positions
+      .reduce((sum, pos) => sum.plus(parseFinancial(pos.cost_basis)), parseFinancial(0))
+      .toNumber();
 
     // Calculate asset breakdown
     const assetBreakdown: Record<string, number> = {};
@@ -198,7 +207,9 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
       if (!assetBreakdown[asset]) {
         assetBreakdown[asset] = 0;
       }
-      assetBreakdown[asset] += Number(pos.current_value || 0);
+      assetBreakdown[asset] = parseFinancial(assetBreakdown[asset])
+        .plus(parseFinancial(pos.current_value))
+        .toNumber();
     });
 
     const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();

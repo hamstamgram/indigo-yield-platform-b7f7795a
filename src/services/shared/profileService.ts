@@ -72,7 +72,8 @@ class ProfileService {
     const { data, error } = await supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
-      .order("last_name");
+      .order("last_name")
+      .limit(500);
 
     if (error) throw error;
     return data || [];
@@ -87,7 +88,8 @@ class ProfileService {
       .select("id, email, first_name, last_name")
       .eq("status", "active")
       .eq("is_admin", false)
-      .order("last_name");
+      .order("last_name")
+      .limit(500);
 
     if (error) throw error;
 
@@ -110,7 +112,8 @@ class ProfileService {
       .from("funds")
       .select("id, name, code, asset")
       .eq("status", "active")
-      .order("asset", { ascending: true });
+      .order("asset", { ascending: true })
+      .limit(100);
 
     if (error) throw error;
     return data || [];
@@ -134,7 +137,7 @@ class ProfileService {
   async countDocuments(userId: string): Promise<number> {
     const { count, error } = await supabase
       .from("documents")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("user_id", userId);
 
     if (error) throw error;
@@ -149,7 +152,8 @@ class ProfileService {
       .from("generated_reports")
       .select("*")
       .eq("investor_id", investorId)
-      .eq("report_month", reportMonth);
+      .eq("report_month", reportMonth)
+      .limit(100);
 
     if (error) throw error;
     return data || [];
@@ -163,7 +167,8 @@ class ProfileService {
       .from("investor_fund_performance")
       .select("*")
       .eq("investor_id", investorId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(500);
 
     if (error) throw error;
     return data || [];
@@ -177,7 +182,8 @@ class ProfileService {
       .from("investor_fund_performance")
       .select("*")
       .eq("investor_id", investorId)
-      .eq("period_id", periodId);
+      .eq("period_id", periodId)
+      .limit(100);
 
     if (error) throw error;
     return data || [];
@@ -213,7 +219,8 @@ class ProfileService {
       .from("profiles")
       .select("id, first_name, last_name, email, is_system_account")
       .eq("is_system_account", false)
-      .order("first_name");
+      .order("first_name")
+      .limit(100);
 
     if (error) throw error;
     return data || [];
@@ -227,7 +234,8 @@ class ProfileService {
       .from("profiles")
       .select("id, email, first_name, last_name")
       .eq("is_admin", false)
-      .order("last_name");
+      .order("last_name")
+      .limit(100);
 
     if (error) throw error;
 

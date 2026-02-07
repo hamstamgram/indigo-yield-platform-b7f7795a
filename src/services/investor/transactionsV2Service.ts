@@ -44,7 +44,9 @@ class TransactionsRecordService {
   ): Promise<TransactionRecord[]> {
     let query = supabase
       .from("transactions_v2")
-      .select("*")
+      .select(
+        "id, investor_id, fund_id, type, asset, amount, tx_date, notes, tx_hash, reference_id, created_at"
+      )
       .eq("investor_id", investorId)
       .eq("is_voided", false)
       .order("tx_date", { ascending: false })
@@ -85,7 +87,9 @@ class TransactionsRecordService {
   async getById(transactionId: string): Promise<TransactionRecord | null> {
     const { data, error } = await supabase
       .from("transactions_v2")
-      .select("*")
+      .select(
+        "id, investor_id, fund_id, type, asset, amount, tx_date, notes, tx_hash, reference_id, created_at"
+      )
       .eq("id", transactionId)
       .maybeSingle();
 

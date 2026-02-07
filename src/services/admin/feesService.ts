@@ -106,7 +106,8 @@ export async function getActiveFunds(): Promise<FundRef[]> {
     .from("funds")
     .select("id, code, name, asset")
     .eq("status", "active")
-    .order("code");
+    .order("code")
+    .limit(100);
 
   if (error) throw error;
   return data || [];
@@ -156,11 +157,13 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
     supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
-      .in("id", investorIds.length > 0 ? investorIds : [""]),
+      .in("id", investorIds.length > 0 ? investorIds : [""])
+      .limit(500),
     supabase
       .from("funds")
       .select("id, name, asset")
-      .in("id", fundIds.length > 0 ? fundIds : [""]),
+      .in("id", fundIds.length > 0 ? fundIds : [""])
+      .limit(100),
   ]);
 
   const investorMap = new Map((investorResult.data ?? []).map((p) => [p.id, p]));
@@ -215,7 +218,8 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
   const { data: indigoPositions, error: posError } = await supabase
     .from("investor_positions")
     .select("fund_id, current_value")
-    .eq("investor_id", INDIGO_FEES_ACCOUNT_ID);
+    .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
+    .limit(100);
 
   if (posError) throw posError;
 
@@ -228,7 +232,8 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
   const { data: fundsData, error: fundsError } = await supabase
     .from("funds")
     .select("id, asset")
-    .in("id", fundIds);
+    .in("id", fundIds)
+    .limit(100);
 
   if (fundsError) throw fundsError;
 
@@ -287,12 +292,17 @@ export async function getFeeAllocations(): Promise<FeeAllocation[]> {
   ];
 
   const [profileResult, fundResult, distributionResult] = await Promise.all([
-    supabase.from("profiles").select("id, email, first_name, last_name").in("id", investorIds),
-    supabase.from("funds").select("id, name, asset").in("id", fundIds),
+    supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .in("id", investorIds)
+      .limit(500),
+    supabase.from("funds").select("id, name, asset").in("id", fundIds).limit(100),
     supabase
       .from("yield_distributions")
       .select("id, period_start, period_end, purpose")
-      .in("id", ledgerData.map((l) => l.yield_distribution_id).filter(Boolean)),
+      .in("id", ledgerData.map((l) => l.yield_distribution_id).filter(Boolean))
+      .limit(500),
   ]);
 
   const profileMap = new Map((profileResult.data || []).map((p) => [p.id, p]));
@@ -335,7 +345,7 @@ export async function getRoutingAuditEntries(): Promise<{
 }> {
   const { data: routingAuditData, error } = await supabase
     .from("audit_log")
-    .select("*")
+    .select("id, action, actor_user, created_at, entity_id, old_values, new_values, meta")
     .eq("action", "route_to_fees")
     .order("created_at", { ascending: false })
     .limit(100);
@@ -361,7 +371,8 @@ export async function getRoutingAuditEntries(): Promise<{
   const { data: actorProfiles } = await supabase
     .from("profiles")
     .select("id, email, first_name, last_name")
-    .in("id", actorIds);
+    .in("id", actorIds)
+    .limit(500);
 
   const actorMap = new Map((actorProfiles || []).map((p) => [p.id, p]));
 
@@ -417,7 +428,8 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
     .select("fund_id, amount, type")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
     .in("type", ["YIELD", "INTEREST"])
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .limit(500);
 
   if (error) throw error;
 

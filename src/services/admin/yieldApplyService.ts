@@ -17,6 +17,7 @@ import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService
 import { logWarn, logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
+import { parseFinancial } from "@/utils/financial";
 import { startOfMonth } from "date-fns";
 
 // NOTE: MV refresh removed - platform now uses live views (v_fund_summary_live, v_daily_platform_metrics_live)
@@ -63,11 +64,13 @@ export async function applyYieldDistribution(
     throw new Error(`Failed to fetch positions: ${positionsError.message}`);
   }
 
-  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  const parsedAum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
-  const hasNewAum = typeof parsedAum === "number" && !Number.isNaN(parsedAum);
-  const newTotalAUMNum = hasNewAum ? parsedAum : currentAUM;
-  const grossYieldAmount = hasNewAum ? newTotalAUMNum - currentAUM : 0;
+  const currentAUM = (positions || []).reduce(
+    (sum, p) => sum.plus(parseFinancial(p.current_value)),
+    parseFinancial(0)
+  );
+  const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
+  const hasNewAum = parsedAum !== null && !parsedAum.isNaN();
+  const grossYieldAmount = hasNewAum ? parsedAum.minus(currentAUM).toNumber() : 0;
   if (grossYieldAmount < 0) {
     throw new Error("Yield must be non-negative (positive or zero).");
   }
@@ -134,7 +137,9 @@ export async function applyYieldDistribution(
       amount: Number(inv.amount),
       asset: fundInfo.asset,
       yieldDate: formatDateForDB(periodEndDate),
-      yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : undefined,
+      yieldPercentage: currentAUM.gt(0)
+        ? (grossYieldAmount / currentAUM.toNumber()) * 100
+        : undefined,
     }));
 
     yieldNotifications
@@ -158,8 +163,8 @@ export async function applyYieldDistribution(
     fundAsset: result?.fund_asset || fundInfo?.asset || "",
     yieldDate: targetDate,
     purpose,
-    currentAUM: String(currentAUM),
-    newAUM: String(newTotalAUMNum),
+    currentAUM: currentAUM.toFixed(10),
+    newAUM: hasNewAum ? parsedAum.toFixed(10) : currentAUM.toFixed(10),
     grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,

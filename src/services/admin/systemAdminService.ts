@@ -174,7 +174,8 @@ export async function getAdminUsers(): Promise<AdminProfile[]> {
   const { data: adminRoles, error: rolesError } = await supabase
     .from("user_roles")
     .select("user_id")
-    .eq("role", "admin");
+    .eq("role", "admin")
+    .limit(500);
 
   if (rolesError) throw rolesError;
 
@@ -187,9 +188,10 @@ export async function getAdminUsers(): Promise<AdminProfile[]> {
   // Get profile details for admins
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, email, first_name, last_name, created_at, status")
     .in("id", adminIds)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (error) throw error;
   return data || [];
@@ -205,7 +207,8 @@ export async function getAdminUsersWithRoles(): Promise<AdminUser[]> {
     .from("profiles")
     .select("id, email, first_name, last_name, created_at")
     .eq("is_admin", true)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (profilesError) throw profilesError;
   if (!profiles || profiles.length === 0) return [];
@@ -216,7 +219,8 @@ export async function getAdminUsersWithRoles(): Promise<AdminUser[]> {
     .from("user_roles")
     .select("user_id, role")
     .in("user_id", adminIds)
-    .eq("role", "super_admin");
+    .eq("role", "super_admin")
+    .limit(500);
 
   if (rolesError) throw rolesError;
 
@@ -325,20 +329,20 @@ export async function getDeliveryQueueMetrics(): Promise<DeliveryQueueMetrics> {
   // Get queued count
   const { count: queuedCount } = await supabase
     .from("statement_email_delivery")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .or("status.eq.queued,status.eq.QUEUED");
 
   // Get sending count
   const { count: sendingCount } = await supabase
     .from("statement_email_delivery")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .or("status.eq.sending,status.eq.SENDING");
 
   // Get stuck sending (> 15 minutes)
   const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { count: stuckCount } = await supabase
     .from("statement_email_delivery")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .or("status.eq.sending,status.eq.SENDING")
     .lt("updated_at", fifteenMinutesAgo);
 
@@ -346,7 +350,7 @@ export async function getDeliveryQueueMetrics(): Promise<DeliveryQueueMetrics> {
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { count: failedCount } = await supabase
     .from("statement_email_delivery")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .or("status.eq.failed,status.eq.FAILED")
     .gte("updated_at", twentyFourHoursAgo);
 
@@ -384,22 +388,22 @@ async function queryIntegrityViews() {
     positionVariance,
   ] = await Promise.all([
     // Ledger reconciliation: position vs transaction totals
-    supabase.from("v_ledger_reconciliation").select("*", { count: "exact" }),
+    supabase.from("v_ledger_reconciliation").select("*", { count: "exact" }).limit(1000),
 
     // Fund AUM mismatch: reported vs calculated AUM
-    supabase.from("fund_aum_mismatch").select("*", { count: "exact" }),
+    supabase.from("fund_aum_mismatch").select("*", { count: "exact" }).limit(1000),
 
     // Orphaned transactions: transactions without profiles (view not in generated types)
-    queryView("v_orphaned_transactions").select("*", { count: "exact" }),
+    queryView("v_orphaned_transactions").select("*", { count: "exact" }).limit(1000),
 
     // Orphaned positions: positions without profiles/funds
-    supabase.from("v_orphaned_positions").select("*", { count: "exact" }),
+    supabase.from("v_orphaned_positions").select("*", { count: "exact" }).limit(1000),
 
     // Fee calculation orphans: orphaned fee calculations (view not in generated types)
-    queryView("v_fee_calculation_orphans").select("*", { count: "exact" }),
+    queryView("v_fee_calculation_orphans").select("*", { count: "exact" }).limit(1000),
 
     // Position vs transaction variance breakdown (view not in generated types)
-    queryView("v_position_transaction_variance").select("*", { count: "exact" }),
+    queryView("v_position_transaction_variance").select("*", { count: "exact" }).limit(1000),
   ]);
 
   return {
@@ -569,7 +573,7 @@ export async function runIntegrityCheck(triggeredBy = "manual"): Promise<{
 export async function getLatestHealthStatus(): Promise<HealthSnapshot | null> {
   const { data, error } = await supabase
     .from("admin_integrity_runs")
-    .select("*")
+    .select("id, run_at, status, violations, runtime_ms, triggered_by")
     .order("run_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -609,7 +613,7 @@ export async function getHealthSnapshots(
 ): Promise<{ snapshots: HealthSnapshot[]; total: number }> {
   const { data, error, count } = await supabase
     .from("admin_integrity_runs")
-    .select("*", { count: "exact" })
+    .select("id, run_at, status, violations, runtime_ms, triggered_by", { count: "exact" })
     .order("run_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

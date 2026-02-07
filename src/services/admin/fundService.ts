@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db/index";
 import type { Fund, FundRef } from "@/types/domains/fund";
 import { mapDbFundToFund, mapFundToDb } from "@/types/domains/fund";
+import { parseFinancial } from "@/utils/financial";
 
 // Import types from canonical source - do NOT re-export to avoid duplication
 // Consumers should import Fund, FundRef from @/types/domains/fund
@@ -47,7 +48,9 @@ export interface FundKPI {
 export async function listFunds(): Promise<Fund[]> {
   const { data, error } = await supabase
     .from("funds")
-    .select("*")
+    .select(
+      "id, code, name, fund_class, asset, status, inception_date, mgmt_fee_bps, perf_fee_bps, min_investment, high_water_mark, min_withdrawal_amount, lock_period_days, logo_url, strategy, cooling_off_hours, large_withdrawal_threshold, max_daily_yield_pct, created_at, updated_at"
+    )
     .order("asset", { ascending: true });
 
   if (error) throw error;
@@ -58,7 +61,13 @@ export async function listFunds(): Promise<Fund[]> {
  * Get fund by ID
  */
 export async function getFund(fundId: string): Promise<Fund> {
-  const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
+  const { data, error } = await supabase
+    .from("funds")
+    .select(
+      "id, code, name, fund_class, asset, status, inception_date, mgmt_fee_bps, perf_fee_bps, min_investment, high_water_mark, min_withdrawal_amount, lock_period_days, logo_url, strategy, cooling_off_hours, large_withdrawal_threshold, max_daily_yield_pct, created_at, updated_at"
+    )
+    .eq("id", fundId)
+    .maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error(`Fund not found: ${fundId}`);
@@ -132,19 +141,25 @@ export async function updateFund(fundId: string, updates: Partial<Fund>): Promis
  */
 export async function getFundKPIs() {
   // Get funds
-  const { data: funds, error } = await supabase.from("funds").select("id, code, name, asset");
+  const { data: funds, error } = await supabase
+    .from("funds")
+    .select("id, code, name, asset")
+    .limit(100);
   if (error) throw error;
 
   // Get AUM per fund from investor_positions
   const { data: positions } = await supabase
     .from("investor_positions")
-    .select("fund_id, current_value");
+    .select("fund_id, current_value")
+    .limit(500);
 
   // Calculate AUM per fund
   const fundAumMap: Record<string, number> = {};
   positions?.forEach((pos) => {
     if (!fundAumMap[pos.fund_id]) fundAumMap[pos.fund_id] = 0;
-    fundAumMap[pos.fund_id] += Number(pos.current_value) || 0;
+    fundAumMap[pos.fund_id] = parseFinancial(fundAumMap[pos.fund_id])
+      .plus(parseFinancial(pos.current_value))
+      .toNumber();
   });
 
   // Map funds to KPI structure
@@ -181,9 +196,13 @@ export async function getLatestNav(fundId: string) {
   const { data: positions } = await supabase
     .from("investor_positions")
     .select("current_value")
-    .eq("fund_id", fundId);
+    .eq("fund_id", fundId)
+    .limit(500);
 
-  const totalAum = positions?.reduce((sum, p) => sum + (Number(p.current_value) || 0), 0) || 0;
+  const totalAum =
+    positions
+      ?.reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
+      .toNumber() || 0;
 
   // Adapt to DailyNav interface
   return {
@@ -205,7 +224,7 @@ export async function getLatestNav(fundId: string) {
 export async function getFundPerformance(fundId: string) {
   const { data: fund, error } = await supabase
     .from("funds")
-    .select("*")
+    .select("id, code, name, asset")
     .eq("id", fundId)
     .maybeSingle();
 
@@ -216,9 +235,13 @@ export async function getFundPerformance(fundId: string) {
   const { data: positions } = await supabase
     .from("investor_positions")
     .select("current_value")
-    .eq("fund_id", fundId);
+    .eq("fund_id", fundId)
+    .limit(500);
 
-  const totalAum = positions?.reduce((sum, p) => sum + (Number(p.current_value) || 0), 0) || 0;
+  const totalAum =
+    positions
+      ?.reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
+      .toNumber() || 0;
 
   const kpi: FundKPI = {
     fund_id: fund.id,
@@ -275,7 +298,8 @@ export async function getActiveFunds(): Promise<
     .from("funds")
     .select("id, code, name, asset")
     .eq("status", "active")
-    .order("asset", { ascending: true });
+    .order("asset", { ascending: true })
+    .limit(100);
 
   if (error) throw error;
   return data || [];
@@ -287,7 +311,11 @@ export async function getActiveFunds(): Promise<
 export async function getFundsByIds(fundIds: string[]) {
   if (!fundIds.length) return [];
 
-  const { data, error } = await supabase.from("funds").select("*").in("id", fundIds);
+  const { data, error } = await supabase
+    .from("funds")
+    .select("id, code, name, asset")
+    .in("id", fundIds)
+    .limit(100);
 
   if (error) throw error;
   return data || [];

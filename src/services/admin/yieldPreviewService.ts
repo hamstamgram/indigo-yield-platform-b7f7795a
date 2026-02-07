@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
+import { parseFinancial } from "@/utils/financial";
 import { startOfMonth } from "date-fns";
 
 import type {
@@ -80,15 +81,16 @@ export async function previewYieldDistribution(
   ]);
 
   const fund = fundResult.data;
-  const currentAUM =
-    positionsResult.data?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  const currentAUM = (positionsResult.data || []).reduce(
+    (sum, p) => sum.plus(parseFinancial(p.current_value)),
+    parseFinancial(0)
+  );
 
   // Calculate gross yield amount from AUM difference when provided
   // For reporting: use explicit AUM delta if given, otherwise fall back to backend logic.
-  const parsedAum = typeof newTotalAUM === "string" ? parseFloat(newTotalAUM) : newTotalAUM;
-  const hasNewAum = typeof parsedAum === "number" && !Number.isNaN(parsedAum);
-  const newTotalAUMNum = hasNewAum ? parsedAum : currentAUM;
-  const grossYieldAmount = hasNewAum ? newTotalAUMNum - currentAUM : 0;
+  const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
+  const hasNewAum = parsedAum !== null && !parsedAum.isNaN();
+  const grossYieldAmount = hasNewAum ? parsedAum.minus(currentAUM).toNumber() : 0;
   if (grossYieldAmount < 0) {
     throw new Error("Yield must be non-negative (positive or zero).");
   }
@@ -170,8 +172,8 @@ export async function previewYieldDistribution(
     effectiveDate: formatDateForDB(periodEndDate),
     purpose,
     isMonthEnd: false,
-    currentAUM: String(currentAUM),
-    newAUM: String(newTotalAUMNum),
+    currentAUM: currentAUM.toFixed(10),
+    newAUM: hasNewAum ? parsedAum.toFixed(10) : currentAUM.toFixed(10),
     grossYield: String(result.gross_yield || grossYieldAmount),
     netYield: String(result.net_yield ?? totals.net),
     totalFees: String(result.total_fees ?? totals.fees),

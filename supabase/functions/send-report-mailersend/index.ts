@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 interface SendReportRequest {
   delivery_id?: string;
@@ -108,6 +104,7 @@ startxref
 
 serve(async (req: Request): Promise<Response> => {
   const requestId = crypto.randomUUID().slice(0, 8);
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
 
   // Handle CORS preflight
   if (req.method === "OPTIONS") {

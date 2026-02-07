@@ -116,9 +116,8 @@ export async function loadOpsIndicators(
       .eq("id", ibParentId)
       .maybeSingle();
     if (parentProfile) {
-      ibParentName = [parentProfile.first_name, parentProfile.last_name]
-        .filter(Boolean)
-        .join(" ") || null;
+      ibParentName =
+        [parentProfile.first_name, parentProfile.last_name].filter(Boolean).join(" ") || null;
     }
   }
 
@@ -143,18 +142,23 @@ export async function loadOpsIndicators(
  * Used by admin investor detail views
  * Filters out zero-value positions
  */
-export async function fetchInvestorPositionsWithTotals(investorId: string): Promise<InvestorPositionsData> {
+export async function fetchInvestorPositionsWithTotals(
+  investorId: string
+): Promise<InvestorPositionsData> {
   const { data: positions, error } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       fund_id,
       current_value,
       cost_basis,
       unrealized_pnl,
       funds!fk_investor_positions_fund(name, code, asset)
-    `)
+    `
+    )
     .eq("investor_id", investorId)
-    .or("current_value.gt.0,cost_basis.gt.0");
+    .or("current_value.gt.0,cost_basis.gt.0")
+    .limit(100);
 
   if (error) throw error;
 
@@ -183,15 +187,18 @@ export async function fetchInvestorPositionsWithTotals(investorId: string): Prom
 export async function fetchActivePositions(investorId: string): Promise<InvestorPosition[]> {
   const { data: positions, error } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       fund_id,
       current_value,
       cost_basis,
       unrealized_pnl,
       funds!fk_investor_positions_fund(name, code, asset)
-    `)
+    `
+    )
     .eq("investor_id", investorId)
-    .gt("current_value", 0);
+    .gt("current_value", 0)
+    .limit(100);
 
   if (error) throw error;
 

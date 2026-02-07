@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { getTodayString } from "@/utils/dateUtils";
+import { parseFinancial } from "@/utils/financial";
 
 export interface IntegrityIssue {
   type:
@@ -162,7 +163,8 @@ export const dataIntegrityService = {
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
-      .eq("is_admin", false);
+      .eq("is_admin", false)
+      .limit(1000);
 
     if (profiles) {
       profiles.forEach(
@@ -184,7 +186,8 @@ export const dataIntegrityService = {
       .from("transactions_v2")
       .select("id, investor_id, tx_date, amount")
       .eq("is_voided", false)
-      .gt("tx_date", getTodayString());
+      .gt("tx_date", getTodayString())
+      .limit(1000);
 
     if (transactions) {
       futureTransactions.push(...transactions);
@@ -195,7 +198,8 @@ export const dataIntegrityService = {
       .from("transactions_v2")
       .select("id, investor_id, asset, amount")
       .eq("is_voided", false)
-      .eq("amount", 0);
+      .eq("amount", 0)
+      .limit(1000);
 
     if (zeroTx) {
       zeroAmountTransactions.push(...zeroTx);
@@ -218,7 +222,8 @@ export const dataIntegrityService = {
       // Query positions and check if investor exists
       const { data: positions } = await supabase
         .from("investor_positions")
-        .select("investor_id, fund_id, current_value");
+        .select("investor_id, fund_id, current_value")
+        .limit(1000);
 
       if (positions && positions.length > 0) {
         // Check each position's investor exists
@@ -259,7 +264,8 @@ export const dataIntegrityService = {
       .from("profiles")
       .select("id, first_name, last_name")
       .eq("is_admin", false)
-      .or("email.is.null,email.eq.");
+      .or("email.is.null,email.eq.")
+      .limit(1000);
 
     if (profilesNoEmail && profilesNoEmail.length > 0) {
       profilesNoEmail.forEach((p: any) => {
@@ -277,7 +283,8 @@ export const dataIntegrityService = {
     const { data: positionsNoFund } = await supabase
       .from("investor_positions")
       .select("*")
-      .is("fund_id", null);
+      .is("fund_id", null)
+      .limit(1000);
 
     if (positionsNoFund && positionsNoFund.length > 0) {
       positionsNoFund.forEach((pos: any) => {
@@ -304,7 +311,8 @@ export const dataIntegrityService = {
       // Check if transaction totals match position cost basis
       const { data: positions } = await supabase
         .from("investor_positions")
-        .select("investor_id, fund_id, cost_basis");
+        .select("investor_id, fund_id, cost_basis")
+        .limit(1000);
 
       if (positions) {
         for (const position of positions) {
@@ -315,7 +323,8 @@ export const dataIntegrityService = {
             .eq("investor_id", position.investor_id)
             .eq("fund_id", position.fund_id)
             .eq("is_voided", false)
-            .eq("type", "DEPOSIT");
+            .eq("type", "DEPOSIT")
+            .limit(500);
 
           const { data: withdrawals } = await supabase
             .from("transactions_v2")
@@ -323,13 +332,21 @@ export const dataIntegrityService = {
             .eq("investor_id", position.investor_id)
             .eq("fund_id", position.fund_id)
             .eq("is_voided", false)
-            .eq("type", "WITHDRAWAL");
+            .eq("type", "WITHDRAWAL")
+            .limit(500);
 
-          const totalDeposits = deposits?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
+          const totalDeposits =
+            deposits
+              ?.reduce((sum, tx) => sum.plus(parseFinancial(tx.amount)), parseFinancial(0))
+              .toNumber() || 0;
           const totalWithdrawals =
-            withdrawals?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
-          const totalInvested = totalDeposits - totalWithdrawals;
-          const costBasis = Number(position.cost_basis || 0);
+            withdrawals
+              ?.reduce((sum, tx) => sum.plus(parseFinancial(tx.amount)), parseFinancial(0))
+              .toNumber() || 0;
+          const totalInvested = parseFinancial(totalDeposits)
+            .minus(parseFinancial(totalWithdrawals))
+            .toNumber();
+          const costBasis = parseFinancial(position.cost_basis).toNumber();
 
           // Allow for small rounding differences (< $1)
           if (Math.abs(totalInvested - costBasis) > 1) {

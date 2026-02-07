@@ -45,10 +45,10 @@ export async function fetchAdminStats(): Promise<AdminStats> {
       supabase.from("funds").select("id", { count: "exact", head: true }).eq("status", "active"),
 
       // All non-admin profiles
-      supabase.from("profiles").select("id, status").eq("is_admin", false),
+      supabase.from("profiles").select("id, status").eq("is_admin", false).limit(500),
 
       // All investor positions
-      supabase.from("investor_positions").select("investor_id, current_value"),
+      supabase.from("investor_positions").select("investor_id, current_value").limit(500),
 
       // Pending withdrawals
       supabase

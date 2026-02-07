@@ -14,6 +14,7 @@ import type {
 import { logError } from "@/lib/logger";
 import { rpc } from "@/lib/rpc/index";
 import { generateUUID } from "@/lib/utils";
+import { parseFinancial } from "@/utils/financial";
 // Note: CreateTransactionParams should be imported from @/types/domains/transaction
 // (exported as CreateTransactionUIParams there)
 
@@ -134,9 +135,13 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
       const txType = (tx.txn_type || tx.type || "").toUpperCase();
 
       if (txType === "DEPOSIT") {
-        summary.totalDeposits += Number(tx.amount);
+        summary.totalDeposits = parseFinancial(summary.totalDeposits)
+          .plus(parseFinancial(tx.amount))
+          .toNumber();
       } else if (txType === "WITHDRAWAL") {
-        summary.totalWithdrawals += Number(tx.amount);
+        summary.totalWithdrawals = parseFinancial(summary.totalWithdrawals)
+          .plus(parseFinancial(tx.amount))
+          .toNumber();
       }
     });
 

@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateForDB } from "@/utils/dateUtils";
+import { parseFinancial } from "@/utils/financial";
 
 export interface InvestorYieldEvent {
   id: string;
@@ -56,7 +57,8 @@ export async function getInvestorVisibleYield(
 ): Promise<InvestorYieldEvent[]> {
   let query = supabase
     .from("investor_yield_events")
-    .select(`
+    .select(
+      `
       id,
       investor_id,
       fund_id,
@@ -75,7 +77,8 @@ export async function getInvestorVisibleYield(
       made_visible_at,
       created_at,
       fund:funds(name, asset, code)
-    `)
+    `
+    )
     .eq("investor_id", investorId)
     .eq("visibility_scope", "investor_visible")
     .eq("is_voided", false)
@@ -88,14 +91,10 @@ export async function getInvestorVisibleYield(
   if (options?.year && options?.month) {
     const start = new Date(options.year, options.month - 1, 1);
     const end = new Date(options.year, options.month, 0);
-    query = query
-      .gte("event_date", formatDateForDB(start))
-      .lte("event_date", formatDateForDB(end));
+    query = query.gte("event_date", formatDateForDB(start)).lte("event_date", formatDateForDB(end));
   }
 
-  if (options?.limit) {
-    query = query.limit(options.limit);
-  }
+  query = query.limit(options?.limit || 500);
 
   const { data, error } = await query;
 
@@ -113,23 +112,24 @@ export async function getInvestorYieldSummaryByFund(
 ): Promise<InvestorYieldSummary[]> {
   let query = supabase
     .from("investor_yield_events")
-    .select(`
+    .select(
+      `
       fund_id,
       gross_yield_amount,
       fee_amount,
       net_yield_amount,
       fund:funds(name, asset)
-    `)
+    `
+    )
     .eq("investor_id", investorId)
     .eq("visibility_scope", "investor_visible")
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .limit(500);
 
   if (year && month) {
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0);
-    query = query
-      .gte("event_date", formatDateForDB(start))
-      .lte("event_date", formatDateForDB(end));
+    query = query.gte("event_date", formatDateForDB(start)).lte("event_date", formatDateForDB(end));
   }
 
   const { data, error } = await query;
@@ -142,20 +142,26 @@ export async function getInvestorYieldSummaryByFund(
   for (const row of data || []) {
     const fundData = row.fund as { name: string; asset: string } | null;
     const existing = byFund.get(row.fund_id);
-    
+
     if (existing) {
-      existing.totalGrossYield += Number(row.gross_yield_amount);
-      existing.totalFees += Number(row.fee_amount);
-      existing.totalNetYield += Number(row.net_yield_amount);
+      existing.totalGrossYield = parseFinancial(existing.totalGrossYield)
+        .plus(parseFinancial(row.gross_yield_amount))
+        .toNumber();
+      existing.totalFees = parseFinancial(existing.totalFees)
+        .plus(parseFinancial(row.fee_amount))
+        .toNumber();
+      existing.totalNetYield = parseFinancial(existing.totalNetYield)
+        .plus(parseFinancial(row.net_yield_amount))
+        .toNumber();
       existing.eventCount += 1;
     } else {
       byFund.set(row.fund_id, {
         fundId: row.fund_id,
         fundName: fundData?.name || "Unknown",
         fundAsset: fundData?.asset || "USD",
-        totalGrossYield: Number(row.gross_yield_amount),
-        totalFees: Number(row.fee_amount),
-        totalNetYield: Number(row.net_yield_amount),
+        totalGrossYield: parseFinancial(row.gross_yield_amount).toNumber(),
+        totalFees: parseFinancial(row.fee_amount).toNumber(),
+        totalNetYield: parseFinancial(row.net_yield_amount).toNumber(),
         eventCount: 1,
       });
     }
@@ -167,9 +173,7 @@ export async function getInvestorYieldSummaryByFund(
 /**
  * Get cumulative yield earned for an investor across all funds
  */
-export async function getInvestorCumulativeYield(
-  investorId: string
-): Promise<{
+export async function getInvestorCumulativeYield(investorId: string): Promise<{
   totalGrossYield: number;
   totalFees: number;
   totalNetYield: number;
@@ -180,16 +184,23 @@ export async function getInvestorCumulativeYield(
     .select("gross_yield_amount, fee_amount, net_yield_amount")
     .eq("investor_id", investorId)
     .eq("visibility_scope", "investor_visible")
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .limit(500);
 
   if (error) throw error;
 
   const events = data || [];
-  
+
   return {
-    totalGrossYield: events.reduce((sum, e) => sum + Number(e.gross_yield_amount), 0),
-    totalFees: events.reduce((sum, e) => sum + Number(e.fee_amount), 0),
-    totalNetYield: events.reduce((sum, e) => sum + Number(e.net_yield_amount), 0),
+    totalGrossYield: events
+      .reduce((sum, e) => sum.plus(parseFinancial(e.gross_yield_amount)), parseFinancial(0))
+      .toNumber(),
+    totalFees: events
+      .reduce((sum, e) => sum.plus(parseFinancial(e.fee_amount)), parseFinancial(0))
+      .toNumber(),
+    totalNetYield: events
+      .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), parseFinancial(0))
+      .toNumber(),
     eventCount: events.length,
   };
 }

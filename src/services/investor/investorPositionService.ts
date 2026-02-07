@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 // ============================================
 // Types
@@ -128,14 +129,17 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     `
     )
     .eq("investor_id", investorId)
-    .gt("shares", 0);
+    .gt("shares", 0)
+    .limit(100);
 
   if (error) {
     logError("investorPosition.getInvestorPositions", error, { investorId });
     throw error;
   }
 
-  const totalValue = (fundPositions || []).reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+  const totalValue = (fundPositions || [])
+    .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
+    .toNumber();
 
   return (fundPositions || []).map((fp: any) => ({
     fundId: fp.fund_id,
@@ -167,7 +171,8 @@ export async function getUserPositions(userId: string): Promise<InvestorPosition
 export async function fetchInvestorPositions(investorId: string): Promise<InvestorPositionRow[]> {
   const { data, error } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       investor_id,
       fund_id,
       shares,
@@ -177,9 +182,11 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
       fund_class,
       updated_at,
       funds!fk_investor_positions_fund ( id, name, asset )
-    `)
+    `
+    )
     .eq("investor_id", investorId)
-    .or("current_value.neq.0,cost_basis.neq.0,shares.neq.0");
+    .or("current_value.neq.0,cost_basis.neq.0,shares.neq.0")
+    .limit(100);
 
   if (error) throw error;
   return (data as InvestorPositionRow[]) || [];
@@ -193,27 +200,33 @@ export async function getTotalAUM(): Promise<number> {
   const { data, error } = await supabase
     .from("investor_positions")
     .select("current_value, investor_id")
-    .gt("current_value", 0);
+    .gt("current_value", 0)
+    .limit(500);
 
   if (error) throw error;
 
   // Fetch investor profiles to filter by account_type
-  const investorIds = [...new Set(data?.map(p => p.investor_id) || [])];
+  const investorIds = [...new Set(data?.map((p) => p.investor_id) || [])];
   if (investorIds.length === 0) return 0;
 
   const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id, account_type")
     .in("id", investorIds)
-    .eq("account_type", "investor");
+    .eq("account_type", "investor")
+    .limit(500);
 
   if (profileError) throw profileError;
 
-  const investorSet = new Set(profiles?.map(p => p.id) || []);
+  const investorSet = new Set(profiles?.map((p) => p.id) || []);
 
   // Only sum positions for investor account types
-  return data?.filter(pos => investorSet.has(pos.investor_id))
-    .reduce((sum, pos) => sum + Number(pos.current_value), 0) || 0;
+  return (
+    data
+      ?.filter((pos) => investorSet.has(pos.investor_id))
+      .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
+      .toNumber() || 0
+  );
 }
 
 /**
@@ -223,19 +236,21 @@ export async function getActiveInvestorCount(): Promise<number> {
   const { data, error } = await supabase
     .from("investor_positions")
     .select("investor_id")
-    .gt("current_value", 0);
+    .gt("current_value", 0)
+    .limit(500);
 
   if (error) throw error;
 
   // Fetch profiles to filter by account_type = 'investor'
-  const investorIds = [...new Set(data?.map(p => p.investor_id) || [])];
+  const investorIds = [...new Set(data?.map((p) => p.investor_id) || [])];
   if (investorIds.length === 0) return 0;
 
   const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id")
     .in("id", investorIds)
-    .eq("account_type", "investor");
+    .eq("account_type", "investor")
+    .limit(500);
 
   if (profileError) throw profileError;
 
@@ -250,46 +265,50 @@ export async function getActiveInvestorCount(): Promise<number> {
  * Fetch all investors for dropdown selectors
  * Returns non-admin profiles with basic info
  */
-export async function fetchInvestorsForSelector(includeSystemAccounts = true): Promise<InvestorSelectorItem[]> {
+export async function fetchInvestorsForSelector(
+  includeSystemAccounts = true
+): Promise<InvestorSelectorItem[]> {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, email, first_name, last_name, account_type")
     .eq("is_admin", false)
-    .order("email");
+    .order("email")
+    .limit(100);
 
   if (error) throw error;
 
   return (data || [])
-    .filter(p => {
-      if (p.account_type !== 'fees_account') return true;
+    .filter((p) => {
+      if (p.account_type !== "fees_account") return true;
       return includeSystemAccounts;
     })
     .map((p) => ({
       id: p.id,
       email: p.email || "",
-      displayName: p.first_name && p.last_name 
-        ? `${p.first_name} ${p.last_name}` 
-        : p.email || p.id,
-      isSystemAccount: p.account_type === 'fees_account',
+      displayName: p.first_name && p.last_name ? `${p.first_name} ${p.last_name}` : p.email || p.id,
+      isSystemAccount: p.account_type === "fees_account",
     }));
 }
 
 /**
  * Fetch all non-admin investors
  */
-export async function fetchInvestors(): Promise<{
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  created_at: string;
-  fee_percentage?: number;
-  portfolio_summary?: Record<string, { balance: number; usd_value: number }>;
-}[]> {
+export async function fetchInvestors(): Promise<
+  {
+    id: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    created_at: string;
+    fee_percentage?: number;
+    portfolio_summary?: Record<string, { balance: number; usd_value: number }>;
+  }[]
+> {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, email, first_name, last_name, created_at, fee_pct")
-    .eq("is_admin", false);
+    .eq("is_admin", false)
+    .limit(500);
 
   if (error) throw new Error(`Failed to fetch investors: ${error.message}`);
 
@@ -307,17 +326,20 @@ export async function fetchInvestors(): Promise<{
 /**
  * Fetch pending invites
  */
-export async function fetchPendingInvites(): Promise<{
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  created_at: string;
-}[]> {
+export async function fetchPendingInvites(): Promise<
+  {
+    id: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    created_at: string;
+  }[]
+> {
   const { data, error } = await supabase
     .from("admin_invites")
     .select("email, created_at")
-    .eq("used", false);
+    .eq("used", false)
+    .limit(500);
 
   if (error) {
     logError("investorPosition.fetchPendingInvites", error);
@@ -348,7 +370,8 @@ export async function getAllInvestorsExpertSummary(): Promise<ExpertInvestor[]> 
 
   const { data: positions } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       investor_id,
       fund_id,
       fund_class,
@@ -365,7 +388,8 @@ export async function getAllInvestorsExpertSummary(): Promise<ExpertInvestor[]> 
         asset,
         fund_class
       )
-    `)
+    `
+    )
     .limit(2000);
 
   const posByInvestor = new Map<string, ExpertPosition[]>();
@@ -396,7 +420,8 @@ export async function getInvestorExpertView(investorId: string): Promise<ExpertI
 
   const { data: positions } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       investor_id,
       fund_id,
       fund_class,
@@ -413,8 +438,10 @@ export async function getInvestorExpertView(investorId: string): Promise<ExpertI
         asset,
         fund_class
       )
-    `)
-    .eq("investor_id", investorId);
+    `
+    )
+    .eq("investor_id", investorId)
+    .limit(100);
 
   return {
     id: profile.id,
@@ -451,16 +478,21 @@ export async function updatePositionValue(
  * NOTE: Only includes account_type='investor' with shares > 0
  * to match the RPC `get_funds_with_aum` filter pattern
  */
-export async function getPositionsByFund(fundId: string): Promise<(InvestorPositionDetail & { investorId: string })[]> {
+export async function getPositionsByFund(
+  fundId: string
+): Promise<(InvestorPositionDetail & { investorId: string })[]> {
   const { data, error } = await supabase
     .from("investor_positions")
-    .select(`
+    .select(
+      `
       investor_id, fund_id, fund_class, shares, cost_basis, current_value,
       unrealized_pnl, realized_pnl, last_transaction_date, updated_at,
       funds (name, code, asset, fund_class)
-    `)
+    `
+    )
     .eq("fund_id", fundId)
-    .gt("shares", 0);
+    .gt("shares", 0)
+    .limit(500);
 
   if (error) {
     logError("investorPosition.getPositionsByFund", error, { fundId });
@@ -475,7 +507,8 @@ export async function getPositionsByFund(fundId: string): Promise<(InvestorPosit
     .from("profiles")
     .select("id, account_type")
     .in("id", investorIds)
-    .eq("account_type", "investor");
+    .eq("account_type", "investor")
+    .limit(500);
 
   if (profileError) {
     logError("investorPosition.getPositionsByFund.profiles", profileError, { fundId });
@@ -486,7 +519,9 @@ export async function getPositionsByFund(fundId: string): Promise<(InvestorPosit
 
   // Filter to investor accounts only
   const investorPositions = (data || []).filter((pos) => investorSet.has(pos.investor_id));
-  const totalValue = investorPositions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+  const totalValue = investorPositions
+    .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
+    .toNumber();
 
   return investorPositions.map((fp: any) => ({
     fundId: fp.fund_id,
@@ -509,7 +544,9 @@ export async function getPositionsByFund(fundId: string): Promise<(InvestorPosit
  * Check if current user is admin
  */
 export async function checkAdminStatus(): Promise<{ isAdmin: boolean | null }> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { isAdmin: false };
 
   const { data: profileData, error } = await supabase

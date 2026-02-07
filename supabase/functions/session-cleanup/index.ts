@@ -5,14 +5,12 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -23,9 +21,9 @@ Deno.serve(async (req) => {
     // Allow service role key as fallback
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!authHeader?.includes(serviceKey || "")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
-        status: 401, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
   }
@@ -81,37 +79,39 @@ Deno.serve(async (req) => {
       action: "MAINTENANCE_CRON",
       entity: "system",
       entity_id: "session-cleanup",
-      new_values: { 
-        sessions_deleted: sessionsDeleted || 0, 
+      new_values: {
+        sessions_deleted: sessionsDeleted || 0,
         logs_deleted: logsDeleted || 0,
         mfa_requests_expired: mfaExpired || 0,
-        dormant_positions: dormantResult
+        dormant_positions: dormantResult,
       },
       meta: {
         executed_at: now.toISOString(),
         thresholds: {
           sessions_days: 30,
-          logs_days: 90
-        }
+          logs_days: 90,
+        },
+      },
+    });
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        sessionsDeleted: sessionsDeleted || 0,
+        logsDeleted: logsDeleted || 0,
+        mfaRequestsExpired: mfaExpired || 0,
+        executedAt: now.toISOString(),
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
-    });
-
-    return new Response(JSON.stringify({ 
-      success: true,
-      sessionsDeleted: sessionsDeleted || 0, 
-      logsDeleted: logsDeleted || 0,
-      mfaRequestsExpired: mfaExpired || 0,
-      executedAt: now.toISOString()
-    }), { 
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-    });
-
+    );
   } catch (error) {
     console.error("Maintenance cron error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    return new Response(JSON.stringify({ error: errorMessage }), { 
-      status: 500, 
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

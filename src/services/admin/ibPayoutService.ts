@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { IBAllocationWithJoins, IBProfileRef, IBFundRef } from "@/types/domains/ibAllocation";
 import { generateUUID } from "@/lib/utils";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export interface IBPayoutDashboard {
   totalCommissionByAsset: Record<string, number>;
@@ -107,15 +108,19 @@ class IBPayoutService {
     for (const alloc of typed) {
       const fund = alloc.funds as IBFundRef | null;
       const asset = fund?.asset || "UNKNOWN";
-      const amount = Number(alloc.ib_fee_amount);
+      const amount = parseFinancial(alloc.ib_fee_amount);
       const ibProfile = alloc.ib_profile as IBProfileRef | null;
 
       // Totals by asset
-      totalByAsset[asset] = (totalByAsset[asset] || 0) + amount;
+      totalByAsset[asset] = parseFinancial(totalByAsset[asset] || 0)
+        .plus(amount)
+        .toNumber();
 
       // MTD by asset
       if (new Date(alloc.effective_date) >= mtdStart) {
-        mtdByAsset[asset] = (mtdByAsset[asset] || 0) + amount;
+        mtdByAsset[asset] = parseFinancial(mtdByAsset[asset] || 0)
+          .plus(amount)
+          .toNumber();
       }
 
       // Status counts
@@ -138,7 +143,9 @@ class IBPayoutService {
       }
       const ib = ibMap.get(ibId)!;
       ib.sourceInvestors.add(alloc.source_investor_id);
-      ib.commissionByAsset[asset] = (ib.commissionByAsset[asset] || 0) + amount;
+      ib.commissionByAsset[asset] = parseFinancial(ib.commissionByAsset[asset] || 0)
+        .plus(amount)
+        .toNumber();
       if (alloc.paid_at && (!ib.latestPayoutDate || alloc.paid_at > ib.latestPayoutDate)) {
         ib.latestPayoutDate = alloc.paid_at;
       }
@@ -238,7 +245,7 @@ class IBPayoutService {
         sourceInvestorName: sourceName,
         fundName: fund?.name || "Unknown",
         asset: fund?.asset || "UNKNOWN",
-        ibFeeAmount: Number(alloc.ib_fee_amount),
+        ibFeeAmount: parseFinancial(alloc.ib_fee_amount).toNumber(),
         effectiveDate: alloc.effective_date,
         periodStart: alloc.period_start,
         periodEnd: alloc.period_end,
