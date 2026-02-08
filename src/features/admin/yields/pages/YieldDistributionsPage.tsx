@@ -1,10 +1,12 @@
 /**
  * Yield Distributions Admin Page
  * Monthly distribution overview with per-investor ADB + allocation breakdown
+ * Features: void distribution, export, reconciliation checks
  */
 
-import { useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { format } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
 import { AdminGuard } from "@/components/admin";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useYieldDistributionsPage } from "@/features/admin/yields/hooks/useYieldDistributionsPage";
@@ -13,6 +15,12 @@ import type {
   DistributionRow,
 } from "@/services/admin/yieldDistributionsPageService";
 import { FinancialValue } from "@/components/common/FinancialValue";
+import { ExportButton } from "@/components/common/ExportButton";
+import { LastUpdated } from "@/components/common/LastUpdated";
+import { VoidDistributionDialog } from "@/features/admin/yields/components/VoidDistributionDialog";
+import { voidYieldDistribution } from "@/services/admin/yieldManagementService";
+import { formatAssetValue, formatPercentage } from "@/utils/formatters";
+import type { ExportColumn } from "@/lib/export/csv-export";
 import {
   Accordion,
   AccordionContent,
@@ -39,8 +47,9 @@ import {
   TableRow,
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { formatPercentage } from "@/utils/formatters";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface Fund {
   id: string;
@@ -54,6 +63,19 @@ function formatInvestorName(profile?: InvestorProfile | null): string {
   const full = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
   return full || profile.email || "Unknown";
 }
+
+const distributionExportColumns: ExportColumn[] = [
+  { key: "fund_name", label: "Fund" },
+  { key: "purpose", label: "Purpose" },
+  { key: "period_end", label: "Period End" },
+  { key: "effective_date", label: "Applied At" },
+  { key: "gross_yield", label: "Gross Yield" },
+  { key: "net_yield", label: "Net Yield" },
+  { key: "total_fees", label: "Total Fees" },
+  { key: "total_ib", label: "Total IB" },
+  { key: "recorded_aum", label: "Recorded AUM" },
+  { key: "allocation_count", label: "Investors" },
+];
 
 function YieldDistributionsContent() {
   const { data: fundsData = [] } = useFunds(true);
@@ -75,10 +97,17 @@ function YieldDistributionsContent() {
 
   const selectedFundId = urlFilters.fundId || "all";
   const selectedMonth = urlFilters.month || "";
+  const [showVoided, setShowVoided] = useState(false);
 
-  const { data, isLoading: loading } = useYieldDistributionsPage({
+  const {
+    data,
+    isLoading: loading,
+    dataUpdatedAt,
+    refetch,
+  } = useYieldDistributionsPage({
     fundId: selectedFundId,
     month: selectedMonth,
+    includeVoided: showVoided,
   });
 
   const distributions = data?.distributions ?? [];
@@ -88,6 +117,71 @@ function YieldDistributionsContent() {
   const fundMap = useMemo(() => new Map(funds.map((fund) => [fund.id, fund])), [funds]);
 
   const totalDistributions = distributions.length;
+
+  // Void dialog state
+  const [voidTarget, setVoidTarget] = useState<{
+    id: string;
+    fund_name: string;
+    fund_asset: string;
+    gross_yield: number;
+    net_yield: number;
+    total_fees: number;
+    total_ib: number;
+    purpose: string;
+    effective_date: string;
+    period_end?: string;
+  } | null>(null);
+  const [voidPending, setVoidPending] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const handleVoidOpen = useCallback(
+    (distribution: DistributionRow) => {
+      const fund = fundMap.get(distribution.fund_id);
+      setVoidTarget({
+        id: distribution.id,
+        fund_name: fund?.name || "Unknown",
+        fund_asset: fund?.asset || "",
+        gross_yield: distribution.gross_yield,
+        net_yield: distribution.net_yield || 0,
+        total_fees: distribution.total_fees || 0,
+        total_ib: distribution.total_ib || 0,
+        purpose: distribution.purpose,
+        effective_date: distribution.effective_date,
+        period_end: distribution.period_end,
+      });
+    },
+    [fundMap]
+  );
+
+  const handleVoidConfirm = useCallback(
+    async (distributionId: string, reason: string) => {
+      setVoidPending(true);
+      try {
+        await voidYieldDistribution(distributionId, reason);
+        toast({ title: "Distribution voided successfully" });
+        setVoidTarget(null);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+      } catch (err) {
+        toast({
+          title: "Failed to void distribution",
+          description: err instanceof Error ? err.message : "Unknown error",
+          variant: "destructive",
+        });
+      } finally {
+        setVoidPending(false);
+      }
+    },
+    [queryClient, toast]
+  );
+
+  // Export data enriched with fund names
+  const exportData = useMemo(() => {
+    return distributions.map((d) => {
+      const fund = fundMap.get(d.fund_id);
+      return { ...d, fund_name: fund?.name || d.fund_id };
+    });
+  }, [distributions, fundMap]);
 
   const groupedDistributions = useMemo(() => {
     const grouped: Record<string, Record<string, Record<string, DistributionRow[]>>> = {};
@@ -110,11 +204,26 @@ function YieldDistributionsContent() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-display font-bold tracking-tight">Yield Distributions</h1>
-        <p className="text-muted-foreground mt-1">
-          Monthly distribution ledger with per-investor ADB ownership and allocation math.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-display font-bold tracking-tight">Yield Distributions</h1>
+          <p className="text-muted-foreground mt-1">
+            Monthly distribution ledger with per-investor ADB ownership and allocation math.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <LastUpdated
+            timestamp={dataUpdatedAt}
+            onRefresh={() => refetch()}
+            isRefreshing={loading}
+          />
+          <ExportButton
+            data={exportData}
+            columns={distributionExportColumns}
+            filename="yield_distributions"
+            disabled={loading}
+          />
+        </div>
       </div>
 
       <Card>
@@ -148,10 +257,19 @@ function YieldDistributionsContent() {
             />
           </div>
 
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-4">
             <Button variant="outline" onClick={clearFilters} disabled={loading}>
               Clear
             </Button>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showVoided}
+                onChange={(e) => setShowVoided(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              Show voided
+            </label>
           </div>
 
           <div className="flex items-end">
@@ -260,15 +378,32 @@ function YieldDistributionsContent() {
                                               }
                                             >
                                               {distribution.purpose === "reporting"
-                                                ? "🟢 Reporting"
-                                                : "🟠 Transaction"}
+                                                ? "Reporting"
+                                                : "Transaction"}
                                             </Badge>
+                                            {distribution.is_voided && (
+                                              <Badge
+                                                variant="destructive"
+                                                className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                              >
+                                                Voided
+                                              </Badge>
+                                            )}
                                             <span className="text-xs text-muted-foreground">
                                               {format(
                                                 new Date(distribution.effective_date),
                                                 "MMM d, yyyy HH:mm"
                                               )}
                                             </span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+                                              onClick={() => handleVoidOpen(distribution)}
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-1" />
+                                              Void
+                                            </Button>
                                           </div>
                                         </CardTitle>
                                       </CardHeader>
@@ -360,7 +495,9 @@ function YieldDistributionsContent() {
                                                 <span className="text-muted-foreground">
                                                   Total ADB
                                                 </span>
-                                                <span>{totalAdb.toFixed(6)}</span>
+                                                <span>
+                                                  {formatAssetValue(totalAdb, fund?.asset || "")}
+                                                </span>
                                               </div>
                                             </CardContent>
                                           </Card>
@@ -373,7 +510,7 @@ function YieldDistributionsContent() {
                                             </CardHeader>
                                             <CardContent className="overflow-auto">
                                               <Table>
-                                                <TableHeader>
+                                                <TableHeader className="sticky top-0 bg-card z-10">
                                                   <TableRow>
                                                     <TableHead>Investor</TableHead>
                                                     <TableHead className="text-right">
@@ -416,7 +553,10 @@ function YieldDistributionsContent() {
                                                           </div>
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                          {(allocation.adb_share || 0).toFixed(6)}
+                                                          {formatAssetValue(
+                                                            allocation.adb_share || 0,
+                                                            fund?.asset || ""
+                                                          )}
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                           {formatPercentage(
@@ -491,6 +631,16 @@ function YieldDistributionsContent() {
           </AccordionItem>
         ))}
       </Accordion>
+
+      <VoidDistributionDialog
+        distribution={voidTarget}
+        open={voidTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setVoidTarget(null);
+        }}
+        onConfirm={handleVoidConfirm}
+        isPending={voidPending}
+      />
     </div>
   );
 }

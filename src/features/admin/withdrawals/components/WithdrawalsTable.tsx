@@ -37,7 +37,9 @@ import {
   Calendar,
   User,
   Coins,
+  AlertTriangle,
 } from "lucide-react";
+import { differenceInDays } from "date-fns";
 import { format } from "date-fns";
 
 interface Fund {
@@ -291,15 +293,46 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
     },
     {
       header: "Status",
-      cell: (w) => (
-        <Badge variant="outline" className={statusColors[w.status]}>
-          {w.status}
-        </Badge>
-      ),
+      cell: (w) => {
+        const ageDays =
+          w.status === "pending" ? differenceInDays(new Date(), new Date(w.request_date)) : 0;
+        return (
+          <div className="flex items-center gap-1.5">
+            <Badge variant="outline" className={statusColors[w.status]}>
+              {w.status}
+            </Badge>
+            {ageDays > 7 && (
+              <span className="relative flex h-2.5 w-2.5" title={`Pending ${ageDays} days`}>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+              </span>
+            )}
+            {ageDays >= 3 && ageDays <= 7 && (
+              <span title={`Pending ${ageDays} days`}>
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       header: "Request Date",
-      cell: (w) => format(new Date(w.request_date), "MMM dd, yyyy"),
+      cell: (w) => {
+        const ageDays = differenceInDays(new Date(), new Date(w.request_date));
+        return (
+          <div>
+            <span>{format(new Date(w.request_date), "MMM dd, yyyy")}</span>
+            {w.status === "pending" && ageDays > 0 && (
+              <span
+                className={`block text-xs ${ageDays > 7 ? "text-red-500 font-medium" : ageDays >= 3 ? "text-amber-500" : "text-muted-foreground"}`}
+              >
+                {ageDays}d ago
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       header: "Notes",
@@ -307,7 +340,32 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
     },
     {
       header: "Actions",
-      cell: (w) => renderActionsDropdown(w),
+      cell: (w) => (
+        <div className="flex items-center justify-end gap-1">
+          {w.status === "pending" && onApprove && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+              onClick={() => onApprove(w)}
+            >
+              <CheckCircle className="h-3.5 w-3.5 mr-1" />
+              Approve
+            </Button>
+          )}
+          {w.status === "pending" && onReject && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={() => onReject(w)}
+            >
+              <XCircle className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {renderActionsDropdown(w)}
+        </div>
+      ),
       className: "text-right",
     },
   ];

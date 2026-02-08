@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Badge,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -8,8 +10,11 @@ import {
   TableHeader,
   TableRow,
   SortableTableHead,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui";
-import { User, Users } from "lucide-react";
+import { User, Users, ExternalLink, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { EnrichedInvestor } from "@/hooks/data";
@@ -38,6 +43,8 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
   onSort,
   onRowClick,
 }) => {
+  const navigate = useNavigate();
+
   return (
     <Table>
       <TableHeader className="sticky top-0 bg-background z-10">
@@ -106,12 +113,13 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
           >
             IB Parent
           </SortableTableHead>
+          <TableHead className="w-[80px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {investors.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+            <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
               {hasFilters ? "No investors match your filters" : "No investors found"}
             </TableCell>
           </TableRow>
@@ -198,6 +206,39 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
                 ) : (
                   <span className="text-muted-foreground">—</span>
                 )}
+              </TableCell>
+              <TableCell className="text-right">
+                <div
+                  className="flex items-center justify-end gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => navigate(`/admin/investors/${investor.id}`)}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Open workspace</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => navigate(`/admin/transactions/new`)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>New transaction</TooltipContent>
+                  </Tooltip>
+                </div>
               </TableCell>
             </TableRow>
           ))

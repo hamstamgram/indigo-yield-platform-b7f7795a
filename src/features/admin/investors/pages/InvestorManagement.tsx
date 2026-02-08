@@ -3,7 +3,7 @@
  * Full investor workspace using unified InvestorTabs
  */
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import {
   Card,
@@ -18,7 +18,18 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Clock, FileText, ArrowDownToLine, Users, Percent } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Clock,
+  FileText,
+  ArrowDownToLine,
+  Users,
+  Percent,
+  Copy,
+  Check,
+  RefreshCw,
+} from "lucide-react";
 import { forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorTabs } from "@/components/admin";
 import { format } from "date-fns";
@@ -28,6 +39,8 @@ const InvestorManagement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Use hooks for data fetching
   const { data: investor, isLoading, refetch: refetchInvestor } = useInvestorDetail(id);
@@ -55,6 +68,38 @@ const InvestorManagement = () => {
   const handleBack = () => {
     navigate(getBackUrl());
   };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  // Track recently viewed investors in localStorage
+  useEffect(() => {
+    if (!investor || !id) return;
+    try {
+      const key = "indigo_recent_investors";
+      const stored = localStorage.getItem(key);
+      const recent: Array<{ id: string; name: string; email: string; viewedAt: string }> = stored
+        ? JSON.parse(stored)
+        : [];
+      const filtered = recent.filter((r) => r.id !== id);
+      filtered.unshift({
+        id,
+        name: investor.name,
+        email: investor.email,
+        viewedAt: new Date().toISOString(),
+      });
+      localStorage.setItem(key, JSON.stringify(filtered.slice(0, 10)));
+    } catch {
+      // localStorage may be unavailable
+    }
+  }, [id, investor]);
 
   const handleDeleteInvestor = async () => {
     if (!id) return;
@@ -130,7 +175,19 @@ const InvestorManagement = () => {
                 {investor.status}
               </Badge>
             </div>
-            <p className="text-muted-foreground">{investor.email}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-muted-foreground">{investor.email}</p>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyLink}>
+                {linkCopied ? (
+                  <Check className="h-3 w-3 text-green-500" />
+                ) : (
+                  <Copy className="h-3 w-3 text-muted-foreground" />
+                )}
+              </Button>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleRefresh}>
+                <RefreshCw className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            </div>
           </div>
         </div>
 

@@ -664,7 +664,7 @@ class IBService {
   }
 
   /**
-   * Get payout history (withdrawal requests)
+   * Get payout history (IB commission allocations)
    */
   async getPayoutHistory(
     ibId: string,
@@ -672,6 +672,8 @@ class IBService {
     pageSize: number,
     statusFilter: string = "all"
   ): Promise<PaginatedPayouts> {
+    const referralDirectory = await this.getReferralDirectory(ibId);
+
     let query = supabase
       .from("ib_allocations")
       .select(
@@ -682,11 +684,7 @@ class IBService {
         payout_status,
         paid_at,
         source_investor_id,
-        funds!inner(name, asset),
-        source_profile:profiles!ib_allocations_source_investor_id_fkey(
-          first_name,
-          last_name
-        )
+        funds!inner(name, asset)
       `,
         { count: "exact" }
       )
@@ -714,15 +712,11 @@ class IBService {
       paid_at: string | null;
       source_investor_id: string;
       funds: IBFundRef | null;
-      source_profile: { first_name: string | null; last_name: string | null } | null;
     }
 
     const payouts: Payout[] = ((allocations || []) as unknown as PayoutRow[]).map((alloc) => {
       const fund = alloc.funds;
-      const sourceProfile = alloc.source_profile;
-      const sourceName = sourceProfile
-        ? `${sourceProfile.first_name || ""} ${sourceProfile.last_name || ""}`.trim() || "Unknown"
-        : "Unknown";
+      const sourceName = referralDirectory.get(alloc.source_investor_id)?.name || "Unknown";
 
       return {
         id: alloc.id,

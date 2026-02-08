@@ -74,7 +74,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { icon: TrendingUp, label: "Portfolio Management", path: "/admin/portfolio" },
     { icon: DollarSign, label: "Withdrawals", path: "/admin/withdrawals" }, // Explicitly added for clarity, was implicitly in Admin Operations
     { icon: HelpCircle, label: "Support", path: "/admin/support" },
-    { icon: Settings, label: "Operations", path: "/admin/operations" },
+    { icon: Settings, label: "Yield Ops", path: "/admin/yield" },
   ];
 
   const menuItems = isAdmin ? adminMenuItems : investorMenuItems;

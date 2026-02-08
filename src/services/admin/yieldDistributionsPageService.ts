@@ -9,6 +9,7 @@ import { logError } from "@/lib/logger";
 export interface YieldDistributionsFilters {
   fundId: string; // "all" or a uuid
   month: string; // "YYYY-MM" or ""
+  includeVoided?: boolean;
 }
 
 export type DistributionRow = {
@@ -84,9 +85,12 @@ export async function fetchYieldDistributionsPageData(
         summary_json
       `
       )
-      .eq("is_voided", false)
       .order("effective_date", { ascending: false })
       .limit(120);
+
+    if (!filters.includeVoided) {
+      query = query.eq("is_voided", false);
+    }
 
     if (filters.fundId !== "all") {
       query = query.eq("fund_id", filters.fundId);

@@ -12,7 +12,6 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   Button,
-  Input,
   Label,
   Badge,
   Checkbox,
@@ -164,17 +163,20 @@ export function YieldConfirmDialog({
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="confirm-text">
-                  Type <span className="font-mono font-bold">APPLY</span> to confirm:
-                </Label>
-                <Input
-                  id="confirm-text"
-                  value={confirmationText}
-                  onChange={(e) => setConfirmationText(e.target.value.toUpperCase())}
-                  placeholder="APPLY"
-                  className="font-mono"
+              <div className="flex items-start space-x-2 pt-2">
+                <Checkbox
+                  id="confirm-distribution"
+                  checked={confirmationText === "APPLY"}
+                  onCheckedChange={(checked) =>
+                    setConfirmationText(checked === true ? "APPLY" : "")
+                  }
                 />
+                <label
+                  htmlFor="confirm-distribution"
+                  className="text-sm leading-tight cursor-pointer"
+                >
+                  I confirm this yield distribution is accurate and ready to apply
+                </label>
               </div>
             </div>
           </AlertDialogDescription>

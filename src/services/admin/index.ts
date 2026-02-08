@@ -167,11 +167,6 @@ export {
 export { adminTransactionHistoryService } from "./adminTransactionHistoryService";
 
 // =============================================================================
-// BULK OPERATIONS
-// =============================================================================
-export * from "./bulkOperationsService";
-
-// =============================================================================
 // REPORTS & STATEMENTS
 // =============================================================================
 export * from "./reportQueryService";
@@ -206,13 +201,6 @@ export {
 export { requestsQueueService } from "./requestsQueueService";
 export * from "./systemAdminService";
 export * from "./emailTrackingService";
-
-export {
-  getRecentAuditLogs,
-  setupOperationsRealtimeChannel,
-  removeOperationsChannel,
-  type AuditLogEntry as OperationsAuditLogEntry,
-} from "./operationsHubService";
 
 export { approvalService, type ApprovalResponse } from "./approvalService";
 export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";

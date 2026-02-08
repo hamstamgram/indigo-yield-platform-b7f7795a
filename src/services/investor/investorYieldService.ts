@@ -170,18 +170,28 @@ export async function getInvestorYieldSummaryByFund(
   return Array.from(byFund.values());
 }
 
-/**
- * Get cumulative yield earned for an investor across all funds
- */
-export async function getInvestorCumulativeYield(investorId: string): Promise<{
-  totalGrossYield: number;
-  totalFees: number;
+export interface CumulativeYieldByFund {
+  fundId: string;
+  fundName: string;
+  fundAsset: string;
   totalNetYield: number;
+}
+
+export interface CumulativeYieldResult {
+  byFund: CumulativeYieldByFund[];
   eventCount: number;
-}> {
+}
+
+/**
+ * Get cumulative yield earned for an investor, grouped by fund
+ * Prevents cross-currency summing (e.g. BTC + USDT)
+ */
+export async function getInvestorCumulativeYield(
+  investorId: string
+): Promise<CumulativeYieldResult> {
   const { data, error } = await supabase
     .from("investor_yield_events")
-    .select("gross_yield_amount, fee_amount, net_yield_amount")
+    .select("fund_id, net_yield_amount, fund:funds(name, asset)")
     .eq("investor_id", investorId)
     .eq("visibility_scope", "investor_visible")
     .eq("is_voided", false)
@@ -191,16 +201,26 @@ export async function getInvestorCumulativeYield(investorId: string): Promise<{
 
   const events = data || [];
 
+  const byFund = new Map<string, CumulativeYieldByFund>();
+  for (const e of events) {
+    const fundData = e.fund as { name: string; asset: string } | null;
+    const existing = byFund.get(e.fund_id);
+    if (existing) {
+      existing.totalNetYield = parseFinancial(existing.totalNetYield)
+        .plus(parseFinancial(e.net_yield_amount))
+        .toNumber();
+    } else {
+      byFund.set(e.fund_id, {
+        fundId: e.fund_id,
+        fundName: fundData?.name || "Unknown",
+        fundAsset: fundData?.asset || "USD",
+        totalNetYield: parseFinancial(e.net_yield_amount).toNumber(),
+      });
+    }
+  }
+
   return {
-    totalGrossYield: events
-      .reduce((sum, e) => sum.plus(parseFinancial(e.gross_yield_amount)), parseFinancial(0))
-      .toNumber(),
-    totalFees: events
-      .reduce((sum, e) => sum.plus(parseFinancial(e.fee_amount)), parseFinancial(0))
-      .toNumber(),
-    totalNetYield: events
-      .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), parseFinancial(0))
-      .toNumber(),
+    byFund: Array.from(byFund.values()),
     eventCount: events.length,
   };
 }

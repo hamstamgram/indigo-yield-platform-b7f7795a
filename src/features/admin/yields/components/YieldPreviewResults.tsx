@@ -214,11 +214,13 @@ export function YieldPreviewResults({
         </Card>
       )}
 
-      {/* Yield Math Explanation */}
+      {/* Yield Math Explanation (collapsible) */}
       {yieldPreview.calculationMethod === "adb_v3" && (
-        <Card className="border-slate-200 bg-white dark:bg-slate-950/20">
-          <CardContent className="p-3 space-y-2 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Crystallized Yield Math (ADB)</p>
+        <details className="border rounded-md">
+          <summary className="cursor-pointer p-3 text-sm font-medium hover:bg-muted/50">
+            Yield calculation details (ADB method)
+          </summary>
+          <div className="p-3 pt-0 space-y-2 text-sm text-muted-foreground">
             <p>
               We crystallize yield before any deposit/withdrawal because ownership changes after
               each flow. This locks the pre-flow ownership for the days already elapsed, then
@@ -226,25 +228,25 @@ export function YieldPreviewResults({
             </p>
             <div className="grid gap-1 text-xs">
               <div>
-                <span className="font-medium text-foreground">ADB share %</span> = investor ADB ÷
+                <span className="font-medium text-foreground">ADB share %</span> = investor ADB /
                 total ADB
               </div>
               <div>
-                <span className="font-medium text-foreground">Gross</span> = gross yield × ADB share
+                <span className="font-medium text-foreground">Gross</span> = gross yield x ADB share
                 %
               </div>
               <div>
-                <span className="font-medium text-foreground">Investor fee</span> = gross × fee %
+                <span className="font-medium text-foreground">Investor fee</span> = gross x fee %
               </div>
               <div>
-                <span className="font-medium text-foreground">IB commission</span> = gross × IB %
+                <span className="font-medium text-foreground">IB commission</span> = gross x IB %
               </div>
               <div>
-                <span className="font-medium text-foreground">Net</span> = gross − fee − IB
+                <span className="font-medium text-foreground">Net</span> = gross - fee - IB
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </details>
       )}
 
       {/* IB Credits Summary */}
@@ -297,32 +299,39 @@ export function YieldPreviewResults({
           onChange={(e) => setSearchInvestor(e.target.value)}
           className="w-48"
         />
-        <div className="flex items-center gap-2">
-          <Switch
-            id="show-system"
-            checked={showSystemAccounts}
-            onCheckedChange={setShowSystemAccounts}
-          />
-          <Label htmlFor="show-system" className="text-sm">
-            Show system accounts
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch
-            id="show-changed"
-            checked={showOnlyChanged}
-            onCheckedChange={setShowOnlyChanged}
-          />
-          <Label htmlFor="show-changed" className="text-sm">
-            Only new entries
-          </Label>
-        </div>
+        <details className="text-sm">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+            Advanced filters
+          </summary>
+          <div className="flex flex-wrap items-center gap-4 mt-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="show-system"
+                checked={showSystemAccounts}
+                onCheckedChange={setShowSystemAccounts}
+              />
+              <Label htmlFor="show-system" className="text-sm">
+                Show system accounts
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="show-changed"
+                checked={showOnlyChanged}
+                onCheckedChange={setShowOnlyChanged}
+              />
+              <Label htmlFor="show-changed" className="text-sm">
+                Only new entries
+              </Label>
+            </div>
+          </div>
+        </details>
       </div>
 
       {/* Investor Breakdown Table */}
       <div className="rounded-md border max-h-72 overflow-y-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 bg-card z-10">
             <TableRow>
               <TableHead>Investor</TableHead>
               {/* ADB columns */}

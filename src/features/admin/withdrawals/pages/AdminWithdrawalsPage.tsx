@@ -22,6 +22,8 @@ import {
 } from "@/components/admin";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/domains";
 import { ArrowDownToLine, Plus } from "lucide-react";
+import { ExportButton } from "@/components/common";
+import type { ExportColumn } from "@/lib/export/csv-export";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useWithdrawalsWithStats } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,6 +36,17 @@ interface Fund {
   name: string;
   asset: string;
 }
+
+const withdrawalExportColumns: ExportColumn[] = [
+  { key: "investor_name", label: "Investor" },
+  { key: "investor_email", label: "Email" },
+  { key: "requested_amount", label: "Amount" },
+  { key: "fund_class", label: "Asset" },
+  { key: "withdrawal_type", label: "Type" },
+  { key: "status", label: "Status" },
+  { key: "request_date", label: "Request Date" },
+  { key: "notes", label: "Notes" },
+];
 
 // Stable reference for URL filter options - MUST be outside component to prevent infinite re-renders
 const URL_FILTER_OPTIONS = {
@@ -215,10 +228,18 @@ function WithdrawalsPageContent() {
         subtitle="Review and process investor withdrawal requests"
         icon={ArrowDownToLine}
         actions={
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Withdrawal
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportButton
+              data={safePaginatedData.data}
+              columns={withdrawalExportColumns}
+              filename="withdrawals"
+              disabled={safePaginatedData.data.length === 0}
+            />
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Withdrawal
+            </Button>
+          </div>
         }
       />
 

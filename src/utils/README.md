@@ -11,7 +11,6 @@ This directory contains **pure utility functions** - stateless helpers that don'
 - Statement/PDF generation utilities (`statementCalculations.ts`, etc.)
 - Performance utilities (`performance/`)
 - Encryption helpers (`encryption.ts`)
-- Session management (`session-manager.ts`)
 
 ### What belongs in `src/lib/`:
 - Framework integrations (auth context, providers)

@@ -9,7 +9,6 @@ import { AdminRoute } from "../../AdminRoute";
 
 const AdminSettingsPage = lazy(() => import("@/features/admin/settings/pages/AdminSettings"));
 const AdminAuditLogs = lazy(() => import("@/features/admin/system/pages/AuditLogViewer"));
-const MaintenancePage = lazy(() => import("@/features/admin/system/pages/MaintenancePage"));
 const AdminListPage = lazy(() => import("@/features/admin/settings/pages/AdminList"));
 const AdminToolsPage = lazy(() => import("@/features/admin/settings/pages/AdminToolsPage"));
 const AdminInvitesPage = lazy(() => import("@/features/admin/settings/pages/AdminInvitesPage"));
@@ -20,8 +19,6 @@ const IntegrityDashboardPage = lazy(
 const CrystallizationDashboardPage = lazy(
   () => import("@/features/admin/yields/pages/CrystallizationDashboardPage")
 );
-const DuplicatesPage = lazy(() => import("@/features/admin/operations/pages/DuplicatesPage"));
-const BypassAttemptsPage = lazy(() => import("@/features/admin/system/pages/BypassAttemptsPage"));
 
 export function SystemRoutes() {
   return (
@@ -96,42 +93,12 @@ export function SystemRoutes() {
         }
       />
 
-      {/* P1: Duplicate Profiles */}
-      <Route
-        path="/admin/duplicates"
-        element={
-          <AdminRoute>
-            <DuplicatesPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* P1: Bypass Attempts */}
-      <Route
-        path="/admin/bypass-attempts"
-        element={
-          <AdminRoute>
-            <BypassAttemptsPage />
-          </AdminRoute>
-        }
-      />
-
       {/* Audit logs */}
       <Route
         path="/admin/audit-logs"
         element={
           <AdminRoute>
             <AdminAuditLogs />
-          </AdminRoute>
-        }
-      />
-
-      {/* Maintenance */}
-      <Route
-        path="/admin/maintenance"
-        element={
-          <AdminRoute>
-            <MaintenancePage />
           </AdminRoute>
         }
       />

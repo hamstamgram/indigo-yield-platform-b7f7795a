@@ -15,7 +15,6 @@ export * from "@/features/admin/reports/hooks/useReportRecipients";
 
 // Operations hooks
 export * from "@/features/admin/operations/hooks/useEmailTracking";
-export * from "@/features/admin/operations/hooks/useOperationsHub";
 
 // System hooks
 export * from "@/features/admin/system/hooks/useIntegrityData";

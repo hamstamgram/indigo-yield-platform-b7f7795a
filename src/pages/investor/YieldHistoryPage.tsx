@@ -36,7 +36,10 @@ import {
 } from "@/hooks/data/investor/useInvestorYield";
 import { format, getYear, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
-import type { InvestorYieldEvent } from "@/services/investor/investorYieldService";
+import type {
+  InvestorYieldEvent,
+  CumulativeYieldByFund,
+} from "@/services/investor/investorYieldService";
 
 type MonthGroup = {
   year: number;
@@ -153,10 +156,19 @@ export default function YieldHistoryPage() {
                 <p className="text-xs text-muted-foreground uppercase">Total Yield Earned</p>
                 {isLoading ? (
                   <Skeleton className="h-7 w-24" />
+                ) : (cumulative?.byFund || []).length === 0 ? (
+                  <p className="text-2xl font-mono font-bold text-muted-foreground">--</p>
                 ) : (
-                  <p className="text-2xl font-mono font-bold text-green-600">
-                    {formatValue(cumulative?.totalNetYield || 0)}
-                  </p>
+                  <div className="space-y-1">
+                    {(cumulative?.byFund || []).map((fund: CumulativeYieldByFund) => (
+                      <div key={fund.fundId} className="flex items-center gap-2">
+                        <CryptoIcon symbol={fund.fundAsset} className="h-4 w-4" />
+                        <p className="text-lg font-mono font-bold text-green-600">
+                          +{formatValue(fund.totalNetYield)} {fund.fundAsset}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
@@ -334,8 +346,7 @@ function MonthSection({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Balance</TableHead>
-                      <TableHead className="text-right">Yield %</TableHead>
+                      <TableHead>Period</TableHead>
                       <TableHead className="text-right">Yield Earned</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -343,11 +354,10 @@ function MonthSection({
                     {fg.events.map((e) => (
                       <TableRow key={e.id}>
                         <TableCell>{format(new Date(e.event_date), "MMM d")}</TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatValue(e.investor_balance, 4)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {(e.fund_yield_pct * 100).toFixed(4)}%
+                        <TableCell className="text-muted-foreground text-sm">
+                          {e.period_start && e.period_end
+                            ? `${format(new Date(e.period_start), "MMM d")} - ${format(new Date(e.period_end), "MMM d")}`
+                            : "--"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-green-600 font-semibold">
                           +{formatValue(e.net_yield_amount)}

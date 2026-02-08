@@ -40,6 +40,7 @@ import {
   type FundWithMetrics,
 } from "@/features/admin/funds/hooks/useFundsWithMetrics";
 import { cn } from "@/lib/utils";
+import { formatAssetValue } from "@/utils/formatters";
 
 type FundStatus = "active" | "inactive" | "suspended" | "deprecated";
 
@@ -130,24 +131,6 @@ function FundManagementContent() {
       restoreMutation.mutate(fund);
     }
     setConfirmDialog({ open: false, action: "archive", fund: null });
-  };
-
-  const formatAssetValue = (value: number, asset: string) => {
-    if (asset === "BTC") {
-      return value.toLocaleString("en-US", {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4,
-      });
-    } else if (asset === "ETH" || asset === "SOL") {
-      return value.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 4,
-      });
-    }
-    return value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
   };
 
   const activeFunds = funds.filter((f) => f.status === "active");

@@ -11,6 +11,7 @@ export function useYieldDistributionsPage(filters: YieldDistributionsFilters) {
     queryKey: [
       ...QUERY_KEYS.yieldDistributions(filters.fundId === "all" ? undefined : filters.fundId),
       filters.month,
+      filters.includeVoided ?? false,
     ],
     queryFn: () => fetchYieldDistributionsPageData(filters),
   });

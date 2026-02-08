@@ -21,8 +21,6 @@ export * from "./cacheInvalidation";
 export * from "./encryption";
 export * from "./sanitize";
 export * from "./security-logger";
-export * from "./session-manager";
-
 // Financial calculations - exclude formatPercentage (use formatters version)
 export {
   toDecimal,
@@ -46,7 +44,12 @@ export {
 } from "./financial";
 
 // Note: kpiCalculations exports formatAssetValue - use formatters version for number-only formatting
-export { calculateTotalAUM, calculateInvestorCount, calculateAllKPIs, type AssetKPI } from "./kpiCalculations";
+export {
+  calculateTotalAUM,
+  calculateInvestorCount,
+  calculateAllKPIs,
+  type AssetKPI,
+} from "./kpiCalculations";
 
 // Statement calculations
 export {

@@ -5,8 +5,20 @@
  */
 
 import { useState, useMemo } from "react";
-import { Button, ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui";
-import { Loader2, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui";
+import { Loader2, RefreshCw, Clock } from "lucide-react";
+import { ExportButton } from "@/components/common";
+import type { ExportColumn } from "@/lib/export/csv-export";
 import {
   AdminGuard,
   AddInvestorDialog,
@@ -17,11 +29,42 @@ import {
 import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
 import { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/data";
 
+interface RecentInvestor {
+  id: string;
+  name: string;
+  email: string;
+  viewedAt: string;
+}
+
+const investorExportColumns: ExportColumn[] = [
+  { key: "firstName", label: "First Name" },
+  { key: "lastName", label: "Last Name" },
+  { key: "email", label: "Email" },
+  { key: "id", label: "Investor ID" },
+  { key: "fundsHeldCount", label: "Funds" },
+  { key: "totalAum", label: "Total AUM" },
+  { key: "lastActivityDate", label: "Last Activity" },
+  { key: "pendingWithdrawals", label: "Pending WD" },
+  { key: "ibParentName", label: "IB Parent" },
+  { key: "createdAt", label: "Joined" },
+];
+
+function getRecentInvestors(): RecentInvestor[] {
+  try {
+    const stored = localStorage.getItem("indigo_recent_investors");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
 function UnifiedInvestorsContent() {
   const { stats } = useAdminStats();
   const { data, isLoading: loading, refetch } = useUnifiedInvestors();
+  const navigate = useNavigate();
 
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
+  const recentInvestors = useMemo(() => getRecentInvestors(), []);
 
   const investors = data?.investors || [];
   const enrichedInvestors = data?.enrichedInvestors || [];
@@ -47,12 +90,13 @@ function UnifiedInvestorsContent() {
 
   const filteredInvestors = useMemo(() => {
     return enrichedInvestors.filter((inv) => {
-      // Text search filter
+      // Text search filter (name, email, or investor ID)
       const search = searchTerm.toLowerCase();
       const matchesSearch =
         inv.firstName.toLowerCase().includes(search) ||
         inv.lastName.toLowerCase().includes(search) ||
-        inv.email.toLowerCase().includes(search);
+        inv.email.toLowerCase().includes(search) ||
+        inv.id.toLowerCase().includes(search);
 
       if (!matchesSearch) return false;
 
@@ -129,6 +173,35 @@ function UnifiedInvestorsContent() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {recentInvestors.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Clock className="h-4 w-4" />
+                  <span className="hidden sm:inline">Recent</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                {recentInvestors.slice(0, 5).map((recent) => (
+                  <DropdownMenuItem
+                    key={recent.id}
+                    onClick={() => navigate(`/admin/investors/${recent.id}`)}
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{recent.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{recent.email}</p>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <ExportButton
+            data={filteredInvestors}
+            columns={investorExportColumns}
+            filename="investors"
+            disabled={filteredInvestors.length === 0}
+          />
           <Button variant="ghost" size="icon" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4" />
           </Button>

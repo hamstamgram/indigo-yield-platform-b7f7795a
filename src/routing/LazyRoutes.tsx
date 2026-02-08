@@ -22,9 +22,6 @@ export const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"))
 export const AdminEmailTrackingPage = lazy(
   () => import("@/features/admin/operations/pages/AdminEmailTrackingPage")
 );
-export const AdminOperationsHub = lazy(
-  () => import("@/features/admin/operations/pages/AdminOperationsHub")
-);
 export const AdminRequestsQueuePage = lazy(
   () => import("@/features/admin/operations/pages/AdminRequestsQueuePage")
 );
@@ -182,11 +179,6 @@ export const LazyAdminDashboard = () => (
 export const LazyAdminEmailTracking = () => (
   <RouteSuspense type="admin">
     <AdminEmailTrackingPage />
-  </RouteSuspense>
-);
-export const LazyAdminOperationsHub = () => (
-  <RouteSuspense type="admin">
-    <AdminOperationsHub />
   </RouteSuspense>
 );
 export const LazyAdminRequestsQueue = () => (

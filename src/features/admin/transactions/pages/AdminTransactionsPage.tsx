@@ -63,8 +63,24 @@ import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data";
 
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
+import { formatAssetValue } from "@/utils/formatters";
+import { ExportButton } from "@/components/common";
+import type { ExportColumn } from "@/lib/export/csv-export";
 
 const PAGE_SIZE = 50;
+
+const txExportColumns: ExportColumn[] = [
+  { key: "txDate", label: "Date" },
+  { key: "investorName", label: "Investor" },
+  { key: "investorEmail", label: "Email" },
+  { key: "fundName", label: "Fund" },
+  { key: "asset", label: "Asset" },
+  { key: "displayType", label: "Category" },
+  { key: "type", label: "Base Type" },
+  { key: "amount", label: "Amount" },
+  { key: "isVoided", label: "Voided" },
+  { key: "notes", label: "Notes" },
+];
 
 function TransactionHistoryContent() {
   const navigate = useNavigate();
@@ -203,12 +219,7 @@ function TransactionHistoryContent() {
   const formatAmount = (amount: number, asset: string, type: string) => {
     const isNegative = type === "WITHDRAWAL" || type === "FEE";
     const sign = isNegative ? "-" : "+";
-
-    let formatted: string;
-    if (asset === "BTC") formatted = amount.toFixed(8);
-    else if (asset === "ETH" || asset === "SOL") formatted = amount.toFixed(6);
-    else formatted = amount.toFixed(2);
-
+    const formatted = formatAssetValue(Math.abs(amount), asset);
     return `${sign}${formatted}`;
   };
 
@@ -397,6 +408,12 @@ function TransactionHistoryContent() {
             <CardTitle>
               {totalCount.toLocaleString()} Transaction{totalCount !== 1 ? "s" : ""}
             </CardTitle>
+            <ExportButton
+              data={filteredTransactions}
+              columns={txExportColumns}
+              filename="transactions"
+              disabled={filteredTransactions.length === 0}
+            />
             <Button onClick={handleOpenAddDialog} size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Add Transaction

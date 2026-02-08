@@ -24,9 +24,6 @@ export {
   AlertDialogTrigger,
 } from "./alert-dialog";
 
-// Aspect Ratio
-export { AspectRatio } from "./aspect-ratio";
-
 // Avatar
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 
@@ -53,16 +50,6 @@ export type { CalendarProps } from "./calendar";
 
 // Card
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
-
-// Carousel
-export {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "./carousel";
 
 // Chart
 export {
@@ -93,28 +80,6 @@ export {
   CommandSeparator,
   CommandShortcut,
 } from "./command";
-
-// Context Menu
-export {
-  ContextMenu,
-  ContextMenuCheckboxItem,
-  ContextMenuContent,
-  ContextMenuGroup,
-  ContextMenuItem,
-  ContextMenuLabel,
-  ContextMenuPortal,
-  ContextMenuRadioGroup,
-  ContextMenuRadioItem,
-  ContextMenuSeparator,
-  ContextMenuShortcut,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
-  ContextMenuTrigger,
-} from "./context-menu";
-
-// Date Range Picker
-export { DatePickerWithRange } from "./date-range-picker";
 
 // DateTime Picker
 export { DateTimePicker } from "./date-time-picker";
@@ -192,9 +157,6 @@ export { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 export { Input } from "./input";
 export type { InputProps } from "./input";
 
-// Input OTP
-export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "./input-otp";
-
 // Label
 export { Label } from "./label";
 
@@ -223,42 +185,6 @@ export {
   SuspenseWrapper,
   TransactionLoading,
 } from "./loading-states";
-
-// Menubar
-export {
-  Menubar,
-  MenubarCheckboxItem,
-  MenubarContent,
-  MenubarGroup,
-  MenubarItem,
-  MenubarLabel,
-  MenubarMenu,
-  MenubarPortal,
-  MenubarRadioGroup,
-  MenubarRadioItem,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger,
-  MenubarTrigger,
-} from "./menubar";
-
-// Navigation Menu
-export {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuIndicator,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuViewport,
-  navigationMenuTriggerStyle,
-} from "./navigation-menu";
-
-// Optimized Image
-export { OptimizedImage, preloadImage } from "./optimized-image";
 
 // Optimized Table
 export { OptimizedTable } from "./optimized-table";
@@ -293,15 +219,6 @@ export { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./resizabl
 // Responsive Table
 export { ResponsiveTable } from "./responsive-table";
 export type { ResponsiveTableColumn } from "./responsive-table";
-
-// Role Gate
-export {
-  AdminOnly,
-  AuthenticatedOnly,
-  RoleGate,
-  useRoleCheck,
-  withRoleProtection,
-} from "./RoleGate";
 
 // Route Loading Fallback
 export {
@@ -376,9 +293,6 @@ export {
 // Skeleton
 export { Skeleton } from "./skeleton";
 
-// Slider
-export { Slider } from "./slider";
-
 // Sonner
 export { Toaster as SonnerToaster, toast as sonnerToast } from "./sonner";
 
@@ -432,7 +346,3 @@ export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tool
 
 // Truncated Text
 export { TruncatedText } from "./truncated-text";
-
-// Trust Indicator
-export { default as TrustIndicator, TrustIndicatorCompact } from "./trust-indicator";
-export type { TrustIndicatorProps } from "./trust-indicator";

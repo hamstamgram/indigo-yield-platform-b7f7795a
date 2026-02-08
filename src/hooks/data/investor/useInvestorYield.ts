@@ -10,6 +10,7 @@ import {
   getInvestorCumulativeYield,
   InvestorYieldEvent,
   InvestorYieldSummary,
+  CumulativeYieldResult,
 } from "@/services/investor/investorYieldService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
@@ -24,7 +25,13 @@ export function useInvestorYieldEvents(
   limit?: number
 ) {
   return useQuery({
-    queryKey: QUERY_KEYS.investorYieldEventsInvestor(investorId || undefined, year, month, fundId, limit),
+    queryKey: QUERY_KEYS.investorYieldEventsInvestor(
+      investorId || undefined,
+      year,
+      month,
+      fundId,
+      limit
+    ),
     queryFn: () => getInvestorVisibleYield(investorId!, { year, month, fundId, limit }),
     enabled: !!investorId,
   });

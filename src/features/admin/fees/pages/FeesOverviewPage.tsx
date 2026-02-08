@@ -7,6 +7,8 @@
 import { useState, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger, Badge } from "@/components/ui";
 import { Loader2, ArrowRightLeft } from "lucide-react";
+import { ExportButton } from "@/components/common";
+import type { ExportColumn } from "@/lib/export/csv-export";
 import { AdminGuard } from "@/components/admin";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { useFeesOverview, type FeeSummary } from "@/hooks/data";
@@ -21,6 +23,15 @@ import {
   InternalRoutingTab,
   YieldEarnedTab,
 } from "@/components/admin/fees";
+
+const feeExportColumns: ExportColumn[] = [
+  { key: "txDate", label: "Date" },
+  { key: "investorName", label: "Investor" },
+  { key: "asset", label: "Asset" },
+  { key: "amount", label: "Amount" },
+  { key: "fundName", label: "Fund" },
+  { key: "type", label: "Type" },
+];
 
 function FeesOverviewContent() {
   const { data, isLoading } = useFeesOverview();
@@ -82,11 +93,19 @@ function FeesOverviewContent() {
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-display font-bold tracking-tight">INDIGO Fees</h1>
-        <p className="text-muted-foreground mt-1">
-          Platform fee collection and yield participation tracking
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-display font-bold tracking-tight">INDIGO Fees</h1>
+          <p className="text-muted-foreground mt-1">
+            Platform fee collection and yield participation tracking
+          </p>
+        </div>
+        <ExportButton
+          data={filteredFees}
+          columns={feeExportColumns}
+          filename="fee-transactions"
+          disabled={filteredFees.length === 0}
+        />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

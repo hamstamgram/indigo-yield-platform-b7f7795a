@@ -373,18 +373,14 @@ class AuditLogService {
       });
 
       if (!success) {
-        return {
-          success: false,
-          error: error?.userMessage || "Failed to log audit event",
-        };
+        // Silently swallow RLS/permission errors for non-admin users
+        // The audit_log insert policy requires admin; this is expected for IB/investor roles
+        return { success: false };
       }
       return { success: true };
-    } catch (error) {
-      logError("auditLogService.logEvent", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to log audit event",
-      };
+    } catch {
+      // Silently swallow audit log write failures - never block business logic
+      return { success: false };
     }
   }
 }
