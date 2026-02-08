@@ -46,11 +46,6 @@ type MonthGroup = {
   month: number;
   label: string;
   events: InvestorYieldEvent[];
-  totals: {
-    gross: number;
-    fees: number;
-    net: number;
-  };
 };
 
 export default function YieldHistoryPage() {
@@ -110,15 +105,10 @@ export default function YieldHistoryPage() {
           month,
           label: format(date, "MMMM yyyy"),
           events: [],
-          totals: { gross: 0, fees: 0, net: 0 },
         });
       }
 
-      const group = groups.get(key)!;
-      group.events.push(e);
-      group.totals.gross += e.gross_yield_amount;
-      group.totals.fees += e.fee_amount;
-      group.totals.net += e.net_yield_amount;
+      groups.get(key)!.events.push(e);
     });
 
     // Sort by date descending
@@ -314,13 +304,15 @@ function MonthSection({
                 <CardTitle className="text-lg">{group.label}</CardTitle>
                 <Badge variant="secondary">{group.events.length} events</Badge>
               </div>
-              <div className="flex items-center gap-6 text-sm">
-                <div className="text-right">
-                  <p className="text-muted-foreground text-xs">Net Yield</p>
-                  <p className="font-mono font-semibold text-green-600">
-                    +{formatValue(group.totals.net)}
-                  </p>
-                </div>
+              <div className="flex items-center gap-4 text-sm">
+                {fundGroups.map((fg) => (
+                  <div key={fg.fund.id} className="text-right flex items-center gap-1.5">
+                    <CryptoIcon symbol={fg.fund.asset} className="h-4 w-4" />
+                    <span className="font-mono font-semibold text-green-600">
+                      +{formatValue(fg.totals.net)} {fg.fund.asset}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </CardHeader>
@@ -347,6 +339,8 @@ function MonthSection({
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Period</TableHead>
+                      <TableHead className="text-right">Balance</TableHead>
+                      <TableHead className="text-right">Yield %</TableHead>
                       <TableHead className="text-right">Yield Earned</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -357,6 +351,14 @@ function MonthSection({
                         <TableCell className="text-muted-foreground text-sm">
                           {e.period_start && e.period_end
                             ? `${format(new Date(e.period_start), "MMM d")} - ${format(new Date(e.period_end), "MMM d")}`
+                            : "--"}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-muted-foreground">
+                          {e.investor_balance > 0 ? formatValue(e.investor_balance) : "--"}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-muted-foreground">
+                          {(e.fund_yield_pct ?? 0) > 0
+                            ? `${(e.fund_yield_pct * 100).toFixed(2)}%`
                             : "--"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-green-600 font-semibold">

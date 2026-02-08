@@ -107,6 +107,8 @@ export function SystemRoutes() {
       <Route path="/admin/audit" element={<Navigate to="/admin/audit-logs" replace />} />
       <Route path="/admin/users" element={<Navigate to="/admin/settings-platform" replace />} />
       <Route path="/admin/settings/audit" element={<Navigate to="/admin/audit-logs" replace />} />
+      <Route path="/admin/maintenance" element={<Navigate to="/admin" replace />} />
+      <Route path="/admin/bypass-attempts" element={<Navigate to="/admin" replace />} />
     </>
   );
 }
