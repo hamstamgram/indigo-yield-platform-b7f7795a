@@ -3,12 +3,7 @@
  * All investor-protected routes organized by feature area
  */
 
-import {
-  CoreInvestorRoutes,
-  PortfolioRoutes,
-  ReportsRoutes,
-} from "./investor/index";
-import { IBUserRoutes } from "./ib";
+import { CoreInvestorRoutes, PortfolioRoutes, ReportsRoutes } from "./investor/index";
 
 /**
  * Investor Routes Component
@@ -20,7 +15,6 @@ export function InvestorRoutes() {
       {CoreInvestorRoutes()}
       {PortfolioRoutes()}
       {ReportsRoutes()}
-      {IBUserRoutes()}
     </>
   );
 }

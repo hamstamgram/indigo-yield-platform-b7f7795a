@@ -10,7 +10,7 @@ interface InvestorRouteProps {
 
 export function InvestorRoute({ children }: InvestorRouteProps) {
   const { user, loading, profile } = useAuth();
-  const { isIB, isAdmin, isLoading: roleLoading } = useUserRole();
+  const { isLoading: roleLoading } = useUserRole();
   const location = useLocation();
 
   useInvestorRealtimeInvalidation(user?.id);
@@ -21,10 +21,6 @@ export function InvestorRoute({ children }: InvestorRouteProps) {
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (isIB && !isAdmin) {
-    return <Navigate to="/ib" replace />;
   }
 
   return <>{children}</>;

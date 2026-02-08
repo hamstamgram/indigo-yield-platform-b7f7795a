@@ -17,10 +17,7 @@ import {
   FolderOpen,
   Wallet,
   Coins,
-  LayoutDashboard,
   Mail,
-  Wrench,
-  UserPlus,
   HeartPulse,
   Layers,
 } from "lucide-react";
@@ -53,17 +50,6 @@ export const investorNav: NavItem[] = [
   { title: "Statements", href: "/investor/statements", icon: <FileText className="h-5 w-5" /> },
   { title: "Documents", href: "/investor/documents", icon: <FolderOpen className="h-5 w-5" /> },
   { title: "Settings", href: "/investor/settings", icon: <Settings className="h-5 w-5" /> },
-];
-
-// ============================================
-// IB (Introducing Broker) NAVIGATION
-// ============================================
-export const ibNav: NavItem[] = [
-  { title: "Overview", href: "/ib", icon: <LayoutDashboard className="h-5 w-5" /> },
-  { title: "Referrals", href: "/ib/referrals", icon: <Users className="h-5 w-5" /> },
-  { title: "Commissions", href: "/ib/commissions", icon: <Coins className="h-5 w-5" /> },
-  { title: "Payout History", href: "/ib/payouts", icon: <Wallet className="h-5 w-5" /> },
-  { title: "Settings", href: "/ib/settings", icon: <Settings className="h-5 w-5" /> },
 ];
 
 // ============================================

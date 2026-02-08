@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
 import UserProfile from "@/components/sidebar/UserProfile";
 import LogoutButton from "@/components/sidebar/LogoutButton";
-import { adminNavGroups, investorNav, ibNav } from "@/config/navigation";
+import { adminNavGroups, investorNav } from "@/config/navigation";
 import { Input, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
@@ -17,7 +17,7 @@ type SidebarProps = {
   isAdmin?: boolean;
 };
 
-type PortalView = "admin" | "ib" | "investor";
+type PortalView = "admin" | "investor";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +42,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     : user?.email?.split("@")[0] || "User";
 
   // Get user role for proper navigation rendering
-  const { isIB, isSuperAdmin, isLoading: roleLoading } = useUserRole();
+  const { isSuperAdmin, isLoading: roleLoading } = useUserRole();
 
   // Check if admin user also has investor positions
   const { hasPositions: hasInvestorPositions } = useHasInvestorPositions();
@@ -50,38 +50,27 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   // Load saved portal view preference
   useEffect(() => {
     if (userId && isAdmin && hasInvestorPositions) {
-      // Admin with investor positions - check saved preference
       const savedView = localStorage.getItem(`portal_view_${userId}`);
       if (savedView === "admin" || savedView === "investor") {
         setPortalView(savedView);
       } else {
-        // Default to admin view
         setPortalView("admin");
       }
-    } else if (userId && isIB && !isAdmin) {
-      // IB users are restricted to IB portal only
-      setPortalView("ib");
     } else if (isAdmin) {
       setPortalView("admin");
     } else {
       setPortalView("investor");
     }
-  }, [userId, isIB, isAdmin, hasInvestorPositions]);
+  }, [userId, isAdmin, hasInvestorPositions]);
 
   // Switch portal view and persist preference
   const switchPortal = (view: PortalView) => {
-    if (isIB && !isAdmin && view === "investor") {
-      return;
-    }
     setPortalView(view);
     if (userId) {
       localStorage.setItem(`portal_view_${userId}`, view);
     }
-    // Navigate to appropriate dashboard
     if (view === "admin") {
       navigate("/admin");
-    } else if (view === "ib") {
-      navigate("/ib");
     } else if (view === "investor") {
       navigate("/dashboard");
     }
@@ -162,14 +151,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
   // Determine active portal view
   const getActivePortal = (): PortalView => {
-    // If admin with positions, respect their portal choice
     if (isAdmin && hasInvestorPositions) {
       return portalView;
     }
-    // Otherwise, admins always see admin portal
     if (isAdmin) return "admin";
-    if (isIB) return "ib";
-    return portalView;
+    return "investor";
   };
 
   const activePortal = getActivePortal();
@@ -215,7 +201,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               className="flex items-center gap-3 cursor-pointer group"
               onClick={() => {
                 if (activePortal === "admin") navigate("/admin");
-                else if (activePortal === "ib") navigate("/ib");
                 else navigate("/dashboard");
               }}
             >
@@ -331,18 +316,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                   );
                 })}
               </>
-            )}
-
-            {/* IB Navigation */}
-            {activePortal === "ib" && (
-              <div className="px-2">
-                <NavSection
-                  title="Main"
-                  items={ibNav}
-                  onItemClick={handleNavigationClick}
-                  isExpanded={true}
-                />
-              </div>
             )}
 
             {/* Investor Navigation */}

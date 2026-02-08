@@ -41,7 +41,7 @@ export function AppRoutes() {
           {/* Admin Routes (AdminRoute wrapper) */}
           {AdminRoutes()}
 
-          {/* IB Routes (IBRoute wrapper) */}
+          {/* IB Routes (redirects to /investor) */}
           {IBUserRoutes()}
         </Route>
       </Routes>
