@@ -194,7 +194,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
         ref={sidebarRef}
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-72 transform transition-all duration-300 ease-spring",
-          "lg:static lg:translate-x-0 lg:z-auto lg:h-screen lg:flex lg:flex-col lg:py-6 lg:pl-6",
+          "lg:static lg:translate-x-0 lg:z-0 lg:h-screen lg:flex lg:flex-col lg:py-6 lg:pl-6",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           sidebarOpen && "h-full shadow-2xl lg:shadow-none"
         )}

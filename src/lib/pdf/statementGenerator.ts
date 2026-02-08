@@ -427,35 +427,38 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
     52
   );
 
-  // --- Summary Box ---
+  // --- Per-Asset Summary ---
   doc.setDrawColor(200, 200, 200);
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(14, 60, 180, 30, 3, 3, "FD");
+  const summaryHeight = Math.max(30, 14 + data.positions.length * 10);
+  doc.roundedRect(14, 60, 180, summaryHeight, 3, 3, "FD");
 
   doc.setFontSize(10);
-  doc.text("Total AUM", 24, 70);
-  doc.setFontSize(14);
-  doc.text(`${data.summary.total_aum.toLocaleString()}`, 24, 80);
-
+  doc.text("Closing Balances", 24, 70);
   doc.setFontSize(10);
-  doc.text("Net Income", 84, 70);
-  doc.setFontSize(14);
-  doc.setTextColor(
-    data.summary.total_pnl >= 0 ? 22 : 220,
-    data.summary.total_pnl >= 0 ? 163 : 38,
-    data.summary.total_pnl >= 0 ? 74 : 38
-  );
-  doc.text(
-    `${data.summary.total_pnl >= 0 ? "+" : ""}${data.summary.total_pnl.toLocaleString()}`,
-    84,
-    80
-  );
-  doc.setTextColor(0, 0, 0);
+  doc.text("Net Income", 120, 70);
 
-  doc.setFontSize(10);
-  doc.text("Fees", 144, 70);
-  doc.setFontSize(14);
-  doc.text(`${data.summary.total_fees.toLocaleString()}`, 144, 80);
+  let summaryY = 80;
+  for (const pos of data.positions) {
+    const asset = pos.asset_code || "N/A";
+    const closing = formatValue(Number(pos.closing_balance || 0));
+    const yieldEarned = Number(pos.yield_earned || 0);
+    const yieldStr = `${yieldEarned >= 0 ? "+" : ""}${formatValue(yieldEarned)}`;
+
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${asset}: ${closing}`, 24, summaryY);
+
+    doc.setTextColor(
+      yieldEarned >= 0 ? 22 : 220,
+      yieldEarned >= 0 ? 163 : 38,
+      yieldEarned >= 0 ? 74 : 38
+    );
+    doc.text(`${asset}: ${yieldStr}`, 120, summaryY);
+    doc.setTextColor(0, 0, 0);
+
+    summaryY += 10;
+  }
 
   // --- Positions Table ---
   const tableColumn = ["Asset", "Balance", "Additions", "Withdrawals", "Yield", "Closing"];
@@ -469,7 +472,7 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
   ]);
 
   autoTable(doc, {
-    startY: 100,
+    startY: 60 + summaryHeight + 10,
     head: [tableColumn],
     body: tableRows,
     theme: "grid",

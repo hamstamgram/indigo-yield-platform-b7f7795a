@@ -151,8 +151,10 @@ function AdminDashboardContent() {
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-            <span className="text-emerald-400 font-medium">{stats.activeProfiles}</span> active
-            profiles
+            <span className="text-emerald-400 font-medium">
+              {stats.uniqueInvestorsWithPositions}
+            </span>{" "}
+            with active positions
           </div>
         </div>
 

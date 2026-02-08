@@ -3,15 +3,6 @@
    "The Robinhood Effect" - Clean, Yield-Focused, High Contrast
    ============================================ */
 
-/* Primary UI Font - Inter (body text, forms, navigation) */
-@import "./fonts/inter.css";
-
-/* Display/Marketing Font - Montserrat (headers, branding) */
-@import "./fonts/montserrat.css";
-
-/* Financial Data Font - JetBrains Mono (numbers, values, data) */
-@import "./fonts/jetbrains-mono.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
