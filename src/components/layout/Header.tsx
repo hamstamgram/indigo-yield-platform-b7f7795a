@@ -28,7 +28,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className="lg:hidden mr-4 -ml-2 text-foreground/80 hover:bg-white/50 hover:text-foreground"
+        className="lg:hidden mr-4 -ml-2 text-foreground/80 hover:bg-white/10 hover:text-foreground"
         aria-label="Toggle menu"
       >
         <Menu className="h-6 w-6" />
@@ -83,7 +83,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         <div className="flex items-center gap-4">
           {/* Admin Fund AUM Bar */}
           {isAdmin && (
-            <div className="bg-white/50 dark:bg-black/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-black/5 dark:border-white/10 shadow-sm">
+            <div className="bg-black/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 shadow-sm">
               <FundAUMBar />
             </div>
           )}

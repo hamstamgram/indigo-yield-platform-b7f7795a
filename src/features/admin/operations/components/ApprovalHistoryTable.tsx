@@ -27,28 +27,28 @@ function StatusBadge({ status }: { status: ApprovalStatus }) {
   switch (status) {
     case "approved":
       return (
-        <Badge className="bg-green-100 text-green-800 gap-1">
+        <Badge className="bg-green-900/30 text-green-400 gap-1">
           <CheckCircle2 className="h-3 w-3" />
           Approved
         </Badge>
       );
     case "rejected":
       return (
-        <Badge className="bg-red-100 text-red-800 gap-1">
+        <Badge className="bg-red-900/30 text-red-400 gap-1">
           <XCircle className="h-3 w-3" />
           Rejected
         </Badge>
       );
     case "expired":
       return (
-        <Badge className="bg-gray-100 text-gray-800 gap-1">
+        <Badge className="bg-slate-900/30 text-slate-400 gap-1">
           <Clock className="h-3 w-3" />
           Expired
         </Badge>
       );
     case "pending":
       return (
-        <Badge className="bg-yellow-100 text-yellow-800 gap-1">
+        <Badge className="bg-yellow-900/30 text-yellow-400 gap-1">
           <Clock className="h-3 w-3" />
           Pending
         </Badge>

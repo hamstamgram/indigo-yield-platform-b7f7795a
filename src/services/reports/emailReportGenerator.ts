@@ -401,7 +401,8 @@ export async function fetchInvestorReportData(
         const assetCode = rec.fund_name; // Assuming fund_name holds 'BTC', 'ETH' etc.
 
         // Branding Logic - use centralized map for all assets
-        const mappedName = FUND_NAME_BY_ASSET[assetCode] || FUND_NAME_BY_ASSET[assetCode?.toUpperCase()];
+        const mappedName =
+          FUND_NAME_BY_ASSET[assetCode] || FUND_NAME_BY_ASSET[assetCode?.toUpperCase()];
         if (mappedName) fundName = mappedName;
 
         return {
@@ -412,7 +413,7 @@ export async function fetchInvestorReportData(
           withdrawals: Number(rec.mtd_redemptions || 0),
           yield: Number(rec.mtd_net_income || 0),
           closingBalance: Number(rec.mtd_ending_balance || 0),
-          rateOfReturn: Number(rec.mtd_rate_of_return || 0) * 100, // Convert decimal to %
+          rateOfReturn: Number(rec.mtd_rate_of_return || 0),
         };
       }),
     };

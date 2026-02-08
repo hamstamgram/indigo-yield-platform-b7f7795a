@@ -77,9 +77,9 @@ export function DataIntegrityPanel() {
 
   const getStatusBadge = (status: "ok" | "warning" | "error") => {
     const colors = {
-      ok: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-      warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-      error: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+      ok: "bg-green-900/30 text-green-400",
+      warning: "bg-yellow-900/30 text-yellow-400",
+      error: "bg-red-900/30 text-red-400",
     };
     return colors[status];
   };
@@ -118,9 +118,7 @@ export function DataIntegrityPanel() {
             {/* Real-time indicator */}
             <span
               className={`inline-flex items-center gap-1 text-xs font-normal px-2 py-0.5 rounded-full ${
-                realtimeConnected
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                realtimeConnected ? "bg-green-900/30 text-green-400" : "bg-gray-800 text-gray-400"
               }`}
               title={realtimeConnected ? "Connected to real-time updates" : "Connecting..."}
             >
@@ -155,9 +153,9 @@ export function DataIntegrityPanel() {
               key={check.name}
               className={`flex items-center justify-between p-3 border rounded-lg ${
                 check.status === "error"
-                  ? "border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-900/10"
+                  ? "border-red-900/50 bg-red-900/10"
                   : check.status === "warning"
-                    ? "border-yellow-200 bg-yellow-50/50 dark:border-yellow-900/50 dark:bg-yellow-900/10"
+                    ? "border-yellow-900/50 bg-yellow-900/10"
                     : ""
               }`}
             >
@@ -172,9 +170,9 @@ export function DataIntegrityPanel() {
                 <span
                   className={`text-sm font-mono ${
                     check.status === "error"
-                      ? "text-red-600 dark:text-red-400"
+                      ? "text-red-400"
                       : check.status === "warning"
-                        ? "text-yellow-600 dark:text-yellow-400"
+                        ? "text-yellow-400"
                         : ""
                   }`}
                 >

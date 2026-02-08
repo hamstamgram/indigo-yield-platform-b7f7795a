@@ -42,7 +42,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
     return (
       <div className="space-y-4">
         {investors.length === 0 ? (
-          <div className="text-center py-6 bg-white dark:bg-gray-800 rounded-md border p-4">
+          <div className="text-center py-6 bg-card rounded-md border p-4">
             {searchTerm ? "No investors match your search" : "No investors found"}
           </div>
         ) : (

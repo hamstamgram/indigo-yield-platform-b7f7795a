@@ -51,7 +51,7 @@ export const FundAUMBar: React.FC = () => {
   }
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+    <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin scrollbar-thumb-slate-600">
       {sortedFunds.map((fund) => (
         <div
           key={fund.id}

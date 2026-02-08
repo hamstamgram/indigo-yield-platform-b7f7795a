@@ -91,19 +91,17 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-slide-up">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-card rounded-lg shadow-lg border border-white/10 p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
-                <Download className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="w-10 h-10 bg-indigo-900/50 rounded-lg flex items-center justify-center">
+                <Download className="w-5 h-5 text-indigo-400" />
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Install Indigo Yield
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <h3 className="text-sm font-semibold text-foreground">Install Indigo Yield</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 {isIOS ? (
                   <>
                     Tap the share button <span className="inline-block">⎘</span> and select "Add to
@@ -123,7 +121,7 @@ export function InstallPrompt() {
                   </button>
                   <button
                     onClick={handleDismiss}
-                    className="px-3 py-1.5 text-gray-600 dark:text-gray-400 text-sm font-medium hover:text-gray-900 dark:hover:text-white transition-colors"
+                    className="px-3 py-1.5 text-muted-foreground text-sm font-medium hover:text-foreground transition-colors"
                   >
                     Not now
                   </button>
@@ -133,7 +131,7 @@ export function InstallPrompt() {
           </div>
           <button
             onClick={handleDismiss}
-            className="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="flex-shrink-0 ml-2 text-muted-foreground hover:text-foreground"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />

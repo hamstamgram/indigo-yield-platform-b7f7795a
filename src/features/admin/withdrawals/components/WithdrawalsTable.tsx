@@ -82,7 +82,7 @@ const statusColors: Record<WithdrawalFullStatus, string> = {
   processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   completed: "bg-green-700/10 text-green-700 border-green-700/20",
   rejected: "bg-red-500/10 text-red-600 border-red-500/20",
-  cancelled: "bg-gray-500/10 text-gray-600 border-gray-500/20",
+  cancelled: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
 
 // Memoized ActionsDropdown component to prevent re-renders
@@ -346,7 +346,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+              className="h-7 px-2 text-green-400 hover:text-green-300 hover:bg-green-500/10"
               onClick={() => onApprove(w)}
             >
               <CheckCircle className="h-3.5 w-3.5 mr-1" />
@@ -357,7 +357,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="h-7 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
               onClick={() => onReject(w)}
             >
               <XCircle className="h-3.5 w-3.5" />

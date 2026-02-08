@@ -12,7 +12,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className }) => {
   return (
     <div
       className={cn(
-        "animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] rounded",
+        "animate-pulse bg-gradient-to-r from-white/10 via-white/20 to-white/10 bg-[length:200%_100%] rounded",
         className
       )}
     />
@@ -46,7 +46,7 @@ export const TextSkeleton: React.FC<{ lines?: number; className?: string }> = ({
  */
 export const CardSkeleton: React.FC<{ className?: string }> = ({ className }) => {
   return (
-    <div className={cn("bg-white rounded-lg shadow-sm p-6 space-y-4", className)}>
+    <div className={cn("bg-card rounded-lg shadow-sm p-6 space-y-4", className)}>
       <div className="flex items-center space-x-4">
         <Skeleton className="h-12 w-12 rounded-full" />
         <div className="flex-1 space-y-2">
@@ -73,7 +73,7 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="border-b border-gray-200 pb-2 mb-4">
+      <div className="border-b border-border pb-2 mb-4">
         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, i) => (
             <Skeleton key={i} className="h-4" />
@@ -104,7 +104,7 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
  */
 export const ChartSkeleton: React.FC<{ className?: string }> = ({ className }) => {
   return (
-    <div className={cn("bg-white rounded-lg shadow-sm p-6", className)}>
+    <div className={cn("bg-card rounded-lg shadow-sm p-6", className)}>
       <div className="flex items-center justify-between mb-6">
         <Skeleton className="h-6 w-32" />
         <div className="flex space-x-2">
@@ -145,7 +145,7 @@ export const DashboardSkeleton: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow-sm p-6">
+          <div key={i} className="bg-card rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-6 w-6 rounded" />
@@ -160,7 +160,7 @@ export const DashboardSkeleton: React.FC = () => {
       <ChartSkeleton />
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-card rounded-lg shadow-sm p-6">
         <Skeleton className="h-6 w-40 mb-4" />
         <TableSkeleton rows={5} columns={5} />
       </div>
@@ -211,7 +211,7 @@ export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => {
   return (
     <div className="space-y-3">
       {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+        <div key={i} className="flex items-center space-x-3 p-3 bg-card rounded-lg">
           <Skeleton className="h-10 w-10 rounded" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4" />

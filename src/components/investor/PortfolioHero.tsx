@@ -69,8 +69,7 @@ export function PortfolioHero({
     <div
       className={cn(
         "relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl transition-all duration-300 group",
-        "bg-gradient-to-br from-indigo-900/90 via-indigo-950/90 to-black/90",
-        "dark:from-indigo-500/10 dark:via-background/50 dark:to-background/80",
+        "bg-gradient-to-br from-indigo-500/10 via-background/50 to-background/80",
         className
       )}
     >

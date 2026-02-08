@@ -4,9 +4,16 @@
  */
 import { User, User2, Mail, Phone } from "lucide-react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Label, Separator,
-  Avatar, AvatarImage, AvatarFallback,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Label,
+  Separator,
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
 } from "@/components/ui";
 
 interface ProfileTabProps {
@@ -37,7 +44,7 @@ const ProfileTab = ({ profile, loading }: Omit<ProfileTabProps, "onSave">) => {
   }
 
   return (
-    <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-80">
+    <Card className="border-white/10 bg-card opacity-80">
       <CardHeader className="flex flex-row items-start justify-between">
         <div>
           <CardTitle className="text-xl">Personal Information</CardTitle>
@@ -47,7 +54,7 @@ const ProfileTab = ({ profile, loading }: Omit<ProfileTabProps, "onSave">) => {
       <CardContent className="space-y-6">
         <div className="flex flex-col md:flex-row items-center gap-4">
           <div className="relative">
-            <Avatar className="h-24 w-24 border-2 border-gray-200 dark:border-gray-700">
+            <Avatar className="h-24 w-24 border-2 border-border">
               {avatarUrl ? (
                 <AvatarImage src={avatarUrl} alt={profile?.first_name || "User"} />
               ) : null}
@@ -62,7 +69,7 @@ const ProfileTab = ({ profile, loading }: Omit<ProfileTabProps, "onSave">) => {
                 ? `${profile.first_name} ${profile.last_name}`
                 : "Account User"}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{profile?.email}</p>
+            <p className="text-sm text-muted-foreground">{profile?.email}</p>
           </div>
         </div>
 
@@ -71,54 +78,42 @@ const ProfileTab = ({ profile, loading }: Omit<ProfileTabProps, "onSave">) => {
         <div className="space-y-4 pointer-events-none grayscale-[0.5]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label
-                htmlFor="firstName"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
-              >
+              <Label htmlFor="firstName" className="text-sm font-medium text-foreground mb-1 block">
                 First Name
               </Label>
-              <div className="flex items-center gap-2 p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900">
-                <User className="h-4 w-4 text-gray-500" />
+              <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-muted">
+                <User className="h-4 w-4 text-muted-foreground" />
                 <span>{firstName || "—"}</span>
               </div>
             </div>
 
             <div>
-              <Label
-                htmlFor="lastName"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
-              >
+              <Label htmlFor="lastName" className="text-sm font-medium text-foreground mb-1 block">
                 Last Name
               </Label>
-              <div className="flex items-center gap-2 p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900">
-                <User2 className="h-4 w-4 text-gray-500" />
+              <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-muted">
+                <User2 className="h-4 w-4 text-muted-foreground" />
                 <span>{lastName || "—"}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <Label
-              htmlFor="email"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
-            >
+            <Label htmlFor="email" className="text-sm font-medium text-foreground mb-1 block">
               Email Address
             </Label>
-            <div className="flex items-center gap-2 p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900">
-              <Mail className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-muted">
+              <Mail className="h-4 w-4 text-muted-foreground" />
               <span>{profile?.email}</span>
             </div>
           </div>
 
           <div>
-            <Label
-              htmlFor="phone"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
-            >
+            <Label htmlFor="phone" className="text-sm font-medium text-foreground mb-1 block">
               Phone Number
             </Label>
-            <div className="flex items-center gap-2 p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900">
-              <Phone className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-muted">
+              <Phone className="h-4 w-4 text-muted-foreground" />
               <span>{phone || "—"}</span>
             </div>
           </div>

@@ -113,7 +113,7 @@ export default function FundDetailsPage() {
           </div>
           <div className="space-y-1 relative z-10">
             <p className="text-3xl font-mono font-bold text-yield-neon tracking-tighter">
-              +{formatPercentage(mtdYield * 100)}
+              +{formatPercentage(mtdYield)}
             </p>
             <p className="text-sm text-yield-neon/50 font-medium">Month to Date</p>
           </div>
@@ -133,7 +133,7 @@ export default function FundDetailsPage() {
           </div>
           <div className="space-y-1 relative z-10">
             <p className="text-3xl font-mono font-bold text-indigo-400 tracking-tighter">
-              +{formatPercentage(ytdYield * 100)}
+              +{formatPercentage(ytdYield)}
             </p>
             <p className="text-sm text-indigo-400/50 font-medium">Year to Date</p>
           </div>

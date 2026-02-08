@@ -1,7 +1,14 @@
 import { useState } from "react";
 import {
-  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
-  Button, Switch, Separator,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Button,
+  Switch,
+  Separator,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 
@@ -20,7 +27,7 @@ const NotificationsTab = () => {
   };
 
   return (
-    <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <Card className="border-white/10 bg-card">
       <CardHeader>
         <CardTitle className="text-xl">Notification Settings</CardTitle>
         <CardDescription>Configure how you receive notifications</CardDescription>
@@ -29,9 +36,7 @@ const NotificationsTab = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Email Notifications</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Receive portfolio updates by email
-            </p>
+            <p className="text-sm text-muted-foreground">Receive portfolio updates by email</p>
           </div>
           <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
         </div>
@@ -41,7 +46,7 @@ const NotificationsTab = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Security Alerts</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Get notified about account security events
             </p>
           </div>
@@ -53,9 +58,7 @@ const NotificationsTab = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Yield Updates</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Be notified when yield rates change
-            </p>
+            <p className="text-sm text-muted-foreground">Be notified when yield rates change</p>
           </div>
           <Switch checked={yieldUpdates} onCheckedChange={setYieldUpdates} />
         </div>
@@ -65,9 +68,7 @@ const NotificationsTab = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Marketing Communications</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Receive news, updates, and promotions
-            </p>
+            <p className="text-sm text-muted-foreground">Receive news, updates, and promotions</p>
           </div>
           <Switch checked={marketingComms} onCheckedChange={setMarketingComms} />
         </div>

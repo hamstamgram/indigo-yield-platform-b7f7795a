@@ -171,8 +171,8 @@ export default function CrystallizationDashboardPage() {
           <Badge
             className={
               totalGaps === 0
-                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                ? "bg-green-900/30 text-green-400"
+                : "bg-yellow-900/30 text-yellow-400"
             }
           >
             {totalGaps === 0 ? (
@@ -312,13 +312,11 @@ export default function CrystallizationDashboardPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         {fund.warning_stale + fund.critical_stale + fund.never_crystallized > 0 ? (
-                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                          <Badge className="bg-yellow-900/30 text-yellow-400">
                             {fund.warning_stale + fund.critical_stale + fund.never_crystallized}
                           </Badge>
                         ) : (
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                            0
-                          </Badge>
+                          <Badge className="bg-green-900/30 text-green-400">0</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

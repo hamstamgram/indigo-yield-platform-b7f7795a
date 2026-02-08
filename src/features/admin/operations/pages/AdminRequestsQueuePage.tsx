@@ -103,7 +103,7 @@ export default function AdminRequestsQueuePage() {
         );
       case "completed":
         return (
-          <Badge variant="default" className="bg-emerald-500 text-black hover:bg-emerald-400">
+          <Badge variant="default" className="bg-emerald-500 text-white hover:bg-emerald-400">
             <CheckCircle className="h-3 w-3 mr-1" />
             Completed
           </Badge>

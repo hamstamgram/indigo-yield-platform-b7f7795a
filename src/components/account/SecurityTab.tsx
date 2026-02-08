@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { Key } from "lucide-react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Button, Input, Label,
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Input,
+  Label,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { useChangePassword } from "@/hooks/data";
@@ -50,7 +62,7 @@ const SecurityTab = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <Card className="border-white/10 bg-card">
         <CardHeader>
           <CardTitle className="text-xl">Password</CardTitle>
           <CardDescription>Manage your password</CardDescription>
@@ -59,7 +71,7 @@ const SecurityTab = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium">Change Password</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Update your password regularly for better security
               </p>
             </div>

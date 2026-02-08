@@ -93,9 +93,10 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
   };
 
   const getRiskLevel = (volatility: number) => {
-    if (volatility < 5) return { level: "Low", color: "text-green-600", bg: "bg-green-100" };
-    if (volatility < 15) return { level: "Medium", color: "text-yellow-600", bg: "bg-yellow-100" };
-    return { level: "High", color: "text-red-600", bg: "bg-red-100" };
+    if (volatility < 5) return { level: "Low", color: "text-green-400", bg: "bg-green-900/30" };
+    if (volatility < 15)
+      return { level: "Medium", color: "text-yellow-400", bg: "bg-yellow-900/30" };
+    return { level: "High", color: "text-red-400", bg: "bg-red-900/30" };
   };
 
   // Format in native tokens (no fiat currency - platform uses crypto tokens)
@@ -124,12 +125,12 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
       </Alert>
 
       {/* Selection Summary */}
-      <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+      <Card className="border-blue-800 bg-blue-950">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-blue-900 dark:text-blue-100">Fund Selection</h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
+              <h4 className="font-medium text-blue-100">Fund Selection</h4>
+              <p className="text-sm text-blue-300">
                 {selectedFunds.length} fund{selectedFunds.length === 1 ? "" : "s"} selected
               </p>
             </div>
@@ -142,7 +143,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
 
       {/* Available Funds */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Available Funds</h3>
+        <h3 className="text-lg font-medium text-foreground">Available Funds</h3>
 
         {availableFunds.map((fund) => {
           const isSelected = selectedFunds.includes(fund.code);
@@ -154,14 +155,14 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
               key={fund.code}
               className={`transition-colors cursor-pointer ${
                 isSelected
-                  ? "border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800"
-                  : "hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  ? "border-green-800 bg-green-950"
+                  : "hover:border-white/20 hover:bg-white/5"
               }`}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
-                    <div className="p-2 rounded-lg bg-white dark:bg-gray-800 border">
+                    <div className="p-2 rounded-lg bg-card border">
                       <CryptoIcon symbol={fund.currency || fund.benchmark} className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
@@ -181,7 +182,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                             <p className="text-xs text-muted-foreground">YTD Return</p>
                             <p
                               className={`font-semibold ${
-                                performanceData.ytd_return > 0 ? "text-green-600" : "text-red-600"
+                                performanceData.ytd_return > 0 ? "text-green-400" : "text-red-400"
                               }`}
                             >
                               {formatPercentage(performanceData.ytd_return)}
@@ -189,7 +190,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                           </div>
                           <div className="text-center">
                             <p className="text-xs text-muted-foreground">Monthly Yield</p>
-                            <p className="font-semibold text-blue-600">
+                            <p className="font-semibold text-blue-400">
                               {formatPercentage(performanceData.monthly_yield)}
                             </p>
                           </div>
@@ -206,7 +207,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                           </div>
                           <div className="text-center">
                             <p className="text-xs text-muted-foreground">Min Investment</p>
-                            <p className="font-semibold text-gray-900 dark:text-white">
+                            <p className="font-semibold text-foreground">
                               {formatTokenAmount(
                                 performanceData.min_investment,
                                 performanceData.currency_symbol
@@ -255,10 +256,8 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
           <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-500 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium text-gray-900 dark:text-white mb-2">
-                Important Information
-              </p>
-              <ul className="space-y-1 text-gray-600 dark:text-gray-300">
+              <p className="font-medium text-foreground mb-2">Important Information</p>
+              <ul className="space-y-1 text-muted-foreground">
                 <li>• You can select multiple funds to diversify your portfolio</li>
                 <li>• Fund allocations can be adjusted after completing onboarding</li>
                 <li>• All performance data shown is historical and not guaranteed</li>
@@ -282,9 +281,9 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
 
       {/* Completion Status */}
       {isValid && (
-        <Alert className="border-green-200 bg-green-50 dark:bg-green-950">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800 dark:text-green-200">
+        <Alert className="border-green-800 bg-green-950">
+          <CheckCircle className="h-4 w-4 text-green-400" />
+          <AlertDescription className="text-green-200">
             Fund selection complete! You're ready to complete your onboarding and start earning
             yield.
           </AlertDescription>
@@ -292,15 +291,13 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
       )}
 
       {/* Risk Disclaimer */}
-      <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-800">
+      <Card className="border-yellow-800 bg-yellow-950">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <Shield className="w-5 h-5 text-yellow-600 mt-0.5" />
+            <Shield className="w-5 h-5 text-yellow-400 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium text-yellow-900 dark:text-yellow-100 mb-1">
-                Risk Disclosure
-              </p>
-              <p className="text-yellow-800 dark:text-yellow-200">
+              <p className="font-medium text-yellow-100 mb-1">Risk Disclosure</p>
+              <p className="text-yellow-200">
                 All investments carry risk, including potential loss of principal.
                 Cryptocurrency-based funds are subject to high volatility and regulatory risks.
                 Please ensure you understand the risks before proceeding.

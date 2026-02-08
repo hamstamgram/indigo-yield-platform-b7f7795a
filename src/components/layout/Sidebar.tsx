@@ -235,7 +235,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                       className={cn(
                         "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
                         portalView === "admin"
-                          ? "bg-white text-primary dark:bg-primary dark:text-white"
+                          ? "bg-primary text-white"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                       onClick={() => switchPortal("admin")}
@@ -248,7 +248,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                       className={cn(
                         "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
                         portalView === "investor"
-                          ? "bg-white text-primary dark:bg-primary dark:text-white"
+                          ? "bg-primary text-white"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                       onClick={() => switchPortal("investor")}

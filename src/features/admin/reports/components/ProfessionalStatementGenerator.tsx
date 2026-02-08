@@ -73,7 +73,7 @@ const ProfessionalStatementGenerator = () => {
   const formatPercentage = (rate: number) => {
     const isPositive = rate >= 0;
     return (
-      <span className={isPositive ? "text-green-600" : "text-red-600"}>{rate.toFixed(2)}%</span>
+      <span className={isPositive ? "text-green-400" : "text-red-400"}>{rate.toFixed(2)}%</span>
     );
   };
 
@@ -152,11 +152,11 @@ const ProfessionalStatementGenerator = () => {
                   <span className="text-white font-bold text-lg">I</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{selectedAsset} YIELD FUND</h1>
-                  <p className="text-sm text-gray-600">CAPITAL ACCOUNT SUMMARY</p>
+                  <h1 className="text-2xl font-bold text-foreground">{selectedAsset} YIELD FUND</h1>
+                  <p className="text-sm text-muted-foreground">CAPITAL ACCOUNT SUMMARY</p>
                 </div>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 <p>
                   <strong>Account Holder:</strong> {selectedInvestorData.name}
                 </p>
@@ -176,52 +176,52 @@ const ProfessionalStatementGenerator = () => {
 
             {/* Statement Table */}
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
+              <table className="w-full border-collapse border border-white/10">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                  <tr className="bg-white/5">
+                    <th className="border border-white/10 px-4 py-3 text-left font-semibold">
                       Period
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
                       Beginning Balance
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
                       Additions
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
                       Withdrawals
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
                       Net Income
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
                       Ending Balance
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
                       Rate of Return
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {Object.entries(statementData).map(([period, data]) => (
-                    <tr key={period} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium">{period}</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right">
+                    <tr key={period} className="hover:bg-white/10">
+                      <td className="border border-white/10 px-4 py-3 font-medium">{period}</td>
+                      <td className="border border-white/10 px-4 py-3 text-right">
                         {formatTokenAmount(data.beginning_balance)}
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-right">
+                      <td className="border border-white/10 px-4 py-3 text-right">
                         {formatTokenAmount(data.additions)}
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-right">
+                      <td className="border border-white/10 px-4 py-3 text-right">
                         {formatTokenAmount(data.withdrawals)}
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-right">
+                      <td className="border border-white/10 px-4 py-3 text-right">
                         {formatTokenAmount(data.net_income)}
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      <td className="border border-white/10 px-4 py-3 text-right font-semibold">
                         {formatTokenAmount(data.ending_balance)}
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      <td className="border border-white/10 px-4 py-3 text-right font-semibold">
                         {formatPercentage(data.rate_of_return)}
                       </td>
                     </tr>
@@ -231,8 +231,8 @@ const ProfessionalStatementGenerator = () => {
             </div>
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="text-xs text-gray-500 space-y-2">
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="text-xs text-muted-foreground space-y-2">
                 <p>
                   <strong>Important Notes:</strong>
                 </p>
@@ -248,7 +248,7 @@ const ProfessionalStatementGenerator = () => {
                     positions
                   </li>
                 </ul>
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t border-white/5">
                   <p className="text-center">
                     <strong>Indigo Yield Management</strong> | Generated on{" "}
                     {new Date().toLocaleString()}

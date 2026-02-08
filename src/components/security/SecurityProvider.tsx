@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { applySecurityHeaders, generateCSRFToken, validateCSRFToken } from "@/lib/security/headers";
-import { auditLogService } from "@/services/shared";
-import { supabase } from "@/integrations/supabase/client";
 import { logWarn, logInfo } from "@/lib/logger";
 
 interface SecurityContextType {
@@ -72,20 +70,14 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const logSecurityEvent = async (eventType: string, details?: any): Promise<void> => {
     try {
-      // Log via structured logger and optionally to audit_log table
+      // Log via structured logger only - audit_log table writes are handled by
+      // server-side SECURITY DEFINER functions. Browser-side inserts fail with
+      // 403 for non-admin users due to RLS, so we skip the DB write entirely.
       logInfo(`SecurityProvider.${eventType}`, details);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await auditLogService.logEvent({
-          actorUserId: user.id,
-          action: eventType,
-          entity: "security",
-          meta: details || {},
-        });
-      }
     } catch (error) {
-      logWarn("SecurityProvider.logSecurityEvent", { error: error instanceof Error ? error.message : error });
+      logWarn("SecurityProvider.logSecurityEvent", {
+        error: error instanceof Error ? error.message : error,
+      });
     }
   };
 

@@ -266,7 +266,7 @@ function YieldDistributionsContent() {
                 type="checkbox"
                 checked={showVoided}
                 onChange={(e) => setShowVoided(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-white/20"
               />
               Show voided
             </label>
@@ -373,8 +373,8 @@ function YieldDistributionsContent() {
                                               }
                                               className={
                                                 distribution.purpose === "reporting"
-                                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                                  : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                                                  ? "bg-green-900/30 text-green-400"
+                                                  : "bg-orange-900/30 text-orange-400"
                                               }
                                             >
                                               {distribution.purpose === "reporting"
@@ -384,7 +384,7 @@ function YieldDistributionsContent() {
                                             {distribution.is_voided && (
                                               <Badge
                                                 variant="destructive"
-                                                className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                                className="bg-red-900/30 text-red-400"
                                               >
                                                 Voided
                                               </Badge>
@@ -409,7 +409,7 @@ function YieldDistributionsContent() {
                                       </CardHeader>
                                       <CardContent className="space-y-4">
                                         {hasDiscrepancy && (
-                                          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm border border-amber-200 dark:border-amber-800">
+                                          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-950/20 text-amber-400 text-sm border border-amber-800">
                                             <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                             <div>
                                               <strong>Allocation Reconciliation Warning:</strong>{" "}
@@ -432,7 +432,7 @@ function YieldDistributionsContent() {
                                           </div>
                                         )}
                                         {allocations.length > 0 && !hasDiscrepancy && (
-                                          <div className="flex items-center gap-2 p-2 rounded-md bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-xs border border-green-200 dark:border-green-800">
+                                          <div className="flex items-center gap-2 p-2 rounded-md bg-green-950/20 text-green-400 text-xs border border-green-800">
                                             <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
                                             <span>Allocations reconcile with gross yield</span>
                                           </div>
@@ -561,7 +561,7 @@ function YieldDistributionsContent() {
                                                         <TableCell className="text-right">
                                                           {formatPercentage(
                                                             allocation.ownership_pct
-                                                              ? allocation.ownership_pct * 100
+                                                              ? allocation.ownership_pct
                                                               : totalAdb > 0
                                                                 ? ((allocation.adb_share || 0) /
                                                                     totalAdb) *

@@ -46,7 +46,7 @@ const statusColors: Record<WithdrawalFullStatus, string> = {
   processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   completed: "bg-green-700/10 text-green-700 border-green-700/20",
   rejected: "bg-red-500/10 text-red-600 border-red-500/20",
-  cancelled: "bg-gray-500/10 text-gray-600 border-gray-500/20",
+  cancelled: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
 
 export function WithdrawalDetailsDrawer({

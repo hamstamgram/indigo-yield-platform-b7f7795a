@@ -511,7 +511,7 @@ export async function fetchLatestPerformance(
       withdrawals: Number(latestPerformance.mtd_redemptions || 0),
       net_income: Number(latestPerformance.mtd_net_income || 0),
       ending_balance: Number(latestPerformance.mtd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.mtd_rate_of_return || 0) * 100,
+      rate_of_return: Number(latestPerformance.mtd_rate_of_return || 0),
     },
     QTD: {
       beginning_balance: Number(latestPerformance.qtd_beginning_balance || 0),
@@ -519,7 +519,7 @@ export async function fetchLatestPerformance(
       withdrawals: Number(latestPerformance.qtd_redemptions || 0),
       net_income: Number(latestPerformance.qtd_net_income || 0),
       ending_balance: Number(latestPerformance.qtd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.qtd_rate_of_return || 0) * 100,
+      rate_of_return: Number(latestPerformance.qtd_rate_of_return || 0),
     },
     YTD: {
       beginning_balance: Number(latestPerformance.ytd_beginning_balance || 0),
@@ -527,7 +527,7 @@ export async function fetchLatestPerformance(
       withdrawals: Number(latestPerformance.ytd_redemptions || 0),
       net_income: Number(latestPerformance.ytd_net_income || 0),
       ending_balance: Number(latestPerformance.ytd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.ytd_rate_of_return || 0) * 100,
+      rate_of_return: Number(latestPerformance.ytd_rate_of_return || 0),
     },
     ITD: {
       beginning_balance: Number(latestPerformance.itd_beginning_balance || 0),
@@ -535,7 +535,7 @@ export async function fetchLatestPerformance(
       withdrawals: Number(latestPerformance.itd_redemptions || 0),
       net_income: Number(latestPerformance.itd_net_income || 0),
       ending_balance: Number(latestPerformance.itd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.itd_rate_of_return || 0) * 100,
+      rate_of_return: Number(latestPerformance.itd_rate_of_return || 0),
     },
   };
 }

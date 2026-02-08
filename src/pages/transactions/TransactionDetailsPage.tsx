@@ -1,7 +1,12 @@
 import { useParams, Link } from "react-router-dom";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Button, Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
 } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { useTransactionById } from "@/hooks/data";
@@ -26,7 +31,7 @@ export default function TransactionDetailsPage() {
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">Item not found</p>
           <Button asChild>
-            <Link to="/transactions">
+            <Link to="/investor/transactions">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to List
             </Link>

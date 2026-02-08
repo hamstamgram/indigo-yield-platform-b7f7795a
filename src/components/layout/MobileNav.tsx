@@ -61,9 +61,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { icon: Home, label: "Dashboard", path: "/dashboard" },
     { icon: FileText, label: "Statements", path: "/statements" },
     { icon: DollarSign, label: "Transaction History", path: "/transactions" },
-    { icon: DollarSign, label: "Withdrawals Request", path: "/withdrawals" }, // Added
+    { icon: DollarSign, label: "Withdrawals Request", path: "/withdrawals" },
     { icon: Bell, label: "Notifications", path: "/notifications" },
-    { icon: Settings, label: "Account", path: "/account" }, // Changed Account Ultrathink to Account
+    { icon: Settings, label: "Account", path: "/account" },
     { icon: Settings, label: "Settings", path: "/settings" },
     { icon: HelpCircle, label: "Support", path: "/support" },
   ];
@@ -72,7 +72,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { icon: Home, label: "Admin Dashboard", path: "/admin" },
     { icon: Users, label: "Investors", path: "/admin/investors" },
     { icon: TrendingUp, label: "Portfolio Management", path: "/admin/portfolio" },
-    { icon: DollarSign, label: "Withdrawals", path: "/admin/withdrawals" }, // Explicitly added for clarity, was implicitly in Admin Operations
+    { icon: DollarSign, label: "Withdrawals", path: "/admin/withdrawals" },
     { icon: HelpCircle, label: "Support", path: "/admin/support" },
     { icon: Settings, label: "Yield Ops", path: "/admin/yield" },
   ];
@@ -82,7 +82,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   return (
     <>
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-card border-b border-border">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center">
             <img
@@ -117,15 +117,15 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       {/* Mobile Menu Drawer */}
       <div
         className={cn(
-          "lg:hidden fixed top-0 right-0 z-40 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out",
+          "lg:hidden fixed top-0 right-0 z-40 h-full w-80 bg-card shadow-xl transform transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Menu Header */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Menu</h2>
+              <h2 className="text-lg font-semibold text-foreground">Menu</h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -138,12 +138,12 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
             {/* User Info */}
             <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                <User className="h-5 w-5 text-indigo-600" />
+              <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                <User className="h-5 w-5 text-indigo-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-                <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                <p className="text-sm font-medium text-foreground truncate">{userName}</p>
+                <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
               </div>
             </div>
           </div>
@@ -161,7 +161,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                       to={item.path}
                       className={cn(
                         "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-                        isActive ? "bg-indigo-50 text-indigo-600" : "text-gray-700 hover:bg-gray-50"
+                        isActive ? "bg-primary/20 text-primary" : "text-foreground hover:bg-white/5"
                       )}
                     >
                       <Icon className="h-5 w-5 flex-shrink-0" />
@@ -174,7 +174,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           </nav>
 
           {/* Menu Footer */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-border">
             <Button variant="outline" className="w-full justify-start" onClick={onLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out

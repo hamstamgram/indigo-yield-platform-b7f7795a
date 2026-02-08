@@ -264,7 +264,6 @@ const SidebarTrigger = React.forwardRef<
         // Enhanced contrast for sidebar trigger button
         "text-sidebar-foreground hover:text-sidebar-primary-foreground",
         "hover:bg-sidebar-accent focus-visible:bg-sidebar-accent",
-        "dark:text-sidebar-foreground dark:hover:text-sidebar-primary-foreground",
         className
       )}
       onClick={(event) => {

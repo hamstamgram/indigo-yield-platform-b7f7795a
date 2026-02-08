@@ -60,16 +60,16 @@ export default function WithdrawalHistoryPage() {
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${
                               item.status === "completed"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-emerald-500/10 text-emerald-400"
                                 : item.status === "approved"
-                                  ? "bg-blue-100 text-blue-800"
+                                  ? "bg-blue-500/10 text-blue-400"
                                   : item.status === "processing"
-                                    ? "bg-yellow-100 text-yellow-800"
+                                    ? "bg-yellow-500/10 text-yellow-400"
                                     : item.status === "rejected"
-                                      ? "bg-red-100 text-red-800"
+                                      ? "bg-red-500/10 text-red-400"
                                       : item.status === "cancelled"
-                                        ? "bg-gray-100 text-gray-800"
-                                        : "bg-orange-100 text-orange-800"
+                                        ? "bg-slate-500/10 text-slate-400"
+                                        : "bg-orange-500/10 text-orange-400"
                             }`}
                           >
                             {item.status.toUpperCase()}

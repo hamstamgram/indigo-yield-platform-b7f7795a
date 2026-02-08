@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Switch, Label, Button, Separator,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Switch,
+  Label,
+  Button,
+  Separator,
 } from "@/components/ui";
 import { Bell, Mail, FileText, TrendingUp, AlertTriangle } from "lucide-react";
 import {
@@ -47,14 +54,12 @@ const NotificationSettingsPage = () => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Notification Settings</h1>
-        <p className="text-gray-500 dark:text-gray-400">
-          Manage your email and notification preferences
-        </p>
+        <h1 className="text-2xl font-bold text-white">Notification Settings</h1>
+        <p className="text-muted-foreground">Manage your email and notification preferences</p>
       </div>
 
       <div className="space-y-6">
-        <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <Card className="border-white/10 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
@@ -68,7 +73,7 @@ const NotificationSettingsPage = () => {
                 <FileText className="h-5 w-5 mt-0.5 text-muted-foreground" />
                 <div>
                   <Label className="text-sm font-medium">Account Statements</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Monthly account statements and transaction summaries
                   </p>
                 </div>
@@ -86,7 +91,7 @@ const NotificationSettingsPage = () => {
                 <TrendingUp className="h-5 w-5 mt-0.5 text-muted-foreground" />
                 <div>
                   <Label className="text-sm font-medium">Performance Reports</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Weekly or monthly fund performance updates
                   </p>
                 </div>
@@ -104,7 +109,7 @@ const NotificationSettingsPage = () => {
                 <AlertTriangle className="h-5 w-5 mt-0.5 text-muted-foreground" />
                 <div>
                   <Label className="text-sm font-medium">Important Alerts</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Security alerts, account changes, and critical updates
                   </p>
                 </div>
@@ -122,7 +127,7 @@ const NotificationSettingsPage = () => {
                 <Bell className="h-5 w-5 mt-0.5 text-muted-foreground" />
                 <div>
                   <Label className="text-sm font-medium">Marketing & Updates</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     News, investment opportunities, and product updates
                   </p>
                 </div>
@@ -135,7 +140,7 @@ const NotificationSettingsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <Card className="border-white/10 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5" />

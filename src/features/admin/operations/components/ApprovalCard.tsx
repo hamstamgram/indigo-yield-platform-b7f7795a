@@ -58,17 +58,17 @@ function ExpiryBadge({ status }: { status: ApprovalExpiryStatus }) {
 
 function ActionTypeBadge({ actionType }: { actionType: string }) {
   const colorMap: Record<string, string> = {
-    PERIOD_LOCK: "bg-purple-100 text-purple-800",
-    PERIOD_UNLOCK: "bg-purple-100 text-purple-800",
-    LARGE_WITHDRAWAL: "bg-red-100 text-red-800",
-    LARGE_DEPOSIT: "bg-green-100 text-green-800",
-    VOID_TRANSACTION: "bg-orange-100 text-orange-800",
-    STAGING_PROMOTION: "bg-blue-100 text-blue-800",
-    RECONCILIATION_FINALIZE: "bg-indigo-100 text-indigo-800",
-    FEE_STRUCTURE_CHANGE: "bg-yellow-100 text-yellow-800",
+    PERIOD_LOCK: "bg-purple-900/30 text-purple-400",
+    PERIOD_UNLOCK: "bg-purple-900/30 text-purple-400",
+    LARGE_WITHDRAWAL: "bg-red-900/30 text-red-400",
+    LARGE_DEPOSIT: "bg-green-900/30 text-green-400",
+    VOID_TRANSACTION: "bg-orange-900/30 text-orange-400",
+    STAGING_PROMOTION: "bg-blue-900/30 text-blue-400",
+    RECONCILIATION_FINALIZE: "bg-indigo-900/30 text-indigo-400",
+    FEE_STRUCTURE_CHANGE: "bg-yellow-900/30 text-yellow-400",
   };
 
-  const colorClass = colorMap[actionType] || "bg-gray-100 text-gray-800";
+  const colorClass = colorMap[actionType] || "bg-slate-900/30 text-slate-400";
 
   return (
     <Badge variant="outline" className={colorClass}>

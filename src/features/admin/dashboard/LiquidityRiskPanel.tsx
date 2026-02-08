@@ -4,10 +4,10 @@ import { useLiquidityRisk, type LiquidityRisk } from "@/features/admin/system/ho
 import { logWarn } from "@/lib/logger";
 
 const riskLevelConfig = {
-  LOW: { color: "bg-green-500", text: "text-green-700", bg: "bg-green-50" },
-  MEDIUM: { color: "bg-yellow-500", text: "text-yellow-700", bg: "bg-yellow-50" },
-  HIGH: { color: "bg-red-500", text: "text-red-700", bg: "bg-red-50" },
-  NO_AUM: { color: "bg-gray-400", text: "text-gray-700", bg: "bg-gray-50" },
+  LOW: { color: "bg-green-500", text: "text-green-400", bg: "bg-green-900/30" },
+  MEDIUM: { color: "bg-yellow-500", text: "text-yellow-400", bg: "bg-yellow-900/30" },
+  HIGH: { color: "bg-red-500", text: "text-red-400", bg: "bg-red-900/30" },
+  NO_AUM: { color: "bg-gray-400", text: "text-gray-400", bg: "bg-gray-900/30" },
 } as const;
 
 const fallbackRiskConfig = riskLevelConfig.LOW;
@@ -42,7 +42,7 @@ export function LiquidityRiskPanel() {
             <CardTitle className="text-lg">Liquidity Risk</CardTitle>
           </div>
           {riskyFunds.length > 0 && (
-            <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+            <Badge variant="secondary" className="bg-yellow-900/30 text-yellow-400">
               <AlertTriangle className="h-3 w-3 mr-1" />
               {riskyFunds.length} funds need attention
             </Badge>
@@ -106,7 +106,7 @@ export function LiquidityRiskPanel() {
                     </div>
                     <div className="text-center p-2 bg-muted rounded">
                       <div className="text-muted-foreground">Pending</div>
-                      <div className="font-medium text-yellow-600">
+                      <div className="font-medium text-yellow-400">
                         {fund.pending_withdrawals?.toLocaleString(undefined, {
                           maximumFractionDigits: 2,
                         })}
@@ -114,7 +114,7 @@ export function LiquidityRiskPanel() {
                     </div>
                     <div className="text-center p-2 bg-muted rounded">
                       <div className="text-muted-foreground">Available</div>
-                      <div className="font-medium text-green-600">
+                      <div className="font-medium text-green-400">
                         {((fund.total_aum || 0) - (fund.pending_withdrawals || 0)).toLocaleString(
                           undefined,
                           {

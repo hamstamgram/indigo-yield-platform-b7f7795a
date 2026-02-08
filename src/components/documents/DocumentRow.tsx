@@ -24,11 +24,11 @@ interface DocumentRowProps {
 }
 
 const documentTypeColors = {
-  statement: "bg-blue-100 text-blue-800",
-  tax: "bg-green-100 text-green-800",
-  legal: "bg-purple-100 text-purple-800",
-  notice: "bg-orange-100 text-orange-800",
-  other: "bg-gray-100 text-gray-800",
+  statement: "bg-blue-900/30 text-blue-400",
+  tax: "bg-green-900/30 text-green-400",
+  legal: "bg-purple-900/30 text-purple-400",
+  notice: "bg-orange-900/30 text-orange-400",
+  other: "bg-gray-900/30 text-gray-400",
 };
 
 const documentTypeLabels = {
@@ -82,18 +82,18 @@ export default function DocumentRow({
   };
 
   return (
-    <div className={`border rounded-lg p-4 hover:bg-gray-50 transition-colors ${className}`}>
+    <div className={`border rounded-lg p-4 hover:bg-white/5 transition-colors ${className}`}>
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-3 flex-1">
           {/* File Icon */}
           <div className="flex-shrink-0">
-            <FileText className="h-8 w-8 text-gray-400" />
+            <FileText className="h-8 w-8 text-muted-foreground" />
           </div>
 
           {/* Document Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-2">
-              <h3 className="text-sm font-medium text-gray-900 truncate">{document.name}</h3>
+              <h3 className="text-sm font-medium text-foreground truncate">{document.name}</h3>
               <Badge className={documentTypeColors[document.type]}>
                 {documentTypeLabels[document.type]}
               </Badge>
@@ -104,7 +104,7 @@ export default function DocumentRow({
               )}
             </div>
 
-            <div className="flex items-center text-xs text-gray-500 space-x-4">
+            <div className="flex items-center text-xs text-muted-foreground space-x-4">
               <div className="flex items-center space-x-1">
                 <Calendar className="h-3 w-3" />
                 <span>
@@ -126,7 +126,7 @@ export default function DocumentRow({
 
             {/* Metadata */}
             {document.metadata && Object.keys(document.metadata).length > 0 && (
-              <div className="mt-2 text-xs text-gray-600">
+              <div className="mt-2 text-xs text-muted-foreground">
                 {Object.entries(document.metadata)
                   .slice(0, 3)
                   .map(([key, value]) => (

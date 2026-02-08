@@ -225,7 +225,7 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                         {investor.account_type === "fees_account" && (
                           <Badge
                             variant="outline"
-                            className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400"
+                            className="text-xs bg-blue-950/30 text-blue-400 border-blue-800"
                           >
                             FEE
                           </Badge>
@@ -233,7 +233,7 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                         {investor.account_type === "ib" && (
                           <Badge
                             variant="outline"
-                            className="text-xs bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/30 dark:text-purple-400"
+                            className="text-xs bg-purple-950/30 text-purple-400 border-purple-800"
                           >
                             IB
                           </Badge>
