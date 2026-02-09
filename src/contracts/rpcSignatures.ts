@@ -67,7 +67,13 @@ export const RPC_SIGNATURES = {
       "p_tx_date",
       "p_tx_type",
     ] as const,
-    optionalParams: ["p_admin_id", "p_new_total_aum", "p_notes", "p_purpose"] as const,
+    optionalParams: [
+      "p_admin_id",
+      "p_distribution_id",
+      "p_new_total_aum",
+      "p_notes",
+      "p_purpose",
+    ] as const,
   },
   crystallize_yield_before_flow: {
     name: "crystallize_yield_before_flow" as const,

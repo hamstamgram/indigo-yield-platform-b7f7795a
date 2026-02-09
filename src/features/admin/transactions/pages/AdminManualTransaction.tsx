@@ -172,6 +172,7 @@ export default function AdminManualTransaction() {
   const hasExistingPosition =
     currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
   const isDeposit = txnType === "DEPOSIT" || txnType === "FIRST_INVESTMENT";
+  const isFlow = isDeposit || txnType === "WITHDRAWAL";
   const isLoading = investorsLoading || fundsLoading;
   const selectedFundAsset = funds.find((f) => f.id === selectedFundId)?.asset || "tokens";
   const yieldPreviewAum = yieldPreview ? toDecimal(yieldPreview.currentAum) : null;
@@ -181,7 +182,7 @@ export default function AdminManualTransaction() {
 
   // Validate AUM deviation - CORE FIX for data entry errors
   useEffect(() => {
-    if (!isDeposit || currentAum === null || !depositAmount || !newTotalAum) {
+    if (!isFlow || currentAum === null || !depositAmount || !newTotalAum) {
       setAumDeviationWarning(null);
       return;
     }
@@ -189,7 +190,9 @@ export default function AdminManualTransaction() {
     try {
       const amountDec = toDecimal(depositAmount);
       const enteredAumDec = toDecimal(newTotalAum);
-      const expectedAumDec = toDecimal(currentAum).plus(amountDec);
+      const expectedAumDec = isDeposit
+        ? toDecimal(currentAum).plus(amountDec)
+        : toDecimal(currentAum).minus(amountDec);
 
       if (expectedAumDec.isZero()) {
         setAumDeviationWarning(null);
@@ -202,7 +205,7 @@ export default function AdminManualTransaction() {
       if (deviation.gt(MAX_AUM_DEVIATION_PCT)) {
         setAumDeviationWarning(
           `Entered AUM (${enteredAumDec.toFixed(4)}) deviates by ${deviationPct.toFixed(1)}% from expected (${expectedAumDec.toFixed(4)}). ` +
-            `This may indicate a data entry error. Expected: currentAUM (${toDecimal(currentAum).toFixed(4)}) + deposit (${amountDec.toFixed(4)}) = ${expectedAumDec.toFixed(4)}`
+            `This may indicate a data entry error. Expected: currentAUM (${toDecimal(currentAum).toFixed(4)}) ${isDeposit ? "+" : "-"} ${isDeposit ? "deposit" : "withdrawal"} (${amountDec.toFixed(4)}) = ${expectedAumDec.toFixed(4)}`
         );
       } else {
         setAumDeviationWarning(null);
@@ -210,7 +213,7 @@ export default function AdminManualTransaction() {
     } catch {
       setAumDeviationWarning(null);
     }
-  }, [isDeposit, currentAum, depositAmount, newTotalAum]);
+  }, [isFlow, isDeposit, currentAum, depositAmount, newTotalAum]);
 
   const onSubmit = async (data: TransactionFormValues) => {
     setIsSubmitting(true);
@@ -510,12 +513,14 @@ export default function AdminManualTransaction() {
               )}
             </div>
 
-            {/* New Total AUM - Required for deposits */}
-            {isDeposit && selectedFundId && (
+            {/* New Total AUM - Required for deposits and withdrawals (crystallization) */}
+            {isFlow && selectedFundId && (
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   New Total AUM
-                  <span className="text-xs text-muted-foreground">(After yield + deposit)</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isDeposit ? "(After yield + deposit)" : "(After withdrawal)"}
+                  </span>
                 </Label>
                 <Input
                   {...form.register("newTotalAum")}
@@ -528,11 +533,15 @@ export default function AdminManualTransaction() {
                     Current AUM: {formatAUM(currentAum, selectedFundAsset)}
                     {depositAmount && (
                       <span className="ml-2 text-primary">
-                        (Expected after deposit:{" "}
+                        (Expected after {isDeposit ? "deposit" : "withdrawal"}:{" "}
                         {formatAUM(
-                          toDecimal(currentAum)
-                            .plus(toDecimal(depositAmount || "0"))
-                            .toNumber(),
+                          isDeposit
+                            ? toDecimal(currentAum)
+                                .plus(toDecimal(depositAmount || "0"))
+                                .toNumber()
+                            : toDecimal(currentAum)
+                                .minus(toDecimal(depositAmount || "0"))
+                                .toNumber(),
                           selectedFundAsset
                         )}
                         )
@@ -544,7 +553,8 @@ export default function AdminManualTransaction() {
                   <Alert variant="destructive" className="py-2">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="text-sm">
-                      Enter the new total AUM to calculate and distribute yield before this deposit.
+                      Enter the new total AUM to calculate and distribute yield before this{" "}
+                      {isDeposit ? "deposit" : "withdrawal"}.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -651,7 +661,7 @@ export default function AdminManualTransaction() {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || (isDeposit && !newTotalAum)}
+              disabled={isSubmitting || (isFlow && !newTotalAum)}
             >
               {isSubmitting ? (
                 <>
