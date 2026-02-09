@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { sanitizeHtml } from "@/utils/sanitize";
 import {
   Card,
   CardContent,
@@ -24,10 +23,10 @@ import {
   useMonthlyStatements,
   useStatementYears,
   useStatementAssets,
-  useDownloadStatement,
   type MonthlyStatement,
 } from "@/hooks/data";
 import { logError } from "@/lib/logger";
+import type { ReportData } from "@/types/domains";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -43,7 +42,6 @@ const StatementsPage = () => {
 
   const { data: availableYears } = useStatementYears();
   const { data: availableAssets } = useStatementAssets();
-  const downloadMutation = useDownloadStatement();
 
   const getMonthName = (month: number) => {
     const date = new Date(2000, month - 1, 1);
@@ -54,47 +52,57 @@ const StatementsPage = () => {
     try {
       setDownloadingId(statement.id);
 
-      const htmlContent = await downloadMutation.mutateAsync({
-        periodYear: statement.period_year,
-        periodMonth: statement.period_month,
-      });
+      const monthName = getMonthName(statement.period_month);
+      const periodLabel = `${monthName} ${statement.period_year}`;
 
-      // Add print-optimized CSS to the HTML
-      const printStyles = `
-        <style>
-          @media print {
-            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            @page { size: A4; margin: 10mm; }
-          }
-        </style>
-      `;
-
-      const htmlWithPrintStyles = htmlContent.replace("</head>", `${printStyles}</head>`);
-
-      // Open in new window
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        throw new Error("Pop-up blocked. Please allow pop-ups for this site.");
-      }
-
-      printWindow.document.write(sanitizeHtml(htmlWithPrintStyles));
-      printWindow.document.close();
-
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
+      // Build ReportData from statement
+      const reportData: ReportData = {
+        title: `Monthly Statement - ${statement.fund_name}`,
+        subtitle: statement.asset_code,
+        reportPeriod: periodLabel,
+        generatedDate: new Date(),
+        investor: {
+          name: "Investor Statement",
+        },
+        summary: {
+          beginningBalance: statement.begin_balance,
+          totalDeposits: statement.additions,
+          totalWithdrawals: statement.redemptions || "0",
+          netIncome: statement.net_income,
+          totalFees: "0",
+          endingBalance: statement.end_balance,
+          mtdReturn: statement.rate_of_return_mtd || undefined,
+        },
       };
 
+      // Lazy load PDF generator to keep bundle small
+      const { generatePDFReport } = await import("@/services/reports/pdfGenerator");
+      const result = await generatePDFReport(reportData);
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "PDF generation failed");
+      }
+
+      // Trigger browser download
+      const blob = new Blob([new Uint8Array(result.data)], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.filename || `statement-${statement.asset_code}-${periodLabel}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
       toast({
-        title: "Print Dialog Opened",
-        description: "Use 'Save as PDF' in the print dialog to download your statement.",
+        title: "Statement Downloaded",
+        description: `${periodLabel} statement saved as PDF.`,
       });
     } catch (error) {
       logError("StatementsPage.handleDownload", error, { statementId: statement.id });
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to open statement",
+        description: error instanceof Error ? error.message : "Failed to generate PDF",
         variant: "destructive",
       });
     } finally {
