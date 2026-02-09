@@ -175,7 +175,7 @@ function YieldOperationsContent() {
               <span className="text-white">Record Yield Event</span>
             </DialogTitle>
             <DialogDescription className="text-slate-400 text-base">
-              Enter the new total AUM to calculate distribution for{" "}
+              Enter the yield amount or new AUM to calculate distribution for{" "}
               <span className="text-indigo-400 font-medium">{ops.selectedFund?.name}</span>.
             </DialogDescription>
           </DialogHeader>

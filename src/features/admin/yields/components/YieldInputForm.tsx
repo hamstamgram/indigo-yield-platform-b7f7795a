@@ -3,6 +3,7 @@
  * Handles period/purpose selection and AUM input
  */
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -19,9 +20,18 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { NumericInput } from "@/components/common/NumericInput";
-import { ArrowRight, CalendarIcon, AlertTriangle, Info, Clock, Loader2 } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarIcon,
+  AlertTriangle,
+  Info,
+  Clock,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import Decimal from "decimal.js";
 import { type YieldPurpose, type Fund } from "@/hooks/admin/useYieldOperationsState";
 
 interface ReconciliationData {
@@ -86,6 +96,9 @@ export function YieldInputForm({
   asOfAumLoading,
   existingDistributionDate,
 }: YieldInputFormProps) {
+  const [showAdvancedPurpose, setShowAdvancedPurpose] = useState(false);
+  const [entryMode, setEntryMode] = useState<"aum" | "yield">("yield");
+
   const validationResult = validateEffectiveDate();
 
   // Determine displayed AUM: prefer as-of AUM, fallback to current positions
@@ -93,6 +106,40 @@ export function YieldInputForm({
   const isUsingHistoricalAum = asOfAum !== null && asOfAum !== undefined;
 
   const isReporting = yieldPurpose === "reporting";
+
+  // Yield amount entry mode: user enters yield, we compute new AUM
+  const [yieldAmount, setYieldAmount] = useState("");
+
+  const handleYieldAmountChange = (value: string) => {
+    setYieldAmount(value);
+    if (value && displayedAum > 0) {
+      try {
+        const yieldDec = new Decimal(value);
+        const newTotal = new Decimal(displayedAum).plus(yieldDec);
+        setNewAUM(newTotal.toString());
+      } catch {
+        // Invalid input, don't update AUM
+      }
+    } else if (!value) {
+      setNewAUM("");
+    }
+  };
+
+  const handleNewAUMChange = (value: string) => {
+    setNewAUM(value);
+    // Sync yield amount display
+    if (value && displayedAum > 0) {
+      try {
+        const newAumDec = new Decimal(value);
+        const yieldDec = newAumDec.minus(new Decimal(displayedAum));
+        setYieldAmount(yieldDec.isNegative() ? "" : yieldDec.toString());
+      } catch {
+        setYieldAmount("");
+      }
+    } else {
+      setYieldAmount("");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -124,76 +171,111 @@ export function YieldInputForm({
           </div>
         </div>
 
-        {/* Purpose Selector */}
+        {/* Purpose Selector - Reporting is default, Transaction is advanced */}
         <div className="space-y-3 mb-4">
-          <Label className="text-sm font-medium">Purpose</Label>
-          <div className="grid grid-cols-2 gap-3">
-            <div
-              className={cn(
-                "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                yieldPurpose === "reporting"
-                  ? "border-green-500 ring-1 ring-green-500/20"
-                  : "hover:border-green-500/50"
-              )}
-              onClick={() => setYieldPurpose("reporting")}
-            >
-              <div
-                className={cn(
-                  "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                  yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
-                )}
-              />
-              <div>
-                <p className="font-medium text-sm">Reporting</p>
-                <p className="text-xs text-muted-foreground">Month-end official yield</p>
-              </div>
-            </div>
-            <div
-              className={cn(
-                "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                yieldPurpose === "transaction"
-                  ? "border-orange-500 ring-1 ring-orange-500/20"
-                  : "hover:border-orange-500/50"
-              )}
-              onClick={() => setYieldPurpose("transaction")}
-            >
-              <div
-                className={cn(
-                  "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                  yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
-                )}
-              />
-              <div>
-                <p className="font-medium text-sm">Transaction</p>
-                <p className="text-xs text-muted-foreground">Operational (withdrawals/top-ups)</p>
-              </div>
-            </div>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Purpose</Label>
+            {isReporting && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                onClick={() => setShowAdvancedPurpose(!showAdvancedPurpose)}
+              >
+                {showAdvancedPurpose ? "Hide" : "Switch to Transaction"}
+                <ChevronDown
+                  className={cn(
+                    "h-3 w-3 transition-transform",
+                    showAdvancedPurpose && "rotate-180"
+                  )}
+                />
+              </button>
+            )}
           </div>
 
-          {/* Purpose Explainer */}
-          <div
-            className={cn(
-              "flex items-start gap-2 p-3 rounded-md text-sm",
-              yieldPurpose === "reporting"
-                ? "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400"
-                : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
-            )}
-          >
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <div>
-              {yieldPurpose === "reporting" ? (
-                <>
-                  <strong>Visible to investors.</strong> Official month-end yield that appears on
-                  investor statements and dashboards.
-                </>
-              ) : (
-                <>
-                  <strong>Internal only.</strong> Operational yield for processing withdrawals or
-                  top-ups. Not visible to investors.
-                </>
-              )}
+          {/* Show compact reporting indicator when Transaction is hidden */}
+          {!showAdvancedPurpose && isReporting ? (
+            <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-sm">
+              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <div>
+                <strong>Reporting</strong> - Visible to investors on statements and dashboards.
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div
+                  className={cn(
+                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                    yieldPurpose === "reporting"
+                      ? "border-green-500 ring-1 ring-green-500/20"
+                      : "hover:border-green-500/50"
+                  )}
+                  onClick={() => {
+                    setYieldPurpose("reporting");
+                    setShowAdvancedPurpose(false);
+                  }}
+                >
+                  <div
+                    className={cn(
+                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                      yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
+                    )}
+                  />
+                  <div>
+                    <p className="font-medium text-sm">Reporting</p>
+                    <p className="text-xs text-muted-foreground">Month-end official yield</p>
+                  </div>
+                </div>
+                <div
+                  className={cn(
+                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                    yieldPurpose === "transaction"
+                      ? "border-orange-500 ring-1 ring-orange-500/20"
+                      : "hover:border-orange-500/50"
+                  )}
+                  onClick={() => setYieldPurpose("transaction")}
+                >
+                  <div
+                    className={cn(
+                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                      yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
+                    )}
+                  />
+                  <div>
+                    <p className="font-medium text-sm">Transaction</p>
+                    <p className="text-xs text-muted-foreground">
+                      Operational (withdrawals/top-ups)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Purpose Explainer */}
+              <div
+                className={cn(
+                  "flex items-start gap-2 p-3 rounded-md text-sm",
+                  yieldPurpose === "reporting"
+                    ? "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400"
+                    : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
+                )}
+              >
+                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <div>
+                  {yieldPurpose === "reporting" ? (
+                    <>
+                      <strong>Visible to investors.</strong> Official month-end yield that appears
+                      on investor statements and dashboards.
+                    </>
+                  ) : (
+                    <>
+                      <strong>Internal only.</strong> Operational yield for processing withdrawals
+                      or top-ups. Not visible to investors.
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Reporting Month Selector */}
@@ -218,79 +300,146 @@ export function YieldInputForm({
           </div>
         )}
 
-        {/* Effective Date */}
+        {/* Effective Date - read-only for reporting (auto-set from month), picker for transaction */}
         <div className="space-y-2 mb-4">
           <Label>Effective Date</Label>
-          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !aumDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={aumDate}
-                onSelect={(date) => {
-                  if (date) {
-                    setAumDate(date);
-                    setDatePickerOpen(false);
-                  }
-                }}
-                disabled={(date) => date > new Date()}
-                initialFocus
-                className="p-3 pointer-events-auto"
-                captionLayout="dropdown-buttons"
-                fromYear={2024}
-                toYear={new Date().getFullYear()}
-              />
-            </PopoverContent>
-          </Popover>
+          {isReporting && reportingMonth ? (
+            <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 text-sm">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <span>{format(aumDate, "PPP")}</span>
+              <span className="text-xs text-muted-foreground ml-auto">
+                Auto-set to end of month
+              </span>
+            </div>
+          ) : (
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !aumDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={aumDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setAumDate(date);
+                      setDatePickerOpen(false);
+                    }
+                  }}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                  captionLayout="dropdown-buttons"
+                  fromYear={2024}
+                  toYear={new Date().getFullYear()}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
-        {/* AUM Input */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label className="text-muted-foreground">
-              {isUsingHistoricalAum
-                ? `AUM as of ${reportingMonth ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy") : "selected month"}`
-                : "Current AUM"}
-            </Label>
-            {asOfAumLoading ? (
-              <div className="flex items-center gap-2 text-2xl">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                <span className="text-muted-foreground">Loading...</span>
-              </div>
-            ) : (
-              <div className="text-2xl font-mono font-semibold">
-                {selectedFund && formatValue(displayedAum, selectedFund.asset)}{" "}
-                <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
-                {!isUsingHistoricalAum && selectedFund && (
-                  <span className="block text-xs text-amber-600 dark:text-amber-400 mt-1">
-                    (current positions - no historical data)
-                  </span>
-                )}
-              </div>
-            )}
+        {/* AUM Display */}
+        <div className="space-y-2 mb-4">
+          <Label className="text-muted-foreground">
+            {isUsingHistoricalAum
+              ? `AUM as of ${reportingMonth ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy") : "selected month"}`
+              : "Current AUM"}
+          </Label>
+          {asOfAumLoading ? (
+            <div className="flex items-center gap-2 text-2xl">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <span className="text-muted-foreground">Loading...</span>
+            </div>
+          ) : (
+            <div className="text-2xl font-mono font-semibold">
+              {selectedFund && formatValue(displayedAum, selectedFund.asset)}{" "}
+              <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
+              {!isUsingHistoricalAum && selectedFund && (
+                <span className="block text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  (current positions - no historical data)
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Entry Mode Toggle + Input */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={cn(
+                "px-3 py-1.5 text-sm rounded-md transition-colors",
+                entryMode === "yield"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+              onClick={() => setEntryMode("yield")}
+            >
+              Enter Yield
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "px-3 py-1.5 text-sm rounded-md transition-colors",
+                entryMode === "aum"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+              onClick={() => setEntryMode("aum")}
+            >
+              Enter New AUM
+            </button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
-            <NumericInput
-              id="new-aum"
-              asset={selectedFund?.asset}
-              value={newAUM}
-              onChange={setNewAUM}
-              placeholder="Enter new total AUM after yield"
-              showFormatted
-            />
-          </div>
+
+          {entryMode === "yield" ? (
+            <div className="space-y-2">
+              <Label htmlFor="yield-amount">Yield Amount ({selectedFund?.asset})</Label>
+              <NumericInput
+                id="yield-amount"
+                asset={selectedFund?.asset}
+                value={yieldAmount}
+                onChange={handleYieldAmountChange}
+                placeholder="Enter yield earned this period"
+                showFormatted
+              />
+              {newAUM && (
+                <p className="text-xs text-muted-foreground">
+                  New AUM:{" "}
+                  {selectedFund && formatValue(parseFloat(newAUM) || 0, selectedFund.asset)}{" "}
+                  {selectedFund?.asset}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
+              <NumericInput
+                id="new-aum"
+                asset={selectedFund?.asset}
+                value={newAUM}
+                onChange={handleNewAUMChange}
+                placeholder="Enter new total AUM after yield"
+                showFormatted
+              />
+              {yieldAmount && (
+                <p className="text-xs text-muted-foreground">
+                  Yield: +
+                  {selectedFund && formatValue(parseFloat(yieldAmount) || 0, selectedFund.asset)}{" "}
+                  {selectedFund?.asset}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
