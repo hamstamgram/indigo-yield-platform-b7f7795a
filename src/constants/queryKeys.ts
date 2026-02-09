@@ -30,8 +30,6 @@ export const QUERY_KEYS = {
   aumExists: (fundId: string, txDate: string) => ["aum-exists", fundId, txDate] as const,
   fundLiveAum: (fundId?: string) =>
     fundId ? (["fund-live-aum", fundId] as const) : (["fund-live-aum"] as const),
-  fundAumEvents: (fundId?: string, dateRange?: string, includeVoided?: boolean) =>
-    ["fund-aum-events", fundId, dateRange, includeVoided] as const,
   fundsAvailable: ["funds", "available"] as const,
 
   // ============ Investors (Unified Namespace) ============

@@ -15,11 +15,10 @@ const RATE_LIMITED_RPCS: Record<
   string,
   { windowMs: number; maxRequests: number; actionType: string }
 > = {
-  apply_deposit_with_crystallization: { windowMs: 60000, maxRequests: 10, actionType: "deposit" },
-  apply_withdrawal_with_crystallization: {
+  apply_transaction_with_crystallization: {
     windowMs: 60000,
     maxRequests: 10,
-    actionType: "withdrawal",
+    actionType: "transaction",
   },
   apply_daily_yield_to_fund_v3: {
     windowMs: 60000,
@@ -210,15 +209,18 @@ export async function deposit(params: {
   closingAum: number;
   txDate: string;
   adminId: string;
+  referenceId: string;
   notes?: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_deposit_with_crystallization", {
+  return call("apply_transaction_with_crystallization", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
+    p_tx_type: "DEPOSIT",
     p_amount: params.amount,
-    p_closing_aum: params.closingAum,
-    p_effective_date: params.txDate,
+    p_tx_date: params.txDate,
+    p_reference_id: params.referenceId,
+    p_new_total_aum: params.closingAum,
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,
@@ -232,15 +234,18 @@ export async function withdrawal(params: {
   newTotalAum: number;
   txDate: string;
   adminId: string;
+  referenceId: string;
   notes?: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_withdrawal_with_crystallization", {
+  return call("apply_transaction_with_crystallization", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
+    p_tx_type: "WITHDRAWAL",
     p_amount: params.amount,
-    p_new_total_aum: params.newTotalAum,
     p_tx_date: params.txDate,
+    p_reference_id: params.referenceId,
+    p_new_total_aum: params.newTotalAum,
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,

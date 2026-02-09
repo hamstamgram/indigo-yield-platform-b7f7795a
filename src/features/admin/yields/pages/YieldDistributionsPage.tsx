@@ -13,6 +13,7 @@ import { useYieldDistributionsPage } from "@/features/admin/yields/hooks/useYiel
 import type {
   InvestorProfile,
   DistributionRow,
+  FeeAllocationRow,
 } from "@/services/admin/yieldDistributionsPageService";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { ExportButton } from "@/components/common/ExportButton";
@@ -64,6 +65,62 @@ function formatInvestorName(profile?: InvestorProfile | null): string {
   return full || profile.email || "Unknown";
 }
 
+function FeeAllocationsTable({
+  feeAllocations,
+  investorMap,
+  asset,
+}: {
+  feeAllocations: FeeAllocationRow[];
+  investorMap: Record<string, InvestorProfile>;
+  asset: string;
+}) {
+  return (
+    <>
+      <p className="text-xs text-muted-foreground mb-3">
+        Showing fee allocation data (yield_allocations not available for this distribution).
+      </p>
+      <Table>
+        <TableHeader className="sticky top-0 bg-card z-10">
+          <TableRow>
+            <TableHead>Investor</TableHead>
+            <TableHead className="text-right">Gross Income</TableHead>
+            <TableHead className="text-right">Fee %</TableHead>
+            <TableHead className="text-right">Fee</TableHead>
+            <TableHead className="text-right">Net</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {feeAllocations.map((fa) => {
+            const investor = investorMap[fa.investor_id];
+            return (
+              <TableRow key={fa.id}>
+                <TableCell>
+                  <div className="font-medium">{formatInvestorName(investor)}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {investor?.email || fa.investor_id}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <FinancialValue value={fa.base_net_income} asset={asset} />
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatPercentage(fa.fee_percentage, 2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <FinancialValue value={fa.fee_amount} asset={asset} />
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  <FinancialValue value={fa.base_net_income - fa.fee_amount} asset={asset} />
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </>
+  );
+}
+
 const distributionExportColumns: ExportColumn[] = [
   { key: "fund_name", label: "Fund" },
   { key: "purpose", label: "Purpose" },
@@ -91,12 +148,13 @@ function YieldDistributionsContent() {
     setFilter,
     clearFilters,
   } = useUrlFilters({
-    keys: ["fundId", "month"],
-    defaults: { fundId: "all" },
+    keys: ["fundId", "month", "purpose"],
+    defaults: { fundId: "all", purpose: "all" },
   });
 
   const selectedFundId = urlFilters.fundId || "all";
   const selectedMonth = urlFilters.month || "";
+  const selectedPurpose = urlFilters.purpose || "all";
   const [showVoided, setShowVoided] = useState(false);
 
   const {
@@ -107,11 +165,13 @@ function YieldDistributionsContent() {
   } = useYieldDistributionsPage({
     fundId: selectedFundId,
     month: selectedMonth,
+    purpose: selectedPurpose,
     includeVoided: showVoided,
   });
 
   const distributions = data?.distributions ?? [];
   const allocationsByDistribution = data?.allocationsByDistribution ?? {};
+  const feeAllocationsByDistribution = data?.feeAllocationsByDistribution ?? {};
   const investorMap = data?.investorMap ?? {};
 
   const fundMap = useMemo(() => new Map(funds.map((fund) => [fund.id, fund])), [funds]);
@@ -230,7 +290,7 @@ function YieldDistributionsContent() {
         <CardHeader className="pb-3">
           <CardTitle>Filters</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-2">
             <Label>Fund</Label>
             <Select value={selectedFundId} onValueChange={(value) => setFilter("fundId", value)}>
@@ -255,6 +315,20 @@ function YieldDistributionsContent() {
               placeholder="2025-09"
               onChange={(event) => setFilter("month", event.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Purpose</Label>
+            <Select value={selectedPurpose} onValueChange={(value) => setFilter("purpose", value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="All purposes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All purposes</SelectItem>
+                <SelectItem value="transaction">Transaction</SelectItem>
+                <SelectItem value="reporting">Reporting</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-end gap-4">
@@ -336,6 +410,8 @@ function YieldDistributionsContent() {
                                 {fundDistributions.map((distribution) => {
                                   const allocations =
                                     allocationsByDistribution[distribution.id] || [];
+                                  const feeAllocations =
+                                    feeAllocationsByDistribution[distribution.id] || [];
                                   const totalAdb = allocations.reduce(
                                     (sum, a) => sum + (a.adb_share || 0),
                                     0
@@ -509,108 +585,123 @@ function YieldDistributionsContent() {
                                               </CardTitle>
                                             </CardHeader>
                                             <CardContent className="overflow-auto">
-                                              <Table>
-                                                <TableHeader className="sticky top-0 bg-card z-10">
-                                                  <TableRow>
-                                                    <TableHead>Investor</TableHead>
-                                                    <TableHead className="text-right">
-                                                      ADB
-                                                    </TableHead>
-                                                    <TableHead className="text-right">
-                                                      Ownership
-                                                    </TableHead>
-                                                    <TableHead className="text-right">
-                                                      Gross
-                                                    </TableHead>
-                                                    <TableHead className="text-right">
-                                                      Fee %
-                                                    </TableHead>
-                                                    <TableHead className="text-right">
-                                                      Fee
-                                                    </TableHead>
-                                                    <TableHead className="text-right">
-                                                      IB %
-                                                    </TableHead>
-                                                    <TableHead className="text-right">IB</TableHead>
-                                                    <TableHead className="text-right">
-                                                      Net
-                                                    </TableHead>
-                                                  </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                  {allocations.map((allocation) => {
-                                                    const investor =
-                                                      investorMap[allocation.investor_id];
-                                                    return (
-                                                      <TableRow key={allocation.id}>
-                                                        <TableCell>
-                                                          <div className="font-medium">
-                                                            {formatInvestorName(investor)}
-                                                          </div>
-                                                          <div className="text-xs text-muted-foreground">
-                                                            {investor?.email ||
-                                                              allocation.investor_id}
-                                                          </div>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                          {formatAssetValue(
-                                                            allocation.adb_share || 0,
-                                                            fund?.asset || ""
-                                                          )}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                          {formatPercentage(
-                                                            allocation.ownership_pct
-                                                              ? allocation.ownership_pct
-                                                              : totalAdb > 0
-                                                                ? ((allocation.adb_share || 0) /
-                                                                    totalAdb) *
-                                                                  100
-                                                                : 0,
-                                                            4
-                                                          )}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                          <FinancialValue
-                                                            value={allocation.gross_amount}
-                                                            asset={fund?.asset}
-                                                          />
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                          {formatPercentage(
-                                                            allocation.fee_pct || 0,
-                                                            2
-                                                          )}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                          <FinancialValue
-                                                            value={allocation.fee_amount || 0}
-                                                            asset={fund?.asset}
-                                                          />
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                          {formatPercentage(
-                                                            allocation.ib_pct || 0,
-                                                            2
-                                                          )}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                          <FinancialValue
-                                                            value={allocation.ib_amount || 0}
-                                                            asset={fund?.asset}
-                                                          />
-                                                        </TableCell>
-                                                        <TableCell className="text-right font-semibold">
-                                                          <FinancialValue
-                                                            value={allocation.net_amount}
-                                                            asset={fund?.asset}
-                                                          />
-                                                        </TableCell>
-                                                      </TableRow>
-                                                    );
-                                                  })}
-                                                </TableBody>
-                                              </Table>
+                                              {allocations.length > 0 ? (
+                                                <Table>
+                                                  <TableHeader className="sticky top-0 bg-card z-10">
+                                                    <TableRow>
+                                                      <TableHead>Investor</TableHead>
+                                                      <TableHead className="text-right">
+                                                        ADB
+                                                      </TableHead>
+                                                      <TableHead className="text-right">
+                                                        Ownership
+                                                      </TableHead>
+                                                      <TableHead className="text-right">
+                                                        Gross
+                                                      </TableHead>
+                                                      <TableHead className="text-right">
+                                                        Fee %
+                                                      </TableHead>
+                                                      <TableHead className="text-right">
+                                                        Fee
+                                                      </TableHead>
+                                                      <TableHead className="text-right">
+                                                        IB %
+                                                      </TableHead>
+                                                      <TableHead className="text-right">
+                                                        IB
+                                                      </TableHead>
+                                                      <TableHead className="text-right">
+                                                        Net
+                                                      </TableHead>
+                                                    </TableRow>
+                                                  </TableHeader>
+                                                  <TableBody>
+                                                    {allocations.map((allocation) => {
+                                                      const investor =
+                                                        investorMap[allocation.investor_id];
+                                                      return (
+                                                        <TableRow key={allocation.id}>
+                                                          <TableCell>
+                                                            <div className="font-medium">
+                                                              {formatInvestorName(investor)}
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground">
+                                                              {investor?.email ||
+                                                                allocation.investor_id}
+                                                            </div>
+                                                          </TableCell>
+                                                          <TableCell className="text-right">
+                                                            {formatAssetValue(
+                                                              allocation.adb_share || 0,
+                                                              fund?.asset || ""
+                                                            )}
+                                                          </TableCell>
+                                                          <TableCell className="text-right">
+                                                            {formatPercentage(
+                                                              allocation.ownership_pct
+                                                                ? allocation.ownership_pct
+                                                                : totalAdb > 0
+                                                                  ? ((allocation.adb_share || 0) /
+                                                                      totalAdb) *
+                                                                    100
+                                                                  : 0,
+                                                              4
+                                                            )}
+                                                          </TableCell>
+                                                          <TableCell className="text-right">
+                                                            <FinancialValue
+                                                              value={allocation.gross_amount}
+                                                              asset={fund?.asset}
+                                                            />
+                                                          </TableCell>
+                                                          <TableCell className="text-right">
+                                                            {formatPercentage(
+                                                              allocation.fee_pct || 0,
+                                                              2
+                                                            )}
+                                                          </TableCell>
+                                                          <TableCell className="text-right">
+                                                            <FinancialValue
+                                                              value={allocation.fee_amount || 0}
+                                                              asset={fund?.asset}
+                                                            />
+                                                          </TableCell>
+                                                          <TableCell className="text-right">
+                                                            {formatPercentage(
+                                                              allocation.ib_pct || 0,
+                                                              2
+                                                            )}
+                                                          </TableCell>
+                                                          <TableCell className="text-right">
+                                                            <FinancialValue
+                                                              value={allocation.ib_amount || 0}
+                                                              asset={fund?.asset}
+                                                            />
+                                                          </TableCell>
+                                                          <TableCell className="text-right font-semibold">
+                                                            <FinancialValue
+                                                              value={allocation.net_amount}
+                                                              asset={fund?.asset}
+                                                            />
+                                                          </TableCell>
+                                                        </TableRow>
+                                                      );
+                                                    })}
+                                                  </TableBody>
+                                                </Table>
+                                              ) : feeAllocations.length > 0 ? (
+                                                <FeeAllocationsTable
+                                                  feeAllocations={feeAllocations}
+                                                  investorMap={investorMap}
+                                                  asset={fund?.asset || ""}
+                                                />
+                                              ) : (
+                                                <div className="text-center py-6 text-sm text-muted-foreground">
+                                                  No per-investor allocation data available for this
+                                                  distribution.
+                                                </div>
+                                              )}
                                             </CardContent>
                                           </Card>
                                         </div>

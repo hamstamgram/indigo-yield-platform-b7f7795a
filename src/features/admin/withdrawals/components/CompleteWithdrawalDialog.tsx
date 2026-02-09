@@ -15,7 +15,7 @@ import {
   AlertDescription,
 } from "@/components/ui";
 import { withdrawalService } from "@/services/investor";
-import { fundAumEventService } from "@/services/admin";
+import { getCurrentFundAum } from "@/services/admin/depositWithYieldService";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -61,13 +61,11 @@ export function CompleteWithdrawalDialog({
 
     (async () => {
       try {
-        const { openingAum, hasCheckpoint } = await fundAumEventService.getOpeningAum(
-          withdrawal.fund_id!
-        );
+        const liveAum = await getCurrentFundAum(withdrawal.fund_id!);
 
         if (!active) return;
-        setOpeningAum(openingAum);
-        setHasCheckpoint(hasCheckpoint);
+        setOpeningAum(liveAum);
+        setHasCheckpoint(liveAum > 0);
       } catch {
         if (!active) return;
         setOpeningAum(0);

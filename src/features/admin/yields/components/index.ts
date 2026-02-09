@@ -16,7 +16,6 @@ export { YieldActionsColumn } from "./YieldActionsColumn";
 export { YieldCorrectionPanel } from "./YieldCorrectionPanel";
 export { YieldCorrectionPreview } from "./YieldCorrectionPreview";
 export { YieldEventsTable } from "./YieldEventsTable";
-export { FundAUMEventsTable } from "./FundAUMEventsTable";
 export { YieldPreviewResults } from "./YieldPreviewResults";
 export { YieldInputForm } from "./YieldInputForm";
 

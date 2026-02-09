@@ -127,7 +127,7 @@ export const preflowAumService = {
     }
 
     // Check if historical AUM actually exists
-    // RPC returns aum_source='no_data' when no fund_aum_events match
+    // RPC returns aum_source='no_data' when no historical AUM data matches
     if (row.aum_source === "no_data") {
       return null; // Signal "no snapshot" to caller
     }

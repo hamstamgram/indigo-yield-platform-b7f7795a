@@ -228,10 +228,10 @@ export function getRPCSignature<T extends RPCFunctionName>(name: T) {
 // These are the ONLY RPCs that should be used for mutations
 
 export const CANONICAL_MUTATION_RPCS = {
-  /** Canonical RPC for deposits (with crystallization) */
-  DEPOSIT: "apply_deposit_with_crystallization",
-  /** Canonical RPC for withdrawals (with crystallization) */
-  WITHDRAWAL: "apply_withdrawal_with_crystallization",
+  /** Canonical RPC for deposits and withdrawals (with crystallization) */
+  DEPOSIT: "apply_transaction_with_crystallization",
+  /** Canonical RPC for deposits and withdrawals (with crystallization) */
+  WITHDRAWAL: "apply_transaction_with_crystallization",
   /** Canonical RPC for yield distribution */
   YIELD: "apply_daily_yield_to_fund_v3",
   /** Canonical RPC for voiding transactions */

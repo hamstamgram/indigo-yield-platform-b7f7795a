@@ -317,7 +317,7 @@ export async function getPendingYieldEventsCount(
 
 /**
  * Crystallize month-end yield for a fund
- * Creates a month_end trigger in fund_aum_events and crystallizes yield for all positions
+ * Crystallizes yield for all positions at month end
  */
 export async function crystallizeMonthEnd(
   fundId: string,

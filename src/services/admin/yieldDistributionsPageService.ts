@@ -9,6 +9,7 @@ import { logError } from "@/lib/logger";
 export interface YieldDistributionsFilters {
   fundId: string; // "all" or a uuid
   month: string; // "YYYY-MM" or ""
+  purpose: string; // "all" | "transaction" | "reporting"
   includeVoided?: boolean;
 }
 
@@ -46,6 +47,15 @@ export type AllocationRow = {
   position_value_at_calc: number | null;
 };
 
+export type FeeAllocationRow = {
+  id: string;
+  distribution_id: string;
+  investor_id: string;
+  base_net_income: number;
+  fee_amount: number;
+  fee_percentage: number;
+};
+
 export type InvestorProfile = {
   id: string;
   first_name: string | null;
@@ -56,6 +66,7 @@ export type InvestorProfile = {
 export interface YieldDistributionsPageData {
   distributions: DistributionRow[];
   allocationsByDistribution: Record<string, AllocationRow[]>;
+  feeAllocationsByDistribution: Record<string, FeeAllocationRow[]>;
   investorMap: Record<string, InvestorProfile>;
 }
 
@@ -101,6 +112,10 @@ export async function fetchYieldDistributionsPageData(
       query = query.lt("effective_date", `${filters.month}-32`);
     }
 
+    if (filters.purpose && filters.purpose !== "all") {
+      query = query.eq("purpose", filters.purpose as "transaction" | "reporting");
+    }
+
     const { data, error } = await query;
     if (error) throw error;
     const rows = (data || []) as DistributionRow[];
@@ -110,10 +125,12 @@ export async function fetchYieldDistributionsPageData(
       return {
         distributions: rows,
         allocationsByDistribution: {},
+        feeAllocationsByDistribution: {},
         investorMap: {},
       };
     }
 
+    // Fetch yield_allocations (primary breakdown)
     const { data: allocationRows, error: allocationError } = await supabase
       .from("yield_allocations")
       .select(
@@ -146,11 +163,39 @@ export async function fetchYieldDistributionsPageData(
       grouped[allocation.distribution_id].push(allocation);
     });
 
-    const investorIds = Array.from(new Set(allocations.map((a) => a.investor_id)));
-    if (investorIds.length === 0) {
+    // Fetch fee_allocations (fallback for distributions without yield_allocations)
+    const distIdsWithoutAllocations = distributionIds.filter((id) => !grouped[id]?.length);
+    const feeGrouped: Record<string, FeeAllocationRow[]> = {};
+
+    if (distIdsWithoutAllocations.length > 0) {
+      const { data: feeRows, error: feeError } = await supabase
+        .from("fee_allocations")
+        .select(`id, distribution_id, investor_id, base_net_income, fee_amount, fee_percentage`)
+        .in("distribution_id", distIdsWithoutAllocations)
+        .eq("is_voided", false);
+
+      if (!feeError && feeRows) {
+        (feeRows as FeeAllocationRow[]).forEach((row) => {
+          if (!feeGrouped[row.distribution_id]) {
+            feeGrouped[row.distribution_id] = [];
+          }
+          feeGrouped[row.distribution_id].push(row);
+        });
+      }
+    }
+
+    // Collect all investor IDs from both allocation sources
+    const allInvestorIds = new Set<string>();
+    allocations.forEach((a) => allInvestorIds.add(a.investor_id));
+    Object.values(feeGrouped).forEach((rows) =>
+      rows.forEach((r) => allInvestorIds.add(r.investor_id))
+    );
+
+    if (allInvestorIds.size === 0) {
       return {
         distributions: rows,
         allocationsByDistribution: grouped,
+        feeAllocationsByDistribution: feeGrouped,
         investorMap: {},
       };
     }
@@ -158,7 +203,7 @@ export async function fetchYieldDistributionsPageData(
     const { data: investors, error: investorError } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, email")
-      .in("id", investorIds);
+      .in("id", Array.from(allInvestorIds));
 
     if (investorError) throw investorError;
 
@@ -170,6 +215,7 @@ export async function fetchYieldDistributionsPageData(
     return {
       distributions: rows,
       allocationsByDistribution: grouped,
+      feeAllocationsByDistribution: feeGrouped,
       investorMap: map,
     };
   } catch (error) {

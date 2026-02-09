@@ -3,4 +3,3 @@
  */
 
 export * from "@/features/admin/funds/hooks/useFundsWithMetrics";
-export * from "@/features/admin/funds/hooks/useFundAUMEvents";

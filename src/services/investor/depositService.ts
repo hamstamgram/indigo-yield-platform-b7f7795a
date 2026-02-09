@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Deposit, DepositFormData, DepositFilters } from "@/types/domains";
 import { depositNotifications } from "@/services/notifications";
 import { logError } from "@/lib/logger";
-import { callRPC } from "@/lib/supabase/typedRPC";
 import { rpc } from "@/lib/rpc/index";
 import { getTodayString } from "@/utils/dateUtils";
 import { generateUUID } from "@/lib/utils";
@@ -166,7 +165,6 @@ export class DepositService {
       );
     }
 
-    // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${generateUUID()}`;
 
     const {
@@ -176,24 +174,25 @@ export class DepositService {
       throw new Error("Authentication required to create deposits");
     }
 
-    const { data, error } = await callRPC("apply_deposit_with_crystallization", {
+    const rpcResult = await rpc.call("apply_transaction_with_crystallization", {
       p_fund_id: fund.id,
       p_investor_id: profileId,
+      p_tx_type: "DEPOSIT",
       p_amount: amount,
-      p_closing_aum: Number(closingAum),
-      p_effective_date: txDate,
+      p_tx_date: txDate,
+      p_reference_id: triggerReference,
+      p_new_total_aum: Number(closingAum),
       p_admin_id: user.id,
       p_notes: `Deposit - ${triggerReference}`,
       p_purpose: "transaction",
     });
 
-    if (error) {
-      logError("depositService.createDeposit", error, { fundId: fund.id, profileId });
-      throw new Error(error.message || "Failed to create deposit");
+    if (rpcResult.error) {
+      logError("depositService.createDeposit", rpcResult.error, { fundId: fund.id, profileId });
+      throw new Error(rpcResult.error.message || "Failed to create deposit");
     }
 
-    const result = data as unknown as DepositRPCResult;
-    // RPC returns transaction_id (not deposit_tx_id)
+    const result = rpcResult.data as unknown as DepositRPCResult;
     const txId = result?.transaction_id || result?.deposit_tx_id;
     if (!result?.success || !txId) {
       throw new Error("Failed to create deposit");

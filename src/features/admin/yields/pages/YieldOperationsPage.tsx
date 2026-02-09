@@ -32,20 +32,16 @@ import {
   Coins,
   CalendarIcon,
   AlertTriangle,
-  Clock,
   ArrowRight,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
 import {
-  FundAUMEventsTable,
   OpenPeriodDialog,
   YieldInputForm,
   YieldPreviewResults,
   YieldConfirmDialog,
 } from "@/features/admin/yields/components";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
 import { usePendingYieldEvents } from "@/features/admin/yields/hooks/useYieldCrystallization";
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { getMonth, getYear } from "date-fns";
@@ -149,18 +145,6 @@ function YieldOperationsContent() {
           ))}
         </div>
       </div>
-
-      {/* AUM Checkpoints Section */}
-      {ops.funds.length > 0 && (
-        <div className="pt-8 border-t border-white/5">
-          <AUMCheckpointsSection
-            funds={ops.funds}
-            selectedFund={ops.selectedFund}
-            setSelectedFund={ops.setSelectedFund}
-            formatValue={ops.formatValue}
-          />
-        </div>
-      )}
 
       {/* Yield Distribution Dialog */}
       <Dialog open={ops.showYieldDialog} onOpenChange={ops.setShowYieldDialog}>
@@ -356,89 +340,6 @@ function FundCard({ fund, formatValue, onOpenYieldDialog, onOpenPeriodDialog }: 
         </div>
       </div>
     </div>
-  );
-}
-
-interface AUMCheckpointsSectionProps {
-  funds: Fund[];
-  selectedFund: Fund | null;
-  setSelectedFund: (fund: Fund | null) => void;
-  formatValue: (value: number, asset: string) => string;
-}
-
-function AUMCheckpointsSection({
-  funds,
-  selectedFund,
-  setSelectedFund,
-  formatValue,
-}: AUMCheckpointsSectionProps) {
-  return (
-    <Collapsible>
-      <div className="glass-panel border-white/5 rounded-2xl overflow-hidden">
-        <CollapsibleTrigger asChild>
-          <div className="w-full p-6 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors group">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                <Clock className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">AUM Checkpoints</h3>
-                <p className="text-sm text-slate-400">View historical data for reconciliation</p>
-              </div>
-            </div>
-            <ChevronDown className="h-5 w-5 text-slate-500 transition-transform duration-300 group-data-[state=open]:rotate-180" />
-          </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="p-6 pt-0 border-t border-white/5 space-y-6 bg-black/20">
-            <div className="flex items-center gap-4 mt-6">
-              <span className="text-sm font-medium text-slate-400">Select Fund to Inspect:</span>
-              <Select
-                value={selectedFund?.id || ""}
-                onValueChange={(value) => {
-                  const fund = funds.find((f) => f.id === value);
-                  setSelectedFund(fund || null);
-                }}
-              >
-                <SelectTrigger className="w-[280px] bg-black/40 border-white/10 text-white focus:ring-emerald-500/50">
-                  <SelectValue placeholder="Choose a fund..." />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-white/10 text-white">
-                  {funds.map((fund) => (
-                    <SelectItem
-                      key={fund.id}
-                      value={fund.id}
-                      className="focus:bg-white/10 focus:text-white"
-                    >
-                      <div className="flex items-center gap-2">
-                        <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
-                        {fund.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedFund ? (
-              <div className="rounded-xl border border-white/5 overflow-hidden">
-                <FundAUMEventsTable
-                  fundId={selectedFund.id}
-                  formatValue={formatValue}
-                  asset={selectedFund.asset || ""}
-                />
-              </div>
-            ) : (
-              <div className="text-center py-12 rounded-xl border border-dashed border-white/10 bg-white/5">
-                <p className="text-slate-400">
-                  Select a fund above to view its historical AUM checkpoints.
-                </p>
-              </div>
-            )}
-          </div>
-        </CollapsibleContent>
-      </div>
-    </Collapsible>
   );
 }
 

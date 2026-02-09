@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { type InvestmentFormData } from "@/types/domains";
 import { logError } from "@/lib/logger";
-import { callRPC } from "@/lib/supabase/typedRPC";
+import { rpc } from "@/lib/rpc/index";
 import { getTodayString } from "@/utils/dateUtils";
 import { generateUUID } from "@/lib/utils";
 
@@ -45,40 +45,33 @@ export const investmentService = {
 
     const txDate = data.investment_date || getTodayString();
 
-    // Trigger reference for idempotency (used by fund_aum_events + reference_id prefixing)
     const triggerReference =
       data.reference_number ||
       `investment:${data.fund_id}:${data.investor_id}:${txDate}:${generateUUID()}`;
 
-    const { data: result, error } =
-      type === "DEPOSIT"
-        ? await callRPC("apply_deposit_with_crystallization", {
-            p_fund_id: data.fund_id,
-            p_investor_id: data.investor_id,
-            p_amount: amount,
-            p_closing_aum: Number(closingAum),
-            p_effective_date: txDate,
-            p_admin_id: user.id,
-            p_notes: `Investment - ${triggerReference}`,
-            p_purpose: "transaction",
-          })
-        : await callRPC("apply_withdrawal_with_crystallization", {
-            p_fund_id: data.fund_id,
-            p_investor_id: data.investor_id,
-            p_amount: amount,
-            p_new_total_aum: Number(closingAum),
-            p_tx_date: txDate,
-            p_admin_id: user.id,
-            p_notes: `Redemption - ${triggerReference}`,
-            p_purpose: "transaction",
-          });
+    const rpcResult = await rpc.call("apply_transaction_with_crystallization", {
+      p_fund_id: data.fund_id,
+      p_investor_id: data.investor_id,
+      p_tx_type: type,
+      p_amount: amount,
+      p_tx_date: txDate,
+      p_reference_id: triggerReference,
+      p_new_total_aum: Number(closingAum),
+      p_admin_id: user.id,
+      p_notes: `${type === "DEPOSIT" ? "Investment" : "Redemption"} - ${triggerReference}`,
+      p_purpose: "transaction",
+    });
 
-    if (error) {
-      logError(`investmentService.${type}`, error, { fundId: data.fund_id });
-      throw new Error(error.message || "Failed to create investment");
+    if (rpcResult.error) {
+      logError(`investmentService.${type}`, rpcResult.error, { fundId: data.fund_id });
+      throw new Error(rpcResult.error.message || "Failed to create investment");
     }
 
-    const res = result as any;
+    const res = rpcResult.data as {
+      success?: boolean;
+      deposit_tx_id?: string;
+      withdrawal_tx_id?: string;
+    } | null;
     const txId = type === "DEPOSIT" ? res?.deposit_tx_id : res?.withdrawal_tx_id;
     if (!res?.success || !txId) {
       throw new Error("Failed to create investment");

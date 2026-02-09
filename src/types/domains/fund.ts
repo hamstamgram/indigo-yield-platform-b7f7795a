@@ -263,16 +263,6 @@ export interface Benchmark {
 // ============================================================================
 
 /**
- * Fund AUM event checkpoint - used for yield calculations
- * Typed result from fund_aum_events queries
- */
-export interface FundAumEventCheckpoint {
-  closing_aum: number | null;
-  post_flow_aum: number | null;
-  event_ts: string;
-}
-
-/**
  * RPC result for deposit with crystallization
  */
 export interface DepositCrystallizationResult {
