@@ -245,7 +245,7 @@ export async function createTransactionWithCrystallization(
     //
     // CORRECT PATHWAYS:
     // - YIELD/INTEREST: Use apply_adb_yield_distribution_v4 RPC
-    // - FEE: Use fee allocation RPCs or admin_create_transaction for old transactions table
+    // - FEE: Use fee allocation RPCs
     //
     // This code path should not be reached. If you need to create these transaction types,
     // use the appropriate canonical RPC or add the type to the allowlist in

@@ -10160,6 +10160,20 @@ export type Database = {
         };
         Returns: Json;
       };
+      admin_create_transaction: {
+        Args: {
+          p_admin_id?: string;
+          p_amount: number;
+          p_fund_id: string;
+          p_investor_id: string;
+          p_notes?: string;
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"];
+          p_reference_id?: string;
+          p_tx_date: string;
+          p_type: string;
+        };
+        Returns: string;
+      };
       apply_adb_yield_distribution_v4: {
         Args: {
           p_admin_id?: string;
@@ -11571,6 +11585,10 @@ export type Database = {
           p_reason?: string;
         };
         Returns: Json;
+      };
+      sync_transaction_aum_after_yield: {
+        Args: { p_admin_id?: string; p_aum_date: string; p_fund_id: string };
+        Returns: undefined;
       };
       system_health_check: { Args: never; Returns: Json };
       test_apply_daily_yield_v3: {
