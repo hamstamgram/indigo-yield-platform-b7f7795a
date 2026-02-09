@@ -86,12 +86,12 @@ export function WithdrawalRequestForm({
       ? toDecimal(requestedAmount).lessThan(toDecimal(availableBalance.min_withdrawal_amount))
       : false;
 
-  // Check if this is a full withdrawal attempt (>= 95% of balance)
+  // Full withdrawals (100% of balance) are allowed
   const isFullWithdrawal =
     availableBalance && requestedAmount && availableBalance.amount > 0
       ? toDecimal(requestedAmount)
           .dividedBy(toDecimal(availableBalance.amount))
-          .greaterThanOrEqualTo(0.95)
+          .greaterThanOrEqualTo(0.99)
       : false;
 
   const onSubmit = async (data: WithdrawalRequestInput) => {
@@ -220,14 +220,13 @@ export function WithdrawalRequestForm({
                 </Alert>
               )}
             {isAmountValid && isFullWithdrawal && (
-              <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+              <Alert className="border-amber-500/50 bg-amber-950/20">
                 <Info className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800 dark:text-amber-200">
+                <AlertDescription className="text-amber-200">
                   <strong>Full Account Withdrawal</strong>
                   <br />
-                  For withdrawals of 95% or more of your balance, please contact our team directly.
-                  We'll provide a real-time AUM snapshot and guide you through the process to ensure
-                  accurate final calculations.
+                  This will close your position in this fund. Any accrued yield will be crystallized
+                  before the withdrawal is processed.
                 </AlertDescription>
               </Alert>
             )}
@@ -306,17 +305,13 @@ export function WithdrawalRequestForm({
           </Button>
           <Button
             type="submit"
-            disabled={
-              submitMutation.isPending || !isAmountValid || isFullWithdrawal || isBelowMinimum
-            }
+            disabled={submitMutation.isPending || !isAmountValid || isBelowMinimum}
           >
             {submitMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...
               </>
-            ) : isFullWithdrawal ? (
-              "Contact Support for Full Withdrawal"
             ) : (
               "Submit Request"
             )}

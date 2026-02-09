@@ -21,13 +21,12 @@ import {
   DropdownMenuTrigger,
   SortableTableHead,
 } from "@/components/ui";
-import { Search, CheckCircle, XCircle, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
+import { Search, CheckCircle, XCircle, MoreHorizontal, Trash2 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useDeposits } from "@/hooks/data/admin";
 import { useSortableColumns } from "@/hooks";
 import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
-import { VoidAndReissueDialog } from "@/features/admin/transactions/VoidAndReissueDialog";
 import { VoidTransactionDialog } from "@/features/admin/transactions/VoidTransactionDialog";
 import type { Deposit, DepositStatus, DepositFilters } from "@/types/domains";
 import { format } from "date-fns";
@@ -46,7 +45,7 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
   const [searchInput, setSearchInput] = useState(filters?.search || "");
   const [statusFilter, setStatusFilter] = useState<DepositStatus | "all">("all");
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
-  const [action, setAction] = useState<"approve" | "reject" | "reissue" | "void" | null>(null);
+  const [action, setAction] = useState<"approve" | "reject" | "void" | null>(null);
 
   // Sync filters to parent when they change
   useEffect(() => {
@@ -217,16 +216,6 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedDeposit(deposit);
-                              setAction("reissue");
-                            }}
-                          >
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Void & Reissue
-                          </DropdownMenuItem>
-
                           {deposit.status === "pending" && (
                             <>
                               <DropdownMenuSeparator />
@@ -298,16 +287,6 @@ export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) 
           }}
         />
       )}
-
-      {/* Void & Reissue Dialog */}
-      <VoidAndReissueDialog
-        open={action === "reissue" && !!selectedDeposit}
-        onOpenChange={(open) => {
-          if (!open) handleDialogClose();
-        }}
-        transaction={selectedDeposit ? mapDepositToTransaction(selectedDeposit) : null}
-        onSuccess={handleSuccess}
-      />
 
       {/* Void Dialog - uses transaction dialog */}
       <VoidTransactionDialog

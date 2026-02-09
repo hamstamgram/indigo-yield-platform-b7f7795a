@@ -46,18 +46,13 @@ import {
   CreditCard,
   Plus,
   MoreHorizontal,
-  RefreshCw,
   Ban,
   Lock,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
-import {
-  AddTransactionDialog,
-  VoidTransactionDialog,
-  VoidAndReissueDialog,
-} from "@/components/admin";
+import { AddTransactionDialog, VoidTransactionDialog } from "@/components/admin";
 import { useSortableColumns } from "@/hooks";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data";
@@ -87,10 +82,9 @@ function TransactionHistoryContent() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Void/Reissue dialog state
+  // Void dialog state
   const [selectedTx, setSelectedTx] = useState<TransactionViewModel | null>(null);
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
-  const [reissueDialogOpen, setReissueDialogOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDisplayType, setSelectedDisplayType] = useState<string>("all");
@@ -594,16 +588,6 @@ function TransactionHistoryContent() {
                                 <DropdownMenuItem
                                   onClick={() => {
                                     setSelectedTx(tx);
-                                    setReissueDialogOpen(true);
-                                  }}
-                                  disabled={tx.isSystemGenerated}
-                                >
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  Void & Reissue
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedTx(tx);
                                     setVoidDialogOpen(true);
                                   }}
                                   className="text-destructive"
@@ -656,20 +640,6 @@ function TransactionHistoryContent() {
         investorId={dialogInvestorId}
         fundId={dialogFundId}
         onSuccess={handleAddTransactionSuccess}
-      />
-
-      {/* Void & Reissue Transaction Modal */}
-      <VoidAndReissueDialog
-        open={reissueDialogOpen}
-        onOpenChange={setReissueDialogOpen}
-        transaction={selectedTx}
-        onSuccess={() => {
-          invalidateAfterTransaction(
-            queryClient,
-            selectedTx?.investorId,
-            selectedTx?.fundId || undefined
-          );
-        }}
       />
 
       {/* Void Transaction Modal */}

@@ -134,204 +134,128 @@ export const performanceService = {
   },
 
   /**
-   * Get per-asset stats for an investor (latest period data per fund)
+   * Get per-asset stats for an investor (live computed from transactions_v2)
    * Returns individual fund stats - NO aggregation across different assets
-   * Falls back to investor_positions for new investors without performance history
+   * Always computes current MTD/QTD/YTD/ITD from the transaction ledger
+   * for real-time accuracy (investor_fund_performance is for historical statements only)
    */
   async getPerAssetStats(userId: string) {
-    const [records, livePositions] = await Promise.all([
-      this.getInvestorPerformance({ userId }),
-      getInvestorPositions(userId).catch(() => []),
-    ]);
+    const livePositions = await getInvestorPositions(userId).catch(() => []);
 
-    // Fetch funds to get asset symbols and names
-    const { data: funds } = await supabase.from("funds").select("id, name, asset, code");
+    // Only active positions with balance > 0
+    const activePositions = livePositions.filter((pos) => pos.currentValue > 0);
 
-    // Create maps for fund lookups
-    const fundToAsset = new Map<string, string>();
-    const fundIdToName = new Map<string, string>();
-    const fundIdToAsset = new Map<string, string>();
-    funds?.forEach((f) => {
-      fundToAsset.set(f.name, f.asset);
-      fundIdToName.set(f.id, f.name);
-      fundIdToAsset.set(f.id, f.asset);
+    if (activePositions.length === 0) {
+      return { assets: [], activeFunds: 0 };
+    }
+
+    // Fetch all non-voided transactions for this investor across all active funds
+    const fundIds = activePositions.map((p) => p.fundId);
+    const { data: txRows } = await supabase
+      .from("transactions_v2")
+      .select("fund_id, type, amount, tx_date")
+      .eq("investor_id", userId)
+      .in("fund_id", fundIds)
+      .eq("is_voided", false)
+      .limit(5000);
+
+    // Group transactions by fund
+    const txByFund = new Map<string, NonNullable<typeof txRows>>();
+    (txRows || []).forEach((tx) => {
+      if (!txByFund.has(tx.fund_id)) txByFund.set(tx.fund_id, []);
+      txByFund.get(tx.fund_id)!.push(tx);
     });
 
-    // Build map: fund name -> live balance from investor_positions
-    const liveBalanceByAsset = new Map<string, number>();
-    livePositions.forEach((pos) => {
-      liveBalanceByAsset.set(pos.fundName, pos.currentValue);
-    });
+    // Period boundaries
+    const now = new Date();
+    const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const qtdStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+    const ytdStart = new Date(now.getFullYear(), 0, 1);
 
-    // Get latest record for each unique fund
-    const latestByFund = new Map<string, PerformanceRecord>();
+    // Compute metrics for each position from the transaction ledger
+    const perAssetStats = activePositions.map((pos) => {
+      const fundTxs = txByFund.get(pos.fundId) || [];
+      const endingBalance = pos.currentValue;
 
-    records.forEach((rec) => {
-      if (!latestByFund.has(rec.fund_name)) {
-        latestByFund.set(rec.fund_name, rec);
-      }
-    });
+      const computePeriod = (periodStart: Date) => {
+        let additions = parseFinancial(0);
+        let redemptions = parseFinancial(0);
+        let netIncome = parseFinancial(0);
 
-    // Return per-asset data (no aggregation)
-    // Filter out positions where both live balance and snapshot are zero/missing
-    const perAssetStats = Array.from(latestByFund.values())
-      .filter((rec) => {
-        const live = liveBalanceByAsset.get(rec.fund_name);
-        return (live != null && live > 0) || Number(rec.mtd_ending_balance || 0) > 0;
-      })
-      .map((rec) => {
-        const liveBalance = liveBalanceByAsset.get(rec.fund_name);
-        const endingBalance = liveBalance ?? Number(rec.mtd_ending_balance || 0);
+        for (const tx of fundTxs) {
+          const txDate = new Date(tx.tx_date);
+          if (txDate < periodStart) continue;
+          const amt = parseFinancial(tx.amount);
+          if (tx.type === "DEPOSIT") additions = additions.plus(amt);
+          else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
+          else if (tx.type === "YIELD") netIncome = netIncome.plus(amt);
+        }
+
+        const beginningBalance = parseFinancial(endingBalance)
+          .minus(netIncome)
+          .minus(additions)
+          .plus(redemptions)
+          .toNumber();
+        const addN = additions.toNumber();
+        const redN = redemptions.toNumber();
+        const incN = netIncome.toNumber();
+        // Modified Dietz: RoR = netIncome / (beginningBalance + (additions - redemptions) / 2)
+        const denominator = beginningBalance + (addN - redN) / 2;
+        const rateOfReturn = denominator > 0 ? (incN / denominator) * 100 : 0;
 
         return {
-          fundName: rec.fund_name,
-          assetSymbol: fundToAsset.get(rec.fund_name) || rec.fund_name,
-          periodName: rec.period?.period_name || "Current",
-          mtd: {
-            beginningBalance: Number(rec.mtd_beginning_balance || 0),
-            additions: Number(rec.mtd_additions || 0),
-            redemptions: Number(rec.mtd_redemptions || 0),
-            netIncome: Number(rec.mtd_net_income || 0),
-            endingBalance,
-            rateOfReturn: Number(rec.mtd_rate_of_return || 0),
-          },
-          qtd: {
-            beginningBalance: Number(rec.qtd_beginning_balance || 0),
-            additions: Number(rec.qtd_additions || 0),
-            redemptions: Number(rec.qtd_redemptions || 0),
-            netIncome: Number(rec.qtd_net_income || 0),
-            endingBalance,
-            rateOfReturn: Number(rec.qtd_rate_of_return || 0),
-          },
-          ytd: {
-            beginningBalance: Number(rec.ytd_beginning_balance || 0),
-            additions: Number(rec.ytd_additions || 0),
-            redemptions: Number(rec.ytd_redemptions || 0),
-            netIncome: Number(rec.ytd_net_income || 0),
-            endingBalance,
-            rateOfReturn: Number(rec.ytd_rate_of_return || 0),
-          },
-          itd: {
-            beginningBalance: Number(rec.itd_beginning_balance || 0),
-            additions: Number(rec.itd_additions || 0),
-            redemptions: Number(rec.itd_redemptions || 0),
-            netIncome: Number(rec.itd_net_income || 0),
-            endingBalance,
-            rateOfReturn: Number(rec.itd_rate_of_return || 0),
-          },
+          beginningBalance,
+          additions: addN,
+          redemptions: redN,
+          netIncome: incN,
+          endingBalance,
+          rateOfReturn,
         };
-      });
+      };
 
-    // Handle positions that exist live but have no performance record yet
-    // Compute real metrics from transactions_v2 instead of returning zeros
-    const fundsInStats = new Set(perAssetStats.map((s) => s.fundName));
-    const missingPositions = livePositions.filter(
-      (pos) => pos.currentValue > 0 && !fundsInStats.has(pos.fundName)
-    );
+      const computeItd = () => {
+        let additions = parseFinancial(0);
+        let redemptions = parseFinancial(0);
+        let netIncome = parseFinancial(0);
 
-    if (missingPositions.length > 0) {
-      const fundIds = missingPositions.map((p) => p.fundId);
-      const { data: txRows } = await supabase
-        .from("transactions_v2")
-        .select("fund_id, type, amount, tx_date")
-        .eq("investor_id", userId)
-        .in("fund_id", fundIds)
-        .eq("is_voided", false)
-        .limit(2000);
+        for (const tx of fundTxs) {
+          const amt = parseFinancial(tx.amount);
+          if (tx.type === "DEPOSIT") additions = additions.plus(amt);
+          else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
+          else if (tx.type === "YIELD") netIncome = netIncome.plus(amt);
+        }
 
-      const txByFund = new Map<string, typeof txRows>();
-      (txRows || []).forEach((tx) => {
-        if (!txByFund.has(tx.fund_id)) txByFund.set(tx.fund_id, []);
-        txByFund.get(tx.fund_id)!.push(tx);
-      });
+        const addN = additions.toNumber();
+        const redN = redemptions.toNumber();
+        const incN = netIncome.toNumber();
+        // ITD beginning balance is 0 (inception)
+        const denominator = (addN - redN) / 2;
+        const rateOfReturn = denominator > 0 ? (incN / denominator) * 100 : 0;
 
-      const now = new Date();
-      const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const qtdStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
-      const ytdStart = new Date(now.getFullYear(), 0, 1);
-
-      for (const pos of missingPositions) {
-        const fundTxs = txByFund.get(pos.fundId) || [];
-        const endingBalance = pos.currentValue;
-
-        const computePeriod = (periodStart: Date) => {
-          let additions = parseFinancial(0);
-          let redemptions = parseFinancial(0);
-          let netIncome = parseFinancial(0);
-
-          for (const tx of fundTxs) {
-            const txDate = new Date(tx.tx_date);
-            if (txDate < periodStart) continue;
-            const amt = parseFinancial(tx.amount);
-            if (tx.type === "DEPOSIT") additions = additions.plus(amt);
-            else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
-            else if (tx.type === "YIELD") netIncome = netIncome.plus(amt);
-          }
-
-          const beginningBalance = parseFinancial(endingBalance)
-            .minus(netIncome)
-            .minus(additions)
-            .plus(redemptions)
-            .toNumber();
-          const addN = additions.toNumber();
-          const redN = redemptions.toNumber();
-          const incN = netIncome.toNumber();
-          const denominator = beginningBalance + (addN - redN) / 2;
-          const rateOfReturn = denominator > 0 ? (incN / denominator) * 100 : 0;
-
-          return {
-            beginningBalance,
-            additions: addN,
-            redemptions: redN,
-            netIncome: incN,
-            endingBalance,
-            rateOfReturn,
-          };
+        return {
+          beginningBalance: 0,
+          additions: addN,
+          redemptions: redN,
+          netIncome: incN,
+          endingBalance,
+          rateOfReturn,
         };
+      };
 
-        const computeItd = () => {
-          let additions = parseFinancial(0);
-          let redemptions = parseFinancial(0);
-          let netIncome = parseFinancial(0);
-
-          for (const tx of fundTxs) {
-            const amt = parseFinancial(tx.amount);
-            if (tx.type === "DEPOSIT") additions = additions.plus(amt);
-            else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
-            else if (tx.type === "YIELD") netIncome = netIncome.plus(amt);
-          }
-
-          const addN = additions.toNumber();
-          const redN = redemptions.toNumber();
-          const incN = netIncome.toNumber();
-          const denominator = (addN - redN) / 2;
-          const rateOfReturn = denominator > 0 ? (incN / denominator) * 100 : 0;
-
-          return {
-            beginningBalance: 0,
-            additions: addN,
-            redemptions: redN,
-            netIncome: incN,
-            endingBalance,
-            rateOfReturn,
-          };
-        };
-
-        perAssetStats.push({
-          fundName: pos.fundName,
-          assetSymbol: pos.asset,
-          periodName: "Current",
-          mtd: computePeriod(mtdStart),
-          qtd: computePeriod(qtdStart),
-          ytd: computePeriod(ytdStart),
-          itd: computeItd(),
-        });
-      }
-    }
+      return {
+        fundName: pos.fundName,
+        assetSymbol: pos.asset,
+        periodName: "Current",
+        mtd: computePeriod(mtdStart),
+        qtd: computePeriod(qtdStart),
+        ytd: computePeriod(ytdStart),
+        itd: computeItd(),
+      };
+    });
 
     return {
       assets: perAssetStats,
-      activeFunds: perAssetStats.length || latestByFund.size,
+      activeFunds: perAssetStats.length,
     };
   },
 

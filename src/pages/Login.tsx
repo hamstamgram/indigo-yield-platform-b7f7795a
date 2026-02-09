@@ -19,7 +19,6 @@ import { useSignIn, useCheckAuthSession } from "@/hooks/data";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
@@ -36,13 +35,7 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isLogin) {
-      signInMutation.mutate({ email, password });
-    } else {
-      // Since this is invitation-only, restrict self registration
-      signInMutation.reset();
-      setIsLogin(true);
-    }
+    signInMutation.mutate({ email, password });
   };
 
   // Display loading indicator while checking authentication
@@ -54,9 +47,7 @@ export default function Login() {
     );
   }
 
-  const error =
-    signInMutation.error?.message ||
-    (!isLogin ? "This platform requires an invitation. Please contact the administrator." : null);
+  const error = signInMutation.error?.message || null;
 
   // Yield Spectrum Login Design
   const backgroundDecorators = (
@@ -99,21 +90,8 @@ export default function Login() {
             </div>
           )}
 
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">
-              {isLogin ? "Investor Portal" : "Request Access"}
-            </h2>
-            {/* Toggle Switch */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                signInMutation.reset();
-              }}
-              className="text-xs font-medium text-indigo-300 hover:text-white transition-colors"
-            >
-              {isLogin ? "Need an account?" : "Have an account?"}
-            </button>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-white">Investor Portal</h2>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -149,14 +127,12 @@ export default function Login() {
                 >
                   Password
                 </Label>
-                {isLogin && (
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                  >
-                    Forgot?
-                  </Link>
-                )}
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Forgot?
+                </Link>
               </div>
               <div className="relative group/input">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within/input:text-indigo-400 text-indigo-200/30">
@@ -192,7 +168,7 @@ export default function Login() {
                 <LoadingSpinner size="sm" className="text-white" />
               ) : (
                 <span className="flex items-center gap-2">
-                  {isLogin ? "Access Portal" : "Submit Request"}
+                  Access Portal
                   {!signInMutation.isPending && <span className="text-lg">→</span>}
                 </span>
               )}

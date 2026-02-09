@@ -73,17 +73,10 @@ export default function InvestorSettingsPage() {
     loadSettings();
   }, [dbPreferences]);
 
+  // Dark theme is always forced
   useEffect(() => {
-    const root = document.documentElement;
-    if (settings.theme === "dark") {
-      root.classList.add("dark");
-    } else if (settings.theme === "light") {
-      root.classList.remove("dark");
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      root.classList.toggle("dark", prefersDark);
-    }
-  }, [settings.theme]);
+    document.documentElement.classList.add("dark");
+  }, []);
 
   const handleSaveSettings = async () => {
     try {
@@ -205,51 +198,6 @@ export default function InvestorSettingsPage() {
               </div>
 
               <Separator className="bg-white/10" />
-
-              <div className="space-y-4">
-                <Label className="text-sm font-medium text-white">Theme</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <Button
-                    variant={settings.theme === "light" ? "default" : "outline"}
-                    className={cn(
-                      "justify-start h-12 rounded-xl",
-                      settings.theme === "light"
-                        ? "bg-indigo-600 hover:bg-indigo-500 text-white border-transparent"
-                        : "border-white/10 bg-white/5 hover:bg-white/10 text-indigo-200"
-                    )}
-                    onClick={() => updateSetting("theme", "light" as const)}
-                  >
-                    <Sun className="h-4 w-4 mr-2" />
-                    Light
-                  </Button>
-                  <Button
-                    variant={settings.theme === "dark" ? "default" : "outline"}
-                    className={cn(
-                      "justify-start h-12 rounded-xl",
-                      settings.theme === "dark"
-                        ? "bg-indigo-600 hover:bg-indigo-500 text-white border-transparent"
-                        : "border-white/10 bg-white/5 hover:bg-white/10 text-indigo-200"
-                    )}
-                    onClick={() => updateSetting("theme", "dark" as const)}
-                  >
-                    <Moon className="h-4 w-4 mr-2" />
-                    Dark
-                  </Button>
-                  <Button
-                    variant={settings.theme === "system" ? "default" : "outline"}
-                    className={cn(
-                      "justify-start h-12 rounded-xl",
-                      settings.theme === "system"
-                        ? "bg-indigo-600 hover:bg-indigo-500 text-white border-transparent"
-                        : "border-white/10 bg-white/5 hover:bg-white/10 text-indigo-200"
-                    )}
-                    onClick={() => updateSetting("theme", "system" as const)}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    System
-                  </Button>
-                </div>
-              </div>
 
               <Separator className="bg-white/10" />
 

@@ -15,7 +15,6 @@ import { toast } from "@/hooks";
 import { useUrlFilters, useInvestorLedger, useInvestorDefaultFund } from "@/hooks";
 import { useLedgerSubscription } from "@/hooks/data";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
-import { VoidAndReissueDialog } from "@/features/admin/transactions/VoidAndReissueDialog";
 import { VoidTransactionDialog } from "@/features/admin/transactions/VoidTransactionDialog";
 
 import { LedgerHeader } from "./LedgerHeader";
@@ -43,8 +42,7 @@ export function InvestorLedgerTab({
   const [showVoided, setShowVoided] = useState(false);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
 
-  // Void & Reissue and Void dialog state
-  const [reissueDialogOpen, setReissueDialogOpen] = useState(false);
+  // Void dialog state
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<SelectedTransaction | null>(null);
 
@@ -94,7 +92,6 @@ export function InvestorLedgerTab({
   const handleEditVoidSuccess = useCallback(() => {
     invalidateAll();
     onDataChange?.();
-    setReissueDialogOpen(false);
     setVoidDialogOpen(false);
     setSelectedTransaction(null);
   }, [invalidateAll, onDataChange]);
@@ -111,25 +108,6 @@ export function InvestorLedgerTab({
 
   // Calculate hidden transaction count
   const hiddenCount = unfilteredTransactions.length - transactions.length;
-
-  // Prepare transaction for void & reissue dialog
-  const openReissueDialog = useCallback(
-    (tx: LedgerTransaction) => {
-      setSelectedTransaction({
-        id: tx.id,
-        type: tx.type,
-        amount: tx.amount,
-        asset: tx.asset,
-        investorName: investorName || "Unknown",
-        txDate: tx.tx_date,
-        notes: tx.notes || null,
-        txHash: tx.tx_hash || null,
-        isSystemGenerated: tx.is_system_generated || false,
-      });
-      setReissueDialogOpen(true);
-    },
-    [investorName]
-  );
 
   const openVoidDialog = useCallback(
     (tx: LedgerTransaction) => {
@@ -197,11 +175,7 @@ export function InvestorLedgerTab({
 
       {/* Transactions Table */}
       {showTable ? (
-        <LedgerTable
-          transactions={transactions as LedgerTransaction[]}
-          onReissue={openReissueDialog}
-          onVoid={openVoidDialog}
-        />
+        <LedgerTable transactions={transactions as LedgerTransaction[]} onVoid={openVoidDialog} />
       ) : (
         !loading &&
         !error &&
@@ -217,14 +191,6 @@ export function InvestorLedgerTab({
         investorId={investorId}
         fundId={defaultFundId ?? undefined}
         onSuccess={handleAddTxSuccess}
-      />
-
-      {/* Void & Reissue Transaction Dialog */}
-      <VoidAndReissueDialog
-        open={reissueDialogOpen}
-        onOpenChange={setReissueDialogOpen}
-        transaction={selectedTransaction}
-        onSuccess={handleEditVoidSuccess}
       />
 
       {/* Void Transaction Dialog */}

@@ -29,9 +29,6 @@ import type { LedgerTransaction } from "./types";
 
 interface LedgerTableProps {
   transactions: LedgerTransaction[];
-  /** @deprecated Use onReissue instead */
-  onEdit?: (tx: LedgerTransaction) => void;
-  onReissue: (tx: LedgerTransaction) => void;
   onVoid: (tx: LedgerTransaction) => void;
 }
 
@@ -65,9 +62,7 @@ function getPurposeBadge(purpose: string | null) {
   );
 }
 
-export function LedgerTable({ transactions, onEdit, onReissue, onVoid }: LedgerTableProps) {
-  // Use onReissue if provided, fall back to deprecated onEdit for backwards compatibility
-  const handleCorrection = onReissue || onEdit || (() => {});
+export function LedgerTable({ transactions, onVoid }: LedgerTableProps) {
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -140,10 +135,6 @@ export function LedgerTable({ transactions, onEdit, onReissue, onVoid }: LedgerT
                       <TooltipContent>Actions</TooltipContent>
                     </Tooltip>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleCorrection(tx)}>
-                        <RefreshCw className="h-3.5 w-3.5 mr-2" />
-                        Void & Reissue
-                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onVoid(tx)}
                         className="text-destructive focus:text-destructive"

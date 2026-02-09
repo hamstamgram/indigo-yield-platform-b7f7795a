@@ -61,8 +61,6 @@ export const AdminManualTransaction = lazy(
 // ============================================================================
 // AUTH PAGES
 // ============================================================================
-export const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
-export const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 export const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage"));
 
 // ============================================================================
@@ -246,16 +244,6 @@ export const LazyAdminManualTransaction = () => (
 );
 
 // Auth
-export const LazyLoginPage = () => (
-  <RouteSuspense>
-    <LoginPage />
-  </RouteSuspense>
-);
-export const LazyRegister = () => (
-  <RouteSuspense>
-    <RegisterPage />
-  </RouteSuspense>
-);
 export const LazyVerifyEmail = () => (
   <RouteSuspense>
     <VerifyEmailPage />

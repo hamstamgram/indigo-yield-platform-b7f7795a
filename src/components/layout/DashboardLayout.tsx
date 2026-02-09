@@ -7,8 +7,7 @@ import ContentArea from "./ContentArea";
 import { useAuth } from "@/services/auth";
 import { useUserRole } from "@/hooks/auth";
 import { logWarn } from "@/lib/logger";
-import { GlobalShortcuts } from "@/components/global";
-import { FinancialErrorBoundary } from "@/components/error/FinancialErrorBoundary";
+import { ErrorBoundary } from "@/components/error";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -100,9 +99,6 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
-      {/* Global Shortcuts & Action Bar */}
-      <GlobalShortcuts />
-
       {/* Sidebar - Floating Dock Style */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isAdmin={isAdmin} />
 
@@ -113,11 +109,11 @@ const DashboardLayout = () => {
 
         {/* Scrollable Content Canvas */}
         <main className="flex-1 overflow-y-auto px-4 pb-24 scroll-pb-24 sm:px-6 sm:pb-24 lg:px-8 lg:pb-10">
-          <FinancialErrorBoundary context={isAdmin ? "admin" : "investor"}>
+          <ErrorBoundary>
             <div className="min-h-full w-full rounded-2xl animate-fade-in relative mx-auto max-w-[1600px]">
               <Outlet />
             </div>
-          </FinancialErrorBoundary>
+          </ErrorBoundary>
         </main>
       </div>
     </div>
