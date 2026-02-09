@@ -665,8 +665,6 @@ function generateRpcSignatures(functions: SchemaFunction[]): string {
   lines.push('  YIELD: "apply_daily_yield_to_fund_v3",');
   lines.push("  /** Canonical RPC for voiding transactions */");
   lines.push('  VOID: "void_transaction",');
-  lines.push("  /** Canonical RPC for admin transaction creation */");
-  lines.push('  ADMIN_TX: "admin_create_transaction",');
   lines.push("} as const;");
   lines.push("");
 

@@ -308,7 +308,7 @@ jobs:
             echo ""
             echo "❌ FAIL: Found direct mutations to protected tables!"
             echo "   Use canonical RPC functions instead:"
-            echo "   - transactions_v2: rpc.deposit(), rpc.withdrawal(), rpc.call('admin_create_transaction', ...)"
+            echo "   - transactions_v2: rpc.deposit(), rpc.withdrawal(), rpc.call('apply_transaction_with_crystallization', ...)"
             echo "   - yield_distributions: rpc.applyYield(), rpc.call('void_yield_distribution', ...)"
             echo "   - fund_aum_events: Use crystallization RPCs"
             echo "   - fund_daily_aum: rpc.call('set_fund_daily_aum', ...)"

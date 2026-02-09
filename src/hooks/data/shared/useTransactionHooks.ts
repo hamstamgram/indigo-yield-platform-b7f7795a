@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   transactionService,
-  createAdminTransaction,
+  createTransactionWithCrystallization,
   QuickTransactionParams,
 } from "@/services/shared";
 import { transactionsV2Service } from "@/services/investor";
@@ -281,7 +281,7 @@ export function useCreateAdminTransaction() {
 
   return useMutation({
     mutationFn: async (params: LocalCreateTransactionParams) => {
-      const result = await createAdminTransaction({
+      const result = await createTransactionWithCrystallization({
         investor_id: params.investorId,
         fund_id: params.fundId,
         type: params.type as CreateTransactionUIParams["type"],

@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { createAdminTransaction } from "@/services/shared";
+import { createTransactionWithCrystallization } from "@/services/shared";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import {
   processDepositWithYield,
@@ -291,7 +291,7 @@ export default function AdminManualTransaction() {
           );
         }
 
-        const result = await createAdminTransaction({
+        const result = await createTransactionWithCrystallization({
           investor_id: data.investorId,
           fund_id: data.fundId,
           type: data.type as CreateTransactionParams["type"],

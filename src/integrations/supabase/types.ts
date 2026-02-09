@@ -10160,24 +10160,6 @@ export type Database = {
         };
         Returns: Json;
       };
-      admin_create_transaction: {
-        Args: {
-          p_admin_id?: string;
-          p_amount: number;
-          p_fund_id: string;
-          p_investor_id: string;
-          p_notes?: string;
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"];
-          p_reference_id?: string;
-          p_tx_date: string;
-          p_type: string;
-        };
-        Returns: string;
-      };
-      admin_create_transactions_batch: {
-        Args: { p_requests: Json };
-        Returns: Json;
-      };
       apply_adb_yield_distribution_v4: {
         Args: {
           p_admin_id?: string;

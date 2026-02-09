@@ -23,7 +23,7 @@ export * from "./historicalDataService";
 export {
   fetchUserTransactions,
   calculateTransactionSummary,
-  createAdminTransaction,
+  createTransactionWithCrystallization,
   createQuickTransaction,
   transactionService,
 } from "./transactionService";

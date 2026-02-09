@@ -242,6 +242,4 @@ export const CANONICAL_MUTATION_RPCS = {
   YIELD: "apply_adb_yield_distribution_v4",
   /** Canonical RPC for voiding transactions */
   VOID: "void_transaction",
-  /** Canonical RPC for admin transaction creation */
-  ADMIN_TX: "admin_create_transaction",
 } as const;

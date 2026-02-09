@@ -45,7 +45,7 @@ Component -> Custom Hook (useQuery/useMutation) -> Service Function (gateway)
 | Investors | `/admin/investors` | `useUnifiedInvestors` | `investorDetailService` |
 | Investor Detail | `/admin/investors/:id` | `useInvestorDetail` | `investorDetailService` |
 | Transactions | `/admin/transactions` | `useTransactions` | `transactionDetailsService` |
-| New Transaction | `/admin/transactions/new` | `useCreateAdminTransaction` | RPC: `admin_create_transaction` |
+| New Transaction | `/admin/transactions/new` | `useCreateAdminTransaction` | RPC: `apply_transaction_with_crystallization` |
 | Withdrawals | `/admin/withdrawals` | `useWithdrawals` | `approvalService` |
 | Yield Ops | `/admin/yield` | `useYieldRecords` | `yieldDistributionService` |
 | Yield Distributions | `/admin/yield-distributions` | `useYieldDistributions` | `yieldDistributionService` |
@@ -107,7 +107,7 @@ Component -> Custom Hook (useQuery/useMutation) -> Service Function (gateway)
 | `apply_adb_yield_distribution_v3` | Apply ADB yield distribution | yield_distributions, yield_allocations, fee_allocations, ib_allocations, transactions_v2 |
 | `preview_adb_yield_distribution_v3` | Preview yield (read-only) | None |
 | `apply_transaction_with_crystallization` | Deposit/withdrawal with yield crystallization | transactions_v2, investor_positions (trigger) |
-| `admin_create_transaction` | Simple transaction creation | transactions_v2, investor_positions (trigger) |
+
 | `crystallize_yield_before_flow` | Distribute accrued yield before deposit/withdrawal | investor_yield_events, transactions_v2 |
 | `void_yield_distribution` | Void + cascade to all related records | yield_distributions, yield_allocations, fee_allocations, ib_allocations, transactions_v2 |
 | `void_transaction` | Void a transaction | transactions_v2, investor_positions (trigger) |

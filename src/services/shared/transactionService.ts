@@ -167,7 +167,7 @@ const mapTypeForDb = (type: string): string => {
  * Create a transaction (admin use)
  * Accepts CreateTransactionUIParams which allows FIRST_INVESTMENT (mapped to DEPOSIT internally)
  */
-export async function createAdminTransaction(
+export async function createTransactionWithCrystallization(
   params: CreateTransactionUIParams
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -211,7 +211,9 @@ export async function createAdminTransaction(
       });
 
       if (result.error) {
-        logError(`createAdminTransaction.${dbType}`, result.error, { fundId: params.fund_id });
+        logError(`createTransactionWithCrystallization.${dbType}`, result.error, {
+          fundId: params.fund_id,
+        });
         // Surface the user-friendly error message from gateway
         const errMsg =
           result.error.message || result.error.userMessage || JSON.stringify(result.error);
@@ -254,7 +256,7 @@ export async function createAdminTransaction(
         `See docs/FLOW_MATRIX.md for canonical mutation pathways.`
     );
   } catch (error) {
-    logError("createAdminTransaction", error);
+    logError("createTransactionWithCrystallization", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create transaction",
@@ -320,6 +322,6 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
 export const transactionService = {
   fetchUserTransactions,
   calculateTransactionSummary,
-  createAdminTransaction,
+  createTransactionWithCrystallization,
   createQuickTransaction,
 };
