@@ -282,16 +282,16 @@ export async function getAggregatedYieldForPeriod(
 }
 
 /**
- * Crystallization distribution record from yield_distributions table
+ * Per-investor crystallization event for yield preview sub-rows
  */
-export interface CrystallizationDistribution {
-  id: string;
-  distributionType: string;
-  effectiveDate: string;
+export interface InvestorCrystallizationEvent {
+  investorId: string;
+  eventDate: string;
+  triggerType: string;
   grossYield: string;
-  netAmount: string;
   feeAmount: string;
   ibAmount: string;
+  netYield: string;
 }
 
 const TRIGGER_LABELS: Record<string, string> = {
@@ -301,41 +301,53 @@ const TRIGGER_LABELS: Record<string, string> = {
 };
 
 /**
- * Get crystallization distributions for a fund in a date range.
- * Returns individual yield_distributions rows for mid-period crystallization events.
+ * Get per-investor crystallization events for a fund in a date range.
+ * Returns a Map<investorId, events[]> from investor_yield_events table.
  */
-export async function getCrystallizationDistributions(
+export async function getInvestorCrystallizationEvents(
   fundId: string,
   periodStart: string,
   periodEnd: string
-): Promise<CrystallizationDistribution[]> {
+): Promise<Map<string, InvestorCrystallizationEvent[]>> {
   const { data, error } = await supabase
-    .from("yield_distributions")
+    .from("investor_yield_events")
     .select(
-      "id, distribution_type, effective_date, gross_yield_amount, total_net_amount, total_fee_amount, total_ib_amount"
+      "investor_id, event_date, trigger_type, gross_yield_amount, fee_amount, net_yield_amount"
     )
     .eq("fund_id", fundId)
-    .gte("effective_date", periodStart)
-    .lte("effective_date", periodEnd)
+    .gte("event_date", periodStart)
+    .lte("event_date", periodEnd)
     .eq("is_voided", false)
-    .in("distribution_type", ["deposit", "withdrawal", "transaction"])
-    .is("consolidated_into_id", null)
-    .order("effective_date", { ascending: true });
+    .in("trigger_type", ["deposit", "withdrawal", "transaction"])
+    .order("event_date", { ascending: true });
 
   if (error) {
-    logError("getCrystallizationDistributions", error, { fundId, periodStart, periodEnd });
+    logError("getInvestorCrystallizationEvents", error, { fundId, periodStart, periodEnd });
     throw new Error(error.message);
   }
 
-  return (data || []).map((row) => ({
-    id: row.id,
-    distributionType: TRIGGER_LABELS[row.distribution_type] || row.distribution_type,
-    effectiveDate: row.effective_date,
-    grossYield: String(row.gross_yield_amount ?? 0),
-    netAmount: String(row.total_net_amount ?? 0),
-    feeAmount: String(row.total_fee_amount ?? 0),
-    ibAmount: String(row.total_ib_amount ?? 0),
-  }));
+  const result = new Map<string, InvestorCrystallizationEvent[]>();
+
+  for (const row of data || []) {
+    const event: InvestorCrystallizationEvent = {
+      investorId: row.investor_id,
+      eventDate: row.event_date,
+      triggerType: TRIGGER_LABELS[row.trigger_type] || row.trigger_type,
+      grossYield: String(row.gross_yield_amount ?? 0),
+      feeAmount: String(row.fee_amount ?? 0),
+      ibAmount: "0",
+      netYield: String(row.net_yield_amount ?? 0),
+    };
+
+    const existing = result.get(row.investor_id);
+    if (existing) {
+      existing.push(event);
+    } else {
+      result.set(row.investor_id, [event]);
+    }
+  }
+
+  return result;
 }
 
 // Note: getFundYieldSnapshots removed in P1-03 (Unify AUM Snapshot Tables)

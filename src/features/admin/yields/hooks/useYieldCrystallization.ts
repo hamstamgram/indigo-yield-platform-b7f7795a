@@ -12,7 +12,8 @@ import {
   getYieldEventsForInvestor,
   getPendingYieldEventsCount,
   getAggregatedYieldForPeriod,
-  getCrystallizationDistributions,
+  getInvestorCrystallizationEvents,
+  type InvestorCrystallizationEvent,
 } from "@/services/admin/yieldCrystallizationService";
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
@@ -183,20 +184,21 @@ export function useAggregatedYield(
 }
 
 /**
- * Hook to fetch crystallization distribution records for a period.
- * Used in yield preview to show per-event breakdown of mid-month crystallizations.
+ * Hook to fetch per-investor crystallization events for a period.
+ * Used in yield preview to show sub-rows under each investor.
  */
-export function useCrystallizationDistributions(
+export function useInvestorCrystallizationEvents(
   fundId: string | null,
   periodStart: string | null,
   periodEnd: string | null,
   enabled = false
-) {
-  return useQuery({
+): { data: Map<string, InvestorCrystallizationEvent[]> | undefined; isLoading: boolean } {
+  const query = useQuery({
     queryKey: QUERY_KEYS.crystallizationDistributions(fundId!, periodStart!, periodEnd!),
-    queryFn: () => getCrystallizationDistributions(fundId!, periodStart!, periodEnd!),
+    queryFn: () => getInvestorCrystallizationEvents(fundId!, periodStart!, periodEnd!),
     enabled: enabled && !!fundId && !!periodStart && !!periodEnd,
   });
+  return { data: query.data, isLoading: query.isLoading };
 }
 
 /**

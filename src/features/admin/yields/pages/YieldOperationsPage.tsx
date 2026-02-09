@@ -44,7 +44,7 @@ import {
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   usePendingYieldEvents,
-  useCrystallizationDistributions,
+  useInvestorCrystallizationEvents,
 } from "@/features/admin/yields/hooks/useYieldCrystallization";
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { getMonth, getYear } from "date-fns";
@@ -62,10 +62,10 @@ function YieldOperationsContent() {
     reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
   );
 
-  // Crystallization distributions for preview breakdown
+  // Per-investor crystallization events for preview breakdown
   const crystalEnabled =
     (ops.yieldPreview?.crystalsInPeriod ?? 0) > 0 && ops.yieldPurpose === "reporting";
-  const { data: crystallizationEvents } = useCrystallizationDistributions(
+  const { data: crystallizationMap } = useInvestorCrystallizationEvents(
     ops.selectedFund?.id || null,
     ops.yieldPreview?.periodStart || null,
     ops.yieldPreview?.periodEnd || null,
@@ -219,7 +219,7 @@ function YieldOperationsContent() {
                   getFilteredDistributions={ops.getFilteredDistributions}
                   onConfirmApply={ops.handleConfirmApply}
                   applyLoading={ops.applyLoading}
-                  crystallizationEvents={crystallizationEvents}
+                  crystallizationMap={crystallizationMap}
                   yieldPurpose={ops.yieldPurpose}
                 />
               </div>
