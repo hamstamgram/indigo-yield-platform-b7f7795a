@@ -165,7 +165,12 @@ export async function computeStatement(
         } else if (transaction.type === "WITHDRAWAL") {
           assetStat.withdrawals = parseFinancial(assetStat.withdrawals).plus(amount).toNumber();
           type = "withdrawal";
-        } else if (transaction.type === "INTEREST" || transaction.type === "YIELD") {
+        } else if (
+          transaction.type === "INTEREST" ||
+          transaction.type === "YIELD" ||
+          transaction.type === "FEE_CREDIT" ||
+          transaction.type === "IB_CREDIT"
+        ) {
           assetStat.interest = parseFinancial(assetStat.interest).plus(amount).toNumber();
           type = "interest";
         } else if (transaction.type === "FEE") {

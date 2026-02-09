@@ -324,12 +324,15 @@ export function formatTransactionType(type: TransactionType | string): string {
  * Get display type for a transaction based on subtype (preferred) or type (fallback)
  * This is the canonical function for determining user-facing transaction labels.
  */
-export function getTransactionDisplayType(type: TransactionType | string, subtype?: string | null): string {
+export function getTransactionDisplayType(
+  type: TransactionType | string,
+  subtype?: string | null
+): string {
   // Prefer subtype if available and mapped
   if (subtype && SUBTYPE_DISPLAY_MAP[subtype]) {
     return SUBTYPE_DISPLAY_MAP[subtype];
   }
-  
+
   // Fallback to type-based mapping for legacy data
   const fallbackMap: Record<string, string> = {
     DEPOSIT: "Top-up",
@@ -341,7 +344,7 @@ export function getTransactionDisplayType(type: TransactionType | string, subtyp
     IB_CREDIT: "IB Credit",
     ADJUSTMENT: "Adjustment",
   };
-  
+
   return fallbackMap[type] || formatTransactionType(type);
 }
 
@@ -352,7 +355,13 @@ export function getTransactionDisplayType(type: TransactionType | string, subtyp
 export function getTransactionNetAmount(tx: Transaction): string {
   const amount = tx.amount || "0";
   const type = tx.type?.toUpperCase?.() || tx.type;
-  if (type === "DEPOSIT" || type === "INTEREST" || type === "YIELD") {
+  if (
+    type === "DEPOSIT" ||
+    type === "INTEREST" ||
+    type === "YIELD" ||
+    type === "FEE_CREDIT" ||
+    type === "IB_CREDIT"
+  ) {
     return amount;
   }
   if (type === "WITHDRAWAL" || type === "FEE") {

@@ -188,7 +188,9 @@ export const performanceService = {
           const amt = parseFinancial(tx.amount);
           if (tx.type === "DEPOSIT") additions = additions.plus(amt);
           else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
-          else if (tx.type === "YIELD") netIncome = netIncome.plus(amt);
+          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
+            netIncome = netIncome.plus(amt);
+          }
         }
 
         const beginningBalance = parseFinancial(endingBalance)
@@ -222,7 +224,9 @@ export const performanceService = {
           const amt = parseFinancial(tx.amount);
           if (tx.type === "DEPOSIT") additions = additions.plus(amt);
           else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
-          else if (tx.type === "YIELD") netIncome = netIncome.plus(amt);
+          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
+            netIncome = netIncome.plus(amt);
+          }
         }
 
         const addN = additions.toNumber();

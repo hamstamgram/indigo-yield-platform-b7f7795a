@@ -281,12 +281,20 @@ export default function InvestorOverviewPage() {
                       <p
                         className={cn(
                           "text-sm font-mono font-bold",
-                          tx.type === "DEPOSIT" || tx.type === "YIELD"
+                          tx.type === "DEPOSIT" ||
+                            tx.type === "YIELD" ||
+                            tx.type === "FEE_CREDIT" ||
+                            tx.type === "IB_CREDIT"
                             ? "text-emerald-400"
                             : "text-white"
                         )}
                       >
-                        {tx.type === "DEPOSIT" || tx.type === "YIELD" ? "+" : ""}
+                        {tx.type === "DEPOSIT" ||
+                        tx.type === "YIELD" ||
+                        tx.type === "FEE_CREDIT" ||
+                        tx.type === "IB_CREDIT"
+                          ? "+"
+                          : ""}
                         {formatCurrency(Number(tx.amount), tx.asset)}
                       </p>
                       <div className="flex items-center gap-1 justify-end">
