@@ -4,25 +4,29 @@
 
 // Fund icon URLs from CDN
 export const FUND_ICONS: Record<string, string> = {
-  "BTC": "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  "ETH": "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "SOL": "https://storage.mlcdn.com/account_image/855106/g9NxhkmgPwWcqGD0NHB8LYldfZcMJ5LCMsmQblMt.png",
-  "USDT": "https://storage.mlcdn.com/account_image/855106/9xYhDjqnMJwYOoUK4NKBZHDz7NkuGCGPLuQhKsrR.png",
-  "USDC": "https://storage.mlcdn.com/account_image/855106/tVPxl7mDm2gBYCHJzclJ3NXbXe4cjdWIvSHMGzHx.png",
-  "EURC": "https://storage.mlcdn.com/account_image/855106/rTc1KcZ5RBmNqYLJxZ5nH8vPwQdMkF3gLyJhNxKm.png",
-  "XRP": "https://storage.mlcdn.com/account_image/855106/xrp_icon.png",
-  "XAUT": "https://storage.mlcdn.com/account_image/855106/xaut_icon.png",
+  BTC: "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+  ETH: "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+  SOL: "https://storage.mlcdn.com/account_image/855106/g9NxhkmgPwWcqGD0NHB8LYldfZcMJ5LCMsmQblMt.png",
+  USDT: "https://storage.mlcdn.com/account_image/855106/9xYhDjqnMJwYOoUK4NKBZHDz7NkuGCGPLuQhKsrR.png",
+  USDC: "https://storage.mlcdn.com/account_image/855106/tVPxl7mDm2gBYCHJzclJ3NXbXe4cjdWIvSHMGzHx.png",
+  EURC: "https://storage.mlcdn.com/account_image/855106/rTc1KcZ5RBmNqYLJxZ5nH8vPwQdMkF3gLyJhNxKm.png",
+  XRP: "https://storage.mlcdn.com/account_image/855106/xrp_icon.png",
+  XAUT: "https://storage.mlcdn.com/account_image/855106/xaut_icon.png",
 };
 
 // Social icon URLs
 export const SOCIAL_ICONS = {
-  linkedin: "https://storage.mlcdn.com/account_image/855106/RnXQ2wg2CWr8VjTAwj3NvFJoHT4GPmDSVU2sLNx6.png",
-  instagram: "https://storage.mlcdn.com/account_image/855106/2zDqfXd7PHFzKDXCBwrmhVH4NmV2jEWY98LLT1UG.png",
-  twitter: "https://storage.mlcdn.com/account_image/855106/DV8BqtRcMQvXfEJZh5yF0t42cg0l7TFHh1PHmVhj.png",
+  linkedin:
+    "https://storage.mlcdn.com/account_image/855106/RnXQ2wg2CWr8VjTAwj3NvFJoHT4GPmDSVU2sLNx6.png",
+  instagram:
+    "https://storage.mlcdn.com/account_image/855106/2zDqfXd7PHFzKDXCBwrmhVH4NmV2jEWY98LLT1UG.png",
+  twitter:
+    "https://storage.mlcdn.com/account_image/855106/DV8BqtRcMQvXfEJZh5yF0t42cg0l7TFHh1PHmVhj.png",
 };
 
 // Logo URL
-export const LOGO_URL = "https://storage.mlcdn.com/account_image/855106/l1RYJRY7T2d0hJpEu0SdBnGMhw1WS0mYNNJFBNxZ.png";
+export const LOGO_URL =
+  "https://storage.mlcdn.com/account_image/855106/l1RYJRY7T2d0hJpEu0SdBnGMhw1WS0mYNNJFBNxZ.png";
 
 // Decimal places per asset
 export function getAssetDecimals(asset: string): number {
@@ -298,7 +302,7 @@ export function generateMonthlyReportHtml(data: {
                           <img src="${LOGO_URL}" alt="Indigo Fund" height="28" class="mobile-logo" style="display: block;">
                         </td>
                         <td width="50%" style="text-align: right;">
-                          <h1 class="mobile-h1" style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">Monthly Report</h1>
+                          <h1 class="mobile-h1" style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">Your Account Statement</h1>
                         </td>
                       </tr>
                     </table>
@@ -398,24 +402,24 @@ ${fundBlocksHtml}
 // Validation function to ensure generated HTML contains required elements and bgcolor attributes
 export function validateGeneratedHtml(html: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   const requiredElements = [
-    "Monthly Report",
+    "Your Account Statement",
     "Capital Account Summary",
     "storage.mlcdn.com",
     "© 2025 Indigo Fund",
     "This document is not an offer",
     "linkedin",
     "instagram",
-    "twitter"
+    "twitter",
   ];
-  
+
   for (const element of requiredElements) {
     if (!html.includes(element)) {
       errors.push(`Missing required element: ${element}`);
     }
   }
-  
+
   // Check no USD or $ appears (except in stylesheets)
   if (html.includes("$") && !html.includes("stylesheet")) {
     errors.push("Found '$' symbol in HTML (not allowed - token-denominated only)");
@@ -423,23 +427,23 @@ export function validateGeneratedHtml(html: string): { valid: boolean; errors: s
   if (html.includes("USD") && !html.includes("USDC") && !html.includes("USDT")) {
     errors.push("Found 'USD' in HTML (not allowed - use asset symbols only)");
   }
-  
+
   // Validate bgcolor fallbacks are present for email compatibility
   const requiredBgColors = [
-    { style: 'background-color: #f1f5f9', bgcolor: 'bgcolor="#f1f5f9"', name: 'Outer background' },
-    { style: 'background-color: #ffffff', bgcolor: 'bgcolor="#ffffff"', name: 'White areas' },
-    { style: 'background-color: #f8fafc', bgcolor: 'bgcolor="#f8fafc"', name: 'Light gray areas' },
-    { style: 'background-color: #0f172a', bgcolor: 'bgcolor="#0f172a"', name: 'Table header' },
+    { style: "background-color: #f1f5f9", bgcolor: 'bgcolor="#f1f5f9"', name: "Outer background" },
+    { style: "background-color: #ffffff", bgcolor: 'bgcolor="#ffffff"', name: "White areas" },
+    { style: "background-color: #f8fafc", bgcolor: 'bgcolor="#f8fafc"', name: "Light gray areas" },
+    { style: "background-color: #0f172a", bgcolor: 'bgcolor="#0f172a"', name: "Table header" },
   ];
-  
+
   for (const bg of requiredBgColors) {
     if (html.includes(bg.style) && !html.includes(bg.bgcolor)) {
       errors.push(`${bg.name}: Found ${bg.style} without matching ${bg.bgcolor}`);
     }
   }
-  
+
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }

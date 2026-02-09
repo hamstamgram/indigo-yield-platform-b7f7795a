@@ -104,6 +104,8 @@ export interface InvestorReportEmail {
   verified: boolean;
 }
 
+export type DeliveryStatus = "missing" | "generated" | "sent" | "failed";
+
 export interface InvestorReportSummary {
   investor_id: string;
   investor_name: string;
@@ -114,6 +116,9 @@ export interface InvestorReportSummary {
   total_yield: number;
   has_reports: boolean;
   report_count: number;
+  delivery_status: DeliveryStatus;
+  sent_at: string | null;
+  statement_id: string | null;
 }
 
 export interface InvestorPerformanceReport {
@@ -221,11 +226,12 @@ export async function fetchPerformanceReportById(
 export async function fetchAdminInvestorReports(
   selectedMonth: string
 ): Promise<{ reports: InvestorReportSummary[]; periodId: string }> {
-  // Fetch all investors (profiles)
+  // Fetch all investors (profiles) - exclude fees_account and admin
   const { data: investors, error: investorsError } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, email")
+    .select("id, first_name, last_name, email, account_type")
     .eq("is_admin", false)
+    .neq("account_type", "fees_account")
     .order("first_name")
     .limit(500);
 
@@ -293,6 +299,9 @@ export async function fetchAdminInvestorReports(
         total_yield: 0,
         has_reports: false,
         report_count: 0,
+        delivery_status: "missing" as DeliveryStatus,
+        sent_at: null,
+        statement_id: null,
       })
     );
     return { reports: emptyInvestorReports, periodId: "" };
@@ -307,6 +316,30 @@ export async function fetchAdminInvestorReports(
     .limit(500);
 
   if (reportsError) throw reportsError;
+
+  // Fetch generated statements for this period (delivery status tracking)
+  const { data: statements } = await supabase
+    .from("generated_statements")
+    .select("id, investor_id")
+    .eq("period_id", period.id)
+    .limit(500);
+
+  const statementByInvestor: Record<string, string> = {};
+  for (const stmt of statements || []) {
+    statementByInvestor[stmt.investor_id] = stmt.id;
+  }
+
+  // Fetch delivery records for this period
+  const { data: deliveries } = await supabase
+    .from("statement_email_delivery")
+    .select("investor_id, status, sent_at")
+    .eq("period_id", period.id)
+    .limit(500);
+
+  const deliveryByInvestor: Record<string, { status: string; sent_at: string | null }> = {};
+  for (const del of deliveries || []) {
+    deliveryByInvestor[del.investor_id] = { status: del.status, sent_at: del.sent_at };
+  }
 
   // Group reports by investor
   const reportsByInvestor = ((monthlyReports || []) as PerformanceReportRow[]).reduce(
@@ -376,6 +409,21 @@ export async function fetchAdminInvestorReports(
     const primaryEmail = investorEmails.find((e) => e.is_primary)?.email || investor.email;
     const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
 
+    // Determine delivery status
+    const delivery = deliveryByInvestor[investor.id];
+    const statementId = statementByInvestor[investor.id] || null;
+    let delivery_status: DeliveryStatus = "missing";
+    let sent_at: string | null = null;
+
+    if (delivery?.status === "SENT") {
+      delivery_status = "sent";
+      sent_at = delivery.sent_at;
+    } else if (delivery?.status === "FAILED") {
+      delivery_status = "failed";
+    } else if (hasReports || statementId) {
+      delivery_status = "generated";
+    }
+
     return {
       investor_id: investor.id,
       investor_name: fullName || "Unknown",
@@ -386,6 +434,9 @@ export async function fetchAdminInvestorReports(
       total_yield,
       has_reports: hasReports,
       report_count: assets.length,
+      delivery_status,
+      sent_at,
+      statement_id: statementId,
     };
   });
 
@@ -562,6 +613,137 @@ export async function fetchActiveInvestorsForStatements(): Promise<
     email: p.email,
   }));
 }
+/**
+ * Send a report email for an investor via the send-report-mailersend Edge Function
+ */
+export async function sendReportEmail(
+  investorId: string,
+  periodId: string
+): Promise<{ success: boolean; delivery_id?: string; error?: string }> {
+  const { data, error } = await supabase.functions.invoke("send-report-mailersend", {
+    body: {
+      investor_id: investorId,
+      period_id: periodId,
+      delivery_mode: "email_html",
+    },
+  });
+
+  if (error) {
+    logError("sendReportEmail", error, { investorId, periodId });
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, delivery_id: data?.delivery_id };
+}
+
+/**
+ * Fetch all historical reports with delivery status
+ */
+export async function fetchHistoricalReports(filters?: {
+  month?: string;
+  investorId?: string;
+  fundName?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{
+  reports: Array<{
+    id: string;
+    investor_id: string;
+    investor_name: string;
+    period_month: string;
+    fund_names: string[];
+    delivery_status: DeliveryStatus;
+    sent_at: string | null;
+    created_at: string;
+  }>;
+  total: number;
+}> {
+  const page = filters?.page ?? 0;
+  const pageSize = filters?.pageSize ?? 20;
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("generated_statements")
+    .select(
+      `
+      id,
+      investor_id,
+      period_id,
+      fund_names,
+      created_at,
+      investor:profiles!generated_statements_investor_id_fkey(first_name, last_name),
+      period:statement_periods!generated_statements_period_id_fkey(year, month, period_end_date)
+    `,
+      { count: "exact" }
+    )
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (filters?.investorId) {
+    query = query.eq("investor_id", filters.investorId);
+  }
+
+  const { data, error, count } = await query;
+  if (error) throw error;
+
+  // Fetch delivery records for these statements
+  const statementIds = (data || []).map((s) => s.id);
+  const { data: deliveries } =
+    statementIds.length > 0
+      ? await supabase
+          .from("statement_email_delivery")
+          .select("statement_id, status, sent_at")
+          .in("statement_id", statementIds)
+      : { data: [] };
+
+  const deliveryByStatement: Record<string, { status: string; sent_at: string | null }> = {};
+  for (const del of deliveries || []) {
+    deliveryByStatement[del.statement_id] = { status: del.status, sent_at: del.sent_at };
+  }
+
+  const reports = (data || [])
+    .filter((s) => {
+      const period = s.period as { year: number; month: number; period_end_date: string } | null;
+      if (filters?.month && period) {
+        const monthStr = `${period.year}-${String(period.month).padStart(2, "0")}`;
+        if (monthStr !== filters.month) return false;
+      }
+      if (filters?.fundName) {
+        const names = (s.fund_names || []) as string[];
+        if (!names.some((n) => n.toLowerCase().includes(filters.fundName!.toLowerCase())))
+          return false;
+      }
+      return true;
+    })
+    .map((s) => {
+      const investor = s.investor as { first_name: string | null; last_name: string | null } | null;
+      const period = s.period as { year: number; month: number; period_end_date: string } | null;
+      const delivery = deliveryByStatement[s.id];
+
+      let delivery_status: DeliveryStatus = "generated";
+      if (delivery?.status === "SENT") delivery_status = "sent";
+      else if (delivery?.status === "FAILED") delivery_status = "failed";
+
+      return {
+        id: s.id,
+        investor_id: s.investor_id,
+        investor_name: investor
+          ? `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || "Unknown"
+          : "Unknown",
+        period_month: period
+          ? `${period.year}-${String(period.month).padStart(2, "0")}`
+          : "Unknown",
+        fund_names: (s.fund_names || []) as string[],
+        delivery_status,
+        sent_at: delivery?.sent_at || null,
+        created_at: s.created_at,
+      };
+    });
+
+  return { reports, total: count || 0 };
+}
+
 /**
  * Delete a performance report record with audit trail
  */

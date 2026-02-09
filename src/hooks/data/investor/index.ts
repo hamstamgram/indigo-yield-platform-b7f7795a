@@ -42,7 +42,9 @@ export {
   useRecentInvestorTransactions,
   usePendingWithdrawalsCount,
   useLastStatementPeriod,
+  useLatestStatementSummary,
   type RecentTransaction,
+  type LatestStatementSummary,
 } from "./useInvestorOverviewQueries";
 
 // Performance hooks

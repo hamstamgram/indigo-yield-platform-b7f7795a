@@ -101,6 +101,74 @@ export function useLastStatementPeriod() {
   });
 }
 
+/**
+ * Fetch latest statement summary for the current investor
+ * Returns per-fund ending balances from the most recent statement period
+ */
+export interface LatestStatementSummary {
+  periodName: string;
+  funds: Array<{
+    fund_name: string;
+    asset_code: string;
+    ending_balance: number;
+    net_income: number;
+  }>;
+}
+
+function getAssetFromFundName(fundName: string): string {
+  const match = fundName.match(/^(\w+)\s/);
+  return match ? match[1] : fundName;
+}
+
+export function useLatestStatementSummary() {
+  return useQuery<LatestStatementSummary | null>({
+    queryKey: ["latest-statement-summary"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      // Get the latest period with performance data
+      const { data: records, error } = await supabase
+        .from("investor_fund_performance")
+        .select(
+          "fund_name, mtd_ending_balance, mtd_net_income, period:statement_periods(period_name, year, month)"
+        )
+        .eq("investor_id", user.id)
+        .eq("purpose", "reporting")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (error || !records || records.length === 0) return null;
+
+      // Group by period - take the latest one
+      const firstRecord = records[0] as {
+        period?: { period_name?: string; year?: number; month?: number };
+      };
+      const periodName = firstRecord?.period?.period_name || null;
+      if (!periodName) return null;
+
+      // Filter records matching the latest period
+      const latestRecords = records.filter((r) => {
+        const p = r as { period?: { period_name?: string } };
+        return p?.period?.period_name === periodName;
+      });
+
+      return {
+        periodName,
+        funds: latestRecords.map((r) => ({
+          fund_name: r.fund_name || "",
+          asset_code: getAssetFromFundName(r.fund_name || ""),
+          ending_balance: Number(r.mtd_ending_balance) || 0,
+          net_income: Number(r.mtd_net_income) || 0,
+        })),
+      };
+    },
+    staleTime: STALE_TIME.REFERENCE,
+  });
+}
+
 export type RecentTransaction = {
   id: string;
   type: string;

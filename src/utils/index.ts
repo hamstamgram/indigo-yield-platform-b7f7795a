@@ -64,8 +64,7 @@ export {
 // formatAssetAmount, formatPercentage, formatTokenAmount
 export * from "./formatters";
 
-// PDF generation
-export * from "./statementPdfGenerator";
+// Statement storage
 export * from "./statementStorage";
 
 // Dynamic imports & lazy loading

@@ -363,7 +363,7 @@ serve(async (req: Request): Promise<Response> => {
           [investor.first_name, investor.last_name].filter(Boolean).join(" ") ||
           investor.email ||
           "Investor";
-        const subjectForRecord = `INDIGO Monthly Report – ${periodNameForRecord} – ${investorNameForRecord}`;
+        const subjectForRecord = `${investorNameForRecord} – Your Account Statement – ${periodNameForRecord}`;
 
         // Create new delivery record BEFORE sending (required fields included)
         const { data: newDelivery, error: createError } = await supabase
@@ -422,7 +422,7 @@ serve(async (req: Request): Promise<Response> => {
     const periodName = `${monthNames[periodData.month - 1]} ${periodData.year}`;
 
     // Build email subject
-    const subject = `INDIGO Monthly Report – ${periodName} – ${investorName}`;
+    const subject = `${investorName} – Your Account Statement – ${periodName}`;
 
     // Build plain text fallback
     const plainText = `

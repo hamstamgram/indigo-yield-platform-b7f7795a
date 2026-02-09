@@ -3,11 +3,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { db } from "@/lib/db/index";
 import { rpc } from "@/lib/rpc/index";
 import { logError, logWarn } from "@/lib/logger";
-import {
-  ReportEngineLazy,
-  generatePDFReportLazy,
-  generateExcelReportLazy,
-} from "./reportsApi.lazy";
+
 import {
   ReportType,
   ReportStatus,
@@ -28,96 +24,14 @@ import {
 } from "@/types/domains";
 
 export class ReportsApi {
-  /**
-   * Generate a report
-   */
-  static async generateReport(request: GenerateReportRequest): Promise<GenerateReportResponse> {
-    // Use lazy-loaded ReportEngine to handle generation
-    return await ReportEngineLazy.generateReport(request);
+  static async generateReport(_request: GenerateReportRequest): Promise<GenerateReportResponse> {
+    return { success: false, error: "Custom reports feature is disabled" };
   }
 
-  /**
-   * Generate report immediately (for download)
-   * This bypasses the queue and generates the report synchronously
-   */
   static async generateReportNow(
-    request: GenerateReportRequest
+    _request: GenerateReportRequest
   ): Promise<{ success: boolean; data?: Uint8Array; filename?: string; error?: string }> {
-    try {
-      // Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        return { success: false, error: "User not authenticated" };
-      }
-
-      // Fetch report data using the engine
-      const reportData = await ReportEngineLazy.fetchReportData(
-        user.id,
-        request.reportType,
-        request.filters || {},
-        request.parameters || {}
-      );
-
-      // Generate based on format (all lazy loaded)
-      if (request.format === "pdf") {
-        const result = await generatePDFReportLazy(reportData, {
-          includeCharts: request.parameters?.includeCharts,
-          confidential: request.parameters?.confidential,
-        });
-
-        if (!result.success) {
-          return { success: false, error: result.error };
-        }
-
-        return {
-          success: true,
-          data: result.data,
-          filename: result.filename,
-        };
-      } else if (request.format === "excel") {
-        const result = await generateExcelReportLazy(reportData, {
-          includeCharts: request.parameters?.includeCharts,
-        });
-
-        if (!result.success) {
-          return { success: false, error: result.error };
-        }
-
-        return {
-          success: true,
-          data: result.data,
-          filename: result.filename,
-        };
-      } else if (request.format === "json") {
-        // Return JSON data
-        const jsonData = JSON.stringify(reportData, null, 2);
-        const encoder = new TextEncoder();
-        return {
-          success: true,
-          data: encoder.encode(jsonData),
-          filename: `report_${Date.now()}.json`,
-        };
-      } else if (request.format === "csv") {
-        // Generate CSV (simplified, transactions only)
-        const csv = this.generateCSV(reportData);
-        const encoder = new TextEncoder();
-        return {
-          success: true,
-          data: encoder.encode(csv),
-          filename: `report_${Date.now()}.csv`,
-        };
-      }
-
-      return { success: false, error: "Unsupported format" };
-    } catch (error) {
-      logError("reportsApi.generateReportNow", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+    return { success: false, error: "Custom reports feature is disabled" };
   }
 
   /**

@@ -166,7 +166,7 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
 
   doc.setFontSize(18);
   doc.setTextColor(...textDark);
-  doc.text("Monthly Report", pageWidth - margin - 4, yPos + 13, { align: "right" });
+  doc.text("Your Account Statement", pageWidth - margin - 4, yPos + 13, { align: "right" });
 
   yPos += 26;
 
@@ -177,16 +177,13 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
 
   doc.setFontSize(12);
   doc.setTextColor(...textDark);
-  doc.text(`Investor: ${data.investor.name}`, margin + 6, yPos + 7);
+  const periodDate = new Date(data.period.year, data.period.month - 1);
+  const periodLabel = format(periodDate, "MMMM yyyy");
+  doc.text(`${data.investor.name} – Your Account Statement – ${periodLabel}`, margin + 6, yPos + 7);
 
   doc.setFontSize(10);
   doc.setTextColor(...textMuted);
-  const periodDate = new Date(data.period.year, data.period.month - 1);
-  doc.text(
-    `Investor Statement for the Period Ended: ${format(periodDate, "MMMM d, yyyy")}`,
-    margin + 6,
-    yPos + 14
-  );
+  doc.text(`For the Period Ended: ${format(periodDate, "MMMM d, yyyy")}`, margin + 6, yPos + 14);
 
   yPos += 26;
 
@@ -388,9 +385,14 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, pageHeight - 10);
 
     // Copyright
-    doc.text("© 2025 Indigo Fund. All rights reserved.", pageWidth / 2, pageHeight - 10, {
-      align: "center",
-    });
+    doc.text(
+      `© ${new Date().getFullYear()} Indigo Fund. All rights reserved.`,
+      pageWidth / 2,
+      pageHeight - 10,
+      {
+        align: "center",
+      }
+    );
   }
 
   return doc.output("blob");

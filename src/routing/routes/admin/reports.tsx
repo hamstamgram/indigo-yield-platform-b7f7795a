@@ -11,10 +11,6 @@ const HistoricalReportsDashboard = lazy(
   () => import("@/features/admin/investors/components/reports/HistoricalReportsDashboard")
 );
 
-const ReportDeliveryCenter = lazy(
-  () => import("@/features/admin/reports/components/ReportDeliveryCenter")
-);
-
 export function ReportsRoutes() {
   return (
     <>
@@ -23,14 +19,6 @@ export function ReportsRoutes() {
         element={
           <AdminRoute>
             <HistoricalReportsDashboard />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/reports/delivery"
-        element={
-          <AdminRoute>
-            <ReportDeliveryCenter />
           </AdminRoute>
         }
       />

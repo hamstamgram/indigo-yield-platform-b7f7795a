@@ -4,7 +4,7 @@ import {
   usePerAssetStats,
   useRecentInvestorTransactions,
   usePendingWithdrawalsCount,
-  useLastStatementPeriod,
+  useLatestStatementSummary,
   useRealtimeSubscription,
 } from "@/hooks/data";
 import { useAuth } from "@/services/auth";
@@ -19,6 +19,7 @@ import {
   Wallet,
   History,
   FileText,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -43,7 +44,7 @@ export default function InvestorOverviewPage() {
   const { data: recentTransactions, isLoading: isLoadingTxs } = useRecentInvestorTransactions(5);
   const { data: pendingWithdrawals, isLoading: isLoadingWithdrawals } =
     usePendingWithdrawalsCount();
-  const { data: lastPeriod } = useLastStatementPeriod();
+  const { data: latestStatement } = useLatestStatementSummary();
 
   // Realtime subscriptions
   useRealtimeSubscription({
@@ -205,19 +206,51 @@ export default function InvestorOverviewPage() {
 
           {/* Right Column: Recent Activity & Quick Stats */}
           <div className="space-y-6">
-            {/* Quick Stats */}
+            {/* Latest Statement */}
             <div className="glass-panel rounded-3xl p-6 border border-white/5 bg-indigo-500/5">
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Latest Statement
+              </h3>
+              {latestStatement ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-white font-bold">{latestStatement.periodName}</p>
+                  {latestStatement.funds.map((fund) => (
+                    <div
+                      key={fund.asset_code}
+                      className="flex justify-between items-center p-3 rounded-xl bg-white/5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={fund.asset_code} className="h-4 w-4" />
+                        <span className="text-sm text-slate-300">{fund.asset_code} Fund</span>
+                      </div>
+                      <span className="text-sm font-mono text-white font-bold">
+                        {formatCurrency(fund.ending_balance, fund.asset_code)} {fund.asset_code}
+                      </span>
+                    </div>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs text-slate-400 hover:text-white hover:bg-white/5"
+                    onClick={() => navigate("/investor/statements")}
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    View Statements
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">No statements available yet</p>
+              )}
+            </div>
+
+            {/* Quick Stats */}
+            <div className="glass-panel rounded-3xl p-6 border border-white/5">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 Quick Stats
               </h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
-                  <span className="text-sm text-slate-300">Statement Period</span>
-                  <span className="text-sm font-mono text-white font-bold">
-                    {lastPeriod ? format(new Date(lastPeriod), "MMM yyyy") : "-"}
-                  </span>
-                </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                   <span className="text-sm text-slate-300">Pending Withdrawals</span>
                   {pendingWithdrawals ? (

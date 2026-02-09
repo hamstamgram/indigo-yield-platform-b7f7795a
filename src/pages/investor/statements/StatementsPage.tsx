@@ -26,7 +26,6 @@ import {
   type MonthlyStatement,
 } from "@/hooks/data";
 import { logError } from "@/lib/logger";
-import type { ReportData } from "@/types/domains";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -55,40 +54,29 @@ const StatementsPage = () => {
       const monthName = getMonthName(statement.period_month);
       const periodLabel = `${monthName} ${statement.period_year}`;
 
-      // Build ReportData from statement
-      const reportData: ReportData = {
-        title: `Monthly Statement - ${statement.fund_name}`,
-        subtitle: statement.asset_code,
-        reportPeriod: periodLabel,
-        generatedDate: new Date(),
-        investor: {
-          name: "Investor Statement",
-        },
-        summary: {
-          beginningBalance: statement.begin_balance,
-          totalDeposits: statement.additions,
-          totalWithdrawals: statement.redemptions || "0",
-          netIncome: statement.net_income,
-          totalFees: "0",
-          endingBalance: statement.end_balance,
-          mtdReturn: statement.rate_of_return_mtd || undefined,
-        },
-      };
-
       // Lazy load PDF generator to keep bundle small
-      const { generatePDFReport } = await import("@/services/reports/pdfGenerator");
-      const result = await generatePDFReport(reportData);
-
-      if (!result.success || !result.data) {
-        throw new Error(result.error || "PDF generation failed");
-      }
+      const { generatePDF } = await import("@/lib/pdf/statementGenerator");
+      const blob = await generatePDF({
+        investor: { name: "Investor Statement", id: "", accountNumber: "" },
+        period: { month: statement.period_month, year: statement.period_year, start: "", end: "" },
+        summary: { total_aum: 0, total_pnl: 0, total_fees: 0 },
+        positions: [
+          {
+            asset_code: statement.asset_code,
+            opening_balance: Number(statement.begin_balance || 0),
+            additions: Number(statement.additions || 0),
+            redemptions: Number(statement.redemptions || 0),
+            yield_earned: Number(statement.net_income || 0),
+            closing_balance: Number(statement.end_balance || 0),
+          },
+        ],
+      });
 
       // Trigger browser download
-      const blob = new Blob([new Uint8Array(result.data)], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = result.filename || `statement-${statement.asset_code}-${periodLabel}.pdf`;
+      link.download = `statement-${statement.asset_code}-${periodLabel}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

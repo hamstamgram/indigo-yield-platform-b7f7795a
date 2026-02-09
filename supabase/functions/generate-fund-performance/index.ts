@@ -756,7 +756,7 @@ function generateStatementHtml(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monthly Report - ${investorName}</title>
+  <title>${investorName} – Your Account Statement – ${reportDate}</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Montserrat',Arial,sans-serif;">
@@ -773,7 +773,7 @@ function generateStatementHtml(
                     <img src="${LOGO_URL}" alt="Indigo Logo" height="24" style="display:block;border:0;height:24px;width:auto;">
                   </td>
                   <td valign="middle" align="right">
-                    <h1 style="margin:0;font-size:22px;line-height:1.2;color:#0f172a;font-weight:700;">Monthly Report</h1>
+                    <h1 style="margin:0;font-size:22px;line-height:1.2;color:#0f172a;font-weight:700;">Your Account Statement</h1>
                   </td>
                 </tr>
               </table>

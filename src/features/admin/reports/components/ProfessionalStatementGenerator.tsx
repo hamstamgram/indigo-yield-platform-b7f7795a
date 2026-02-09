@@ -13,34 +13,39 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Download, FileText } from "lucide-react";
-import { useActiveInvestorsForStatements, useGenerateStatement } from "@/hooks/data";
+import { useActiveInvestorsForStatements } from "@/hooks/data";
+import { useGenerateStatement } from "@/features/admin/reports/hooks/useAdminStatementsPage";
+import { format, subMonths } from "date-fns";
 
-interface PeriodData {
-  beginning_balance: number;
+interface PositionData {
+  asset_code: string;
+  opening_balance: number;
   additions: number;
   withdrawals: number;
-  net_income: number;
-  ending_balance: number;
-  rate_of_return: number;
+  yield_earned: number;
+  closing_balance: number;
 }
 
-interface StatementData {
-  MTD: PeriodData;
-  QTD: PeriodData;
-  YTD: PeriodData;
-  ITD: PeriodData;
+interface GeneratedData {
+  statementData: {
+    investor: { name: string; id: string };
+    period: { month: number; year: number; start_date: string; end_date: string };
+    summary: { total_aum: number; total_pnl: number; total_fees: number };
+    positions: PositionData[];
+  };
 }
 
 const ProfessionalStatementGenerator = () => {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
-  const [selectedAsset, setSelectedAsset] = useState<string>("USDT");
-  const [statementData, setStatementData] = useState<StatementData | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const lastMonth = subMonths(new Date(), 1);
+    return format(lastMonth, "yyyy-MM");
+  });
+  const [generatedData, setGeneratedData] = useState<GeneratedData | null>(null);
 
   const { data: investors = [], isLoading: investorsLoading } = useActiveInvestorsForStatements();
 
-  const generateMutation = useGenerateStatement(() => {
-    // Success callback if needed
-  });
+  const generateMutation = useGenerateStatement();
 
   const generateStatement = async () => {
     if (!selectedInvestor) {
@@ -48,32 +53,25 @@ const ProfessionalStatementGenerator = () => {
       return;
     }
 
+    const [yearStr, monthStr] = selectedMonth.split("-");
     const data = await generateMutation.mutateAsync({
       investorId: selectedInvestor,
-      assetCode: selectedAsset,
+      year: parseInt(yearStr),
+      month: parseInt(monthStr),
     });
 
     if (data) {
-      setStatementData(data);
+      setGeneratedData(data as GeneratedData);
     }
   };
 
-  // Format in native tokens (no fiat currency - platform uses crypto tokens)
-  const formatTokenAmount = (amount: number) => {
-    // Determine decimals based on selected asset
-    const decimals = selectedAsset === "BTC" ? 8 : selectedAsset === "ETH" ? 6 : 2;
+  const formatTokenAmount = (amount: number, asset: string) => {
+    const decimals = asset === "BTC" ? 8 : asset === "ETH" ? 6 : 2;
     return (
       new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: decimals,
-      }).format(amount) + ` ${selectedAsset}`
-    );
-  };
-
-  const formatPercentage = (rate: number) => {
-    const isPositive = rate >= 0;
-    return (
-      <span className={isPositive ? "text-green-400" : "text-red-400"}>{rate.toFixed(2)}%</span>
+      }).format(amount) + ` ${asset}`
     );
   };
 
@@ -87,13 +85,15 @@ const ProfessionalStatementGenerator = () => {
     );
   }
 
+  const positions = generatedData?.statementData?.positions || [];
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Professional Statement Generator
+            PDF Statement Generator
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -115,16 +115,21 @@ const ProfessionalStatementGenerator = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Asset</label>
-              <Select value={selectedAsset} onValueChange={setSelectedAsset}>
+              <label className="text-sm font-medium mb-2 block">Month</label>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USDT">USDT</SelectItem>
-                  <SelectItem value="BTC">BTC</SelectItem>
-                  <SelectItem value="ETH">ETH</SelectItem>
-                  <SelectItem value="SOL">SOL</SelectItem>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const date = subMonths(new Date(), i);
+                    const val = format(date, "yyyy-MM");
+                    return (
+                      <SelectItem key={val} value={val}>
+                        {format(date, "MMMM yyyy")}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -135,14 +140,14 @@ const ProfessionalStatementGenerator = () => {
                 disabled={generateMutation.isPending || !selectedInvestor}
                 className="w-full"
               >
-                {generateMutation.isPending ? "Generating..." : "Generate Statement"}
+                {generateMutation.isPending ? "Generating..." : "Generate PDF"}
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {statementData && selectedInvestorData && (
+      {generatedData && selectedInvestorData && (
         <Card>
           <CardContent className="p-8">
             {/* Statement Header */}
@@ -152,7 +157,9 @@ const ProfessionalStatementGenerator = () => {
                   <span className="text-white font-bold text-lg">I</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">{selectedAsset} YIELD FUND</h1>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {selectedInvestorData.name} - Your Account Statement
+                  </h1>
                   <p className="text-sm text-muted-foreground">CAPITAL ACCOUNT SUMMARY</p>
                 </div>
               </div>
@@ -174,61 +181,63 @@ const ProfessionalStatementGenerator = () => {
               </div>
             </div>
 
-            {/* Statement Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-white/10">
-                <thead>
-                  <tr className="bg-white/5">
-                    <th className="border border-white/10 px-4 py-3 text-left font-semibold">
-                      Period
-                    </th>
-                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
-                      Beginning Balance
-                    </th>
-                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
-                      Additions
-                    </th>
-                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
-                      Withdrawals
-                    </th>
-                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
-                      Net Income
-                    </th>
-                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
-                      Ending Balance
-                    </th>
-                    <th className="border border-white/10 px-4 py-3 text-right font-semibold">
-                      Rate of Return
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(statementData).map(([period, data]) => (
-                    <tr key={period} className="hover:bg-white/10">
-                      <td className="border border-white/10 px-4 py-3 font-medium">{period}</td>
-                      <td className="border border-white/10 px-4 py-3 text-right">
-                        {formatTokenAmount(data.beginning_balance)}
-                      </td>
-                      <td className="border border-white/10 px-4 py-3 text-right">
-                        {formatTokenAmount(data.additions)}
-                      </td>
-                      <td className="border border-white/10 px-4 py-3 text-right">
-                        {formatTokenAmount(data.withdrawals)}
-                      </td>
-                      <td className="border border-white/10 px-4 py-3 text-right">
-                        {formatTokenAmount(data.net_income)}
-                      </td>
-                      <td className="border border-white/10 px-4 py-3 text-right font-semibold">
-                        {formatTokenAmount(data.ending_balance)}
-                      </td>
-                      <td className="border border-white/10 px-4 py-3 text-right font-semibold">
-                        {formatPercentage(data.rate_of_return)}
-                      </td>
+            {/* Positions Table */}
+            {positions.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-white/10">
+                  <thead>
+                    <tr className="bg-white/5">
+                      <th className="border border-white/10 px-4 py-3 text-left font-semibold">
+                        Asset
+                      </th>
+                      <th className="border border-white/10 px-4 py-3 text-right font-semibold">
+                        Opening
+                      </th>
+                      <th className="border border-white/10 px-4 py-3 text-right font-semibold">
+                        Additions
+                      </th>
+                      <th className="border border-white/10 px-4 py-3 text-right font-semibold">
+                        Withdrawals
+                      </th>
+                      <th className="border border-white/10 px-4 py-3 text-right font-semibold">
+                        Yield
+                      </th>
+                      <th className="border border-white/10 px-4 py-3 text-right font-semibold">
+                        Closing
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {positions.map((pos) => (
+                      <tr key={pos.asset_code} className="hover:bg-white/10">
+                        <td className="border border-white/10 px-4 py-3 font-medium">
+                          {pos.asset_code}
+                        </td>
+                        <td className="border border-white/10 px-4 py-3 text-right">
+                          {formatTokenAmount(pos.opening_balance || 0, pos.asset_code)}
+                        </td>
+                        <td className="border border-white/10 px-4 py-3 text-right">
+                          {formatTokenAmount(pos.additions || 0, pos.asset_code)}
+                        </td>
+                        <td className="border border-white/10 px-4 py-3 text-right">
+                          {formatTokenAmount(pos.withdrawals || 0, pos.asset_code)}
+                        </td>
+                        <td className="border border-white/10 px-4 py-3 text-right">
+                          {formatTokenAmount(pos.yield_earned || 0, pos.asset_code)}
+                        </td>
+                        <td className="border border-white/10 px-4 py-3 text-right font-semibold">
+                          {formatTokenAmount(pos.closing_balance || 0, pos.asset_code)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No position data available for this period
+              </div>
+            )}
 
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-white/10">
@@ -238,11 +247,7 @@ const ProfessionalStatementGenerator = () => {
                 </p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Net Income reflects yield earned after platform fees have been deducted</li>
-                  <li>
-                    Rate of Return is calculated as Net Income divided by (Beginning Balance +
-                    Additions)
-                  </li>
-                  <li>All amounts are denominated in {selectedAsset} tokens</li>
+                  <li>All amounts are denominated in their respective token units</li>
                   <li>
                     This statement is generated from our secure database and reflects real-time
                     positions

@@ -13,12 +13,10 @@ import {
   generateFundPerformanceReports,
   fetchLatestPerformance,
   fetchActiveInvestorsForStatements,
+  sendReportEmail,
+  fetchHistoricalReports,
 } from "@/services/admin";
-import type {
-  InvestorReportSummary,
-  PerformanceReportDetail,
-} from "@/services/admin/reportQueryService";
-import { format, parseISO } from "date-fns";
+import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
 
 /**
  * Hook to fetch investor performance reports (investor-side)
@@ -67,34 +65,8 @@ export function useGenerateFundPerformance() {
       });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorReports() });
     },
-    onError: (error: any) => {
-      const errorStr = error?.message || error?.toString() || "";
-
-      let errorTitle = "Generation Failed";
-      let errorMessage = "Failed to generate performance data";
-
-      if (
-        errorStr.includes("403") ||
-        errorStr.includes("Admin access required") ||
-        errorStr.includes("ADMIN_REQUIRED")
-      ) {
-        errorTitle = "Access Denied";
-        errorMessage = "You don't have administrator permissions to generate reports.";
-      } else if (
-        errorStr.includes("401") ||
-        errorStr.includes("Authorization") ||
-        errorStr.includes("token")
-      ) {
-        errorTitle = "Session Expired";
-        errorMessage = "Your session has expired. Please refresh the page and try again.";
-      } else if (errorStr.includes("non-2xx") || errorStr.includes("FunctionsHttpError")) {
-        errorTitle = "Service Error";
-        errorMessage = "The report generation service encountered an error.";
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-
-      toast.error(errorTitle, { description: errorMessage });
+    onError: (error: Error) => {
+      toast.error("Generation Failed", { description: error.message });
     },
   });
 }
@@ -121,22 +93,36 @@ export function useActiveInvestorsForStatements() {
 }
 
 /**
- * Hook to generate statement (uses mutation for the statement generation)
+ * Hook to send a report email
  */
-export function useGenerateStatement(onSuccess?: () => void) {
+export function useSendReportEmail() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: { investorId: string; assetCode: string }) => {
-      const data = await fetchLatestPerformance(params.investorId, params.assetCode);
-      if (!data) throw new Error("No performance data found for this investor/asset/period.");
-      return data;
-    },
+    mutationFn: ({ investorId, periodId }: { investorId: string; periodId: string }) =>
+      sendReportEmail(investorId, periodId),
     onSuccess: () => {
-      onSuccess?.();
+      toast.success("Email sent successfully");
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorReports() });
     },
     onError: (error: Error) => {
-      toast.error("Failed to generate statement", { description: error.message });
+      toast.error("Failed to send email", { description: error.message });
     },
+  });
+}
+
+/**
+ * Hook to fetch historical reports
+ */
+export function useHistoricalReports(filters?: {
+  month?: string;
+  investorId?: string;
+  fundName?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  return useQuery({
+    queryKey: ["historical-reports", filters],
+    queryFn: () => fetchHistoricalReports(filters),
   });
 }

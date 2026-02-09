@@ -138,7 +138,8 @@ export {
   useGenerateFundPerformance,
   useLatestPerformance,
   useActiveInvestorsForStatements,
-  useGenerateStatement,
+  useSendReportEmail,
+  useHistoricalReports,
 } from "./useReports";
 
 // Statements

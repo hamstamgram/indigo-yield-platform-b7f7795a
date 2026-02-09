@@ -1,6 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
-import { generateStatementFilename } from "./statementPdfGenerator";
 import { logError } from "@/lib/logger";
+
+function generateStatementFilename(
+  investorId: string,
+  periodYear: number,
+  periodMonth: number
+): string {
+  const monthStr = String(periodMonth).padStart(2, "0");
+  return `statement_${investorId}_${periodYear}_${monthStr}.pdf`;
+}
 
 // IMPORTANT: Statement operations must be done server-side with service role key.
 // On Lovable/production, use an Edge Function to generate a signed URL and upload there.
