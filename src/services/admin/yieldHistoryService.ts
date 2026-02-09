@@ -375,7 +375,7 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
       "investor_id",
       investorIdList.length > 0 ? investorIdList : ["00000000-0000-0000-0000-000000000000"]
     )
-    .in("type", ["INTEREST", "FEE"])
+    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "FEE"])
     .gte("tx_date", mtdStart)
     .lte("tx_date", mtdEnd)
     .eq("is_voided", false)
@@ -385,7 +385,7 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
   const mtdYieldMap = new Map<string, number>();
   (yieldTransactions || []).forEach((tx) => {
     const currentYield = mtdYieldMap.get(tx.investor_id!) || 0;
-    if (tx.type === "INTEREST") {
+    if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
       mtdYieldMap.set(
         tx.investor_id!,
         parseFinancial(currentYield).plus(parseFinancial(tx.amount)).toNumber()

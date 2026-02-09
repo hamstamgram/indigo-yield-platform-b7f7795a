@@ -132,7 +132,7 @@ export async function applyYieldDistribution(
     .select("investor_id, amount")
     .eq("fund_id", fundId)
     .eq("tx_date", formatDateForDB(periodEndDate))
-    .in("type", ["INTEREST", "YIELD"])
+    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT"])
     .eq("is_voided", false);
 
   if (affectedInvestors?.length && fundInfo) {

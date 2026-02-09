@@ -408,7 +408,12 @@ export class ExcelReportGenerator {
         row.getCell(2).font = { color: { argb: "FF16a34a" } }; // green-600
       } else if (tx.type === "WITHDRAWAL") {
         row.getCell(2).font = { color: { argb: "FFdc2626" } }; // red-600
-      } else if (tx.type === "INTEREST") {
+      } else if (
+        tx.type === "YIELD" ||
+        tx.type === "INTEREST" ||
+        tx.type === "FEE_CREDIT" ||
+        tx.type === "IB_CREDIT"
+      ) {
         row.getCell(2).font = { color: { argb: "FF2563eb" } }; // blue-600
       } else if (tx.type === "FEE") {
         row.getCell(2).font = { color: { argb: "FFea580c" } }; // orange-600

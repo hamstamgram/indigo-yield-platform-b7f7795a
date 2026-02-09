@@ -209,7 +209,7 @@ class TransactionsRecordService {
         summary.totalDeposits += amount;
       } else if (type === "WITHDRAWAL") {
         summary.totalWithdrawals += Math.abs(amount);
-      } else if (type === "YIELD" || type === "INTEREST") {
+      } else if (type === "YIELD" || type === "FEE_CREDIT" || type === "IB_CREDIT") {
         summary.totalYield += amount;
       }
     });
