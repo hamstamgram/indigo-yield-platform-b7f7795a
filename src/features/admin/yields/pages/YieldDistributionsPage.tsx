@@ -60,6 +60,12 @@ interface Fund {
   asset: string;
 }
 
+const CRYSTALLIZATION_TRIGGER_TYPES = ["deposit", "withdrawal", "transaction"];
+
+function isCrystallizationDist(d: DistributionRow): boolean {
+  return CRYSTALLIZATION_TRIGGER_TYPES.includes(d.distribution_type || "");
+}
+
 function formatInvestorName(profile?: InvestorProfile | null): string {
   if (!profile) return "Unknown";
   const full = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
@@ -475,16 +481,11 @@ function YieldDistributionsContent() {
                               </AccordionTrigger>
                               <AccordionContent className="px-4 pb-4 space-y-4">
                                 {(() => {
-                                  const crystalDists = fundDistributions.filter(
-                                    (d) =>
-                                      d.distribution_type &&
-                                      !["yield", "reporting"].includes(d.distribution_type)
-                                  );
+                                  const crystalDists =
+                                    fundDistributions.filter(isCrystallizationDist);
                                   if (crystalDists.length === 0) return null;
                                   const regularDists = fundDistributions.filter(
-                                    (d) =>
-                                      !d.distribution_type ||
-                                      ["yield", "reporting"].includes(d.distribution_type)
+                                    (d) => !isCrystallizationDist(d)
                                   );
                                   const crystalGross = crystalDists.reduce(
                                     (s, d) => s + d.gross_yield,
@@ -547,11 +548,7 @@ function YieldDistributionsContent() {
                                     feeAllocationsByDistribution[distribution.id] || [];
                                   const yieldEvents =
                                     yieldEventsByDistribution[distribution.id] || [];
-                                  const isCrystallization =
-                                    !!distribution.distribution_type &&
-                                    !["yield", "reporting"].includes(
-                                      distribution.distribution_type
-                                    );
+                                  const isCrystallization = isCrystallizationDist(distribution);
                                   const totalAdb = allocations.reduce(
                                     (sum, a) => sum + (a.adb_share || 0),
                                     0
@@ -565,6 +562,15 @@ function YieldDistributionsContent() {
                                   );
                                   const hasDiscrepancy =
                                     allocations.length > 0 && grossDiscrepancy > 0.01;
+                                  const sumGrossEvents = yieldEvents.reduce(
+                                    (sum, e) => sum + (e.gross_yield_amount || 0),
+                                    0
+                                  );
+                                  const eventDiscrepancy = Math.abs(
+                                    sumGrossEvents - distribution.gross_yield
+                                  );
+                                  const hasEventDiscrepancy =
+                                    yieldEvents.length > 0 && eventDiscrepancy > 0.01;
                                   return (
                                     <Card key={distribution.id}>
                                       <CardHeader className="pb-3">
@@ -597,17 +603,14 @@ function YieldDistributionsContent() {
                                                 ? "Reporting"
                                                 : "Transaction"}
                                             </Badge>
-                                            {distribution.distribution_type &&
-                                              !["yield", "reporting"].includes(
-                                                distribution.distribution_type
-                                              ) && (
-                                                <Badge
-                                                  variant="outline"
-                                                  className="bg-purple-900/30 text-purple-400 border-purple-800"
-                                                >
-                                                  Crystallization ({distribution.distribution_type})
-                                                </Badge>
-                                              )}
+                                            {isCrystallizationDist(distribution) && (
+                                              <Badge
+                                                variant="outline"
+                                                className="bg-purple-900/30 text-purple-400 border-purple-800"
+                                              >
+                                                Crystallization ({distribution.distribution_type})
+                                              </Badge>
+                                            )}
                                             {distribution.is_voided && (
                                               <Badge
                                                 variant="destructive"
@@ -635,14 +638,18 @@ function YieldDistributionsContent() {
                                         </CardTitle>
                                       </CardHeader>
                                       <CardContent className="space-y-4">
-                                        {hasDiscrepancy && (
+                                        {(hasDiscrepancy || hasEventDiscrepancy) && (
                                           <div className="flex items-start gap-2 p-3 rounded-md bg-amber-950/20 text-amber-400 text-sm border border-amber-800">
                                             <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                             <div>
-                                              <strong>Allocation Reconciliation Warning:</strong>{" "}
-                                              Sum of gross allocations (
+                                              <strong>Reconciliation Warning:</strong> Sum of gross{" "}
+                                              {allocations.length > 0 ? "allocations" : "events"} (
                                               <FinancialValue
-                                                value={sumGrossAllocations}
+                                                value={
+                                                  allocations.length > 0
+                                                    ? sumGrossAllocations
+                                                    : sumGrossEvents
+                                                }
                                                 asset={fund?.asset}
                                               />
                                               ) does not match distribution gross yield (
@@ -652,16 +659,27 @@ function YieldDistributionsContent() {
                                               />
                                               ). Discrepancy:{" "}
                                               <FinancialValue
-                                                value={grossDiscrepancy}
+                                                value={
+                                                  allocations.length > 0
+                                                    ? grossDiscrepancy
+                                                    : eventDiscrepancy
+                                                }
                                                 asset={fund?.asset}
                                               />
                                             </div>
                                           </div>
                                         )}
-                                        {allocations.length > 0 && !hasDiscrepancy && (
+                                        {((allocations.length > 0 && !hasDiscrepancy) ||
+                                          (allocations.length === 0 &&
+                                            yieldEvents.length > 0 &&
+                                            !hasEventDiscrepancy)) && (
                                           <div className="flex items-center gap-2 p-2 rounded-md bg-green-950/20 text-green-400 text-xs border border-green-800">
                                             <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
-                                            <span>Allocations reconcile with gross yield</span>
+                                            <span>
+                                              {allocations.length > 0
+                                                ? "Allocations reconcile with gross yield"
+                                                : "Crystallization events reconcile with gross yield"}
+                                            </span>
                                           </div>
                                         )}
                                         <div className="grid gap-4 lg:grid-cols-3">

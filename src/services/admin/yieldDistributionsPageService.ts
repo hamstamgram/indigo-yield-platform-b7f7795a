@@ -127,8 +127,12 @@ export async function fetchYieldDistributionsPageData(
     }
 
     if (filters.month) {
-      query = query.gte("effective_date", `${filters.month}-01`);
-      query = query.lt("effective_date", `${filters.month}-32`);
+      const [year, month] = filters.month.split("-").map(Number);
+      const startDate = `${filters.month}-01`;
+      const nextMonth = new Date(year, month, 1);
+      const endDate = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, "0")}-01`;
+      query = query.gte("effective_date", startDate);
+      query = query.lt("effective_date", endDate);
     }
 
     if (filters.purpose && filters.purpose !== "all") {
