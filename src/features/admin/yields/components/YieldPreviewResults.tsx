@@ -386,7 +386,6 @@ export function YieldPreviewResults({
                 ? events.reduce((s, e) => s + toNum(e.grossYield), 0)
                 : 0;
               const crystalFee = hasEvents ? events.reduce((s, e) => s + toNum(e.feeAmount), 0) : 0;
-              const crystalIb = hasEvents ? events.reduce((s, e) => s + toNum(e.ibAmount), 0) : 0;
               const crystalNet = hasEvents ? events.reduce((s, e) => s + toNum(e.netYield), 0) : 0;
 
               // Month totals = crystal + new
@@ -394,9 +393,14 @@ export function YieldPreviewResults({
               const monthFee = crystalFee + toNum(inv.feeAmount);
               const monthNet = crystalNet + toNum(inv.netYield);
 
+              // Display values: show aggregated totals on parent row when crystals exist
+              const displayGross = hasEvents ? monthGross : toNum(inv.grossYield);
+              const displayFee = hasEvents ? monthFee : toNum(inv.feeAmount);
+              const displayNet = hasEvents ? monthNet : toNum(inv.netYield);
+
               return (
                 <React.Fragment key={inv.investorId}>
-                  {/* Main investor row */}
+                  {/* Main investor row - shows TOTAL aggregated when crystals exist */}
                   <TableRow
                     className={cn(
                       inv.wouldSkip && "opacity-50",
@@ -423,6 +427,14 @@ export function YieldPreviewResults({
                             Skip
                           </Badge>
                         )}
+                        {hasEvents && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] py-0 h-4 border-muted-foreground/30 text-muted-foreground"
+                          >
+                            {events.length + 1} events
+                          </Badge>
+                        )}
                       </div>
                     </TableCell>
                     {/* ADB columns */}
@@ -445,27 +457,17 @@ export function YieldPreviewResults({
                         {formatValue(toNum(inv.currentBalance), asset)}
                       </TableCell>
                     )}
-                    {/* Gross - two-line when crystal events exist */}
+                    {/* Gross - aggregated total when crystals exist */}
                     <TableCell className="text-right font-mono text-xs">
-                      <div
+                      <span
                         className={cn(
                           "font-bold",
-                          toNum(inv.grossYield) >= 0 ? "text-green-600" : "text-red-600"
+                          displayGross >= 0 ? "text-green-600" : "text-red-600"
                         )}
                       >
-                        {hasEvents && (
-                          <span className="text-[10px] text-muted-foreground font-normal mr-0.5">
-                            New:{" "}
-                          </span>
-                        )}
-                        {toNum(inv.grossYield) >= 0 ? "+" : ""}
-                        {formatValue(toNum(inv.grossYield), asset)}
-                      </div>
-                      {hasEvents && (
-                        <div className="text-[10px] text-muted-foreground font-normal mt-0.5">
-                          Mon: +{formatValue(monthGross, asset)}
-                        </div>
-                      )}
+                        {displayGross >= 0 ? "+" : ""}
+                        {formatValue(displayGross, asset)}
+                      </span>
                     </TableCell>
                     {/* Loss offset column for ADB */}
                     {isAdb && (
@@ -497,41 +499,19 @@ export function YieldPreviewResults({
                     <TableCell className="text-right font-mono text-xs">
                       {inv.feePercentage}%
                     </TableCell>
-                    {/* Fee - two-line when crystal events exist */}
+                    {/* Fee - aggregated total when crystals exist */}
                     <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                      <div>
-                        {hasEvents && <span className="text-[10px] font-normal mr-0.5">New: </span>}
-                        {toNum(inv.feeAmount) > 0
-                          ? `-${formatValue(toNum(inv.feeAmount), asset)}`
-                          : "\u2014"}
-                      </div>
-                      {hasEvents && (
-                        <div className="text-[10px] font-normal mt-0.5">
-                          Mon: -{formatValue(monthFee, asset)}
-                        </div>
-                      )}
+                      {displayFee > 0 ? `-${formatValue(displayFee, asset)}` : "\u2014"}
                     </TableCell>
-                    {/* Net - two-line when crystal events exist */}
+                    {/* Net - aggregated total when crystals exist */}
                     <TableCell
                       className={cn(
                         "text-right font-mono text-xs font-semibold",
-                        toNum(inv.netYield) >= 0 ? "" : "text-red-600"
+                        displayNet >= 0 ? "" : "text-red-600"
                       )}
                     >
-                      <div>
-                        {hasEvents && (
-                          <span className="text-[10px] text-muted-foreground font-normal mr-0.5">
-                            New:{" "}
-                          </span>
-                        )}
-                        {toNum(inv.netYield) >= 0 ? "+" : ""}
-                        {formatValue(toNum(inv.netYield), asset)}
-                      </div>
-                      {hasEvents && (
-                        <div className="text-[10px] text-muted-foreground font-normal mt-0.5">
-                          Mon: +{formatValue(monthNet, asset)}
-                        </div>
-                      )}
+                      {displayNet >= 0 ? "+" : ""}
+                      {formatValue(displayNet, asset)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs text-purple-600">
                       {toNum(inv.ibAmount) > 0
@@ -539,6 +519,48 @@ export function YieldPreviewResults({
                         : "\u2014"}
                     </TableCell>
                   </TableRow>
+
+                  {/* Month-end yield sub-row (appears FIRST, before crystals) */}
+                  {hasEvents && (
+                    <TableRow className="bg-green-500/5 dark:bg-green-950/15 border-green-500/10">
+                      <TableCell colSpan={isAdb ? 3 : 2} className="text-xs pl-6">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                          <span className="font-mono text-green-400">
+                            {yieldPreview.periodEnd || "Month-end"}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] py-0 h-4 border-green-500/30 text-green-400"
+                          >
+                            month-end
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs text-green-400">
+                        +{formatValue(toNum(inv.grossYield), asset)}
+                      </TableCell>
+                      {isAdb && (
+                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                          {"\u2014"}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                        {"\u2014"}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs text-green-400/70">
+                        {toNum(inv.feeAmount) > 0
+                          ? `-${formatValue(toNum(inv.feeAmount), asset)}`
+                          : "\u2014"}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs font-semibold text-green-400">
+                        +{formatValue(toNum(inv.netYield), asset)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                        {"\u2014"}
+                      </TableCell>
+                    </TableRow>
+                  )}
 
                   {/* Crystallization sub-rows (amber highlight) */}
                   {hasEvents &&
