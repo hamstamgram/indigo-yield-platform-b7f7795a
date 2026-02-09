@@ -32,7 +32,6 @@ export { default as FundAUMBar } from "@/features/admin/system/components/FundAU
 export * from "@/features/admin/dashboard";
 export * from "@/features/admin/investors/components";
 export * from "@/features/admin/withdrawals/components";
-export * from "@/features/admin/deposits/components";
 export * from "@/features/admin/yields/components";
 export * from "@/features/admin/funds/components";
 export * from "@/features/admin/operations/components";

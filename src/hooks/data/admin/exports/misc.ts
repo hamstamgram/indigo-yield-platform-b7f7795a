@@ -30,8 +30,5 @@ export * from "@/features/admin/investors/hooks/useInternalRoute";
 export * from "@/features/admin/ib/hooks/useIBUsers";
 export * from "@/features/admin/ib/hooks/useIBManagementPage";
 
-// Deposits hooks
-export * from "@/features/admin/deposits/hooks/useDeposits";
-
 // Fund/Asset hooks
 export * from "@/features/admin/funds/hooks/useAssets";
