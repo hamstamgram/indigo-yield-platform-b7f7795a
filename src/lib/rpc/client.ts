@@ -20,7 +20,7 @@ const RATE_LIMITED_RPCS: Record<
     maxRequests: 10,
     actionType: "transaction",
   },
-  apply_daily_yield_to_fund_v3: {
+  apply_adb_yield_distribution_v4: {
     windowMs: 60000,
     maxRequests: 5,
     actionType: "yield_distribution",
@@ -254,30 +254,36 @@ export async function withdrawal(params: {
 
 export async function applyYield(params: {
   fundId: string;
-  yieldDate: string;
-  grossYieldPct: number;
-  createdBy?: string;
+  periodStart: string;
+  periodEnd: string;
+  grossYieldAmount: number;
+  adminId: string;
   purpose?: "reporting" | "transaction";
+  recordedAum?: number;
 }): Promise<RPCResult<unknown>> {
-  return call("apply_daily_yield_to_fund_v3", {
+  return call("apply_adb_yield_distribution_v4", {
     p_fund_id: params.fundId,
-    p_yield_date: params.yieldDate,
-    p_gross_yield_pct: params.grossYieldPct,
-    p_created_by: params.createdBy,
+    p_period_start: params.periodStart,
+    p_period_end: params.periodEnd,
+    p_gross_yield_amount: params.grossYieldAmount,
+    p_admin_id: params.adminId,
     p_purpose: params.purpose,
+    ...(params.recordedAum != null && { p_recorded_aum: params.recordedAum }),
   });
 }
 
 export async function previewYield(params: {
   fundId: string;
-  yieldDate: string;
-  newAum: number;
+  periodStart: string;
+  periodEnd: string;
+  grossYieldAmount: number;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("preview_daily_yield_to_fund_v3", {
+  return call("preview_adb_yield_distribution_v4", {
     p_fund_id: params.fundId,
-    p_yield_date: params.yieldDate,
-    p_new_aum: params.newAum,
+    p_period_start: params.periodStart,
+    p_period_end: params.periodEnd,
+    p_gross_yield_amount: params.grossYieldAmount,
     p_purpose: params.purpose,
   });
 }

@@ -240,7 +240,7 @@ export async function createAdminTransaction(
     // Direct inserts for YIELD, INTEREST, FEE are violations of the canonical mutation pattern.
     //
     // CORRECT PATHWAYS:
-    // - YIELD/INTEREST: Use apply_daily_yield_to_fund_v3 RPC
+    // - YIELD/INTEREST: Use apply_adb_yield_distribution_v4 RPC
     // - FEE: Use fee allocation RPCs or admin_create_transaction for old transactions table
     //
     // This code path should not be reached. If you need to create these transaction types,
@@ -249,7 +249,7 @@ export async function createAdminTransaction(
 
     throw new Error(
       `Transaction type ${dbType} cannot be created through this service. ` +
-        `YIELD/INTEREST must use apply_daily_yield_to_fund_v3 RPC. ` +
+        `YIELD/INTEREST must use apply_adb_yield_distribution_v4 RPC. ` +
         `FEE must use fee allocation RPCs. ` +
         `See docs/FLOW_MATRIX.md for canonical mutation pathways.`
     );

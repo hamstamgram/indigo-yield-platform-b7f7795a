@@ -103,7 +103,7 @@ export async function previewYieldDistribution(
   }
 
   // Call ADB preview RPC (time-weighted allocation)
-  const { data, error } = await callRPC("preview_adb_yield_distribution_v3", {
+  const { data, error } = await callRPC("preview_adb_yield_distribution_v4", {
     p_fund_id: fundId,
     p_period_start: formatDateForDB(periodStartDate),
     p_period_end: formatDateForDB(periodEndDate),
@@ -203,7 +203,7 @@ export async function previewYieldDistribution(
     yieldRatePct: String(result.yield_rate_pct || 0),
     totalLossOffset: String(result.total_loss_offset || 0),
     dustAmount: String(result.dust_amount || 0),
-    calculationMethod: "adb_v3",
+    calculationMethod: "adb_v4",
     features: result.features || ["time_weighted", "loss_carryforward"],
     conservationCheck: Boolean(result.conservation_check),
   };

@@ -78,7 +78,7 @@ export function YieldPreviewResults({
       </div>
 
       {/* ADB Method Badge */}
-      {yieldPreview.calculationMethod === "adb_v3" && (
+      {yieldPreview.calculationMethod === "adb_v4" && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Badge
@@ -215,7 +215,7 @@ export function YieldPreviewResults({
       )}
 
       {/* Yield Math Explanation (collapsible) */}
-      {yieldPreview.calculationMethod === "adb_v3" && (
+      {yieldPreview.calculationMethod === "adb_v4" && (
         <details className="border rounded-md">
           <summary className="cursor-pointer p-3 text-sm font-medium hover:bg-muted/50">
             Yield calculation details (ADB method)
@@ -335,7 +335,7 @@ export function YieldPreviewResults({
             <TableRow>
               <TableHead>Investor</TableHead>
               {/* ADB columns */}
-              {yieldPreview.calculationMethod === "adb_v3" && (
+              {yieldPreview.calculationMethod === "adb_v4" && (
                 <>
                   <TableHead className="text-right">
                     <Tooltip>
@@ -355,12 +355,12 @@ export function YieldPreviewResults({
                   <TableHead className="text-right">Weight</TableHead>
                 </>
               )}
-              {yieldPreview.calculationMethod !== "adb_v3" && (
+              {yieldPreview.calculationMethod !== "adb_v4" && (
                 <TableHead className="text-right">Current</TableHead>
               )}
               <TableHead className="text-right">Gross</TableHead>
               {/* Loss offset column for ADB */}
-              {yieldPreview.calculationMethod === "adb_v3" && (
+              {yieldPreview.calculationMethod === "adb_v4" && (
                 <TableHead className="text-right">Loss Offset</TableHead>
               )}
               <TableHead className="text-right">Fee %</TableHead>
@@ -401,7 +401,7 @@ export function YieldPreviewResults({
                   </div>
                 </TableCell>
                 {/* ADB columns */}
-                {yieldPreview.calculationMethod === "adb_v3" && (
+                {yieldPreview.calculationMethod === "adb_v4" && (
                   <>
                     <TableCell className="text-right font-mono text-xs">
                       {formatValue(toNum(inv.adb ?? inv.currentBalance), asset)}
@@ -414,7 +414,7 @@ export function YieldPreviewResults({
                     </TableCell>
                   </>
                 )}
-                {yieldPreview.calculationMethod !== "adb_v3" && (
+                {yieldPreview.calculationMethod !== "adb_v4" && (
                   <TableCell className="text-right font-mono text-xs">
                     {formatValue(toNum(inv.currentBalance), asset)}
                   </TableCell>
@@ -429,7 +429,7 @@ export function YieldPreviewResults({
                   {formatValue(toNum(inv.grossYield), asset)}
                 </TableCell>
                 {/* Loss offset column for ADB */}
-                {yieldPreview.calculationMethod === "adb_v3" && (
+                {yieldPreview.calculationMethod === "adb_v4" && (
                   <TableCell className="text-right font-mono text-xs">
                     {toNum(inv.lossOffset ?? 0) > 0 ? (
                       <Tooltip>

@@ -18,12 +18,12 @@ export type RPCFunctionName = keyof RPCFunctions;
 
 /** All registered RPC function names */
 export const RPC_FUNCTIONS = [
-  "apply_adb_yield_distribution_v3",
+  "apply_adb_yield_distribution_v4",
   "apply_transaction_with_crystallization",
   "crystallize_yield_before_flow",
   "get_funds_with_aum",
   "is_admin",
-  "preview_adb_yield_distribution_v3",
+  "preview_adb_yield_distribution_v4",
   "qa_admin_id",
   "qa_fees_account_id",
   "qa_fund_id",
@@ -41,8 +41,8 @@ export const RPC_FUNCTIONS = [
 // =============================================================================
 
 export const RPC_SIGNATURES = {
-  apply_adb_yield_distribution_v3: {
-    name: "apply_adb_yield_distribution_v3" as const,
+  apply_adb_yield_distribution_v4: {
+    name: "apply_adb_yield_distribution_v4" as const,
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
@@ -106,8 +106,8 @@ export const RPC_SIGNATURES = {
     requiredParams: [] as const,
     optionalParams: [] as const,
   },
-  preview_adb_yield_distribution_v3: {
-    name: "preview_adb_yield_distribution_v3" as const,
+  preview_adb_yield_distribution_v4: {
+    name: "preview_adb_yield_distribution_v4" as const,
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
@@ -239,7 +239,7 @@ export const CANONICAL_MUTATION_RPCS = {
   /** Canonical RPC for deposits and withdrawals (with crystallization) */
   WITHDRAWAL: "apply_transaction_with_crystallization",
   /** Canonical RPC for yield distribution */
-  YIELD: "apply_daily_yield_to_fund_v3",
+  YIELD: "apply_adb_yield_distribution_v4",
   /** Canonical RPC for voiding transactions */
   VOID: "void_transaction",
   /** Canonical RPC for admin transaction creation */

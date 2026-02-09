@@ -4830,6 +4830,105 @@ export type Database = {
           },
         ];
       };
+      qa_entity_manifest: {
+        Row: {
+          created_at: string | null;
+          entity_id: string;
+          entity_label: string | null;
+          entity_type: string;
+          id: string;
+          run_tag: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          entity_id: string;
+          entity_label?: string | null;
+          entity_type: string;
+          id?: string;
+          run_tag: string;
+        };
+        Update: {
+          created_at?: string | null;
+          entity_id?: string;
+          entity_label?: string | null;
+          entity_type?: string;
+          id?: string;
+          run_tag?: string;
+        };
+        Relationships: [];
+      };
+      qa_scenario_manifest: {
+        Row: {
+          created_at: string | null;
+          execution_result: Json | null;
+          id: string;
+          invariants_to_check: string[] | null;
+          params: Json | null;
+          rpc_name: string | null;
+          run_tag: string;
+          scenario_category: string;
+          scenario_id: string;
+          step_number: number | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          execution_result?: Json | null;
+          id?: string;
+          invariants_to_check?: string[] | null;
+          params?: Json | null;
+          rpc_name?: string | null;
+          run_tag: string;
+          scenario_category: string;
+          scenario_id: string;
+          step_number?: number | null;
+        };
+        Update: {
+          created_at?: string | null;
+          execution_result?: Json | null;
+          id?: string;
+          invariants_to_check?: string[] | null;
+          params?: Json | null;
+          rpc_name?: string | null;
+          run_tag?: string;
+          scenario_category?: string;
+          scenario_id?: string;
+          step_number?: number | null;
+        };
+        Relationships: [];
+      };
+      qa_test_results: {
+        Row: {
+          details: Json | null;
+          duration_ms: number | null;
+          executed_at: string | null;
+          id: string;
+          run_tag: string;
+          status: string;
+          test_category: string;
+          test_name: string;
+        };
+        Insert: {
+          details?: Json | null;
+          duration_ms?: number | null;
+          executed_at?: string | null;
+          id?: string;
+          run_tag: string;
+          status: string;
+          test_category: string;
+          test_name: string;
+        };
+        Update: {
+          details?: Json | null;
+          duration_ms?: number | null;
+          executed_at?: string | null;
+          id?: string;
+          run_tag?: string;
+          status?: string;
+          test_category?: string;
+          test_name?: string;
+        };
+        Relationships: [];
+      };
       rate_limit_config: {
         Row: {
           action_type: string;
@@ -6935,6 +7034,7 @@ export type Database = {
           aum_record_id: string | null;
           calculation_method: string | null;
           closing_aum: number | null;
+          consolidated_into_id: string | null;
           created_at: string;
           created_by: string | null;
           distribution_type: string;
@@ -6976,6 +7076,7 @@ export type Database = {
           aum_record_id?: string | null;
           calculation_method?: string | null;
           closing_aum?: number | null;
+          consolidated_into_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           distribution_type?: string;
@@ -7017,6 +7118,7 @@ export type Database = {
           aum_record_id?: string | null;
           calculation_method?: string | null;
           closing_aum?: number | null;
+          consolidated_into_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           distribution_type?: string;
@@ -7129,6 +7231,34 @@ export type Database = {
             columns: ["aum_record_id"];
             isOneToOne: false;
             referencedRelation: "fund_daily_aum";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "yield_distributions_consolidated_into_id_fkey";
+            columns: ["consolidated_into_id"];
+            isOneToOne: false;
+            referencedRelation: "v_dust_violations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "yield_distributions_consolidated_into_id_fkey";
+            columns: ["consolidated_into_id"];
+            isOneToOne: false;
+            referencedRelation: "v_yield_conservation_violations";
+            referencedColumns: ["distribution_id"];
+          },
+          {
+            foreignKeyName: "yield_distributions_consolidated_into_id_fkey";
+            columns: ["consolidated_into_id"];
+            isOneToOne: false;
+            referencedRelation: "yield_distribution_conservation_check";
+            referencedColumns: ["distribution_id"];
+          },
+          {
+            foreignKeyName: "yield_distributions_consolidated_into_id_fkey";
+            columns: ["consolidated_into_id"];
+            isOneToOne: false;
+            referencedRelation: "yield_distributions";
             referencedColumns: ["id"];
           },
           {
@@ -7474,6 +7604,7 @@ export type Database = {
           fund_code: string | null;
           fund_id: string | null;
           fund_name: string | null;
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null;
           recorded_aum: number | null;
         };
         Relationships: [];
@@ -8898,14 +9029,13 @@ export type Database = {
       };
       v_ledger_reconciliation: {
         Row: {
-          calculated_balance: number | null;
-          fund_code: string | null;
+          asset: string | null;
+          drift: number | null;
           fund_id: string | null;
-          has_variance: boolean | null;
-          investor_email: string | null;
+          fund_name: string | null;
           investor_id: string | null;
-          position_balance: number | null;
-          variance: number | null;
+          ledger_sum: number | null;
+          position_value: number | null;
         };
         Relationships: [
           {
@@ -9892,17 +10022,17 @@ export type Database = {
       };
       yield_distribution_conservation_check: {
         Row: {
-          actual_deductions: number | null;
           calculated_fees: number | null;
           calculated_ib: number | null;
           conservation_error: number | null;
           distribution_id: string | null;
+          dust: number | null;
           effective_date: string | null;
-          expected_deductions: number | null;
           fund_code: string | null;
           fund_id: string | null;
           gross_yield: number | null;
           net_to_investors: number | null;
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null;
         };
         Relationships: [
           {
@@ -10037,6 +10167,7 @@ export type Database = {
           p_fund_id: string;
           p_investor_id: string;
           p_notes?: string;
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"];
           p_reference_id?: string;
           p_tx_date: string;
           p_type: string;
@@ -10047,7 +10178,7 @@ export type Database = {
         Args: { p_requests: Json };
         Returns: Json;
       };
-      apply_adb_yield_distribution_v3: {
+      apply_adb_yield_distribution_v4: {
         Args: {
           p_admin_id?: string;
           p_distribution_date?: string;
@@ -11081,7 +11212,7 @@ export type Database = {
         Args: { p_investor_id?: string };
         Returns: number;
       };
-      preview_adb_yield_distribution_v3: {
+      preview_adb_yield_distribution_v4: {
         Args: {
           p_fund_id: string;
           p_gross_yield_amount: number;
@@ -11160,6 +11291,11 @@ export type Database = {
         Args: { p_admin_id: string; p_batch_id: string; p_closing_aum: number };
         Returns: Json;
       };
+      qa_admin_id: { Args: never; Returns: string };
+      qa_fees_account_id: { Args: never; Returns: string };
+      qa_fund_id: { Args: { p_asset: string }; Returns: string };
+      qa_investor_id: { Args: { p_key: string }; Returns: string };
+      qa_seed_world: { Args: { p_run_tag: string }; Returns: Json };
       queue_statement_deliveries: {
         Args: {
           p_channel?: string;
@@ -11540,26 +11676,16 @@ export type Database = {
         };
         Returns: Json;
       };
-      upsert_fund_aum_after_yield:
-        | {
-            Args: {
-              p_aum_date: string;
-              p_fund_id: string;
-              p_source?: string;
-              p_total_aum: number;
-            };
-            Returns: undefined;
-          }
-        | {
-            Args: {
-              p_actor_id: string;
-              p_aum_date: string;
-              p_fund_id: string;
-              p_purpose: Database["public"]["Enums"]["aum_purpose"];
-              p_yield_amount: number;
-            };
-            Returns: Json;
-          };
+      upsert_fund_aum_after_yield: {
+        Args: {
+          p_actor_id: string;
+          p_aum_date: string;
+          p_fund_id: string;
+          p_purpose: Database["public"]["Enums"]["aum_purpose"];
+          p_yield_amount: number;
+        };
+        Returns: Json;
+      };
       use_invite_code: {
         Args: { p_invite_code: string; p_user_id: string };
         Returns: boolean;

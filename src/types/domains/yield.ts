@@ -158,7 +158,7 @@ export interface YieldCalculationResult {
   totalLossOffset?: string;
   /** Dust/rounding amount - string for NUMERIC(28,10) precision */
   dustAmount?: string;
-  calculationMethod?: "pro_rata" | "adb_v3";
+  calculationMethod?: "pro_rata" | "adb_v3" | "adb_v4";
   features?: string[]; // e.g., ['time_weighted', 'loss_carryforward']
   conservationCheck?: boolean; // Whether gross = net + fees + ib + dust
 }
@@ -196,7 +196,7 @@ export type YieldStatus = "preview" | "applied";
 
 /**
  * ADB (Average Daily Balance) Yield Distribution RPC Result
- * Type-safe interface for apply_adb_yield_distribution_v3 and preview_adb_yield_distribution_v3 results
+ * Type-safe interface for apply_adb_yield_distribution_v4 and preview_adb_yield_distribution_v4 results
  */
 export interface ADBYieldRPCResult {
   success: boolean;
@@ -221,7 +221,7 @@ export interface ADBYieldRPCResult {
 }
 
 /**
- * Individual investor allocation from ADB RPC (preview_adb_yield_distribution_v3)
+ * Individual investor allocation from ADB RPC (preview_adb_yield_distribution_v4)
  * Field names match the actual JSONB keys returned by the PostgreSQL function.
  */
 export interface ADBAllocationItem {
