@@ -89,7 +89,7 @@ export default defineConfig(({ mode }) => ({
             "clsx",
             "tailwind-merge",
           ],
-          charts: ["recharts", "react-chartjs-2", "chart.js"],
+          charts: ["recharts"],
           pdf: ["jspdf", "html2canvas", "jspdf-autotable"],
         },
       },
