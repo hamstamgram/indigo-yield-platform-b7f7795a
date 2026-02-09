@@ -185,7 +185,7 @@ BEGIN
 
   INSERT INTO fund_daily_aum (fund_id, aum_date, total_aum, purpose, source, created_by)
   VALUES (p_fund_id, p_tx_date, v_post_aum, p_purpose, 'transaction', v_admin)
-  ON CONFLICT (fund_id, aum_date, purpose)
+  ON CONFLICT (fund_id, aum_date, purpose) WHERE (is_voided = false)
   DO UPDATE SET total_aum = EXCLUDED.total_aum, updated_at = now();
 
   RETURN jsonb_build_object(
@@ -323,7 +323,7 @@ BEGIN
 
   INSERT INTO fund_daily_aum (fund_id, aum_date, total_aum, purpose, source, created_by)
   VALUES (p_fund_id, p_tx_date, v_post_aum, p_purpose, 'transaction', v_admin)
-  ON CONFLICT (fund_id, aum_date, purpose)
+  ON CONFLICT (fund_id, aum_date, purpose) WHERE (is_voided = false)
   DO UPDATE SET total_aum = EXCLUDED.total_aum, updated_at = now();
 
   -- Audit log

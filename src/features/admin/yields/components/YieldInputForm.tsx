@@ -97,8 +97,6 @@ export function YieldInputForm({
   existingDistributionDate,
 }: YieldInputFormProps) {
   const [showAdvancedPurpose, setShowAdvancedPurpose] = useState(false);
-  const [entryMode, setEntryMode] = useState<"aum" | "yield">("yield");
-
   const validationResult = validateEffectiveDate();
 
   // Determine displayed AUM: prefer as-of AUM, fallback to current positions
@@ -107,23 +105,8 @@ export function YieldInputForm({
 
   const isReporting = yieldPurpose === "reporting";
 
-  // Yield amount entry mode: user enters yield, we compute new AUM
+  // Computed yield display when entering new AUM
   const [yieldAmount, setYieldAmount] = useState("");
-
-  const handleYieldAmountChange = (value: string) => {
-    setYieldAmount(value);
-    if (value && displayedAum > 0) {
-      try {
-        const yieldDec = new Decimal(value);
-        const newTotal = new Decimal(displayedAum).plus(yieldDec);
-        setNewAUM(newTotal.toString());
-      } catch {
-        // Invalid input, don't update AUM
-      }
-    } else if (!value) {
-      setNewAUM("");
-    }
-  };
 
   const handleNewAUMChange = (value: string) => {
     setNewAUM(value);
@@ -372,73 +355,23 @@ export function YieldInputForm({
           )}
         </div>
 
-        {/* Entry Mode Toggle + Input */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className={cn(
-                "px-3 py-1.5 text-sm rounded-md transition-colors",
-                entryMode === "yield"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              )}
-              onClick={() => setEntryMode("yield")}
-            >
-              Enter Yield
-            </button>
-            <button
-              type="button"
-              className={cn(
-                "px-3 py-1.5 text-sm rounded-md transition-colors",
-                entryMode === "aum"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              )}
-              onClick={() => setEntryMode("aum")}
-            >
-              Enter New AUM
-            </button>
-          </div>
-
-          {entryMode === "yield" ? (
-            <div className="space-y-2">
-              <Label htmlFor="yield-amount">Yield Amount ({selectedFund?.asset})</Label>
-              <NumericInput
-                id="yield-amount"
-                asset={selectedFund?.asset}
-                value={yieldAmount}
-                onChange={handleYieldAmountChange}
-                placeholder="Enter yield earned this period"
-                showFormatted
-              />
-              {newAUM && (
-                <p className="text-xs text-muted-foreground">
-                  New AUM:{" "}
-                  {selectedFund && formatValue(parseFloat(newAUM) || 0, selectedFund.asset)}{" "}
-                  {selectedFund?.asset}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
-              <NumericInput
-                id="new-aum"
-                asset={selectedFund?.asset}
-                value={newAUM}
-                onChange={handleNewAUMChange}
-                placeholder="Enter new total AUM after yield"
-                showFormatted
-              />
-              {yieldAmount && (
-                <p className="text-xs text-muted-foreground">
-                  Yield: +
-                  {selectedFund && formatValue(parseFloat(yieldAmount) || 0, selectedFund.asset)}{" "}
-                  {selectedFund?.asset}
-                </p>
-              )}
-            </div>
+        {/* New AUM Input */}
+        <div className="space-y-2">
+          <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
+          <NumericInput
+            id="new-aum"
+            asset={selectedFund?.asset}
+            value={newAUM}
+            onChange={handleNewAUMChange}
+            placeholder="Enter new total AUM after yield"
+            showFormatted
+          />
+          {yieldAmount && (
+            <p className="text-xs text-muted-foreground">
+              Yield: +
+              {selectedFund && formatValue(parseFloat(yieldAmount) || 0, selectedFund.asset)}{" "}
+              {selectedFund?.asset}
+            </p>
           )}
         </div>
       </div>
