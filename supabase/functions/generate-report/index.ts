@@ -219,14 +219,9 @@ serve(async (req) => {
     let contentType: string;
 
     // Populate HTML Template - call the function to get the HTML string
-    let htmlContent: string =
-      typeof STATEMENT_TEMPLATE === "function"
-        ? STATEMENT_TEMPLATE({
-            investor_name: investorName,
-            statement_period: mtdEnd.toISOString().slice(0, 7),
-            funds: [],
-          })
-        : String(STATEMENT_TEMPLATE);
+    // STATEMENT_TEMPLATE is now a deprecated empty string stub.
+    // Use it as a raw string template with placeholder replacement below.
+    let htmlContent: string = String(STATEMENT_TEMPLATE);
     Object.entries(templateData).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, "g");
       htmlContent = htmlContent.replace(regex, value);
