@@ -19,6 +19,7 @@ import {
 import { X, ExternalLink, User, Loader2, AlertCircle, RotateCcw, Copy, Check } from "lucide-react";
 import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
 import { useAdminPendingWithdrawalsCount as usePendingWithdrawalsCount } from "@/hooks/data/admin";
+import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { InvestorTabs } from "../tabs";
 import { toast } from "sonner";
 
@@ -39,6 +40,7 @@ export function InvestorDetailPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [copied, setCopied] = useState(false);
+  const { isSuperAdmin } = useSuperAdmin();
 
   // Use React Query hook for pending withdrawals
   const { data: pendingWithdrawalsCount = 0, refetch: refetchWithdrawals } =
@@ -194,7 +196,7 @@ export function InvestorDetailPanel({
             investorEmail={investorSummary.email}
             compact={true}
             onDataChange={handleDataChange}
-            onDelete={handleDelete}
+            onDelete={isSuperAdmin ? handleDelete : undefined}
             pendingWithdrawalsCount={pendingWithdrawalsCount}
           />
         )}

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorTabs } from "@/components/admin";
+import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { format } from "date-fns";
 import { useInvestorDetail, useInvestorOpsIndicators } from "@/hooks/data/admin";
 
@@ -41,6 +42,7 @@ const InvestorManagement = () => {
   const [searchParams] = useSearchParams();
 
   const [linkCopied, setLinkCopied] = useState(false);
+  const { isSuperAdmin } = useSuperAdmin();
 
   // Use hooks for data fetching
   const { data: investor, isLoading, refetch: refetchInvestor } = useInvestorDetail(id);
@@ -236,7 +238,7 @@ const InvestorManagement = () => {
         investorEmail={investor.email}
         compact={false}
         onDataChange={handleRefresh}
-        onDelete={handleDeleteInvestor}
+        onDelete={isSuperAdmin ? handleDeleteInvestor : undefined}
         pendingWithdrawalsCount={opsIndicators?.pendingWithdrawals || 0}
       />
     </div>
