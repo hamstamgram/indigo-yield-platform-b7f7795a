@@ -297,6 +297,7 @@ export function useYieldOperationsState() {
         .eq("fund_id", fundId)
         .eq("yield_date", yieldDate)
         .eq("is_voided", false)
+        .eq("purpose", purpose)
         .limit(1);
 
       if (error) {
