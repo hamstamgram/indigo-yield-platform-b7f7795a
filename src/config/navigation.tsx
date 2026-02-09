@@ -20,6 +20,7 @@ import {
   Mail,
   HeartPulse,
   Layers,
+  Wrench,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -138,6 +139,12 @@ export const adminNavGroups: NavGroup[] = [
         icon: <Mail className="h-5 w-5" />,
         adminOnly: true,
       },
+      {
+        title: "Fund Management",
+        href: "/admin/funds",
+        icon: <Briefcase className="h-5 w-5" />,
+        adminOnly: true,
+      },
     ],
   },
   {
@@ -166,6 +173,12 @@ export const adminNavGroups: NavGroup[] = [
         title: "Settings",
         href: "/admin/settings",
         icon: <Settings className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Admin Tools",
+        href: "/admin/settings/tools",
+        icon: <Wrench className="h-5 w-5" />,
         adminOnly: true,
       },
     ],

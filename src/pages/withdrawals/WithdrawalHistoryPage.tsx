@@ -1,6 +1,6 @@
 import { useInvestorWithdrawals } from "@/hooks/data";
 import { Card, CardContent, CardHeader, Button, Input } from "@/components/ui";
-import { Search, Filter, Plus } from "lucide-react";
+import { Search, Filter, Plus, ArrowLeftRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -15,7 +15,7 @@ export default function WithdrawalHistoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Withdrawals Request</h1>
+        <h1 className="text-3xl font-bold">Withdrawal Requests</h1>
         <Button asChild>
           <Link to="/withdrawals/new">
             <Plus className="mr-2 h-4 w-4" />
@@ -87,7 +87,19 @@ export default function WithdrawalHistoryPage() {
             </div>
           ) : (
             <div className="py-12 text-center space-y-4">
-              <p className="text-muted-foreground">No withdrawal requests found</p>
+              <ArrowLeftRight className="h-10 w-10 text-muted-foreground/40 mx-auto" />
+              <div>
+                <p className="text-lg font-medium">No withdrawal requests yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  When you submit a withdrawal request, it will appear here with its status.
+                </p>
+              </div>
+              <Button asChild variant="outline" className="mt-2">
+                <Link to="/withdrawals/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Request Withdrawal
+                </Link>
+              </Button>
             </div>
           )}
         </CardContent>
