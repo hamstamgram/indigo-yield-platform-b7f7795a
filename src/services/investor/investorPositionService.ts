@@ -80,7 +80,26 @@ export interface InvestorPositionDetail {
 /**
  * Helper to map raw position to ExpertPosition
  */
-function mapPositionToExpert(pos: any): ExpertPosition {
+interface RawPositionRow {
+  investor_id: string;
+  fund_id: string;
+  fund_class?: string;
+  shares?: string | number;
+  cost_basis?: string | number;
+  current_value?: string | number;
+  realized_pnl?: string | number;
+  unrealized_pnl?: string | number;
+  last_transaction_date?: string | null;
+  funds?: {
+    name?: string;
+    code?: string;
+    id?: string;
+    asset?: string;
+    fund_class?: string;
+  };
+}
+
+function mapPositionToExpert(pos: RawPositionRow): ExpertPosition {
   const fund = pos.funds || {};
   return {
     id: `${pos.investor_id}:${pos.fund_id}`,

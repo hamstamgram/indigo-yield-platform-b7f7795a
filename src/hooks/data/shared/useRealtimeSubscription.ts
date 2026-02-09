@@ -5,16 +5,18 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
+export type RealtimePayload = RealtimePostgresChangesPayload<Record<string, unknown>>;
 
 interface SubscriptionConfig {
   channel?: string;
   table: string;
   event?: string;
   filter?: string;
-  onInsert?: (payload: any) => void;
-  onUpdate?: (payload: any) => void;
-  onDelete?: (payload: any) => void;
+  onInsert?: (payload?: RealtimePayload) => void;
+  onUpdate?: (payload?: RealtimePayload) => void;
+  onDelete?: (payload?: RealtimePayload) => void;
   onChange?: () => void;
 }
 
@@ -54,7 +56,7 @@ export function useRealtimeSubscription(config: SubscriptionConfig) {
           table,
           ...(filter ? { filter } : {}),
         },
-        (payload: any) => {
+        (payload: RealtimePayload) => {
           // Use refs to always call the latest callback
           onChangeRef.current?.();
 

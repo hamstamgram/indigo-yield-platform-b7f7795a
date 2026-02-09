@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/services/auth";
 import { logError } from "@/lib/logger";
+import { notificationService } from "@/services/shared";
 
 export function useNotificationBell() {
   const { user } = useAuth();
@@ -20,14 +21,8 @@ export function useNotificationBell() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact" })
-        .eq("user_id", user.id)
-        .is("read_at", null);
-
-      if (error) throw error;
-      setUnreadCount(data?.length || 0);
+      const count = await notificationService.getUnreadCount();
+      setUnreadCount(count);
     } catch (error) {
       logError("loadNotificationUnreadCount", error, { userId: user?.id });
     } finally {

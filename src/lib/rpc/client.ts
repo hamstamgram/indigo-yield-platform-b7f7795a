@@ -205,8 +205,10 @@ export async function callNoArgs<T extends RPCFunctionName>(
 export async function deposit(params: {
   fundId: string;
   investorId: string;
-  amount: number;
-  closingAum: number;
+  /** Amount as string for NUMERIC precision */
+  amount: string;
+  /** Closing AUM as string for NUMERIC precision */
+  closingAum: string;
   txDate: string;
   adminId: string;
   referenceId: string;
@@ -217,10 +219,10 @@ export async function deposit(params: {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "DEPOSIT",
-    p_amount: params.amount,
+    p_amount: Number(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: params.closingAum,
+    p_new_total_aum: Number(params.closingAum),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,
@@ -230,8 +232,10 @@ export async function deposit(params: {
 export async function withdrawal(params: {
   fundId: string;
   investorId: string;
-  amount: number;
-  newTotalAum: number;
+  /** Amount as string for NUMERIC precision */
+  amount: string;
+  /** New total AUM as string for NUMERIC precision */
+  newTotalAum: string;
   txDate: string;
   adminId: string;
   referenceId: string;
@@ -242,10 +246,10 @@ export async function withdrawal(params: {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "WITHDRAWAL",
-    p_amount: params.amount,
+    p_amount: Number(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: params.newTotalAum,
+    p_new_total_aum: Number(params.newTotalAum),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,
@@ -256,19 +260,21 @@ export async function applyYield(params: {
   fundId: string;
   periodStart: string;
   periodEnd: string;
-  grossYieldAmount: number;
+  /** Gross yield amount as string for NUMERIC precision */
+  grossYieldAmount: string;
   adminId: string;
   purpose?: "reporting" | "transaction";
-  recordedAum?: number;
+  /** Recorded AUM as string for NUMERIC precision */
+  recordedAum?: string;
 }): Promise<RPCResult<unknown>> {
   return call("apply_adb_yield_distribution_v4", {
     p_fund_id: params.fundId,
     p_period_start: params.periodStart,
     p_period_end: params.periodEnd,
-    p_gross_yield_amount: params.grossYieldAmount,
+    p_gross_yield_amount: Number(params.grossYieldAmount),
     p_admin_id: params.adminId,
     p_purpose: params.purpose,
-    ...(params.recordedAum != null && { p_recorded_aum: params.recordedAum }),
+    ...(params.recordedAum != null && { p_recorded_aum: Number(params.recordedAum) }),
   });
 }
 
@@ -276,14 +282,15 @@ export async function previewYield(params: {
   fundId: string;
   periodStart: string;
   periodEnd: string;
-  grossYieldAmount: number;
+  /** Gross yield amount as string for NUMERIC precision */
+  grossYieldAmount: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
   return call("preview_adb_yield_distribution_v4", {
     p_fund_id: params.fundId,
     p_period_start: params.periodStart,
     p_period_end: params.periodEnd,
-    p_gross_yield_amount: params.grossYieldAmount,
+    p_gross_yield_amount: Number(params.grossYieldAmount),
     p_purpose: params.purpose,
   });
 }

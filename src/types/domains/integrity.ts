@@ -38,9 +38,12 @@ export interface IntegrityCheckResult {
 export interface LedgerReconciliationRow {
   investor_id: string;
   fund_id: string;
-  position_value: number;
-  transaction_sum: number;
-  variance: number;
+  /** @precision NUMERIC - string for financial safety */
+  position_value: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  transaction_sum: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  variance: string | number;
 }
 
 /**
@@ -49,9 +52,12 @@ export interface LedgerReconciliationRow {
 export interface FundAumMismatchRow {
   fund_id: string;
   fund_code: string;
-  reported_aum: number;
-  calculated_aum: number;
-  difference: number;
+  /** @precision NUMERIC - string for financial safety */
+  reported_aum: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  calculated_aum: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  difference: string | number;
 }
 
 /**
@@ -62,7 +68,8 @@ export interface OrphanedTransactionRow {
   investor_id: string;
   fund_id: string;
   type: string;
-  amount: number;
+  /** @precision NUMERIC - string for financial safety */
+  amount: string | number;
   reason: string;
 }
 

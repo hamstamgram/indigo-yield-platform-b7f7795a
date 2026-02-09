@@ -153,7 +153,7 @@ export async function previewYieldDistribution(
       carriedLoss: String(d.carried_loss || 0),
       lossOffset: String(d.loss_offset || 0),
       taxableGain: String(d.taxable_gain || 0),
-      hasIb: Boolean(d.ib_parent_id && (d.ib_rate || 0) > 0),
+      hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
     })
   );
 

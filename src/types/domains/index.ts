@@ -88,112 +88,14 @@ export * from "./ibAllocation";
 // Approval domain (2-person rule)
 export * from "./approval";
 
+// Yield Crystallization domain
+export * from "./yieldCrystallization";
+
+// Relations domain (PostgREST join shapes)
+export * from "./relations";
+
+// Staging domain (transaction import staging)
+export * from "./staging";
+
 // Database enums
 export * from "./enums";
-// Common Utility Types
-// ============================================================================
-
-export type AsyncResult<T> = {
-  data: T | null;
-  error: Error | null;
-  loading: boolean;
-};
-
-export type PaginatedResult<T> = {
-  data: T[];
-  total: number;
-  page: number;
-  per_page: number;
-  total_pages: number;
-};
-
-export type SortOrder = "asc" | "desc";
-
-export interface SortConfig {
-  field: string;
-  order: SortOrder;
-}
-
-export interface FilterConfig {
-  [key: string]: string | number | boolean | null | undefined;
-}
-
-// ============================================================================
-// Status Types
-// ============================================================================
-
-export type EntityStatus = "active" | "inactive" | "pending" | "closed" | "suspended";
-
-// ============================================================================
-// ID Reference Types
-// ============================================================================
-
-export interface IdRef {
-  id: string;
-}
-
-export interface NamedRef extends IdRef {
-  name: string;
-}
-
-export interface EmailRef extends NamedRef {
-  email: string;
-}
-
-// ============================================================================
-// API Response Types (from phase3Types)
-// ============================================================================
-
-export interface APIResponse<T> {
-  data: T;
-  error?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface PaginatedResponse<T> extends APIResponse<T[]> {
-  page: number;
-  per_page: number;
-  total_count: number;
-  total_pages: number;
-}
-
-// ============================================================================
-// Error Types (from phase3Types)
-// ============================================================================
-
-export interface ErrorEvent {
-  id: string;
-  message: string;
-  stack?: string;
-  user_id?: string;
-  url?: string;
-  timestamp: string;
-  severity: "low" | "medium" | "high" | "critical";
-  tags?: Record<string, string>;
-}
-
-// ============================================================================
-// Theme Types (from phase3Types)
-// ============================================================================
-
-export type ThemeMode = "system" | "light" | "dark";
-
-export interface ThemePreference {
-  mode: ThemeMode;
-  user_id: string;
-  updated_at: string;
-}
-
-// ============================================================================
-// i18n Types (from phase3Types)
-// ============================================================================
-
-export interface I18nConfig {
-  locale: string;
-  fallback_locale: string;
-  available_locales: string[];
-}
-
-export interface TranslationKeys {
-  [key: string]: string | TranslationKeys;
-}

@@ -174,12 +174,12 @@ export interface FundDailyAUM {
   fund_id: string;
   aum_date: string;
   as_of_date?: string;
-  /** Total AUM - may come as number from DB */
-  total_aum: string | number;
-  /** NAV per share - may come as number from DB */
-  nav_per_share?: string | number | null;
-  /** Total shares - may come as number from DB */
-  total_shares?: string | number | null;
+  /** @precision NUMERIC - string for financial safety */
+  total_aum: string;
+  /** @precision NUMERIC - string for financial safety */
+  nav_per_share?: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  total_shares?: string | null;
   source?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
@@ -207,23 +207,32 @@ export interface ADBYieldRPCResult {
   fund_id?: string;
   fund_code?: string;
   fund_asset?: string;
-  gross_yield?: number;
-  net_yield?: number;
-  total_fees?: number;
-  total_ib?: number;
+  /** @precision NUMERIC - string for financial safety */
+  gross_yield?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  net_yield?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  total_fees?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  total_ib?: string | number;
   investor_count?: number;
-  yield_rate_pct?: number;
+  /** @precision NUMERIC - string for financial safety */
+  yield_rate_pct?: string | number;
   days_in_period?: number;
-  total_adb?: number;
-  total_loss_offset?: number;
-  dust_amount?: number;
+  /** @precision NUMERIC - string for financial safety */
+  total_adb?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  total_loss_offset?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  dust_amount?: string | number;
   features?: string[];
   conservation_check?: boolean;
   // Preview-specific fields
   allocations?: ADBAllocationItem[];
   // Crystallization info (reporting purpose)
   crystals_in_period?: number;
-  crystal_gross_total?: number;
+  /** @precision NUMERIC - string for financial safety */
+  crystal_gross_total?: string | number;
 }
 
 /**
@@ -235,19 +244,29 @@ export interface ADBAllocationItem {
   investor_email?: string;
   investor_name: string;
   account_type?: string;
-  adb: number;
-  adb_share_pct: number; // Percentage weight (0-100) based on ADB
-  fee_pct: number;
-  gross_yield: number; // Gross yield amount allocated to this investor
-  fee_amount: number;
-  net_yield: number; // Net yield after fees
+  /** @precision NUMERIC - string for financial safety */
+  adb: string | number;
+  /** Percentage weight (0-100) based on ADB */
+  adb_share_pct: string | number;
+  fee_pct: string | number;
+  /** Gross yield amount allocated to this investor */
+  gross_yield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  fee_amount: string | number;
+  /** Net yield after fees */
+  net_yield: string | number;
   ib_parent_id?: string;
   ib_parent_name?: string;
-  ib_rate?: number; // IB commission rate percentage
-  ib_amount?: number;
-  carried_loss?: number;
-  loss_offset?: number;
-  taxable_gain?: number;
+  /** IB commission rate percentage */
+  ib_rate?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  ib_amount?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  carried_loss?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  loss_offset?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  taxable_gain?: string | number;
   has_ib?: boolean;
 }
 
@@ -260,30 +279,54 @@ export interface PerformanceWithPeriod {
   investor_id: string;
   fund_name: string;
   period_id: string;
-  mtd_beginning_balance: string | number | null;
-  mtd_ending_balance: string | number | null;
-  mtd_additions: string | number | null;
-  mtd_redemptions: string | number | null;
-  mtd_net_income: string | number | null;
-  mtd_rate_of_return: string | number | null;
-  qtd_beginning_balance: string | number | null;
-  qtd_additions: string | number | null;
-  qtd_redemptions: string | number | null;
-  qtd_net_income: string | number | null;
-  qtd_ending_balance: string | number | null;
-  qtd_rate_of_return: string | number | null;
-  ytd_beginning_balance: string | number | null;
-  ytd_additions: string | number | null;
-  ytd_redemptions: string | number | null;
-  ytd_net_income: string | number | null;
-  ytd_ending_balance: string | number | null;
-  ytd_rate_of_return: string | number | null;
-  itd_beginning_balance: string | number | null;
-  itd_additions: string | number | null;
-  itd_redemptions: string | number | null;
-  itd_net_income: string | number | null;
-  itd_ending_balance: string | number | null;
-  itd_rate_of_return: string | number | null;
+  /** @precision NUMERIC - string for financial safety */
+  mtd_beginning_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  mtd_ending_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  mtd_additions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  mtd_redemptions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  mtd_net_income: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  mtd_rate_of_return: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  qtd_beginning_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  qtd_additions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  qtd_redemptions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  qtd_net_income: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  qtd_ending_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  qtd_rate_of_return: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  ytd_beginning_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  ytd_additions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  ytd_redemptions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  ytd_net_income: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  ytd_ending_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  ytd_rate_of_return: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  itd_beginning_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  itd_additions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  itd_redemptions: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  itd_net_income: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  itd_ending_balance: string | null;
+  /** @precision NUMERIC - string for financial safety */
+  itd_rate_of_return: string | null;
   period: {
     period_name?: string;
     period_end_date?: string;

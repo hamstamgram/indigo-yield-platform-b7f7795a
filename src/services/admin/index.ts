@@ -179,7 +179,6 @@ export { reportRecipientsService } from "./reportRecipientsService";
 // =============================================================================
 // IB MANAGEMENT
 // =============================================================================
-export * from "./ibPayoutService";
 export { ibUsersService, type IBUser } from "./ibUsersService";
 
 // =============================================================================

@@ -61,7 +61,8 @@ export async function getFundAUMHistory(
     throw new Error(`Failed to fetch AUM history: ${error.message}`);
   }
 
-  return (data as FundDailyAUM[]) || [];
+  // Supabase returns numeric as number; cast to FundDailyAUM (string financial fields)
+  return (data || []) as unknown as FundDailyAUM[];
 }
 
 /**
@@ -84,7 +85,7 @@ export async function getLatestFundAUM(fundId: string): Promise<FundDailyAUM | n
     throw new Error(`Failed to fetch latest AUM: ${error.message}`);
   }
 
-  return data as FundDailyAUM | null;
+  return data as unknown as FundDailyAUM | null;
 }
 
 /**
@@ -191,7 +192,7 @@ export async function saveDraftAUMEntry(
       }
       throw new Error(`Failed to update AUM: ${error.message}`);
     }
-    return data as FundDailyAUM;
+    return data as unknown as FundDailyAUM;
   } else {
     // INSERT new record
     const { data, error } = await supabase
@@ -215,7 +216,7 @@ export async function saveDraftAUMEntry(
       }
       throw new Error(`Failed to save AUM: ${error.message}`);
     }
-    return data as FundDailyAUM;
+    return data as unknown as FundDailyAUM;
   }
 }
 

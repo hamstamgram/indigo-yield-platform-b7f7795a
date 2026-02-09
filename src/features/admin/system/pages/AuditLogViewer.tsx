@@ -75,7 +75,9 @@ const AuditLogViewer = () => {
   useRealtimeSubscription({
     table: "audit_log",
     event: "*",
-    onUpdate: refetch,
+    onUpdate: () => {
+      refetch();
+    },
   });
 
   const handleFilterChange = (key: keyof AuditLogFilters, value: any) => {

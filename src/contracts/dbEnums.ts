@@ -412,10 +412,142 @@ export function assertValidTxType(type: string, context?: string): asserts type 
 }
 
 // =============================================================================
+// APP_ROLE ENUM
+// =============================================================================
+
+export const APP_ROLE_VALUES = [
+  "super_admin",
+  "admin",
+  "moderator",
+  "ib",
+  "user",
+  "investor",
+] as const;
+
+export const AppRoleSchema = z.enum(APP_ROLE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid app_role: "${ctx.data}". Valid: ${APP_ROLE_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type AppRole = z.infer<typeof AppRoleSchema>;
+
+export const DB_APP_ROLE = {
+  super_admin: "super_admin",
+  admin: "admin",
+  moderator: "moderator",
+  ib: "ib",
+  user: "user",
+  investor: "investor",
+} as const satisfies Record<string, AppRole>;
+
+export function isValidAppRole(value: string): value is AppRole {
+  return AppRoleSchema.safeParse(value).success;
+}
+
+// =============================================================================
+// DOCUMENT_TYPE ENUM
+// =============================================================================
+
+export const DOCUMENT_TYPE_VALUES = ["statement", "notice", "terms", "tax", "other"] as const;
+
+export const DocumentTypeSchema = z.enum(DOCUMENT_TYPE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid document_type: "${ctx.data}". Valid: ${DOCUMENT_TYPE_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type DocumentType = z.infer<typeof DocumentTypeSchema>;
+
+export const DB_DOCUMENT_TYPE = {
+  statement: "statement",
+  notice: "notice",
+  terms: "terms",
+  tax: "tax",
+  other: "other",
+} as const satisfies Record<string, DocumentType>;
+
+export function isValidDocumentType(value: string): value is DocumentType {
+  return DocumentTypeSchema.safeParse(value).success;
+}
+
+// =============================================================================
+// NOTIFICATION_TYPE ENUM
+// =============================================================================
+
+export const NOTIFICATION_TYPE_VALUES = [
+  "deposit",
+  "statement",
+  "performance",
+  "system",
+  "support",
+  "withdrawal",
+  "yield",
+] as const;
+
+export const NotificationTypeSchema = z.enum(NOTIFICATION_TYPE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return {
+        message: `Invalid notification_type: "${ctx.data}". Valid: ${NOTIFICATION_TYPE_VALUES.join(", ")}`,
+      };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type NotificationType = z.infer<typeof NotificationTypeSchema>;
+
+export const DB_NOTIFICATION_TYPE = {
+  deposit: "deposit",
+  statement: "statement",
+  performance: "performance",
+  system: "system",
+  support: "support",
+  withdrawal: "withdrawal",
+  yield: "yield",
+} as const satisfies Record<string, NotificationType>;
+
+export function isValidNotificationType(value: string): value is NotificationType {
+  return NotificationTypeSchema.safeParse(value).success;
+}
+
+// =============================================================================
 // TYPE ALIGNMENT VERIFICATION
 // =============================================================================
 // These compile-time checks ensure our contracts match Supabase types
 
+type SupabaseAppRole = Database["public"]["Enums"]["app_role"];
+const _app_roleCheck: AppRole extends SupabaseAppRole
+  ? SupabaseAppRole extends AppRole
+    ? true
+    : false
+  : false = true;
+void _app_roleCheck;
+type SupabaseDocumentType = Database["public"]["Enums"]["document_type"];
+const _document_typeCheck: DocumentType extends SupabaseDocumentType
+  ? SupabaseDocumentType extends DocumentType
+    ? true
+    : false
+  : false = true;
+void _document_typeCheck;
+type SupabaseNotificationType = Database["public"]["Enums"]["notification_type"];
+const _notification_typeCheck: NotificationType extends SupabaseNotificationType
+  ? SupabaseNotificationType extends NotificationType
+    ? true
+    : false
+  : false = true;
+void _notification_typeCheck;
 type SupabaseAccountType = Database["public"]["Enums"]["account_type"];
 const _account_typeCheck: AccountType extends SupabaseAccountType
   ? SupabaseAccountType extends AccountType

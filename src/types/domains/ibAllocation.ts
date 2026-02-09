@@ -49,7 +49,8 @@ export interface IBAllocationWithJoins {
   id: string;
   ib_investor_id: string;
   source_investor_id: string;
-  ib_fee_amount: number;
+  /** @precision NUMERIC - string for financial safety */
+  ib_fee_amount: string | number;
   effective_date: string;
   period_start: string | null;
   period_end: string | null;
@@ -64,9 +65,12 @@ export interface IBAllocationWithJoins {
  */
 export interface IBAllocationCommissionRow {
   id: string;
-  ib_fee_amount: number;
-  ib_percentage: number;
-  source_net_income: number;
+  /** @precision NUMERIC - string for financial safety */
+  ib_fee_amount: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  ib_percentage: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  source_net_income: string | number;
   effective_date: string;
   period_start: string | null;
   period_end: string | null;
@@ -83,7 +87,8 @@ export interface IBAllocationCommissionRow {
 export interface PositionWithFundAsset {
   investor_id: string;
   fund_id: string;
-  current_value: number;
+  /** @precision NUMERIC - string for financial safety */
+  current_value: string | number;
   funds: IBFundAssetRef | null;
 }
 
@@ -92,8 +97,10 @@ export interface PositionWithFundAsset {
  */
 export interface PositionWithFundFull {
   fund_id: string;
-  current_value: number;
-  cost_basis: number;
+  /** @precision NUMERIC - string for financial safety */
+  current_value: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  cost_basis: string | number;
   funds: { name: string; asset: string } | null;
 }
 
@@ -102,8 +109,10 @@ export interface PositionWithFundFull {
  */
 export interface WithdrawalWithFund {
   id: string;
-  requested_amount: number;
-  processed_amount: number | null;
+  /** @precision NUMERIC - string for financial safety */
+  requested_amount: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  processed_amount: string | number | null;
   status: string;
   request_date: string;
   processed_at: string | null;
@@ -225,7 +234,9 @@ export function toIBAllocationInsert(
     effective_date: allocation.effectiveDate,
     purpose: allocation.purpose,
     source: allocation.source,
-    source_net_income: allocation.sourceNetIncome ? parseFloat(allocation.sourceNetIncome) : undefined,
+    source_net_income: allocation.sourceNetIncome
+      ? parseFloat(allocation.sourceNetIncome)
+      : undefined,
     ib_percentage: allocation.ibPercentage ? parseFloat(allocation.ibPercentage) : undefined,
     ib_fee_amount: allocation.ibFeeAmount ? parseFloat(allocation.ibFeeAmount) : undefined,
     payout_status: allocation.payoutStatus,

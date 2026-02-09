@@ -129,7 +129,7 @@ class TransactionsRecordService {
     }
 
     // Check RPC result for success
-    const result = data as any;
+    const result = data as { success?: boolean; message?: string; error_code?: string } | null;
     if (result && result.success === false) {
       throw new Error(result.message || result.error_code || "Failed to void transaction");
     }
@@ -161,7 +161,20 @@ class TransactionsRecordService {
       throw new Error(error.message || "Failed to get void impact");
     }
 
-    return data as any;
+    return data as {
+      success: boolean;
+      error?: string;
+      transaction_type?: string;
+      transaction_amount?: number;
+      transaction_date?: string;
+      current_position?: number;
+      projected_position?: number;
+      position_change?: number;
+      would_go_negative?: boolean;
+      aum_records_affected?: number;
+      related_records?: { type: string; count: number }[];
+      is_system_generated?: boolean;
+    };
   }
 
   /**

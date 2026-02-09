@@ -23,25 +23,6 @@ export type {
   RateLimitConfig,
 } from "./environment";
 
-// Feature flags
-export {
-  FEATURE_FLAGS,
-  isFeatureEnabled,
-  getEnabledFeatures,
-  getDisabledFeatures,
-  FEATURE_PHASES,
-  getDeploymentReadiness,
-  getFeatureFlagsForEnvironment,
-} from "./features";
-export type { FeatureFlags } from "./features";
-
 // Navigation configuration
-export {
-  investorNav,
-  adminNavGroups,
-  adminNav,
-  activityNav,
-  profileAndSettingsNav,
-  mainNav,
-} from "./navigation";
+export { investorNav, adminNavGroups, adminNav } from "./navigation";
 export type { NavGroup } from "./navigation";

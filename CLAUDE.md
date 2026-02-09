@@ -57,13 +57,9 @@ Component -> Custom Hook (useQuery/useMutation) -> Service Function (gateway)
 | Audit Logs | `/admin/audit-logs` | `useAuditLogs` | `auditLogService` |
 | IB Management | `/admin/ib-management` | `useIBSettings` | `ibUsersService` |
 
-### IB Portal (`/ib/*`) - 7 routes (MAY BE DEPRECATED)
-| Area | Route | Key Hook | Service |
-|------|-------|----------|---------|
-| Overview | `/ib` | `useIBCommissionSummary` | `ibService` |
-| Referrals | `/ib/referrals` | `useIBReferrals` | `ibService` |
-| Commissions | `/ib/commissions` | `useIBCommissions` | `ibService` |
-| Payouts | `/ib/payouts` | `useIBPayoutHistory` | `ibService` |
+### IB Portal (`/ib/*`) - DEPRECATED (all routes redirect to `/investor`)
+IB portal pages and ibService removed. IB management is admin-only via `/admin/ib-management`.
+IB allocation logic remains active in the yield distribution engine.
 
 ## Database Schema
 
@@ -259,23 +255,22 @@ END; $$;
 | Solo founder dependency | CRITICAL | All knowledge in one person - this doc is mitigation |
 | Yield miscalculation edge cases | CRITICAL | No automated test suite for yield scenarios |
 | Service layer complexity | HIGH | 90+ files, hard to navigate. Consolidation needed |
-| Inconsistent patterns | HIGH | Some IB services call supabase.rpc() directly (not gateway) |
+| Inconsistent patterns | HIGH | Some hooks still call supabase.from() directly (not service gateway) |
 | Test coverage gaps | HIGH | No automated tests for critical financial flows |
 | Investor UX complexity | HIGH | Early feedback: "too complex/confusing" |
 | IB system overhead | MEDIUM | May be deprecated, adds ~15% codebase complexity |
 | TypeScript financial types | LOW | Uses `number` in some interfaces (should be `string`) |
 
 ### Potentially Unused Features (verify before removing)
-- `/admin/onboarding`, `/admin/maintenance`, `/admin/duplicates`, `/admin/bypass-attempts`
-- `bulkOperationsService.ts`, `commandPaletteService.ts`, `operationsHubService.ts`
-- `positionAdjustmentService.ts` (may be legacy - positions now ledger-driven)
-- `reportEngine.ts`, `pdfGenerator.ts`, `excelGenerator.ts` (may not be fully connected)
+- `/admin/onboarding`, `/admin/duplicates` (routes removed; `/admin/maintenance`, `/admin/bypass-attempts` redirect to `/admin`)
+- `reportEngine.ts`, `excelGenerator.ts` (behind disabled CUSTOM_REPORTS feature flag)
+- `commandPaletteService.ts` (wired up but low usage - verify if needed)
 
 ## Development Conventions
 
 - **Types**: `@/types/domains/` | **Services**: `@/services/` | **Contracts**: `src/contracts/`
 - **DB Enums**: `src/contracts/dbEnums.ts` | **RPC Sigs**: `src/contracts/rpcSignatures.ts`
-- **Route guards**: `ProtectedRoute`, `AdminRoute`, `InvestorRoute`, `IBRoute`
+- **Route guards**: `ProtectedRoute`, `AdminRoute`, `InvestorRoute` (IB routes redirect to `/investor`)
 - **Code splitting**: All routes use `React.lazy()` with `<RouteSuspense>`
 - **Query keys**: Centralized in `src/constants/queryKeys.ts`
 

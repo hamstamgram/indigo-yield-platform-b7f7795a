@@ -1,10 +1,9 @@
 /**
  * useProfiles - Data hook for user profile operations
- * Abstracts Supabase calls from components
+ * Delegates to profileService for all database operations
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
@@ -28,15 +27,7 @@ export function useProfiles() {
 
   return useQuery<UserProfile[]>({
     queryKey: QUERY_KEYS.profiles,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, is_admin, created_at")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: () => profileService.getProfilesWithAdmin() as Promise<UserProfile[]>,
     staleTime: 2 * 60 * 1000, // 2 minutes
     meta: {
       onError: () => {
@@ -58,15 +49,7 @@ export function useProfile(userId: string | undefined) {
     queryKey: QUERY_KEYS.profile(userId || ""),
     queryFn: async () => {
       if (!userId) return null;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
+      return profileService.getFullProfile(userId);
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -79,21 +62,7 @@ export function useProfile(userId: string | undefined) {
 export function useCurrentProfile() {
   return useQuery({
     queryKey: QUERY_KEYS.currentProfile,
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return null;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, is_admin")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => profileService.getCurrentProfileRaw(),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -124,13 +93,7 @@ export function useToggleAdminStatus() {
 
   return useMutation({
     mutationFn: async ({ userId, currentStatus }: { userId: string; currentStatus: boolean }) => {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_admin: !currentStatus })
-        .eq("id", userId);
-
-      if (error) throw error;
-      return !currentStatus;
+      return profileService.toggleAdminStatus(userId, currentStatus);
     },
     onSuccess: (newStatus) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profiles });
@@ -159,15 +122,7 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async ({ userId, updates }: { userId: string; updates: Partial<UserProfile> }) => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", userId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return profileService.updateProfile(userId, updates);
     },
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile(userId) });
@@ -206,39 +161,7 @@ export function useInvestorsForTransaction(enabled: boolean = true) {
 export function useInvestorProfileWithFund(investorId: string | undefined) {
   return useQuery({
     queryKey: QUERY_KEYS.investorProfileWithFund(investorId || ""),
-    queryFn: async () => {
-      // Get profile
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .eq("id", investorId!)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Get positions to find primary fund
-      const { data: positions } = await supabase
-        .from("investor_positions")
-        .select("fund_id")
-        .eq("investor_id", investorId!)
-        .limit(1);
-
-      // Get default fund if no position
-      const { data: funds } = await supabase
-        .from("funds")
-        .select("id")
-        .eq("status", "active")
-        .limit(1);
-
-      const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
-
-      return {
-        id: profile.id,
-        name,
-        email: profile.email,
-        fund_id: positions?.[0]?.fund_id || funds?.[0]?.id || "",
-      };
-    },
+    queryFn: () => profileService.getInvestorProfileWithFund(investorId!),
     enabled: !!investorId,
   });
 }

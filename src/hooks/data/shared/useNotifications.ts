@@ -17,24 +17,16 @@ export function useNotifications(userId?: string) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Fetch notifications
+  // Fetch notifications via service layer
   const fetchNotifications = useCallback(async () => {
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      const notifications = toNotifications(data || []);
-      setNotifications(notifications);
+      const result = await notificationService.getNotificationsForUser(userId, 50);
+      setNotifications(result);
 
       // Count unread
-      const unread = notifications.filter((n) => !n.read_at).length;
+      const unread = result.filter((n) => !n.read_at).length;
       setUnreadCount(unread);
     } catch (error) {
       logError("useNotifications.fetchNotifications", error, { userId });
@@ -43,49 +35,22 @@ export function useNotifications(userId?: string) {
     }
   }, [userId]);
 
-  // Fetch settings
+  // Fetch settings via service layer
   const fetchSettings = useCallback(async () => {
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase
-        .from("notification_settings")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const existing = await notificationService.getSettings(userId);
 
-      if (error) throw error;
-
-      if (data) {
-        setSettings(data as unknown as NotificationSettings);
+      if (existing) {
+        setSettings(existing);
       } else {
         // Create default settings if none exist
-        const defaultSettings = {
-          user_id: userId,
-          email_enabled: true,
-          push_enabled: true,
-          in_app_enabled: true,
-          transaction_notifications: true,
-          alert_notifications: true,
-          system_notifications: true,
-          security_notifications: true,
-          document_notifications: true,
-          support_notifications: true,
-          yield_notifications: true,
-          portfolio_notifications: true,
-          email_frequency: "realtime",
-        };
-
-        const { data: newData, error: createError } = await supabase
-          .from("notification_settings")
-          .insert(defaultSettings)
-          .select()
-          .single();
-
-        if (createError) {
+        try {
+          const created = await notificationService.createDefaultSettings(userId);
+          setSettings(created);
+        } catch (createError) {
           logError("useNotifications.createDefaultSettings", createError, { userId });
-        } else {
-          setSettings(newData as unknown as NotificationSettings);
         }
       }
     } catch (error) {
@@ -139,18 +104,13 @@ export function useNotifications(userId?: string) {
     [notifications]
   );
 
-  // Update settings
+  // Update settings via service layer
   const updateSettings = useCallback(
     async (updates: Partial<NotificationSettings>) => {
       if (!userId) return;
 
       try {
-        const { error } = await supabase
-          .from("notification_settings")
-          .update(updates)
-          .eq("user_id", userId);
-
-        if (error) throw error;
+        await notificationService.updateSettings(userId, updates);
 
         setSettings((prev) => (prev ? { ...prev, ...updates } : null));
 
@@ -189,7 +149,9 @@ export function useNotifications(userId?: string) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const newNotification = toNotification(payload.new as Database['public']['Tables']['notifications']['Row']);
+          const newNotification = toNotification(
+            payload.new as Database["public"]["Tables"]["notifications"]["Row"]
+          );
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
 
@@ -211,7 +173,9 @@ export function useNotifications(userId?: string) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const updatedNotification = toNotification(payload.new as Database['public']['Tables']['notifications']['Row']);
+          const updatedNotification = toNotification(
+            payload.new as Database["public"]["Tables"]["notifications"]["Row"]
+          );
           setNotifications((prev) =>
             prev.map((n) => (n.id === updatedNotification.id ? updatedNotification : n))
           );

@@ -31,10 +31,12 @@ export interface UserTransaction extends Pick<
   investor_name?: string;
 }
 
-export interface TransactionSummary {
+export interface UserTransactionSummary {
   totalCount: number;
-  totalDeposits: number;
-  totalWithdrawals: number;
+  /** @precision NUMERIC - string for financial safety */
+  totalDeposits: string;
+  /** @precision NUMERIC - string for financial safety */
+  totalWithdrawals: string;
   pendingCount: number;
 }
 
@@ -120,14 +122,14 @@ export async function fetchUserTransactions(): Promise<UserTransaction[]> {
 /**
  * Calculate transaction summary statistics
  */
-export async function calculateTransactionSummary(): Promise<TransactionSummary> {
+export async function calculateTransactionSummary(): Promise<UserTransactionSummary> {
   try {
     const transactions = await fetchUserTransactions();
 
-    const summary: TransactionSummary = {
+    const summary: UserTransactionSummary = {
       totalCount: transactions.length,
-      totalDeposits: 0,
-      totalWithdrawals: 0,
+      totalDeposits: "0",
+      totalWithdrawals: "0",
       pendingCount: 0,
     };
 
@@ -137,11 +139,11 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
       if (txType === "DEPOSIT") {
         summary.totalDeposits = parseFinancial(summary.totalDeposits)
           .plus(parseFinancial(tx.amount))
-          .toNumber();
+          .toFixed();
       } else if (txType === "WITHDRAWAL") {
         summary.totalWithdrawals = parseFinancial(summary.totalWithdrawals)
           .plus(parseFinancial(tx.amount))
-          .toNumber();
+          .toFixed();
       }
     });
 
@@ -150,8 +152,8 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
     logError("calculateTransactionSummary", error);
     return {
       totalCount: 0,
-      totalDeposits: 0,
-      totalWithdrawals: 0,
+      totalDeposits: "0",
+      totalWithdrawals: "0",
       pendingCount: 0,
     };
   }

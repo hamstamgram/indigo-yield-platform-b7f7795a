@@ -44,12 +44,17 @@ export interface AssetRef {
  */
 export interface AssetPrice {
   asset_id: string;
-  price_usd: number;
+  /** @precision NUMERIC - string for financial safety */
+  price_usd: string | number;
   as_of: string;
-  high_24h?: number;
-  low_24h?: number;
-  volume_24h?: number;
-  market_cap?: number;
+  /** @precision NUMERIC - string for financial safety */
+  high_24h?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  low_24h?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  volume_24h?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  market_cap?: string | number;
   source: string;
   created_at: string;
 }
@@ -98,63 +103,74 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "BTC",
     name: "BTC Yield Fund",
     decimals: 8,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
     color: "#F7931A",
   },
   ETH: {
     symbol: "ETH",
     name: "ETH Yield Fund",
     decimals: 8,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
     color: "#627EEA",
   },
   SOL: {
     symbol: "SOL",
     name: "SOL Yield Fund",
     decimals: 8,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
     color: "#14F195",
   },
   USDT: {
     symbol: "USDT",
     name: "Stablecoin Fund",
     decimals: 6,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
     color: "#26A17B",
   },
+  // NOTE: USDC is not in the database asset_code enum. UI-only display config.
+  // Add to DB enum via migration if USDC funds are created.
   USDC: {
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
     color: "#2775CA",
   },
   EURC: {
     symbol: "EURC",
     name: "EURC Yield Fund",
     decimals: 6,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
     color: "#0052FF",
   },
   XAUT: {
     symbol: "xAUT",
     name: "Tokenized Gold",
     decimals: 6,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
     color: "#FFD700",
   },
   xAUT: {
     symbol: "xAUT",
     name: "Tokenized Gold",
     decimals: 6,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
     color: "#FFD700",
   },
   XRP: {
     symbol: "XRP",
     name: "XRP Yield Fund",
     decimals: 6,
-    logoUrl: "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
     color: "#00AAE4",
   },
 };
@@ -263,9 +279,11 @@ export interface AssetSummary {
   id: number;
   symbol: string;
   name: string;
-  totalBalance: number;
+  /** @precision NUMERIC - string for financial safety */
+  totalBalance: string | number;
   totalUsers: number;
-  avgYield: number;
+  /** @precision NUMERIC - string for financial safety */
+  avgYield: string | number;
 }
 
 /**
@@ -274,13 +292,20 @@ export interface AssetSummary {
 export interface AssetSummaryDetailed {
   symbol: string;
   name: string;
-  balance: number;
-  principal: number;
-  totalEarned: number;
-  currentRate: number;
-  dailyYield: number;
-  totalYield: number;
-  yieldPercentage: number;
+  /** @precision NUMERIC - string for financial safety */
+  balance: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  principal: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  totalEarned: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  currentRate: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  dailyYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  totalYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  yieldPercentage: string | number;
 }
 
 /**
@@ -289,13 +314,20 @@ export interface AssetSummaryDetailed {
 export interface YieldSource {
   id: string;
   name: string;
-  btcYield: number;
-  ethYield: number;
-  solYield: number;
-  usdtYield: number;
-  eurcYield: number;
-  xautYield: number;
-  xrpYield: number;
+  /** @precision NUMERIC - string for financial safety */
+  btcYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  ethYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  solYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  usdtYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  eurcYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  xautYield: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  xrpYield: string | number;
 }
 
 // ============================================================================
@@ -317,11 +349,16 @@ export interface AssetFormData {
 
 export interface AssetPriceFormData {
   asset_id: string;
-  price_usd: number;
-  high_24h?: number;
-  low_24h?: number;
-  volume_24h?: number;
-  market_cap?: number;
+  /** @precision NUMERIC - string for financial safety */
+  price_usd: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  high_24h?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  low_24h?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  volume_24h?: string | number;
+  /** @precision NUMERIC - string for financial safety */
+  market_cap?: string | number;
   source: string;
 }
 

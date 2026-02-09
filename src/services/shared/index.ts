@@ -30,7 +30,8 @@ export {
 // Note: CreateTransactionParams should be imported from @/types/domains/transaction
 export type {
   UserTransaction,
-  TransactionSummary,
+  UserTransactionSummary,
+  UserTransactionSummary as TransactionSummary,
   QuickTransactionParams,
 } from "./transactionService";
 // For canonical transaction types, import directly from @/types/domains/transaction

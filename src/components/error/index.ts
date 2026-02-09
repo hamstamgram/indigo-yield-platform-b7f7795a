@@ -4,4 +4,3 @@
  */
 
 export { ErrorBoundary } from "./ErrorBoundary";
-export { FinancialErrorBoundary } from "./FinancialErrorBoundary";

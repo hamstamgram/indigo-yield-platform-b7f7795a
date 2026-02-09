@@ -269,8 +269,10 @@ export interface DepositCrystallizationResult {
   success: boolean;
   deposit_tx_id: string;
   crystallization?: {
-    gross_yield: number;
-    net_yield: number;
+    /** @precision NUMERIC - string for financial safety */
+    gross_yield: string | number;
+    /** @precision NUMERIC - string for financial safety */
+    net_yield: string | number;
     investors_affected: number;
   };
 }

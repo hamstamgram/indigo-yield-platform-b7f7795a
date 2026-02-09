@@ -1,6 +1,10 @@
+import { lazy } from "react";
 import { Route } from "react-router-dom";
 import { AdminRoute } from "@/routing/AdminRoute";
-import AdminWithdrawalsPage from "@/features/admin/withdrawals/pages/AdminWithdrawalsPage";
+
+const AdminWithdrawalsPage = lazy(
+  () => import("@/features/admin/withdrawals/pages/AdminWithdrawalsPage")
+);
 
 export function WithdrawalRoutes() {
   return (

@@ -80,6 +80,123 @@ class ProfileService {
   }
 
   /**
+   * Get all profiles with admin status (for admin user management)
+   */
+  async getProfilesWithAdmin(): Promise<
+    Array<{
+      id: string;
+      email: string;
+      first_name: string | null;
+      last_name: string | null;
+      is_admin: boolean;
+      created_at: string;
+    }>
+  > {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name, is_admin, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get full profile (all columns) by ID
+   */
+  async getFullProfile(profileId: string) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", profileId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get current user's profile (raw columns)
+   */
+  async getCurrentProfileRaw() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name, is_admin")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Toggle admin status for a user
+   */
+  async toggleAdminStatus(userId: string, currentStatus: boolean): Promise<boolean> {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_admin: !currentStatus })
+      .eq("id", userId);
+
+    if (error) throw error;
+    return !currentStatus;
+  }
+
+  /**
+   * Update profile fields
+   */
+  async updateProfile(userId: string, updates: Record<string, unknown>) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get investor profile with their primary fund (composite query)
+   */
+  async getInvestorProfileWithFund(investorId: string) {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .eq("id", investorId)
+      .single();
+
+    if (profileError) throw profileError;
+
+    const { data: positions } = await supabase
+      .from("investor_positions")
+      .select("fund_id")
+      .eq("investor_id", investorId)
+      .limit(1);
+
+    const { data: funds } = await supabase
+      .from("funds")
+      .select("id")
+      .eq("status", "active")
+      .limit(1);
+
+    const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
+
+    return {
+      id: profile.id,
+      name,
+      email: profile.email,
+      fund_id: positions?.[0]?.fund_id || funds?.[0]?.id || "",
+    };
+  }
+
+  /**
    * Get active investors (non-admin, active profiles)
    */
   async getActiveInvestors(): Promise<ProfileSummary[]> {
