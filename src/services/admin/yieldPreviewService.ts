@@ -206,5 +206,7 @@ export async function previewYieldDistribution(
     calculationMethod: "adb_v4",
     features: result.features || ["time_weighted", "loss_carryforward"],
     conservationCheck: Boolean(result.conservation_check),
+    crystalsInPeriod: result.crystals_in_period ?? 0,
+    crystalGrossTotal: String(result.crystal_gross_total ?? 0),
   };
 }

@@ -12,6 +12,7 @@ import {
   getYieldEventsForInvestor,
   getPendingYieldEventsCount,
   getAggregatedYieldForPeriod,
+  getCrystallizationDistributions,
 } from "@/services/admin/yieldCrystallizationService";
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
@@ -178,6 +179,23 @@ export function useAggregatedYield(
     ),
     queryFn: () => getAggregatedYieldForPeriod(fundId!, periodStart!, periodEnd!, visibilityFilter),
     enabled: !!fundId && !!periodStart && !!periodEnd,
+  });
+}
+
+/**
+ * Hook to fetch crystallization distribution records for a period.
+ * Used in yield preview to show per-event breakdown of mid-month crystallizations.
+ */
+export function useCrystallizationDistributions(
+  fundId: string | null,
+  periodStart: string | null,
+  periodEnd: string | null,
+  enabled = false
+) {
+  return useQuery({
+    queryKey: QUERY_KEYS.crystallizationDistributions(fundId!, periodStart!, periodEnd!),
+    queryFn: () => getCrystallizationDistributions(fundId!, periodStart!, periodEnd!),
+    enabled: enabled && !!fundId && !!periodStart && !!periodEnd,
   });
 }
 

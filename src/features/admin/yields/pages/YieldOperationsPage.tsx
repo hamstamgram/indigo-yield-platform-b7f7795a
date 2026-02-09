@@ -42,7 +42,10 @@ import {
   YieldConfirmDialog,
 } from "@/features/admin/yields/components";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { usePendingYieldEvents } from "@/features/admin/yields/hooks/useYieldCrystallization";
+import {
+  usePendingYieldEvents,
+  useCrystallizationDistributions,
+} from "@/features/admin/yields/hooks/useYieldCrystallization";
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { getMonth, getYear } from "date-fns";
 import { useYieldOperationsState, type Fund } from "@/hooks/admin/useYieldOperationsState";
@@ -57,6 +60,16 @@ function YieldOperationsContent() {
     ops.selectedFund?.id || null,
     reportingMonthDate ? getYear(reportingMonthDate) : new Date().getFullYear(),
     reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
+  );
+
+  // Crystallization distributions for preview breakdown
+  const crystalEnabled =
+    (ops.yieldPreview?.crystalsInPeriod ?? 0) > 0 && ops.yieldPurpose === "reporting";
+  const { data: crystallizationEvents } = useCrystallizationDistributions(
+    ops.selectedFund?.id || null,
+    ops.yieldPreview?.periodStart || null,
+    ops.yieldPreview?.periodEnd || null,
+    crystalEnabled
   );
 
   // AUM Reconciliation check
@@ -206,6 +219,8 @@ function YieldOperationsContent() {
                   getFilteredDistributions={ops.getFilteredDistributions}
                   onConfirmApply={ops.handleConfirmApply}
                   applyLoading={ops.applyLoading}
+                  crystallizationEvents={crystallizationEvents}
+                  yieldPurpose={ops.yieldPurpose}
                 />
               </div>
             )}

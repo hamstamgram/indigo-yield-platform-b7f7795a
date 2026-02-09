@@ -281,6 +281,63 @@ export async function getAggregatedYieldForPeriod(
   return Array.from(aggregated.values());
 }
 
+/**
+ * Crystallization distribution record from yield_distributions table
+ */
+export interface CrystallizationDistribution {
+  id: string;
+  distributionType: string;
+  effectiveDate: string;
+  grossYield: string;
+  netAmount: string;
+  feeAmount: string;
+  ibAmount: string;
+}
+
+const TRIGGER_LABELS: Record<string, string> = {
+  deposit: "Deposit",
+  withdrawal: "Withdrawal",
+  transaction: "Flow",
+};
+
+/**
+ * Get crystallization distributions for a fund in a date range.
+ * Returns individual yield_distributions rows for mid-period crystallization events.
+ */
+export async function getCrystallizationDistributions(
+  fundId: string,
+  periodStart: string,
+  periodEnd: string
+): Promise<CrystallizationDistribution[]> {
+  const { data, error } = await supabase
+    .from("yield_distributions")
+    .select(
+      "id, distribution_type, effective_date, gross_yield_amount, total_net_amount, total_fee_amount, total_ib_amount"
+    )
+    .eq("fund_id", fundId)
+    .gte("effective_date", periodStart)
+    .lte("effective_date", periodEnd)
+    .eq("is_voided", false)
+    .in("distribution_type", ["deposit", "withdrawal", "transaction"])
+    .is("consolidated_into_id", null)
+    .order("effective_date", { ascending: true });
+
+  if (error) {
+    logError("getCrystallizationDistributions", error, { fundId, periodStart, periodEnd });
+    throw new Error(error.message);
+  }
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    distributionType: TRIGGER_LABELS[row.distribution_type] || row.distribution_type,
+    effectiveDate: row.effective_date,
+    grossYield: String(row.gross_yield_amount ?? 0),
+    netAmount: String(row.total_net_amount ?? 0),
+    feeAmount: String(row.total_fee_amount ?? 0),
+    ibAmount: String(row.total_ib_amount ?? 0),
+  }));
+}
+
 // Note: getFundYieldSnapshots removed in P1-03 (Unify AUM Snapshot Tables)
 // The fund_yield_snapshots table was unused (0 rows) and has been dropped.
 

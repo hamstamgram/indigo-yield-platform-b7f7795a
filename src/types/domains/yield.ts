@@ -161,6 +161,9 @@ export interface YieldCalculationResult {
   calculationMethod?: "pro_rata" | "adb_v3" | "adb_v4";
   features?: string[]; // e.g., ['time_weighted', 'loss_carryforward']
   conservationCheck?: boolean; // Whether gross = net + fees + ib + dust
+  // Crystallization info (reporting purpose)
+  crystalsInPeriod?: number;
+  crystalGrossTotal?: string;
 }
 
 /**
@@ -218,6 +221,9 @@ export interface ADBYieldRPCResult {
   conservation_check?: boolean;
   // Preview-specific fields
   allocations?: ADBAllocationItem[];
+  // Crystallization info (reporting purpose)
+  crystals_in_period?: number;
+  crystal_gross_total?: number;
 }
 
 /**

@@ -381,6 +381,8 @@ export const QUERY_KEYS = {
     ["pending-yield-events", fundId, year, month] as const,
   aggregatedYield: (fundId?: string, periodStart?: string, periodEnd?: string, filter?: string) =>
     ["aggregated-yield", fundId, periodStart, periodEnd, filter] as const,
+  crystallizationDistributions: (fundId?: string, periodStart?: string, periodEnd?: string) =>
+    ["crystallization-distributions", fundId, periodStart, periodEnd] as const,
   investorYieldEvents: ["investor-yield-events"] as const,
 
   // ============ Admin Investor Detail ============

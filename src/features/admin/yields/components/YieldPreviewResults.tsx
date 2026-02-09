@@ -33,7 +33,11 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { type YieldCalculationResult, type YieldDistribution } from "@/services/admin";
+import {
+  type YieldCalculationResult,
+  type YieldDistribution,
+  type CrystallizationDistribution,
+} from "@/services/admin";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
 import { toNum } from "@/utils/numeric";
 
@@ -50,6 +54,8 @@ interface YieldPreviewResultsProps {
   getFilteredDistributions: (distributions: YieldDistribution[]) => YieldDistribution[];
   onConfirmApply: () => void;
   applyLoading: boolean;
+  crystallizationEvents?: CrystallizationDistribution[];
+  yieldPurpose?: string;
 }
 
 export function YieldPreviewResults({
@@ -65,8 +71,12 @@ export function YieldPreviewResults({
   getFilteredDistributions,
   onConfirmApply,
   applyLoading,
+  crystallizationEvents,
+  yieldPurpose,
 }: YieldPreviewResultsProps) {
   const asset = selectedFund?.asset || "";
+  const showCrystallization =
+    yieldPurpose === "reporting" && crystallizationEvents && crystallizationEvents.length > 0;
 
   return (
     <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
@@ -127,6 +137,19 @@ export function YieldPreviewResults({
             {yieldPreview.existingConflicts.length} existing reference(s) will be skipped.
           </div>
         </div>
+      )}
+
+      {/* Crystallized Yield (Period) - reporting purpose only */}
+      {showCrystallization && (
+        <CrystallizationBreakdown
+          events={crystallizationEvents}
+          newGross={toNum(yieldPreview.grossYield)}
+          newFees={toNum(yieldPreview.totalFees)}
+          newIb={toNum(yieldPreview.totalIbFees ?? 0)}
+          newNet={toNum(yieldPreview.netYield)}
+          asset={asset}
+          formatValue={formatValue}
+        />
       )}
 
       {/* Summary Cards */}
@@ -484,5 +507,151 @@ export function YieldPreviewResults({
         Apply Yield to {yieldPreview.investorCount} Investors
       </Button>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Crystallization Breakdown Sub-Component
+// ---------------------------------------------------------------------------
+
+interface CrystallizationBreakdownProps {
+  events: CrystallizationDistribution[];
+  newGross: number;
+  newFees: number;
+  newIb: number;
+  newNet: number;
+  asset: string;
+  formatValue: (value: number, asset: string) => string;
+}
+
+function CrystallizationBreakdown({
+  events,
+  newGross,
+  newFees,
+  newIb,
+  newNet,
+  asset,
+  formatValue,
+}: CrystallizationBreakdownProps) {
+  // Sum crystallized totals
+  const crystalGross = events.reduce((s, e) => s + toNum(e.grossYield), 0);
+  const crystalFees = events.reduce((s, e) => s + toNum(e.feeAmount), 0);
+  const crystalIb = events.reduce((s, e) => s + toNum(e.ibAmount), 0);
+  const crystalNet = events.reduce((s, e) => s + toNum(e.netAmount), 0);
+
+  const monthGross = crystalGross + newGross;
+  const monthFees = crystalFees + newFees;
+  const monthIb = crystalIb + newIb;
+  const monthNet = crystalNet + newNet;
+
+  return (
+    <Card className="border-amber-500/20 bg-amber-500/5">
+      <CardHeader className="pb-2 pt-3 px-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ArrowRightLeft className="h-4 w-4 text-amber-500" />
+            <span className="text-sm font-semibold text-amber-200">
+              Crystallized Yield (Period)
+            </span>
+          </div>
+          <Badge variant="outline" className="text-xs border-amber-500/30 text-amber-400">
+            {events.length} event{events.length !== 1 ? "s" : ""}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pb-3">
+        <div className="rounded-md border border-white/10 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-white/10">
+                <TableHead className="text-xs">Date</TableHead>
+                <TableHead className="text-xs">Trigger</TableHead>
+                <TableHead className="text-xs text-right">Gross</TableHead>
+                <TableHead className="text-xs text-right">Fees</TableHead>
+                <TableHead className="text-xs text-right">IB</TableHead>
+                <TableHead className="text-xs text-right">Net</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {events.map((evt) => (
+                <TableRow key={evt.id} className="border-white/5">
+                  <TableCell className="text-xs font-mono">{evt.effectiveDate}</TableCell>
+                  <TableCell className="text-xs">{evt.distributionType}</TableCell>
+                  <TableCell className="text-xs text-right font-mono">
+                    {formatValue(toNum(evt.grossYield), asset)}
+                  </TableCell>
+                  <TableCell className="text-xs text-right font-mono text-muted-foreground">
+                    {formatValue(toNum(evt.feeAmount), asset)}
+                  </TableCell>
+                  <TableCell className="text-xs text-right font-mono text-purple-600">
+                    {toNum(evt.ibAmount) > 0 ? formatValue(toNum(evt.ibAmount), asset) : "\u2014"}
+                  </TableCell>
+                  <TableCell className="text-xs text-right font-mono font-semibold">
+                    {formatValue(toNum(evt.netAmount), asset)}
+                  </TableCell>
+                </TableRow>
+              ))}
+
+              {/* Crystallized Total */}
+              <TableRow className="border-t border-white/10 bg-white/[0.02]">
+                <TableCell colSpan={2} className="text-xs text-right font-medium text-amber-400">
+                  Crystallized
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono font-semibold">
+                  {formatValue(crystalGross, asset)}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono text-muted-foreground">
+                  {formatValue(crystalFees, asset)}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono text-purple-600">
+                  {crystalIb > 0 ? formatValue(crystalIb, asset) : "\u2014"}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono font-semibold">
+                  {formatValue(crystalNet, asset)}
+                </TableCell>
+              </TableRow>
+
+              {/* + New Yield */}
+              <TableRow className="border-white/5 bg-white/[0.02]">
+                <TableCell colSpan={2} className="text-xs text-right font-medium text-green-400">
+                  + New Yield
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono text-green-600">
+                  {formatValue(newGross, asset)}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono text-muted-foreground">
+                  {formatValue(newFees, asset)}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono text-purple-600">
+                  {newIb > 0 ? formatValue(newIb, asset) : "\u2014"}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono font-semibold text-green-400">
+                  {formatValue(newNet, asset)}
+                </TableCell>
+              </TableRow>
+
+              {/* = Month Total */}
+              <TableRow className="border-t border-white/10 bg-white/[0.04]">
+                <TableCell colSpan={2} className="text-xs text-right font-bold text-white">
+                  = Month Total
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono font-bold text-white">
+                  {formatValue(monthGross, asset)}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono font-bold text-muted-foreground">
+                  {formatValue(monthFees, asset)}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono font-bold text-purple-400">
+                  {monthIb > 0 ? formatValue(monthIb, asset) : "\u2014"}
+                </TableCell>
+                <TableCell className="text-xs text-right font-mono font-bold text-white">
+                  {formatValue(monthNet, asset)}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
