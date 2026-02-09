@@ -101,7 +101,6 @@ export {
   useStatementPeriodId,
   useInvestorPositionsWithFunds,
   useInvestorPerformanceForPeriod,
-  useInvestorFeeScheduleData,
 } from "./useInvestorYieldData";
 
 // Portfolio hooks

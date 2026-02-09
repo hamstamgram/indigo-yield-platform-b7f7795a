@@ -138,10 +138,10 @@ function AdminDashboardContent() {
 
       {/* Quick Stats Bar - High Contrast Blocks */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Investors Card */}
+        {/* Accounts Card */}
         <div className="glass-card rounded-2xl p-6 border border-white/5 bg-indigo-500/5 relative overflow-hidden group transition-all hover:border-indigo-500/30">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Investors</p>
+            <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Accounts</p>
             <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:text-white transition-colors">
               <Users className="h-5 w-5" />
             </div>

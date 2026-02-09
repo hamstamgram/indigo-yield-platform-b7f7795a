@@ -10056,6 +10056,7 @@ export type Database = {
           p_period_end: string;
           p_period_start: string;
           p_purpose?: Database["public"]["Enums"]["aum_purpose"];
+          p_recorded_aum?: number;
         };
         Returns: Json;
       };

@@ -199,33 +199,32 @@ export async function processDepositWithYield(
 }
 
 /**
- * Get current fund AUM from positions (investor accounts only)
+ * Get current fund AUM from fund_daily_aum (transaction purpose).
+ * Falls back to ALL active positions if no snapshot exists (new fund).
  */
 export async function getCurrentFundAum(fundId: string): Promise<number> {
-  // Fetch positions with balance filter
-  const { data: positions, error } = await supabase
-    .from("investor_positions")
-    .select("investor_id, current_value")
+  const { data, error } = await supabase
+    .from("fund_daily_aum")
+    .select("total_aum")
     .eq("fund_id", fundId)
+    .eq("purpose", "transaction")
+    .eq("is_voided", false)
+    .order("aum_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to fetch AUM: ${error.message}`);
+
+  if (data) return Number(data.total_aum);
+
+  // Fallback: sum ALL active positions (new fund with no AUM history)
+  const { data: positions, error: posError } = await supabase
+    .from("investor_positions")
+    .select("current_value")
+    .eq("fund_id", fundId)
+    .eq("is_active", true)
     .gt("current_value", 0);
 
-  if (error) {
-    throw new Error(`Failed to fetch positions: ${error.message}`);
-  }
-
-  // Fetch investor profiles to filter by account_type
-  const investorIds = [...new Set((positions || []).map((p) => p.investor_id))];
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, account_type")
-    .in("id", investorIds.length > 0 ? investorIds : ["none"]);
-
-  const investorSet = new Set(
-    (profiles || []).filter((p) => p.account_type === "investor").map((p) => p.id)
-  );
-
-  // Filter to investor accounts only
-  const investorPositions = (positions || []).filter((p) => investorSet.has(p.investor_id));
-
-  return investorPositions.reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+  if (posError) throw new Error(`Failed to fetch positions: ${posError.message}`);
+  return (positions || []).reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 }

@@ -21,6 +21,7 @@ export type DistributionRow = {
   period_end: string | null;
   effective_date: string;
   purpose: "reporting" | "transaction";
+  distribution_type: string | null;
   gross_yield: number;
   total_fees: number | null;
   total_ib: number | null;
@@ -56,6 +57,22 @@ export type FeeAllocationRow = {
   fee_percentage: number;
 };
 
+export type YieldEventRow = {
+  id: string;
+  investor_id: string;
+  gross_yield_amount: number;
+  fee_amount: number | null;
+  fee_pct: number | null;
+  net_yield_amount: number;
+  investor_share_pct: number;
+  investor_balance: number;
+  trigger_type: string;
+  period_start: string | null;
+  period_end: string | null;
+  fund_aum_before: number | null;
+  fund_aum_after: number | null;
+};
+
 export type InvestorProfile = {
   id: string;
   first_name: string | null;
@@ -67,6 +84,7 @@ export interface YieldDistributionsPageData {
   distributions: DistributionRow[];
   allocationsByDistribution: Record<string, AllocationRow[]>;
   feeAllocationsByDistribution: Record<string, FeeAllocationRow[]>;
+  yieldEventsByDistribution: Record<string, YieldEventRow[]>;
   investorMap: Record<string, InvestorProfile>;
 }
 
@@ -85,6 +103,7 @@ export async function fetchYieldDistributionsPageData(
         period_end,
         effective_date,
         purpose,
+        distribution_type,
         gross_yield,
         total_fees,
         total_ib,
@@ -126,9 +145,12 @@ export async function fetchYieldDistributionsPageData(
         distributions: rows,
         allocationsByDistribution: {},
         feeAllocationsByDistribution: {},
+        yieldEventsByDistribution: {},
         investorMap: {},
       };
     }
+
+    const allInvestorIds = new Set<string>();
 
     // Fetch yield_allocations (primary breakdown)
     const { data: allocationRows, error: allocationError } = await supabase
@@ -184,18 +206,42 @@ export async function fetchYieldDistributionsPageData(
       }
     }
 
-    // Collect all investor IDs from both allocation sources
-    const allInvestorIds = new Set<string>();
+    // Collect investor IDs from yield_allocations and fee_allocations
     allocations.forEach((a) => allInvestorIds.add(a.investor_id));
-    Object.values(feeGrouped).forEach((rows) =>
-      rows.forEach((r) => allInvestorIds.add(r.investor_id))
+    Object.values(feeGrouped).forEach((feeRows) =>
+      feeRows.forEach((r) => allInvestorIds.add(r.investor_id))
     );
+
+    // Fetch investor_yield_events as third fallback (crystallization distributions)
+    const crystalDistIds = distributionIds.filter(
+      (id) => !grouped[id]?.length && !feeGrouped[id]?.length
+    );
+    const yieldEventsGrouped: Record<string, YieldEventRow[]> = {};
+
+    if (crystalDistIds.length > 0) {
+      const crystalDists = rows.filter((r) => crystalDistIds.includes(r.id));
+      for (const dist of crystalDists) {
+        const { data: events } = await supabase
+          .from("investor_yield_events")
+          .select(
+            "id, investor_id, gross_yield_amount, fee_amount, fee_pct, net_yield_amount, investor_share_pct, investor_balance, trigger_type, period_start, period_end, fund_aum_before, fund_aum_after"
+          )
+          .eq("fund_id", dist.fund_id)
+          .eq("event_date", dist.effective_date)
+          .eq("is_voided", false);
+        if (events?.length) {
+          yieldEventsGrouped[dist.id] = events as YieldEventRow[];
+          events.forEach((e) => allInvestorIds.add(e.investor_id));
+        }
+      }
+    }
 
     if (allInvestorIds.size === 0) {
       return {
         distributions: rows,
         allocationsByDistribution: grouped,
         feeAllocationsByDistribution: feeGrouped,
+        yieldEventsByDistribution: yieldEventsGrouped,
         investorMap: {},
       };
     }
@@ -216,6 +262,7 @@ export async function fetchYieldDistributionsPageData(
       distributions: rows,
       allocationsByDistribution: grouped,
       feeAllocationsByDistribution: feeGrouped,
+      yieldEventsByDistribution: yieldEventsGrouped,
       investorMap: map,
     };
   } catch (error) {

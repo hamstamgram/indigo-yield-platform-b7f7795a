@@ -14,6 +14,7 @@ import type {
   InvestorProfile,
   DistributionRow,
   FeeAllocationRow,
+  YieldEventRow,
 } from "@/services/admin/yieldDistributionsPageService";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { ExportButton } from "@/components/common/ExportButton";
@@ -121,9 +122,74 @@ function FeeAllocationsTable({
   );
 }
 
+function CrystallizationEventsTable({
+  events,
+  investorMap,
+  asset,
+}: {
+  events: YieldEventRow[];
+  investorMap: Record<string, InvestorProfile>;
+  asset: string;
+}) {
+  return (
+    <>
+      <p className="text-xs text-muted-foreground mb-3">
+        Crystallization yield events (per-investor breakdown from investor_yield_events).
+      </p>
+      <Table>
+        <TableHeader className="sticky top-0 bg-card z-10">
+          <TableRow>
+            <TableHead>Investor</TableHead>
+            <TableHead className="text-right">Balance</TableHead>
+            <TableHead className="text-right">Share %</TableHead>
+            <TableHead className="text-right">Gross</TableHead>
+            <TableHead className="text-right">Fee %</TableHead>
+            <TableHead className="text-right">Fee</TableHead>
+            <TableHead className="text-right">Net</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {events.map((evt) => {
+            const investor = investorMap[evt.investor_id];
+            return (
+              <TableRow key={evt.id}>
+                <TableCell>
+                  <div className="font-medium">{formatInvestorName(investor)}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {investor?.email || evt.investor_id}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <FinancialValue value={evt.investor_balance} asset={asset} />
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatPercentage(evt.investor_share_pct, 4)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <FinancialValue value={evt.gross_yield_amount} asset={asset} />
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatPercentage(evt.fee_pct || 0, 2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <FinancialValue value={evt.fee_amount || 0} asset={asset} />
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  <FinancialValue value={evt.net_yield_amount} asset={asset} />
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </>
+  );
+}
+
 const distributionExportColumns: ExportColumn[] = [
   { key: "fund_name", label: "Fund" },
   { key: "purpose", label: "Purpose" },
+  { key: "distribution_type", label: "Type" },
   { key: "period_end", label: "Period End" },
   { key: "effective_date", label: "Applied At" },
   { key: "gross_yield", label: "Gross Yield" },
@@ -172,6 +238,7 @@ function YieldDistributionsContent() {
   const distributions = data?.distributions ?? [];
   const allocationsByDistribution = data?.allocationsByDistribution ?? {};
   const feeAllocationsByDistribution = data?.feeAllocationsByDistribution ?? {};
+  const yieldEventsByDistribution = data?.yieldEventsByDistribution ?? {};
   const investorMap = data?.investorMap ?? {};
 
   const fundMap = useMemo(() => new Map(funds.map((fund) => [fund.id, fund])), [funds]);
@@ -407,11 +474,84 @@ function YieldDistributionsContent() {
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent className="px-4 pb-4 space-y-4">
+                                {(() => {
+                                  const crystalDists = fundDistributions.filter(
+                                    (d) =>
+                                      d.distribution_type &&
+                                      !["yield", "reporting"].includes(d.distribution_type)
+                                  );
+                                  if (crystalDists.length === 0) return null;
+                                  const regularDists = fundDistributions.filter(
+                                    (d) =>
+                                      !d.distribution_type ||
+                                      ["yield", "reporting"].includes(d.distribution_type)
+                                  );
+                                  const crystalGross = crystalDists.reduce(
+                                    (s, d) => s + d.gross_yield,
+                                    0
+                                  );
+                                  const regularGross = regularDists.reduce(
+                                    (s, d) => s + d.gross_yield,
+                                    0
+                                  );
+                                  const totalGross = crystalGross + regularGross;
+                                  return (
+                                    <Card className="border-purple-800/30 bg-purple-950/10">
+                                      <CardContent className="py-3 px-4">
+                                        <div className="grid gap-x-6 gap-y-1 sm:grid-cols-4 text-sm">
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Crystallized
+                                            </span>
+                                            <div className="font-medium">
+                                              {crystalDists.length} event
+                                              {crystalDists.length === 1 ? "" : "s"},{" "}
+                                              <FinancialValue
+                                                value={crystalGross}
+                                                asset={fund?.asset}
+                                              />{" "}
+                                              gross
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Reporting / Yield
+                                            </span>
+                                            <div className="font-medium">
+                                              <FinancialValue
+                                                value={regularGross}
+                                                asset={fund?.asset}
+                                              />{" "}
+                                              gross
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">Total</span>
+                                            <div className="font-medium">
+                                              <FinancialValue
+                                                value={totalGross}
+                                                asset={fund?.asset}
+                                              />{" "}
+                                              gross
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  );
+                                })()}
                                 {fundDistributions.map((distribution) => {
                                   const allocations =
                                     allocationsByDistribution[distribution.id] || [];
                                   const feeAllocations =
                                     feeAllocationsByDistribution[distribution.id] || [];
+                                  const yieldEvents =
+                                    yieldEventsByDistribution[distribution.id] || [];
+                                  const isCrystallization =
+                                    !!distribution.distribution_type &&
+                                    !["yield", "reporting"].includes(
+                                      distribution.distribution_type
+                                    );
                                   const totalAdb = allocations.reduce(
                                     (sum, a) => sum + (a.adb_share || 0),
                                     0
@@ -457,6 +597,17 @@ function YieldDistributionsContent() {
                                                 ? "Reporting"
                                                 : "Transaction"}
                                             </Badge>
+                                            {distribution.distribution_type &&
+                                              !["yield", "reporting"].includes(
+                                                distribution.distribution_type
+                                              ) && (
+                                                <Badge
+                                                  variant="outline"
+                                                  className="bg-purple-900/30 text-purple-400 border-purple-800"
+                                                >
+                                                  Crystallization ({distribution.distribution_type})
+                                                </Badge>
+                                              )}
                                             {distribution.is_voided && (
                                               <Badge
                                                 variant="destructive"
@@ -575,6 +726,61 @@ function YieldDistributionsContent() {
                                                   {formatAssetValue(totalAdb, fund?.asset || "")}
                                                 </span>
                                               </div>
+                                              {isCrystallization && yieldEvents.length > 0 && (
+                                                <>
+                                                  <div className="border-t border-border my-2" />
+                                                  <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">
+                                                      Trigger
+                                                    </span>
+                                                    <span className="capitalize">
+                                                      {distribution.distribution_type}
+                                                    </span>
+                                                  </div>
+                                                  {yieldEvents[0].period_start && (
+                                                    <div className="flex justify-between">
+                                                      <span className="text-muted-foreground">
+                                                        Period
+                                                      </span>
+                                                      <span>
+                                                        {format(
+                                                          new Date(yieldEvents[0].period_start),
+                                                          "MMM d"
+                                                        )}{" "}
+                                                        -{" "}
+                                                        {yieldEvents[0].period_end
+                                                          ? format(
+                                                              new Date(yieldEvents[0].period_end),
+                                                              "MMM d, yyyy"
+                                                            )
+                                                          : ""}
+                                                      </span>
+                                                    </div>
+                                                  )}
+                                                  {yieldEvents[0].fund_aum_before != null && (
+                                                    <div className="flex justify-between">
+                                                      <span className="text-muted-foreground">
+                                                        Opening AUM
+                                                      </span>
+                                                      <FinancialValue
+                                                        value={yieldEvents[0].fund_aum_before}
+                                                        asset={fund?.asset}
+                                                      />
+                                                    </div>
+                                                  )}
+                                                  {yieldEvents[0].fund_aum_after != null && (
+                                                    <div className="flex justify-between">
+                                                      <span className="text-muted-foreground">
+                                                        Closing AUM
+                                                      </span>
+                                                      <FinancialValue
+                                                        value={yieldEvents[0].fund_aum_after}
+                                                        asset={fund?.asset}
+                                                      />
+                                                    </div>
+                                                  )}
+                                                </>
+                                              )}
                                             </CardContent>
                                           </Card>
 
@@ -693,6 +899,12 @@ function YieldDistributionsContent() {
                                               ) : feeAllocations.length > 0 ? (
                                                 <FeeAllocationsTable
                                                   feeAllocations={feeAllocations}
+                                                  investorMap={investorMap}
+                                                  asset={fund?.asset || ""}
+                                                />
+                                              ) : yieldEvents.length > 0 ? (
+                                                <CrystallizationEventsTable
+                                                  events={yieldEvents}
                                                   investorMap={investorMap}
                                                   asset={fund?.asset || ""}
                                                 />

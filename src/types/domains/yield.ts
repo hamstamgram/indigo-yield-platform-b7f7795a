@@ -12,6 +12,8 @@ export interface YieldCalculationInput {
   periodStart?: Date; // For ADB: defaults to start of month if not provided
   /** New total AUM - string for NUMERIC(28,10) precision */
   newTotalAUM: string;
+  /** Base AUM the admin saw (as-of AUM) - used to compute grossYield and passed as p_recorded_aum */
+  baseAUM?: string;
   purpose?: "reporting" | "transaction";
 }
 

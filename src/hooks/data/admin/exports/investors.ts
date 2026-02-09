@@ -26,7 +26,6 @@ export {
   useCleanupInactiveInvestors,
   useUpdateFundPerformance,
 } from "@/features/admin/investors/hooks/useAdminInvestorMutations";
-export * from "@/features/admin/investors/hooks/useInvestorFeeSchedule";
 export * from "@/features/admin/investors/hooks/useAdminInvestorWithdrawals";
 
 // Re-export types from services

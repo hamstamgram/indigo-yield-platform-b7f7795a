@@ -8,38 +8,16 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Button,
-  Badge,
-  Skeleton,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  TrendingUp,
-  FileText,
-  Percent,
-  Plus,
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Skeleton } from "@/components/ui";
+import { ChevronLeft, ChevronRight, Calendar, TrendingUp, FileText, Plus } from "lucide-react";
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
 import { FundPositionCard } from "../shared/FundPositionCard";
-import { InvestorFeeManager } from "./InvestorFeeManager";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import {
   useStatementPeriodId,
   useInvestorPositionsWithFunds,
   useInvestorPerformanceForPeriod,
-  useInvestorFeeScheduleData,
 } from "@/hooks/data";
-import { getTodayString } from "@/utils/dateUtils";
 
 interface InvestorYieldManagerProps {
   investorId: string;
@@ -66,7 +44,6 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date>(startOfMonth(new Date()));
-  const [showFeeManager, setShowFeeManager] = useState(false);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
   const [defaultFundId, setDefaultFundId] = useState<string>("");
 
@@ -82,22 +59,8 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
     isLoading: perfLoading,
     refetch: refetchPerformance,
   } = useInvestorPerformanceForPeriod(investorId, periodId ?? null);
-  const { data: feeSchedule = [], refetch: refetchFeeSchedule } =
-    useInvestorFeeScheduleData(investorId);
 
   const loading = positionsLoading || perfLoading;
-
-  // Get fee for a specific fund
-  const getFeeForFund = (fundId: string): number => {
-    const today = getTodayString();
-    // First try fund-specific fee
-    const fundFee = feeSchedule.find((f) => f.fund_id === fundId && f.effective_date <= today);
-    if (fundFee) return fundFee.fee_pct;
-
-    // Fall back to global fee
-    const globalFee = feeSchedule.find((f) => !f.fund_id && f.effective_date <= today);
-    return globalFee?.fee_pct || 0.02;
-  };
 
   // Get performance record for a fund
   const getPerformanceForFund = (fundName: string): PerformanceRecord | undefined => {
@@ -170,22 +133,11 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
           <FileText className="h-4 w-4 mr-2" />
           View Reports
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setShowFeeManager(!showFeeManager)}>
-          <Percent className="h-4 w-4 mr-2" />
-          {showFeeManager ? "Hide" : "Manage"} Fees
-        </Button>
         <Button variant="outline" size="sm" onClick={() => navigate("/admin/monthly-data-entry")}>
           <TrendingUp className="h-4 w-4 mr-2" />
           Bulk Yield Entry
         </Button>
       </div>
-
-      {/* Fee Manager (Collapsible) */}
-      <Collapsible open={showFeeManager} onOpenChange={setShowFeeManager}>
-        <CollapsibleContent>
-          <InvestorFeeManager investorId={investorId} onUpdate={() => refetchFeeSchedule()} />
-        </CollapsibleContent>
-      </Collapsible>
 
       {/* Summary Card */}
       {hasPerformanceData && (
@@ -263,7 +215,6 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
                 periodId={periodId || undefined}
                 performanceId={perfRecord?.id}
                 performance={perfRecord}
-                feePercent={getFeeForFund(position.fund_id)}
                 onUpdate={handleDataUpdate}
               />
             );

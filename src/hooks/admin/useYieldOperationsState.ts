@@ -361,6 +361,7 @@ export function useYieldOperationsState() {
         fundId: state.selectedFund.id,
         targetDate: state.aumDate,
         newTotalAUM: String(newAUMValue),
+        baseAUM: baseAum != null ? String(baseAum) : undefined,
         purpose: state.yieldPurpose,
       });
       setState((prev) => ({
@@ -427,6 +428,7 @@ export function useYieldOperationsState() {
           fundId: state.selectedFund.id,
           targetDate: state.aumDate,
           newTotalAUM: state.newAUM,
+          baseAUM: asOfAum != null ? String(asOfAum) : undefined,
         },
         user.id,
         state.yieldPurpose

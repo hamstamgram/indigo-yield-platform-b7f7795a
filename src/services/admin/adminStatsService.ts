@@ -28,6 +28,8 @@ export interface AdminStats {
 interface ProfileData {
   id: string;
   status: string | null;
+  account_type: string | null;
+  is_admin: boolean | null;
 }
 
 interface PositionData {
@@ -44,8 +46,8 @@ export async function fetchAdminStats(): Promise<AdminStats> {
       // Active funds count
       supabase.from("funds").select("id", { count: "exact", head: true }).eq("status", "active"),
 
-      // All non-admin profiles
-      supabase.from("profiles").select("id, status").eq("is_admin", false).limit(500),
+      // All profiles (investor + IB + fees_account + admin)
+      supabase.from("profiles").select("id, status, account_type, is_admin").limit(500),
 
       // All investor positions
       supabase.from("investor_positions").select("investor_id, current_value").limit(500),
@@ -64,8 +66,13 @@ export async function fetchAdminStats(): Promise<AdminStats> {
         .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
     ]);
 
-  // Calculate profile stats
-  const profiles = (profilesResult.data || []) as ProfileData[];
+  // Calculate profile stats - count ALL account types (investor + IB + fees_account)
+  // Exclude pure admin accounts (is_admin=true AND no account_type role)
+  const allProfiles = (profilesResult.data || []) as ProfileData[];
+  const profiles = allProfiles.filter(
+    (p) =>
+      p.account_type === "investor" || p.account_type === "ib" || p.account_type === "fees_account"
+  );
   const totalProfiles = profiles.length;
   const activeProfiles = profiles.filter((p) => p.status === "active").length;
 

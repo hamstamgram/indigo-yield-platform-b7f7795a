@@ -22,18 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui";
-import {
-  Settings,
-  Users,
-  Percent,
-  Trash2,
-  ExternalLink,
-  Mail,
-  AlertTriangle,
-  Loader2,
-} from "lucide-react";
+import { Trash2, ExternalLink, Mail, AlertTriangle, Loader2 } from "lucide-react";
 import { IBSettingsSection } from "../shared/IBSettingsSection";
-import { InvestorFeeManager } from "../yields/InvestorFeeManager";
 import { toast } from "sonner";
 
 interface InvestorSettingsTabProps {
@@ -78,9 +68,6 @@ export function InvestorSettingsTab({
     <div className="space-y-6">
       {/* IB Settings */}
       <IBSettingsSection investorId={investorId} onUpdate={onDataChange} />
-
-      {/* Fee Schedule */}
-      <InvestorFeeManager investorId={investorId} onUpdate={onDataChange} />
 
       {/* Report Recipients Link (drawer only) */}
       {compact && (

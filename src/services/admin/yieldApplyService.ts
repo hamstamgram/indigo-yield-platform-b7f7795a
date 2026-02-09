@@ -44,30 +44,35 @@ export async function applyYieldDistribution(
   adminId: string,
   purpose: "reporting" | "transaction" = "reporting"
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, periodStart, newTotalAUM } = input;
+  const { fundId, targetDate, periodStart, newTotalAUM, baseAUM } = input;
 
   // Calculate period dates (always full month: 1st to last day)
   const periodEndDate = targetDate;
   const periodStartDate = periodStart || startOfMonth(targetDate);
 
-  // Get current AUM from all active positions so NAV stays conserved
-  // when fees/IB are reclassified as internal ownership.
-  const { data: positions, error: positionsError } = await supabase
-    .from("investor_positions")
-    .select("current_value")
-    .eq("fund_id", fundId)
-    .eq("is_active", true)
-    .gt("current_value", 0);
+  // Use baseAUM (as-of AUM the admin saw) when provided; otherwise fall back to positions
+  let currentAUM = parseFinancial(0);
+  if (baseAUM) {
+    currentAUM = parseFinancial(baseAUM);
+  } else {
+    const { data: positions, error: positionsError } = await supabase
+      .from("investor_positions")
+      .select("current_value")
+      .eq("fund_id", fundId)
+      .eq("is_active", true)
+      .gt("current_value", 0);
 
-  if (positionsError) {
-    logError("applyYieldDistribution.positions", positionsError, { fundId });
-    throw new Error(`Failed to fetch positions: ${positionsError.message}`);
+    if (positionsError) {
+      logError("applyYieldDistribution.positions", positionsError, { fundId });
+      throw new Error(`Failed to fetch positions: ${positionsError.message}`);
+    }
+
+    currentAUM = (positions || []).reduce(
+      (sum, p) => sum.plus(parseFinancial(p.current_value)),
+      parseFinancial(0)
+    );
   }
 
-  const currentAUM = (positions || []).reduce(
-    (sum, p) => sum.plus(parseFinancial(p.current_value)),
-    parseFinancial(0)
-  );
   const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
   const hasNewAum = parsedAum !== null && !parsedAum.isNaN();
   const grossYieldAmount = hasNewAum ? parsedAum.minus(currentAUM).toNumber() : 0;
@@ -77,7 +82,8 @@ export async function applyYieldDistribution(
 
   // Call ADB apply RPC (time-weighted allocation with loss carryforward)
   // Transaction mode: distribution_date = today (when admin runs it)
-  // Reporting mode: omit distribution_date — SQL defaults to period_end for historical accuracy
+  // Reporting mode: omit distribution_date -- SQL defaults to period_end for historical accuracy
+  // Pass p_recorded_aum so fund_daily_aum stores what the admin entered
   const { data, error } = await callRPC("apply_adb_yield_distribution_v3", {
     p_fund_id: fundId,
     p_period_start: formatDateForDB(periodStartDate),
@@ -86,6 +92,7 @@ export async function applyYieldDistribution(
     p_admin_id: adminId,
     p_purpose: purpose,
     ...(purpose !== "reporting" && { p_distribution_date: formatDateForDB(new Date()) }),
+    ...(hasNewAum && { p_recorded_aum: parsedAum.toNumber() }),
   });
 
   if (error) {

@@ -49,7 +49,7 @@ function isValidUUID(value: string): boolean {
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, periodStart, newTotalAUM, purpose = "reporting" } = input;
+  const { fundId, targetDate, periodStart, newTotalAUM, baseAUM, purpose = "reporting" } = input;
 
   // Validate fundId is a valid UUID
   if (!fundId || !isValidUUID(fundId)) {
@@ -68,26 +68,33 @@ export async function previewYieldDistribution(
     throw new Error("Authentication required");
   }
 
-  // Get fund info and current AUM from all active positions.
-  // Fees/IB balances are ownership reallocations and must remain in total NAV.
-  const [fundResult, positionsResult] = await Promise.all([
-    supabase.from("funds").select("code, asset, name").eq("id", fundId).maybeSingle(),
-    supabase
+  // Get fund info
+  const fundResult = await supabase
+    .from("funds")
+    .select("code, asset, name")
+    .eq("id", fundId)
+    .maybeSingle();
+  const fund = fundResult.data;
+
+  // Use baseAUM (as-of AUM the admin saw) when provided; otherwise fall back to positions
+  let currentAUM = parseFinancial(0);
+  if (baseAUM) {
+    currentAUM = parseFinancial(baseAUM);
+  } else {
+    const positionsResult = await supabase
       .from("investor_positions")
       .select("current_value")
       .eq("fund_id", fundId)
       .eq("is_active", true)
-      .gt("current_value", 0),
-  ]);
+      .gt("current_value", 0);
 
-  const fund = fundResult.data;
-  const currentAUM = (positionsResult.data || []).reduce(
-    (sum, p) => sum.plus(parseFinancial(p.current_value)),
-    parseFinancial(0)
-  );
+    currentAUM = (positionsResult.data || []).reduce(
+      (sum, p) => sum.plus(parseFinancial(p.current_value)),
+      parseFinancial(0)
+    );
+  }
 
   // Calculate gross yield amount from AUM difference when provided
-  // For reporting: use explicit AUM delta if given, otherwise fall back to backend logic.
   const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
   const hasNewAum = parsedAum !== null && !parsedAum.isNaN();
   const grossYieldAmount = hasNewAum ? parsedAum.minus(currentAUM).toNumber() : 0;
