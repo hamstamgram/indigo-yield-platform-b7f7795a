@@ -85,7 +85,13 @@ export const RPC_SIGNATURES = {
     returnsSet: false,
     securityDefiner: true,
     requiredParams: ["p_request_id"] as const,
-    optionalParams: ["p_processed_amount", "p_tx_hash", "p_admin_notes"] as const,
+    optionalParams: [
+      "p_processed_amount",
+      "p_tx_hash",
+      "p_admin_notes",
+      "p_is_full_exit",
+      "p_send_precision",
+    ] as const,
   },
   apply_transaction_with_crystallization: {
     name: "apply_transaction_with_crystallization" as const,

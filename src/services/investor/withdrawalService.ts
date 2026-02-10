@@ -242,22 +242,26 @@ export const withdrawalService = {
     withdrawalId: string,
     processedAmount: string,
     txHash?: string,
-    adminNotes?: string
+    adminNotes?: string,
+    isFullExit?: boolean
   ): Promise<{ correlationId: string }> {
     const corrId = generateCorrelationId("wdr_full");
     const log = createCorrelatedLogger(corrId);
 
-    log.info("Approving and completing withdrawal", { withdrawalId, processedAmount });
+    log.info("Approving and completing withdrawal", { withdrawalId, processedAmount, isFullExit });
 
-    const { error } = await rpc.call(
-      "approve_and_complete_withdrawal" as never,
-      {
-        p_request_id: withdrawalId,
-        p_processed_amount: parseFloat(processedAmount),
-        p_tx_hash: txHash ?? undefined,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-      } as never
-    );
+    const params: Record<string, unknown> = {
+      p_request_id: withdrawalId,
+      p_processed_amount: parseFloat(processedAmount),
+      p_tx_hash: txHash ?? undefined,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    };
+
+    if (isFullExit) {
+      params.p_is_full_exit = true;
+    }
+
+    const { error } = await rpc.call("approve_and_complete_withdrawal" as never, params as never);
 
     if (error) {
       log.error("Error completing withdrawal", error);
