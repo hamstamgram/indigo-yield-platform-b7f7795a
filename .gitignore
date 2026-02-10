@@ -18,6 +18,10 @@ dist-ssr
 .env.production
 .env.development
 
+# MCP server config (contains API keys)
+.mcp.json
+.mcp-servers/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
