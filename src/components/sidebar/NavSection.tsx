@@ -87,6 +87,11 @@ const NavSection = ({
 
     // Handle non-admin routes
     if (!location.pathname.startsWith("/admin") && !href.startsWith("/admin")) {
+      // Base routes like /investor and /dashboard should only match exactly
+      const exactMatchRoutes = ["/investor", "/dashboard"];
+      if (exactMatchRoutes.includes(href)) {
+        return location.pathname === href;
+      }
       return (
         href !== "/" && (location.pathname === href || location.pathname.startsWith(href + "/"))
       );

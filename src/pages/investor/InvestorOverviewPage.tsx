@@ -219,15 +219,6 @@ export default function InvestorOverviewPage() {
                         </p>
                       </div>
                     </div>
-                    {assetStats?.periodEndDate && (
-                      <p className="text-[10px] text-slate-600 text-right mt-2">
-                        as of{" "}
-                        {new Date(assetStats.periodEndDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </p>
-                    )}
                   </div>
                 </div>
               ))}
