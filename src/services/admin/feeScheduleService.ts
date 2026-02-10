@@ -133,6 +133,7 @@ class FeeScheduleService {
       fund_id: string | null;
       fee_pct: number;
       effective_date: string;
+      end_date?: string | null;
       fund?: { name: string } | null;
     }>
   > {

@@ -135,5 +135,13 @@ export {
   type InvestorNotification,
 } from "./useInvestorNotifications";
 
+// Fee schedule hooks
+export {
+  useFeeSchedule,
+  useAddFeeScheduleEntry,
+  useDeleteFeeScheduleEntry,
+  type FeeScheduleEntry,
+} from "./useFeeSchedule";
+
 // Realtime invalidation
 export { useInvestorRealtimeInvalidation } from "./useInvestorRealtimeInvalidation";

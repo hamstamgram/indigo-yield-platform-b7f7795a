@@ -71,6 +71,7 @@ async function createInvestorUser(params: {
   firstName: string;
   lastName: string;
   status: string;
+  feePct?: number | null;
 }): Promise<string> {
   const { data, error } = await supabase.functions.invoke<CreateUserResponse>(
     "admin-user-management",
@@ -83,6 +84,7 @@ async function createInvestorUser(params: {
         role: "LP",
         selectedFunds: [],
         sendWelcomeEmail: true,
+        feePct: params.feePct ?? null,
       },
       headers: addCsrfHeader({}),
     }
@@ -175,6 +177,7 @@ export async function createInvestorWithWizard(
       firstName: identity.first_name,
       lastName: identity.last_name,
       status: identity.status,
+      feePct: fees.investor_fee_pct,
     });
 
     // Step 3: Update profile with IB linkage and fee settings

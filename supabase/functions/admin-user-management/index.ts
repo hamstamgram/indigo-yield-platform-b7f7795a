@@ -22,6 +22,7 @@ interface CreateUserRequest {
   role: "LP" | "admin";
   selectedFunds: string[];
   sendWelcomeEmail: boolean;
+  feePct?: number | null;
 }
 
 interface UpdateUserRequest {
@@ -167,7 +168,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
       phone: phone || null,
       is_admin: role === "admin",
       status: "active",
-      fee_pct: 0.2, // 20% default fee
+      fee_pct: params.feePct ?? null, // NULL = use fund default from fee hierarchy
     },
     { onConflict: "id" }
   );

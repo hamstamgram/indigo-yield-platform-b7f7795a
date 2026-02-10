@@ -36,6 +36,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { IBSettingsSection } from "../shared/IBSettingsSection";
+import { FeeScheduleSection } from "../shared/FeeScheduleSection";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -297,8 +298,11 @@ export function InvestorSettingsTab({
 
   return (
     <div className="space-y-6">
-      {/* Fee Configuration */}
+      {/* Fee Configuration (global override) */}
       <FeeConfigSection investorId={investorId} />
+
+      {/* Per-Fund Fee Schedule */}
+      <FeeScheduleSection investorId={investorId} />
 
       {/* IB Settings */}
       <IBSettingsSection investorId={investorId} onUpdate={onDataChange} />
