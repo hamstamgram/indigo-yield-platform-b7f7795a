@@ -14,11 +14,8 @@ export default function InvestorPortfolioPage() {
       fundName: asset.fundName,
       assetSymbol: asset.assetSymbol,
       tokenAmount: asset.mtd.endingBalance || 0,
-      totalValueItd:
-        (asset as { itd?: { endingBalance?: number } }).itd?.endingBalance ||
-        asset.mtd.endingBalance ||
-        0,
-      netChanges: asset.mtd.netIncome || 0,
+      itdEarned: asset.itd?.netIncome || 0,
+      itdReturn: asset.itd?.rateOfReturn || 0,
       lastUpdated: asset.mtd.endingBalance > 0 ? new Date().toISOString() : null,
     })) || [];
 
@@ -59,29 +56,45 @@ export default function InvestorPortfolioPage() {
       ),
     },
     {
-      header: "Total Value (ITD)",
-      cell: (item: (typeof positions)[0]) => (
-        <span className="font-mono text-slate-400 font-medium">
-          {formatAssetAmount(item.totalValueItd, item.assetSymbol)}
-        </span>
-      ),
-    },
-    {
       header: (
-        <SortableTableHead column="netChanges" currentSort={sortConfig} onSort={requestSort}>
-          Net Changes (MTD)
+        <SortableTableHead column="itdEarned" currentSort={sortConfig} onSort={requestSort}>
+          ITD Earned
         </SortableTableHead>
       ),
       cell: (item: (typeof positions)[0]) => (
         <span
           className={cn(
             "font-mono font-bold px-2 py-1 rounded-md text-sm",
-            item.netChanges >= 0
+            item.itdEarned > 0
               ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-              : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+              : item.itdEarned < 0
+                ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                : "text-slate-500"
           )}
         >
-          {formatSignedAssetAmount(item.netChanges, item.assetSymbol)}
+          {formatSignedAssetAmount(item.itdEarned, item.assetSymbol)}
+        </span>
+      ),
+    },
+    {
+      header: (
+        <SortableTableHead column="itdReturn" currentSort={sortConfig} onSort={requestSort}>
+          ITD Return
+        </SortableTableHead>
+      ),
+      cell: (item: (typeof positions)[0]) => (
+        <span
+          className={cn(
+            "font-mono font-bold text-sm",
+            item.itdReturn > 0
+              ? "text-emerald-400"
+              : item.itdReturn < 0
+                ? "text-rose-400"
+                : "text-slate-500"
+          )}
+        >
+          {item.itdReturn > 0 ? "+" : ""}
+          {item.itdReturn.toFixed(2)}%
         </span>
       ),
     },
@@ -111,12 +124,12 @@ export default function InvestorPortfolioPage() {
             className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
             onClick={() => {
               if (!sortedData?.length) return;
-              const headers = ["Asset", "Token Amount", "Total Value (ITD)", "Net Changes (MTD)"];
+              const headers = ["Asset", "Token Amount", "ITD Earned", "ITD Return (%)"];
               const rows = sortedData.map((item) => [
                 item.assetSymbol,
                 String(item.tokenAmount),
-                String(item.totalValueItd),
-                String(item.netChanges),
+                String(item.itdEarned),
+                String(item.itdReturn.toFixed(2)),
               ]);
               const csv = [headers, ...rows]
                 .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))

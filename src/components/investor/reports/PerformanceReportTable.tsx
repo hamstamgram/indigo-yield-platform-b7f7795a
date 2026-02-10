@@ -58,7 +58,8 @@ export function PerformanceReportTable({
   };
 
   const formatPct = (val: string | number) => {
-    return `${(toNum(val) * 100).toFixed(2)}%`;
+    // DB stores rate_of_return already as percentage (e.g. 1.29 = 1.29%)
+    return `${toNum(val).toFixed(2)}%`;
   };
 
   return (

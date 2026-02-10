@@ -165,27 +165,47 @@ export default function InvestorOverviewPage() {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/5">
                       <div>
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
-                          YTD Return
+                          ITD Return
                         </p>
                         <p
                           className={cn(
                             "text-lg font-mono font-bold",
-                            asset.ytd.rateOfReturn >= 0 ? "text-emerald-400" : "text-rose-400"
+                            asset.itd.rateOfReturn >= 0 ? "text-emerald-400" : "text-rose-400"
                           )}
                         >
-                          {asset.ytd.rateOfReturn >= 0 ? "+" : ""}
-                          {asset.ytd.rateOfReturn.toFixed(2)}%
+                          {asset.itd.rateOfReturn >= 0 ? "+" : ""}
+                          {asset.itd.rateOfReturn.toFixed(2)}%
                         </p>
                       </div>
                       <div>
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
-                          Earned
+                          ITD Earned
                         </p>
                         <p className="text-lg font-mono font-bold text-indigo-300">
-                          {formatCurrency(asset.ytd.netIncome, asset.assetSymbol)}
+                          {formatCurrency(asset.itd.netIncome, asset.assetSymbol)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
+                          {asset.ytd.netIncome > 0 ? "YTD Earned" : "MTD Earned"}
+                        </p>
+                        <p
+                          className={cn(
+                            "text-lg font-mono font-bold",
+                            (asset.ytd.netIncome > 0 ? asset.ytd.netIncome : asset.mtd.netIncome) >
+                              0
+                              ? "text-emerald-400"
+                              : "text-slate-500"
+                          )}
+                        >
+                          {asset.ytd.netIncome > 0
+                            ? `+${formatCurrency(asset.ytd.netIncome, asset.assetSymbol)}`
+                            : asset.mtd.netIncome > 0
+                              ? `+${formatCurrency(asset.mtd.netIncome, asset.assetSymbol)}`
+                              : formatCurrency(0, asset.assetSymbol)}
                         </p>
                       </div>
                     </div>

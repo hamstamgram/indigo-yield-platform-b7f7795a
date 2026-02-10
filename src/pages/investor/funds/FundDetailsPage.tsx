@@ -33,8 +33,9 @@ export default function FundDetailsPage() {
   }
 
   const latestRecord = performance?.[0];
-  const mtdYield = toNum(latestRecord?.mtd_rate_of_return ?? 0);
-  const ytdYield = toNum(latestRecord?.ytd_rate_of_return ?? 0);
+  const itdReturn = toNum(latestRecord?.itd_rate_of_return ?? 0);
+  const lastPeriodReturn = toNum(latestRecord?.mtd_rate_of_return ?? 0);
+  const lastPeriodName = latestRecord?.period?.period_name || "Last Period";
   const livePosition = livePositions?.find((p) => p.asset === assetCode);
   const balance = livePosition?.currentValue ?? toNum(latestRecord?.mtd_ending_balance ?? 0);
 
@@ -100,12 +101,33 @@ export default function FundDetailsPage() {
         </div>
 
         <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-black/20 hover:bg-white/5 transition-colors group relative overflow-hidden">
-          {/* Subtle green glow for positive yield */}
+          {/* Subtle purple glow for ITD */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-[50px] -translate-y-1/2 translate-x-1/2 rounded-full" />
+
+          <div className="flex items-start justify-between mb-4 relative z-10">
+            <p className="text-xs font-bold text-indigo-200/50 uppercase tracking-widest">
+              ITD Return
+            </p>
+            <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="space-y-1 relative z-10">
+            <p className="text-3xl font-mono font-bold text-purple-400 tracking-tighter">
+              {itdReturn >= 0 ? "+" : ""}
+              {formatPercentage(itdReturn)}
+            </p>
+            <p className="text-sm text-purple-400/50 font-medium">Since Inception</p>
+          </div>
+        </div>
+
+        <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-black/20 hover:bg-white/5 transition-colors group relative overflow-hidden">
+          {/* Subtle green glow for last period */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-yield-neon/5 blur-[50px] -translate-y-1/2 translate-x-1/2 rounded-full" />
 
           <div className="flex items-start justify-between mb-4 relative z-10">
             <p className="text-xs font-bold text-indigo-200/50 uppercase tracking-widest">
-              MTD Yield
+              Last Period
             </p>
             <div className="p-2 rounded-lg bg-yield-neon/10 text-yield-neon">
               <TrendingUp className="h-4 w-4" />
@@ -113,29 +135,10 @@ export default function FundDetailsPage() {
           </div>
           <div className="space-y-1 relative z-10">
             <p className="text-3xl font-mono font-bold text-yield-neon tracking-tighter">
-              +{formatPercentage(mtdYield)}
+              {lastPeriodReturn >= 0 ? "+" : ""}
+              {formatPercentage(lastPeriodReturn)}
             </p>
-            <p className="text-sm text-yield-neon/50 font-medium">Month to Date</p>
-          </div>
-        </div>
-
-        <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-black/20 hover:bg-white/5 transition-colors group relative overflow-hidden">
-          {/* Subtle indigo glow for YTD */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] -translate-y-1/2 translate-x-1/2 rounded-full" />
-
-          <div className="flex items-start justify-between mb-4 relative z-10">
-            <p className="text-xs font-bold text-indigo-200/50 uppercase tracking-widest">
-              YTD Yield
-            </p>
-            <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
-              <TrendingUp className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="space-y-1 relative z-10">
-            <p className="text-3xl font-mono font-bold text-indigo-400 tracking-tighter">
-              +{formatPercentage(ytdYield)}
-            </p>
-            <p className="text-sm text-indigo-400/50 font-medium">Year to Date</p>
+            <p className="text-sm text-yield-neon/50 font-medium">{lastPeriodName}</p>
           </div>
         </div>
       </div>
