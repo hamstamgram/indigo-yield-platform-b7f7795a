@@ -48,14 +48,22 @@ import {
   MoreHorizontal,
   Ban,
   Lock,
+  Undo2,
 } from "lucide-react";
-import { AdminGuard } from "@/components/admin";
+import { Checkbox } from "@/components/ui";
+import { AdminGuard, useSuperAdmin } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
 import { AddTransactionDialog, VoidTransactionDialog } from "@/components/admin";
 import { useSortableColumns } from "@/hooks";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data";
+import { useTransactionMutations } from "@/hooks/data";
+import { useTransactionSelection } from "../hooks/useTransactionSelection";
+import { BulkActionToolbar } from "../components/BulkActionToolbar";
+import { BulkVoidDialog } from "../components/BulkVoidDialog";
+import { BulkUnvoidDialog } from "../components/BulkUnvoidDialog";
+import { UnvoidTransactionDialog } from "../components/UnvoidTransactionDialog";
 
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 import { formatAssetValue } from "@/utils/formatters";
@@ -82,9 +90,12 @@ function TransactionHistoryContent() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Void dialog state
+  // Dialog state
   const [selectedTx, setSelectedTx] = useState<TransactionViewModel | null>(null);
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
+  const [unvoidDialogOpen, setUnvoidDialogOpen] = useState(false);
+  const [bulkVoidDialogOpen, setBulkVoidDialogOpen] = useState(false);
+  const [bulkUnvoidDialogOpen, setBulkUnvoidDialogOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDisplayType, setSelectedDisplayType] = useState<string>("all");
@@ -99,6 +110,12 @@ function TransactionHistoryContent() {
 
   // Fetch active funds via hook
   const { data: funds = [] } = useAdminActiveFunds();
+
+  // Super admin check for bulk operations
+  const { isSuperAdmin } = useSuperAdmin();
+
+  // Mutation hooks
+  const { unvoidMutation, bulkVoidMutation, bulkUnvoidMutation } = useTransactionMutations();
 
   // Check URL for action=add to auto-open modal
   useEffect(() => {
@@ -209,6 +226,15 @@ function TransactionHistoryContent() {
     column: "txDate",
     direction: "desc",
   });
+
+  // Selection for bulk operations
+  const selection = useTransactionSelection(sortedData, page, showVoided);
+
+  // Get selected transactions for dialogs
+  const selectedTransactions = useMemo(
+    () => sortedData.filter((tx) => selection.selectedIds.has(tx.id)),
+    [sortedData, selection.selectedIds]
+  );
 
   const formatAmount = (amount: number, asset: string, type: string) => {
     const isNegative = type === "WITHDRAWAL" || type === "FEE";
@@ -398,6 +424,15 @@ function TransactionHistoryContent() {
         </CardContent>
       </Card>
 
+      {/* Bulk Action Toolbar */}
+      <BulkActionToolbar
+        summary={selection.summary}
+        isSuperAdmin={isSuperAdmin}
+        onVoid={() => setBulkVoidDialogOpen(true)}
+        onUnvoid={() => setBulkUnvoidDialogOpen(true)}
+        onClear={selection.clearSelection}
+      />
+
       {/* Transactions Table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -452,6 +487,19 @@ function TransactionHistoryContent() {
               <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[40px] px-2">
+                      <Checkbox
+                        checked={
+                          selection.isAllSelected
+                            ? true
+                            : selection.isIndeterminate
+                              ? "indeterminate"
+                              : false
+                        }
+                        onCheckedChange={selection.toggleAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
                     <SortableTableHead
                       column="txDate"
                       currentSort={sortConfig}
@@ -499,91 +547,104 @@ function TransactionHistoryContent() {
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No transactions found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    sortedData.map((tx) => (
-                      <TableRow key={tx.id} className={tx.isVoided ? "opacity-50 bg-muted/30" : ""}>
-                        <TableCell className="whitespace-nowrap py-1.5">
-                          {format(new Date(tx.txDate), "MMM d, yyyy")}
-                          {tx.createdAt && (
-                            <span className="block text-muted-foreground">
-                              {format(new Date(tx.createdAt), "HH:mm")}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-1.5">
-                          <button
-                            onClick={() => handleInvestorClick(tx.investorId)}
-                            className="text-left hover:underline group max-w-[140px]"
-                          >
-                            <span className="font-medium flex items-center gap-1">
-                              <TruncatedText text={tx.investorName} className="max-w-[120px]" />
-                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                            </span>
-                            <TruncatedText
-                              text={tx.investorEmail}
-                              className="text-muted-foreground block max-w-[120px]"
-                            />
-                          </button>
-                        </TableCell>
-                        <TableCell className="py-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <CryptoIcon symbol={tx.asset} className="h-4 w-4" />
-                            <span>{tx.fundName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-1.5">
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <Badge
-                              variant={getTypeBadgeVariant(tx.displayType)}
-                              className="text-[10px]"
-                            >
-                              {tx.displayType}
-                            </Badge>
-                            {tx.isVoided && (
-                              <Badge variant="destructive" className="text-[10px]">
-                                VOIDED
-                              </Badge>
+                    sortedData.map((tx) => {
+                      const canSelect = !tx.isVoided || showVoided;
+                      return (
+                        <TableRow
+                          key={tx.id}
+                          className={tx.isVoided ? "opacity-50 bg-muted/30" : ""}
+                        >
+                          <TableCell className="px-2 py-1.5">
+                            {canSelect ? (
+                              <Checkbox
+                                checked={selection.isSelected(tx.id)}
+                                onCheckedChange={() => selection.toggleOne(tx.id)}
+                                aria-label={`Select transaction ${tx.id}`}
+                              />
+                            ) : null}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap py-1.5">
+                            {format(new Date(tx.txDate), "MMM d, yyyy")}
+                            {tx.createdAt && (
+                              <span className="block text-muted-foreground">
+                                {format(new Date(tx.createdAt), "HH:mm")}
+                              </span>
                             )}
-                            {tx.visibilityScope === "admin_only" && (
+                          </TableCell>
+                          <TableCell className="py-1.5">
+                            <button
+                              onClick={() => handleInvestorClick(tx.investorId)}
+                              className="text-left hover:underline group max-w-[140px]"
+                            >
+                              <span className="font-medium flex items-center gap-1">
+                                <TruncatedText text={tx.investorName} className="max-w-[120px]" />
+                                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                              </span>
+                              <TruncatedText
+                                text={tx.investorEmail}
+                                className="text-muted-foreground block max-w-[120px]"
+                              />
+                            </button>
+                          </TableCell>
+                          <TableCell className="py-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <CryptoIcon symbol={tx.asset} className="h-4 w-4" />
+                              <span>{tx.fundName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-1.5">
+                            <div className="flex items-center gap-1 flex-wrap">
                               <Badge
-                                variant="outline"
-                                className="text-[10px] gap-0.5 text-muted-foreground border-muted-foreground/30"
+                                variant={getTypeBadgeVariant(tx.displayType)}
+                                className="text-[10px]"
                               >
-                                <Lock className="h-2.5 w-2.5" />
-                                Admin
+                                {tx.displayType}
                               </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-mono tabular-nums py-1.5">
-                          <div className="flex items-center justify-end gap-1">
-                            <span
-                              className={
-                                tx.isVoided
-                                  ? "line-through text-muted-foreground"
-                                  : tx.type === "WITHDRAWAL" || tx.type === "FEE"
-                                    ? "text-destructive"
-                                    : "text-green-600"
-                              }
-                            >
-                              {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
-                            </span>
-                            <CryptoIcon symbol={tx.asset} className="h-3.5 w-3.5" />
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-[160px] py-1.5">
-                          <TruncatedText
-                            text={tx.notes || "—"}
-                            className="text-muted-foreground"
-                            maxWidth="160px"
-                          />
-                        </TableCell>
-                        <TableCell className="py-1.5">
-                          {!tx.isVoided ? (
+                              {tx.isVoided && (
+                                <Badge variant="destructive" className="text-[10px]">
+                                  VOIDED
+                                </Badge>
+                              )}
+                              {tx.visibilityScope === "admin_only" && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] gap-0.5 text-muted-foreground border-muted-foreground/30"
+                                >
+                                  <Lock className="h-2.5 w-2.5" />
+                                  Admin
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-mono tabular-nums py-1.5">
+                            <div className="flex items-center justify-end gap-1">
+                              <span
+                                className={
+                                  tx.isVoided
+                                    ? "line-through text-muted-foreground"
+                                    : tx.type === "WITHDRAWAL" || tx.type === "FEE"
+                                      ? "text-destructive"
+                                      : "text-green-600"
+                                }
+                              >
+                                {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
+                              </span>
+                              <CryptoIcon symbol={tx.asset} className="h-3.5 w-3.5" />
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-[160px] py-1.5">
+                            <TruncatedText
+                              text={tx.notes || "—"}
+                              className="text-muted-foreground"
+                              maxWidth="160px"
+                            />
+                          </TableCell>
+                          <TableCell className="py-1.5">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -591,24 +652,34 @@ function TransactionHistoryContent() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedTx(tx);
-                                    setVoidDialogOpen(true);
-                                  }}
-                                  className="text-destructive"
-                                >
-                                  <Ban className="mr-2 h-4 w-4" />
-                                  Void
-                                </DropdownMenuItem>
+                                {!tx.isVoided ? (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedTx(tx);
+                                      setVoidDialogOpen(true);
+                                    }}
+                                    className="text-destructive"
+                                  >
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    Void
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedTx(tx);
+                                      setUnvoidDialogOpen(true);
+                                    }}
+                                  >
+                                    <Undo2 className="mr-2 h-4 w-4" />
+                                    Restore
+                                  </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -658,6 +729,77 @@ function TransactionHistoryContent() {
             queryClient,
             selectedTx?.investorId,
             selectedTx?.fundId || undefined
+          );
+        }}
+      />
+
+      {/* Single Unvoid Transaction Modal */}
+      <UnvoidTransactionDialog
+        open={unvoidDialogOpen}
+        onOpenChange={setUnvoidDialogOpen}
+        transaction={selectedTx}
+        isPending={unvoidMutation.isPending}
+        onConfirm={(reason) => {
+          if (!selectedTx) return;
+          unvoidMutation.mutate(
+            {
+              transactionId: selectedTx.id,
+              reason,
+              investorId: selectedTx.investorId,
+              fundId: selectedTx.fundId || undefined,
+            },
+            {
+              onSuccess: () => {
+                setUnvoidDialogOpen(false);
+                setSelectedTx(null);
+              },
+            }
+          );
+        }}
+      />
+
+      {/* Bulk Void Dialog */}
+      <BulkVoidDialog
+        open={bulkVoidDialogOpen}
+        onOpenChange={setBulkVoidDialogOpen}
+        transactions={selectedTransactions}
+        summary={selection.summary}
+        isPending={bulkVoidMutation.isPending}
+        onConfirm={(reason) => {
+          bulkVoidMutation.mutate(
+            {
+              transactionIds: Array.from(selection.selectedIds),
+              reason,
+            },
+            {
+              onSuccess: () => {
+                setBulkVoidDialogOpen(false);
+                selection.clearSelection();
+              },
+            }
+          );
+        }}
+      />
+
+      {/* Bulk Unvoid Dialog */}
+      <BulkUnvoidDialog
+        open={bulkUnvoidDialogOpen}
+        onOpenChange={setBulkUnvoidDialogOpen}
+        transactions={selectedTransactions}
+        summary={selection.summary}
+        isPending={bulkUnvoidMutation.isPending}
+        onConfirm={(reason) => {
+          bulkUnvoidMutation.mutate(
+            {
+              transactionIds: Array.from(selection.selectedIds),
+              reason,
+            },
+            {
+              onSuccess: () => {
+                setBulkUnvoidDialogOpen(false);
+                selection.clearSelection();
+              },
+            }
           );
         }}
       />

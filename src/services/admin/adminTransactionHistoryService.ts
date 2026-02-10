@@ -13,6 +13,10 @@ import type {
   FundOption,
   UpdateTransactionParams,
   VoidTransactionParams,
+  UnvoidTransactionParams,
+  BulkVoidTransactionParams,
+  BulkUnvoidTransactionParams,
+  BulkOperationResult,
   VoidAndReissueParams,
   VoidAndReissueResult,
 } from "@/types/domains/transaction";
@@ -282,10 +286,115 @@ async function voidAndReissueTransaction(
   };
 }
 
+/** Helper to get current admin user ID */
+async function getAdminUserId(): Promise<string> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user?.id) throw new Error("Authentication required");
+  return user.id;
+}
+
+/** Type guard for RPC result with success field */
+interface RPCJsonResult {
+  success?: boolean;
+  message?: string;
+  error_code?: string;
+  count?: number;
+  transaction_ids?: string[];
+  warning?: string;
+}
+
+/**
+ * Unvoid (restore) a previously voided transaction via RPC
+ * Any admin can unvoid a single transaction.
+ * Note: Uses supabase.rpc() directly as these RPCs are pending type generation.
+ */
+async function unvoidTransaction(params: UnvoidTransactionParams): Promise<void> {
+  const adminId = await getAdminUserId();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)("unvoid_transaction", {
+    p_transaction_id: params.transactionId,
+    p_admin_id: adminId,
+    p_reason: params.reason,
+  });
+
+  if (error) throw new Error(error.message || "Failed to restore transaction");
+
+  const result = data as RPCJsonResult | null;
+  if (result && result.success === false) {
+    throw new Error(result.message || result.error_code || "Failed to restore transaction");
+  }
+}
+
+/**
+ * Void multiple transactions atomically via RPC (super_admin only)
+ */
+async function voidTransactionsBulk(
+  params: BulkVoidTransactionParams
+): Promise<BulkOperationResult> {
+  const adminId = await getAdminUserId();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)("void_transactions_bulk", {
+    p_transaction_ids: params.transactionIds,
+    p_admin_id: adminId,
+    p_reason: params.reason,
+  });
+
+  if (error) throw new Error(error.message || "Failed to void transactions");
+
+  const result = data as RPCJsonResult | null;
+  if (result && result.success === false) {
+    throw new Error(result.message || result.error_code || "Failed to void transactions");
+  }
+
+  return {
+    success: true,
+    count: result?.count ?? params.transactionIds.length,
+    transactionIds: (result?.transaction_ids as string[]) ?? params.transactionIds,
+  };
+}
+
+/**
+ * Unvoid multiple transactions atomically via RPC (super_admin only)
+ */
+async function unvoidTransactionsBulk(
+  params: BulkUnvoidTransactionParams
+): Promise<BulkOperationResult> {
+  const adminId = await getAdminUserId();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)("unvoid_transactions_bulk", {
+    p_transaction_ids: params.transactionIds,
+    p_admin_id: adminId,
+    p_reason: params.reason,
+  });
+
+  if (error) throw new Error(error.message || "Failed to restore transactions");
+
+  const result = data as RPCJsonResult | null;
+  if (result && result.success === false) {
+    throw new Error(result.message || result.error_code || "Failed to restore transactions");
+  }
+
+  return {
+    success: true,
+    count: result?.count ?? params.transactionIds.length,
+    transactionIds: (result?.transaction_ids as string[]) ?? params.transactionIds,
+  };
+}
+
 export const adminTransactionHistoryService = {
   fetchActiveFunds,
   fetchTransactions,
   updateTransaction,
   voidTransaction,
+  unvoidTransaction,
   voidAndReissueTransaction,
+  voidTransactionsBulk,
+  unvoidTransactionsBulk,
 };

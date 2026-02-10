@@ -476,6 +476,42 @@ export interface VoidTransactionParams {
 }
 
 /**
+ * Parameters for unvoiding (restoring) a transaction
+ */
+export interface UnvoidTransactionParams {
+  transactionId: string;
+  reason: string;
+}
+
+/**
+ * Parameters for bulk void operations (super_admin only)
+ */
+export interface BulkVoidTransactionParams {
+  transactionIds: string[];
+  reason: string;
+}
+
+/**
+ * Parameters for bulk unvoid operations (super_admin only)
+ */
+export interface BulkUnvoidTransactionParams {
+  transactionIds: string[];
+  reason: string;
+}
+
+/**
+ * Result of a bulk void/unvoid operation
+ */
+export interface BulkOperationResult {
+  success: boolean;
+  count: number;
+  transactionIds: string[];
+  warning?: string;
+  error_code?: string;
+  message?: string;
+}
+
+/**
  * Parameters for void and reissue operation (atomic correction)
  * This is the preferred method for correcting transactions while
  * maintaining ledger immutability.

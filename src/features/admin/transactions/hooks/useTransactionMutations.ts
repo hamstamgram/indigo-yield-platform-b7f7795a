@@ -10,6 +10,10 @@ import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import type {
   UpdateTransactionParams,
   VoidTransactionParams,
+  UnvoidTransactionParams,
+  BulkVoidTransactionParams,
+  BulkUnvoidTransactionParams,
+  BulkOperationResult,
   VoidAndReissueParams,
 } from "@/types/domains/transaction";
 
@@ -134,9 +138,90 @@ export function useTransactionMutations() {
     },
   });
 
+  const unvoidMutation = useMutation({
+    mutationFn: (params: UnvoidTransactionParams & MutationContext) =>
+      adminTransactionHistoryService.unvoidTransaction(params),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.adminTransactions });
+      const previousTransactions = queryClient.getQueriesData({
+        queryKey: QUERY_KEYS.adminTransactions,
+      });
+      return { previousTransactions };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      toast.error(error.message || "Failed to restore transaction");
+    },
+    onSuccess: () => {
+      toast.success("Transaction restored successfully");
+    },
+    onSettled: (_, __, variables) => {
+      invalidateAfterTransaction(queryClient, variables.investorId, variables.fundId);
+    },
+  });
+
+  const bulkVoidMutation = useMutation({
+    mutationFn: (params: BulkVoidTransactionParams) =>
+      adminTransactionHistoryService.voidTransactionsBulk(params),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.adminTransactions });
+      const previousTransactions = queryClient.getQueriesData({
+        queryKey: QUERY_KEYS.adminTransactions,
+      });
+      return { previousTransactions };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      toast.error(error.message || "Failed to void transactions");
+    },
+    onSuccess: (result: BulkOperationResult) => {
+      toast.success(`${result.count} transaction(s) voided successfully`);
+    },
+    onSettled: () => {
+      invalidateAfterTransaction(queryClient);
+    },
+  });
+
+  const bulkUnvoidMutation = useMutation({
+    mutationFn: (params: BulkUnvoidTransactionParams) =>
+      adminTransactionHistoryService.unvoidTransactionsBulk(params),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.adminTransactions });
+      const previousTransactions = queryClient.getQueriesData({
+        queryKey: QUERY_KEYS.adminTransactions,
+      });
+      return { previousTransactions };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      toast.error(error.message || "Failed to restore transactions");
+    },
+    onSuccess: (result: BulkOperationResult) => {
+      toast.success(`${result.count} transaction(s) restored successfully`);
+    },
+    onSettled: () => {
+      invalidateAfterTransaction(queryClient);
+    },
+  });
+
   return {
     updateMutation,
     voidMutation,
+    unvoidMutation,
     voidAndReissueMutation,
+    bulkVoidMutation,
+    bulkUnvoidMutation,
   };
 }

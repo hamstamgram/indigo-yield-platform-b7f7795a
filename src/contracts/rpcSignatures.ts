@@ -20,6 +20,7 @@ export type RPCFunctionName = keyof RPCFunctions;
 export const RPC_FUNCTIONS = [
   "apply_adb_yield_distribution_v4",
   "apply_transaction_with_crystallization",
+  "approve_and_complete_withdrawal",
   "batch_crystallize_fund",
   "crystallize_month_end",
   "crystallize_yield_before_flow",
@@ -43,11 +44,14 @@ export const RPC_FUNCTIONS = [
   "recalculate_fund_aum_for_date",
   "recompute_investor_position",
   "run_integrity_check",
+  "unvoid_transaction",
+  "unvoid_transactions_bulk",
   "update_fund_daily_aum_with_recalc",
   "validate_aum_against_positions",
   "validate_aum_against_positions_at_date",
   "void_fund_daily_aum",
   "void_transaction",
+  "void_transactions_bulk",
   "void_yield_distribution",
 ] as const;
 
@@ -74,6 +78,14 @@ export const RPC_SIGNATURES = {
       "p_recorded_aum",
       "p_snapshot_time",
     ] as const,
+  },
+  approve_and_complete_withdrawal: {
+    name: "approve_and_complete_withdrawal" as const,
+    returnType: "Json",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_request_id"] as const,
+    optionalParams: ["p_processed_amount", "p_tx_hash", "p_admin_notes"] as const,
   },
   apply_transaction_with_crystallization: {
     name: "apply_transaction_with_crystallization" as const,
@@ -244,6 +256,30 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_aum_value", "p_event_date", "p_fund_id"] as const,
     optionalParams: ["p_context", "p_max_deviation_pct"] as const,
   },
+  unvoid_transaction: {
+    name: "unvoid_transaction" as const,
+    returnType: "Json",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_transaction_id", "p_admin_id", "p_reason"] as const,
+    optionalParams: [] as const,
+  },
+  unvoid_transactions_bulk: {
+    name: "unvoid_transactions_bulk" as const,
+    returnType: "Json",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_transaction_ids", "p_admin_id", "p_reason"] as const,
+    optionalParams: [] as const,
+  },
+  void_transactions_bulk: {
+    name: "void_transactions_bulk" as const,
+    returnType: "Json",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_transaction_ids", "p_admin_id", "p_reason"] as const,
+    optionalParams: [] as const,
+  },
   void_yield_distribution: {
     name: "void_yield_distribution" as const,
     returnType: "Json",
@@ -287,12 +323,18 @@ export function getRPCSignature<T extends RPCFunctionName>(name: T) {
 // These are the ONLY RPCs that should be used for mutations
 
 export const CANONICAL_MUTATION_RPCS = {
-  /** Canonical RPC for deposits and withdrawals (with crystallization) */
+  /** Canonical RPC for deposits (with crystallization) */
   DEPOSIT: "apply_transaction_with_crystallization",
-  /** Canonical RPC for deposits and withdrawals (with crystallization) */
-  WITHDRAWAL: "apply_transaction_with_crystallization",
+  /** Canonical RPC for withdrawal approval + completion (atomic) */
+  WITHDRAWAL: "approve_and_complete_withdrawal",
   /** Canonical RPC for yield distribution */
   YIELD: "apply_adb_yield_distribution_v4",
   /** Canonical RPC for voiding transactions */
   VOID: "void_transaction",
+  /** Canonical RPC for unvoiding transactions */
+  UNVOID: "unvoid_transaction",
+  /** Canonical RPC for bulk voiding transactions */
+  BULK_VOID: "void_transactions_bulk",
+  /** Canonical RPC for bulk unvoiding transactions */
+  BULK_UNVOID: "unvoid_transactions_bulk",
 } as const;
