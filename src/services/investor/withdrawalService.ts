@@ -234,6 +234,50 @@ export const withdrawalService = {
   },
 
   /**
+   * Approve and complete a withdrawal in one atomic operation.
+   * No AUM input required. Creates WITHDRAWAL transaction directly.
+   * Yield must be recorded separately before calling this.
+   */
+  async approveAndComplete(
+    withdrawalId: string,
+    processedAmount: string,
+    txHash?: string,
+    adminNotes?: string
+  ): Promise<{ correlationId: string }> {
+    const corrId = generateCorrelationId("wdr_full");
+    const log = createCorrelatedLogger(corrId);
+
+    log.info("Approving and completing withdrawal", { withdrawalId, processedAmount });
+
+    const { error } = await rpc.call(
+      "approve_and_complete_withdrawal" as never,
+      {
+        p_request_id: withdrawalId,
+        p_processed_amount: parseFloat(processedAmount),
+        p_tx_hash: txHash ?? undefined,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+      } as never
+    );
+
+    if (error) {
+      log.error("Error completing withdrawal", error);
+      const errorMessage = error.message || "Failed to complete withdrawal";
+      throw new Error(
+        errorMessage.includes("UNAUTHORIZED")
+          ? "You don't have admin privileges to complete withdrawals"
+          : errorMessage.includes("INSUFFICIENT_BALANCE")
+            ? errorMessage.replace("INSUFFICIENT_BALANCE: ", "")
+            : errorMessage.includes("INVALID_")
+              ? errorMessage.replace(/INVALID_\w+: /, "")
+              : errorMessage
+      );
+    }
+
+    log.info("Withdrawal approved and completed successfully");
+    return { correlationId: corrId };
+  },
+
+  /**
    * Approve a withdrawal request using secure RPC with server-side admin check
    */
   async approveWithdrawal(

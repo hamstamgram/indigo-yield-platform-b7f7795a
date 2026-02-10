@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
   Dialog,
@@ -13,16 +13,12 @@ import {
   Textarea,
   Alert,
   AlertDescription,
-  Checkbox,
 } from "@/components/ui";
 import { withdrawalService } from "@/services/investor";
-import { getCurrentFundAum } from "@/services/admin/depositWithYieldService";
-import { useWithdrawalMutations } from "@/hooks/data";
-import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { formatAssetAmount } from "@/utils/assets";
-import { Loader2, AlertTriangle, ArrowRightLeft } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 
 interface ApproveWithdrawalDialogProps {
   open: boolean;
@@ -37,26 +33,20 @@ export function ApproveWithdrawalDialog({
   withdrawal,
   onSuccess,
 }: ApproveWithdrawalDialogProps) {
-  const { user } = useAuth();
   const [processedAmount, setProcessedAmount] = useState(withdrawal.requested_amount.toString());
   const [txHash, setTxHash] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittingStep, setSubmittingStep] = useState("");
-  const [routeToFees, setRouteToFees] = useState(false);
+  const isSubmittingRef = useRef(false);
 
-  const { routeToFeesMutation } = useWithdrawalMutations();
-
-  // Reset state when dialog opens with new withdrawal
+  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
       setProcessedAmount(withdrawal.requested_amount.toString());
       setTxHash("");
       setAdminNotes("");
       setConfirmText("");
-      setRouteToFees(false);
-      setSubmittingStep("");
     }
   }, [open, withdrawal.requested_amount]);
 
@@ -65,63 +55,29 @@ export function ApproveWithdrawalDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmittingRef.current) return;
     if (!isConfirmed) {
       toast.error("Please type APPROVE to confirm");
       return;
     }
 
+    const amount = parseFloat(processedAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      const amount = parseFloat(processedAmount);
-      if (isNaN(amount) || amount <= 0) {
-        toast.error("Please enter a valid amount");
-        return;
-      }
-
-      // Step 1: Approve
-      setSubmittingStep("Approving...");
-      const { correlationId } = await withdrawalService.approveWithdrawal(
+      await withdrawalService.approveAndComplete(
         withdrawal.id,
-        amount,
-        adminNotes
-      );
-
-      // Step 2: Mark as processing
-      setSubmittingStep("Processing...");
-      await withdrawalService.markAsProcessing(
-        withdrawal.id,
+        processedAmount,
         txHash || undefined,
-        adminNotes || undefined,
-        correlationId
+        adminNotes || undefined
       );
-
-      // Step 3: Auto-fetch closing AUM and complete
-      setSubmittingStep("Completing...");
-      const closingAum = await getCurrentFundAum(withdrawal.fund_id);
-      await withdrawalService.markAsCompleted(
-        withdrawal.id,
-        String(closingAum),
-        txHash || undefined,
-        adminNotes || undefined,
-        correlationId
-      );
-
-      toast.success("Withdrawal approved and completed. Ledger entries created.");
-
-      // If route to fees is checked, use the mutation
-      if (routeToFees) {
-        routeToFeesMutation.mutate({
-          withdrawalId: withdrawal.id,
-          reason: adminNotes
-            ? `${adminNotes} (routed on approval)`
-            : "Routed to INDIGO FEES on approval",
-          investorId: withdrawal.investor_id,
-          fundId: withdrawal.fund_id,
-          actorId: user?.id || "system",
-        });
-      }
-
+      toast.success("Withdrawal approved and completed. Ledger updated.");
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -129,8 +85,8 @@ export function ApproveWithdrawalDialog({
       const message = error instanceof Error ? error.message : "Failed to process withdrawal";
       toast.error(message);
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
-      setSubmittingStep("");
     }
   };
 
@@ -138,10 +94,10 @@ export function ApproveWithdrawalDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Approve Withdrawal Request</DialogTitle>
+          <DialogTitle>Approve Withdrawal</DialogTitle>
           <DialogDescription>
-            Review and approve the withdrawal request for {withdrawal.investor_name}. This will
-            approve, process, and complete the withdrawal in one step.
+            Approve and complete the withdrawal for {withdrawal.investor_name}. The investor&apos;s
+            position will be reduced immediately.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,9 +142,6 @@ export function ApproveWithdrawalDialog({
                 onChange={(e) => setTxHash(e.target.value)}
                 placeholder="0x..."
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Blockchain transaction hash for the withdrawal
-              </p>
             </div>
             <div>
               <Label htmlFor="adminNotes">Admin Notes (Optional)</Label>
@@ -196,38 +149,18 @@ export function ApproveWithdrawalDialog({
                 id="adminNotes"
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add any notes about this withdrawal..."
+                placeholder="Add any notes..."
                 rows={2}
               />
             </div>
 
-            {/* Route to INDIGO FEES Option */}
-            <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
-              <Checkbox
-                id="routeToFees"
-                checked={routeToFees}
-                onCheckedChange={(checked) => setRouteToFees(checked === true)}
-              />
-              <div className="flex-1">
-                <Label htmlFor="routeToFees" className="flex items-center gap-2 cursor-pointer">
-                  <ArrowRightLeft className="h-4 w-4 text-primary" />
-                  Route to INDIGO FEES after completion
-                </Label>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Creates internal transactions to transfer funds to the INDIGO FEES account
-                </p>
-              </div>
-            </div>
-
-            {/* Warning and Typed Confirmation */}
             <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800 dark:text-amber-200">
                 <strong>This action is irreversible</strong>
                 <ul className="mt-2 text-sm list-disc list-inside space-y-1">
                   <li>A WITHDRAWAL transaction will be created in the ledger</li>
-                  <li>The investor&apos;s position will be reduced by the processed amount</li>
-                  <li>Yield will be crystallized using current fund AUM</li>
+                  <li>The investor&apos;s position will be reduced immediately</li>
                 </ul>
                 <p className="mt-2 text-sm">
                   Type <strong>APPROVE</strong> below to confirm.
@@ -261,7 +194,7 @@ export function ApproveWithdrawalDialog({
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {submittingStep}
+                  Processing...
                 </>
               ) : (
                 "Approve & Complete"
