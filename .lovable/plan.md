@@ -1,96 +1,41 @@
 
 
-# Fix Report Logos - Centralize Fund Icons
+## Fix: Navigation Active State Bug + Reorganize INDIGO Fees Position
 
-## Problem
+### Problem 1: Two nav items highlighted simultaneously
 
-There are **5 duplicate fund icon maps** across the codebase, each with different keys and several with **wrong URLs**:
+When clicking a sidebar menu item, the previous item sometimes stays highlighted. The root cause is in `NavSection.tsx`'s `isActive` function. For investor routes, the logic checks:
 
-| File | Key Format | Issues |
-|------|-----------|--------|
-| `src/types/domains/report.ts` (FUND_ICONS) | "BTC YIELD FUND" | Most complete; canonical source for reports |
-| `src/services/reports/emailReportGenerator.ts` (FUND_ICON_MAP) | "BTC YIELD FUND" | **Tokenized Gold shows USDC logo**, SOL URL has typo, missing USDT/XRP |
-| `src/lib/statements/monthlyEmailGenerator.ts` (FUND_ICONS) | "BTC YIELD FUND" | **Tokenized Gold shows USDC logo**, missing XRP |
-| `src/lib/pdf/statementGenerator.ts` (FUND_ICONS) | "BTC" (asset code) | Uses external coingecko URLs for XRP/XAUT |
-| `src/types/asset.ts` (ASSET_CONFIGS logoUrl) | "BTC" (asset code) | Uses coingecko for XAUT/XRP; no CDN URLs |
-
-### Specific bugs found:
-
-1. **Tokenized Gold shows USDC logo** in 2 files: `emailReportGenerator.ts` line 11 and `monthlyEmailGenerator.ts` line 32 both map gold to `770YUb...` which is USDC's icon
-2. **SOL URL typo** in `emailReportGenerator.ts` line 15: `...IRFQ.png` (missing 'S', should be `...IRFSQ.png`)
-3. **Missing assets** in `emailReportGenerator.ts`: no USDT YIELD FUND, no XRP, no USDC entries
-4. **Incomplete branding logic** in `emailReportGenerator.ts` lines 416-420: missing EURC, USDC, XRP fund name mappings
-
-## Solution
-
-Centralize all fund icon URLs into `src/types/domains/report.ts` (already the most complete map) and have all other files import from there. Also update `ASSET_CONFIGS` in `src/types/asset.ts` with CDN URLs for XAUT and XRP.
-
----
-
-## Changes
-
-### 1. Update `src/types/domains/report.ts` - Add asset-code lookup helper
-
-The existing `FUND_ICONS` map (keyed by fund display name) is already correct. Add:
-- A `FUND_NAME_BY_ASSET` map: asset code to fund display name
-- A `getFundIconByAsset(assetCode)` helper function
-
-### 2. Update `src/types/asset.ts` - Fix XAUT and XRP logo URLs
-
-Replace coingecko URLs with CDN URLs for XAUT and XRP to match the report icons:
-- XAUT: use `eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png` (CDN)
-- XRP: use `mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png` (CDN)
-
-### 3. Fix `src/services/reports/emailReportGenerator.ts`
-
-- Remove local `FUND_ICON_MAP` (lines 4-18)
-- Import `FUND_ICONS` and `FUND_NAME_BY_ASSET` from `@/types/domains`
-- Fix `getFundIcon()` to use the centralized map
-- Fix branding logic (lines 416-420) to cover all 8 assets using `FUND_NAME_BY_ASSET`
-
-### 4. Fix `src/lib/statements/monthlyEmailGenerator.ts`
-
-- Remove local `FUND_ICONS` (lines 20-34)
-- Import from `@/types/domains`
-
-### 5. Fix `src/lib/pdf/statementGenerator.ts`
-
-- Remove local `FUND_ICONS` (lines 8-17)
-- Import `getFundIconByAsset` from `@/types/domains`
-- Update icon lookup on line 222 to use `getFundIconByAsset(asset)`
-
-### 6. `src/utils/statementPdfGenerator.ts` - Already correct
-
-This file already imports `FUND_ICONS` from `@/types/domains` -- no change needed.
-
-### 7. `src/components/reports/InvestorReportTemplate.tsx` - Already correct
-
-Already imports from `@/types/domains` -- no change needed.
-
----
-
-## Files Modified
-
-| File | Change |
-|------|--------|
-| `src/types/domains/report.ts` | Add `FUND_NAME_BY_ASSET` map and `getFundIconByAsset()` helper |
-| `src/types/asset.ts` | Update XAUT and XRP `logoUrl` to CDN URLs |
-| `src/services/reports/emailReportGenerator.ts` | Remove local icon map, import centralized, fix branding logic for all 8 assets |
-| `src/lib/statements/monthlyEmailGenerator.ts` | Remove local icon map, import centralized |
-| `src/lib/pdf/statementGenerator.ts` | Remove local icon map, import centralized helper |
-
-## Corrected Icon Map (Single Source of Truth)
-
-```text
-Asset   Fund Display Name       CDN Logo
------   -----------------       --------
-BTC     BTC YIELD FUND          8Pf2dt...
-ETH     ETH YIELD FUND          iuulK6...
-SOL     SOL YIELD FUND          14fmAP...IRFSQ  (fixes typo)
-USDT    USDT YIELD FUND         2p3Y0l...
-USDC    USDC YIELD FUND         770YUb...
-EURC    EURC YIELD FUND         kwV87o...
-XAUT    XAUT YIELD FUND         eX8YQ2...  (fixes wrong logo)
-XRP     XRP YIELD FUND          mlmOJ9...
 ```
+href !== "/" && location.pathname.startsWith(href + "/")
+```
+
+This means when you're on `/investor/portfolio`, the path starts with `/investor/` — so both "Overview" (`/investor`) and "Portfolio" (`/investor/portfolio`) show as active.
+
+**Fix**: Add an exception for base routes like `/investor` so they only match on exact path equality, not prefix matching.
+
+### Problem 2: INDIGO Fees should be right after Command Center
+
+Currently, INDIGO Fees lives inside the "Yield & Reporting" nav group. It needs to move into the "Command" group, positioned immediately after "Command Center".
+
+**Fix**: Move the INDIGO Fees entry from the "Yield & Reporting" group to the "Command" group in `src/config/navigation.tsx`.
+
+### Problem 3: Build error (periodEndDate)
+
+`InvestorOverviewPage.tsx` references `assetStats.periodEndDate` but the return type of `usePerAssetStats` only has `{ assets, activeFunds }`. This property doesn't exist.
+
+**Fix**: Remove the `periodEndDate` conditional block (lines 222-230) since the data source never provides this field.
+
+---
+
+### Technical Changes
+
+**File 1: `src/components/sidebar/NavSection.tsx`**
+- Update `isActive()` to treat `/investor` and `/dashboard` as exact-match-only routes, preventing them from prefix-matching child routes like `/investor/portfolio`
+
+**File 2: `src/config/navigation.tsx`**
+- Move the "INDIGO Fees" nav item from the "Yield & Reporting" group into the "Command" group, right after "Command Center"
+
+**File 3: `src/pages/investor/InvestorOverviewPage.tsx`**
+- Remove lines 222-230 that reference the non-existent `periodEndDate` property to fix the TypeScript build error
 
