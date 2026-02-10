@@ -81,13 +81,6 @@ export default function InvestorOverviewPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
-            Personal Wealth
-            <span className="flex h-3 w-3 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-            </span>
-          </h1>
           <p className="text-slate-400 mt-1 text-sm">
             Welcome back, <span className="text-white font-medium">{displayName}</span>
           </p>
