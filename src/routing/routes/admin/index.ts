@@ -11,5 +11,4 @@ export { OperationsRoutes } from "./operations";
 export { ReportsRoutes } from "./reports";
 export { SystemRoutes } from "./system";
 export { TransactionRoutes } from "./transactions";
-export { FeesRoutes } from "./fees";
 export { IBRoutes } from "./ib";

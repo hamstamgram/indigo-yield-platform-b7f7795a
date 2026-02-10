@@ -16,6 +16,7 @@ import {
   Checkbox,
 } from "@/components/ui";
 import { withdrawalService } from "@/services/investor";
+import { getCurrentFundAum } from "@/services/admin/depositWithYieldService";
 import { useWithdrawalMutations } from "@/hooks/data";
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
@@ -38,9 +39,11 @@ export function ApproveWithdrawalDialog({
 }: ApproveWithdrawalDialogProps) {
   const { user } = useAuth();
   const [processedAmount, setProcessedAmount] = useState(withdrawal.requested_amount.toString());
+  const [txHash, setTxHash] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingStep, setSubmittingStep] = useState("");
   const [routeToFees, setRouteToFees] = useState(false);
 
   const { routeToFeesMutation } = useWithdrawalMutations();
@@ -49,9 +52,11 @@ export function ApproveWithdrawalDialog({
   useEffect(() => {
     if (open) {
       setProcessedAmount(withdrawal.requested_amount.toString());
+      setTxHash("");
       setAdminNotes("");
       setConfirmText("");
       setRouteToFees(false);
+      setSubmittingStep("");
     }
   }, [open, withdrawal.requested_amount]);
 
@@ -74,8 +79,35 @@ export function ApproveWithdrawalDialog({
         return;
       }
 
-      await withdrawalService.approveWithdrawal(withdrawal.id, amount, adminNotes);
-      toast.success("Withdrawal approved successfully");
+      // Step 1: Approve
+      setSubmittingStep("Approving...");
+      const { correlationId } = await withdrawalService.approveWithdrawal(
+        withdrawal.id,
+        amount,
+        adminNotes
+      );
+
+      // Step 2: Mark as processing
+      setSubmittingStep("Processing...");
+      await withdrawalService.markAsProcessing(
+        withdrawal.id,
+        txHash || undefined,
+        adminNotes || undefined,
+        correlationId
+      );
+
+      // Step 3: Auto-fetch closing AUM and complete
+      setSubmittingStep("Completing...");
+      const closingAum = await getCurrentFundAum(withdrawal.fund_id);
+      await withdrawalService.markAsCompleted(
+        withdrawal.id,
+        String(closingAum),
+        txHash || undefined,
+        adminNotes || undefined,
+        correlationId
+      );
+
+      toast.success("Withdrawal approved and completed. Ledger entries created.");
 
       // If route to fees is checked, use the mutation
       if (routeToFees) {
@@ -93,11 +125,12 @@ export function ApproveWithdrawalDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      logError("withdrawal.approve", error, { withdrawalId: withdrawal.id });
-      const message = error instanceof Error ? error.message : "Failed to approve withdrawal";
+      logError("withdrawal.approveAndComplete", error, { withdrawalId: withdrawal.id });
+      const message = error instanceof Error ? error.message : "Failed to process withdrawal";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
+      setSubmittingStep("");
     }
   };
 
@@ -107,14 +140,23 @@ export function ApproveWithdrawalDialog({
         <DialogHeader>
           <DialogTitle>Approve Withdrawal Request</DialogTitle>
           <DialogDescription>
-            Review and approve the withdrawal request for {withdrawal.investor_name}
+            Review and approve the withdrawal request for {withdrawal.investor_name}. This will
+            approve, process, and complete the withdrawal in one step.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium">Investor</Label>
-              <p className="text-sm text-muted-foreground">{withdrawal.investor_name}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Investor</Label>
+                <p className="text-sm text-muted-foreground">{withdrawal.investor_name}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Fund</Label>
+                <p className="text-sm text-muted-foreground">
+                  {withdrawal.fund_name || withdrawal.fund_class || "N/A"}
+                </p>
+              </div>
             </div>
             <div>
               <Label className="text-sm font-medium">Requested Amount</Label>
@@ -136,13 +178,26 @@ export function ApproveWithdrawalDialog({
               <p className="text-xs text-muted-foreground mt-1">Adjust if processing fees apply</p>
             </div>
             <div>
+              <Label htmlFor="txHash">Transaction Hash (Optional)</Label>
+              <Input
+                id="txHash"
+                type="text"
+                value={txHash}
+                onChange={(e) => setTxHash(e.target.value)}
+                placeholder="0x..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Blockchain transaction hash for the withdrawal
+              </p>
+            </div>
+            <div>
               <Label htmlFor="adminNotes">Admin Notes (Optional)</Label>
               <Textarea
                 id="adminNotes"
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add any notes about this approval..."
-                rows={3}
+                placeholder="Add any notes about this withdrawal..."
+                rows={2}
               />
             </div>
 
@@ -156,7 +211,7 @@ export function ApproveWithdrawalDialog({
               <div className="flex-1">
                 <Label htmlFor="routeToFees" className="flex items-center gap-2 cursor-pointer">
                   <ArrowRightLeft className="h-4 w-4 text-primary" />
-                  Route to INDIGO FEES after approval
+                  Route to INDIGO FEES after completion
                 </Label>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Creates internal transactions to transfer funds to the INDIGO FEES account
@@ -164,13 +219,18 @@ export function ApproveWithdrawalDialog({
               </div>
             </div>
 
-            {/* Typed Confirmation Gate */}
+            {/* Warning and Typed Confirmation */}
             <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800 dark:text-amber-200">
-                <strong>Confirmation Required</strong>
-                <p className="mt-1 text-sm">
-                  This action cannot be undone. Type <strong>APPROVE</strong> below to confirm.
+                <strong>This action is irreversible</strong>
+                <ul className="mt-2 text-sm list-disc list-inside space-y-1">
+                  <li>A WITHDRAWAL transaction will be created in the ledger</li>
+                  <li>The investor&apos;s position will be reduced by the processed amount</li>
+                  <li>Yield will be crystallized using current fund AUM</li>
+                </ul>
+                <p className="mt-2 text-sm">
+                  Type <strong>APPROVE</strong> below to confirm.
                 </p>
               </AlertDescription>
             </Alert>
@@ -201,10 +261,10 @@ export function ApproveWithdrawalDialog({
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Approving...
+                  {submittingStep}
                 </>
               ) : (
-                "Approve Withdrawal"
+                "Approve & Complete"
               )}
             </Button>
           </DialogFooter>

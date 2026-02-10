@@ -136,6 +136,16 @@ export function CreateWithdrawalDialog({
   const selectedInvestor = investors.find((i) => i.id === selectedInvestorId);
   const selectedPosition = positions.find((p) => p.fund_id === selectedFundId);
 
+  // Auto-fill amount when "full" withdrawal is selected
+  useEffect(() => {
+    if (withdrawalType === "full" && selectedFundId) {
+      const maxAmount = availableBalanceData?.availableBalance ?? selectedPosition?.current_value;
+      if (maxAmount != null) {
+        setValue("amount", String(maxAmount), { shouldValidate: true });
+      }
+    }
+  }, [withdrawalType, selectedFundId, availableBalanceData, selectedPosition, setValue]);
+
   const onSubmit = async (data: WithdrawalFormData) => {
     // Double-submission guard - check ref immediately (before React re-renders)
     if (isSubmittingRef.current) {
@@ -356,7 +366,7 @@ export function CreateWithdrawalDialog({
               value={watch("amount") || ""}
               onChange={(val) => setValue("amount", val, { shouldValidate: true })}
               placeholder="Enter amount"
-              disabled={!selectedFundId}
+              disabled={!selectedFundId || withdrawalType === "full"}
               showFormatted
               className={errors.amount ? "border-destructive" : ""}
             />

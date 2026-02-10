@@ -11,10 +11,9 @@
  * - Reports: Historical reports (1 route)
  * - System: Settings, audit, users, health (5 routes)
  * - Transactions: Manual transaction entry (1 route)
- * - Fees: Fee management (1 route)
  * - IB: Introducing Broker management (1 route)
  *
- * Total: ~27 admin routes
+ * Total: ~26 admin routes
  */
 
 import {
@@ -26,7 +25,6 @@ import {
   ReportsRoutes,
   SystemRoutes,
   TransactionRoutes,
-  FeesRoutes,
   IBRoutes,
 } from "./admin/index";
 
@@ -45,7 +43,6 @@ export function AdminRoutes() {
       {ReportsRoutes()}
       {SystemRoutes()}
       {TransactionRoutes()}
-      {FeesRoutes()}
       {IBRoutes()}
     </>
   );
