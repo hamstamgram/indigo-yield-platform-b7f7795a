@@ -17,7 +17,6 @@ import {
   FolderOpen,
   Wallet,
   Coins,
-  Mail,
   HeartPulse,
   Layers,
   Wrench,
@@ -131,12 +130,6 @@ export const adminNavGroups: NavGroup[] = [
         title: "Reports",
         href: "/admin/investor-reports",
         icon: <FileSpreadsheet className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Report Delivery",
-        href: "/admin/reports/delivery",
-        icon: <Mail className="h-5 w-5" />,
         adminOnly: true,
       },
       {
