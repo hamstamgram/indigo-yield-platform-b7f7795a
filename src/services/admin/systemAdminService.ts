@@ -268,30 +268,13 @@ export async function updateAdminRole(
 
 /**
  * Create admin invite
+ * NOTE: admin_invites table was dropped
  */
 export async function createAdminInvite(
-  email: string,
-  intendedRole: "admin" | "super_admin" = "admin"
+  _email: string,
+  _intendedRole: "admin" | "super_admin" = "admin"
 ): Promise<{ inviteCode: string; expiresAt: string }> {
-  const inviteCode = generateUUID();
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { error } = await supabase.from("admin_invites").insert({
-    email: email.toLowerCase().trim(),
-    invite_code: inviteCode,
-    expires_at: expiresAt.toISOString(),
-    created_by: user?.id,
-    intended_role: intendedRole,
-  });
-
-  if (error) throw error;
-
-  return { inviteCode, expiresAt: expiresAt.toISOString() };
+  throw new Error("Admin invites feature has been removed");
 }
 
 /**

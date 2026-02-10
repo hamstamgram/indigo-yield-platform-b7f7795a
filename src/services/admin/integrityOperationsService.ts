@@ -367,22 +367,10 @@ export async function fetchDuplicateProfiles(): Promise<DuplicateProfile[]> {
 
 /**
  * Fetch bypass attempts
+ * NOTE: transaction_bypass_attempts table was dropped - returns empty
  */
-export async function fetchBypassAttempts(limit = 50): Promise<BypassAttempt[]> {
-  const { data, error } = await supabase
-    .from("transaction_bypass_attempts")
-    .select(
-      "id, attempted_at, attempted_type, attempted_source, attempted_amount, error_message, investor_id, fund_id, user_id, client_info"
-    )
-    .order("attempted_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    logError("fetchBypassAttempts", error);
-    throw error;
-  }
-
-  return (data || []) as BypassAttempt[];
+export async function fetchBypassAttempts(_limit = 50): Promise<BypassAttempt[]> {
+  return [];
 }
 
 /**

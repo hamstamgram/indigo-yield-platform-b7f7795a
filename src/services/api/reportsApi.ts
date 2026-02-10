@@ -1,8 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
-import { db } from "@/lib/db/index";
-import { rpc } from "@/lib/rpc/index";
-import { logError, logWarn } from "@/lib/logger";
+import { logError } from "@/lib/logger";
 
 import {
   ReportType,
@@ -36,68 +34,23 @@ export class ReportsApi {
 
   /**
    * Get user's generated reports
+   * NOTE: generated_reports table was dropped - returns empty
    */
-  static async getUserReports(filters?: {
+  static async getUserReports(_filters?: {
     reportType?: ReportType;
     status?: ReportStatus;
     limit?: number;
     offset?: number;
   }): Promise<GeneratedReport[]> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    let query = supabase
-      .from("generated_reports")
-      .select("*")
-      .eq("investor_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (filters?.reportType) {
-      query = query.eq("report_type", filters.reportType);
-    }
-
-    if (filters?.status) {
-      query = query.eq("status", filters.status);
-    }
-
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
-
-    if (filters?.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      logError("reportsApi.getUserReports", error);
-      return [];
-    }
-
-    return (data || []).map(this.mapGeneratedReport);
+    return [];
   }
 
   /**
    * Get single generated report
+   * NOTE: generated_reports table was dropped - returns null
    */
-  static async getReport(reportId: string): Promise<GeneratedReport | null> {
-    const { data, error } = await supabase
-      .from("generated_reports")
-      .select("*")
-      .eq("id", reportId)
-      .maybeSingle();
-
-    if (error) {
-      logError("reportsApi.getReport", error);
-      return null;
-    }
-
-    if (!data) return null;
-
-    return this.mapGeneratedReport(data);
+  static async getReport(_reportId: string): Promise<GeneratedReport | null> {
+    return null;
   }
 
   /**
@@ -130,25 +83,10 @@ export class ReportsApi {
 
   /**
    * Delete a generated report
+   * NOTE: generated_reports table was dropped
    */
-  static async deleteReport(reportId: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { success, error } = await db.delete("generated_reports", {
-        column: "id",
-        value: reportId,
-      });
-
-      if (!success) {
-        return {
-          success: false,
-          error: error?.userMessage || "Failed to delete report",
-        };
-      }
-      return { success: true };
-    } catch (error) {
-      logError("reportsApi.deleteReport", error);
-      return { success: false, error: "Failed to delete report" };
-    }
+  static async deleteReport(_reportId: string): Promise<{ success: boolean; error?: string }> {
+    return { success: false, error: "generated_reports table has been removed" };
   }
 
   /**
@@ -270,57 +208,21 @@ export class ReportsApi {
 
   /**
    * Get report statistics
+   * NOTE: get_report_statistics RPC was dropped - returns empty
    */
   static async getReportStatistics(_daysBack: number = 30): Promise<ReportStatistics[]> {
-    const end = new Date();
-    const start = new Date(end);
-    start.setDate(end.getDate() - _daysBack);
-
-    const startDate = start.toISOString().split("T")[0];
-    const endDate = end.toISOString().split("T")[0];
-
-    const { data, error } = await rpc.call("get_report_statistics", {
-      p_period_start: startDate,
-      p_period_end: endDate,
-    });
-
-    if (error) {
-      logError("reportsApi.getReportStatistics", error);
-      return [];
-    }
-
-    return (data || []).map((row: any) => ({
-      reportType: row.report_type as ReportType,
-      totalGenerated: Number(row.total_generated || 0),
-      successCount: Number(row.success_count || 0),
-      failureCount: Number(row.failure_count || 0),
-      avgProcessingTimeMs: Number(row.avg_processing_time_ms || 0),
-      totalDownloads: Number(row.total_downloads || 0),
-      lastGeneratedAt: row.last_generated_at || null,
-    }));
+    return [];
   }
 
   /**
    * Log report access
+   * NOTE: report_access_logs table was dropped - no-op
    */
   private static async logReportAccess(
     _reportId: string,
     _action: "view" | "download" | "delete" | "share"
   ): Promise<void> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase.from("report_access_logs").insert({
-      report_id: _reportId,
-      user_id: user.id,
-      action: _action,
-    });
-
-    if (error) {
-      logWarn("reportsApi.logReportAccess", { error: error.message });
-    }
+    // report_access_logs table was dropped - no-op
   }
 
   /**

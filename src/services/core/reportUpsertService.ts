@@ -5,7 +5,6 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db/index";
 import { logError } from "@/lib/logger";
 
 export interface ExistingReport {
@@ -52,63 +51,30 @@ export async function checkStatementExists(
 
 /**
  * Check if a report already exists for an investor + fund + month
+ * NOTE: generated_reports table was dropped - always returns false
  */
 export async function checkReportExists(
-  investorId: string,
-  fundId: string | null,
-  reportMonth: string
+  _investorId: string,
+  _fundId: string | null,
+  _reportMonth: string
 ): Promise<ReportExistsResult> {
-  let query = supabase
-    .from("generated_reports")
-    .select("id, investor_id, fund_id, report_month, html_content, pdf_url, created_at, updated_at")
-    .eq("investor_id", investorId)
-    .eq("report_month", reportMonth);
-
-  if (fundId) {
-    query = query.eq("fund_id", fundId);
-  } else {
-    query = query.is("fund_id", null);
-  }
-
-  const { data, error } = await query.maybeSingle();
-
-  if (error) {
-    logError("checkReportExists", error, { investorId, fundId, reportMonth });
-    return { exists: false };
-  }
-
-  return {
-    exists: !!data,
-    report: data as ExistingReport | undefined,
-  };
+  return { exists: false };
 }
 
 /**
  * Log a report change to the audit trail
+ * NOTE: report_change_log table was dropped - no-op
  */
 async function logReportChange(
-  reportId: string,
-  reportTable: "generated_statements" | "generated_reports",
-  changedBy: string,
-  previousHtmlHash?: string,
-  previousPdfUrl?: string,
-  changeReason?: string,
-  changeSummary?: Record<string, any>
+  _reportId: string,
+  _reportTable: "generated_statements" | "generated_reports",
+  _changedBy: string,
+  _previousHtmlHash?: string,
+  _previousPdfUrl?: string,
+  _changeReason?: string,
+  _changeSummary?: Record<string, any>
 ): Promise<void> {
-  const { success, error } = await db.insert("report_change_log", {
-    report_id: reportId,
-    report_table: reportTable,
-    changed_by: changedBy,
-    previous_html_hash: previousHtmlHash,
-    previous_pdf_url: previousPdfUrl,
-    change_reason: changeReason || "Report regenerated",
-    change_summary: changeSummary,
-  });
-
-  if (!success) {
-    logError("logReportChange", error, { reportId, reportTable });
-    // Don't throw - audit logging should not block report generation
-  }
+  // report_change_log table was dropped - no-op
 }
 
 /**
@@ -290,87 +256,17 @@ export async function upsertReport(
   // Check if report already exists
   const existing = await checkReportExists(investorId, fundId, reportMonth);
 
-  if (existing.exists && existing.report) {
-    // Log the change before updating
-    await logReportChange(
-      existing.report.id,
-      "generated_reports",
-      createdBy,
-      existing.report.html_content ? simpleHash(existing.report.html_content) : undefined,
-      existing.report.pdf_url || undefined,
-      "Report regenerated",
-      {
-        previous_created_at: existing.report.created_at,
-        previous_updated_at: existing.report.updated_at,
-        regenerated_at: new Date().toISOString(),
-      }
-    );
-
-    // Update existing report (same ID)
-    const { error } = await supabase
-      .from("generated_reports")
-      .update({
-        report_type: reportType,
-        report_name: reportName,
-        html_content: htmlContent,
-        pdf_url: pdfUrl,
-        report_data: reportData,
-        created_by: createdBy,
-        status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", existing.report.id);
-
-    if (error) {
-      throw new Error(`Failed to update report: ${error.message}`);
-    }
-
-    return { reportId: existing.report.id, wasUpdate: true };
-  }
-
-  // Create new report
-  const { data, error } = await supabase
-    .from("generated_reports")
-    .insert({
-      investor_id: investorId,
-      fund_id: fundId,
-      report_month: reportMonth,
-      report_type: reportType,
-      report_name: reportName,
-      html_content: htmlContent,
-      pdf_url: pdfUrl,
-      report_data: reportData,
-      created_by: createdBy,
-      status,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to create report: ${error.message}`);
-  }
-
-  return { reportId: data.id, wasUpdate: false };
+  // generated_reports table was dropped
+  throw new Error("generated_reports table has been removed - use generated_statements instead");
 }
 
 /**
  * Get report change history
+ * NOTE: report_change_log table was dropped - returns empty
  */
 export async function getReportChangeHistory(
-  reportId: string,
-  reportTable: "generated_statements" | "generated_reports"
+  _reportId: string,
+  _reportTable: "generated_statements" | "generated_reports"
 ): Promise<any[]> {
-  const { data, error } = await supabase
-    .from("report_change_log")
-    .select("*")
-    .eq("report_id", reportId)
-    .eq("report_table", reportTable)
-    .order("changed_at", { ascending: false });
-
-  if (error) {
-    logError("getReportChangeHistory", error, { reportId, reportTable });
-    return [];
-  }
-
-  return data || [];
+  return [];
 }

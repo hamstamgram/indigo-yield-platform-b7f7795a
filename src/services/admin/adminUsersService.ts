@@ -47,39 +47,10 @@ export async function toggleAdminStatus(userId: string, currentStatus: boolean):
 
 /**
  * Send an admin invitation
+ * NOTE: admin_invites table was dropped
  */
-export async function sendAdminInvite(params: AdminInviteParams): Promise<void> {
-  const { email, createdBy } = params;
-
-  // Generate invite code (random string)
-  const inviteCode = [...Array(24)].map(() => Math.floor(Math.random() * 36).toString(36)).join("");
-
-  // Set expiration date (7 days from now)
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7);
-
-  // Insert the invite into the database
-  const { data: invite, error: inviteError } = await supabase
-    .from("admin_invites")
-    .insert([
-      {
-        email,
-        invite_code: inviteCode,
-        expires_at: expiresAt.toISOString(),
-        created_by: createdBy,
-      },
-    ])
-    .select("*")
-    .single();
-
-  if (inviteError) throw inviteError;
-
-  // Send the invitation email
-  const { error: emailError } = await supabase.functions.invoke("send-admin-invite", {
-    body: { invite },
-  });
-
-  if (emailError) throw emailError;
+export async function sendAdminInvite(_params: AdminInviteParams): Promise<void> {
+  throw new Error("Admin invites feature has been removed");
 }
 
 /**

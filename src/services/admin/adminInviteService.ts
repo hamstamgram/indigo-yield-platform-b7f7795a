@@ -1,7 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
-import { db } from "@/lib/db/index";
-import { generateUUID } from "@/lib/utils";
 
 export interface AdminInvite {
   id: string;
@@ -29,48 +27,26 @@ class AdminInviteService {
 
   /**
    * Fetch all admin invites
+   * NOTE: admin_invites table was dropped - returns empty
    */
   async getAll(): Promise<AdminInvite[]> {
-    const { data, error } = await supabase
-      .from("admin_invites")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return data as AdminInvite[];
+    return [];
   }
 
   /**
    * Create a new admin invite
+   * NOTE: admin_invites table was dropped
    */
-  async create(email: string, role: string): Promise<{ email: string; inviteCode: string }> {
-    const inviteCode = generateUUID();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const { error } = await db.insert("admin_invites", {
-      email: email.toLowerCase().trim(),
-      invite_code: inviteCode,
-      expires_at: expiresAt.toISOString(),
-      created_by: user?.id ?? null,
-      intended_role: role,
-    });
-
-    if (error) throw new Error(error.userMessage || error.message);
-    return { email, inviteCode };
+  async create(_email: string, _role: string): Promise<{ email: string; inviteCode: string }> {
+    throw new Error("Admin invites feature has been removed");
   }
 
   /**
    * Delete/revoke an admin invite
+   * NOTE: admin_invites table was dropped
    */
-  async revoke(inviteId: string): Promise<void> {
-    const { error } = await supabase.from("admin_invites").delete().eq("id", inviteId);
-
-    if (error) throw error;
+  async revoke(_inviteId: string): Promise<void> {
+    throw new Error("Admin invites feature has been removed");
   }
 
   /**

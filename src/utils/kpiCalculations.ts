@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { getTodayString } from "@/utils/dateUtils";
 import { logError, logWarn } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
 
@@ -19,24 +18,11 @@ export interface AssetKPI {
   };
 }
 
+/**
+ * NOTE: daily_nav table was dropped - returns 0
+ */
 export const calculateTotalAUM = async () => {
-  try {
-    // Calculate AUM from daily_nav (Most accurate source)
-    const { data, error } = await supabase
-      .from("daily_nav")
-      .select("aum, fund_id")
-      .eq("nav_date", getTodayString());
-
-    if (error) throw error;
-
-    // Sum up AUM - all values are in native token units
-    return (data || [])
-      .reduce((sum, row) => sum.plus(parseFinancial(row.aum)), parseFinancial(0))
-      .toNumber();
-  } catch (error) {
-    logError("kpiCalculations.calculateTotalAUM", error);
-    return 0;
-  }
+  return 0;
 };
 
 export const calculateInvestorCount = async () => {

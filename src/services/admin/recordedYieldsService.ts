@@ -5,7 +5,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
-import { db } from "@/lib/db/index";
 import { logError } from "@/lib/logger";
 
 export type AumPurpose = "reporting" | "transaction";
@@ -173,20 +172,7 @@ export async function updateYieldRecord(
     throw new Error("Yield record not found");
   }
 
-  // Log the edit to audit table
-  const auditResult = await db.insert("yield_edit_audit", {
-    record_id: recordId,
-    record_type: "fund_daily_aum",
-    edited_by: adminId,
-    previous_values: current,
-    new_values: { ...current, ...updates },
-    edit_reason: editReason,
-  });
-
-  if (auditResult.error) {
-    logError("recordedYieldsService.updateYieldRecord", auditResult.error);
-    // Don't throw - audit should not block updates
-  }
+  // yield_edit_audit table was dropped - skip audit logging
 
   // Apply the update
   const { data: updated, error: updateError } = await supabase
@@ -208,25 +194,10 @@ export async function updateYieldRecord(
 
 /**
  * Get yield edit history for a specific record
+ * NOTE: yield_edit_audit table was dropped - returns empty
  */
-export async function getYieldEditHistory(recordId: string): Promise<any[]> {
-  const { data, error } = await supabase
-    .from("yield_edit_audit")
-    .select(
-      `
-      *,
-      editor:profiles!fk_yield_edit_audit_editor_profile(first_name, last_name, email)
-    `
-    )
-    .eq("record_id", recordId)
-    .order("edited_at", { ascending: false });
-
-  if (error) {
-    logError("recordedYieldsService.getYieldEditHistory", error);
-    throw new Error(`Failed to fetch edit history: ${error.message}`);
-  }
-
-  return data || [];
+export async function getYieldEditHistory(_recordId: string): Promise<any[]> {
+  return [];
 }
 
 /**

@@ -263,17 +263,10 @@ class ProfileService {
 
   /**
    * Get investor monthly reports from generated_reports
+   * NOTE: generated_reports table was dropped - returns empty
    */
-  async getMonthlyReports(investorId: string, reportMonth: string): Promise<any[]> {
-    const { data, error } = await supabase
-      .from("generated_reports")
-      .select("*")
-      .eq("investor_id", investorId)
-      .eq("report_month", reportMonth)
-      .limit(100);
-
-    if (error) throw error;
-    return data || [];
+  async getMonthlyReports(_investorId: string, _reportMonth: string): Promise<any[]> {
+    return [];
   }
 
   /**

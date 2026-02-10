@@ -4,9 +4,7 @@
  * Uses time-weighted ownership and historical snapshots
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc/index";
-import { logError } from "@/lib/logger";
+// RPC functions have been dropped - stubs return error results
 
 export interface CorrectionSummary {
   fund_id: string;
@@ -157,117 +155,63 @@ export interface RegenerateResult {
 
 /**
  * Preview yield correction V2 with time-weighted ownership
- * Uses historical snapshots and proper period boundaries
+ * NOTE: preview_yield_correction_v2 RPC was dropped
  */
 export async function previewYieldCorrectionV2(
-  fundId: string,
-  periodStart: string,
-  periodEnd: string,
-  purpose: string,
-  newAum: number
+  _fundId: string,
+  _periodStart: string,
+  _periodEnd: string,
+  _purpose: string,
+  _newAum: number
 ): Promise<CorrectionPreview> {
-  const { data, error } = await rpc.call("preview_yield_correction_v2", {
-    p_fund_id: fundId,
-    p_period_start: periodStart,
-    p_period_end: periodEnd,
-    p_purpose: purpose,
-    p_new_aum: newAum,
-  });
-
-  if (error) {
-    logError("yieldCorrectionService.previewYieldCorrectionV2", error);
-    return { success: false, error: error.message };
-  }
-
-  return data as unknown as CorrectionPreview;
+  return { success: false, error: "preview_yield_correction_v2 RPC has been removed" };
 }
 
 /**
  * Apply yield correction V2 with idempotency
+ * NOTE: apply_yield_correction_v2 RPC was dropped
  */
 export async function applyYieldCorrectionV2(
-  fundId: string,
-  periodStart: string,
-  periodEnd: string,
-  purpose: string,
-  newAum: number,
-  reason: string,
-  confirmation: string
+  _fundId: string,
+  _periodStart: string,
+  _periodEnd: string,
+  _purpose: string,
+  _newAum: number,
+  _reason: string,
+  _confirmation: string
 ): Promise<CorrectionResult> {
-  const { data, error } = await rpc.call("apply_yield_correction_v2", {
-    p_fund_id: fundId,
-    p_period_start: periodStart,
-    p_period_end: periodEnd,
-    p_purpose: purpose,
-    p_new_aum: newAum,
-    p_reason: reason,
-    p_confirmation: confirmation,
-  });
-
-  if (error) {
-    logError("yieldCorrectionService.applyYieldCorrectionV2", error);
-    return { success: false, error: error.message };
-  }
-
-  return data as unknown as CorrectionResult;
+  return { success: false, error: "apply_yield_correction_v2 RPC has been removed" };
 }
 
 /**
  * Rollback a yield correction by reversing all delta transactions
+ * NOTE: rollback_yield_correction RPC was dropped
  */
 export async function rollbackYieldCorrection(
-  correctionId: string,
-  reason: string
+  _correctionId: string,
+  _reason: string
 ): Promise<RollbackResult> {
-  const { data, error } = await rpc.call("rollback_yield_correction", {
-    p_correction_id: correctionId,
-    p_reason: reason,
-  });
-
-  if (error) {
-    logError("yieldCorrectionService.rollbackYieldCorrection", error);
-    return { success: false, error: error.message };
-  }
-
-  return data as unknown as RollbackResult;
+  return { success: false, error: "rollback_yield_correction RPC has been removed" };
 }
 
 /**
  * Regenerate affected reports after a correction
+ * NOTE: regenerate_reports_for_correction RPC was dropped
  */
-export async function regenerateAffectedReports(correctionId: string): Promise<RegenerateResult> {
-  const { data, error } = await rpc.call("regenerate_reports_for_correction", {
-    p_correction_id: correctionId,
-  });
-
-  if (error) {
-    logError("yieldCorrectionService.regenerateAffectedReports", error);
-    return { success: false, error: error.message };
-  }
-
-  return data as unknown as RegenerateResult;
+export async function regenerateAffectedReports(_correctionId: string): Promise<RegenerateResult> {
+  return { success: false, error: "regenerate_reports_for_correction RPC has been removed" };
 }
 
 /**
  * Get yield correction history
+ * NOTE: get_yield_corrections RPC was dropped - returns empty
  */
 export async function getYieldCorrectionHistory(
-  fundId?: string,
-  dateFrom?: string,
-  dateTo?: string
+  _fundId?: string,
+  _dateFrom?: string,
+  _dateTo?: string
 ): Promise<CorrectionHistoryItem[]> {
-  const { data, error } = await rpc.call("get_yield_corrections", {
-    p_fund_id: fundId || null,
-    p_date_from: dateFrom || null,
-    p_date_to: dateTo || null,
-  });
-
-  if (error) {
-    logError("yieldCorrectionService.getYieldCorrectionHistory", error);
-    return [];
-  }
-
-  return (data || []) as CorrectionHistoryItem[];
+  return [];
 }
 
 /**

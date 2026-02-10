@@ -6,7 +6,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
-import { format } from "date-fns";
 import { parseFinancial } from "@/utils/financial";
 
 // ============================================================================
@@ -116,32 +115,11 @@ export interface ExclusionBreakdown {
 // ============================================================================
 
 /**
- * Fetch AUM history from daily_nav table
+ * Fetch AUM history
+ * NOTE: daily_nav table was dropped - returns empty
  */
 export async function getAUMHistory(): Promise<AUMHistoryPoint[]> {
-  const { data: historyData, error } = await supabase
-    .from("daily_nav")
-    .select("nav_date, aum")
-    .order("nav_date", { ascending: true })
-    .limit(500);
-
-  if (error) throw error;
-
-  // Aggregate AUM by date (summing all funds for each day)
-  const aumByDate = new Map<string, number>();
-  historyData?.forEach((d) => {
-    const date = d.nav_date;
-    aumByDate.set(
-      date,
-      parseFinancial(aumByDate.get(date) || 0)
-        .plus(parseFinancial(d.aum))
-        .toNumber()
-    );
-  });
-
-  return Array.from(aumByDate.entries())
-    .map(([date, aum]) => ({ date, aum }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  return [];
 }
 
 /**
@@ -196,31 +174,10 @@ export async function getFinancialMetrics(): Promise<FinancialMetrics> {
 
 /**
  * Fetch historical NAV data for a specific date
+ * NOTE: get_historical_nav RPC was dropped - returns empty
  */
-export async function getHistoricalFlowData(targetDate: Date): Promise<Map<string, FlowData>> {
-  const formattedDate = format(targetDate, "yyyy-MM-dd");
-
-  const { data: snapshot, error } = await rpc.call("get_historical_nav", {
-    target_date: formattedDate,
-  });
-
-  if (error) throw error;
-
-  const flows = new Map<string, FlowData>();
-  ((snapshot || []) as HistoricalNavItem[]).forEach((item) => {
-    // RPC returns columns with out_ prefix
-    const fundId = item.out_fund_id || item.fund_id;
-    if (!fundId) return; // Skip items without fund_id
-    flows.set(fundId, {
-      fund_id: fundId,
-      daily_inflows: item.out_daily_inflows ?? item.daily_inflows ?? 0,
-      daily_outflows: item.out_daily_outflows ?? item.daily_outflows ?? 0,
-      net_flow_24h: item.out_net_flow_24h ?? item.net_flow_24h ?? 0,
-      aum: item.out_aum ?? item.aum ?? 0,
-    });
-  });
-
-  return flows;
+export async function getHistoricalFlowData(_targetDate: Date): Promise<Map<string, FlowData>> {
+  return new Map();
 }
 
 /**

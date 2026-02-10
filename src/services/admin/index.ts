@@ -17,12 +17,15 @@ export {
 } from "./adminStatsService";
 
 export {
+  getAUMHistory,
   getFinancialMetrics,
   getHistoricalFlowData,
+  getFundInvestorComposition,
   getDeliveryStatus,
   retryDelivery,
   getDeliveryDiagnostics,
   getDeliveryExclusionBreakdown,
+  type AUMHistoryPoint,
   type FinancialMetrics,
   type FlowData,
   type InvestorComposition,
@@ -104,8 +107,6 @@ export { adminInviteService, type AdminInvite } from "./adminInviteService";
 export * from "./yieldDistributionService";
 export * from "./recordedYieldsService";
 export * from "./yieldManagementService";
-export * from "./yieldCorrectionService";
-
 export {
   crystallizeYieldBeforeFlow,
   finalizeMonthYield,
@@ -203,7 +204,6 @@ export { requestsQueueService } from "./requestsQueueService";
 export * from "./systemAdminService";
 export * from "./emailTrackingService";
 
-export { approvalService, type ApprovalResponse } from "./approvalService";
 export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";
 
 // =============================================================================

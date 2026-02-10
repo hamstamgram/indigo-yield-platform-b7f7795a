@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
 import { type AssetSummaryDetailed, getAssetName } from "@/types/asset";
 import { logError } from "@/lib/logger";
 
@@ -53,19 +52,8 @@ export const useAssetData = () => {
           throw positionsError;
         }
 
-        // Fetch latest daily rates (most recent date)
-        const { data: dailyRates, error: ratesError } = await supabase
-          .from("daily_rates")
-          .select("*")
-          .order("rate_date", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (ratesError && ratesError.code !== "PGRST116") {
-          // PGRST116 = no rows returned (acceptable if no rates yet)
-          logError("useAssetData.fetchDailyRates", ratesError);
-          throw ratesError;
-        }
+        // daily_rates table was dropped - rates not available
+        const dailyRates = null;
 
         // Calculate asset summaries with per-asset yield
         const summaries: AssetSummaryDetailed[] = (positions || []).map((position) => {
@@ -75,33 +63,8 @@ export const useAssetData = () => {
           const totalEarned = 0; // not tracked in investor_positions
 
           // Get current rate for this asset
-          let currentRate = 0;
-          if (dailyRates) {
-            const rates: Database["public"]["Tables"]["daily_rates"]["Row"] = dailyRates;
-            switch (symbol) {
-              case "BTC":
-                currentRate = Number(rates.btc_rate);
-                break;
-              case "ETH":
-                currentRate = Number(rates.eth_rate);
-                break;
-              case "SOL":
-                currentRate = Number(rates.sol_rate);
-                break;
-              case "USDT":
-                currentRate = Number(rates.usdt_rate);
-                break;
-              case "EURC":
-                currentRate = Number(rates.eurc_rate);
-                break;
-              case "XAUT":
-                currentRate = Number(rates.xaut_rate || 0);
-                break;
-              case "XRP":
-                currentRate = Number(rates.xrp_rate || 0);
-                break;
-            }
-          }
+          // daily_rates table was dropped - rate data unavailable
+          const currentRate = 0;
 
           // Calculate daily yield (balance * current_rate / 100 for percentage rate)
           const dailyYield = balance * (currentRate / 100);

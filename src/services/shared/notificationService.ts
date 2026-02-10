@@ -4,7 +4,6 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db/index";
 import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { toNotifications, type Notification } from "@/lib/typeAdapters";
 
@@ -106,60 +105,26 @@ class NotificationService {
 
   /**
    * Get notification settings for a user
+   * NOTE: notification_settings table was dropped - returns null
    */
-  async getSettings(userId: string): Promise<NotificationSettings | null> {
-    const { data, error } = await supabase
-      .from("notification_settings")
-      .select(
-        "id, user_id, email_enabled, push_enabled, in_app_enabled, transaction_notifications, alert_notifications, system_notifications, security_notifications, document_notifications, support_notifications, yield_notifications, portfolio_notifications, email_frequency, quiet_hours_start, quiet_hours_end, created_at, updated_at"
-      )
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data as unknown as NotificationSettings | null;
+  async getSettings(_userId: string): Promise<NotificationSettings | null> {
+    return null;
   }
 
   /**
    * Create default notification settings
+   * NOTE: notification_settings table was dropped
    */
-  async createDefaultSettings(userId: string): Promise<NotificationSettings> {
-    const defaultSettings = {
-      user_id: userId,
-      email_enabled: true,
-      push_enabled: true,
-      in_app_enabled: true,
-      transaction_notifications: true,
-      alert_notifications: true,
-      system_notifications: true,
-      security_notifications: true,
-      document_notifications: true,
-      support_notifications: true,
-      yield_notifications: true,
-      portfolio_notifications: true,
-      email_frequency: "realtime",
-    };
-
-    const { data, error } = await supabase
-      .from("notification_settings")
-      .insert(defaultSettings)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as unknown as NotificationSettings;
+  async createDefaultSettings(_userId: string): Promise<NotificationSettings> {
+    throw new Error("notification_settings table has been removed");
   }
 
   /**
    * Update notification settings
+   * NOTE: notification_settings table was dropped - no-op
    */
-  async updateSettings(userId: string, updates: Partial<NotificationSettings>): Promise<void> {
-    const { error } = await supabase
-      .from("notification_settings")
-      .update(updates)
-      .eq("user_id", userId);
-
-    if (error) throw error;
+  async updateSettings(_userId: string, _updates: Partial<NotificationSettings>): Promise<void> {
+    // notification_settings table was dropped - no-op
   }
 
   // ============================================
@@ -168,71 +133,37 @@ class NotificationService {
 
   /**
    * Get price alerts for a user
+   * NOTE: price_alerts table was dropped - returns empty
    */
-  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
-    const { data, error } = await supabase
-      .from("price_alerts")
-      .select(
-        "id, user_id, asset_code, alert_type, threshold_value, current_value, is_active, triggered_at, created_at, updated_at"
-      )
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (error) throw error;
-    return (data as unknown as PriceAlert[]) || [];
+  async getPriceAlerts(_userId: string): Promise<PriceAlert[]> {
+    return [];
   }
 
   /**
    * Create a price alert
+   * NOTE: price_alerts table was dropped
    */
   async createPriceAlert(
-    userId: string,
-    alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">
+    _userId: string,
+    _alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">
   ): Promise<PriceAlert> {
-    const insertData = {
-      user_id: userId,
-      alert_type: alert.alert_type,
-      asset_code: alert.asset_code,
-      threshold_value:
-        typeof alert.threshold_value === "string"
-          ? parseFloat(alert.threshold_value)
-          : alert.threshold_value,
-      is_active: alert.is_active,
-    };
-    const { data, error } = await supabase
-      .from("price_alerts")
-      .insert(insertData)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as unknown as PriceAlert;
+    throw new Error("price_alerts table has been removed");
   }
 
   /**
    * Update a price alert
+   * NOTE: price_alerts table was dropped
    */
-  async updatePriceAlert(alertId: string, updates: Partial<PriceAlert>): Promise<void> {
-    const updateData: Record<string, unknown> = { ...updates };
-    if (updates.threshold_value !== undefined) {
-      updateData.threshold_value =
-        typeof updates.threshold_value === "string"
-          ? parseFloat(updates.threshold_value)
-          : updates.threshold_value;
-    }
-    const { error } = await supabase.from("price_alerts").update(updateData).eq("id", alertId);
-
-    if (error) throw error;
+  async updatePriceAlert(_alertId: string, _updates: Partial<PriceAlert>): Promise<void> {
+    throw new Error("price_alerts table has been removed");
   }
 
   /**
    * Delete a price alert
+   * NOTE: price_alerts table was dropped
    */
-  async deletePriceAlert(alertId: string): Promise<void> {
-    const { error } = await db.delete("price_alerts", { column: "id", value: alertId });
-
-    if (error) throw new Error(error.message);
+  async deletePriceAlert(_alertId: string): Promise<void> {
+    throw new Error("price_alerts table has been removed");
   }
 }
 

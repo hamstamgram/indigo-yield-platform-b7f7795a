@@ -85,9 +85,6 @@ export * from "./feeAllocation";
 // IB Allocation domain
 export * from "./ibAllocation";
 
-// Approval domain (2-person rule)
-export * from "./approval";
-
 // Yield Crystallization domain
 export * from "./yieldCrystallization";
 

@@ -45,7 +45,7 @@ import {
   type TransactionDiff,
   type ReportImpact,
   type Reconciliation,
-} from "@/services/admin";
+} from "@/services/admin/yieldCorrectionService";
 
 interface YieldCorrectionPreviewProps {
   summary: CorrectionSummary;

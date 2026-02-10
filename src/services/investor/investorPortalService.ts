@@ -300,31 +300,23 @@ export async function saveUserPreferences(userId: string, settings: UserSettings
 
 // ============= Session Management Functions =============
 
-export async function getActiveSessions(userId: string): Promise<Session[]> {
-  const { data, error } = await supabase
-    .from("user_sessions")
-    .select("id, device_label, user_agent, created_at, last_seen_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-  return data || [];
+/**
+ * NOTE: user_sessions table was dropped - returns empty
+ */
+export async function getActiveSessions(_userId: string): Promise<Session[]> {
+  return [];
 }
 
-export async function getAccessLogs(userId: string, limit = 20): Promise<AccessLog[]> {
-  const { data, error } = await supabase
-    .from("access_logs")
-    .select("id, event, created_at, success")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error) throw error;
-  return data || [];
+/**
+ * NOTE: access_logs table was dropped - returns empty
+ */
+export async function getAccessLogs(_userId: string, _limit = 20): Promise<AccessLog[]> {
+  return [];
 }
 
-export async function revokeSession(sessionId: string): Promise<void> {
-  const { error } = await supabase.from("user_sessions").delete().eq("id", sessionId);
-
-  if (error) throw error;
+/**
+ * NOTE: user_sessions table was dropped - no-op
+ */
+export async function revokeSession(_sessionId: string): Promise<void> {
+  // user_sessions table was dropped - no-op
 }

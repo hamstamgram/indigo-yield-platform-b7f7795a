@@ -55,42 +55,27 @@ export interface VoidYieldImpactResult {
 
 /**
  * Reconcile a fund's metrics for a specific period
- * Checks Opening AUM, Inflows, Outflows, Yield, Fees, Closing AUM
+ * NOTE: reconcile_fund_period RPC was dropped
  */
 export async function reconcileFundPeriod(
-  fundId: string,
-  startDate: string,
-  endDate: string
+  _fundId: string,
+  _startDate: string,
+  _endDate: string
 ): Promise<FundPeriodReconciliationResult[]> {
-  const { data, error } = await rpc.call("reconcile_fund_period", {
-    p_fund_id: fundId,
-    p_start_date: startDate,
-    p_end_date: endDate,
-  });
-
-  if (error) throw error;
-  return data as FundPeriodReconciliationResult[];
+  throw new Error("reconcile_fund_period RPC has been removed");
 }
 
 /**
  * Reconcile an investor's position in a fund
- * Can check, recalculate, or log the reconciliation
+ * NOTE: reconcile_investor_position RPC was dropped
  */
 export async function reconcileInvestorPosition(
-  investorId: string,
-  fundId: string,
-  adminId: string,
-  action: "check" | "recalculate" | "log" = "check"
+  _investorId: string,
+  _fundId: string,
+  _adminId: string,
+  _action: "check" | "recalculate" | "log" = "check"
 ): Promise<InvestorPositionReconciliationResult> {
-  const { data, error } = await rpc.call("reconcile_investor_position", {
-    p_investor_id: investorId,
-    p_fund_id: fundId,
-    p_admin_id: adminId,
-    p_action: action,
-  });
-
-  if (error) throw error;
-  return data as unknown as InvestorPositionReconciliationResult;
+  throw new Error("reconcile_investor_position RPC has been removed");
 }
 
 /**

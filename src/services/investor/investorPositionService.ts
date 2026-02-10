@@ -344,6 +344,7 @@ export async function fetchInvestors(): Promise<
 
 /**
  * Fetch pending invites
+ * NOTE: admin_invites table was dropped - returns empty
  */
 export async function fetchPendingInvites(): Promise<
   {
@@ -354,24 +355,7 @@ export async function fetchPendingInvites(): Promise<
     created_at: string;
   }[]
 > {
-  const { data, error } = await supabase
-    .from("admin_invites")
-    .select("email, created_at")
-    .eq("used", false)
-    .limit(500);
-
-  if (error) {
-    logError("investorPosition.fetchPendingInvites", error);
-    return [];
-  }
-
-  return (data || []).map((invite) => ({
-    id: "",
-    email: invite.email,
-    first_name: null,
-    last_name: null,
-    created_at: invite.created_at || new Date().toISOString(),
-  }));
+  return [];
 }
 
 // ============================================

@@ -171,37 +171,10 @@ export const withdrawalService = {
 
   /**
    * Get audit logs for a specific withdrawal
+   * NOTE: withdrawal_audit_logs table was dropped - returns empty
    */
-  async getWithdrawalAuditLogs(withdrawalId: string): Promise<WithdrawalAuditLog[]> {
-    const { data, error } = await supabase
-      .from("withdrawal_audit_logs")
-      .select("*, actor:profiles!withdrawal_audit_logs_actor_id_fkey(first_name, last_name, email)")
-      .eq("request_id", withdrawalId)
-      .order("created_at", { ascending: true });
-
-    if (error) throw error;
-
-    return (data || []).map((log) => {
-      const actor = log.actor as {
-        first_name?: string;
-        last_name?: string;
-        email?: string;
-      } | null;
-
-      const actor_name =
-        actor?.first_name || actor?.last_name
-          ? `${actor.first_name || ""} ${actor.last_name || ""}`.trim()
-          : actor?.email || "System";
-
-      const { actor: _a, ...rest } = log;
-      return {
-        ...rest,
-        action: log.action as WithdrawalAuditLog["action"],
-        details: log.details as Record<string, unknown> | null,
-        actor_name,
-        actor_email: actor?.email || "",
-      } as WithdrawalAuditLog;
-    });
+  async getWithdrawalAuditLogs(_withdrawalId: string): Promise<WithdrawalAuditLog[]> {
+    return [];
   },
 
   /**
