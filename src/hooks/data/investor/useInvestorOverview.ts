@@ -69,10 +69,10 @@ export function useInvestorOverview(investorId: string) {
         .limit(1)
         .maybeSingle();
 
-      // Fetch last generated report
+      // Fetch last generated report with period name
       const { data: lastReport } = await supabase
         .from("generated_statements")
-        .select("period_id")
+        .select("period_id, statement_periods!inner(period_name)")
         .eq("investor_id", investorId)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -117,7 +117,7 @@ export function useInvestorOverview(investorId: string) {
         tokenBalances,
         lastActivityDate: lastTx?.tx_date || null,
         pendingWithdrawals: pendingCount || 0,
-        lastReportPeriod: lastReport?.period_id || null,
+        lastReportPeriod: lastReport?.statement_periods?.period_name || null,
         ibParentName,
         feeScheduleStatus: (feeSchedule?.length || 0) > 0 ? "active" : "default",
         hasPositions: activePositions.length > 0,

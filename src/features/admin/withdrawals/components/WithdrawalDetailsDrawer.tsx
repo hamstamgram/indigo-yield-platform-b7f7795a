@@ -169,30 +169,6 @@ export function WithdrawalDetailsDrawer({
                   )}
                 </div>
 
-                {/* TX Hash */}
-                {withdrawal.tx_hash && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                        Transaction Hash
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
-                          {withdrawal.tx_hash}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => copyToClipboard(withdrawal.tx_hash!, "TX Hash")}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 {/* Notes */}
                 {(withdrawal.notes ||
                   withdrawal.admin_notes ||

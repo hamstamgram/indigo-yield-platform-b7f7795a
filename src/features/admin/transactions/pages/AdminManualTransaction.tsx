@@ -72,7 +72,6 @@ const transactionSchema = z.object({
   txDate: z.string().min(1, "Transaction date is required"),
   newTotalAum: z.string().optional(),
   description: z.string().optional(),
-  txHash: z.string().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -99,7 +98,6 @@ export default function AdminManualTransaction() {
       txDate: getTodayString(),
       newTotalAum: "",
       description: "",
-      txHash: "",
     },
   });
 
@@ -261,7 +259,6 @@ export default function AdminManualTransaction() {
           newTotalAum: aumValue.toFixed(10),
           txDate: data.txDate,
           notes: data.description,
-          txHash: data.txHash,
         });
 
         if (!result.success) {
@@ -301,7 +298,6 @@ export default function AdminManualTransaction() {
           tx_date: data.txDate,
           asset: selectedFund.asset,
           notes: data.description,
-          tx_hash: data.txHash,
           closing_aum: data.newTotalAum || undefined,
           event_ts: `${data.txDate}T00:00:00.000Z`,
         });
@@ -324,7 +320,6 @@ export default function AdminManualTransaction() {
         txDate: getTodayString(),
         newTotalAum: "",
         description: "",
-        txHash: "",
         investorId: "",
         fundId: "",
       });
@@ -650,11 +645,6 @@ export default function AdminManualTransaction() {
             )}
 
             {/* Optional Fields */}
-            <div className="space-y-2">
-              <Label>Transaction Hash (Optional)</Label>
-              <Input {...form.register("txHash")} placeholder="0x..." />
-            </div>
-
             <div className="space-y-2">
               <Label>Description / Notes</Label>
               <Textarea {...form.register("description")} placeholder="Admin notes..." />

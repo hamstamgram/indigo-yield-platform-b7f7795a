@@ -165,28 +165,49 @@ export const performanceService = {
     // Group by period to find the latest one if no periodId specified
     const rows = perfRows || [];
     if (rows.length === 0) {
-      // No performance data - return live positions with zero metrics
-      const emptyAssets = activePositions.map((pos) => {
-        const zeroPeriod = {
+      // No performance data - compute from transactions
+      const computedAssets = [];
+      for (const pos of activePositions) {
+        const { data: txSums } = await supabase
+          .from("transactions_v2")
+          .select("type, amount")
+          .eq("investor_id", userId)
+          .eq("fund_id", pos.fundId)
+          .eq("is_voided", false);
+
+        let additions = 0;
+        let redemptions = 0;
+        let netIncome = 0;
+        for (const tx of txSums || []) {
+          const amt = Math.abs(Number(tx.amount));
+          if (tx.type === "DEPOSIT") additions += amt;
+          else if (tx.type === "WITHDRAWAL") redemptions += amt;
+          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
+            netIncome += Number(tx.amount);
+          }
+        }
+
+        const itdStats = {
           beginningBalance: 0,
-          additions: 0,
-          redemptions: 0,
-          netIncome: 0,
+          additions,
+          redemptions,
+          netIncome,
           endingBalance: pos.currentValue,
-          rateOfReturn: 0,
+          rateOfReturn: additions > 0 && netIncome !== 0 ? (netIncome / additions) * 100 : 0,
         };
-        return {
+
+        computedAssets.push({
           fundName: pos.fundName,
           assetSymbol: pos.asset,
           periodName: "Current",
-          mtd: zeroPeriod,
-          qtd: zeroPeriod,
-          ytd: zeroPeriod,
-          itd: zeroPeriod,
-        };
-      });
+          mtd: itdStats,
+          qtd: itdStats,
+          ytd: itdStats,
+          itd: itdStats,
+        });
+      }
       return {
-        assets: emptyAssets,
+        assets: computedAssets,
         activeFunds: activePositions.length,
         periodLabel: null,
         periodEndDate: null,
@@ -274,25 +295,50 @@ export const performanceService = {
         };
       });
 
-    // Include positions that have no performance data yet
-    for (const pos of activePositions) {
-      if (!perAssetStats.some((s) => s.fundName === pos.fundName)) {
-        const zeroPeriod = {
+    // Include positions that have no performance data yet - compute from transactions
+    const missingPositions = activePositions.filter(
+      (pos) => !perAssetStats.some((s) => s.fundName === pos.fundName)
+    );
+
+    if (missingPositions.length > 0) {
+      // Batch fetch transaction sums for all missing positions
+      for (const pos of missingPositions) {
+        const { data: txSums } = await supabase
+          .from("transactions_v2")
+          .select("type, amount")
+          .eq("investor_id", userId)
+          .eq("fund_id", pos.fundId)
+          .eq("is_voided", false);
+
+        let additions = 0;
+        let redemptions = 0;
+        let netIncome = 0;
+        for (const tx of txSums || []) {
+          const amt = Math.abs(Number(tx.amount));
+          if (tx.type === "DEPOSIT") additions += amt;
+          else if (tx.type === "WITHDRAWAL") redemptions += amt;
+          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
+            netIncome += Number(tx.amount);
+          }
+        }
+
+        const itdStats = {
           beginningBalance: 0,
-          additions: 0,
-          redemptions: 0,
-          netIncome: 0,
+          additions,
+          redemptions,
+          netIncome,
           endingBalance: pos.currentValue,
-          rateOfReturn: 0,
+          rateOfReturn: additions > 0 && netIncome !== 0 ? (netIncome / additions) * 100 : 0,
         };
+
         perAssetStats.push({
           fundName: pos.fundName,
           assetSymbol: pos.asset,
           periodName: periodLabel || "Current",
-          mtd: zeroPeriod,
-          qtd: zeroPeriod,
-          ytd: zeroPeriod,
-          itd: zeroPeriod,
+          mtd: itdStats,
+          qtd: itdStats,
+          ytd: itdStats,
+          itd: itdStats,
         });
       }
     }

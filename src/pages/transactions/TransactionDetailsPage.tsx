@@ -87,12 +87,6 @@ export default function TransactionDetailsPage() {
                 <CryptoIcon symbol={item.asset} className="h-5 w-5" />
               </div>
             </div>
-            {item.tx_hash && (
-              <div className="col-span-2">
-                <p className="text-sm text-muted-foreground mb-1">Transaction Hash</p>
-                <p className="font-mono text-xs break-all">{item.tx_hash}</p>
-              </div>
-            )}
           </div>
 
           {item.notes && (

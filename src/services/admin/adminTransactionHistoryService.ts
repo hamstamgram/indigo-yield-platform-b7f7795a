@@ -74,6 +74,31 @@ interface VoidReissueRPCResult {
 // SUBTYPE_DISPLAY_MAP is now imported from @/types/domains/transaction
 
 /**
+ * Format transaction notes for display by stripping technical reference IDs
+ */
+function formatTransactionNotes(notes: string | null): string | null {
+  if (!notes) return null;
+
+  // Strip "DEPOSIT - manual:uuid:uuid:date:uuid" pattern -> just show "Deposit"
+  if (/^DEPOSIT\s*-\s*manual:/i.test(notes)) return "Deposit";
+
+  // Strip "WITHDRAWAL - manual:..." pattern -> "Withdrawal"
+  if (/^WITHDRAWAL\s*-\s*manual:/i.test(notes)) return "Withdrawal";
+
+  // Strip technical suffix from "Deposit with yield crystallization - deposit_yield:..."
+  if (notes.includes(" - deposit_yield:")) return notes.split(" - deposit_yield:")[0];
+
+  // "[wdr_comp_...]" patterns -> "Withdrawal completed"
+  if (/^\[wdr_comp_/.test(notes)) return "Withdrawal completed";
+
+  // "[wdr_...]" patterns -> "Withdrawal"
+  if (/^\[wdr_/.test(notes)) return "Withdrawal";
+
+  // Already human-readable (e.g. "Platform fees for ADB yield period...")
+  return notes;
+}
+
+/**
  * Fetch active funds for filter dropdowns
  */
 async function fetchActiveFunds(): Promise<FundOption[]> {
@@ -160,7 +185,7 @@ async function fetchTransactions(
       displayType,
       amount: String(tx.amount),
       txDate: tx.tx_date,
-      notes: tx.notes,
+      notes: formatTransactionNotes(tx.notes),
       txHash: tx.tx_hash,
       createdAt: tx.created_at,
       createdBy: tx.created_by,

@@ -24,18 +24,6 @@ export function TransactionMetadataInputs() {
         )}
       </div>
 
-      {/* Transaction Hash */}
-      <div className="space-y-2">
-        <Label htmlFor="tx_hash">Transaction Hash</Label>
-        <Input
-          id="tx_hash"
-          placeholder="Optional blockchain transaction hash"
-          {...register("tx_hash")}
-          className={errors.tx_hash ? "border-destructive" : ""}
-        />
-        {errors.tx_hash && <p className="text-sm text-destructive">{errors.tx_hash.message}</p>}
-      </div>
-
       {/* Notes */}
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>

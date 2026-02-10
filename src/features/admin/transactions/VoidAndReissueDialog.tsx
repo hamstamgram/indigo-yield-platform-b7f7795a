@@ -55,7 +55,6 @@ const reissueSchema = z.object({
   amount: z.string().min(1, "Amount is required"),
   closing_aum: z.string().min(1, "Closing AUM is required"),
   notes: z.string().optional(),
-  tx_hash: z.string().optional(),
   reason: z.string().min(10, "Reason must be at least 10 characters for audit trail"),
 });
 
@@ -126,7 +125,6 @@ export function VoidAndReissueDialog({
         amount: transaction.amount,
         closing_aum: "",
         notes: transaction.notes || "",
-        tx_hash: transaction.txHash || "",
         reason: "",
       });
       setConfirmText("");
@@ -190,14 +188,6 @@ export function VoidAndReissueDialog({
         newValue: watchedValues.notes || "(empty)",
       });
     }
-    if ((watchedValues.tx_hash || "") !== (transaction.txHash || "")) {
-      changes.push({
-        field: "Tx Hash",
-        oldValue: transaction.txHash || "(none)",
-        newValue: watchedValues.tx_hash || "(none)",
-      });
-    }
-
     return changes;
   };
 
@@ -251,7 +241,6 @@ export function VoidAndReissueDialog({
           tx_date: data.tx_date,
           amount: data.amount, // Keep as string for NUMERIC precision
           notes: data.notes || null,
-          tx_hash: data.tx_hash || null,
         },
         closingAum: String(closingAum),
         reason: data.reason.trim(),
@@ -433,16 +422,6 @@ export function VoidAndReissueDialog({
                 {errors.closing_aum && (
                   <p className="text-sm text-destructive">{errors.closing_aum.message}</p>
                 )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tx_hash">Transaction Hash</Label>
-                <Input
-                  id="tx_hash"
-                  placeholder="Optional blockchain tx hash"
-                  {...register("tx_hash")}
-                  disabled={transaction.isSystemGenerated}
-                />
               </div>
 
               <div className="space-y-2">

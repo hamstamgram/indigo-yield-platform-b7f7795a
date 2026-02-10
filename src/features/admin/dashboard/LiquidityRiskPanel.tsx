@@ -25,8 +25,8 @@ export function LiquidityRiskPanel() {
     );
   }
 
-  const safeLiquidityData = (liquidityData || []).filter((fund): fund is LiquidityRisk =>
-    Boolean(fund && fund.fund_id)
+  const safeLiquidityData = (liquidityData || []).filter(
+    (fund): fund is LiquidityRisk => Boolean(fund && fund.fund_id) && fund.risk_level !== "NO_AUM"
   );
 
   const riskyFunds = safeLiquidityData.filter(

@@ -98,10 +98,10 @@ export async function loadOpsIndicators(
     .eq("investor_id", investorId)
     .eq("status", "pending");
 
-  // Fetch last report
+  // Fetch last report with period name
   const { data: lastReport } = await supabase
     .from("generated_statements")
-    .select("period_id")
+    .select("period_id, statement_periods!inner(period_name)")
     .eq("investor_id", investorId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -130,7 +130,7 @@ export async function loadOpsIndicators(
 
   return {
     lastActivityDate: lastTx?.tx_date || null,
-    lastReportPeriod: lastReport?.period_id || null,
+    lastReportPeriod: lastReport?.statement_periods?.period_name || null,
     pendingWithdrawals: pendingCount || 0,
     ibParentName,
     hasFeeSchedule: (feeSchedule?.length || 0) > 0,

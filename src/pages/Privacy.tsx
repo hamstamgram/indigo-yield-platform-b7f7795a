@@ -150,7 +150,7 @@ const Privacy = () => {
               decoding="async"
             />
             <p className="mt-2 text-sm text-gray-500">
-              © 2025 INDIGO DIGITAL ASSETS YIELD. All rights reserved.
+              © {new Date().getFullYear()} INDIGO DIGITAL ASSETS YIELD. All rights reserved.
             </p>
           </div>
           <div className="flex space-x-4 sm:space-x-6">

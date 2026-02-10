@@ -14,7 +14,6 @@ import {
   SortableTableHead,
 } from "@/components/ui";
 import { Search, Receipt, Filter, Download } from "lucide-react";
-import { Link } from "react-router-dom";
 import { formatInvestorAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hooks/data";
@@ -144,19 +143,6 @@ export default function InvestorTransactionsPage() {
         );
       },
     },
-    {
-      header: "Actions",
-      cell: (item: Record<string, unknown>) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="text-indigo-400 hover:text-white hover:bg-white/5"
-        >
-          <Link to={`/investor/transactions/${item.id}`}>View Details</Link>
-        </Button>
-      ),
-    },
   ];
 
   return (
@@ -172,7 +158,7 @@ export default function InvestorTransactionsPage() {
             </span>
           </h1>
           <p className="text-slate-400 mt-1 text-sm">
-            Search and filter your complete yield history
+            View and filter your complete transaction history
           </p>
         </div>
         <div className="flex gap-3">

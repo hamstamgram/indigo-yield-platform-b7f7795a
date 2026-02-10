@@ -47,7 +47,6 @@ export function ApproveWithdrawalDialog({
   onSuccess,
 }: ApproveWithdrawalDialogProps) {
   const [processedAmount, setProcessedAmount] = useState(withdrawal.requested_amount.toString());
-  const [txHash, setTxHash] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,7 +115,6 @@ export function ApproveWithdrawalDialog({
   useEffect(() => {
     if (open) {
       setProcessedAmount(withdrawal.requested_amount.toString());
-      setTxHash("");
       setAdminNotes("");
       setConfirmText("");
       setIsFullExit(false);
@@ -156,7 +154,7 @@ export function ApproveWithdrawalDialog({
       await withdrawalService.approveAndComplete(
         withdrawal.id,
         processedAmount,
-        txHash || undefined,
+        undefined,
         adminNotes || undefined,
         isFullExit || undefined
       );
@@ -279,16 +277,6 @@ export function ApproveWithdrawalDialog({
               </div>
             )}
 
-            <div>
-              <Label htmlFor="txHash">Transaction Hash (Optional)</Label>
-              <Input
-                id="txHash"
-                type="text"
-                value={txHash}
-                onChange={(e) => setTxHash(e.target.value)}
-                placeholder="0x..."
-              />
-            </div>
             <div>
               <Label htmlFor="adminNotes">Admin Notes (Optional)</Label>
               <Textarea

@@ -126,7 +126,7 @@ export default function InvestorOverviewPage() {
                 <div
                   key={asset.assetSymbol}
                   className="glass-card rounded-3xl p-6 border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent hover:border-indigo-500/30 transition-all group relative overflow-hidden cursor-pointer"
-                  onClick={() => navigate(`/funds/${asset.fundName}`)}
+                  onClick={() => navigate("/investor/portfolio")}
                 >
                   <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
@@ -159,7 +159,7 @@ export default function InvestorOverviewPage() {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/5">
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
                       <div>
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
                           ITD Return
@@ -189,35 +189,6 @@ export default function InvestorOverviewPage() {
                             : "--"}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
-                          {asset.ytd.netIncome > 0
-                            ? "YTD Earned"
-                            : asset.mtd.netIncome > 0
-                              ? "MTD Earned"
-                              : "ITD Earned"}
-                        </p>
-                        <p
-                          className={cn(
-                            "text-lg font-mono font-bold",
-                            (asset.ytd.netIncome > 0
-                              ? asset.ytd.netIncome
-                              : asset.mtd.netIncome > 0
-                                ? asset.mtd.netIncome
-                                : asset.itd.netIncome) > 0
-                              ? "text-emerald-400"
-                              : "text-slate-500"
-                          )}
-                        >
-                          {asset.ytd.netIncome > 0
-                            ? `+${formatCurrency(asset.ytd.netIncome, asset.assetSymbol)}`
-                            : asset.mtd.netIncome > 0
-                              ? `+${formatCurrency(asset.mtd.netIncome, asset.assetSymbol)}`
-                              : asset.itd.netIncome > 0
-                                ? `+${formatCurrency(asset.itd.netIncome, asset.assetSymbol)}`
-                                : "--"}
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -226,9 +197,6 @@ export default function InvestorOverviewPage() {
               {(!assetStats?.assets || assetStats.assets.length === 0) && (
                 <div className="col-span-2 glass-panel p-8 text-center rounded-3xl border-dashed border-white/10">
                   <p className="text-slate-400">No active positions found.</p>
-                  <Button className="mt-4" onClick={() => navigate("/funds")}>
-                    Explore Funds
-                  </Button>
                 </div>
               )}
             </div>
