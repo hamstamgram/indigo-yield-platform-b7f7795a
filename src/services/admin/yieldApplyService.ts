@@ -44,7 +44,7 @@ export async function applyYieldDistribution(
   adminId: string,
   purpose: "reporting" | "transaction" = "reporting"
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, periodStart, newTotalAUM, baseAUM } = input;
+  const { fundId, targetDate, periodStart, newTotalAUM, baseAUM, snapshotTime } = input;
 
   // Calculate period dates (always full month: 1st to last day)
   const periodEndDate = targetDate;
@@ -93,6 +93,7 @@ export async function applyYieldDistribution(
     p_purpose: purpose,
     ...(purpose !== "reporting" && { p_distribution_date: formatDateForDB(new Date()) }),
     ...(hasNewAum && { p_recorded_aum: parsedAum.toNumber() }),
+    ...(snapshotTime && { p_snapshot_time: snapshotTime }),
   });
 
   if (error) {

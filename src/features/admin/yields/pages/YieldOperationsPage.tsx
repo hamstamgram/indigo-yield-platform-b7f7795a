@@ -201,6 +201,8 @@ function YieldOperationsContent() {
               asOfAum={ops.asOfAum}
               asOfAumLoading={ops.asOfAumLoading}
               existingDistributionDate={ops.existingDistributionDate}
+              aumTime={ops.aumTime}
+              setAumTime={ops.setAumTime}
             />
 
             {/* Preview Results */}

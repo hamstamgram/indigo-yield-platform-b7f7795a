@@ -67,7 +67,13 @@ export const RPC_SIGNATURES = {
       "p_period_end",
       "p_period_start",
     ] as const,
-    optionalParams: ["p_admin_id", "p_distribution_date", "p_purpose", "p_recorded_aum"] as const,
+    optionalParams: [
+      "p_admin_id",
+      "p_distribution_date",
+      "p_purpose",
+      "p_recorded_aum",
+      "p_snapshot_time",
+    ] as const,
   },
   apply_transaction_with_crystallization: {
     name: "apply_transaction_with_crystallization" as const,

@@ -8,6 +8,7 @@ import {
   Card,
   CardContent,
   Button,
+  Input,
   Label,
   Calendar,
   Popover,
@@ -70,6 +71,8 @@ interface YieldInputFormProps {
   asOfAum: number | null;
   asOfAumLoading: boolean;
   existingDistributionDate: string | null;
+  aumTime: string;
+  setAumTime: (time: string) => void;
 }
 
 export function YieldInputForm({
@@ -95,6 +98,8 @@ export function YieldInputForm({
   asOfAum,
   asOfAumLoading,
   existingDistributionDate,
+  aumTime,
+  setAumTime,
 }: YieldInputFormProps) {
   const [showAdvancedPurpose, setShowAdvancedPurpose] = useState(false);
   const validationResult = validateEffectiveDate();
@@ -328,6 +333,22 @@ export function YieldInputForm({
               </PopoverContent>
             </Popover>
           )}
+
+          {/* Time picker for Transaction purpose only */}
+          {!isReporting && (
+            <div className="flex items-center gap-2 mt-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">
+                Snapshot Time
+              </Label>
+              <Input
+                type="time"
+                value={aumTime}
+                onChange={(e) => setAumTime(e.target.value)}
+                className="w-32 h-8 text-sm"
+              />
+            </div>
+          )}
         </div>
 
         {/* AUM Display */}
@@ -384,13 +405,13 @@ export function YieldInputForm({
         </div>
       )}
 
-      {/* Existing Distribution Warning */}
-      {existingDistributionDate && (
+      {/* Existing Distribution Warning (reporting only - transaction allows multiple per day) */}
+      {existingDistributionDate && isReporting && (
         <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
           <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <span>
-            Yield has already been distributed for this date. Void the existing distribution before
-            reapplying.
+            Reporting yield has already been distributed for this period. Void the existing
+            distribution before reapplying.
           </span>
         </div>
       )}
@@ -458,8 +479,8 @@ export function YieldInputForm({
           disabled={
             !newAUM ||
             previewLoading ||
-            Boolean(existingDistributionDate) ||
-            (yieldPurpose === "reporting" && !validationResult.valid)
+            (isReporting && Boolean(existingDistributionDate)) ||
+            (isReporting && !validationResult.valid)
           }
           variant="secondary"
           className="w-full"

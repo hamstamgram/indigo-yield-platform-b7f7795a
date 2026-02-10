@@ -49,6 +49,7 @@ export interface YieldOperationsState {
   asOfDateIso: string | null; // ISO string for as-of AUM query
   existingDistributionDate: string | null;
   existingDistributionId: string | null;
+  aumTime: string; // HH:MM for transaction-purpose audit trail
 }
 
 const initialState: YieldOperationsState = {
@@ -72,6 +73,7 @@ const initialState: YieldOperationsState = {
   asOfDateIso: null,
   existingDistributionDate: null,
   existingDistributionId: null,
+  aumTime: format(new Date(), "HH:mm"),
 };
 
 export function useYieldOperationsState() {
@@ -173,6 +175,10 @@ export function useYieldOperationsState() {
     setState((prev) => ({ ...prev, acknowledgeDiscrepancy: acknowledge }));
   }, []);
 
+  const setAumTime = useCallback((time: string) => {
+    setState((prev) => ({ ...prev, aumTime: time }));
+  }, []);
+
   // Generate available months for selection
   // FIX: Use date-fns format instead of toISOString to avoid timezone bugs
   const getAvailableMonths = useCallback((): { value: string; label: string }[] => {
@@ -215,6 +221,7 @@ export function useYieldOperationsState() {
       asOfDateIso: asOfDateIso,
       existingDistributionDate: null,
       existingDistributionId: null,
+      aumTime: format(new Date(), "HH:mm"),
     }));
   }, []);
 
@@ -334,28 +341,31 @@ export function useYieldOperationsState() {
 
     setState((prev) => ({ ...prev, previewLoading: true }));
     try {
-      const existing = await checkExistingDistribution(
-        state.selectedFund.id,
-        state.aumDate,
-        state.yieldPurpose
-      );
-      if (!existing.date && state.yieldPurpose === "reporting") {
-        setState((prev) => ({ ...prev, previewLoading: false }));
-        toast.error("Reporting requires at least one transaction in this fund.");
-        return;
-      }
-      if (existing.exists) {
-        setState((prev) => ({
-          ...prev,
-          previewLoading: false,
-          existingDistributionDate: existing.date,
-          existingDistributionId: existing.id,
-          yieldPreview: null,
-        }));
-        toast.error(
-          `Yield already distributed for ${format(state.aumDate, "MMMM yyyy")}. Void the existing distribution before reapplying.`
+      // Duplicate check only for reporting purpose (transaction allows multiple per day)
+      if (isReporting) {
+        const existing = await checkExistingDistribution(
+          state.selectedFund.id,
+          state.aumDate,
+          state.yieldPurpose
         );
-        return;
+        if (!existing.date) {
+          setState((prev) => ({ ...prev, previewLoading: false }));
+          toast.error("Reporting requires at least one transaction in this fund.");
+          return;
+        }
+        if (existing.exists) {
+          setState((prev) => ({
+            ...prev,
+            previewLoading: false,
+            existingDistributionDate: existing.date,
+            existingDistributionId: existing.id,
+            yieldPreview: null,
+          }));
+          toast.error(
+            `Reporting yield already distributed for ${format(state.aumDate, "MMMM yyyy")}. Void the existing distribution before reapplying.`
+          );
+          return;
+        }
       }
 
       const result = await previewYieldDistribution({
@@ -401,28 +411,33 @@ export function useYieldOperationsState() {
 
     setState((prev) => ({ ...prev, applyLoading: true }));
     try {
-      const existing = await checkExistingDistribution(
-        state.selectedFund.id,
-        state.aumDate,
-        state.yieldPurpose
-      );
-      if (!existing.date && state.yieldPurpose === "reporting") {
-        setState((prev) => ({ ...prev, applyLoading: false }));
-        toast.error("Reporting requires at least one transaction in this fund.");
-        return;
-      }
-      if (existing.exists) {
-        setState((prev) => ({
-          ...prev,
-          applyLoading: false,
-          existingDistributionDate: existing.date,
-          existingDistributionId: existing.id,
-        }));
-        toast.error(
-          `Yield already distributed for ${format(state.aumDate, "MMMM yyyy")}. Void the existing distribution before reapplying.`
+      // Duplicate check only for reporting purpose (transaction allows multiple per day)
+      if (state.yieldPurpose === "reporting") {
+        const existing = await checkExistingDistribution(
+          state.selectedFund.id,
+          state.aumDate,
+          state.yieldPurpose
         );
-        return;
+        if (!existing.date) {
+          setState((prev) => ({ ...prev, applyLoading: false }));
+          toast.error("Reporting requires at least one transaction in this fund.");
+          return;
+        }
+        if (existing.exists) {
+          setState((prev) => ({
+            ...prev,
+            applyLoading: false,
+            existingDistributionDate: existing.date,
+            existingDistributionId: existing.id,
+          }));
+          toast.error(
+            `Reporting yield already distributed for ${format(state.aumDate, "MMMM yyyy")}. Void the existing distribution before reapplying.`
+          );
+          return;
+        }
       }
+
+      const isTransaction = state.yieldPurpose === "transaction";
 
       await applyYieldDistribution(
         {
@@ -430,6 +445,7 @@ export function useYieldOperationsState() {
           targetDate: state.aumDate,
           newTotalAUM: state.newAUM,
           baseAUM: asOfAum != null ? String(asOfAum) : undefined,
+          snapshotTime: isTransaction ? state.aumTime : undefined,
         },
         user.id,
         state.yieldPurpose
@@ -510,6 +526,7 @@ export function useYieldOperationsState() {
     asOfAumError: asOfAumError ?? null,
     existingDistributionDate: state.existingDistributionDate,
     existingDistributionId: state.existingDistributionId,
+    aumTime: state.aumTime,
 
     // Setters
     setSelectedFund,
@@ -526,6 +543,7 @@ export function useYieldOperationsState() {
     setShowOnlyChanged,
     setSearchInvestor,
     setAcknowledgeDiscrepancy,
+    setAumTime,
 
     // Helpers
     getAvailableMonths,

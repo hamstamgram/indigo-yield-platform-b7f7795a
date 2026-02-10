@@ -15,6 +15,8 @@ export interface YieldCalculationInput {
   /** Base AUM the admin saw (as-of AUM) - used to compute grossYield and passed as p_recorded_aum */
   baseAUM?: string;
   purpose?: "reporting" | "transaction";
+  /** HH:MM when admin recorded the AUM snapshot (transaction purpose only, audit trail) */
+  snapshotTime?: string;
 }
 
 /**

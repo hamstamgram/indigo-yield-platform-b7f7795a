@@ -137,11 +137,11 @@ export function YieldConfirmDialog({
                 </div>
               )}
 
-              {existingDistributionDate && (
+              {existingDistributionDate && yieldPurpose === "reporting" && (
                 <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>
-                    A yield distribution already exists for this date. Void the existing
+                    Reporting yield has already been distributed for this period. Void the existing
                     distribution before reapplying.
                   </span>
                 </div>
@@ -188,7 +188,7 @@ export function YieldConfirmDialog({
             disabled={
               confirmationText !== "APPLY" ||
               applyLoading ||
-              Boolean(existingDistributionDate) ||
+              (yieldPurpose === "reporting" && Boolean(existingDistributionDate)) ||
               (reconciliation?.has_warning && !acknowledgeDiscrepancy)
             }
           >
