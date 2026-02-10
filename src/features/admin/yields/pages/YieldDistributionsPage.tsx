@@ -221,7 +221,7 @@ function YieldDistributionsContent() {
     clearFilters,
   } = useUrlFilters({
     keys: ["fundId", "month", "purpose"],
-    defaults: { fundId: "all", purpose: "reporting" },
+    defaults: { fundId: "all" },
   });
 
   const selectedFundId = urlFilters.fundId || "all";

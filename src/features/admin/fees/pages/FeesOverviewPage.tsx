@@ -5,7 +5,6 @@
  */
 
 import { useState, useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 import { ExportButton } from "@/components/common";
 import type { ExportColumn } from "@/lib/export/csv-export";
@@ -18,8 +17,6 @@ import {
   FeeDateRangeFilter,
   FeeSummaryCards,
   FeeTransactionsTable,
-  FeeAllocationAuditTable,
-  YieldEarnedTab,
 } from "@/components/admin/fees";
 
 const feeExportColumns: ExportColumn[] = [
@@ -35,7 +32,6 @@ function FeesOverviewContent() {
   const { data, isLoading } = useFeesOverview();
 
   const [selectedFund, setSelectedFund] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState("overview");
 
   // Date filtering - default to 24 months to capture historical data
   const [dateFrom, setDateFrom] = useState<string>(() =>
@@ -47,7 +43,6 @@ function FeesOverviewContent() {
   const fees = data?.fees || [];
   const funds = data?.funds || [];
   const indigoFeesBalance = data?.indigoFeesBalance || {};
-  const feeAllocations = data?.feeAllocations || [];
   const yieldEarned = data?.yieldEarned || [];
 
   // Filter fees by date range and fund
@@ -104,51 +99,33 @@ function FeesOverviewContent() {
         />
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="audit">Audit Trail</TabsTrigger>
-          <TabsTrigger value="yield">Yield Earned</TabsTrigger>
-        </TabsList>
+      {/* Summary Cards Row */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <FeesBalanceCard balances={indigoFeesBalance} />
+        <YieldEarnedSummaryCard yields={yieldEarned} />
+      </div>
 
-        <TabsContent value="overview" className="space-y-6 mt-4">
-          {/* Summary Cards Row */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <FeesBalanceCard balances={indigoFeesBalance} />
-            <YieldEarnedSummaryCard yields={yieldEarned} />
-          </div>
+      {/* Date Filter and Summary Cards */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        <FeeDateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+        />
+        <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <FeeSummaryCards summaries={filteredSummaries} />
+        </div>
+      </div>
 
-          {/* Date Filter and Summary Cards */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            <FeeDateRangeFilter
-              dateFrom={dateFrom}
-              dateTo={dateTo}
-              onDateFromChange={setDateFrom}
-              onDateToChange={setDateTo}
-            />
-            <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <FeeSummaryCards summaries={filteredSummaries} />
-            </div>
-          </div>
-
-          {/* Fee Records Table */}
-          <FeeTransactionsTable
-            fees={filteredFees}
-            totalCount={fees.length}
-            funds={funds}
-            selectedFund={selectedFund}
-            onFundChange={setSelectedFund}
-          />
-        </TabsContent>
-
-        <TabsContent value="audit" className="space-y-6 mt-4">
-          <FeeAllocationAuditTable allocations={feeAllocations} />
-        </TabsContent>
-
-        <TabsContent value="yield" className="space-y-6 mt-4">
-          <YieldEarnedTab yields={yieldEarned} />
-        </TabsContent>
-      </Tabs>
+      {/* Fee Records Table */}
+      <FeeTransactionsTable
+        fees={filteredFees}
+        totalCount={fees.length}
+        funds={funds}
+        selectedFund={selectedFund}
+        onFundChange={setSelectedFund}
+      />
     </div>
   );
 }
