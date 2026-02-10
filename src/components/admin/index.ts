@@ -22,7 +22,6 @@ export { RoleChangeConfirmDialog } from "@/features/admin/settings/components/Ro
 // ============================================
 // SYSTEM COMPONENTS
 // ============================================
-export { DataIntegrityPanel } from "@/features/admin/system/components/DataIntegrityPanel";
 export { FinancialSnapshot } from "@/features/admin/system/components/FinancialSnapshot";
 export { default as FundAUMBar } from "@/features/admin/system/components/FundAUMBar";
 

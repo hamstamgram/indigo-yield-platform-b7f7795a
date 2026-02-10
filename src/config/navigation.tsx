@@ -11,7 +11,6 @@ import {
   Activity,
   TrendingUp,
   Settings,
-  Shield,
   Briefcase,
   DollarSign,
   FolderOpen,
@@ -19,7 +18,6 @@ import {
   Coins,
   HeartPulse,
   Layers,
-  Wrench,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -145,33 +143,21 @@ export const adminNavGroups: NavGroup[] = [
     icon: Settings,
     items: [
       {
-        title: "System Health",
-        href: "/admin/system-health",
+        title: "Operations",
+        href: "/admin/operations",
         icon: <HeartPulse className="h-5 w-5" />,
         adminOnly: true,
       },
       {
-        title: "Data Integrity",
-        href: "/admin/integrity",
-        icon: <Shield className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Audit Logs",
+        title: "Audit Trail",
         href: "/admin/audit-logs",
-        icon: <Shield className="h-5 w-5" />,
+        icon: <FileText className="h-5 w-5" />,
         adminOnly: true,
       },
       {
         title: "Settings",
         href: "/admin/settings",
         icon: <Settings className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Admin Tools",
-        href: "/admin/settings/tools",
-        icon: <Wrench className="h-5 w-5" />,
         adminOnly: true,
       },
     ],

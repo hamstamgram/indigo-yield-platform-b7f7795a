@@ -1,99 +1,30 @@
 /**
  * Admin System Routes
- * System administration: settings, audit logs, maintenance, admin management
+ * System administration: operations, audit logs, settings
  */
 
 import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminSettingsPage = lazy(() => import("@/features/admin/settings/pages/AdminSettings"));
+const OperationsPage = lazy(() => import("@/features/admin/system/pages/OperationsPage"));
 const AdminAuditLogs = lazy(() => import("@/features/admin/system/pages/AuditLogViewer"));
-const AdminListPage = lazy(() => import("@/features/admin/settings/pages/AdminList"));
-const AdminToolsPage = lazy(() => import("@/features/admin/settings/pages/AdminToolsPage"));
-const AdminInvitesPage = lazy(() => import("@/features/admin/settings/pages/AdminInvitesPage"));
-const SystemHealthPage = lazy(() => import("@/features/admin/system/pages/SystemHealthPage"));
-const IntegrityDashboardPage = lazy(
-  () => import("@/features/admin/system/pages/IntegrityDashboardPage")
-);
-const CrystallizationDashboardPage = lazy(
-  () => import("@/features/admin/yields/pages/CrystallizationDashboardPage")
-);
+const AdminSettingsPage = lazy(() => import("@/features/admin/settings/pages/AdminSettings"));
 
 export function SystemRoutes() {
   return (
     <>
-      {/* Consolidated Settings Page */}
+      {/* Operations (Health + Integrity + Crystallization) */}
       <Route
-        path="/admin/settings"
+        path="/admin/operations"
         element={
           <AdminRoute>
-            <AdminSettingsPage />
+            <OperationsPage />
           </AdminRoute>
         }
       />
 
-      {/* Admin Management - Super Admin only (enforced in component) */}
-      <Route
-        path="/admin/settings/admins"
-        element={
-          <AdminRoute>
-            <AdminListPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* Admin Tools */}
-      <Route
-        path="/admin/settings/tools"
-        element={
-          <AdminRoute>
-            <AdminToolsPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* Admin Invites */}
-      <Route
-        path="/admin/settings/invites"
-        element={
-          <AdminRoute>
-            <AdminInvitesPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* System Health */}
-      <Route
-        path="/admin/system-health"
-        element={
-          <AdminRoute>
-            <SystemHealthPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* Data Integrity Dashboard */}
-      <Route
-        path="/admin/integrity"
-        element={
-          <AdminRoute>
-            <IntegrityDashboardPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* P1: Crystallization Dashboard */}
-      <Route
-        path="/admin/crystallization"
-        element={
-          <AdminRoute>
-            <CrystallizationDashboardPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* Audit logs */}
+      {/* Audit Trail */}
       <Route
         path="/admin/audit-logs"
         element={
@@ -103,12 +34,26 @@ export function SystemRoutes() {
         }
       />
 
-      {/* Redirects for consolidated/removed pages */}
+      {/* Settings (Platform config + Admin Management) */}
+      <Route
+        path="/admin/settings"
+        element={
+          <AdminRoute>
+            <AdminSettingsPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Redirects for old/consolidated routes */}
+      <Route path="/admin/system-health" element={<Navigate to="/admin/operations" replace />} />
+      <Route path="/admin/integrity" element={<Navigate to="/admin/operations" replace />} />
+      <Route path="/admin/crystallization" element={<Navigate to="/admin/operations" replace />} />
+      <Route path="/admin/settings/tools" element={<Navigate to="/admin/settings" replace />} />
+      <Route path="/admin/settings/admins" element={<Navigate to="/admin/settings" replace />} />
+      <Route path="/admin/settings/invites" element={<Navigate to="/admin/settings" replace />} />
+      <Route path="/admin/users" element={<Navigate to="/admin/settings" replace />} />
       <Route path="/admin/audit" element={<Navigate to="/admin/audit-logs" replace />} />
-      <Route path="/admin/users" element={<Navigate to="/admin/settings-platform" replace />} />
       <Route path="/admin/settings/audit" element={<Navigate to="/admin/audit-logs" replace />} />
-      <Route path="/admin/maintenance" element={<Navigate to="/admin" replace />} />
-      <Route path="/admin/bypass-attempts" element={<Navigate to="/admin" replace />} />
     </>
   );
 }

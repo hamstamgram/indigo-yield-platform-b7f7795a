@@ -184,21 +184,6 @@ export function useMergeDuplicateProfiles() {
 }
 
 // ============================================================================
-// Bypass Attempts
-// ============================================================================
-
-/**
- * Fetch bypass attempts
- */
-export function useBypassAttempts(limit = 50) {
-  return useQuery({
-    queryKey: QUERY_KEYS.bypassAttempts(limit),
-    queryFn: () => integrityOperationsService.fetchBypassAttempts(limit),
-    refetchInterval: 30000,
-  });
-}
-
-// ============================================================================
 // Ledger Reconciliation
 // ============================================================================
 

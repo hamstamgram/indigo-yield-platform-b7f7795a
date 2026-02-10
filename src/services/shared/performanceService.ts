@@ -45,7 +45,6 @@ import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
 import { logError } from "@/lib/logger";
 import type { PerformanceWithPeriod } from "@/types/domains/yield";
 import { getInvestorPositions } from "@/services/investor/investorPositionService";
-import { parseFinancial } from "@/utils/financial";
 
 export const performanceService = {
   /**
@@ -134,132 +133,175 @@ export const performanceService = {
   },
 
   /**
-   * Get per-asset stats for an investor (live computed from transactions_v2)
-   * Returns individual fund stats - NO aggregation across different assets
-   * Always computes current MTD/QTD/YTD/ITD from the transaction ledger
-   * for real-time accuracy (investor_fund_performance is for historical statements only)
+   * Get per-asset stats for an investor from pre-computed investor_fund_performance.
+   * Uses live positions for current balance, pre-computed data for period metrics.
+   * Accepts optional periodId to select a specific statement period (defaults to latest).
    */
-  async getPerAssetStats(userId: string) {
+  async getPerAssetStats(userId: string, periodId?: string) {
     const livePositions = await getInvestorPositions(userId).catch(() => []);
 
     // Only active positions with balance > 0
     const activePositions = livePositions.filter((pos) => pos.currentValue > 0);
 
     if (activePositions.length === 0) {
-      return { assets: [], activeFunds: 0 };
+      return { assets: [], activeFunds: 0, periodLabel: null, periodEndDate: null };
     }
 
-    // Fetch all non-voided transactions for this investor across all active funds
-    const fundIds = activePositions.map((p) => p.fundId);
-    const { data: txRows } = await supabase
-      .from("transactions_v2")
-      .select("fund_id, type, amount, tx_date")
-      .eq("investor_id", userId)
-      .in("fund_id", fundIds)
-      .eq("is_voided", false)
-      .limit(5000);
+    // Fetch pre-computed performance data from investor_fund_performance
+    let perfQuery = supabase
+      .from("investor_fund_performance")
+      .select("*, period:statement_periods!inner(year, month, period_end_date)")
+      .eq("investor_id", userId);
 
-    // Group transactions by fund
-    const txByFund = new Map<string, NonNullable<typeof txRows>>();
-    (txRows || []).forEach((tx) => {
-      if (!txByFund.has(tx.fund_id)) txByFund.set(tx.fund_id, []);
-      txByFund.get(tx.fund_id)!.push(tx);
-    });
+    if (periodId) {
+      perfQuery = perfQuery.eq("period_id", periodId);
+    } else {
+      // Get latest period - order by period end date descending, take first batch
+      perfQuery = perfQuery.order("created_at", { ascending: false });
+    }
 
-    // Period boundaries
-    const now = new Date();
-    const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const qtdStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
-    const ytdStart = new Date(now.getFullYear(), 0, 1);
+    const { data: perfRows } = await perfQuery;
 
-    // Compute metrics for each position from the transaction ledger
-    const perAssetStats = activePositions.map((pos) => {
-      const fundTxs = txByFund.get(pos.fundId) || [];
-      const endingBalance = pos.currentValue;
-
-      const computePeriod = (periodStart: Date) => {
-        let additions = parseFinancial(0);
-        let redemptions = parseFinancial(0);
-        let netIncome = parseFinancial(0);
-
-        for (const tx of fundTxs) {
-          const txDate = new Date(tx.tx_date);
-          if (txDate < periodStart) continue;
-          const amt = parseFinancial(tx.amount);
-          if (tx.type === "DEPOSIT") additions = additions.plus(amt);
-          else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
-          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-            netIncome = netIncome.plus(amt);
-          }
-        }
-
-        const beginningBalance = parseFinancial(endingBalance)
-          .minus(netIncome)
-          .minus(additions)
-          .plus(redemptions)
-          .toNumber();
-        const addN = additions.toNumber();
-        const redN = redemptions.toNumber();
-        const incN = netIncome.toNumber();
-        // Modified Dietz: RoR = netIncome / (beginningBalance + (additions - redemptions) / 2)
-        const denominator = beginningBalance + (addN - redN) / 2;
-        const rateOfReturn = denominator > 0 ? (incN / denominator) * 100 : 0;
-
-        return {
-          beginningBalance,
-          additions: addN,
-          redemptions: redN,
-          netIncome: incN,
-          endingBalance,
-          rateOfReturn,
-        };
-      };
-
-      const computeItd = () => {
-        let additions = parseFinancial(0);
-        let redemptions = parseFinancial(0);
-        let netIncome = parseFinancial(0);
-
-        for (const tx of fundTxs) {
-          const amt = parseFinancial(tx.amount);
-          if (tx.type === "DEPOSIT") additions = additions.plus(amt);
-          else if (tx.type === "WITHDRAWAL") redemptions = redemptions.plus(amt.abs());
-          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-            netIncome = netIncome.plus(amt);
-          }
-        }
-
-        const addN = additions.toNumber();
-        const redN = redemptions.toNumber();
-        const incN = netIncome.toNumber();
-        // ITD beginning balance is 0 (inception)
-        const denominator = (addN - redN) / 2;
-        const rateOfReturn = denominator > 0 ? (incN / denominator) * 100 : 0;
-
-        return {
+    // Group by period to find the latest one if no periodId specified
+    const rows = perfRows || [];
+    if (rows.length === 0) {
+      // No performance data - return live positions with zero metrics
+      const emptyAssets = activePositions.map((pos) => {
+        const zeroPeriod = {
           beginningBalance: 0,
-          additions: addN,
-          redemptions: redN,
-          netIncome: incN,
-          endingBalance,
-          rateOfReturn,
+          additions: 0,
+          redemptions: 0,
+          netIncome: 0,
+          endingBalance: pos.currentValue,
+          rateOfReturn: 0,
         };
-      };
-
+        return {
+          fundName: pos.fundName,
+          assetSymbol: pos.asset,
+          periodName: "Current",
+          mtd: zeroPeriod,
+          qtd: zeroPeriod,
+          ytd: zeroPeriod,
+          itd: zeroPeriod,
+        };
+      });
       return {
-        fundName: pos.fundName,
-        assetSymbol: pos.asset,
-        periodName: "Current",
-        mtd: computePeriod(mtdStart),
-        qtd: computePeriod(qtdStart),
-        ytd: computePeriod(ytdStart),
-        itd: computeItd(),
+        assets: emptyAssets,
+        activeFunds: activePositions.length,
+        periodLabel: null,
+        periodEndDate: null,
       };
-    });
+    }
+
+    // Find the latest period among results
+    type PerfRow = (typeof rows)[number];
+    const latestPeriodEnd = rows.reduce((latest: string, r: PerfRow) => {
+      const d = (r as Record<string, unknown>).period as { period_end_date?: string } | null;
+      const endDate = d?.period_end_date || "";
+      return endDate > latest ? endDate : latest;
+    }, "");
+
+    // Filter to only the latest period's rows
+    const latestRows = periodId
+      ? rows
+      : rows.filter((r: PerfRow) => {
+          const d = (r as Record<string, unknown>).period as { period_end_date?: string } | null;
+          return d?.period_end_date === latestPeriodEnd;
+        });
+
+    // Build period label
+    const firstRow = latestRows[0] as PerfRow | undefined;
+    const periodData = firstRow
+      ? ((firstRow as Record<string, unknown>).period as {
+          year?: number;
+          month?: number;
+          period_end_date?: string;
+        } | null)
+      : null;
+    const periodLabel = periodData
+      ? new Date(periodData.year || 2026, (periodData.month || 1) - 1).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        })
+      : null;
+    const periodEndDate = periodData?.period_end_date || null;
+
+    // Map performance rows to per-asset stats, overriding ending balance with live positions
+    const positionMap = new Map(activePositions.map((p) => [p.fundName, p]));
+
+    const perAssetStats = latestRows
+      .filter((r: PerfRow) => positionMap.has(r.fund_name))
+      .map((r: PerfRow) => {
+        const pos = positionMap.get(r.fund_name)!;
+        const liveBalance = pos.currentValue;
+
+        return {
+          fundName: pos.fundName,
+          assetSymbol: pos.asset,
+          periodName: periodLabel || "Current",
+          mtd: {
+            beginningBalance: Number(r.mtd_beginning_balance || 0),
+            additions: Number(r.mtd_additions || 0),
+            redemptions: Number(r.mtd_redemptions || 0),
+            netIncome: Number(r.mtd_net_income || 0),
+            endingBalance: liveBalance,
+            rateOfReturn: Number(r.mtd_rate_of_return || 0),
+          },
+          qtd: {
+            beginningBalance: Number(r.qtd_beginning_balance || 0),
+            additions: Number(r.qtd_additions || 0),
+            redemptions: Number(r.qtd_redemptions || 0),
+            netIncome: Number(r.qtd_net_income || 0),
+            endingBalance: liveBalance,
+            rateOfReturn: Number(r.qtd_rate_of_return || 0),
+          },
+          ytd: {
+            beginningBalance: Number(r.ytd_beginning_balance || 0),
+            additions: Number(r.ytd_additions || 0),
+            redemptions: Number(r.ytd_redemptions || 0),
+            netIncome: Number(r.ytd_net_income || 0),
+            endingBalance: liveBalance,
+            rateOfReturn: Number(r.ytd_rate_of_return || 0),
+          },
+          itd: {
+            beginningBalance: Number(r.itd_beginning_balance || 0),
+            additions: Number(r.itd_additions || 0),
+            redemptions: Number(r.itd_redemptions || 0),
+            netIncome: Number(r.itd_net_income || 0),
+            endingBalance: liveBalance,
+            rateOfReturn: Number(r.itd_rate_of_return || 0),
+          },
+        };
+      });
+
+    // Include positions that have no performance data yet
+    for (const pos of activePositions) {
+      if (!perAssetStats.some((s) => s.fundName === pos.fundName)) {
+        const zeroPeriod = {
+          beginningBalance: 0,
+          additions: 0,
+          redemptions: 0,
+          netIncome: 0,
+          endingBalance: pos.currentValue,
+          rateOfReturn: 0,
+        };
+        perAssetStats.push({
+          fundName: pos.fundName,
+          assetSymbol: pos.asset,
+          periodName: periodLabel || "Current",
+          mtd: zeroPeriod,
+          qtd: zeroPeriod,
+          ytd: zeroPeriod,
+          itd: zeroPeriod,
+        });
+      }
+    }
 
     return {
       assets: perAssetStats,
       activeFunds: perAssetStats.length,
+      periodLabel,
+      periodEndDate,
     };
   },
 

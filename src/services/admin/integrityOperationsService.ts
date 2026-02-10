@@ -91,19 +91,6 @@ export interface DuplicateProfile {
   total_value_affected: number;
 }
 
-export interface BypassAttempt {
-  id: string;
-  attempted_at: string;
-  attempted_type: string;
-  attempted_source: string;
-  attempted_amount: number;
-  error_message: string;
-  investor_id: string;
-  fund_id: string;
-  user_id: string;
-  client_info: Record<string, unknown> | null;
-}
-
 export interface BatchCrystallizeResult {
   success: boolean;
   fund_id: string;
@@ -366,14 +353,6 @@ export async function fetchDuplicateProfiles(): Promise<DuplicateProfile[]> {
 }
 
 /**
- * Fetch bypass attempts
- * NOTE: transaction_bypass_attempts table was dropped - returns empty
- */
-export async function fetchBypassAttempts(_limit = 50): Promise<BypassAttempt[]> {
-  return [];
-}
-
-/**
  * Fetch ledger reconciliation issues
  */
 export async function fetchLedgerReconciliation(): Promise<Record<string, unknown>[]> {
@@ -443,7 +422,6 @@ export const integrityOperationsService = {
   fetchCrystallizationDashboard,
   fetchCrystallizationGaps,
   fetchDuplicateProfiles,
-  fetchBypassAttempts,
   fetchLedgerReconciliation,
   // Action functions
   runIntegrityCheck,

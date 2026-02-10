@@ -199,19 +199,35 @@ class IBManagementService {
       ib_investor_id: string;
       fund_id: string | null;
       ib_fee_amount: number;
+      source_investor_name: string | null;
     }>
   > {
     if (!ibUserIds.length) return [];
 
     const { data, error } = await supabase
       .from("ib_allocations")
-      .select("ib_investor_id, fund_id, ib_fee_amount")
+      .select(
+        "ib_investor_id, fund_id, ib_fee_amount, source_investor_id, source_investor:profiles!ib_allocations_source_investor_id_fkey(first_name, last_name)"
+      )
       .in("ib_investor_id", ibUserIds)
       .eq("is_voided", false)
       .limit(1000);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((row) => {
+      const profile = (row as Record<string, unknown>).source_investor as {
+        first_name?: string;
+        last_name?: string;
+      } | null;
+      return {
+        ib_investor_id: row.ib_investor_id,
+        fund_id: row.fund_id,
+        ib_fee_amount: Number(row.ib_fee_amount),
+        source_investor_name: profile
+          ? [profile.first_name, profile.last_name].filter(Boolean).join(" ") || null
+          : null,
+      };
+    });
   }
 }
 

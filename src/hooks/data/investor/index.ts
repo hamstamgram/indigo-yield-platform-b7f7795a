@@ -52,6 +52,7 @@ export {
   useInvestorPerformance,
   usePerAssetStats,
   useInvestorAssetStats,
+  useAvailableStatementPeriods,
 } from "./useInvestorPerformance";
 
 // Portal hooks

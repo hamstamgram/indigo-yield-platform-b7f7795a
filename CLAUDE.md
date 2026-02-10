@@ -293,6 +293,7 @@ END; $$;
 
 | Role | Email | Password |
 |------|-------|----------|
+| Super Admin | adriel@indigo.fund | TestAdmin2026! |
 | Admin | qa.admin@indigo.fund | QaTest2026! |
 | Investor | qa.investor@indigo.fund | QaTest2026! |
 | IB | qa.ib@indigo.fund | QaTest2026! |

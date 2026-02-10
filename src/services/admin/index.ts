@@ -176,7 +176,6 @@ export {
   type CrystallizationDashboardRow,
   type CrystallizationGap,
   type DuplicateProfile,
-  type BypassAttempt,
   type BatchCrystallizeResult,
   type MergeDuplicatesResult,
 } from "./integrityOperationsService";
@@ -189,5 +188,4 @@ export { commandPaletteService, type InvestorSearchResult } from "./commandPalet
 // =============================================================================
 // ADMIN TOOLS & UTILITIES
 // =============================================================================
-export { adminToolsService, type ToolResult } from "./adminToolsService";
 export { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "./feeScheduleService";

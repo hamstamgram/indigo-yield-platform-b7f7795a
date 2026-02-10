@@ -15,7 +15,7 @@ export default function InvestorPortfolioPage() {
       fundName: asset.fundName,
       assetSymbol: asset.assetSymbol,
       tokenAmount: asset.mtd.endingBalance || 0,
-      mtdChange: (asset.mtd.endingBalance || 0) - (asset.mtd.beginningBalance || 0),
+      mtdChange: asset.mtd.netIncome || 0,
       itdEarned: asset.itd?.netIncome || 0,
       itdReturn: asset.itd?.rateOfReturn || 0,
       lastUpdated: asset.mtd.endingBalance > 0 ? new Date().toISOString() : null,
@@ -188,6 +188,16 @@ export default function InvestorPortfolioPage() {
           </h2>
           <span className="text-xs font-mono text-slate-500 bg-black/20 px-2 py-1 rounded-md border border-white/5">
             {positions.length} ASSETS
+            {assetStats?.periodEndDate && (
+              <>
+                {" "}
+                &middot; as of{" "}
+                {new Date(assetStats.periodEndDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  year: "numeric",
+                })}
+              </>
+            )}
           </span>
         </div>
 

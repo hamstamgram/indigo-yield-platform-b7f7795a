@@ -315,10 +315,6 @@ export const QUERY_KEYS = {
       ? (["crystallization", "gaps", fundId] as const)
       : (["crystallization", "gaps"] as const),
   duplicateProfiles: ["integrity", "duplicate-profiles"] as const,
-  bypassAttempts: (limit?: number) =>
-    limit !== undefined
-      ? (["integrity", "bypass-attempts", limit] as const)
-      : (["integrity", "bypass-attempts"] as const),
   ledgerReconciliation: ["integrity", "ledger-reconciliation"] as const,
   pendingActions: ["system", "pending-actions"] as const,
   systemHealth: ["system", "health"] as const,

@@ -81,12 +81,7 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
     severity: "critical",
     description: "Position balances do not match ledger transactions",
   },
-  {
-    name: "Missing Withdrawal Transactions",
-    query: "SELECT * FROM v_missing_withdrawal_transactions LIMIT 5",
-    severity: "critical",
-    description: "Completed withdrawals without ledger transactions",
-  },
+  // v_missing_withdrawal_transactions view was dropped - check removed
   {
     name: "Potential Duplicate Profiles",
     query:
