@@ -5,7 +5,7 @@
  */
 
 import { useState, useMemo, useCallback } from "react";
-import { format } from "date-fns";
+import { format, startOfMonth, subMonths } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { AdminGuard } from "@/components/admin";
 import { useFunds, useUrlFilters } from "@/hooks";
@@ -34,7 +34,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Input,
   Label,
   Select,
   SelectContent,
@@ -249,6 +248,20 @@ function YieldDistributionsContent() {
 
   const fundMap = useMemo(() => new Map(funds.map((fund) => [fund.id, fund])), [funds]);
 
+  // Generate available months for the selector (last 24 months)
+  const availableMonths = useMemo(() => {
+    const months: { value: string; label: string }[] = [];
+    const now = new Date();
+    for (let i = 0; i < 24; i++) {
+      const date = startOfMonth(subMonths(now, i));
+      months.push({
+        value: format(date, "yyyy-MM"),
+        label: format(date, "MMMM yyyy"),
+      });
+    }
+    return months;
+  }, []);
+
   const totalDistributions = distributions.length;
 
   // Void dialog state
@@ -382,12 +395,23 @@ function YieldDistributionsContent() {
           </div>
 
           <div className="space-y-2">
-            <Label>Month (YYYY-MM)</Label>
-            <Input
-              value={selectedMonth}
-              placeholder="2025-09"
-              onChange={(event) => setFilter("month", event.target.value)}
-            />
+            <Label>Month</Label>
+            <Select
+              value={selectedMonth || "all"}
+              onValueChange={(value) => setFilter("month", value === "all" ? "" : value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All months" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All months</SelectItem>
+                {availableMonths.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -682,7 +706,7 @@ function YieldDistributionsContent() {
                                             </span>
                                           </div>
                                         )}
-                                        <div className="grid gap-4 lg:grid-cols-3">
+                                        <div className="grid gap-4 xl:grid-cols-[280px_1fr]">
                                           <Card>
                                             <CardHeader className="pb-2">
                                               <CardTitle className="text-base">
@@ -802,40 +826,42 @@ function YieldDistributionsContent() {
                                             </CardContent>
                                           </Card>
 
-                                          <Card className="lg:col-span-2">
+                                          <Card>
                                             <CardHeader className="pb-2">
                                               <CardTitle className="text-base">
                                                 Allocation breakdown
                                               </CardTitle>
                                             </CardHeader>
-                                            <CardContent className="overflow-auto">
+                                            <CardContent className="overflow-x-auto">
                                               {allocations.length > 0 ? (
-                                                <Table>
+                                                <Table className="text-xs">
                                                   <TableHeader className="sticky top-0 bg-card z-10">
                                                     <TableRow>
-                                                      <TableHead>Investor</TableHead>
-                                                      <TableHead className="text-right">
+                                                      <TableHead className="min-w-[120px]">
+                                                        Investor
+                                                      </TableHead>
+                                                      <TableHead className="text-right whitespace-nowrap">
                                                         ADB
                                                       </TableHead>
-                                                      <TableHead className="text-right">
-                                                        Ownership
+                                                      <TableHead className="text-right whitespace-nowrap">
+                                                        Own%
                                                       </TableHead>
-                                                      <TableHead className="text-right">
+                                                      <TableHead className="text-right whitespace-nowrap">
                                                         Gross
                                                       </TableHead>
-                                                      <TableHead className="text-right">
-                                                        Fee %
+                                                      <TableHead className="text-right whitespace-nowrap">
+                                                        Fee%
                                                       </TableHead>
-                                                      <TableHead className="text-right">
+                                                      <TableHead className="text-right whitespace-nowrap">
                                                         Fee
                                                       </TableHead>
-                                                      <TableHead className="text-right">
-                                                        IB %
+                                                      <TableHead className="text-right whitespace-nowrap">
+                                                        IB%
                                                       </TableHead>
-                                                      <TableHead className="text-right">
+                                                      <TableHead className="text-right whitespace-nowrap">
                                                         IB
                                                       </TableHead>
-                                                      <TableHead className="text-right">
+                                                      <TableHead className="text-right whitespace-nowrap">
                                                         Net
                                                       </TableHead>
                                                     </TableRow>
@@ -846,22 +872,18 @@ function YieldDistributionsContent() {
                                                         investorMap[allocation.investor_id];
                                                       return (
                                                         <TableRow key={allocation.id}>
-                                                          <TableCell>
-                                                            <div className="font-medium">
+                                                          <TableCell className="py-1.5">
+                                                            <div className="font-medium truncate max-w-[140px]">
                                                               {formatInvestorName(investor)}
                                                             </div>
-                                                            <div className="text-xs text-muted-foreground">
-                                                              {investor?.email ||
-                                                                allocation.investor_id}
-                                                            </div>
                                                           </TableCell>
-                                                          <TableCell className="text-right">
+                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatAssetValue(
                                                               allocation.adb_share || 0,
                                                               fund?.asset || ""
                                                             )}
                                                           </TableCell>
-                                                          <TableCell className="text-right">
+                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
                                                               allocation.ownership_pct
                                                                 ? allocation.ownership_pct
@@ -870,40 +892,40 @@ function YieldDistributionsContent() {
                                                                       totalAdb) *
                                                                     100
                                                                   : 0,
-                                                              4
+                                                              2
                                                             )}
                                                           </TableCell>
-                                                          <TableCell className="text-right">
+                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             <FinancialValue
                                                               value={allocation.gross_amount}
                                                               asset={fund?.asset}
                                                             />
                                                           </TableCell>
-                                                          <TableCell className="text-right">
+                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
                                                               allocation.fee_pct || 0,
-                                                              2
+                                                              1
                                                             )}
                                                           </TableCell>
-                                                          <TableCell className="text-right">
+                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             <FinancialValue
                                                               value={allocation.fee_amount || 0}
                                                               asset={fund?.asset}
                                                             />
                                                           </TableCell>
-                                                          <TableCell className="text-right">
+                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
                                                               allocation.ib_pct || 0,
-                                                              2
+                                                              1
                                                             )}
                                                           </TableCell>
-                                                          <TableCell className="text-right">
+                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             <FinancialValue
                                                               value={allocation.ib_amount || 0}
                                                               asset={fund?.asset}
                                                             />
                                                           </TableCell>
-                                                          <TableCell className="text-right font-semibold">
+                                                          <TableCell className="text-right py-1.5 font-semibold tabular-nums">
                                                             <FinancialValue
                                                               value={allocation.net_amount}
                                                               asset={fund?.asset}
