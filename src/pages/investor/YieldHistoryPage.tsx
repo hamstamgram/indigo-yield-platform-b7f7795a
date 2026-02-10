@@ -206,7 +206,10 @@ export default function YieldHistoryPage() {
             <SelectItem value="all">All Funds</SelectItem>
             {funds.map((f) => (
               <SelectItem key={f.id} value={f.id}>
-                {f.name} ({f.asset})
+                <span className="flex items-center gap-2">
+                  <CryptoIcon symbol={f.asset} className="h-4 w-4" />
+                  {f.name}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

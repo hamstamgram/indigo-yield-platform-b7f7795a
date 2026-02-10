@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Dialog,
   DialogContent,
@@ -199,7 +200,8 @@ export function InternalRouteDialog({
                     {positions?.map((pos) => (
                       <SelectItem key={pos.fund_id} value={pos.fund_id}>
                         <span className="flex items-center gap-2">
-                          {pos.funds?.name} ({pos.funds?.asset}) - Balance:{" "}
+                          <CryptoIcon symbol={pos.funds?.asset || ""} className="h-4 w-4" />
+                          {pos.funds?.name} - Balance:{" "}
                           <FinancialValue
                             value={pos.current_value}
                             asset={pos.funds?.asset}

@@ -3,6 +3,7 @@
  * Fund, purpose, and date range filters for yields table
  */
 
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
   CardContent,
@@ -50,7 +51,10 @@ export function YieldsFilterBar({ filters, funds, onFilterChange, onReset }: Yie
                 <SelectItem value="all">All Funds</SelectItem>
                 {funds.map((f) => (
                   <SelectItem key={f.id} value={f.id}>
-                    {f.name} ({f.asset})
+                    <span className="flex items-center gap-2">
+                      <CryptoIcon symbol={f.asset} className="h-4 w-4" />
+                      {f.name}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

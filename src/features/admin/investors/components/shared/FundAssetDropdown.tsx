@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui";
 import { Plus } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { useToast } from "@/hooks";
 import { addFundToInvestor, getAvailableFundsForInvestor } from "@/services/investor";
 import type { Fund } from "@/types/domains/fund";
@@ -87,11 +88,12 @@ const FundAssetDropdown = ({ investorId, onFundAdded }: FundAssetDropdownProps) 
             onClick={() => handleAddFund(fund.id)}
             className="cursor-pointer"
           >
-            <div className="flex flex-col items-start">
-              <span className="font-medium">{fund.name}</span>
-              <span className="text-sm text-muted-foreground">
-                {fund.code} - {fund.asset}
-              </span>
+            <div className="flex items-center gap-2">
+              <CryptoIcon symbol={fund.asset} className="h-5 w-5" />
+              <div className="flex flex-col items-start">
+                <span className="font-medium">{fund.name}</span>
+                <span className="text-sm text-muted-foreground">{fund.code}</span>
+              </div>
             </div>
           </DropdownMenuItem>
         ))}

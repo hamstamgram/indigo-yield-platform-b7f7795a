@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
   CardContent,
@@ -402,7 +403,10 @@ export default function AdminManualTransaction() {
                 <SelectContent>
                   {funds.map((fund) => (
                     <SelectItem key={fund.id} value={fund.id}>
-                      {fund.name} ({fund.code})
+                      <span className="flex items-center gap-2">
+                        <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                        {fund.name}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -25,8 +25,6 @@ import {
   Search,
   CheckCircle,
   XCircle,
-  Play,
-  CheckCircle2,
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -35,7 +33,6 @@ import {
   Trash2,
   ArrowRightLeft,
   Calendar,
-  User,
   Coins,
   AlertTriangle,
 } from "lucide-react";
@@ -69,8 +66,6 @@ interface WithdrawalsTableProps {
   // Action callbacks - dialogs are handled by parent component
   onApprove?: (withdrawal: Withdrawal) => void;
   onReject?: (withdrawal: Withdrawal) => void;
-  onStartProcessing?: (withdrawal: Withdrawal) => void;
-  onComplete?: (withdrawal: Withdrawal) => void;
   onEdit?: (withdrawal: Withdrawal) => void;
   onDelete?: (withdrawal: Withdrawal) => void;
   onRouteToFees?: (withdrawal: Withdrawal) => void;
@@ -91,25 +86,20 @@ interface ActionsDropdownProps {
   onViewDetails?: (withdrawal: Withdrawal) => void;
   onApprove?: (withdrawal: Withdrawal) => void;
   onReject?: (withdrawal: Withdrawal) => void;
-  onStartProcessing?: (withdrawal: Withdrawal) => void;
-  onComplete?: (withdrawal: Withdrawal) => void;
   onEdit?: (withdrawal: Withdrawal) => void;
   onDelete?: (withdrawal: Withdrawal) => void;
   onRouteToFees?: (withdrawal: Withdrawal) => void;
 }
 
-const canEdit = (status: WithdrawalFullStatus) => status === "pending" || status === "approved";
+const canEdit = (status: WithdrawalFullStatus) => status === "pending";
 const canDelete = (status: WithdrawalFullStatus) => status !== "completed";
-const canRouteToFees = (status: WithdrawalFullStatus) =>
-  status === "pending" || status === "approved" || status === "processing";
+const canRouteToFees = (status: WithdrawalFullStatus) => status === "pending";
 
 const ActionsDropdown = memo(function ActionsDropdown({
   withdrawal,
   onViewDetails,
   onApprove,
   onReject,
-  onStartProcessing,
-  onComplete,
   onEdit,
   onDelete,
   onRouteToFees,
@@ -152,20 +142,6 @@ const ActionsDropdown = memo(function ActionsDropdown({
           </DropdownMenuItem>
         )}
 
-        {withdrawal.status === "approved" && onStartProcessing && (
-          <DropdownMenuItem onClick={() => onStartProcessing(withdrawal)}>
-            <Play className="h-4 w-4 mr-2 text-blue-600" />
-            Start Processing
-          </DropdownMenuItem>
-        )}
-
-        {withdrawal.status === "processing" && onComplete && (
-          <DropdownMenuItem onClick={() => onComplete(withdrawal)}>
-            <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-            Complete
-          </DropdownMenuItem>
-        )}
-
         {canRouteToFees(withdrawal.status) && onRouteToFees && (
           <>
             <DropdownMenuSeparator />
@@ -204,8 +180,6 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
   onViewDetails,
   onApprove,
   onReject,
-  onStartProcessing,
-  onComplete,
   onEdit,
   onDelete,
   onRouteToFees,
@@ -248,23 +222,12 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
         onViewDetails={onViewDetails}
         onApprove={onApprove}
         onReject={onReject}
-        onStartProcessing={onStartProcessing}
-        onComplete={onComplete}
         onEdit={onEdit}
         onDelete={onDelete}
         onRouteToFees={onRouteToFees}
       />
     ),
-    [
-      onViewDetails,
-      onApprove,
-      onReject,
-      onStartProcessing,
-      onComplete,
-      onEdit,
-      onDelete,
-      onRouteToFees,
-    ]
+    [onViewDetails, onApprove, onReject, onEdit, onDelete, onRouteToFees]
   );
 
   // Define columns for ResponsiveTable
@@ -449,8 +412,6 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="processing">Processing</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="rejected">Rejected</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -472,7 +433,10 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
               <SelectItem value="all">All Funds</SelectItem>
               {funds.map((fund) => (
                 <SelectItem key={fund.id} value={fund.id}>
-                  {fund.name}
+                  <span className="flex items-center gap-2">
+                    <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                    {fund.name}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>

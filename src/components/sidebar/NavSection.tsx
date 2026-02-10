@@ -33,7 +33,8 @@ const NavSection = ({
     const initial: Record<number, boolean> = {};
     items.forEach((item, index) => {
       if (item.subNav) {
-        initial[index] = location.pathname.startsWith(item.href);
+        initial[index] =
+          location.pathname === item.href || location.pathname.startsWith(item.href + "/");
       }
     });
     return initial;
@@ -75,14 +76,20 @@ const NavSection = ({
         return true;
       }
       // For other admin routes, check if current path starts with the nav href
-      if (href !== "/admin" && location.pathname.startsWith(href)) {
+      // Use path segment boundary to avoid /admin/yield matching /admin/yield-distributions
+      if (
+        href !== "/admin" &&
+        (location.pathname === href || location.pathname.startsWith(href + "/"))
+      ) {
         return true;
       }
     }
 
     // Handle non-admin routes
     if (!location.pathname.startsWith("/admin") && !href.startsWith("/admin")) {
-      return location.pathname.startsWith(href) && href !== "/";
+      return (
+        href !== "/" && (location.pathname === href || location.pathname.startsWith(href + "/"))
+      );
     }
 
     return false;

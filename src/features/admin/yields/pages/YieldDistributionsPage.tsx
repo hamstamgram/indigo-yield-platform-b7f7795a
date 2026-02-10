@@ -220,7 +220,7 @@ function YieldDistributionsContent() {
     clearFilters,
   } = useUrlFilters({
     keys: ["fundId", "month", "purpose"],
-    defaults: { fundId: "all", purpose: "all" },
+    defaults: { fundId: "all", purpose: "reporting" },
   });
 
   const selectedFundId = urlFilters.fundId || "all";
@@ -387,7 +387,10 @@ function YieldDistributionsContent() {
                 <SelectItem value="all">All funds</SelectItem>
                 {funds.map((fund) => (
                   <SelectItem key={fund.id} value={fund.id}>
-                    {fund.name} ({fund.asset})
+                    <span className="flex items-center gap-2">
+                      <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                      {fund.name}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

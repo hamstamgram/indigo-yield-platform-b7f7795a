@@ -1,4 +1,5 @@
 import React from "react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Button,
   Input,
@@ -14,6 +15,7 @@ import type { EnrichedInvestor } from "@/hooks/data";
 interface Fund {
   id: string;
   name: string;
+  asset: string;
 }
 
 interface InvestorFiltersBarProps {
@@ -93,7 +95,10 @@ export const InvestorFiltersBar: React.FC<InvestorFiltersBarProps> = ({
           <SelectItem value="all">All Funds</SelectItem>
           {funds.map((fund) => (
             <SelectItem key={fund.id} value={fund.id}>
-              {fund.name}
+              <span className="flex items-center gap-2">
+                <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                {fund.name}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>

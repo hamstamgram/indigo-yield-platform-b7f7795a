@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import { Edit3, Save, X, TrendingUp, TrendingDown } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { ExpertPosition, expertInvestorService } from "@/services/investor";
@@ -126,10 +127,11 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
               return (
                 <TableRow key={position.id}>
                   <TableCell className="py-1.5">
-                    <div>
-                      <div className="font-medium">{position.fund_name}</div>
-                      <div className="text-muted-foreground">
-                        {position.fund_code} • {position.asset}
+                    <div className="flex items-center gap-2">
+                      <CryptoIcon symbol={position.asset} className="h-5 w-5" />
+                      <div>
+                        <div className="font-medium">{position.fund_name}</div>
+                        <div className="text-muted-foreground">{position.fund_code}</div>
                       </div>
                     </div>
                   </TableCell>
@@ -290,8 +292,11 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                 const pnlPercent = totalCost > 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0;
 
                 return (
-                  <div key={asset} className="border rounded-lg p-3 bg-white">
-                    <div className="font-semibold text-sm mb-2">{asset}</div>
+                  <div key={asset} className="border rounded-lg p-3 bg-card">
+                    <div className="font-semibold text-sm mb-2 flex items-center gap-2">
+                      <CryptoIcon symbol={asset} className="h-5 w-5" />
+                      {asset}
+                    </div>
                     <div className="space-y-1 text-xs">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Positions:</span>

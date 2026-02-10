@@ -13,6 +13,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Download, FileText } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { useActiveInvestorsForStatements } from "@/hooks/data";
 import { useGenerateStatement } from "@/features/admin/reports/hooks/useAdminStatementsPage";
 import { format, subMonths } from "date-fns";
@@ -211,7 +212,10 @@ const ProfessionalStatementGenerator = () => {
                     {positions.map((pos) => (
                       <tr key={pos.asset_code} className="hover:bg-white/10">
                         <td className="border border-white/10 px-4 py-3 font-medium">
-                          {pos.asset_code}
+                          <span className="flex items-center gap-2">
+                            <CryptoIcon symbol={pos.asset_code} className="h-5 w-5" />
+                            {pos.asset_code}
+                          </span>
                         </td>
                         <td className="border border-white/10 px-4 py-3 text-right">
                           {formatTokenAmount(pos.opening_balance || 0, pos.asset_code)}

@@ -409,7 +409,13 @@ export default function CrystallizationDashboardPage() {
                 <SelectItem value="all">All funds</SelectItem>
                 {dashboardData?.map((fund) => (
                   <SelectItem key={fund.fund_id} value={fund.fund_id}>
-                    {fund.fund_code}
+                    <span className="flex items-center gap-2">
+                      <CryptoIcon
+                        symbol={fund.fund_code.split("-").pop() || fund.fund_code}
+                        className="h-4 w-4"
+                      />
+                      {fund.fund_code}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
   CardContent,
@@ -190,9 +191,15 @@ const WithdrawalsPage = () => {
                   <SelectContent>
                     {positions.map((position) => (
                       <SelectItem key={position.fund_id} value={position.fund_id}>
-                        {position.fund.name} -{" "}
-                        {formatAssetAmount(position.current_value, position.fund?.asset || "USDT")}{" "}
-                        available
+                        <span className="flex items-center gap-2">
+                          <CryptoIcon symbol={position.fund?.asset || "USDT"} className="h-4 w-4" />
+                          {position.fund.name} -{" "}
+                          {formatAssetAmount(
+                            position.current_value,
+                            position.fund?.asset || "USDT"
+                          )}{" "}
+                          available
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
