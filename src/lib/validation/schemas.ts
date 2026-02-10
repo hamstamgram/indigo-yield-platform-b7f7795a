@@ -143,24 +143,8 @@ export const depositRequestSchema = z.object({
 });
 
 export const withdrawalRequestSchema = z.object({
-  amount: z
-    .number()
-    .positive("Amount must be positive")
-    .min(100, "Minimum withdrawal is 100 units")
-    .multipleOf(0.01, "Amount must have at most 2 decimal places"),
+  amount: z.number().positive("Amount must be positive"),
   assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
-  destinationAddress: z
-    .string()
-    .min(1, "Destination address is required")
-    .refine((val) => {
-      // Validate based on asset type
-      if (val.startsWith("0x")) return patterns.ethereumAddress.test(val);
-      if (val.startsWith("bc1") || val.startsWith("1") || val.startsWith("3")) {
-        return patterns.bitcoinAddress.test(val);
-      }
-      return true; // Allow other formats for other assets
-    }, "Invalid wallet address"),
-  reason: z.enum(["personal", "investment", "emergency", "other"]),
   notes: z.string().max(500, "Notes too long").optional(),
 });
 

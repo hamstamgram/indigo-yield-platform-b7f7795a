@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, History, Eye, RefreshCw } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, History, Eye } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,6 @@ interface YieldActionsColumnProps {
   onEdit: (record: YieldRecord) => void;
   onVoid: (record: YieldRecord) => void;
   onViewHistory: (record: YieldRecord) => void;
-  onCorrect: (record: YieldRecord) => void;
   isVoided?: boolean;
 }
 
@@ -34,7 +33,6 @@ export function YieldActionsColumn({
   onEdit,
   onVoid,
   onViewHistory,
-  onCorrect,
   isVoided = false,
 }: YieldActionsColumnProps) {
   const [open, setOpen] = useState(false);
@@ -65,47 +63,35 @@ export function YieldActionsColumn({
       </Tooltip>
 
       {canEdit && (
-        <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={() => onCorrect(record)}>
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Correct yield</TooltipContent>
-          </Tooltip>
-
-          {/* More actions dropdown */}
-          <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={() => {
-                  setOpen(false);
-                  onEdit(record);
-                }}
-              >
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit AUM
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setOpen(false);
-                  onVoid(record);
-                }}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Void Record
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
+        <DropdownMenu open={open} onOpenChange={setOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              onClick={() => {
+                setOpen(false);
+                onEdit(record);
+              }}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit AUM
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                setOpen(false);
+                onVoid(record);
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Void Record
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </div>
   );

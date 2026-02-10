@@ -1,13 +1,7 @@
 /**
  * Withdrawal Request Form Component
  *
- * Allows investors to request withdrawals with multi-step validation
- *
- * Security Features:
- * - Amount validation with available balance check
- * - Wallet address validation
- * - Rate limiting on submission
- * - Audit logging
+ * Allows investors to request withdrawals with amount validation
  */
 
 import { useForm } from "react-hook-form";
@@ -71,22 +65,18 @@ export function WithdrawalRequestForm({
   const selectedAsset = watch("assetCode");
   const requestedAmount = watch("amount");
 
-  // Get available balance for selected asset
   const availableBalance = positions.find((p) => p.asset_symbol === selectedAsset);
 
-  // Calculate if amount is valid
   const isAmountValid =
     availableBalance && requestedAmount
       ? toDecimal(requestedAmount).lessThanOrEqualTo(toDecimal(availableBalance.amount))
       : false;
 
-  // Check if amount is below fund minimum withdrawal
   const isBelowMinimum =
     availableBalance?.min_withdrawal_amount != null && requestedAmount
       ? toDecimal(requestedAmount).lessThan(toDecimal(availableBalance.min_withdrawal_amount))
       : false;
 
-  // Full withdrawals (100% of balance) are allowed
   const isFullWithdrawal =
     availableBalance && requestedAmount && availableBalance.amount > 0
       ? toDecimal(requestedAmount)
@@ -109,8 +99,6 @@ export function WithdrawalRequestForm({
         fundId: availableBalance.fund_id,
         amount: requested.toNumber(),
         assetCode: data.assetCode,
-        destinationAddress: data.destinationAddress,
-        reason: data.reason,
         notes: data.notes,
       },
       {
@@ -166,7 +154,7 @@ export function WithdrawalRequestForm({
             )}
           </div>
 
-          {/* Available Balance Display - Token denominated only */}
+          {/* Available Balance Display */}
           {availableBalance && (
             <Alert>
               <Info className="h-4 w-4" />
@@ -230,45 +218,6 @@ export function WithdrawalRequestForm({
                 </AlertDescription>
               </Alert>
             )}
-          </div>
-
-          {/* Destination Address */}
-          <div className="space-y-2">
-            <Label htmlFor="destinationAddress">Destination Wallet Address</Label>
-            <Input
-              id="destinationAddress"
-              placeholder={selectedAsset === "BTC" ? "bc1..." : "0x..."}
-              {...register("destinationAddress")}
-            />
-            {errors.destinationAddress && (
-              <p className="text-sm text-destructive">{errors.destinationAddress.message}</p>
-            )}
-            <p className="text-sm text-muted-foreground">
-              Double-check your wallet address. Incorrect addresses result in permanent loss of
-              funds.
-            </p>
-          </div>
-
-          {/* Reason */}
-          <div className="space-y-2">
-            <Label htmlFor="reason">Reason for Withdrawal</Label>
-            <Select
-              value={watch("reason")}
-              onValueChange={(value) =>
-                setValue("reason", value as WithdrawalRequestInput["reason"])
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="personal">Personal Use</SelectItem>
-                <SelectItem value="investment">Investment Opportunity</SelectItem>
-                <SelectItem value="emergency">Emergency</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.reason && <p className="text-sm text-destructive">{errors.reason.message}</p>}
           </div>
 
           {/* Notes (Optional) */}

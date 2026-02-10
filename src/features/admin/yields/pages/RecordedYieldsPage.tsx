@@ -3,7 +3,7 @@
  * Lists all yield records with filtering and editing capabilities
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { AdminGuard } from "@/components/admin";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { canEditYields } from "@/services/admin";
@@ -11,22 +11,16 @@ import { type AumPurpose, type YieldFilters } from "@/services/admin";
 import {
   YieldsFilterBar,
   YieldsTable,
-  CorrectionHistoryDialog,
-  YieldCorrectionPanel,
   VoidYieldDialog,
   EditYieldDialog,
 } from "@/features/admin/yields/components";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui";
 import {
   useRecordedYieldsData,
-  useYieldCorrectionHistory,
-  useRecordCorrectionHistory,
   useVoidYieldMutation,
   useUpdateYieldAum,
   type RecordedYieldRecord,
 } from "@/hooks";
-import { useQueryClient } from "@tanstack/react-query";
-import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 
 interface Fund {
   id: string;
@@ -45,13 +39,8 @@ function RecordedYieldsContent() {
   }));
 
   const [canEdit, setCanEdit] = useState(false);
-  const [correctionRecord, setCorrectionRecord] = useState<RecordedYieldRecord | null>(null);
-  const [correctionHistoryRecord, setCorrectionHistoryRecord] =
-    useState<RecordedYieldRecord | null>(null);
   const [voidRecord, setVoidRecord] = useState<RecordedYieldRecord | null>(null);
   const [editAumRecord, setEditAumRecord] = useState<RecordedYieldRecord | null>(null);
-
-  const queryClient = useQueryClient();
 
   // URL-persisted filters
   const {
@@ -76,26 +65,6 @@ function RecordedYieldsContent() {
 
   // Data fetching
   const { data: yields = [], isLoading } = useRecordedYieldsData(filters);
-  const { data: correctionHistory = [] } = useYieldCorrectionHistory(
-    filters.fundId === "all" ? undefined : filters.fundId
-  );
-  const { data: recordCorrectionHistory = [], isLoading: isLoadingCorrectionHistory } =
-    useRecordCorrectionHistory(correctionHistoryRecord);
-
-  // Build correction map
-  const correctedRecordsMap = useMemo(() => {
-    const map = new Map<string, { count: number; lastCorrectedAt: string }>();
-    correctionHistory.forEach((c) => {
-      const key = `${c.fund_id}:${c.effective_date}:${c.purpose}`;
-      const existing = map.get(key);
-      if (!existing || new Date(c.applied_at) > new Date(existing.lastCorrectedAt)) {
-        map.set(key, { count: (existing?.count || 0) + 1, lastCorrectedAt: c.applied_at });
-      } else {
-        map.set(key, { ...existing, count: existing.count + 1 });
-      }
-    });
-    return map;
-  }, [correctionHistory]);
 
   // Mutations
   const voidMutation = useVoidYieldMutation(() => setVoidRecord(null));
@@ -145,7 +114,7 @@ function RecordedYieldsContent() {
                 <span className="font-medium text-foreground">IB commission</span> = gross × IB %
               </div>
               <div>
-                <span className="font-medium text-foreground">Net</span> = gross − fee − IB
+                <span className="font-medium text-foreground">Net</span> = gross - fee - IB
               </div>
             </div>
           </AccordionContent>
@@ -156,30 +125,12 @@ function RecordedYieldsContent() {
       <YieldsTable
         yields={yields}
         isLoading={isLoading}
-        correctedRecordsMap={correctedRecordsMap}
         canEdit={canEdit}
         onEdit={setEditAumRecord}
         onVoid={setVoidRecord}
-        onCorrect={setCorrectionRecord}
-        onViewHistory={setCorrectionHistoryRecord}
-        onViewCorrectionHistory={setCorrectionHistoryRecord}
       />
 
       {/* Dialogs */}
-      <CorrectionHistoryDialog
-        record={correctionHistoryRecord}
-        history={recordCorrectionHistory}
-        isLoading={isLoadingCorrectionHistory}
-        onClose={() => setCorrectionHistoryRecord(null)}
-      />
-
-      <YieldCorrectionPanel
-        record={correctionRecord}
-        open={!!correctionRecord}
-        onOpenChange={(open) => !open && setCorrectionRecord(null)}
-        onCorrectionApplied={() => invalidateAfterYieldOp(queryClient)}
-      />
-
       <VoidYieldDialog
         record={voidRecord}
         open={!!voidRecord}

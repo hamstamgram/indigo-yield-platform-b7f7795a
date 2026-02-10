@@ -13,14 +13,10 @@ import {
   type YieldRecord,
   type YieldFilters,
 } from "@/services/admin";
-import {
-  getYieldCorrectionHistory,
-  type CorrectionHistoryItem,
-} from "@/services/admin/yieldCorrectionService";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 
-export type { YieldRecord, YieldFilters, CorrectionHistoryItem };
+export type { YieldRecord, YieldFilters };
 
 /**
  * Hook to fetch yield records with filters
@@ -29,34 +25,6 @@ export function useYieldRecords(filters: YieldFilters) {
   return useQuery<YieldRecord[]>({
     queryKey: QUERY_KEYS.recordedYields(filters as unknown as Record<string, unknown>),
     queryFn: () => getYieldRecords(filters),
-  });
-}
-
-/**
- * Hook to fetch correction history for badge display
- */
-export function useYieldCorrectionHistory(fundId?: string) {
-  return useQuery<CorrectionHistoryItem[]>({
-    queryKey: QUERY_KEYS.yieldCorrections(fundId),
-    queryFn: () => getYieldCorrectionHistory(fundId),
-  });
-}
-
-/**
- * Hook to fetch correction history for a specific record
- */
-export function useRecordCorrectionHistory(record: YieldRecord | null) {
-  return useQuery<CorrectionHistoryItem[]>({
-    queryKey: QUERY_KEYS.yieldCorrectionHistory(
-      record?.fund_id,
-      record?.aum_date,
-      record?.aum_date
-    ),
-    queryFn: () =>
-      record
-        ? getYieldCorrectionHistory(record.fund_id, record.aum_date, record.aum_date)
-        : Promise.resolve([]),
-    enabled: !!record,
   });
 }
 

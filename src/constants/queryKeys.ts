@@ -135,10 +135,6 @@ export const QUERY_KEYS = {
   yieldDetails: (recordId: string) => ["yield-details", recordId] as const,
   canEditYields: ["can-edit-yields"] as const,
   canVoidYield: (recordId: string) => ["can-void-yield", recordId] as const,
-  yieldCorrections: (fundId?: string) =>
-    fundId ? (["yield-corrections", fundId] as const) : (["yield-corrections"] as const),
-  yieldCorrectionHistory: (fundId?: string, startDate?: string, endDate?: string) =>
-    ["yield-correction-history", fundId, startDate, endDate] as const,
   deprecatedFundYieldSnapshots: ["deprecated-fund-yield-snapshots"] as const,
 
   // ============ Allocations ============

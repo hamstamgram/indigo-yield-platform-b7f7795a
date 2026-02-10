@@ -56,8 +56,6 @@ interface SubmitWithdrawalParams {
   fundId: string;
   amount: number;
   assetCode: string;
-  destinationAddress?: string;
-  reason?: string;
   notes?: string;
 }
 
@@ -72,8 +70,6 @@ export function useSubmitWithdrawal() {
       const requestId = await withdrawalService.submitInvestorWithdrawal({
         fundId: params.fundId,
         amount: params.amount,
-        destinationAddress: params.destinationAddress,
-        reason: params.reason,
         notes: params.notes,
       });
 
@@ -90,7 +86,6 @@ export function useSubmitWithdrawal() {
           meta: {
             amount: params.amount,
             asset: params.assetCode,
-            destination: params.destinationAddress?.substring(0, 10) + "...",
           },
         });
       }

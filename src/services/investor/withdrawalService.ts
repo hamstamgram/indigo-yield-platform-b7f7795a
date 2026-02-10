@@ -575,37 +575,22 @@ export const withdrawalService = {
   async submitInvestorWithdrawal(params: {
     fundId: string;
     amount: number;
-    destinationAddress?: string;
-    reason?: string;
     notes?: string;
   }): Promise<string> {
-    // Get current user
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
     const investorId = user.id;
-
-    // Combine notes with destination and reason
-    const combinedNotes = [
-      params.reason ? `Reason: ${params.reason}` : null,
-      params.destinationAddress ? `Destination: ${params.destinationAddress}` : null,
-      params.notes || null,
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    // Generate idempotency key to prevent duplicate requests from double-clicks
     const idempotencyKey = generateCorrelationId("inv_wdr");
 
-    // Create withdrawal via RPC
     const { data: requestId, error: rpcError } = await rpc.call("create_withdrawal_request", {
       p_investor_id: investorId,
       p_fund_id: params.fundId,
       p_amount: params.amount,
       p_type: "partial",
-      p_notes: combinedNotes ? `${combinedNotes} [${idempotencyKey}]` : `[${idempotencyKey}]`,
+      p_notes: params.notes ? `${params.notes} [${idempotencyKey}]` : `[${idempotencyKey}]`,
     });
 
     if (rpcError) throw rpcError;

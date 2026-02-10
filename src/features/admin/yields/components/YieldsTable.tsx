@@ -5,7 +5,7 @@
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
-import { Check, X, Loader2, RefreshCw, Columns } from "lucide-react";
+import { Check, X, Loader2, Columns } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,10 +14,6 @@ import {
   CardDescription,
   Badge,
   ResponsiveTable,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
   Button,
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -36,26 +32,12 @@ import { useSortableColumns } from "@/hooks/ui/useSortableColumns";
 interface YieldsTableProps {
   yields: RecordedYieldRecord[];
   isLoading: boolean;
-  correctedRecordsMap: Map<string, { count: number; lastCorrectedAt: string }>;
   canEdit: boolean;
   onEdit: (record: RecordedYieldRecord) => void;
   onVoid: (record: RecordedYieldRecord) => void;
-  onCorrect: (record: RecordedYieldRecord) => void;
-  onViewHistory: (record: RecordedYieldRecord) => void;
-  onViewCorrectionHistory: (record: RecordedYieldRecord) => void;
 }
 
-export function YieldsTable({
-  yields,
-  isLoading,
-  correctedRecordsMap,
-  canEdit,
-  onEdit,
-  onVoid,
-  onCorrect,
-  onViewHistory,
-  onViewCorrectionHistory,
-}: YieldsTableProps) {
+export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: YieldsTableProps) {
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
     fund: true,
@@ -147,8 +129,6 @@ export function YieldsTable({
       ),
       cell: (record: RecordedYieldRecord) => {
         const isVoided = record.is_voided;
-        const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
-        const correctionInfo = correctedRecordsMap.get(correctionKey);
         const effectiveDate = record.as_of_date || record.aum_date;
         return (
           <div className="flex items-center gap-2">
@@ -157,28 +137,6 @@ export function YieldsTable({
               <Badge variant="destructive" className="text-xs">
                 Voided
               </Badge>
-            )}
-            {correctionInfo && !isVoided && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant="outline"
-                      className="text-xs cursor-pointer bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
-                      onClick={() => onViewCorrectionHistory(record)}
-                    >
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      {correctionInfo.count}x Corrected
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Last corrected:{" "}
-                    {format(new Date(correctionInfo.lastCorrectedAt), "MMM d, yyyy HH:mm")}
-                    <br />
-                    Click to view correction history
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             )}
           </div>
         );
@@ -217,7 +175,7 @@ export function YieldsTable({
               : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
           }
         >
-          {record.purpose === "reporting" ? "🟢 Reporting" : "🟠 Transaction"}
+          {record.purpose === "reporting" ? "Reporting" : "Transaction"}
         </Badge>
       ),
     },
@@ -266,8 +224,7 @@ export function YieldsTable({
           canEdit={canEdit}
           onEdit={onEdit}
           onVoid={onVoid}
-          onViewHistory={onViewHistory}
-          onCorrect={onCorrect}
+          onViewHistory={() => {}}
           isVoided={record.is_voided}
         />
       ),
@@ -399,8 +356,6 @@ export function YieldsTable({
               emptyMessage="No yield records found"
               columns={visibleColumnsList}
               mobileCardRenderer={(record) => {
-                const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
-                const correctionInfo = correctedRecordsMap.get(correctionKey);
                 const effectiveDate = record.as_of_date || record.aum_date;
                 return (
                   <Card className={`p-4 ${record.is_voided ? "opacity-50" : ""}`}>
@@ -430,14 +385,6 @@ export function YieldsTable({
                             Voided
                           </Badge>
                         )}
-                        {correctionInfo && !record.is_voided && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400"
-                          >
-                            {correctionInfo.count}x Corrected
-                          </Badge>
-                        )}
                       </div>
                     </div>
 
@@ -460,7 +407,7 @@ export function YieldsTable({
 
                     <div className="flex justify-between items-center pt-2 border-t">
                       <div className="text-xs text-muted-foreground">
-                        {record.created_by_name && <span>{record.created_by_name} • </span>}
+                        {record.created_by_name && <span>{record.created_by_name} - </span>}
                         {format(new Date(record.created_at), "MMM d, yyyy")}
                       </div>
                       <YieldActionsColumn
@@ -468,8 +415,7 @@ export function YieldsTable({
                         canEdit={canEdit}
                         onEdit={onEdit}
                         onVoid={onVoid}
-                        onViewHistory={onViewHistory}
-                        onCorrect={onCorrect}
+                        onViewHistory={() => {}}
                         isVoided={record.is_voided}
                       />
                     </div>
