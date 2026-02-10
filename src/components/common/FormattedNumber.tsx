@@ -63,8 +63,8 @@ export function FormattedNumber({
   // Determine text color based on sign
   const getColorClass = () => {
     if (!colorize) return "";
-    if (numValue > 0) return "text-green-600 dark:text-green-400";
-    if (numValue < 0) return "text-red-600 dark:text-red-400";
+    if (numValue > 0) return "text-emerald-400";
+    if (numValue < 0) return "text-rose-400";
     return "";
   };
 

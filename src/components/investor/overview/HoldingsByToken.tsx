@@ -84,7 +84,7 @@ export function HoldingsByToken({ holdings, isLoading }: HoldingsByTokenProps) {
                 {holding.ytdReturn !== undefined && holding.ytdReturn !== 0 && (
                   <p
                     className={`text-xs font-medium ${
-                      holding.ytdReturn >= 0 ? "text-green-600" : "text-red-600"
+                      holding.ytdReturn >= 0 ? "text-emerald-400" : "text-rose-400"
                     }`}
                   >
                     {holding.ytdReturn >= 0 ? "+" : ""}

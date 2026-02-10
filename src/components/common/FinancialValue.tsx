@@ -72,9 +72,9 @@ export function FinancialValue({
   // Determine color based on sign
   const valueColor = colorize
     ? decimalValue.greaterThan(0)
-      ? "text-green-600 dark:text-green-400"
+      ? "text-emerald-400"
       : decimalValue.lessThan(0)
-        ? "text-red-600 dark:text-red-400"
+        ? "text-rose-400"
         : ""
     : "";
 

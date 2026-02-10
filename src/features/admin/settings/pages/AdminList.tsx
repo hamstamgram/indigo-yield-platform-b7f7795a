@@ -298,43 +298,43 @@ function AdminListContent() {
             <TableBody>
               <TableRow>
                 <TableCell>View dashboards and data</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Send reports to investors</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>View withdrawals and transactions</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Edit investor personal info</TableCell>
                 <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Manage fee settings</TableCell>
                 <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Manage yield/AUM entries</TableCell>
                 <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Approve/deny withdrawals</TableCell>
                 <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Manage admin accounts</TableCell>
                 <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-center text-green-600">✓</TableCell>
+                <TableCell className="text-center text-emerald-400">✓</TableCell>
               </TableRow>
             </TableBody>
           </Table>

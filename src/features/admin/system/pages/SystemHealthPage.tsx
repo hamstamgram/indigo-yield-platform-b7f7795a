@@ -28,9 +28,9 @@ export default function SystemHealthPage() {
   const overallStatus = health ? getOverallStatus(health) : "operational";
 
   const statusColors: Record<ServiceStatus, string> = {
-    operational: "text-green-600 bg-green-100",
-    degraded: "text-yellow-600 bg-yellow-100",
-    down: "text-red-600 bg-red-100",
+    operational: "text-emerald-400 bg-emerald-500/10",
+    degraded: "text-yellow-400 bg-yellow-500/10",
+    down: "text-rose-400 bg-rose-500/10",
   };
 
   const statusIcons: Record<ServiceStatus, React.ReactNode> = {

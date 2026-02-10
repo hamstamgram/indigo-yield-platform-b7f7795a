@@ -222,12 +222,12 @@ export default function CrystallizationDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <div className="text-2xl font-bold text-green-400">
               {dashboardData?.reduce((sum, f) => sum + f.up_to_date, 0) || 0}
             </div>
           </CardContent>
         </Card>
-        <Card className={totalGaps > 0 ? "border-yellow-200 dark:border-yellow-900/50" : ""}>
+        <Card className={totalGaps > 0 ? "border-yellow-900/50" : ""}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
@@ -235,9 +235,7 @@ export default function CrystallizationDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div
-              className={`text-2xl font-bold ${totalGaps > 0 ? "text-yellow-600 dark:text-yellow-400" : ""}`}
-            >
+            <div className={`text-2xl font-bold ${totalGaps > 0 ? "text-yellow-400" : ""}`}>
               {totalGaps}
             </div>
           </CardContent>
@@ -310,9 +308,7 @@ export default function CrystallizationDashboardPage() {
                         {fund.total_positions}
                       </TableCell>
                       <TableCell className="text-right py-1.5">
-                        <span className="text-green-600 dark:text-green-400 font-mono">
-                          {fund.up_to_date}
-                        </span>
+                        <span className="text-green-400 font-mono">{fund.up_to_date}</span>
                       </TableCell>
                       <TableCell className="text-right py-1.5">
                         {fund.warning_stale + fund.critical_stale + fund.never_crystallized > 0 ? (
@@ -325,13 +321,9 @@ export default function CrystallizationDashboardPage() {
                       </TableCell>
                       <TableCell className="text-right py-1.5">
                         {fund.critical_stale > 0 ? (
-                          <span className="text-red-600 dark:text-red-400">
-                            {fund.critical_stale} critical
-                          </span>
+                          <span className="text-red-400">{fund.critical_stale} critical</span>
                         ) : fund.warning_stale > 0 ? (
-                          <span className="text-yellow-600 dark:text-yellow-400">
-                            {fund.warning_stale} stale
-                          </span>
+                          <span className="text-yellow-400">{fund.warning_stale} stale</span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
@@ -507,9 +499,9 @@ export default function CrystallizationDashboardPage() {
                         <span
                           className={
                             gap.days_behind > 30
-                              ? "text-red-600 dark:text-red-400 font-bold"
+                              ? "text-red-400 font-bold"
                               : gap.days_behind > 7
-                                ? "text-yellow-600 dark:text-yellow-400"
+                                ? "text-yellow-400"
                                 : ""
                           }
                         >
@@ -527,9 +519,7 @@ export default function CrystallizationDashboardPage() {
           ) : (
             <div className="text-center py-8">
               <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
-              <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                All positions are crystallized
-              </p>
+              <p className="text-sm font-medium text-green-400">All positions are crystallized</p>
               <p className="text-xs text-muted-foreground mt-1">
                 No gaps found in v_crystallization_gaps
               </p>

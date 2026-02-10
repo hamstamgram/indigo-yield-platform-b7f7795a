@@ -22,8 +22,8 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
       count: breakdown.deposits,
       icon: ArrowDownToLine,
       description: "Awaiting verification",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-blue-400",
+      bgColor: "bg-blue-500/10",
       href: "/admin/transactions", // Deposits consolidated into transactions
     },
     {
@@ -31,8 +31,8 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
       count: breakdown.withdrawals,
       icon: ArrowUpFromLine,
       description: "Awaiting approval",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-orange-400",
+      bgColor: "bg-orange-500/10",
       href: "/admin/withdrawals",
     },
     {
@@ -40,8 +40,8 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
       count: breakdown.investments,
       icon: TrendingUp,
       description: "Awaiting processing",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-500/10",
       href: "/admin/investments",
     },
   ];
@@ -102,9 +102,9 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
               breakdown.withdrawals === 0 &&
               breakdown.investments === 0 && (
                 <div className="text-center py-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-3">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 mb-3">
                     <svg
-                      className="h-6 w-6 text-green-600"
+                      className="h-6 w-6 text-emerald-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

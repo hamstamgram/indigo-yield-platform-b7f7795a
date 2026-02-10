@@ -250,8 +250,8 @@ export const StatementManager: React.FC = () => {
       </CardHeader>
       <CardContent>
         {!isSuperAdmin && (
-          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <p className="text-sm text-amber-700 dark:text-amber-400">
+          <div className="mb-4 p-3 bg-amber-900/20 rounded-lg border border-amber-800">
+            <p className="text-sm text-amber-400">
               You can view statements but only Super Admins can generate or publish.
             </p>
           </div>

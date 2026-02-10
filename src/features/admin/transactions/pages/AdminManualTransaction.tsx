@@ -564,12 +564,9 @@ export default function AdminManualTransaction() {
                   </Alert>
                 )}
                 {aumDeviationWarning && (
-                  <Alert
-                    variant="destructive"
-                    className="py-2 border-orange-500 bg-orange-50 dark:bg-orange-950/20"
-                  >
-                    <AlertTriangle className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-700 dark:text-orange-400 text-sm">
+                  <Alert variant="destructive" className="py-2 border-orange-500 bg-orange-950/20">
+                    <AlertTriangle className="h-4 w-4 text-orange-400" />
+                    <AlertDescription className="text-orange-400 text-sm">
                       <strong>Warning: AUM deviation detected!</strong>
                       <br />
                       {aumDeviationWarning}
@@ -600,7 +597,7 @@ export default function AdminManualTransaction() {
                       <p
                         className={cn(
                           "font-medium",
-                          yieldPreviewGross?.gt(0) ? "text-green-600" : "text-muted-foreground"
+                          yieldPreviewGross?.gt(0) ? "text-emerald-400" : "text-muted-foreground"
                         )}
                       >
                         {yieldPreviewGross?.gt(0) ? "+" : ""}
@@ -625,9 +622,9 @@ export default function AdminManualTransaction() {
                     </div>
                   </div>
                   {yieldPreviewGross?.gt(0) && (
-                    <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <AlertDescription className="text-green-700 dark:text-green-400 text-sm">
+                    <Alert className="py-2 border-green-500/50 bg-green-950/20">
+                      <Check className="h-4 w-4 text-emerald-400" />
+                      <AlertDescription className="text-green-400 text-sm">
                         Yield will be distributed to {yieldPreview.investorCount} existing investors
                         before the deposit is processed.
                       </AlertDescription>

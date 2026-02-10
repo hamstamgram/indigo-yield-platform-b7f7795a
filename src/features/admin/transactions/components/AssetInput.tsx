@@ -65,7 +65,7 @@ export function AssetInput({ fundId, txDate, asset }: PreflowAumInputProps) {
       </div>
 
       {hasLiveAum && (
-        <span className="text-xs text-blue-600 font-medium">
+        <span className="text-xs text-blue-400 font-medium">
           (Live: {Number(liveNavData?.aum).toLocaleString()} {asset})
         </span>
       )}

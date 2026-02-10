@@ -171,8 +171,8 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
           variant={record.purpose === "reporting" ? "default" : "secondary"}
           className={
             record.purpose === "reporting"
-              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+              ? "bg-green-900/30 text-green-400"
+              : "bg-orange-900/30 text-orange-400"
           }
         >
           {record.purpose === "reporting" ? "Reporting" : "Transaction"}
@@ -184,7 +184,7 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
       header: "Month End",
       cell: (record: RecordedYieldRecord) =>
         record.is_month_end ? (
-          <Check className="h-4 w-4 text-green-600" />
+          <Check className="h-4 w-4 text-emerald-400" />
         ) : (
           <X className="h-4 w-4 text-muted-foreground" />
         ),
@@ -374,8 +374,8 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
                           variant={record.purpose === "reporting" ? "default" : "secondary"}
                           className={
                             record.purpose === "reporting"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                              ? "bg-green-900/30 text-green-400"
+                              : "bg-orange-900/30 text-orange-400"
                           }
                         >
                           {record.purpose === "reporting" ? "Reporting" : "Transaction"}

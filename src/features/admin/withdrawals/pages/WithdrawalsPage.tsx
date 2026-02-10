@@ -111,16 +111,16 @@ const WithdrawalsPage = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-emerald-400" />;
       case "processing":
-        return <Clock className="h-4 w-4 text-blue-600" />;
+        return <Clock className="h-4 w-4 text-blue-400" />;
       case "approved":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-emerald-400" />;
       case "pending":
         return <Clock className="h-4 w-4 text-yellow-600" />;
       case "rejected":
       case "cancelled":
-        return <XCircle className="h-4 w-4 text-red-600" />;
+        return <XCircle className="h-4 w-4 text-rose-400" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
     }
@@ -148,8 +148,8 @@ const WithdrawalsPage = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-64 bg-muted rounded"></div>
         </div>
       </div>
     );
@@ -323,11 +323,11 @@ const WithdrawalsPage = () => {
                     )}
 
                   {withdrawal.rejection_reason && (
-                    <div className="flex items-start gap-2 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
-                      <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+                    <div className="flex items-start gap-2 mt-2 p-2 bg-rose-950/20 border border-rose-500/20 rounded text-sm">
+                      <AlertCircle className="h-4 w-4 text-rose-400 mt-0.5" />
                       <div>
-                        <span className="font-medium text-red-800">Rejected: </span>
-                        <span className="text-red-700">{withdrawal.rejection_reason}</span>
+                        <span className="font-medium text-rose-300">Rejected: </span>
+                        <span className="text-rose-400">{withdrawal.rejection_reason}</span>
                       </div>
                     </div>
                   )}
@@ -339,7 +339,7 @@ const WithdrawalsPage = () => {
                   )}
 
                   {withdrawal.admin_notes && (
-                    <div className="text-sm text-muted-foreground mt-2 p-2 bg-gray-50 rounded">
+                    <div className="text-sm text-muted-foreground mt-2 p-2 bg-muted/50 rounded">
                       <strong>Admin notes:</strong> {withdrawal.admin_notes}
                     </div>
                   )}

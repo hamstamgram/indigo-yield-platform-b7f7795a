@@ -31,9 +31,9 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
 
   const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
   const trendColor = isPositive
-    ? "text-green-600"
+    ? "text-emerald-400"
     : isNegative
-      ? "text-red-600"
+      ? "text-rose-400"
       : "text-muted-foreground";
 
   return (
@@ -70,13 +70,13 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Additions</p>
-            <p className="font-mono text-green-600">
+            <p className="font-mono text-emerald-400">
               {formatSignedAssetAmount(data.additions, fundName)}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Redemptions</p>
-            <p className="font-mono text-red-600">
+            <p className="font-mono text-rose-400">
               {data.redemptions !== 0
                 ? formatSignedAssetAmount(-Math.abs(data.redemptions), fundName)
                 : formatAssetAmount(0, fundName)}
@@ -85,7 +85,7 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
           <div className="col-span-2">
             <p className="text-xs text-muted-foreground">Net Income</p>
             <p
-              className={`font-mono font-medium ${data.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
+              className={`font-mono font-medium ${data.netIncome >= 0 ? "text-emerald-400" : "text-rose-400"}`}
             >
               {formatSignedAssetAmount(data.netIncome, fundName)}
             </p>

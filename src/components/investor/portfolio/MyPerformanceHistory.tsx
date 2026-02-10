@@ -108,7 +108,7 @@ const AssetSection = memo(function AssetSection({
       {
         header: "Additions",
         accessor: (report) => (
-          <span className="text-green-600">
+          <span className="text-emerald-400">
             {report.additions && report.additions > 0 ? "+" : ""}
             {formatAssetAmount(report.additions || 0, assetCode)}
           </span>
@@ -118,7 +118,7 @@ const AssetSection = memo(function AssetSection({
       {
         header: "Withdrawals",
         accessor: (report) => (
-          <span className="text-red-600">
+          <span className="text-rose-400">
             {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
             {formatAssetAmount(report.withdrawals || 0, assetCode)}
           </span>
@@ -128,7 +128,7 @@ const AssetSection = memo(function AssetSection({
       {
         header: "Yield Earned",
         accessor: (report) => (
-          <span className="text-blue-600 font-semibold">
+          <span className="text-blue-400 font-semibold">
             +{formatAssetAmount(report.yield_earned || 0, assetCode)}
           </span>
         ),

@@ -130,9 +130,7 @@ export function EditYieldDialog({
 
           {/* Delta Preview */}
           {hasChanged && isValidAum && (
-            <div
-              className={`rounded-lg p-3 ${delta >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}
-            >
+            <div className={`rounded-lg p-3 ${delta >= 0 ? "bg-green-900/20" : "bg-red-900/20"}`}>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Change:</span>
                 <span className="font-medium">

@@ -459,14 +459,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           </div>
 
           {/* Help Text */}
-          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+          <div className="bg-blue-950 p-4 rounded-lg">
             <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                  Report Generation Tips
-                </p>
-                <ul className="text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+                <p className="font-medium text-blue-100 mb-1">Report Generation Tips</p>
+                <ul className="text-blue-200 space-y-1 list-disc list-inside">
                   <li>PDF reports are best for professional presentations</li>
                   <li>Excel reports allow for custom analysis and filtering</li>
                   <li>Large date ranges may take longer to process</li>

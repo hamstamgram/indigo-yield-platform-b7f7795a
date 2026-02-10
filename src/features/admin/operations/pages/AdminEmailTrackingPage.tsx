@@ -223,7 +223,7 @@ export default function AdminEmailTrackingPage() {
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats?.delivered || 0}</div>
+            <div className="text-2xl font-bold text-emerald-400">{stats?.delivered || 0}</div>
           </CardContent>
         </Card>
 
@@ -233,7 +233,7 @@ export default function AdminEmailTrackingPage() {
             <Eye className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats?.opened || 0}</div>
+            <div className="text-2xl font-bold text-blue-400">{stats?.opened || 0}</div>
           </CardContent>
         </Card>
 
@@ -243,7 +243,7 @@ export default function AdminEmailTrackingPage() {
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats?.failed || 0}</div>
+            <div className="text-2xl font-bold text-rose-400">{stats?.failed || 0}</div>
           </CardContent>
         </Card>
 
@@ -253,7 +253,7 @@ export default function AdminEmailTrackingPage() {
             <TrendingUp className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats?.successRate || 0}%</div>
+            <div className="text-2xl font-bold text-blue-400">{stats?.successRate || 0}%</div>
           </CardContent>
         </Card>
 

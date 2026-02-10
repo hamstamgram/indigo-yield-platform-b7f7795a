@@ -90,10 +90,7 @@ export function YieldPreviewResults({
       {isAdb && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800"
-            >
+            <Badge variant="outline" className="bg-blue-950/30 text-blue-400 border-blue-800">
               <Clock className="h-3 w-3 mr-1" />
               Time-Weighted (ADB)
             </Badge>
@@ -142,7 +139,7 @@ export function YieldPreviewResults({
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {/* Total ADB (for ADB method) */}
         {yieldPreview.totalAdb !== undefined && toNum(yieldPreview.totalAdb) > 0 && (
-          <Card className="border-slate-200 bg-slate-50 dark:bg-slate-950/20">
+          <Card className="border-slate-200 bg-slate-950/20">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Total ADB</p>
               <p className="text-lg font-mono font-semibold">
@@ -152,13 +149,13 @@ export function YieldPreviewResults({
             </CardContent>
           </Card>
         )}
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+        <Card className="border-emerald-500/20 bg-green-950/20">
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">Gross Yield</p>
             <p
               className={cn(
                 "text-lg font-mono font-bold",
-                toNum(yieldPreview.grossYield) >= 0 ? "text-green-600" : "text-red-600"
+                toNum(yieldPreview.grossYield) >= 0 ? "text-emerald-400" : "text-rose-400"
               )}
             >
               {toNum(yieldPreview.grossYield) >= 0 ? "+" : ""}
@@ -193,7 +190,7 @@ export function YieldPreviewResults({
             <p
               className={cn(
                 "text-lg font-mono font-bold",
-                toNum(yieldPreview.netYield) >= 0 ? "text-primary" : "text-red-600"
+                toNum(yieldPreview.netYield) >= 0 ? "text-primary" : "text-rose-400"
               )}
             >
               {toNum(yieldPreview.netYield) >= 0 ? "+" : ""}
@@ -205,14 +202,14 @@ export function YieldPreviewResults({
 
       {/* INDIGO FEES Credit Card */}
       {toNum(yieldPreview.indigoFeesCredit) > 0 && (
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+        <Card className="border-blue-500/20 bg-blue-950/20">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-blue-600" />
+                <Building2 className="h-4 w-4 text-blue-400" />
                 <span className="text-sm font-medium">INDIGO FEES Credit</span>
               </div>
-              <span className="font-mono font-bold text-blue-600">
+              <span className="font-mono font-bold text-blue-400">
                 +{formatValue(toNum(yieldPreview.indigoFeesCredit), asset)} {asset}
               </span>
             </div>
@@ -260,7 +257,7 @@ export function YieldPreviewResults({
 
       {/* IB Credits Summary */}
       {yieldPreview.ibCredits && yieldPreview.ibCredits.length > 0 && (
-        <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
+        <Card className="border-purple-200 bg-purple-950/20">
           <CardHeader className="pb-2 pt-3 px-3">
             <div className="flex items-center gap-2">
               <UserCheck className="h-4 w-4 text-purple-600" />
@@ -404,13 +401,13 @@ export function YieldPreviewResults({
                   <TableRow
                     className={cn(
                       inv.wouldSkip && "opacity-50",
-                      checkSystemAccount(inv) && "bg-blue-50/50 dark:bg-blue-950/20",
-                      toNum(inv.carriedLoss ?? 0) > 0 && "bg-amber-50/30 dark:bg-amber-950/10"
+                      checkSystemAccount(inv) && "bg-blue-950/20",
+                      toNum(inv.carriedLoss ?? 0) > 0 && "bg-amber-950/10"
                     )}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {checkSystemAccount(inv) && <Building2 className="h-3 w-3 text-blue-600" />}
+                        {checkSystemAccount(inv) && <Building2 className="h-3 w-3 text-blue-400" />}
                         <div>
                           <p className="font-medium text-sm truncate max-w-[120px]">
                             {inv.investorName}
@@ -443,7 +440,7 @@ export function YieldPreviewResults({
                         <TableCell className="text-right font-mono text-xs">
                           {formatValue(toNum(inv.adb ?? inv.currentBalance), asset)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-blue-600">
+                        <TableCell className="text-right font-mono text-xs text-blue-400">
                           {(
                             (toNum(inv.adbWeight ?? 0) || toNum(inv.allocationPercentage) / 100) *
                             100
@@ -462,7 +459,7 @@ export function YieldPreviewResults({
                       <span
                         className={cn(
                           "font-bold",
-                          displayGross >= 0 ? "text-green-600" : "text-red-600"
+                          displayGross >= 0 ? "text-emerald-400" : "text-rose-400"
                         )}
                       >
                         {displayGross >= 0 ? "+" : ""}
@@ -507,7 +504,7 @@ export function YieldPreviewResults({
                     <TableCell
                       className={cn(
                         "text-right font-mono text-xs font-semibold",
-                        displayNet >= 0 ? "" : "text-red-600"
+                        displayNet >= 0 ? "" : "text-rose-400"
                       )}
                     >
                       {displayNet >= 0 ? "+" : ""}
@@ -522,7 +519,7 @@ export function YieldPreviewResults({
 
                   {/* Month-end yield sub-row (appears FIRST, before crystals) */}
                   {hasEvents && (
-                    <TableRow className="bg-green-500/5 dark:bg-green-950/15 border-green-500/10">
+                    <TableRow className="bg-green-950/15 border-green-500/10">
                       <TableCell colSpan={isAdb ? 3 : 2} className="text-xs pl-6">
                         <div className="flex items-center gap-2">
                           <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
@@ -567,7 +564,7 @@ export function YieldPreviewResults({
                     events.map((evt, idx) => (
                       <TableRow
                         key={`${inv.investorId}-crystal-${idx}`}
-                        className="bg-amber-500/10 dark:bg-amber-950/20 border-amber-500/10"
+                        className="bg-amber-950/20 border-amber-500/10"
                       >
                         <TableCell colSpan={isAdb ? 3 : 2} className="text-xs pl-6">
                           <div className="flex items-center gap-2">

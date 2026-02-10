@@ -37,7 +37,7 @@ export default function TransactionsPage() {
       cell: (item: any) => (
         <div className="flex items-center gap-1.5">
           <span
-            className={item.amount > 0 ? "text-green-600 font-mono" : "text-foreground font-mono"}
+            className={item.amount > 0 ? "text-emerald-400 font-mono" : "text-foreground font-mono"}
           >
             {item.amount}
           </span>

@@ -138,7 +138,7 @@ export function CookieConsent() {
               {/* Necessary Cookies */}
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                  <Shield className="h-5 w-5 text-emerald-400 mt-0.5" />
                   <div>
                     <Label htmlFor="necessary" className="text-base font-medium">
                       Necessary Cookies
@@ -157,7 +157,7 @@ export function CookieConsent() {
               {/* Analytics Cookies */}
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <BarChart className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <BarChart className="h-5 w-5 text-blue-400 mt-0.5" />
                   <div>
                     <Label htmlFor="analytics" className="text-base font-medium">
                       Analytics Cookies

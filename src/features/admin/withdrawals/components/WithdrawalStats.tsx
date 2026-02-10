@@ -31,13 +31,13 @@ export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsPr
       title: "Completed",
       value: stats.completed,
       icon: CheckCircle2,
-      color: "text-green-700",
+      color: "text-emerald-400",
     },
     {
       title: "Rejected",
       value: stats.rejected,
       icon: XCircle,
-      color: "text-red-600",
+      color: "text-rose-400",
     },
   ];
 

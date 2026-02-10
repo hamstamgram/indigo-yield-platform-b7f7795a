@@ -179,7 +179,7 @@ export function FundPositionCard({
                     <p
                       className={cn(
                         "text-lg font-mono font-bold",
-                        mtdYield >= 0 ? "text-green-600" : "text-red-600"
+                        mtdYield >= 0 ? "text-emerald-400" : "text-rose-400"
                       )}
                     >
                       {mtdYield >= 0 ? "+" : ""}
@@ -214,7 +214,7 @@ export function FundPositionCard({
                 <p
                   className={cn(
                     "text-sm font-mono font-semibold",
-                    mtdReturn >= 0 ? "text-green-600" : "text-red-600"
+                    mtdReturn >= 0 ? "text-emerald-400" : "text-rose-400"
                   )}
                 >
                   {formatPercent(mtdReturn)}
@@ -231,7 +231,9 @@ export function FundPositionCard({
                 <p
                   className={cn(
                     "text-sm font-mono font-semibold",
-                    (performance?.ytd_rate_of_return || 0) >= 0 ? "text-green-600" : "text-red-600"
+                    (performance?.ytd_rate_of_return || 0) >= 0
+                      ? "text-emerald-400"
+                      : "text-rose-400"
                   )}
                 >
                   {formatPercent(performance?.ytd_rate_of_return)}
@@ -301,7 +303,7 @@ export function FundPositionCard({
                       className="font-mono h-9"
                     />
                   ) : (
-                    <p className="font-mono text-sm py-2 text-green-600">
+                    <p className="font-mono text-sm py-2 text-emerald-400">
                       +{formatCrypto(performance?.mtd_additions || 0)}
                     </p>
                   )}
@@ -319,7 +321,7 @@ export function FundPositionCard({
                       className="font-mono h-9"
                     />
                   ) : (
-                    <p className="font-mono text-sm py-2 text-red-600">
+                    <p className="font-mono text-sm py-2 text-rose-400">
                       -{formatCrypto(performance?.mtd_redemptions || 0)}
                     </p>
                   )}
@@ -335,14 +337,16 @@ export function FundPositionCard({
                         step="any"
                         value={editData.mtd_net_income.toFixed(8)}
                         onChange={(e) => handleFieldChange("mtd_net_income", e.target.value)}
-                        className="font-mono h-9 bg-green-50 dark:bg-green-900/20"
+                        className="font-mono h-9 bg-green-900/20"
                       />
                     </div>
                   ) : (
                     <p
                       className={cn(
                         "font-mono text-sm py-2 font-semibold",
-                        (performance?.mtd_net_income || 0) >= 0 ? "text-green-600" : "text-red-600"
+                        (performance?.mtd_net_income || 0) >= 0
+                          ? "text-emerald-400"
+                          : "text-rose-400"
                       )}
                     >
                       {(performance?.mtd_net_income || 0) >= 0 ? "+" : ""}

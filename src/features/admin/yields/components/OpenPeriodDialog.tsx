@@ -121,9 +121,9 @@ export function OpenPeriodDialog({ open, onOpenChange, fund, onSuccess }: OpenPe
 
         <div className="space-y-4 py-4">
           {/* Info Banner */}
-          <div className="flex items-start gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800">
-            <AlertTriangle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-700 dark:text-blue-300">
+          <div className="flex items-start gap-3 p-3 rounded-lg border border-blue-800 bg-blue-950/30">
+            <AlertTriangle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-300">
               This creates a starting AUM baseline. Yield is calculated as the difference between
               this baseline and the new AUM you enter when recording yield.
             </div>

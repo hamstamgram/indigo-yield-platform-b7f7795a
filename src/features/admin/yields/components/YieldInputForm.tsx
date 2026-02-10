@@ -182,7 +182,7 @@ export function YieldInputForm({
 
           {/* Show compact reporting indicator when Transaction is hidden */}
           {!showAdvancedPurpose && isReporting ? (
-            <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-sm">
+            <div className="flex items-start gap-2 p-3 rounded-md bg-green-950/20 text-green-400 text-sm">
               <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <div>
                 <strong>Reporting</strong> - Visible to investors on statements and dashboards.
@@ -243,7 +243,7 @@ export function YieldInputForm({
                 className={cn(
                   "flex items-start gap-2 p-3 rounded-md text-sm",
                   yieldPurpose === "reporting"
-                    ? "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400"
+                    ? "bg-green-950/20 text-green-400"
                     : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
                 )}
               >
@@ -399,7 +399,7 @@ export function YieldInputForm({
 
       {/* Effective Date Validation Warning */}
       {yieldPurpose === "reporting" && reportingMonth && !validationResult.valid && (
-        <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-sm">
+        <div className="flex items-start gap-2 p-3 rounded-md bg-red-950/20 text-red-400 text-sm">
           <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <span>{validationResult.error}</span>
         </div>

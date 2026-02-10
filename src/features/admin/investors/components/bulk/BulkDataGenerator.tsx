@@ -101,7 +101,7 @@ const BulkDataGenerator: React.FC = () => {
           <Alert className={result.success ? "border-green-500" : "border-yellow-500"}>
             <div className="flex items-center gap-2">
               {result.success ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-emerald-400" />
               ) : (
                 <AlertCircle className="h-4 w-4 text-yellow-600" />
               )}

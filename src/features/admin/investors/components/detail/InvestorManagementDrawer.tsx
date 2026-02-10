@@ -236,7 +236,7 @@ export function InvestorManagementDrawer({
                       </div>
                     ))}
                   </div>
-                  <p className="text-amber-600 dark:text-amber-400 text-sm">
+                  <p className="text-amber-400 text-sm">
                     Force deleting will permanently remove all positions and associated data. This
                     cannot be undone.
                   </p>
@@ -411,7 +411,7 @@ export function InvestorManagementDrawer({
                           <p
                             className={cn(
                               "font-mono font-semibold",
-                              pos.unrealized_pnl >= 0 ? "text-green-600" : "text-red-600"
+                              pos.unrealized_pnl >= 0 ? "text-emerald-400" : "text-rose-400"
                             )}
                           >
                             {pos.unrealized_pnl >= 0 ? "+" : ""}

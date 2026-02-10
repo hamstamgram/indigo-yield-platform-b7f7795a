@@ -166,7 +166,7 @@ export function QuickYieldEntry() {
                     <p className="text-xs text-muted-foreground">Amount</p>
                     <p
                       className={`text-lg font-mono font-bold ${
-                        yieldCalc.amount >= 0 ? "text-green-600" : "text-red-600"
+                        yieldCalc.amount >= 0 ? "text-emerald-400" : "text-rose-400"
                       }`}
                     >
                       {yieldCalc.amount >= 0 ? "+" : ""}

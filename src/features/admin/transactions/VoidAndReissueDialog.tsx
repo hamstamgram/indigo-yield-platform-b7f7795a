@@ -396,7 +396,7 @@ export function VoidAndReissueDialog({
                 <Label htmlFor="closing_aum">
                   Closing AUM Snapshot ({transaction.asset}) *
                   {existingPreflow && (
-                    <span className="ml-2 text-xs text-green-600 font-medium">
+                    <span className="ml-2 text-xs text-emerald-400 font-medium">
                       (Using existing preflow)
                     </span>
                   )}
@@ -417,7 +417,7 @@ export function VoidAndReissueDialog({
                     Checking for existing preflow AUM…
                   </p>
                 ) : existingPreflow ? (
-                  <p className="text-xs text-green-600">
+                  <p className="text-xs text-emerald-400">
                     Using existing preflow AUM recorded at{" "}
                     {existingPreflow.eventTs
                       ? new Date(existingPreflow.eventTs).toLocaleString()
@@ -477,14 +477,14 @@ export function VoidAndReissueDialog({
               {/* Changes summary */}
               <div className="rounded-md border p-4 space-y-3">
                 <h4 className="font-medium flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                   Changes to Apply
                 </h4>
                 {changes.map((change, idx) => (
                   <div key={idx} className="grid grid-cols-3 gap-2 text-sm">
                     <div className="font-medium">{change.field}:</div>
                     <div className="text-muted-foreground line-through">{change.oldValue}</div>
-                    <div className="text-green-600 font-medium">{change.newValue}</div>
+                    <div className="text-emerald-400 font-medium">{change.newValue}</div>
                   </div>
                 ))}
               </div>

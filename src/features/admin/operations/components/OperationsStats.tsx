@@ -18,11 +18,11 @@ export function OperationsStats({ stats }: OperationsStatsProps) {
   const getStatusColor = (status?: string) => {
     switch (status) {
       case "success":
-        return "text-green-600";
+        return "text-emerald-400";
       case "warning":
         return "text-yellow-600";
       case "error":
-        return "text-red-600";
+        return "text-rose-400";
       default:
         return "text-muted-foreground";
     }
@@ -43,8 +43,8 @@ export function OperationsStats({ stats }: OperationsStatsProps) {
               <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
               {stat.trend && (
                 <div className="flex items-center mt-2 text-xs">
-                  <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
-                  <span className="text-green-600">{stat.trend}</span>
+                  <TrendingUp className="h-3 w-3 mr-1 text-emerald-400" />
+                  <span className="text-emerald-400">{stat.trend}</span>
                 </div>
               )}
             </CardContent>

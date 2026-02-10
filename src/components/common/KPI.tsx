@@ -56,11 +56,11 @@ export default function KPI({
   const getChangeColor = (type: "increase" | "decrease" | "neutral"): string => {
     switch (type) {
       case "increase":
-        return "text-green-600";
+        return "text-emerald-400";
       case "decrease":
-        return "text-red-600";
+        return "text-rose-400";
       default:
-        return "text-gray-600";
+        return "text-muted-foreground";
     }
   };
 
@@ -74,7 +74,7 @@ export default function KPI({
         <div className="space-y-1">
           <div className="text-2xl font-bold">
             {loading ? (
-              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 w-24 bg-muted rounded animate-pulse" />
             ) : (
               formatValue(value)
             )}

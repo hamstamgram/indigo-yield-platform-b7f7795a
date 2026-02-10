@@ -206,7 +206,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                   <TableCell className="py-1.5">
                     <div
                       className={`flex items-center space-x-1 ${
-                        pnl >= 0 ? "text-green-600" : "text-red-600"
+                        pnl >= 0 ? "text-emerald-400" : "text-rose-400"
                       }`}
                     >
                       {pnl >= 0 ? (
@@ -223,7 +223,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                   <TableCell className="py-1.5">
                     <span
                       className={`font-mono tabular-nums ${
-                        pnlPercent >= 0 ? "text-green-600" : "text-red-600"
+                        pnlPercent >= 0 ? "text-emerald-400" : "text-rose-400"
                       }`}
                     >
                       {pnlPercent >= 0 ? "+" : ""}
@@ -232,7 +232,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                   </TableCell>
 
                   <TableCell className="py-1.5">
-                    <span className="font-mono tabular-nums text-green-600">
+                    <span className="font-mono tabular-nums text-emerald-400">
                       {formatAssetValue(position.total_earnings, position.asset)}
                     </span>
                   </TableCell>
@@ -312,14 +312,14 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Earnings:</span>
-                        <span className="font-medium text-green-600">
+                        <span className="font-medium text-emerald-400">
                           {formatAssetValue(totalEarnings, asset)}
                         </span>
                       </div>
                       <div className="flex justify-between border-t pt-1">
                         <span className="text-muted-foreground">P&L:</span>
                         <span
-                          className={`font-semibold ${totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}
+                          className={`font-semibold ${totalPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}
                         >
                           {totalPnL >= 0 ? "+" : ""}
                           {formatAssetValue(Math.abs(totalPnL), asset)} ({pnlPercent.toFixed(2)}%)

@@ -91,10 +91,10 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
 
   const getTriggerBadge = (trigger: string) => {
     const colors: Record<string, string> = {
-      deposit: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      withdrawal: "bg-amber-50 text-amber-700 border-amber-200",
-      month_end: "bg-blue-50 text-blue-700 border-blue-200",
-      manual: "bg-purple-50 text-purple-700 border-purple-200",
+      deposit: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      withdrawal: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      month_end: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+      manual: "bg-purple-500/10 text-purple-400 border-purple-500/20",
     };
     return (
       <Badge variant="outline" className={colors[trigger] || ""}>
@@ -146,14 +146,17 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
               </CardTitle>
               <div className="flex items-center gap-2">
                 {stats.pendingCount > 0 && (
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  >
                     <Clock className="h-3 w-3 mr-1" />
                     {stats.pendingCount} Pending
                   </Badge>
                 )}
                 <Badge
                   variant="outline"
-                  className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                  className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                 >
                   <Eye className="h-3 w-3 mr-1" />
                   {stats.visibleCount} Visible
@@ -182,7 +185,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                 <p
                   className={cn(
                     "text-lg font-mono font-semibold",
-                    stats.totalNet >= 0 ? "text-emerald-600" : "text-red-600"
+                    stats.totalNet >= 0 ? "text-emerald-400" : "text-rose-400"
                   )}
                 >
                   {formatNumber(stats.totalNet)}
@@ -250,7 +253,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                           event.is_voided && "opacity-60",
                           !event.is_voided &&
                             event.visibility_scope === "admin_only" &&
-                            "bg-amber-50/50"
+                            "bg-amber-500/10"
                         )}
                       >
                         <TableCell className="font-mono whitespace-nowrap py-1.5">
@@ -297,8 +300,8 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             event.is_voided
                               ? "line-through text-muted-foreground"
                               : event.net_yield_amount >= 0
-                                ? "text-emerald-600"
-                                : "text-red-600"
+                                ? "text-emerald-400"
+                                : "text-rose-400"
                           )}
                         >
                           {formatNumber(event.net_yield_amount)}
@@ -307,7 +310,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                           {event.is_voided ? (
                             <Badge
                               variant="outline"
-                              className="bg-red-50 text-red-700 border-red-200 text-xs"
+                              className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-xs"
                             >
                               <Ban className="h-3 w-3 mr-1" />
                               Voided
@@ -315,7 +318,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                           ) : event.visibility_scope === "admin_only" ? (
                             <Badge
                               variant="outline"
-                              className="bg-amber-50 text-amber-700 border-amber-200"
+                              className="bg-amber-500/10 text-amber-400 border-amber-500/20"
                             >
                               <Clock className="h-3 w-3 mr-1" />
                               Pending
@@ -323,7 +326,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                           ) : (
                             <Badge
                               variant="outline"
-                              className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                              className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               Visible

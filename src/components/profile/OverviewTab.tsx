@@ -219,7 +219,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Return</span>
                 <span
-                  className={`font-semibold font-mono ${stats.totalReturn >= 0 ? "text-green-600" : "text-red-600"}`}
+                  className={`font-semibold font-mono ${stats.totalReturn >= 0 ? "text-emerald-400" : "text-rose-400"}`}
                 >
                   {Math.abs(stats.totalReturn).toLocaleString(undefined, {
                     minimumFractionDigits: 2,

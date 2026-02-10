@@ -76,14 +76,16 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-background px-4">
           <div className="max-w-md w-full text-center">
             <div className="mb-8">
               <div className="mx-auto h-24 w-24 text-red-500 mb-4">
                 <AlertTriangle className="h-full w-full" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h1>
-              <p className="text-gray-600 mb-6">
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                Oops! Something went wrong
+              </h1>
+              <p className="text-muted-foreground mb-6">
                 We're sorry, but something unexpected happened. Please try refreshing the page or
                 contact support if the problem persists.
               </p>
@@ -91,29 +93,29 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {/* Error details (only in development) */}
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <details className="mb-6 text-left bg-red-50 border border-red-200 rounded-lg p-4">
-                <summary className="cursor-pointer font-semibold text-red-700 mb-2">
+              <details className="mb-6 text-left bg-rose-500/10 border border-rose-500/20 rounded-lg p-4">
+                <summary className="cursor-pointer font-semibold text-rose-400 mb-2">
                   Error Details (Development Only)
                 </summary>
                 <div className="mt-2 space-y-2">
                   <div>
-                    <strong className="text-red-600">Error:</strong>
-                    <pre className="mt-1 text-xs overflow-x-auto bg-white p-2 rounded border border-red-200">
+                    <strong className="text-rose-400">Error:</strong>
+                    <pre className="mt-1 text-xs overflow-x-auto bg-black/80 p-2 rounded border border-rose-500/20">
                       {this.state.error.toString()}
                     </pre>
                   </div>
                   {this.state.error.stack && (
                     <div>
-                      <strong className="text-red-600">Stack:</strong>
-                      <pre className="mt-1 text-xs overflow-x-auto bg-white p-2 rounded border border-red-200 max-h-40">
+                      <strong className="text-rose-400">Stack:</strong>
+                      <pre className="mt-1 text-xs overflow-x-auto bg-black/80 p-2 rounded border border-rose-500/20 max-h-40">
                         {this.state.error.stack}
                       </pre>
                     </div>
                   )}
                   {this.state.errorInfo && (
                     <div>
-                      <strong className="text-red-600">Component Stack:</strong>
-                      <pre className="mt-1 text-xs overflow-x-auto bg-white p-2 rounded border border-red-200 max-h-40">
+                      <strong className="text-rose-400">Component Stack:</strong>
+                      <pre className="mt-1 text-xs overflow-x-auto bg-black/80 p-2 rounded border border-rose-500/20 max-h-40">
                         {this.state.errorInfo.componentStack}
                       </pre>
                     </div>
@@ -141,7 +143,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </Button>
             </div>
 
-            <p className="mt-6 text-sm text-gray-500">
+            <p className="mt-6 text-sm text-muted-foreground">
               Error ID: {Date.now().toString(36).toUpperCase()}
             </p>
           </div>

@@ -19,10 +19,10 @@ import {
 import { logWarn } from "@/lib/logger";
 
 const concentrationConfig = {
-  CRITICAL: { color: "bg-red-100 text-red-700", priority: 4 },
-  HIGH: { color: "bg-orange-100 text-orange-700", priority: 3 },
-  MEDIUM: { color: "bg-yellow-100 text-yellow-700", priority: 2 },
-  LOW: { color: "bg-green-100 text-green-700", priority: 1 },
+  CRITICAL: { color: "bg-rose-500/10 text-rose-400", priority: 4 },
+  HIGH: { color: "bg-orange-500/10 text-orange-400", priority: 3 },
+  MEDIUM: { color: "bg-yellow-500/10 text-yellow-400", priority: 2 },
+  LOW: { color: "bg-emerald-500/10 text-emerald-400", priority: 1 },
 } as const;
 
 const fallbackConcentrationConfig = concentrationConfig.LOW;
@@ -60,7 +60,7 @@ export function ConcentrationRiskPanel() {
           <div className="flex gap-2">
             {criticalCount > 0 && <Badge variant="destructive">{criticalCount} Critical</Badge>}
             {highCount > 0 && (
-              <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+              <Badge variant="secondary" className="bg-orange-500/10 text-orange-400">
                 {highCount} High
               </Badge>
             )}

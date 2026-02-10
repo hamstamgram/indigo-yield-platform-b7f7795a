@@ -94,25 +94,31 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
     switch (trigger) {
       case "deposit":
         return (
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+          <Badge
+            variant="outline"
+            className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+          >
             Deposit
           </Badge>
         );
       case "withdrawal":
         return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+          <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/20">
             Withdrawal
           </Badge>
         );
       case "month_end":
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
             Month End
           </Badge>
         );
       case "manual":
         return (
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+          <Badge
+            variant="outline"
+            className="bg-purple-500/10 text-purple-400 border-purple-500/20"
+          >
             Manual
           </Badge>
         );
@@ -124,14 +130,14 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
   const getVisibilityBadge = (scope: string) => {
     if (scope === "admin_only") {
       return (
-        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+        <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/20">
           <Clock className="h-3 w-3 mr-1" />
           Pending
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
         <Eye className="h-3 w-3 mr-1" />
         Visible
       </Badge>
@@ -166,10 +172,10 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
             Yield Crystallization Events
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-amber-700 bg-amber-100">
+            <Badge variant="secondary" className="text-amber-400 bg-amber-500/10">
               {stats.pending} Pending
             </Badge>
-            <Badge variant="secondary" className="text-emerald-700 bg-emerald-100">
+            <Badge variant="secondary" className="text-emerald-400 bg-emerald-500/10">
               {stats.visible} Visible
             </Badge>
           </div>
@@ -301,7 +307,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                 {sortedData.slice(0, 100).map((event) => (
                   <TableRow
                     key={event.id}
-                    className={cn(event.visibility_scope === "admin_only" && "bg-amber-50/50")}
+                    className={cn(event.visibility_scope === "admin_only" && "bg-amber-500/10")}
                   >
                     <TableCell className="font-mono whitespace-nowrap py-1.5">
                       {format(new Date(event.event_date), "MMM d, yyyy")}
