@@ -10,6 +10,7 @@ import { Loader2, TrendingUp, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toNum } from "@/utils/numeric";
 import { formatAUM, formatPercentage } from "@/utils/formatters";
+import { INVESTOR_DISPLAY_DECIMALS } from "@/utils/assets";
 
 export default function FundDetailsPage() {
   const { assetId } = useParams();
@@ -100,7 +101,7 @@ export default function FundDetailsPage() {
           </div>
           <div className="space-y-1">
             <p className="text-3xl font-mono font-bold text-white tracking-tighter">
-              {formatAUM(balance, assetCode)}
+              {formatAUM(balance, assetCode, { maxDecimals: INVESTOR_DISPLAY_DECIMALS })}
             </p>
             <div className="flex items-center gap-2 text-sm text-indigo-200/40 font-medium">
               <CryptoIcon symbol={assetCode} className="h-4 w-4 opacity-50" /> Tokens

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui";
 import { Search, Receipt, Filter, Download } from "lucide-react";
 import { Link } from "react-router-dom";
-import { formatAssetAmount } from "@/utils/assets";
+import { formatInvestorAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hooks/data";
 import { useSortableColumns } from "@/hooks";
@@ -112,7 +112,7 @@ export default function InvestorTransactionsPage() {
             )}
           >
             {amount >= 0 ? "+" : ""}
-            {formatAssetAmount(amount, String(item.asset))}
+            {formatInvestorAmount(amount, String(item.asset))}
           </span>
         );
       },

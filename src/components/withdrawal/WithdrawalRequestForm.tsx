@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validation/schemas";
 import { toDecimal } from "@/utils/financial";
-import { formatAssetAmount } from "@/utils/assets";
+import { formatInvestorAmount } from "@/utils/assets";
 import {
   Button,
   Input,
@@ -36,7 +36,6 @@ export interface WithdrawalPosition {
   fund_id: string;
   asset_symbol: string;
   amount: number;
-  min_withdrawal_amount?: number | null;
 }
 
 interface WithdrawalRequestFormProps {
@@ -70,11 +69,6 @@ export function WithdrawalRequestForm({
   const isAmountValid =
     availableBalance && requestedAmount
       ? toDecimal(requestedAmount).lessThanOrEqualTo(toDecimal(availableBalance.amount))
-      : false;
-
-  const isBelowMinimum =
-    availableBalance?.min_withdrawal_amount != null && requestedAmount
-      ? toDecimal(requestedAmount).lessThan(toDecimal(availableBalance.min_withdrawal_amount))
       : false;
 
   const isFullWithdrawal =
@@ -142,7 +136,7 @@ export function WithdrawalRequestForm({
                         <span>{position.asset_symbol}</span>
                       </div>
                       <span className="text-sm text-muted-foreground ml-4">
-                        {formatAssetAmount(position.amount, position.asset_symbol)}
+                        {formatInvestorAmount(position.amount, position.asset_symbol)}
                       </span>
                     </div>
                   </SelectItem>
@@ -160,7 +154,7 @@ export function WithdrawalRequestForm({
               <Info className="h-4 w-4" />
               <AlertDescription>
                 Available:{" "}
-                {formatAssetAmount(availableBalance.amount, availableBalance.asset_symbol)}
+                {formatInvestorAmount(availableBalance.amount, availableBalance.asset_symbol)}
               </AlertDescription>
             </Alert>
           )}
@@ -171,42 +165,17 @@ export function WithdrawalRequestForm({
             <Input
               id="amount"
               type="number"
-              step="0.00000001"
-              placeholder="0.00000000"
+              step="0.001"
+              placeholder="0.000"
               {...register("amount", { valueAsNumber: true })}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
-            {availableBalance?.min_withdrawal_amount != null && (
-              <p className="text-xs text-muted-foreground">
-                Minimum:{" "}
-                {formatAssetAmount(
-                  availableBalance.min_withdrawal_amount,
-                  availableBalance.asset_symbol
-                )}{" "}
-                {availableBalance.asset_symbol}
-              </p>
-            )}
             {requestedAmount && availableBalance && !isAmountValid && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>Amount exceeds available balance</AlertDescription>
               </Alert>
             )}
-            {requestedAmount &&
-              isBelowMinimum &&
-              availableBalance?.min_withdrawal_amount != null && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Minimum withdrawal is{" "}
-                    {formatAssetAmount(
-                      availableBalance.min_withdrawal_amount,
-                      availableBalance.asset_symbol
-                    )}{" "}
-                    {availableBalance.asset_symbol}
-                  </AlertDescription>
-                </Alert>
-              )}
             {isAmountValid && isFullWithdrawal && (
               <Alert className="border-amber-500/50 bg-amber-950/20">
                 <Info className="h-4 w-4 text-amber-600" />
@@ -252,10 +221,7 @@ export function WithdrawalRequestForm({
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={submitMutation.isPending || !isAmountValid || isBelowMinimum}
-          >
+          <Button type="submit" disabled={submitMutation.isPending || !isAmountValid}>
             {submitMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

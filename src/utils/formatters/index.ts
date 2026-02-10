@@ -130,18 +130,16 @@ function getAUMDecimals(asset: string): AUMDecimalConfig {
 /**
  * Format AUM value with consistent decimals based on asset type
  */
-export function formatAUM(
-  value: number,
-  asset: string,
-  options: FormatOptions = {}
-): string {
+export function formatAUM(value: number, asset: string, options: FormatOptions = {}): string {
   if (!value && value !== 0) return "0";
 
   const { min, max } = getAUMDecimals(asset);
+  const effectiveMax = options.maxDecimals !== undefined ? options.maxDecimals : max;
+  const effectiveMin = Math.min(min, effectiveMax);
 
   const formatted = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: min,
-    maximumFractionDigits: max,
+    minimumFractionDigits: effectiveMin,
+    maximumFractionDigits: effectiveMax,
   }).format(value);
 
   if (options.showSymbol) {

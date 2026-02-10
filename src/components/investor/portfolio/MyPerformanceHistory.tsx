@@ -1,7 +1,7 @@
 import React, { useMemo, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { OptimizedTable, Column } from "@/components/ui/optimized-table";
-import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets";
+import { formatInvestorAmount, getAssetLogo, getAssetName } from "@/utils/assets";
 import { Loader2, TrendingUp, Calendar } from "lucide-react";
 import { usePerformanceHistory } from "@/hooks/data/investor";
 import { type PerformanceHistoryRecord } from "@/services/shared";
@@ -102,7 +102,7 @@ const AssetSection = memo(function AssetSection({
       },
       {
         header: "Opening Balance",
-        accessor: (report) => formatAssetAmount(report.opening_balance || 0, assetCode),
+        accessor: (report) => formatInvestorAmount(report.opening_balance || 0, assetCode),
         className: "text-right font-mono",
       },
       {
@@ -110,7 +110,7 @@ const AssetSection = memo(function AssetSection({
         accessor: (report) => (
           <span className="text-emerald-400">
             {report.additions && report.additions > 0 ? "+" : ""}
-            {formatAssetAmount(report.additions || 0, assetCode)}
+            {formatInvestorAmount(report.additions || 0, assetCode)}
           </span>
         ),
         className: "text-right font-mono",
@@ -120,7 +120,7 @@ const AssetSection = memo(function AssetSection({
         accessor: (report) => (
           <span className="text-rose-400">
             {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
-            {formatAssetAmount(report.withdrawals || 0, assetCode)}
+            {formatInvestorAmount(report.withdrawals || 0, assetCode)}
           </span>
         ),
         className: "text-right font-mono",
@@ -129,7 +129,7 @@ const AssetSection = memo(function AssetSection({
         header: "Yield Earned",
         accessor: (report) => (
           <span className="text-blue-400 font-semibold">
-            +{formatAssetAmount(report.yield_earned || 0, assetCode)}
+            +{formatInvestorAmount(report.yield_earned || 0, assetCode)}
           </span>
         ),
         className: "text-right font-mono",
@@ -141,7 +141,7 @@ const AssetSection = memo(function AssetSection({
       },
       {
         header: "Closing Balance",
-        accessor: (report) => formatAssetAmount(report.closing_balance || 0, assetCode),
+        accessor: (report) => formatInvestorAmount(report.closing_balance || 0, assetCode),
         className: "text-right font-mono font-bold bg-muted/10",
       },
     ],

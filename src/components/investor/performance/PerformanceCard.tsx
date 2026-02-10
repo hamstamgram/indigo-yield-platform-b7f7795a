@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import {
   getAssetLogo,
   getAssetName,
-  formatAssetAmount,
-  formatSignedAssetAmount,
+  formatInvestorAmount,
+  formatSignedInvestorAmount,
 } from "@/utils/assets";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { PerformancePeriod } from "./PeriodSelector";
@@ -59,27 +59,27 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
           <div>
             <p className="text-xs text-muted-foreground">Beginning Balance</p>
             <p className="font-mono font-medium">
-              {formatAssetAmount(data.beginningBalance, fundName)}
+              {formatInvestorAmount(data.beginningBalance, fundName)}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Ending Balance</p>
             <p className="font-mono font-semibold">
-              {formatAssetAmount(data.endingBalance, fundName)}
+              {formatInvestorAmount(data.endingBalance, fundName)}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Additions</p>
             <p className="font-mono text-emerald-400">
-              {formatSignedAssetAmount(data.additions, fundName)}
+              {formatSignedInvestorAmount(data.additions, fundName)}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Redemptions</p>
             <p className="font-mono text-rose-400">
               {data.redemptions !== 0
-                ? formatSignedAssetAmount(-Math.abs(data.redemptions), fundName)
-                : formatAssetAmount(0, fundName)}
+                ? formatSignedInvestorAmount(-Math.abs(data.redemptions), fundName)
+                : formatInvestorAmount(0, fundName)}
             </p>
           </div>
           <div className="col-span-2">
@@ -87,7 +87,7 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
             <p
               className={`font-mono font-medium ${data.netIncome >= 0 ? "text-emerald-400" : "text-rose-400"}`}
             >
-              {formatSignedAssetAmount(data.netIncome, fundName)}
+              {formatSignedInvestorAmount(data.netIncome, fundName)}
             </p>
           </div>
         </div>

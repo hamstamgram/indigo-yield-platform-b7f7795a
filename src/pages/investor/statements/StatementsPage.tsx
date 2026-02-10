@@ -13,7 +13,7 @@ import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } 
 import { PageHeader } from "@/components/layout";
 import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { formatAssetAmount, getAssetName } from "@/utils/assets";
+import { formatInvestorAmount, getAssetName } from "@/utils/assets";
 import { useToast } from "@/hooks";
 import {
   useMonthlyStatements,
@@ -196,25 +196,28 @@ const StatementsPage = () => {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Beginning Balance</p>
                   <p className="text-sm font-mono font-medium text-white">
-                    {formatAssetAmount(parseFloat(statement.begin_balance), statement.asset_code)}
+                    {formatInvestorAmount(
+                      parseFloat(statement.begin_balance),
+                      statement.asset_code
+                    )}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Additions</p>
                   <p className="text-sm font-mono font-medium text-emerald-400">
-                    +{formatAssetAmount(parseFloat(statement.additions), statement.asset_code)}
+                    +{formatInvestorAmount(parseFloat(statement.additions), statement.asset_code)}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Net Income</p>
                   <p className="text-sm font-mono font-medium text-indigo-400">
-                    +{formatAssetAmount(parseFloat(statement.net_income), statement.asset_code)}
+                    +{formatInvestorAmount(parseFloat(statement.net_income), statement.asset_code)}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Ending Balance</p>
                   <p className="text-sm font-mono font-semibold text-white">
-                    {formatAssetAmount(parseFloat(statement.end_balance), statement.asset_code)}
+                    {formatInvestorAmount(parseFloat(statement.end_balance), statement.asset_code)}
                   </p>
                 </div>
               </div>

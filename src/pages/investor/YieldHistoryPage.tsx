@@ -115,10 +115,10 @@ export default function YieldHistoryPage() {
     });
   }, [events, selectedFund]);
 
-  const formatValue = (value: number, decimals = 6) => {
+  const formatValue = (value: number, _decimals = 3) => {
     return value.toLocaleString("en-US", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: decimals,
+      maximumFractionDigits: 3,
     });
   };
 

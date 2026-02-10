@@ -1,6 +1,6 @@
 import { usePerAssetStats, useSortableColumns } from "@/hooks";
 import { ResponsiveTable, EmptyState, Button, SortableTableHead } from "@/components/ui";
-import { getAssetName, formatAssetAmount, formatSignedAssetAmount } from "@/utils/assets";
+import { getAssetName, formatInvestorAmount, formatSignedInvestorAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Wallet, Loader2, Download } from "lucide-react";
 import { format } from "date-fns";
@@ -53,7 +53,7 @@ export default function InvestorPortfolioPage() {
       ),
       cell: (item: (typeof positions)[0]) => (
         <span className="font-mono font-bold text-lg text-white tracking-tight">
-          {formatAssetAmount(item.tokenAmount, item.assetSymbol)}
+          {formatInvestorAmount(item.tokenAmount, item.assetSymbol)}
         </span>
       ),
     },
@@ -74,7 +74,7 @@ export default function InvestorPortfolioPage() {
                 : "text-slate-500"
           )}
         >
-          {formatSignedAssetAmount(item.mtdChange, item.assetSymbol)}
+          {formatSignedInvestorAmount(item.mtdChange, item.assetSymbol)}
         </span>
       ),
     },
@@ -95,7 +95,7 @@ export default function InvestorPortfolioPage() {
                 : "text-slate-500"
           )}
         >
-          {formatSignedAssetAmount(item.itdEarned, item.assetSymbol)}
+          {formatSignedInvestorAmount(item.itdEarned, item.assetSymbol)}
         </span>
       ),
     },

@@ -306,22 +306,6 @@ function AdminSettingsContent() {
                   Minimum amount required for deposits (applies to each asset type)
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="min_withdrawal">Minimum Withdrawal (per asset)</Label>
-                <Input
-                  id="min_withdrawal"
-                  type="number"
-                  value={settings.min_withdrawal}
-                  onChange={(e) =>
-                    setSettings({ ...settings, min_withdrawal: Number(e.target.value) })
-                  }
-                  min={0}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Minimum amount required for withdrawals (applies to each asset type)
-                </p>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

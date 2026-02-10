@@ -4,7 +4,7 @@ import { Search, Filter, Plus, ArrowLeftRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { formatAssetAmount } from "@/utils/assets";
+import { formatInvestorAmount } from "@/utils/assets";
 import type { FundRelation } from "@/types/domains/relations";
 
 export default function WithdrawalHistoryPage() {
@@ -76,8 +76,8 @@ export default function WithdrawalHistoryPage() {
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                          {formatAssetAmount(item.requested_amount, item.fund_class || "ASSET")} •{" "}
-                          {new Date(item.request_date).toLocaleDateString()}
+                          {formatInvestorAmount(item.requested_amount, item.fund_class || "ASSET")}{" "}
+                          • {new Date(item.request_date).toLocaleDateString()}
                         </p>
                       </div>
                     </div>

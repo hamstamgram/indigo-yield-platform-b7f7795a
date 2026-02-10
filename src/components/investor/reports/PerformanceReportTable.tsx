@@ -49,8 +49,8 @@ export function PerformanceReportTable({
     const absVal = Math.abs(numVal);
     const sign = numVal > 0 ? "+" : numVal < 0 ? "-" : "";
     const formatted = absVal.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
     });
 
     // Color logic handled in render, this just returns string

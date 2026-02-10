@@ -66,10 +66,10 @@ export default function InvestorOverviewPage() {
   const isLoading = isLoadingStats || isLoadingTxs || isLoadingWithdrawals;
 
   // Helpers for display
-  const formatCurrency = (val: number, asset: string) => {
+  const formatCurrency = (val: number, _asset: string) => {
     return val.toLocaleString("en-US", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: asset === "BTC" || asset === "ETH" ? 4 : 2,
+      maximumFractionDigits: 3,
     });
   };
 
@@ -167,11 +167,16 @@ export default function InvestorOverviewPage() {
                         <p
                           className={cn(
                             "text-lg font-mono font-bold",
-                            asset.itd.rateOfReturn >= 0 ? "text-emerald-400" : "text-rose-400"
+                            asset.itd.rateOfReturn > 0
+                              ? "text-emerald-400"
+                              : asset.itd.rateOfReturn < 0
+                                ? "text-rose-400"
+                                : "text-slate-500"
                           )}
                         >
-                          {asset.itd.rateOfReturn >= 0 ? "+" : ""}
-                          {asset.itd.rateOfReturn.toFixed(2)}%
+                          {asset.itd.netIncome !== 0
+                            ? `${asset.itd.rateOfReturn >= 0 ? "+" : ""}${asset.itd.rateOfReturn.toFixed(2)}%`
+                            : "--"}
                         </p>
                       </div>
                       <div>
@@ -179,7 +184,9 @@ export default function InvestorOverviewPage() {
                           ITD Earned
                         </p>
                         <p className="text-lg font-mono font-bold text-indigo-300">
-                          {formatCurrency(asset.itd.netIncome, asset.assetSymbol)}
+                          {asset.itd.netIncome !== 0
+                            ? formatCurrency(asset.itd.netIncome, asset.assetSymbol)
+                            : "--"}
                         </p>
                       </div>
                       <div>
@@ -208,10 +215,19 @@ export default function InvestorOverviewPage() {
                               ? `+${formatCurrency(asset.mtd.netIncome, asset.assetSymbol)}`
                               : asset.itd.netIncome > 0
                                 ? `+${formatCurrency(asset.itd.netIncome, asset.assetSymbol)}`
-                                : formatCurrency(0, asset.assetSymbol)}
+                                : "--"}
                         </p>
                       </div>
                     </div>
+                    {assetStats?.periodEndDate && (
+                      <p className="text-[10px] text-slate-600 text-right mt-2">
+                        as of{" "}
+                        {new Date(assetStats.periodEndDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

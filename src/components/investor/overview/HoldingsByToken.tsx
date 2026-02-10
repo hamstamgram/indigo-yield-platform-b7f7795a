@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
-import { getAssetLogo, getAssetName, formatAssetAmount } from "@/utils/assets";
+import { getAssetLogo, getAssetName, formatInvestorAmount } from "@/utils/assets";
 import { formatPercentage } from "@/utils/formatters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Coins } from "lucide-react";
@@ -79,7 +79,7 @@ export function HoldingsByToken({ holdings, isLoading }: HoldingsByTokenProps) {
                   {getAssetName(holding.symbol)}
                 </p>
                 <p className="text-lg font-semibold font-mono truncate">
-                  {formatAssetAmount(holding.balance, holding.symbol)}
+                  {formatInvestorAmount(holding.balance, holding.symbol)}
                 </p>
                 {holding.ytdReturn !== undefined && holding.ytdReturn !== 0 && (
                   <p

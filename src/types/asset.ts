@@ -94,6 +94,12 @@ export const ASSET_PRECISION: Record<string, number> = {
 };
 
 /**
+ * Display decimals for investor/IB-facing views.
+ * Admin portal uses full ASSET_PRECISION; investors see this reduced precision.
+ */
+export const INVESTOR_DISPLAY_DECIMALS = 3;
+
+/**
  * Static asset configuration registry
  * Single source of truth for asset metadata
  * Note: decimals here match ASSET_PRECISION for consistency
