@@ -70,7 +70,7 @@ export function OperationsRoutes() {
 
       {/* Redirects for consolidated pages */}
       <Route path="/admin/monthly-data-entry" element={<Navigate to="/admin/yield" replace />} />
-      <Route path="/admin/operations" element={<Navigate to="/admin/yield" replace />} />
+      {/* /admin/operations now handled by SystemRoutes */}
       <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/yields" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/yield-operations" element={<Navigate to="/admin/yield" replace />} />
