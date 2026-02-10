@@ -474,15 +474,15 @@ export default function IntegrityDashboardPage() {
             </div>
 
             <div className="rounded-xl border border-white/5 overflow-hidden bg-white/5">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader className="bg-white/5">
                   <TableRow className="border-white/5 hover:bg-transparent">
-                    <TableHead className="text-zinc-400">Time</TableHead>
-                    <TableHead className="text-zinc-400">Status</TableHead>
-                    <TableHead className="text-zinc-400">Violations</TableHead>
-                    <TableHead className="text-zinc-400">Critical</TableHead>
-                    <TableHead className="text-zinc-400">Runtime</TableHead>
-                    <TableHead className="text-zinc-400">Triggered By</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Time</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Status</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Violations</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Critical</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Runtime</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Triggered By</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

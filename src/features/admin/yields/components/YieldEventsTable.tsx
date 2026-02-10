@@ -237,22 +237,23 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
           </div>
         ) : (
           <div className="border rounded-lg overflow-hidden">
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
                   <SortableTableHead
                     column="event_date"
                     currentSort={sortConfig}
                     onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
                     Date
                   </SortableTableHead>
-                  <TableHead>Trigger</TableHead>
+                  <TableHead className="whitespace-nowrap">Trigger</TableHead>
                   <SortableTableHead
                     column="investor_balance"
                     currentSort={sortConfig}
                     onSort={requestSort}
-                    className="text-right"
+                    className="text-right whitespace-nowrap"
                   >
                     Balance
                   </SortableTableHead>
@@ -260,16 +261,16 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                     column="investor_share_pct"
                     currentSort={sortConfig}
                     onSort={requestSort}
-                    className="text-right"
+                    className="text-right whitespace-nowrap"
                   >
-                    Share %
+                    Share%
                   </SortableTableHead>
-                  <TableHead className="text-right">Yield %</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Yield%</TableHead>
                   <SortableTableHead
                     column="gross_yield_amount"
                     currentSort={sortConfig}
                     onSort={requestSort}
-                    className="text-right"
+                    className="text-right whitespace-nowrap"
                   >
                     Gross
                   </SortableTableHead>
@@ -277,7 +278,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                     column="fee_amount"
                     currentSort={sortConfig}
                     onSort={requestSort}
-                    className="text-right"
+                    className="text-right whitespace-nowrap"
                   >
                     Fees
                   </SortableTableHead>
@@ -285,11 +286,11 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                     column="net_yield_amount"
                     currentSort={sortConfig}
                     onSort={requestSort}
-                    className="text-right"
+                    className="text-right whitespace-nowrap"
                   >
                     Net
                   </SortableTableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -298,29 +299,31 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                     key={event.id}
                     className={cn(event.visibility_scope === "admin_only" && "bg-amber-50/50")}
                   >
-                    <TableCell className="font-mono text-sm">
+                    <TableCell className="font-mono whitespace-nowrap py-1.5">
                       {format(new Date(event.event_date), "MMM d, yyyy")}
                     </TableCell>
-                    <TableCell>{getTriggerBadge(event.trigger_type)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="py-1.5">{getTriggerBadge(event.trigger_type)}</TableCell>
+                    <TableCell className="text-right tabular-nums py-1.5">
                       <FormattedNumber value={event.investor_balance} type="number" />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right tabular-nums py-1.5">
                       <PercentageValue value={event.investor_share_pct * 100} decimals={4} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right tabular-nums py-1.5">
                       <PercentageValue value={event.fund_yield_pct * 100} decimals={4} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right tabular-nums py-1.5">
                       <FormattedNumber value={event.gross_yield_amount} type="number" />
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
+                    <TableCell className="text-right text-muted-foreground tabular-nums py-1.5">
                       <FormattedNumber value={-event.fee_amount} type="number" />
                     </TableCell>
-                    <TableCell className="text-right font-medium">
+                    <TableCell className="text-right font-medium tabular-nums py-1.5">
                       <FormattedNumber value={event.net_yield_amount} type="number" colorize />
                     </TableCell>
-                    <TableCell>{getVisibilityBadge(event.visibility_scope)}</TableCell>
+                    <TableCell className="py-1.5">
+                      {getVisibilityBadge(event.visibility_scope)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

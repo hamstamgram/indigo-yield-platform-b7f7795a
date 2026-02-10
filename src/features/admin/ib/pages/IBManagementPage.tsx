@@ -84,7 +84,6 @@ export default function IBManagementPage() {
     });
   });
 
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -184,7 +183,10 @@ export default function IBManagementPage() {
                 <div className="text-2xl font-bold text-muted-foreground">—</div>
               ) : (
                 Object.entries(allEarningsByAsset).map(([asset, amount]) => (
-                  <div key={asset} className="flex items-center gap-2 text-lg font-semibold font-mono">
+                  <div
+                    key={asset}
+                    className="flex items-center gap-2 text-lg font-semibold font-mono"
+                  >
                     <CryptoIcon symbol={asset} className="h-5 w-5" />
                     {formatCrypto(amount, 4, asset)}
                   </div>
@@ -219,33 +221,40 @@ export default function IBManagementPage() {
               </Button>
             </div>
           ) : (
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
                   <SortableTableHead
                     column="firstName"
                     currentSort={sortConfig}
                     onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
                     Name
                   </SortableTableHead>
-                  <SortableTableHead column="email" currentSort={sortConfig} onSort={requestSort}>
+                  <SortableTableHead
+                    column="email"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
                     Email
                   </SortableTableHead>
                   <SortableTableHead
                     column="referralCount"
                     currentSort={sortConfig}
                     onSort={requestSort}
-                    className="text-center"
+                    className="text-center whitespace-nowrap"
                   >
                     Referrals
                   </SortableTableHead>
-                  <TableHead className="text-center">Active Funds</TableHead>
-                  <TableHead className="text-right">Earnings</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">Funds</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Earnings</TableHead>
                   <SortableTableHead
                     column="createdAt"
                     currentSort={sortConfig}
                     onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
                     Created
                   </SortableTableHead>
@@ -258,45 +267,45 @@ export default function IBManagementPage() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => navigate(`/admin/investors/${ib.id}`)}
                   >
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium py-1.5 truncate max-w-[140px]">
                       {ib.firstName || ib.lastName
                         ? `${ib.firstName || ""} ${ib.lastName || ""}`.trim()
                         : "—"}
                     </TableCell>
-                    <TableCell>{ib.email}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="outline">{ib.referralCount}</Badge>
+                    <TableCell className="py-1.5 truncate max-w-[160px]">{ib.email}</TableCell>
+                    <TableCell className="text-center py-1.5">
+                      <Badge variant="outline" className="text-[10px]">
+                        {ib.referralCount}
+                      </Badge>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center py-1.5">
                       <div className="flex items-center justify-center gap-1">
                         {ib.activeAssets.length > 0 ? (
                           ib.activeAssets.map((asset: string) => (
-                            <CryptoIcon
-                              key={asset}
-                              symbol={asset}
-                              className="h-4 w-4"
-                            />
+                            <CryptoIcon key={asset} symbol={asset} className="h-3.5 w-3.5" />
                           ))
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-wrap items-center justify-end gap-2">
+                    <TableCell className="text-right py-1.5">
+                      <div className="flex flex-wrap items-center justify-end gap-1.5">
                         {Object.entries(ib.earningsByAsset).length === 0 ? (
                           <span className="text-muted-foreground">—</span>
                         ) : (
                           Object.entries(ib.earningsByAsset).map(([asset, amount]) => (
                             <div key={asset} className="flex items-center gap-1">
-                              <CryptoIcon symbol={asset} className="h-4 w-4" />
-                              <span className="font-mono text-sm">{formatCrypto(amount, 4, asset)}</span>
+                              <CryptoIcon symbol={asset} className="h-3.5 w-3.5" />
+                              <span className="font-mono tabular-nums">
+                                {formatCrypto(amount, 4, asset)}
+                              </span>
                             </div>
                           ))
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground whitespace-nowrap py-1.5">
                       {new Date(ib.createdAt).toLocaleDateString()}
                     </TableCell>
                   </TableRow>

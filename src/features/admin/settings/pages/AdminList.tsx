@@ -212,29 +212,29 @@ function AdminListContent() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="text-xs">
             <TableHeader>
               <TableRow>
-                <TableHead>Admin</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="whitespace-nowrap">Admin</TableHead>
+                <TableHead className="whitespace-nowrap">Role</TableHead>
+                <TableHead className="whitespace-nowrap">Created</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAdmins.map((admin) => (
                 <TableRow key={admin.id}>
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     <div>
-                      <p className="font-medium">
+                      <p className="font-medium truncate max-w-[130px]">
                         {admin.firstName || admin.lastName
                           ? `${admin.firstName || ""} ${admin.lastName || ""}`.trim()
                           : "—"}
                       </p>
-                      <p className="text-sm text-muted-foreground">{admin.email}</p>
+                      <p className="text-muted-foreground truncate max-w-[150px]">{admin.email}</p>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     <Badge
                       variant={admin.role === "super_admin" ? "default" : "secondary"}
                       className="gap-1"
@@ -247,8 +247,10 @@ function AdminListContent() {
                       {admin.role === "super_admin" ? "Super Admin" : "Admin"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{format(new Date(admin.createdAt), "MMM d, yyyy")}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-1.5 whitespace-nowrap">
+                    {format(new Date(admin.createdAt), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell className="text-right py-1.5">
                     <Select
                       value={admin.role}
                       onValueChange={(value) =>
@@ -285,12 +287,12 @@ function AdminListContent() {
           <CardDescription>Access levels for each admin role</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="text-xs">
             <TableHeader>
               <TableRow>
-                <TableHead>Permission</TableHead>
-                <TableHead className="text-center">Admin</TableHead>
-                <TableHead className="text-center">Super Admin</TableHead>
+                <TableHead className="whitespace-nowrap">Permission</TableHead>
+                <TableHead className="text-center whitespace-nowrap">Admin</TableHead>
+                <TableHead className="text-center whitespace-nowrap">Super Admin</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

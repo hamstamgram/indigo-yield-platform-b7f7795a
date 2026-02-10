@@ -168,23 +168,29 @@ const AdminInvites = () => {
               <p className="text-center py-6 text-muted-foreground">No active invitations found</p>
             ) : (
               <div className="rounded-md border">
-                <Table>
+                <Table className="text-xs">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Expires</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-[180px]">Actions</TableHead>
+                      <TableHead className="whitespace-nowrap">Email</TableHead>
+                      <TableHead className="whitespace-nowrap">Created</TableHead>
+                      <TableHead className="whitespace-nowrap">Expires</TableHead>
+                      <TableHead className="whitespace-nowrap">Status</TableHead>
+                      <TableHead className="w-[180px] whitespace-nowrap">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {invites.map((invite) => (
                       <TableRow key={invite.id}>
-                        <TableCell>{invite.email}</TableCell>
-                        <TableCell>{format(new Date(invite.created_at), "MMM d, yyyy")}</TableCell>
-                        <TableCell>{format(new Date(invite.expires_at), "MMM d, yyyy")}</TableCell>
-                        <TableCell>
+                        <TableCell className="py-1.5 truncate max-w-[150px]">
+                          {invite.email}
+                        </TableCell>
+                        <TableCell className="py-1.5 whitespace-nowrap">
+                          {format(new Date(invite.created_at), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="py-1.5 whitespace-nowrap">
+                          {format(new Date(invite.expires_at), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="py-1.5">
                           <span
                             className={
                               invite.used
@@ -195,7 +201,7 @@ const AdminInvites = () => {
                             {invite.used ? "Used" : "Pending"}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-1.5">
                           <div className="flex items-center gap-2">
                             <Tooltip>
                               <TooltipTrigger asChild>

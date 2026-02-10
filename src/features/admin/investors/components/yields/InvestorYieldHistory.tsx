@@ -225,17 +225,17 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
               </div>
             ) : (
               <div className="border rounded-lg overflow-hidden">
-                <Table>
+                <Table className="text-xs">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Trigger</TableHead>
-                      <TableHead className="text-right">Balance</TableHead>
-                      <TableHead className="text-right">Yield %</TableHead>
-                      <TableHead className="text-right">Gross</TableHead>
-                      <TableHead className="text-right">Fees</TableHead>
-                      <TableHead className="text-right">Net</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="whitespace-nowrap">Date</TableHead>
+                      <TableHead className="whitespace-nowrap">Trigger</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Balance</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Yield%</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Gross</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Fees</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Net</TableHead>
+                      <TableHead className="whitespace-nowrap">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -249,28 +249,39 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             "bg-amber-50/50"
                         )}
                       >
-                        <TableCell className="font-mono text-sm">
+                        <TableCell className="font-mono whitespace-nowrap py-1.5">
                           {format(new Date(event.event_date), "MMM d, yyyy")}
                         </TableCell>
-                        <TableCell>{getTriggerBadge(event.trigger_type)}</TableCell>
+                        <TableCell className="py-1.5">
+                          {getTriggerBadge(event.trigger_type)}
+                        </TableCell>
                         <TableCell
-                          className={cn("text-right font-mono", event.is_voided && "line-through")}
+                          className={cn(
+                            "text-right font-mono tabular-nums py-1.5",
+                            event.is_voided && "line-through"
+                          )}
                         >
                           {formatNumber(event.investor_balance, 4)}
                         </TableCell>
                         <TableCell
-                          className={cn("text-right font-mono", event.is_voided && "line-through")}
+                          className={cn(
+                            "text-right font-mono tabular-nums py-1.5",
+                            event.is_voided && "line-through"
+                          )}
                         >
                           {formatPercent(event.fund_yield_pct)}
                         </TableCell>
                         <TableCell
-                          className={cn("text-right font-mono", event.is_voided && "line-through")}
+                          className={cn(
+                            "text-right font-mono tabular-nums py-1.5",
+                            event.is_voided && "line-through"
+                          )}
                         >
                           {formatNumber(event.gross_yield_amount)}
                         </TableCell>
                         <TableCell
                           className={cn(
-                            "text-right font-mono text-muted-foreground",
+                            "text-right font-mono tabular-nums text-muted-foreground py-1.5",
                             event.is_voided && "line-through"
                           )}
                         >
@@ -278,7 +289,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                         </TableCell>
                         <TableCell
                           className={cn(
-                            "text-right font-mono font-medium",
+                            "text-right font-mono tabular-nums font-medium py-1.5",
                             event.is_voided
                               ? "line-through text-muted-foreground"
                               : event.net_yield_amount >= 0
@@ -288,7 +299,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                         >
                           {formatNumber(event.net_yield_amount)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-1.5">
                           {event.is_voided ? (
                             <Badge
                               variant="outline"

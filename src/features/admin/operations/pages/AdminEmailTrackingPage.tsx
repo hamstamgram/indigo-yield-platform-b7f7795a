@@ -318,13 +318,14 @@ export default function AdminEmailTrackingPage() {
               <BarChart3 className="h-6 w-6 animate-pulse text-muted-foreground" />
             </div>
           ) : sortedData && sortedData.length > 0 ? (
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
                   <SortableTableHead
                     column="created_at"
                     currentSort={sortConfig}
                     onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
                     Date
                   </SortableTableHead>
@@ -332,38 +333,51 @@ export default function AdminEmailTrackingPage() {
                     column="recipient_email"
                     currentSort={sortConfig}
                     onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
                     Recipient
                   </SortableTableHead>
-                  <SortableTableHead column="subject" currentSort={sortConfig} onSort={requestSort}>
+                  <SortableTableHead
+                    column="subject"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
                     Subject
                   </SortableTableHead>
-                  <SortableTableHead column="status" currentSort={sortConfig} onSort={requestSort}>
+                  <SortableTableHead
+                    column="status"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
                     Status
                   </SortableTableHead>
-                  <TableHead>Delivered</TableHead>
-                  <TableHead>Opened</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="whitespace-nowrap">Delivered</TableHead>
+                  <TableHead className="whitespace-nowrap">Opened</TableHead>
+                  <TableHead className="whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedData.map((delivery) => (
                   <TableRow key={delivery.id}>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-muted-foreground whitespace-nowrap py-1.5">
                       {formatDate(delivery.created_at)}
                     </TableCell>
-                    <TableCell>
-                      <span className="text-sm">{delivery.recipient_email}</span>
+                    <TableCell className="py-1.5 truncate max-w-[150px]">
+                      {delivery.recipient_email}
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">{delivery.subject}</TableCell>
-                    <TableCell>{getStatusBadge(delivery.status)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="max-w-[200px] truncate py-1.5">
+                      {delivery.subject}
+                    </TableCell>
+                    <TableCell className="py-1.5">{getStatusBadge(delivery.status)}</TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap py-1.5">
                       {formatDate(delivery.delivered_at)}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-muted-foreground whitespace-nowrap py-1.5">
                       {formatDate(delivery.opened_at)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-1.5">
                       <Button size="sm" variant="ghost" onClick={() => handlePreview(delivery)}>
                         <Eye className="h-4 w-4" />
                       </Button>

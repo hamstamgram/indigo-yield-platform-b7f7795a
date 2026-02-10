@@ -334,20 +334,20 @@ const InvestorReports = () => {
               </p>
             </div>
           ) : (
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Investor</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Assets</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="whitespace-nowrap">Investor</TableHead>
+                  <TableHead className="whitespace-nowrap">Email</TableHead>
+                  <TableHead className="whitespace-nowrap">Assets</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReports.map((report) => (
                   <TableRow key={report.investor_id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium py-1.5 truncate max-w-[130px]">
                       <Link
                         to={`/admin/investors/${report.investor_id}`}
                         className="text-primary hover:underline"
@@ -355,25 +355,25 @@ const InvestorReports = () => {
                         {report.investor_name}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-muted-foreground py-1.5 truncate max-w-[150px]">
                       {report.investor_email}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-1.5">
                       <div className="flex gap-1 items-center">
                         {report.assets.length > 0 ? (
                           report.assets.map((asset) => (
                             <CryptoIcon
                               key={asset.asset_code}
                               symbol={asset.asset_code}
-                              className="h-5 w-5"
+                              className="h-4 w-4"
                             />
                           ))
                         ) : (
-                          <span className="text-xs text-muted-foreground">--</span>
+                          <span className="text-muted-foreground">--</span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-1.5">
                       <div className="flex flex-col gap-1">
                         {getStatusBadge(report.delivery_status)}
                         {report.sent_at && (
@@ -383,7 +383,7 @@ const InvestorReports = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-1.5">
                       <div className="flex gap-1">
                         <Button
                           size="sm"

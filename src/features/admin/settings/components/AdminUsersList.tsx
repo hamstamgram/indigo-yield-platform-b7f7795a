@@ -114,14 +114,14 @@ const AdminUsersList = () => {
           </div>
         ) : (
           <div className="rounded-md border">
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="whitespace-nowrap">Name</TableHead>
+                  <TableHead className="whitespace-nowrap">Email</TableHead>
+                  <TableHead className="whitespace-nowrap">Created</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="w-[100px] whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -139,12 +139,16 @@ const AdminUsersList = () => {
                 ) : (
                   users.map((userItem) => (
                     <TableRow key={userItem.id}>
-                      <TableCell>
+                      <TableCell className="py-1.5 truncate max-w-[120px]">
                         {userItem.first_name || ""} {userItem.last_name || ""}
                       </TableCell>
-                      <TableCell>{userItem.email}</TableCell>
-                      <TableCell>{new Date(userItem.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5 truncate max-w-[150px]">
+                        {userItem.email}
+                      </TableCell>
+                      <TableCell className="py-1.5 whitespace-nowrap">
+                        {new Date(userItem.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="py-1.5">
                         <span
                           className={
                             userItem.is_admin
@@ -155,7 +159,7 @@ const AdminUsersList = () => {
                           {userItem.is_admin ? "Admin" : "User"}
                         </span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button

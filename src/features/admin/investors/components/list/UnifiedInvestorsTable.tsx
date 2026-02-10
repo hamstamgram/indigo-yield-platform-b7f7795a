@@ -46,14 +46,14 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
   const navigate = useNavigate();
 
   return (
-    <Table>
+    <Table className="text-xs">
       <TableHeader className="sticky top-0 bg-background z-10">
         <TableRow>
           <SortableTableHead
             column="lastName"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[250px]"
+            className="whitespace-nowrap"
           >
             Investor
           </SortableTableHead>
@@ -61,7 +61,7 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
             column="fundsHeldCount"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[80px] text-center"
+            className="text-center whitespace-nowrap"
           >
             Status
           </SortableTableHead>
@@ -69,7 +69,7 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
             column="fundsHeldCount"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[70px] text-center"
+            className="text-center whitespace-nowrap"
           >
             Funds
           </SortableTableHead>
@@ -77,31 +77,31 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
             column="lastActivityDate"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[100px]"
+            className="whitespace-nowrap"
           >
-            Last Activity
+            Activity
           </SortableTableHead>
           <SortableTableHead
             column="pendingWithdrawals"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[90px] text-center"
+            className="text-center whitespace-nowrap"
           >
-            Pending WD
+            Pend. WD
           </SortableTableHead>
           <SortableTableHead
             column="lastReportPeriod"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[100px]"
+            className="whitespace-nowrap"
           >
-            Last Report
+            Report
           </SortableTableHead>
           <SortableTableHead
             column="createdAt"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[90px]"
+            className="whitespace-nowrap"
           >
             Joined
           </SortableTableHead>
@@ -109,11 +109,11 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
             column="ibParentName"
             currentSort={sortConfig}
             onSort={onSort}
-            className="w-[120px]"
+            className="whitespace-nowrap"
           >
-            IB Parent
+            IB
           </SortableTableHead>
-          <TableHead className="w-[80px] text-right">Actions</TableHead>
+          <TableHead className="w-[60px] text-right whitespace-nowrap">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -133,24 +133,24 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
               )}
               onClick={() => onRowClick(investor)}
             >
-              <TableCell>
-                <div className="flex items-center gap-2">
+              <TableCell className="py-1.5">
+                <div className="flex items-center gap-1.5">
                   <div
                     className={cn(
-                      "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
+                      "h-6 w-6 rounded-full flex items-center justify-center shrink-0",
                       investor.isSystemAccount ? "bg-amber-500/10" : "bg-primary/10"
                     )}
                   >
                     <User
                       className={cn(
-                        "h-4 w-4",
+                        "h-3 w-3",
                         investor.isSystemAccount ? "text-amber-600" : "text-primary"
                       )}
                     />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-medium truncate">
+                    <div className="flex items-center gap-1">
+                      <p className="font-medium truncate max-w-[130px]">
                         {investor.firstName} {investor.lastName}
                       </p>
                       {investor.isSystemAccount && (
@@ -162,27 +162,27 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{investor.email}</p>
+                    <p className="text-muted-foreground truncate max-w-[130px]">{investor.email}</p>
                   </div>
                 </div>
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center py-1.5">
                 <Badge
                   variant={investor.fundsHeldCount > 0 ? "default" : "secondary"}
-                  className="text-xs"
+                  className="text-[10px]"
                 >
                   {investor.fundsHeldCount > 0 ? "Active" : "Inactive"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center font-mono text-sm">
+              <TableCell className="text-center font-mono tabular-nums py-1.5">
                 {investor.fundsHeldCount}
               </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
+              <TableCell className="text-muted-foreground py-1.5 whitespace-nowrap">
                 {investor.lastActivityDate
                   ? format(new Date(investor.lastActivityDate), "MMM d, yy HH:mm")
                   : "—"}
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center py-1.5">
                 {investor.pendingWithdrawals > 0 ? (
                   <Badge variant="destructive" className="text-xs">
                     {investor.pendingWithdrawals}
@@ -191,13 +191,13 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
                   <span className="text-muted-foreground">—</span>
                 )}
               </TableCell>
-              <TableCell className="text-sm text-muted-foreground truncate max-w-[100px]">
+              <TableCell className="text-muted-foreground truncate max-w-[80px] py-1.5">
                 {investor.lastReportPeriod || "—"}
               </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
+              <TableCell className="text-muted-foreground whitespace-nowrap py-1.5">
                 {investor.createdAt ? format(new Date(investor.createdAt), "MMM d, yy") : "—"}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-1.5">
                 {investor.ibParentName ? (
                   <Badge variant="outline" className="text-xs truncate max-w-[110px]">
                     <Users className="h-3 w-3 mr-1" />
@@ -207,7 +207,7 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
                   <span className="text-muted-foreground">—</span>
                 )}
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-right py-1.5">
                 <div
                   className="flex items-center justify-end gap-1"
                   onClick={(e) => e.stopPropagation()}

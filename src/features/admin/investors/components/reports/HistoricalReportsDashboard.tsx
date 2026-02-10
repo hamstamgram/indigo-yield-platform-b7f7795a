@@ -132,20 +132,20 @@ const HistoricalReportsDashboard: React.FC = () => {
           ) : filteredReports.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">No reports found</div>
           ) : (
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Investor</TableHead>
-                  <TableHead>Assets</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Period</TableHead>
+                  <TableHead className="whitespace-nowrap">Investor</TableHead>
+                  <TableHead className="whitespace-nowrap">Assets</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReports.map((report) => (
                   <TableRow key={report.id}>
-                    <TableCell className="font-mono text-sm">{report.period_month}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-mono py-1.5">{report.period_month}</TableCell>
+                    <TableCell className="py-1.5 truncate max-w-[130px]">
                       <Link
                         to={`/admin/investors/${report.investor_id}`}
                         className="text-primary hover:underline font-medium"
@@ -153,15 +153,15 @@ const HistoricalReportsDashboard: React.FC = () => {
                         {report.investor_name}
                       </Link>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-1.5">
                       <div className="flex gap-1 items-center">
                         {report.fund_names.map((name) => {
                           const asset = getAssetFromFundName(name);
-                          return <CryptoIcon key={name} symbol={asset} className="h-5 w-5" />;
+                          return <CryptoIcon key={name} symbol={asset} className="h-4 w-4" />;
                         })}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-1.5">
                       <div className="flex flex-col gap-1">
                         {getStatusBadge(report.delivery_status)}
                         {report.sent_at && (

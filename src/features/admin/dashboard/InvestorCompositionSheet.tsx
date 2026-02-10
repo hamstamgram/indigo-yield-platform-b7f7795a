@@ -162,11 +162,11 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
         </SheetHeader>
 
         <div className="mt-6">
-          <Table>
+          <Table className="text-xs">
             <TableHeader>
               <TableRow>
                 <TableHead
-                  className="cursor-pointer hover:bg-muted/50 select-none"
+                  className="cursor-pointer hover:bg-muted/50 select-none whitespace-nowrap"
                   onClick={() => handleSort("investor_name")}
                 >
                   <div className="flex items-center">
@@ -175,7 +175,7 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                   </div>
                 </TableHead>
                 <TableHead
-                  className="cursor-pointer hover:bg-muted/50 select-none"
+                  className="cursor-pointer hover:bg-muted/50 select-none whitespace-nowrap"
                   onClick={() => handleSort("email")}
                 >
                   <div className="flex items-center">
@@ -184,7 +184,7 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                   </div>
                 </TableHead>
                 <TableHead
-                  className="cursor-pointer hover:bg-muted/50 select-none text-right"
+                  className="cursor-pointer hover:bg-muted/50 select-none text-right whitespace-nowrap"
                   onClick={() => handleSort("balance")}
                 >
                   <div className="flex items-center justify-end">
@@ -193,11 +193,11 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                   </div>
                 </TableHead>
                 <TableHead
-                  className="cursor-pointer hover:bg-muted/50 select-none text-right"
+                  className="cursor-pointer hover:bg-muted/50 select-none text-right whitespace-nowrap"
                   onClick={() => handleSort("ownership_pct")}
                 >
                   <div className="flex items-center justify-end">
-                    Ownership
+                    Own%
                     {getSortIcon("ownership_pct")}
                   </div>
                 </TableHead>
@@ -219,9 +219,9 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
               ) : (
                 sortedData.map((investor, idx) => (
                   <TableRow key={idx}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium py-1.5">
                       <div className="flex items-center gap-2">
-                        <TruncatedText text={investor.investor_name} maxLength={20} />
+                        <TruncatedText text={investor.investor_name} maxLength={18} />
                         {investor.account_type === "fees_account" && (
                           <Badge
                             variant="outline"
@@ -240,13 +240,13 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <TruncatedText text={investor.email} maxLength={25} />
+                    <TableCell className="py-1.5">
+                      <TruncatedText text={investor.email} maxLength={22} />
                     </TableCell>
-                    <TableCell className="text-right font-mono">
+                    <TableCell className="text-right font-mono tabular-nums py-1.5">
                       {fund && formatAUM(investor.balance, fund.asset)}
                     </TableCell>
-                    <TableCell className="text-right font-mono">
+                    <TableCell className="text-right font-mono tabular-nums py-1.5">
                       {investor.ownership_pct.toFixed(2)}%
                     </TableCell>
                   </TableRow>

@@ -76,14 +76,14 @@ export function ConcentrationRiskPanel() {
           </div>
         ) : (
           <div className="rounded-md border">
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fund</TableHead>
-                  <TableHead>Investor</TableHead>
-                  <TableHead className="text-right">Position</TableHead>
-                  <TableHead className="text-right">Ownership</TableHead>
-                  <TableHead className="text-center">Risk</TableHead>
+                  <TableHead className="whitespace-nowrap">Fund</TableHead>
+                  <TableHead className="whitespace-nowrap">Investor</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Position</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Own%</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">Risk</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -106,19 +106,23 @@ export function ConcentrationRiskPanel() {
                     ] ?? fallbackConcentrationConfig;
                   return (
                     <TableRow key={`${item.fund_id}-${item.investor_id}-${idx}`}>
-                      <TableCell>
-                        <Badge variant="outline">{item.fund_code}</Badge>
+                      <TableCell className="py-1.5">
+                        <Badge variant="outline" className="text-[10px]">
+                          {item.fund_code}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">{item.investor_name}</TableCell>
-                      <TableCell className="text-right font-mono text-sm">
+                      <TableCell className="font-medium py-1.5 truncate max-w-[120px]">
+                        {item.investor_name}
+                      </TableCell>
+                      <TableCell className="text-right font-mono tabular-nums py-1.5">
                         {item.position_value?.toLocaleString(undefined, {
                           maximumFractionDigits: 2,
                         })}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
+                      <TableCell className="text-right font-mono tabular-nums py-1.5">
                         {item.ownership_pct?.toFixed(1)}%
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center py-1.5">
                         <Badge className={config.color}>
                           {item.concentration_level === "CRITICAL" && (
                             <AlertTriangle className="h-3 w-3 mr-1" />

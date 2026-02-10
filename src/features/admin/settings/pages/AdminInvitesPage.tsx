@@ -249,20 +249,31 @@ function AdminInvitesContent() {
               </Button>
             </div>
           ) : (
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
-                  <SortableTableHead column="email" currentSort={sortConfig} onSort={requestSort}>
+                  <SortableTableHead
+                    column="email"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
                     Email
                   </SortableTableHead>
-                  <TableHead>Role</TableHead>
-                  <SortableTableHead column="used" currentSort={sortConfig} onSort={requestSort}>
+                  <TableHead className="whitespace-nowrap">Role</TableHead>
+                  <SortableTableHead
+                    column="used"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
                     Status
                   </SortableTableHead>
                   <SortableTableHead
                     column="created_at"
                     currentSort={sortConfig}
                     onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
                     Created
                   </SortableTableHead>
@@ -270,10 +281,11 @@ function AdminInvitesContent() {
                     column="expires_at"
                     currentSort={sortConfig}
                     onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
                     Expires
                   </SortableTableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -281,8 +293,10 @@ function AdminInvitesContent() {
                   const status = getInviteStatus(invite);
                   return (
                     <TableRow key={invite.id}>
-                      <TableCell className="font-medium">{invite.email}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium py-1.5 truncate max-w-[150px]">
+                        {invite.email}
+                      </TableCell>
+                      <TableCell className="py-1.5">
                         <Badge variant="outline" className="gap-1">
                           {invite.intended_role === "super_admin" ? (
                             <>
@@ -297,14 +311,14 @@ function AdminInvitesContent() {
                           )}
                         </Badge>
                       </TableCell>
-                      <TableCell>{statusBadge(status)}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="py-1.5">{statusBadge(status)}</TableCell>
+                      <TableCell className="text-muted-foreground py-1.5 whitespace-nowrap">
                         {format(new Date(invite.created_at), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground py-1.5 whitespace-nowrap">
                         {format(new Date(invite.expires_at), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-1.5">
                         <div className="flex justify-end gap-1">
                           {status === "pending" && (
                             <>

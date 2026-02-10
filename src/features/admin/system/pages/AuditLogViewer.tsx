@@ -286,107 +286,122 @@ const AuditLogViewer = () => {
           <CardDescription>Detailed log of all system changes</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <SortableTableHead
-                  column="created_at"
-                  currentSort={sortConfig}
-                  onSort={requestSort}
-                >
-                  Timestamp
-                </SortableTableHead>
-                <TableHead>Actor</TableHead>
-                <SortableTableHead column="action" currentSort={sortConfig} onSort={requestSort}>
-                  Action
-                </SortableTableHead>
-                <SortableTableHead column="entity" currentSort={sortConfig} onSort={requestSort}>
-                  Entity
-                </SortableTableHead>
-                <TableHead>Entity ID</TableHead>
-                <TableHead>Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedData.map((log) => (
-                <>
-                  <TableRow
-                    key={log.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
+          <div className="rounded-md border overflow-x-auto">
+            <Table className="text-xs">
+              <TableHeader>
+                <TableRow>
+                  <SortableTableHead
+                    column="created_at"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
                   >
-                    <TableCell className="font-mono text-xs">
-                      {new Date(log.created_at).toLocaleString()}
-                    </TableCell>
+                    Timestamp
+                  </SortableTableHead>
+                  <TableHead className="whitespace-nowrap">Actor</TableHead>
+                  <SortableTableHead
+                    column="action"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Action
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="entity"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Entity
+                  </SortableTableHead>
+                  <TableHead className="whitespace-nowrap">Entity ID</TableHead>
+                  <TableHead className="whitespace-nowrap">Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedData.map((log) => (
+                  <>
+                    <TableRow
+                      key={log.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
+                    >
+                      <TableCell className="font-mono whitespace-nowrap py-1.5">
+                        {new Date(log.created_at).toLocaleString()}
+                      </TableCell>
 
-                    <TableCell>
-                      <div>
-                        <div className="font-medium text-sm">{log.actor_name || "System"}</div>
-                        {log.actor_email && (
-                          <div className="text-xs text-muted-foreground">{log.actor_email}</div>
-                        )}
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge variant={getActionBadgeVariant(log.action)}>{log.action}</Badge>
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono">
-                        {log.entity}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="font-mono text-xs">
-                      {log.entity_id ? log.entity_id.substring(0, 8) + "..." : "N/A"}
-                    </TableCell>
-
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedRow(expandedRow === log.id ? null : log.id);
-                        }}
-                      >
-                        {expandedRow === log.id ? "Hide" : "Show"} Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-
-                  {expandedRow === log.id && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="bg-muted/30">
-                        <div className="p-4 space-y-2">
-                          <div>
-                            <span className="font-semibold">Changes:</span>
-                            <p className="text-sm mt-1">
-                              {auditLogService.formatChanges(log.old_values, log.new_values)}
-                            </p>
-                          </div>
-
-                          {log.meta && Object.keys(log.meta).length > 0 && (
-                            <div>
-                              <span className="font-semibold">Metadata:</span>
-                              <pre className="text-xs mt-1 p-2 bg-background rounded overflow-auto">
-                                {JSON.stringify(log.meta, null, 2)}
-                              </pre>
-                            </div>
+                      <TableCell className="py-1.5">
+                        <div>
+                          <div className="font-medium">{log.actor_name || "System"}</div>
+                          {log.actor_email && (
+                            <div className="text-muted-foreground">{log.actor_email}</div>
                           )}
-
-                          <div className="text-xs text-muted-foreground">
-                            Full Entity ID: {log.entity_id || "N/A"}
-                          </div>
                         </div>
                       </TableCell>
+
+                      <TableCell className="py-1.5">
+                        <Badge variant={getActionBadgeVariant(log.action)} className="text-[10px]">
+                          {log.action}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="py-1.5">
+                        <Badge variant="outline" className="font-mono text-[10px]">
+                          {log.entity}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="font-mono py-1.5">
+                        {log.entity_id ? log.entity_id.substring(0, 8) + "..." : "N/A"}
+                      </TableCell>
+
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedRow(expandedRow === log.id ? null : log.id);
+                          }}
+                        >
+                          {expandedRow === log.id ? "Hide" : "Show"} Details
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  )}
-                </>
-              ))}
-            </TableBody>
-          </Table>
+
+                    {expandedRow === log.id && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="bg-muted/30">
+                          <div className="p-4 space-y-2">
+                            <div>
+                              <span className="font-semibold">Changes:</span>
+                              <p className="text-sm mt-1">
+                                {auditLogService.formatChanges(log.old_values, log.new_values)}
+                              </p>
+                            </div>
+
+                            {log.meta && Object.keys(log.meta).length > 0 && (
+                              <div>
+                                <span className="font-semibold">Metadata:</span>
+                                <pre className="text-xs mt-1 p-2 bg-background rounded overflow-auto">
+                                  {JSON.stringify(log.meta, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+
+                            <div className="text-xs text-muted-foreground">
+                              Full Entity ID: {log.entity_id || "N/A"}
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {sortedData.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">

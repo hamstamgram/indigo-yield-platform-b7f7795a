@@ -215,25 +215,27 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
                   {new Date(month).toLocaleString("default", { month: "long", year: "numeric" })}
                 </h3>
                 <div className="rounded-md border overflow-x-auto">
-                  <Table>
+                  <Table className="text-xs">
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fund</TableHead>
-                        <TableHead>Opening Balance</TableHead>
-                        <TableHead>Additions</TableHead>
-                        <TableHead>Redemptions</TableHead>
-                        <TableHead>Net Income</TableHead>
-                        <TableHead>Ending Balance</TableHead>
-                        <TableHead>Rate of Return</TableHead>
+                        <TableHead className="whitespace-nowrap">Fund</TableHead>
+                        <TableHead className="whitespace-nowrap">Opening</TableHead>
+                        <TableHead className="whitespace-nowrap">Additions</TableHead>
+                        <TableHead className="whitespace-nowrap">Redemptions</TableHead>
+                        <TableHead className="whitespace-nowrap">Net Income</TableHead>
+                        <TableHead className="whitespace-nowrap">Ending</TableHead>
+                        <TableHead className="whitespace-nowrap">RoR</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {monthReports.map((report) => (
                         <TableRow key={report.id}>
-                          <TableCell>
-                            <Badge variant="outline">{report.fund_name}</Badge>
+                          <TableCell className="py-1.5">
+                            <Badge variant="outline" className="text-[10px]">
+                              {report.fund_name}
+                            </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="py-1.5">
                             {renderEditableCell(
                               report,
                               "mtd_beginning_balance",

@@ -63,7 +63,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
   // Desktop table layout
   return (
     <div className="rounded-md border overflow-x-auto">
-      <Table>
+      <Table className="text-xs">
         <InvestorsTableHeader assets={assets} />
         <TableBody>
           {investors.length === 0 ? (

@@ -55,31 +55,52 @@ export function AssetsTable() {
         </div>
 
         <div className="rounded-md border">
-          <Table>
+          <Table className="text-xs">
             <TableHeader>
               <TableRow>
-                <SortableTableHead column="symbol" currentSort={sortConfig} onSort={requestSort}>
+                <SortableTableHead
+                  column="symbol"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                  className="whitespace-nowrap"
+                >
                   Symbol
                 </SortableTableHead>
-                <SortableTableHead column="name" currentSort={sortConfig} onSort={requestSort}>
+                <SortableTableHead
+                  column="name"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                  className="whitespace-nowrap"
+                >
                   Name
                 </SortableTableHead>
-                <SortableTableHead column="kind" currentSort={sortConfig} onSort={requestSort}>
+                <SortableTableHead
+                  column="kind"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                  className="whitespace-nowrap"
+                >
                   Kind
                 </SortableTableHead>
-                <TableHead>Chain</TableHead>
-                <TableHead>Decimals</TableHead>
-                <SortableTableHead column="is_active" currentSort={sortConfig} onSort={requestSort}>
+                <TableHead className="whitespace-nowrap">Chain</TableHead>
+                <TableHead className="whitespace-nowrap">Dec</TableHead>
+                <SortableTableHead
+                  column="is_active"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                  className="whitespace-nowrap"
+                >
                   Status
                 </SortableTableHead>
                 <SortableTableHead
                   column="created_at"
                   currentSort={sortConfig}
                   onSort={requestSort}
+                  className="whitespace-nowrap"
                 >
                   Created
                 </SortableTableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -92,27 +113,35 @@ export function AssetsTable() {
               ) : (
                 sortedData.map((asset: Asset) => (
                   <TableRow key={asset.asset_id}>
-                    <TableCell>
+                    <TableCell className="py-1.5">
                       <div className="flex items-center gap-2">
-                        <CryptoIcon symbol={asset.symbol} className="h-5 w-5" />
+                        <CryptoIcon symbol={asset.symbol} className="h-4 w-4" />
                         <span className="font-mono font-semibold">{asset.symbol}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{asset.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{asset.kind}</Badge>
+                    <TableCell className="py-1.5">{asset.name}</TableCell>
+                    <TableCell className="py-1.5">
+                      <Badge variant="outline" className="text-[10px]">
+                        {asset.kind}
+                      </Badge>
                     </TableCell>
-                    <TableCell>{asset.chain || "—"}</TableCell>
-                    <TableCell>{asset.decimals}</TableCell>
-                    <TableCell>
+                    <TableCell className="py-1.5">{asset.chain || "—"}</TableCell>
+                    <TableCell className="py-1.5 tabular-nums">{asset.decimals}</TableCell>
+                    <TableCell className="py-1.5">
                       {asset.is_active ? (
-                        <Badge variant="default">Active</Badge>
+                        <Badge variant="default" className="text-[10px]">
+                          Active
+                        </Badge>
                       ) : (
-                        <Badge variant="secondary">Inactive</Badge>
+                        <Badge variant="secondary" className="text-[10px]">
+                          Inactive
+                        </Badge>
                       )}
                     </TableCell>
-                    <TableCell>{format(new Date(asset.created_at), "MMM d, yyyy")}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="py-1.5 whitespace-nowrap">
+                      {format(new Date(asset.created_at), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-right py-1.5">
                       <div className="flex justify-end gap-2">
                         <Tooltip>
                           <TooltipTrigger asChild>

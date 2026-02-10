@@ -446,14 +446,14 @@ function TransactionHistoryContent() {
             </div>
           ) : (
             <div className="rounded-md border overflow-x-auto">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
                     <SortableTableHead
                       column="txDate"
                       currentSort={sortConfig}
                       onSort={requestSort}
-                      className="min-w-[120px]"
+                      className="whitespace-nowrap"
                     >
                       Date
                     </SortableTableHead>
@@ -461,7 +461,7 @@ function TransactionHistoryContent() {
                       column="investorName"
                       currentSort={sortConfig}
                       onSort={requestSort}
-                      className="min-w-[180px]"
+                      className="whitespace-nowrap"
                     >
                       Investor
                     </SortableTableHead>
@@ -469,7 +469,7 @@ function TransactionHistoryContent() {
                       column="fundName"
                       currentSort={sortConfig}
                       onSort={requestSort}
-                      className="min-w-[120px]"
+                      className="whitespace-nowrap"
                     >
                       Fund
                     </SortableTableHead>
@@ -477,7 +477,7 @@ function TransactionHistoryContent() {
                       column="displayType"
                       currentSort={sortConfig}
                       onSort={requestSort}
-                      className="min-w-[130px]"
+                      className="whitespace-nowrap"
                     >
                       Type
                     </SortableTableHead>
@@ -485,11 +485,11 @@ function TransactionHistoryContent() {
                       column="amount"
                       currentSort={sortConfig}
                       onSort={requestSort}
-                      className="text-right min-w-[140px]"
+                      className="text-right whitespace-nowrap"
                     >
                       Amount
                     </SortableTableHead>
-                    <TableHead className="min-w-[200px]">Notes</TableHead>
+                    <TableHead className="whitespace-nowrap">Notes</TableHead>
                     <TableHead className="w-[50px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -503,38 +503,41 @@ function TransactionHistoryContent() {
                   ) : (
                     sortedData.map((tx) => (
                       <TableRow key={tx.id} className={tx.isVoided ? "opacity-50 bg-muted/30" : ""}>
-                        <TableCell className="whitespace-nowrap">
+                        <TableCell className="whitespace-nowrap py-1.5">
                           {format(new Date(tx.txDate), "MMM d, yyyy")}
                           {tx.createdAt && (
-                            <span className="block text-xs text-muted-foreground">
+                            <span className="block text-muted-foreground">
                               {format(new Date(tx.createdAt), "HH:mm")}
                             </span>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-1.5">
                           <button
                             onClick={() => handleInvestorClick(tx.investorId)}
-                            className="text-left hover:underline group max-w-[180px]"
+                            className="text-left hover:underline group max-w-[140px]"
                           >
                             <span className="font-medium flex items-center gap-1">
-                              <TruncatedText text={tx.investorName} className="max-w-[150px]" />
+                              <TruncatedText text={tx.investorName} className="max-w-[120px]" />
                               <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                             </span>
                             <TruncatedText
                               text={tx.investorEmail}
-                              className="text-xs text-muted-foreground block max-w-[160px]"
+                              className="text-muted-foreground block max-w-[120px]"
                             />
                           </button>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <CryptoIcon symbol={tx.asset} className="h-5 w-5" />
+                        <TableCell className="py-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <CryptoIcon symbol={tx.asset} className="h-4 w-4" />
                             <span>{tx.fundName}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-1.5">
                           <div className="flex items-center gap-1 flex-wrap">
-                            <Badge variant={getTypeBadgeVariant(tx.displayType)}>
+                            <Badge
+                              variant={getTypeBadgeVariant(tx.displayType)}
+                              className="text-[10px]"
+                            >
                               {tx.displayType}
                             </Badge>
                             {tx.isVoided && (
@@ -553,8 +556,8 @@ function TransactionHistoryContent() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-mono">
-                          <div className="flex items-center justify-end gap-1.5">
+                        <TableCell className="text-right font-mono tabular-nums py-1.5">
+                          <div className="flex items-center justify-end gap-1">
                             <span
                               className={
                                 tx.isVoided
@@ -566,17 +569,17 @@ function TransactionHistoryContent() {
                             >
                               {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
                             </span>
-                            <CryptoIcon symbol={tx.asset} className="h-4 w-4" />
+                            <CryptoIcon symbol={tx.asset} className="h-3.5 w-3.5" />
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[200px]">
+                        <TableCell className="max-w-[160px] py-1.5">
                           <TruncatedText
                             text={tx.notes || "—"}
                             className="text-muted-foreground"
-                            maxWidth="200px"
+                            maxWidth="160px"
                           />
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-1.5">
                           {!tx.isVoided ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>

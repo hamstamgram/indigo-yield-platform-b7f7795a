@@ -101,19 +101,19 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
+        <Table className="text-xs">
           <TableHeader>
             <TableRow>
-              <TableHead>Fund / Asset</TableHead>
-              <TableHead>Class</TableHead>
-              <TableHead>Shares</TableHead>
-              <TableHead>Cost Basis</TableHead>
-              <TableHead>Current Value</TableHead>
-              <TableHead>P&L</TableHead>
-              <TableHead>P&L %</TableHead>
-              <TableHead>Earnings</TableHead>
-              <TableHead>Last Transaction</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="whitespace-nowrap">Fund / Asset</TableHead>
+              <TableHead className="whitespace-nowrap">Class</TableHead>
+              <TableHead className="whitespace-nowrap">Shares</TableHead>
+              <TableHead className="whitespace-nowrap">Cost</TableHead>
+              <TableHead className="whitespace-nowrap">Value</TableHead>
+              <TableHead className="whitespace-nowrap">P&L</TableHead>
+              <TableHead className="whitespace-nowrap">P&L%</TableHead>
+              <TableHead className="whitespace-nowrap">Earnings</TableHead>
+              <TableHead className="whitespace-nowrap">Last Tx</TableHead>
+              <TableHead className="whitespace-nowrap">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -125,22 +125,22 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
 
               return (
                 <TableRow key={position.id}>
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     <div>
                       <div className="font-medium">{position.fund_name}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-muted-foreground">
                         {position.fund_code} • {position.asset}
                       </div>
                     </div>
                   </TableCell>
 
-                  <TableCell>
-                    <Badge variant={isLegacy ? "secondary" : "default"}>
+                  <TableCell className="py-1.5">
+                    <Badge variant={isLegacy ? "secondary" : "default"} className="text-[10px]">
                       {position.fund_class}
                     </Badge>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     {isEditing ? (
                       <Input
                         type="number"
@@ -155,11 +155,11 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         className="w-24"
                       />
                     ) : (
-                      <span className="font-mono text-sm">{position.shares.toFixed(4)}</span>
+                      <span className="font-mono tabular-nums">{position.shares.toFixed(4)}</span>
                     )}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     {isEditing ? (
                       <Input
                         type="number"
@@ -174,13 +174,13 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         className="w-28"
                       />
                     ) : (
-                      <span className="font-mono text-sm">
+                      <span className="font-mono tabular-nums">
                         {formatAssetValue(position.cost_basis, position.asset)}
                       </span>
                     )}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     {isEditing ? (
                       <Input
                         type="number"
@@ -195,13 +195,13 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         className="w-28"
                       />
                     ) : (
-                      <span className="font-mono text-sm font-semibold">
+                      <span className="font-mono tabular-nums font-semibold">
                         {formatAssetValue(position.current_value, position.asset)}
                       </span>
                     )}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     <div
                       className={`flex items-center space-x-1 ${
                         pnl >= 0 ? "text-green-600" : "text-red-600"
@@ -212,15 +212,15 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                       ) : (
                         <TrendingDown className="h-3 w-3" />
                       )}
-                      <span className="font-mono text-sm">
+                      <span className="font-mono tabular-nums">
                         {formatAssetValue(Math.abs(pnl), position.asset)}
                       </span>
                     </div>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     <span
-                      className={`font-mono text-sm ${
+                      className={`font-mono tabular-nums ${
                         pnlPercent >= 0 ? "text-green-600" : "text-red-600"
                       }`}
                     >
@@ -229,21 +229,21 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                     </span>
                   </TableCell>
 
-                  <TableCell>
-                    <span className="font-mono text-sm text-green-600">
+                  <TableCell className="py-1.5">
+                    <span className="font-mono tabular-nums text-green-600">
                       {formatAssetValue(position.total_earnings, position.asset)}
                     </span>
                   </TableCell>
 
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
+                  <TableCell className="py-1.5">
+                    <span className="text-muted-foreground whitespace-nowrap">
                       {position.last_transaction_date
                         ? new Date(position.last_transaction_date).toLocaleDateString()
                         : "—"}
                     </span>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-1.5">
                     {isEditing ? (
                       <div className="flex items-center space-x-1">
                         <Button size="sm" onClick={() => handleSave(position.id, isLegacy)}>

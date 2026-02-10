@@ -256,14 +256,14 @@ export const StatementManager: React.FC = () => {
             </p>
           </div>
         )}
-        <Table>
+        <Table className="text-xs">
           <TableHeader>
             <TableRow>
-              <TableHead>Investor</TableHead>
-              <TableHead>Period</TableHead>
-              <TableHead>Generated</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="whitespace-nowrap">Investor</TableHead>
+              <TableHead className="whitespace-nowrap">Period</TableHead>
+              <TableHead className="whitespace-nowrap">Generated</TableHead>
+              <TableHead className="whitespace-nowrap">Status</TableHead>
+              <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -282,21 +282,25 @@ export const StatementManager: React.FC = () => {
             ) : (
               drafts.map((draft) => (
                 <TableRow key={draft.id}>
-                  <TableCell className="font-medium">{draft.investor_name}</TableCell>
-                  <TableCell>{draft.period}</TableCell>
-                  <TableCell>{new Date(draft.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium py-1.5 truncate max-w-[150px]">
+                    {draft.investor_name}
+                  </TableCell>
+                  <TableCell className="py-1.5">{draft.period}</TableCell>
+                  <TableCell className="py-1.5">
+                    {new Date(draft.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="py-1.5">
                     {draft.status === "published" ? (
-                      <Badge className="bg-green-500">
+                      <Badge className="bg-green-500 text-[10px]">
                         <CheckCircle className="w-3 h-3 mr-1" /> Published
                       </Badge>
                     ) : (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-[10px]">
                         <AlertCircle className="w-3 h-3 mr-1" /> Draft
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-1.5">
                     <Button
                       variant="ghost"
                       size="sm"

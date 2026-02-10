@@ -73,29 +73,29 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
         </CardHeader>
         <CardContent>
           {positions && positions.length > 0 ? (
-            <Table>
+            <Table className="text-xs">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fund</TableHead>
-                  <TableHead>Balance</TableHead>
-                  <TableHead>Asset</TableHead>
-                  <TableHead>Realized PnL</TableHead>
+                  <TableHead className="whitespace-nowrap">Fund</TableHead>
+                  <TableHead className="whitespace-nowrap">Balance</TableHead>
+                  <TableHead className="whitespace-nowrap">Asset</TableHead>
+                  <TableHead className="whitespace-nowrap">Realized PnL</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {positions.map((pos) => (
                   <TableRow key={`${pos.investor_id}-${pos.fund_id}`}>
-                    <TableCell className="font-medium">{pos.funds?.name}</TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="font-medium py-1.5">{pos.funds?.name}</TableCell>
+                    <TableCell className="font-mono tabular-nums py-1.5">
                       <FinancialValue value={pos.current_value} asset={pos.funds?.asset} />
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <CryptoIcon symbol={pos.funds?.asset || ""} className="h-5 w-5" />
-                        <span className="text-sm font-medium">{pos.funds?.asset}</span>
+                    <TableCell className="py-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <CryptoIcon symbol={pos.funds?.asset || ""} className="h-4 w-4" />
+                        <span className="font-medium">{pos.funds?.asset}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="font-mono tabular-nums py-1.5">
                       <FinancialValue
                         value={pos.realized_pnl || 0}
                         asset={pos.funds?.asset}

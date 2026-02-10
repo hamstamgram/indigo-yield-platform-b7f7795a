@@ -257,13 +257,14 @@ export default function CrystallizationDashboardPage() {
         <CardContent>
           {sortedFunds && sortedFunds.length > 0 ? (
             <div className="rounded-md border">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
                     <SortableTableHead
                       column="fund_code"
                       currentSort={fundSortConfig}
                       onSort={fundRequestSort}
+                      className="whitespace-nowrap"
                     >
                       Fund
                     </SortableTableHead>
@@ -271,46 +272,48 @@ export default function CrystallizationDashboardPage() {
                       column="total_positions"
                       currentSort={fundSortConfig}
                       onSort={fundRequestSort}
-                      className="text-right"
+                      className="text-right whitespace-nowrap"
                     >
-                      Positions
+                      Pos
                     </SortableTableHead>
                     <SortableTableHead
                       column="up_to_date"
                       currentSort={fundSortConfig}
                       onSort={fundRequestSort}
-                      className="text-right"
+                      className="text-right whitespace-nowrap"
                     >
-                      Crystallized
+                      Crystal
                     </SortableTableHead>
-                    <TableHead className="text-right">Gaps</TableHead>
-                    <TableHead className="text-right">Oldest Gap</TableHead>
-                    <TableHead className="text-right">AUM</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Gaps</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Oldest</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">AUM</TableHead>
+                    <TableHead className="whitespace-nowrap">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedFunds.map((fund) => (
                     <TableRow key={fund.fund_id}>
-                      <TableCell>
+                      <TableCell className="py-1.5">
                         <div className="flex items-center gap-2">
                           <CryptoIcon
                             symbol={fund.fund_code.split("-").pop() || fund.fund_code}
-                            className="h-5 w-5"
+                            className="h-4 w-4"
                           />
                           <div className="flex flex-col">
                             <span className="font-medium">{fund.fund_code}</span>
-                            <span className="text-xs text-muted-foreground">{fund.fund_name}</span>
+                            <span className="text-muted-foreground">{fund.fund_name}</span>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-mono">{fund.total_positions}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right font-mono tabular-nums py-1.5">
+                        {fund.total_positions}
+                      </TableCell>
+                      <TableCell className="text-right py-1.5">
                         <span className="text-green-600 dark:text-green-400 font-mono">
                           {fund.up_to_date}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-1.5">
                         {fund.warning_stale + fund.critical_stale + fund.never_crystallized > 0 ? (
                           <Badge className="bg-yellow-900/30 text-yellow-400">
                             {fund.warning_stale + fund.critical_stale + fund.never_crystallized}
@@ -319,7 +322,7 @@ export default function CrystallizationDashboardPage() {
                           <Badge className="bg-green-900/30 text-green-400">0</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-1.5">
                         {fund.critical_stale > 0 ? (
                           <span className="text-red-600 dark:text-red-400">
                             {fund.critical_stale} critical
@@ -332,10 +335,10 @@ export default function CrystallizationDashboardPage() {
                           <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-1.5">
                         <span className="text-muted-foreground">-</span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5">
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
@@ -422,57 +425,62 @@ export default function CrystallizationDashboardPage() {
             </div>
           ) : sortedGaps && sortedGaps.length > 0 ? (
             <div className="rounded-md border">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Investor</TableHead>
+                    <TableHead className="whitespace-nowrap">Investor</TableHead>
                     <SortableTableHead
                       column="fund_code"
                       currentSort={gapSortConfig}
                       onSort={gapRequestSort}
+                      className="whitespace-nowrap"
                     >
                       Fund
                     </SortableTableHead>
-                    <TableHead>Last Crystallization</TableHead>
+                    <TableHead className="whitespace-nowrap">Last Crystal</TableHead>
                     <SortableTableHead
                       column="days_behind"
                       currentSort={gapSortConfig}
                       onSort={gapRequestSort}
-                      className="text-right"
+                      className="text-right whitespace-nowrap"
                     >
-                      Days Behind
+                      Days
                     </SortableTableHead>
                     <SortableTableHead
                       column="current_value"
                       currentSort={gapSortConfig}
                       onSort={gapRequestSort}
-                      className="text-right"
+                      className="text-right whitespace-nowrap"
                     >
-                      Current Value
+                      Value
                     </SortableTableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedGaps.map((gap, idx) => (
                     <TableRow key={`${gap.investor_id}-${gap.fund_id}-${idx}`}>
-                      <TableCell>
+                      <TableCell className="py-1.5">
                         <div className="flex flex-col">
-                          <span className="font-medium">{gap.investor_email}</span>
-                          <span className="text-xs text-muted-foreground font-mono">
+                          <span className="font-medium truncate max-w-[140px]">
+                            {gap.investor_email}
+                          </span>
+                          <span className="text-muted-foreground font-mono">
                             {gap.investor_id.slice(0, 8)}...
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5">
                         <div className="flex items-center gap-2">
                           <CryptoIcon
                             symbol={gap.fund_code.split("-").pop() || gap.fund_code}
-                            className="h-5 w-5"
+                            className="h-4 w-4"
                           />
-                          <Badge variant="outline">{gap.fund_code}</Badge>
+                          <Badge variant="outline" className="text-[10px]">
+                            {gap.fund_code}
+                          </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5">
                         {gap.last_yield_crystallization_date ? (
                           <div className="flex flex-col">
                             <span>
@@ -488,7 +496,7 @@ export default function CrystallizationDashboardPage() {
                           <span className="text-muted-foreground">Never</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-1.5">
                         <span
                           className={
                             gap.days_behind > 30
@@ -501,7 +509,7 @@ export default function CrystallizationDashboardPage() {
                           {gap.days_behind}d
                         </span>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-1.5">
                         <FinancialValue value={gap.current_value} displayDecimals={2} />
                       </TableCell>
                     </TableRow>

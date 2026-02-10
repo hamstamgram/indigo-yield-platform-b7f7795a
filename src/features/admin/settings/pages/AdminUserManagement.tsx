@@ -220,14 +220,16 @@ function AdminUserManagementContent() {
             </div>
 
             <div className="rounded-xl border border-white/5 overflow-hidden bg-black/20">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader className="bg-white/5">
                   <TableRow className="border-white/5 hover:bg-transparent">
-                    <TableHead className="text-zinc-400">Name</TableHead>
-                    <TableHead className="text-zinc-400">Email</TableHead>
-                    <TableHead className="text-zinc-400">Status</TableHead>
-                    <TableHead className="text-zinc-400">Joined</TableHead>
-                    <TableHead className="text-right text-zinc-400">Actions</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Name</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Email</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Status</TableHead>
+                    <TableHead className="text-zinc-400 whitespace-nowrap">Joined</TableHead>
+                    <TableHead className="text-right text-zinc-400 whitespace-nowrap">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -243,11 +245,13 @@ function AdminUserManagementContent() {
                         key={admin.id}
                         className="border-white/5 hover:bg-white/5 transition-colors"
                       >
-                        <TableCell className="font-medium text-zinc-200">
+                        <TableCell className="font-medium text-zinc-200 py-1.5 truncate max-w-[120px]">
                           {admin.first_name} {admin.last_name}
                         </TableCell>
-                        <TableCell className="text-zinc-400">{admin.email}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-zinc-400 py-1.5 truncate max-w-[150px]">
+                          {admin.email}
+                        </TableCell>
+                        <TableCell className="py-1.5">
                           <Badge
                             variant="secondary"
                             className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
@@ -255,10 +259,10 @@ function AdminUserManagementContent() {
                             Active
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-zinc-400">
+                        <TableCell className="text-zinc-400 py-1.5 whitespace-nowrap">
                           {new Date(admin.created_at).toLocaleDateString()}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right py-1.5">
                           <Button
                             variant="ghost"
                             size="icon"
