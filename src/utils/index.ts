@@ -64,8 +64,5 @@ export {
 // formatAssetAmount, formatPercentage, formatTokenAmount
 export * from "./formatters";
 
-// Statement storage
-export * from "./statementStorage";
-
 // Dynamic imports & lazy loading
 export * from "./dynamicImport";

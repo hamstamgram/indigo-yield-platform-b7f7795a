@@ -12,9 +12,6 @@ export * from "./dataIntegrityService";
 // System health
 export * from "./systemHealthService";
 
-// Session management
-export * from "./sessionManagement";
-
 // Report services
 export * from "./reportUpsertService";
 

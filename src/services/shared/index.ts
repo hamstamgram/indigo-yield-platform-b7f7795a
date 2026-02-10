@@ -36,9 +36,6 @@ export type {
 } from "./transactionService";
 // For canonical transaction types, import directly from @/types/domains/transaction
 
-// Email templates
-export * from "./emailTemplates";
-
 // System config
 export { systemConfigService, defaultPlatformSettings } from "./systemConfigService";
 export type { PlatformSettings } from "./systemConfigService";

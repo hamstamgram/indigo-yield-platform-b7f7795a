@@ -4,7 +4,6 @@
  */
 
 // Display components
-export { AssetPerformanceCard } from "./AssetPerformanceCard";
 export { default as KPI } from "./KPI";
 
 // Formatting components
