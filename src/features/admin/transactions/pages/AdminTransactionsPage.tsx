@@ -9,10 +9,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   Input,
   Button,
   Badge,
@@ -37,11 +33,11 @@ import {
   DateTimePicker,
 } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
+import { PageShell } from "@/components/layout/PageShell";
+import { TablePagination } from "@/components/common/TablePagination";
 import {
   Loader2,
   Search,
-  ChevronLeft,
-  ChevronRight,
   ExternalLink,
   CreditCard,
   Plus,
@@ -281,7 +277,7 @@ function TransactionHistoryContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       <PageHeader
         title="Transaction History"
         subtitle="Complete chronological ledger of all investor transactions"
@@ -289,140 +285,138 @@ function TransactionHistoryContent() {
       />
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4 space-y-4">
-          {/* Quick Date Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={setThisMonth}>
-              This Month
-            </Button>
-            <Button variant="outline" size="sm" onClick={setLastMonth}>
-              Last Month
-            </Button>
-            <Button variant="outline" size="sm" onClick={setYTD}>
-              YTD
-            </Button>
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Clear All
-            </Button>
-            <div className="ml-auto flex items-center gap-2">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showVoided}
-                  onChange={(e) => {
-                    setShowVoided(e.target.checked);
-                    setPage(0);
-                  }}
-                  className="rounded border-muted-foreground"
-                />
-                <span className="text-muted-foreground">Show voided</span>
-              </label>
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 space-y-4">
+        {/* Quick Date Filters */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={setThisMonth}>
+            This Month
+          </Button>
+          <Button variant="outline" size="sm" onClick={setLastMonth}>
+            Last Month
+          </Button>
+          <Button variant="outline" size="sm" onClick={setYTD}>
+            YTD
+          </Button>
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            Clear All
+          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showVoided}
+                onChange={(e) => {
+                  setShowVoided(e.target.checked);
+                  setPage(0);
+                }}
+                className="rounded border-muted-foreground"
+              />
+              <span className="text-muted-foreground">Show voided</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Main Filters */}
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by investor name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
             </div>
           </div>
 
-          {/* Main Filters */}
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by investor name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
+          <Select
+            value={selectedFund}
+            onValueChange={(v) => {
+              setSelectedFund(v);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by fund" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Funds</SelectItem>
+              {funds.map((fund) => (
+                <SelectItem key={fund.id} value={fund.id}>
+                  <span className="flex items-center gap-2">
+                    <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                    {fund.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <Select
-              value={selectedFund}
-              onValueChange={(v) => {
-                setSelectedFund(v);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by fund" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Funds</SelectItem>
-                {funds.map((fund) => (
-                  <SelectItem key={fund.id} value={fund.id}>
-                    <span className="flex items-center gap-2">
-                      <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
-                      {fund.name}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select
+            value={selectedType}
+            onValueChange={(v) => {
+              setSelectedType(v);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Base type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Base Types</SelectItem>
+              <SelectItem value="DEPOSIT">Deposits</SelectItem>
+              <SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
+              <SelectItem value="YIELD">Yield</SelectItem>
+              <SelectItem value="FEE_CREDIT">Fee Credits</SelectItem>
+              <SelectItem value="IB_CREDIT">IB Credits</SelectItem>
+              <SelectItem value="ADJUSTMENT">Adjustments</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select
-              value={selectedType}
-              onValueChange={(v) => {
-                setSelectedType(v);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Base type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Base Types</SelectItem>
-                <SelectItem value="DEPOSIT">Deposits</SelectItem>
-                <SelectItem value="WITHDRAWAL">Withdrawals</SelectItem>
-                <SelectItem value="YIELD">Yield</SelectItem>
-                <SelectItem value="FEE_CREDIT">Fee Credits</SelectItem>
-                <SelectItem value="IB_CREDIT">IB Credits</SelectItem>
-                <SelectItem value="ADJUSTMENT">Adjustments</SelectItem>
-              </SelectContent>
-            </Select>
+          <Select value={selectedDisplayType} onValueChange={setSelectedDisplayType}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="First Investment">First Investment</SelectItem>
+              <SelectItem value="Top-up">Top-up</SelectItem>
+              <SelectItem value="Withdrawal">Withdrawal</SelectItem>
+              <SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
+              <SelectItem value="Yield">Yield</SelectItem>
+              <SelectItem value="Fee Credit">Fee Credit</SelectItem>
+              <SelectItem value="IB Credit">IB Credit</SelectItem>
+              <SelectItem value="Adjustment">Adjustment</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select value={selectedDisplayType} onValueChange={setSelectedDisplayType}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="First Investment">First Investment</SelectItem>
-                <SelectItem value="Top-up">Top-up</SelectItem>
-                <SelectItem value="Withdrawal">Withdrawal</SelectItem>
-                <SelectItem value="Withdrawal All">Withdrawal All</SelectItem>
-                <SelectItem value="Yield">Yield</SelectItem>
-                <SelectItem value="Fee Credit">Fee Credit</SelectItem>
-                <SelectItem value="IB Credit">IB Credit</SelectItem>
-                <SelectItem value="Adjustment">Adjustment</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <DateTimePicker
-              value={datetimeFrom}
-              onChange={(v) => {
-                setDatetimeFrom(v);
-                setPage(0);
-              }}
-              placeholder="From date & time"
-              label="From"
-              showTime={true}
-              defaultTime="00:00"
-              className="w-52"
-            />
-            <DateTimePicker
-              value={datetimeTo}
-              onChange={(v) => {
-                setDatetimeTo(v);
-                setPage(0);
-              }}
-              placeholder="To date & time"
-              label="To"
-              showTime={true}
-              defaultTime="23:59"
-              className="w-52"
-            />
-          </div>
-        </CardContent>
-      </Card>
+          <DateTimePicker
+            value={datetimeFrom}
+            onChange={(v) => {
+              setDatetimeFrom(v);
+              setPage(0);
+            }}
+            placeholder="From date & time"
+            label="From"
+            showTime={true}
+            defaultTime="00:00"
+            className="w-52"
+          />
+          <DateTimePicker
+            value={datetimeTo}
+            onChange={(v) => {
+              setDatetimeTo(v);
+              setPage(0);
+            }}
+            placeholder="To date & time"
+            label="To"
+            showTime={true}
+            defaultTime="23:59"
+            className="w-52"
+          />
+        </div>
+      </div>
 
       {/* Bulk Action Toolbar */}
       <BulkActionToolbar
@@ -434,50 +428,25 @@ function TransactionHistoryContent() {
       />
 
       {/* Transactions Table */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-4">
-            <CardTitle>
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-white">
               {totalCount.toLocaleString()} Transaction{totalCount !== 1 ? "s" : ""}
-            </CardTitle>
+            </span>
             <ExportButton
               data={filteredTransactions}
               columns={txExportColumns}
               filename="transactions"
               disabled={filteredTransactions.length === 0}
             />
-            <Button onClick={handleOpenAddDialog} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Transaction
-            </Button>
           </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </CardHeader>
-        <CardContent>
+          <Button onClick={handleOpenAddDialog} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Transaction
+          </Button>
+        </div>
+        <div className="p-4">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -628,8 +597,8 @@ function TransactionHistoryContent() {
                                   tx.isVoided
                                     ? "line-through text-muted-foreground"
                                     : tx.type === "WITHDRAWAL" || tx.type === "FEE"
-                                      ? "text-destructive"
-                                      : "text-green-600"
+                                      ? "text-rose-400"
+                                      : "text-emerald-400"
                                 }
                               >
                                 {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
@@ -685,30 +654,14 @@ function TransactionHistoryContent() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Bottom Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={page === 0}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+          <TablePagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            totalCount={totalCount}
+            onPageChange={setPage}
+          />
         </div>
-      )}
+      </div>
 
       {/* Add Transaction Modal */}
       <AddTransactionDialog
@@ -803,7 +756,7 @@ function TransactionHistoryContent() {
           );
         }}
       />
-    </div>
+    </PageShell>
   );
 }
 

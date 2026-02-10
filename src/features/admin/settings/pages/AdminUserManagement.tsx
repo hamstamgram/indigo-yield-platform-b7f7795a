@@ -42,6 +42,7 @@ import {
   useSendAdminInviteEmail,
   useForceResetPassword,
 } from "@/hooks/data";
+import { PageShell } from "@/components/layout/PageShell";
 
 function AdminUserManagementContent() {
   const { data: admins = [], isLoading, refetch } = useAdminUsers();
@@ -137,10 +138,10 @@ function AdminUserManagementContent() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <PageShell>
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-display font-bold text-white tracking-tight flex items-center gap-3">
             <Shield className="h-8 w-8 text-indigo-400" />
             Admin & User Management
           </h1>
@@ -361,7 +362,7 @@ function AdminUserManagementContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 }
 

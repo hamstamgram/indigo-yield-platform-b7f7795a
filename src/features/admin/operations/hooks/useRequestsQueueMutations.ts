@@ -34,11 +34,11 @@ export function useRequestsQueueMutations(options: UseRequestsQueueMutationsOpti
       // Snapshot for rollback
       const previousRequests = queryClient.getQueryData(["admin", "withdrawal-requests"]);
 
-      // Optimistic update - mark as approved
+      // Optimistic update - mark as completed (atomic approve + complete)
       queryClient.setQueryData(
         ["admin", "withdrawal-requests"],
         (old: WithdrawalRequest[] | undefined) =>
-          old?.map((r) => (r.id === variables.requestId ? { ...r, status: "approved" } : r))
+          old?.map((r) => (r.id === variables.requestId ? { ...r, status: "completed" } : r))
       );
 
       return { previousRequests };
@@ -51,7 +51,7 @@ export function useRequestsQueueMutations(options: UseRequestsQueueMutationsOpti
       toast.error(`Failed to approve withdrawal: ${error.message}`);
     },
     onSuccess: () => {
-      toast.success("Withdrawal request approved successfully");
+      toast.success("Withdrawal approved and completed");
       onSuccess?.();
     },
     onSettled: (_, __, variables) => {

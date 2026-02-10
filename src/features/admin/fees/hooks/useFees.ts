@@ -6,34 +6,23 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getFeesOverviewData,
-  getFeesActiveFunds,
+  getActiveFunds,
   getFeeTransactions,
   getIndigoFeesBalance,
   getFeeAllocations,
-  getRoutingAuditEntries,
   getYieldEarned,
   type FeesOverviewData,
   type FeeRecord,
   type FeeAllocation,
-  type RoutingAuditEntry,
-  type RoutingSummary,
   type YieldEarned,
   type FeeSummary,
-} from "@/services/admin";
+} from "@/services/admin/feesService";
 import type { FundRef } from "@/types/domains/fund";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 // ==================== Re-export types ====================
 
-export type {
-  FeesOverviewData,
-  FeeRecord,
-  FeeAllocation,
-  RoutingAuditEntry,
-  RoutingSummary,
-  YieldEarned,
-  FeeSummary,
-};
+export type { FeesOverviewData, FeeRecord, FeeAllocation, YieldEarned, FeeSummary };
 // Use FundRef from canonical source for fund data in fees
 export type { FundRef as Fund };
 
@@ -56,7 +45,7 @@ export function useFeesOverview() {
 export function useFeeFunds() {
   return useQuery<FundRef[], Error>({
     queryKey: [...QUERY_KEYS.adminFeesOverview, "funds"],
-    queryFn: getFeesActiveFunds,
+    queryFn: getActiveFunds,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
@@ -90,17 +79,6 @@ export function useFeeAllocations() {
   return useQuery<FeeAllocation[], Error>({
     queryKey: [...QUERY_KEYS.adminFeesOverview, "allocations"],
     queryFn: getFeeAllocations,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-/**
- * Hook to fetch routing audit entries
- */
-export function useRoutingAuditEntries() {
-  return useQuery<{ entries: RoutingAuditEntry[]; summary: RoutingSummary }, Error>({
-    queryKey: [...QUERY_KEYS.adminFeesOverview, "routing"],
-    queryFn: getRoutingAuditEntries,
     staleTime: 5 * 60 * 1000,
   });
 }

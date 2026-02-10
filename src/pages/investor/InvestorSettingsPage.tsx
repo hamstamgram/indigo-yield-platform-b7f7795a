@@ -32,6 +32,7 @@ import {
 } from "@/hooks/data";
 import { logError } from "@/lib/logger";
 import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/PageShell";
 
 const SETTINGS_KEY = "indigo_user_settings";
 
@@ -133,7 +134,7 @@ export default function InvestorSettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20 px-4 md:px-6 lg:px-8 animate-fade-in-up">
+    <PageShell maxWidth="narrow">
       {/* Background Decoration */}
       <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-500/5 blur-[120px] pointer-events-none -z-10 rounded-full" />
 
@@ -142,7 +143,7 @@ export default function InvestorSettingsPage() {
           <Settings className="h-8 w-8 text-indigo-400" />
         </div>
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Settings</h1>
+          <h1 className="text-2xl font-display font-bold text-white tracking-tight">Settings</h1>
           <p className="text-indigo-200/60 font-light">
             Manage your profile, security, and preferences
           </p>
@@ -240,6 +241,6 @@ export default function InvestorSettingsPage() {
           </div>
         </div>
       </Tabs>
-    </div>
+    </PageShell>
   );
 }

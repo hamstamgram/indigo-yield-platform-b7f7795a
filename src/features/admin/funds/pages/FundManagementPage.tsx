@@ -41,6 +41,7 @@ import {
 } from "@/features/admin/funds/hooks/useFundsWithMetrics";
 import { cn } from "@/lib/utils";
 import { formatAssetValue } from "@/utils/formatters";
+import { PageShell } from "@/components/layout/PageShell";
 
 type FundStatus = "active" | "inactive" | "suspended" | "deprecated";
 
@@ -136,11 +137,11 @@ function FundManagementContent() {
   const activeFunds = funds.filter((f) => f.status === "active");
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
+    <PageShell>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Fund Management
             <Badge variant="outline" className="border-indigo-500/30 text-indigo-400">
               {activeFunds.length} Active
@@ -473,7 +474,7 @@ function FundManagementContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 }
 

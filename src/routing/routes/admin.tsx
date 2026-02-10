@@ -26,6 +26,7 @@ import {
   SystemRoutes,
   TransactionRoutes,
   IBRoutes,
+  FeesRoutes,
 } from "./admin/index";
 
 /**
@@ -44,6 +45,7 @@ export function AdminRoutes() {
       {SystemRoutes()}
       {TransactionRoutes()}
       {IBRoutes()}
+      {FeesRoutes()}
     </>
   );
 }

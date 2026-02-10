@@ -5,6 +5,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { Wallet, Loader2, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function InvestorPortfolioPage() {
   const { data: assetStats, isLoading, dataUpdatedAt } = usePerAssetStats();
@@ -14,6 +15,7 @@ export default function InvestorPortfolioPage() {
       fundName: asset.fundName,
       assetSymbol: asset.assetSymbol,
       tokenAmount: asset.mtd.endingBalance || 0,
+      mtdChange: (asset.mtd.endingBalance || 0) - (asset.mtd.beginningBalance || 0),
       itdEarned: asset.itd?.netIncome || 0,
       itdReturn: asset.itd?.rateOfReturn || 0,
       lastUpdated: asset.mtd.endingBalance > 0 ? new Date().toISOString() : null,
@@ -52,6 +54,27 @@ export default function InvestorPortfolioPage() {
       cell: (item: (typeof positions)[0]) => (
         <span className="font-mono font-bold text-lg text-white tracking-tight">
           {formatAssetAmount(item.tokenAmount, item.assetSymbol)}
+        </span>
+      ),
+    },
+    {
+      header: (
+        <SortableTableHead column="mtdChange" currentSort={sortConfig} onSort={requestSort}>
+          MTD Change
+        </SortableTableHead>
+      ),
+      cell: (item: (typeof positions)[0]) => (
+        <span
+          className={cn(
+            "font-mono font-bold px-2 py-1 rounded-md text-sm",
+            item.mtdChange > 0.00001
+              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              : item.mtdChange < -0.00001
+                ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                : "text-slate-500"
+          )}
+        >
+          {formatSignedAssetAmount(item.mtdChange, item.assetSymbol)}
         </span>
       ),
     },
@@ -109,14 +132,14 @@ export default function InvestorPortfolioPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-[1400px] mx-auto pb-20 animate-fade-in">
+    <PageShell>
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <h1 className="text-4xl font-display font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Portfolio
           </h1>
-          <p className="text-slate-400 mt-2 text-lg">Detailed breakdown of your asset positions</p>
+          <p className="text-slate-400 mt-1 text-sm">Detailed breakdown of your asset positions</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -124,10 +147,17 @@ export default function InvestorPortfolioPage() {
             className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
             onClick={() => {
               if (!sortedData?.length) return;
-              const headers = ["Asset", "Token Amount", "ITD Earned", "ITD Return (%)"];
+              const headers = [
+                "Asset",
+                "Token Amount",
+                "MTD Change",
+                "ITD Earned",
+                "ITD Return (%)",
+              ];
               const rows = sortedData.map((item) => [
                 item.assetSymbol,
                 String(item.tokenAmount),
+                String(item.mtdChange),
                 String(item.itdEarned),
                 String(item.itdReturn.toFixed(2)),
               ]);
@@ -150,8 +180,8 @@ export default function InvestorPortfolioPage() {
         </div>
       </div>
 
-      <div className="glass-panel rounded-3xl border border-white/5 overflow-hidden">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
           <h2 className="font-bold text-white flex items-center gap-2">
             <Wallet className="h-5 w-5 text-indigo-400" />
             All Positions
@@ -183,6 +213,6 @@ export default function InvestorPortfolioPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

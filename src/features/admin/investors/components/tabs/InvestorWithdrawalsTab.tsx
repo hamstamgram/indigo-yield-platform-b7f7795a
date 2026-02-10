@@ -22,7 +22,6 @@ import {
   ArrowDownToLine,
   CheckCircle,
   XCircle,
-  Clock,
   Loader2,
   AlertTriangle,
   RefreshCw,
@@ -48,13 +47,7 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
 
-const validStatuses: (WithdrawalFullStatus | "all")[] = [
-  "all",
-  "pending",
-  "approved",
-  "completed",
-  "rejected",
-];
+const validStatuses: (WithdrawalFullStatus | "all")[] = ["all", "pending", "completed", "rejected"];
 
 export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabProps) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -122,7 +115,6 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
@@ -192,9 +184,6 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
                           <XCircle className="h-4 w-4 text-red-600" />
                         </Button>
                       </>
-                    )}
-                    {withdrawal.status === "approved" && (
-                      <Clock className="h-4 w-4 text-blue-500" />
                     )}
                   </div>
                 </div>

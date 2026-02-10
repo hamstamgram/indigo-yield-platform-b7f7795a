@@ -21,6 +21,7 @@ import {
   useUpdateYieldAum,
   type RecordedYieldRecord,
 } from "@/hooks";
+import { PageShell } from "@/components/layout/PageShell";
 
 interface Fund {
   id: string;
@@ -71,10 +72,10 @@ function RecordedYieldsContent() {
   const editAumMutation = useUpdateYieldAum(() => setEditAumRecord(null));
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <PageShell>
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-display font-bold tracking-tight">Recorded Yields</h1>
+        <h1 className="text-2xl font-display font-bold tracking-tight">Recorded Yields</h1>
         <p className="text-muted-foreground mt-1">
           View and manage all yield entries. {canEdit ? "You can edit records." : "View only."}
         </p>
@@ -152,7 +153,7 @@ function RecordedYieldsContent() {
         }}
         isPending={editAumMutation.isPending}
       />
-    </div>
+    </PageShell>
   );
 }
 

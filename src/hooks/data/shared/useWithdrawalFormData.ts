@@ -6,16 +6,22 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 /**
  * Hook to fetch investor options for dropdown selection.
  * Uses investorDataService.fetchInvestorsForSelector directly.
+ * @param enabled - Whether the query is enabled
+ * @param includeSystemAccounts - Whether to include fees_account in results
  */
-export function useInvestorOptions(enabled: boolean = true) {
+export function useInvestorOptions(
+  enabled: boolean = true,
+  includeSystemAccounts: boolean = false
+) {
   return useQuery({
-    queryKey: QUERY_KEYS.investorOptions,
+    queryKey: [...QUERY_KEYS.investorOptions, includeSystemAccounts],
     queryFn: async () => {
-      const items = await fetchInvestorsForSelector(false);
+      const items = await fetchInvestorsForSelector(includeSystemAccounts);
       return items.map((item) => ({
         id: item.id,
         email: item.email,
         displayName: item.displayName,
+        isSystemAccount: item.isSystemAccount ?? false,
       }));
     },
     enabled,

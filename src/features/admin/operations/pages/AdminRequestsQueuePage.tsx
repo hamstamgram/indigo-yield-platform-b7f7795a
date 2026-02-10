@@ -30,6 +30,7 @@ import {
   ArrowDownCircle,
   AlertCircle,
 } from "lucide-react";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function AdminRequestsQueuePage() {
   const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
@@ -160,9 +161,9 @@ export default function AdminRequestsQueuePage() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <PageShell>
       <div>
-        <h1 className="text-3xl font-display font-bold text-white tracking-tight">
+        <h1 className="text-2xl font-display font-bold text-white tracking-tight">
           Requests Queue
         </h1>
         <p className="text-zinc-400 font-light mt-1">
@@ -360,10 +361,10 @@ export default function AdminRequestsQueuePage() {
                           <DialogContent className="glass-dialog border-white/10 bg-black/90 backdrop-blur-2xl">
                             <DialogHeader>
                               <DialogTitle className="text-white">
-                                Approve Withdrawal Request
+                                Approve & Complete Withdrawal
                               </DialogTitle>
                               <DialogDescription className="text-zinc-400">
-                                Review and approve the withdrawal request for{" "}
+                                Approve and complete the withdrawal request for{" "}
                                 {getInvestorName(request.profile)}
                               </DialogDescription>
                             </DialogHeader>
@@ -399,7 +400,7 @@ export default function AdminRequestsQueuePage() {
                                 ) : (
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                 )}
-                                Approve Request
+                                Approve & Complete
                               </Button>
                             </DialogFooter>
                           </DialogContent>
@@ -491,6 +492,6 @@ export default function AdminRequestsQueuePage() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageShell>
   );
 }

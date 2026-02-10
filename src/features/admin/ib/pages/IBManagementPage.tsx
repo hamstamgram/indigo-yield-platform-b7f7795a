@@ -36,6 +36,7 @@ import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatCrypto } from "@/utils/financial";
 import { useIBProfiles, useCreateIB, useSortableColumns, type EarningsByAsset } from "@/hooks";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function IBManagementPage() {
   const navigate = useNavigate();
@@ -85,7 +86,7 @@ export default function IBManagementPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">IB Management</h1>
@@ -315,6 +316,6 @@ export default function IBManagementPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }

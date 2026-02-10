@@ -41,6 +41,7 @@ import {
 import { formatDistanceToNow, format } from "date-fns";
 import { useState } from "react";
 import type { InvariantSuiteResult, InvariantCheckResult } from "@/services/admin/integrityService";
+import { PageShell } from "@/components/layout/PageShell";
 
 const CATEGORY_META: Record<string, { icon: React.ReactNode; badgeClass: string; label: string }> =
   {
@@ -230,11 +231,11 @@ export default function IntegrityDashboardPage() {
   const grouped = invariantResult ? groupChecksByCategory(invariantResult.checks) : null;
 
   return (
-    <div className="space-y-8 animate-fade-in-up pb-12">
+    <PageShell>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-display font-bold text-white tracking-tight flex items-center gap-3">
             <Shield className="h-8 w-8 text-indigo-400" />
             Data Integrity
           </h1>
@@ -609,6 +610,6 @@ export default function IntegrityDashboardPage() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageShell>
   );
 }

@@ -47,6 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui";
+import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks";
@@ -349,11 +350,11 @@ function YieldDistributionsContent() {
   }, [distributions]);
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <PageShell maxWidth="wide">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Yield Distributions</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl font-display font-bold tracking-tight">Yield Distributions</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Monthly distribution ledger with per-investor ADB ownership and allocation math.
           </p>
         </div>
@@ -372,11 +373,8 @@ function YieldDistributionsContent() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
+        <div className="flex flex-wrap gap-4 items-end">
           <div className="space-y-2">
             <Label>Fund</Label>
             <Select value={selectedFundId} onValueChange={(value) => setFilter("fundId", value)}>
@@ -451,8 +449,8 @@ function YieldDistributionsContent() {
               {totalDistributions} distribution{totalDistributions === 1 ? "" : "s"}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Accordion type="multiple" className="w-full space-y-3">
         {Object.entries(groupedDistributions).map(([year, months]) => (
@@ -987,7 +985,7 @@ function YieldDistributionsContent() {
         onConfirm={handleVoidConfirm}
         isPending={voidPending}
       />
-    </div>
+    </PageShell>
   );
 }
 

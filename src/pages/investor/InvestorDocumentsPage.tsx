@@ -1,16 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Button,
-  Badge,
-  ResponsiveTable,
-  EmptyState,
-  SortableTableHead,
-} from "@/components/ui";
+import { Button, Badge, ResponsiveTable, EmptyState, SortableTableHead } from "@/components/ui";
 import { FolderOpen, Download, FileText, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout";
+import { PageShell } from "@/components/layout/PageShell";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";
@@ -110,14 +101,14 @@ export default function InvestorDocumentsPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-20 px-4 md:px-6 lg:px-0">
+    <PageShell maxWidth="narrow">
       <PageHeader title="Documents" subtitle="Access your investment documents" icon={FolderOpen} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Documents</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/10">
+          <span className="text-sm font-medium text-white">Your Documents</span>
+        </div>
+        <div className="p-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -131,8 +122,8 @@ export default function InvestorDocumentsPage() {
               description="Your investment documents will appear here when available."
             />
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </PageShell>
   );
 }

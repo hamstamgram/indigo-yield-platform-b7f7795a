@@ -64,6 +64,7 @@ import {
   SortableTableHead,
 } from "@/components/ui";
 import { useSortableColumns } from "@/hooks";
+import { PageShell } from "@/components/layout/PageShell";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -189,11 +190,11 @@ export default function AdminEmailTrackingPage() {
   // =====================================================
 
   return (
-    <div className="space-y-6 p-6">
+    <PageShell>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Email Tracking</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Email Tracking</h1>
           <p className="text-muted-foreground mt-1">
             Monitor and track all emails sent to investors
           </p>
@@ -458,6 +459,6 @@ export default function AdminEmailTrackingPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   );
 }

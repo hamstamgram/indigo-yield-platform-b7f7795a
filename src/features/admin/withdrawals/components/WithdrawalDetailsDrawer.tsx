@@ -14,17 +14,7 @@ import {
   Separator,
   TruncatedText,
 } from "@/components/ui";
-import {
-  Loader2,
-  X,
-  ExternalLink,
-  Copy,
-  CheckCircle,
-  XCircle,
-  Play,
-  CheckCircle2,
-  ArrowRightLeft,
-} from "lucide-react";
+import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, ArrowRightLeft } from "lucide-react";
 import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
@@ -34,10 +24,7 @@ interface WithdrawalDetailsDrawerProps {
   withdrawalId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAction?: (
-    action: "approve" | "reject" | "process" | "complete",
-    withdrawal: Withdrawal
-  ) => void;
+  onAction?: (action: "approve" | "reject", withdrawal: Withdrawal) => void;
 }
 
 const statusColors: Record<WithdrawalFullStatus, string> = {
@@ -69,10 +56,7 @@ export function WithdrawalDetailsDrawer({
     toast.success(`${label} copied to clipboard`);
   };
 
-  const canRouteToFees =
-    withdrawal?.status === "pending" ||
-    withdrawal?.status === "approved" ||
-    withdrawal?.status === "processing";
+  const canRouteToFees = withdrawal?.status === "pending";
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -262,7 +246,7 @@ export function WithdrawalDetailsDrawer({
                       <>
                         <Button size="sm" onClick={() => onAction("approve", withdrawal)}>
                           <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve
+                          Approve & Complete
                         </Button>
                         <Button
                           size="sm"
@@ -273,18 +257,6 @@ export function WithdrawalDetailsDrawer({
                           Reject
                         </Button>
                       </>
-                    )}
-                    {withdrawal.status === "approved" && (
-                      <Button size="sm" onClick={() => onAction("process", withdrawal)}>
-                        <Play className="h-4 w-4 mr-1" />
-                        Start Processing
-                      </Button>
-                    )}
-                    {withdrawal.status === "processing" && (
-                      <Button size="sm" onClick={() => onAction("complete", withdrawal)}>
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Complete
-                      </Button>
                     )}
                   </div>
                 )}

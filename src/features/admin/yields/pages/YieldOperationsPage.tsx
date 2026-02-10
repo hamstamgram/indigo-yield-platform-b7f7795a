@@ -50,6 +50,7 @@ import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconc
 import { getMonth, getYear } from "date-fns";
 import { useYieldOperationsState, type Fund } from "@/hooks/admin/useYieldOperationsState";
 import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/PageShell";
 
 function YieldOperationsContent() {
   const ops = useYieldOperationsState();
@@ -77,7 +78,7 @@ function YieldOperationsContent() {
 
   if (ops.loading) {
     return (
-      <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <PageShell maxWidth="wide">
         <Skeleton className="h-10 w-64 mb-2" />
         <Skeleton className="h-5 w-96 mb-8" />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -85,16 +86,16 @@ function YieldOperationsContent() {
             <Skeleton key={i} className="h-64 rounded-xl" />
           ))}
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8 space-y-10 animate-fade-in pb-20">
+    <PageShell maxWidth="wide">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Yield Operations
             <Badge
               variant="outline"
@@ -103,7 +104,7 @@ function YieldOperationsContent() {
               Live Systems
             </Badge>
           </h1>
-          <p className="text-slate-400 mt-2 max-w-2xl text-lg">
+          <p className="text-slate-400 mt-2 max-w-2xl text-sm">
             Manage fund AUM checkpoints and distribute algorithmic yields to investors.
           </p>
         </div>
@@ -256,7 +257,7 @@ function YieldOperationsContent() {
         fund={ops.selectedFund}
         onSuccess={() => ops.refetchFunds()}
       />
-    </div>
+    </PageShell>
   );
 }
 

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { WithdrawalStats } from "@/types/domains";
-import { AlertCircle, CheckCircle2, Clock, Coins, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Coins, XCircle } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface WithdrawalStatsProps {
@@ -28,18 +28,6 @@ export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsPr
       color: "text-yellow-600",
     },
     {
-      title: "Approved",
-      value: stats.approved,
-      icon: CheckCircle2,
-      color: "text-green-600",
-    },
-    {
-      title: "Processing",
-      value: stats.processing,
-      icon: AlertCircle,
-      color: "text-blue-600",
-    },
-    {
       title: "Completed",
       value: stats.completed,
       icon: CheckCircle2,
@@ -54,7 +42,7 @@ export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsPr
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {statCards.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

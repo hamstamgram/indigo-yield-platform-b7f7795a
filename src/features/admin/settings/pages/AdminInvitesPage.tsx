@@ -68,6 +68,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, isPast } from "date-fns";
+import { PageShell } from "@/components/layout/PageShell";
 
 type InviteStatus = "pending" | "used" | "expired";
 
@@ -184,7 +185,7 @@ function AdminInvitesContent() {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <PageShell>
       <div className="flex items-center gap-4">
         <Link to="/admin/settings-platform">
           <Button variant="ghost" size="icon">
@@ -192,7 +193,7 @@ function AdminInvitesContent() {
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
             <Users className="h-8 w-8" />
             Admin Invites
           </h1>
@@ -460,7 +461,7 @@ function AdminInvitesContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 }
 

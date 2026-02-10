@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function InvestorOverviewPage() {
   const navigate = useNavigate();
@@ -76,18 +77,18 @@ export default function InvestorOverviewPage() {
   // For the dashboard, we will display per-asset breakdowns primarily.
 
   return (
-    <div className="space-y-8 max-w-[1400px] mx-auto pb-20 animate-fade-in">
+    <PageShell>
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <h1 className="text-4xl font-display font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Personal Wealth
             <span className="flex h-3 w-3 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
             </span>
           </h1>
-          <p className="text-slate-400 mt-2 text-lg">
+          <p className="text-slate-400 mt-1 text-sm">
             Welcome back, <span className="text-white font-medium">{displayName}</span>
           </p>
         </div>
@@ -190,13 +191,20 @@ export default function InvestorOverviewPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
-                          {asset.ytd.netIncome > 0 ? "YTD Earned" : "MTD Earned"}
+                          {asset.ytd.netIncome > 0
+                            ? "YTD Earned"
+                            : asset.mtd.netIncome > 0
+                              ? "MTD Earned"
+                              : "ITD Earned"}
                         </p>
                         <p
                           className={cn(
                             "text-lg font-mono font-bold",
-                            (asset.ytd.netIncome > 0 ? asset.ytd.netIncome : asset.mtd.netIncome) >
-                              0
+                            (asset.ytd.netIncome > 0
+                              ? asset.ytd.netIncome
+                              : asset.mtd.netIncome > 0
+                                ? asset.mtd.netIncome
+                                : asset.itd.netIncome) > 0
                               ? "text-emerald-400"
                               : "text-slate-500"
                           )}
@@ -205,7 +213,9 @@ export default function InvestorOverviewPage() {
                             ? `+${formatCurrency(asset.ytd.netIncome, asset.assetSymbol)}`
                             : asset.mtd.netIncome > 0
                               ? `+${formatCurrency(asset.mtd.netIncome, asset.assetSymbol)}`
-                              : formatCurrency(0, asset.assetSymbol)}
+                              : asset.itd.netIncome > 0
+                                ? `+${formatCurrency(asset.itd.netIncome, asset.assetSymbol)}`
+                                : formatCurrency(0, asset.assetSymbol)}
                         </p>
                       </div>
                     </div>
@@ -374,6 +384,6 @@ export default function InvestorOverviewPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

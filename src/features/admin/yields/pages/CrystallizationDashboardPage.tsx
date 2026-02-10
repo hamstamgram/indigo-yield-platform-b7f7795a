@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useState } from "react";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function CrystallizationDashboardPage() {
   const [selectedFundId, setSelectedFundId] = useState<string | undefined>(undefined);
@@ -136,7 +137,7 @@ export default function CrystallizationDashboardPage() {
 
   if (dashboardLoading) {
     return (
-      <div className="space-y-6">
+      <PageShell>
         <div className="flex items-center justify-between">
           <div>
             <Skeleton className="h-8 w-64 mb-2" />
@@ -153,16 +154,16 @@ export default function CrystallizationDashboardPage() {
             </Card>
           ))}
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Crystallization Dashboard</h1>
+          <h1 className="text-2xl font-bold">Crystallization Dashboard</h1>
           <p className="text-muted-foreground">
             Monitor yield crystallization status across all funds
           </p>
@@ -588,6 +589,6 @@ export default function CrystallizationDashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   );
 }

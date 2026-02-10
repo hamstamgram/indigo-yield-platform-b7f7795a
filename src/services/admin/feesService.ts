@@ -5,7 +5,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { logWarn } from "@/lib/logger";
 
 // ==================== Types ====================
 
@@ -57,28 +56,6 @@ export interface YieldEarned {
   transactionCount: number;
 }
 
-export interface RoutingAuditEntry {
-  id: string;
-  action: string;
-  actor_user: string | null;
-  created_at: string;
-  entity_id: string | null;
-  old_values: Record<string, unknown> | null;
-  new_values: Record<string, unknown> | null;
-  meta: Record<string, unknown> | null;
-  actor_profile?: {
-    first_name: string | null;
-    last_name: string | null;
-    email: string | null;
-  } | null;
-}
-
-export interface RoutingSummary {
-  totalAmount: number;
-  totalCount: number;
-  byAsset: Record<string, { amount: number; count: number }>;
-}
-
 // Import FundRef from canonical source
 import type { FundRef } from "@/types/domains/fund";
 
@@ -92,8 +69,6 @@ export interface FeesOverviewData {
   indigoFeesBalance: Record<string, number>;
   feeAllocations: FeeAllocation[];
   yieldEarned: YieldEarned[];
-  routingAuditEntries: RoutingAuditEntry[];
-  routingSummary: RoutingSummary;
 }
 
 // ==================== Service Functions ====================
@@ -337,88 +312,6 @@ export async function getFeeAllocations(): Promise<FeeAllocation[]> {
 }
 
 /**
- * Load routing audit entries for route_to_fees actions
- */
-export async function getRoutingAuditEntries(): Promise<{
-  entries: RoutingAuditEntry[];
-  summary: RoutingSummary;
-}> {
-  const { data: routingAuditData, error } = await supabase
-    .from("audit_log")
-    .select("id, action, actor_user, created_at, entity_id, old_values, new_values, meta")
-    .eq("action", "route_to_fees")
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (error) {
-    logWarn("getRoutingAuditEntries", { error });
-    return {
-      entries: [],
-      summary: { totalAmount: 0, totalCount: 0, byAsset: {} },
-    };
-  }
-
-  if (!routingAuditData || routingAuditData.length === 0) {
-    return {
-      entries: [],
-      summary: { totalAmount: 0, totalCount: 0, byAsset: {} },
-    };
-  }
-
-  // Enrich with actor profiles
-  const actorIds = [...new Set(routingAuditData.map((r) => r.actor_user).filter(Boolean))];
-
-  const { data: actorProfiles } = await supabase
-    .from("profiles")
-    .select("id, email, first_name, last_name")
-    .in("id", actorIds)
-    .limit(500);
-
-  const actorMap = new Map((actorProfiles || []).map((p) => [p.id, p]));
-
-  const enrichedEntries: RoutingAuditEntry[] = routingAuditData.map((entry: any) => ({
-    id: entry.id,
-    action: entry.action,
-    actor_user: entry.actor_user,
-    created_at: entry.created_at,
-    entity_id: entry.entity_id,
-    old_values: entry.old_values,
-    new_values: entry.new_values,
-    meta: entry.meta,
-    actor_profile: entry.actor_user ? actorMap.get(entry.actor_user) : null,
-  }));
-
-  // Calculate routing summary
-  const summary: RoutingSummary = {
-    totalAmount: 0,
-    totalCount: enrichedEntries.length,
-    byAsset: {},
-  };
-
-  enrichedEntries.forEach((entry) => {
-    const meta = (entry.meta || {}) as Record<string, unknown>;
-    const newValues = (entry.new_values || {}) as Record<string, unknown>;
-    const amount = Number(meta.amount || newValues.amount || 0);
-    const asset =
-      (meta.asset_code as string) ||
-      (newValues.asset_code as string) ||
-      (meta.asset as string) ||
-      (newValues.asset as string) ||
-      "USDT";
-
-    summary.totalAmount += amount;
-
-    if (!summary.byAsset[asset]) {
-      summary.byAsset[asset] = { amount: 0, count: 0 };
-    }
-    summary.byAsset[asset].amount += amount;
-    summary.byAsset[asset].count += 1;
-  });
-
-  return { entries: enrichedEntries, summary };
-}
-
-/**
  * Load yield earned by INDIGO FEES account
  * Note: Yield transactions can be type YIELD or INTEREST
  */
@@ -470,11 +363,10 @@ export async function getFeesOverviewData(): Promise<FeesOverviewData> {
   const funds = await getActiveFunds();
 
   // Load remaining data in parallel
-  const [fees, indigoFeesBalance, feeAllocations, routingData, yieldEarned] = await Promise.all([
+  const [fees, indigoFeesBalance, feeAllocations, yieldEarned] = await Promise.all([
     getFeeTransactions(),
     getIndigoFeesBalance(),
     getFeeAllocations(),
-    getRoutingAuditEntries(),
     getYieldEarned(funds),
   ]);
 
@@ -487,7 +379,5 @@ export async function getFeesOverviewData(): Promise<FeesOverviewData> {
     indigoFeesBalance,
     feeAllocations,
     yieldEarned,
-    routingAuditEntries: routingData.entries,
-    routingSummary: routingData.summary,
   };
 }

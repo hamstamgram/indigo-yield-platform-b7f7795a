@@ -18,6 +18,7 @@ import { useSystemHealth, type ServiceStatus, useDeliveryQueueMetrics } from "@/
 import { getOverallStatus } from "@/services/core/systemHealthService";
 import { formatDistanceToNow } from "date-fns";
 import { DataIntegrityPanel } from "@/features/admin/system/components/DataIntegrityPanel";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function SystemHealthPage() {
   const { data: health, isLoading, refetch } = useSystemHealth();
@@ -46,10 +47,10 @@ export default function SystemHealthPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">System Health</h1>
+          <h1 className="text-2xl font-bold">System Health</h1>
           <p className="text-muted-foreground">
             Monitor the health and performance of all services.
           </p>
@@ -195,6 +196,6 @@ export default function SystemHealthPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

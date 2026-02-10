@@ -25,10 +25,8 @@ const RATE_LIMITED_RPCS: Record<
     maxRequests: 5,
     actionType: "yield_distribution",
   },
-  approve_withdrawal: { windowMs: 60000, maxRequests: 20, actionType: "withdrawal_approval" },
   approve_and_complete_withdrawal: { windowMs: 60000, maxRequests: 10, actionType: "withdrawal" },
   reject_withdrawal: { windowMs: 60000, maxRequests: 20, actionType: "withdrawal_approval" },
-  complete_withdrawal: { windowMs: 60000, maxRequests: 10, actionType: "withdrawal" },
 
   adjust_investor_position: { windowMs: 60000, maxRequests: 20, actionType: "position_adjustment" },
   void_transaction: { windowMs: 60000, maxRequests: 10, actionType: "void" },

@@ -35,6 +35,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageShell } from "@/components/layout/PageShell";
 
 interface ToolAction {
   id: string;
@@ -100,7 +101,7 @@ function AdminToolsContent() {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <PageShell>
       <div className="flex items-center gap-4">
         <Link to="/admin/settings-platform">
           <Button variant="ghost" size="icon">
@@ -108,7 +109,7 @@ function AdminToolsContent() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
             <Wrench className="h-8 w-8" />
             Admin Tools
           </h1>
@@ -215,7 +216,7 @@ function AdminToolsContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   );
 }
 

@@ -1,34 +1,26 @@
 import { useState, useMemo, useCallback } from "react";
+import { Button, QueryErrorBoundary } from "@/components/ui";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Button,
-  QueryErrorBoundary,
-} from "@/components/ui";
-import {
-  WithdrawalStats as WithdrawalStatsComponent,
   WithdrawalsTable,
   CreateWithdrawalDialog,
   WithdrawalDetailsDrawer,
   ApproveWithdrawalDialog,
   RejectWithdrawalDialog,
-  StartProcessingDialog,
-  CompleteWithdrawalDialog,
   EditWithdrawalDialog,
   DeleteWithdrawalDialog,
   RouteToFeesDialog,
 } from "@/components/admin";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/domains";
-import { ArrowDownToLine, Plus } from "lucide-react";
+import { ArrowDownToLine, Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { ExportButton } from "@/components/common";
+import { MetricStrip, type MetricItem } from "@/components/common/MetricStrip";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useWithdrawalsWithStats } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import { PageHeader } from "@/components/layout";
+import { PageShell } from "@/components/layout/PageShell";
 
 interface Fund {
   id: string;
@@ -64,8 +56,6 @@ function WithdrawalsPageContent() {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
-  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [routeToFeesDialogOpen, setRouteToFeesDialogOpen] = useState(false);
@@ -157,10 +147,7 @@ function WithdrawalsPageContent() {
     setDrawerOpen(true);
   };
 
-  const handleDrawerAction = (
-    action: "approve" | "reject" | "process" | "complete",
-    withdrawal: Withdrawal
-  ) => {
+  const handleDrawerAction = (action: "approve" | "reject", withdrawal: Withdrawal) => {
     setSelectedWithdrawal(withdrawal);
     setDrawerOpen(false);
 
@@ -170,12 +157,6 @@ function WithdrawalsPageContent() {
         break;
       case "reject":
         setRejectDialogOpen(true);
-        break;
-      case "process":
-        setProcessingDialogOpen(true);
-        break;
-      case "complete":
-        setCompleteDialogOpen(true);
         break;
     }
   };
@@ -189,16 +170,6 @@ function WithdrawalsPageContent() {
   const handleTableReject = (withdrawal: Withdrawal) => {
     setSelectedWithdrawal(withdrawal);
     setRejectDialogOpen(true);
-  };
-
-  const handleTableStartProcessing = (withdrawal: Withdrawal) => {
-    setSelectedWithdrawal(withdrawal);
-    setProcessingDialogOpen(true);
-  };
-
-  const handleTableComplete = (withdrawal: Withdrawal) => {
-    setSelectedWithdrawal(withdrawal);
-    setCompleteDialogOpen(true);
   };
 
   const handleTableEdit = (withdrawal: Withdrawal) => {
@@ -222,7 +193,7 @@ function WithdrawalsPageContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       <PageHeader
         title="Withdrawal Management"
         subtitle="Review and process investor withdrawal requests"
@@ -243,13 +214,37 @@ function WithdrawalsPageContent() {
         }
       />
 
-      <WithdrawalStatsComponent stats={safeStats} isLoading={isLoading} />
+      <MetricStrip
+        isLoading={isLoading}
+        metrics={
+          [
+            {
+              label: "Pending",
+              value: safeStats.pending,
+              icon: Clock,
+              color: safeStats.pending > 0 ? "warning" : "success",
+            },
+            {
+              label: "Completed",
+              value: safeStats.completed,
+              icon: CheckCircle2,
+              color: "success",
+            },
+            {
+              label: "Rejected",
+              value: safeStats.rejected,
+              icon: XCircle,
+              color: safeStats.rejected > 0 ? "danger" : "default",
+            },
+          ] satisfies MetricItem[]
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Withdrawal Requests</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/10">
+          <span className="text-sm font-medium text-white">Withdrawal Requests</span>
+        </div>
+        <div className="p-4">
           <WithdrawalsTable
             withdrawals={safePaginatedData.data}
             isLoading={isLoading}
@@ -267,14 +262,12 @@ function WithdrawalsPageContent() {
             onViewDetails={handleViewDetails}
             onApprove={handleTableApprove}
             onReject={handleTableReject}
-            onStartProcessing={handleTableStartProcessing}
-            onComplete={handleTableComplete}
             onEdit={handleTableEdit}
             onDelete={handleTableDelete}
             onRouteToFees={handleTableRouteToFees}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <CreateWithdrawalDialog
         open={createDialogOpen}
@@ -303,18 +296,6 @@ function WithdrawalsPageContent() {
             withdrawal={selectedWithdrawal}
             onSuccess={handleActionSuccess}
           />
-          <StartProcessingDialog
-            open={processingDialogOpen}
-            onOpenChange={setProcessingDialogOpen}
-            withdrawal={selectedWithdrawal}
-            onSuccess={handleActionSuccess}
-          />
-          <CompleteWithdrawalDialog
-            open={completeDialogOpen}
-            onOpenChange={setCompleteDialogOpen}
-            withdrawal={selectedWithdrawal}
-            onSuccess={handleActionSuccess}
-          />
           <EditWithdrawalDialog
             open={editDialogOpen}
             onOpenChange={setEditDialogOpen}
@@ -335,7 +316,7 @@ function WithdrawalsPageContent() {
           />
         </>
       )}
-    </div>
+    </PageShell>
   );
 }
 

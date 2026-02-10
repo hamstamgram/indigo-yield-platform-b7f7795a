@@ -132,26 +132,6 @@ export {
 export * from "./depositWithYieldService";
 
 // =============================================================================
-// FEES MANAGEMENT
-// =============================================================================
-export {
-  getFeesOverviewData,
-  getActiveFunds as getFeesActiveFunds,
-  getFeeTransactions,
-  getIndigoFeesBalance,
-  getFeeAllocations,
-  getRoutingAuditEntries,
-  getYieldEarned,
-  type FeesOverviewData,
-  type FeeRecord,
-  type FeeAllocation,
-  type RoutingAuditEntry,
-  type RoutingSummary,
-  type YieldEarned,
-  type FeeSummary,
-} from "./feesService";
-
-// =============================================================================
 // TRANSACTIONS
 // =============================================================================
 export * from "./transactionDetailsService";

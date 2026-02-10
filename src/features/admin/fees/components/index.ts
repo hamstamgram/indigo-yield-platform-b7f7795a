@@ -1,11 +1,10 @@
 /**
  * Admin Fees Components
- * Fee management, routing, and audit components
+ * Fee management and audit components
  */
 
 // Cards
 export { FeesBalanceCard } from "./FeesBalanceCard";
-export { InternalRoutingSummaryCard } from "./InternalRoutingSummaryCard";
 export { YieldEarnedSummaryCard } from "./YieldEarnedSummaryCard";
 
 // Filters
@@ -17,7 +16,6 @@ export { FeeTransactionsTable } from "./FeeTransactionsTable";
 export { FeeAllocationAuditTable } from "./FeeAllocationAuditTable";
 
 // Tabs
-export { InternalRoutingTab } from "./InternalRoutingTab";
 export { YieldEarnedTab } from "./YieldEarnedTab";
 
 // Utilities

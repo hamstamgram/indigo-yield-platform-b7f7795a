@@ -41,6 +41,7 @@ import { logError, logWarn } from "@/lib/logger";
 import { auditLogService, type AuditLogFilters } from "@/services/shared";
 import { useRealtimeSubscription, useSortableColumns } from "@/hooks";
 import { useAuditLogs, exportAuditLogsToCSV } from "@/features/admin/system/hooks/useAuditLogs";
+import { PageShell } from "@/components/layout/PageShell";
 
 const DEFAULT_STATS = {
   totalEntries: 0,
@@ -143,11 +144,11 @@ const AuditLogViewer = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">Audit Log</h1>
+          <h1 className="text-2xl font-bold">Audit Log</h1>
           <p className="text-muted-foreground">
             Complete audit trail of all system changes and administrative actions
           </p>
@@ -436,7 +437,7 @@ const AuditLogViewer = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 };
 

@@ -30,6 +30,11 @@ export { StatusBadge, type StatusBadgeProps } from "./StatusBadge";
 // Data display
 export { DataCard, DataCardGrid, type DataCardProps } from "./DataCard";
 
+// Layout helpers
+export { MetricStrip, type MetricItem } from "./MetricStrip";
+export { FilterBar } from "./FilterBar";
+export { TablePagination } from "./TablePagination";
+
 // Shared utilities
 export { LastUpdated } from "./LastUpdated";
 export { ExportButton, ExportDropdown } from "./ExportButton";

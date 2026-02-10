@@ -7,12 +7,16 @@ import { Page, expect } from "@playwright/test";
 
 export const TEST_CREDENTIALS = {
   admin: {
-    email: "qa.admin@indigo.fund",
-    password: "TestAdmin2026!",
+    email: process.env.QA_ADMIN_EMAIL || "qa.admin@indigo.fund",
+    password: process.env.QA_ADMIN_PASSWORD || "QaTest2026!",
   },
   investor: {
-    email: "alice@test.indigo.com",
-    password: "Alice!Investor2026#Secure",
+    email: process.env.QA_INVESTOR_EMAIL || "qa.investor@indigo.fund",
+    password: process.env.QA_INVESTOR_PASSWORD || "QaTest2026!",
+  },
+  ib: {
+    email: process.env.QA_IB_EMAIL || "qa.ib@indigo.fund",
+    password: process.env.QA_IB_PASSWORD || "QaTest2026!",
   },
 };
 

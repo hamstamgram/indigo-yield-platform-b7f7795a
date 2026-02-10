@@ -1,10 +1,5 @@
 import { useState } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   Select,
   SelectContent,
   SelectItem,
@@ -16,6 +11,7 @@ import {
 } from "@/components/ui";
 import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout";
+import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatAssetAmount, getAssetName } from "@/utils/assets";
 import { useToast } from "@/hooks";
@@ -100,65 +96,63 @@ const StatementsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <PageShell maxWidth="narrow">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3"></div>
-          <div className="h-64 bg-muted rounded"></div>
+          <div className="h-8 bg-white/5 rounded w-1/3"></div>
+          <div className="h-64 bg-white/5 rounded"></div>
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <PageShell maxWidth="narrow">
       <PageHeader
         title="Monthly Statements"
         subtitle="Access your monthly investment statements"
         icon={FileText}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Statements</CardTitle>
-          <CardDescription>Select year and asset to view specific statements</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Year</label>
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears?.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Asset</label>
-              <Select value={selectedAsset} onValueChange={setSelectedAsset}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Assets</SelectItem>
-                  {availableAssets?.map((asset) => (
-                    <SelectItem key={asset} value={asset}>
-                      {getAssetName(asset)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex-1 min-w-[140px]">
+            <label className="text-xs font-medium text-muted-foreground uppercase mb-1.5 block">
+              Year
+            </label>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears?.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="flex-1 min-w-[140px]">
+            <label className="text-xs font-medium text-muted-foreground uppercase mb-1.5 block">
+              Asset
+            </label>
+            <Select value={selectedAsset} onValueChange={setSelectedAsset}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Assets</SelectItem>
+                {availableAssets?.map((asset) => (
+                  <SelectItem key={asset} value={asset}>
+                    {getAssetName(asset)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
 
       {error ? (
         <Alert variant="destructive">
@@ -168,127 +162,109 @@ const StatementsPage = () => {
       ) : statements && statements.length > 0 ? (
         <div className="space-y-4">
           {statements.map((statement) => (
-            <Card key={statement.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-display font-semibold">
-                          {getMonthName(statement.period_month)} {statement.period_year}
-                        </h3>
-                        <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 inline-flex items-center gap-1">
-                          <CryptoIcon symbol={statement.asset_code} className="h-4 w-4" />
-                          {statement.fund_name}
-                        </span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownload(statement)}
-                        disabled={downloadingId === statement.id}
-                      >
-                        {downloadingId === statement.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <Download className="h-4 w-4 mr-2" />
-                        )}
-                        Download PDF
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Beginning Balance</p>
-                        <p className="text-sm font-medium">
-                          {formatAssetAmount(
-                            parseFloat(statement.begin_balance),
-                            statement.asset_code
-                          )}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Additions</p>
-                        <p className="text-sm font-medium text-green-600">
-                          +
-                          {formatAssetAmount(parseFloat(statement.additions), statement.asset_code)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Net Income</p>
-                        <p className="text-sm font-medium text-blue-600">
-                          +
-                          {formatAssetAmount(
-                            parseFloat(statement.net_income),
-                            statement.asset_code
-                          )}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Ending Balance</p>
-                        <p className="text-sm font-semibold">
-                          {formatAssetAmount(
-                            parseFloat(statement.end_balance),
-                            statement.asset_code
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    {statement.rate_of_return_mtd && (
-                      <div className="mt-4 flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-600">
-                          Return: {parseFloat(statement.rate_of_return_mtd).toFixed(2)}% MTD
-                        </span>
-                      </div>
-                    )}
-                  </div>
+            <div
+              key={statement.id}
+              className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-indigo-400" />
+                  <h3 className="text-base font-display font-semibold text-white">
+                    {getMonthName(statement.period_month)} {statement.period_year}
+                  </h3>
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 inline-flex items-center gap-1">
+                    <CryptoIcon symbol={statement.asset_code} className="h-3.5 w-3.5" />
+                    {statement.fund_name}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(statement)}
+                  disabled={downloadingId === statement.id}
+                >
+                  {downloadingId === statement.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-2" />
+                  )}
+                  Download PDF
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t border-white/5">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase">Beginning Balance</p>
+                  <p className="text-sm font-mono font-medium text-white">
+                    {formatAssetAmount(parseFloat(statement.begin_balance), statement.asset_code)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase">Additions</p>
+                  <p className="text-sm font-mono font-medium text-emerald-400">
+                    +{formatAssetAmount(parseFloat(statement.additions), statement.asset_code)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase">Net Income</p>
+                  <p className="text-sm font-mono font-medium text-indigo-400">
+                    +{formatAssetAmount(parseFloat(statement.net_income), statement.asset_code)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase">Ending Balance</p>
+                  <p className="text-sm font-mono font-semibold text-white">
+                    {formatAssetAmount(parseFloat(statement.end_balance), statement.asset_code)}
+                  </p>
+                </div>
+              </div>
+
+              {statement.rate_of_return_mtd && (
+                <div className="mt-3 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm font-mono font-medium text-emerald-400">
+                    Return: {parseFloat(statement.rate_of_return_mtd).toFixed(2)}% MTD
+                  </span>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <div className="p-4 bg-blue-50 rounded-full">
-                  <Info className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <div>
-                <p className="text-lg font-medium">No statements available</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Statements are generated monthly. Your first statement will be available at the
-                  end of your first full month of investment.
-                </p>
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm py-12">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20">
+                <Info className="h-8 w-8 text-indigo-400" />
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-lg font-medium text-white">No statements available</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Statements are generated monthly. Your first statement will be available at the end
+                of your first full month of investment.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">About Monthly Statements</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
+        <p className="text-sm font-medium text-white mb-2">About Monthly Statements</p>
+        <div className="text-xs text-muted-foreground space-y-1.5">
           <p>
-            • Statements are generated on the first business day of each month for the previous
-            month's activity
+            Statements are generated on the first business day of each month for the previous
+            month's activity.
           </p>
           <p>
-            • Each statement shows your beginning balance, additions, withdrawals, net income, and
-            ending balance
+            Each statement shows your beginning balance, additions, withdrawals, net income, and
+            ending balance.
           </p>
-          <p>• You can download PDF versions of your statements for your records</p>
-          <p>• If you have questions about a statement, please contact your administrator</p>
-        </CardContent>
-      </Card>
-    </div>
+          <p>You can download PDF versions of your statements for your records.</p>
+          <p>If you have questions about a statement, please contact your administrator.</p>
+        </div>
+      </div>
+    </PageShell>
   );
 };
 

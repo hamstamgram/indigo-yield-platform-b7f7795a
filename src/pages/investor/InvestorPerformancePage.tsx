@@ -9,6 +9,7 @@ import {
 import { EmptyState } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
 import { TrendingUp, Loader2 } from "lucide-react";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function InvestorPerformancePage() {
   const [period, setPeriod] = useState<PerformancePeriod>("mtd");
@@ -66,7 +67,7 @@ export default function InvestorPerformancePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-20 px-4 md:px-6 lg:px-0">
+    <PageShell maxWidth="narrow">
       <PageHeader title="Performance" subtitle="Track your investment returns" icon={TrendingUp} />
 
       {/* Period Selector */}
@@ -98,6 +99,6 @@ export default function InvestorPerformancePage() {
           description="Your performance metrics will appear here once you have active investments."
         />
       )}
-    </div>
+    </PageShell>
   );
 }

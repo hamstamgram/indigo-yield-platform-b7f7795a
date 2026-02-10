@@ -29,11 +29,12 @@ import {
   CommandList,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { Loader2, Check, ChevronsUpDown } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatAssetAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NumericInput } from "@/components/common/NumericInput";
+import { Badge } from "@/components/ui";
 import {
   useInvestorOptions,
   usePositionsForWithdrawal,
@@ -79,7 +80,7 @@ export function CreateWithdrawalDialog({
   const isSubmittingRef = useRef(false);
 
   // Data hooks
-  const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorOptions(open);
+  const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorOptions(open, true);
   const { data: positions = [], isLoading: isLoadingPositions } = usePositionsForWithdrawal(
     selectedInvestorId || null
   );
@@ -253,13 +254,20 @@ export function CreateWithdrawalDialog({
                   {isLoadingInvestors ? (
                     <span className="text-muted-foreground">Loading investors...</span>
                   ) : selectedInvestor ? (
-                    <span className="truncate">
+                    <span className="truncate flex items-center gap-2">
                       {selectedInvestor.displayName}
-                      {selectedInvestor.displayName !== selectedInvestor.email && (
-                        <span className="ml-1 text-muted-foreground">
-                          ({selectedInvestor.email})
-                        </span>
+                      {selectedInvestor.isSystemAccount && (
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 font-mono">
+                          <Shield className="h-3 w-3 mr-0.5" />
+                          System
+                        </Badge>
                       )}
+                      {!selectedInvestor.isSystemAccount &&
+                        selectedInvestor.displayName !== selectedInvestor.email && (
+                          <span className="ml-1 text-muted-foreground">
+                            ({selectedInvestor.email})
+                          </span>
+                        )}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">Select investor...</span>
@@ -291,12 +299,24 @@ export function CreateWithdrawalDialog({
                             )}
                           />
                           <div className="flex flex-col">
-                            <span>{investor.displayName}</span>
-                            {investor.displayName !== investor.email && (
-                              <span className="text-xs text-muted-foreground">
-                                {investor.email}
-                              </span>
-                            )}
+                            <span className="flex items-center gap-2">
+                              {investor.displayName}
+                              {investor.isSystemAccount && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] px-1 py-0 font-mono"
+                                >
+                                  <Shield className="h-3 w-3 mr-0.5" />
+                                  System
+                                </Badge>
+                              )}
+                            </span>
+                            {!investor.isSystemAccount &&
+                              investor.displayName !== investor.email && (
+                                <span className="text-xs text-muted-foreground">
+                                  {investor.email}
+                                </span>
+                              )}
                           </div>
                         </CommandItem>
                       ))}

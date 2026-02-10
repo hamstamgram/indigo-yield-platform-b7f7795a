@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@/components/ui";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { useInvestorPerformance, useAssetMeta } from "@/hooks";
+import { useInvestorPerformance, useAssetMeta, usePerAssetStats } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import { useQuery } from "@tanstack/react-query";
 import { getInvestorPositions } from "@/services/investor/investorPositionService";
@@ -17,6 +17,7 @@ export default function FundDetailsPage() {
 
   const { data: performance, isLoading } = useInvestorPerformance(assetCode);
   const { data: assetMeta } = useAssetMeta(assetCode);
+  const { data: liveStats, isLoading: isLoadingStats } = usePerAssetStats();
   const { user } = useAuth();
   const { data: livePositions } = useQuery({
     queryKey: QUERY_KEYS.investorLivePositions(user?.id),
@@ -24,7 +25,7 @@ export default function FundDetailsPage() {
     enabled: !!user,
   });
 
-  if (isLoading) {
+  if (isLoading || isLoadingStats) {
     return (
       <div className="container mx-auto p-8 flex justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -32,12 +33,19 @@ export default function FundDetailsPage() {
     );
   }
 
+  // Prefer live computed stats (real-time from transactions) over investor_fund_performance (historical)
+  const liveAsset = liveStats?.assets?.find((a) => a.assetSymbol === assetCode);
   const latestRecord = performance?.[0];
-  const itdReturn = toNum(latestRecord?.itd_rate_of_return ?? 0);
-  const lastPeriodReturn = toNum(latestRecord?.mtd_rate_of_return ?? 0);
-  const lastPeriodName = latestRecord?.period?.period_name || "Last Period";
+
+  const itdReturn = liveAsset?.itd?.rateOfReturn ?? toNum(latestRecord?.itd_rate_of_return ?? 0);
+  const lastPeriodReturn =
+    liveAsset?.mtd?.rateOfReturn ?? toNum(latestRecord?.mtd_rate_of_return ?? 0);
+  const lastPeriodName = latestRecord?.period?.period_name || "Current Month";
   const livePosition = livePositions?.find((p) => p.asset === assetCode);
-  const balance = livePosition?.currentValue ?? toNum(latestRecord?.mtd_ending_balance ?? 0);
+  const balance =
+    livePosition?.currentValue ??
+    liveAsset?.mtd?.endingBalance ??
+    toNum(latestRecord?.mtd_ending_balance ?? 0);
 
   return (
     <div className="relative w-full p-4 lg:p-8 space-y-8 animate-fade-in-up">

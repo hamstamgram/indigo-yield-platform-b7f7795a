@@ -56,6 +56,7 @@ import {
 } from "@/hooks/data/admin";
 import { logError } from "@/lib/logger";
 import { getTodayString } from "@/utils/dateUtils";
+import { PageShell } from "@/components/layout/PageShell";
 
 // Maximum allowed deviation between expected and entered AUM (10%)
 const MAX_AUM_DEVIATION_PCT = 0.1;
@@ -351,7 +352,7 @@ export default function AdminManualTransaction() {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto py-8">
+    <PageShell maxWidth="narrow">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -681,6 +682,6 @@ export default function AdminManualTransaction() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }

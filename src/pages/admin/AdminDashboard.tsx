@@ -9,14 +9,12 @@ import {
   Users,
   Activity,
   Loader2,
-  CheckCircle2,
   Clock,
   TrendingUp,
   Shield,
   RefreshCw,
   Bell,
   Command,
-  ArrowRight,
 } from "lucide-react";
 import {
   Tabs,
@@ -30,6 +28,8 @@ import {
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { cn } from "@/lib/utils";
 import { AdminGuard, FinancialSnapshot } from "@/components/admin";
+import { PageShell } from "@/components/layout/PageShell";
+import { MetricStrip, type MetricItem } from "@/components/common/MetricStrip";
 import {
   LiquidityRiskPanel,
   ConcentrationRiskPanel,
@@ -78,10 +78,10 @@ function AdminDashboardContent() {
   }
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto animate-fade-in pb-20">
+    <PageShell maxWidth="wide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-display font-bold tracking-tight text-white flex items-center gap-4">
+          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Command Center
             <Badge
               variant="outline"
@@ -90,7 +90,7 @@ function AdminDashboardContent() {
               v3.0.0
             </Badge>
           </h1>
-          <p className="text-slate-400 mt-2 text-lg">Operational overview and risk monitoring</p>
+          <p className="text-sm text-slate-400 mt-1">Operational overview and risk monitoring</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -136,107 +136,42 @@ function AdminDashboardContent() {
         <QuickActionsBar />
       </div>
 
-      {/* Quick Stats Bar - High Contrast Blocks */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Accounts Card */}
-        <div className="glass-card rounded-2xl p-6 border border-white/5 bg-indigo-500/5 relative overflow-hidden group transition-all hover:border-indigo-500/30">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Accounts</p>
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:text-white transition-colors">
-              <Users className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="text-4xl font-display font-medium text-white mb-2">
-            {stats.totalProfiles}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-            <span className="text-emerald-400 font-medium">
-              {stats.uniqueInvestorsWithPositions}
-            </span>{" "}
-            with active positions
-          </div>
-        </div>
-
-        {/* Active Positions Card */}
-        <div className="glass-card rounded-2xl p-6 border border-white/5 bg-cyan-500/5 relative overflow-hidden group transition-all hover:border-cyan-500/30">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Positions</p>
-            <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:text-white transition-colors">
-              <TrendingUp className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="text-4xl font-display font-medium text-white mb-2">
-            {stats.activePositions}
-          </div>
-          <p className="text-xs text-slate-400">Across monitored funds</p>
-        </div>
-
-        {/* Pending Actions Card */}
-        <div
-          className={cn(
-            "glass-card rounded-2xl p-6 border relative overflow-hidden group transition-all",
-            stats.pendingWithdrawals > 0
-              ? "bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40"
-              : "bg-emerald-500/5 border-white/5 hover:border-emerald-500/30"
-          )}
-        >
-          <div className="flex justify-between items-start mb-4">
-            <p
-              className={cn(
-                "text-xs font-bold uppercase tracking-widest",
-                stats.pendingWithdrawals > 0 ? "text-amber-400" : "text-emerald-400"
-              )}
-            >
-              Pending
-            </p>
-            <div
-              className={cn(
-                "p-2 rounded-lg transition-colors",
-                stats.pendingWithdrawals > 0
-                  ? "bg-amber-500/10 text-amber-500 group-hover:text-white"
-                  : "bg-emerald-500/10 text-emerald-500 group-hover:text-white"
-              )}
-            >
-              <Activity className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="text-4xl font-display font-medium text-white mb-2">
-            {stats.pendingWithdrawals}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            {stats.pendingWithdrawals > 0 ? (
-              <>
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-                <span className="text-amber-400 font-medium">Action Required</span>
-              </>
-            ) : (
-              <span className="text-emerald-400 font-medium">All Clear</span>
-            )}
-          </div>
-        </div>
-
-        {/* Activity Card */}
-        <div className="glass-card rounded-2xl p-6 border border-white/5 bg-slate-500/5 relative overflow-hidden group transition-all hover:bg-slate-500/10">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Today</p>
-            <div className="p-2 rounded-lg bg-white/5 text-slate-400 group-hover:text-white transition-colors">
-              <Clock className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="text-4xl font-display font-medium text-white mb-2">
-            {stats.recentActivity}
-          </div>
-          <p className="text-xs text-slate-400">Events synced today</p>
-        </div>
-      </div>
+      {/* Quick Stats Strip */}
+      <MetricStrip
+        metrics={
+          [
+            {
+              label: "Accounts",
+              value: stats.totalProfiles,
+              icon: Users,
+              color: "info",
+              trendValue: `${stats.uniqueInvestorsWithPositions} active`,
+              trend: "up",
+            },
+            {
+              label: "Positions",
+              value: stats.activePositions,
+              icon: TrendingUp,
+              color: "default",
+            },
+            {
+              label: "Pending",
+              value: stats.pendingWithdrawals,
+              icon: Activity,
+              color: stats.pendingWithdrawals > 0 ? "warning" : "success",
+            },
+            {
+              label: "Today",
+              value: stats.recentActivity,
+              icon: Clock,
+            },
+          ] satisfies MetricItem[]
+        }
+      />
 
       {/* Financial Snapshot - Full Width Glass */}
-      <div className="glass-panel rounded-3xl border border-white/5 shadow-2xl overflow-hidden p-[1px] bg-gradient-to-br from-white/10 to-transparent">
-        <div className="bg-black/40 rounded-[23px] overflow-hidden backdrop-blur-md">
+      <div className="glass-panel rounded-2xl border border-white/5 shadow-2xl overflow-hidden p-[1px] bg-gradient-to-br from-white/10 to-transparent">
+        <div className="bg-black/40 rounded-[15px] overflow-hidden backdrop-blur-md">
           <FinancialSnapshot />
         </div>
       </div>
@@ -289,7 +224,7 @@ function AdminDashboardContent() {
             </TabsTrigger>
           </TabsList>
 
-          <div className="mt-8">
+          <div className="mt-6">
             <TabsContent
               value="liquidity"
               className="mt-0 animate-fade-in focus-visible:outline-none"
@@ -323,7 +258,7 @@ function AdminDashboardContent() {
           </div>
         </Tabs>
       </div>
-    </div>
+    </PageShell>
   );
 }
 export default function AdminDashboard() {

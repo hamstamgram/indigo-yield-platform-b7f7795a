@@ -49,6 +49,7 @@ import { sanitizeHtml } from "@/utils/sanitize";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QueryErrorBoundary } from "@/components/ui";
+import { PageShell } from "@/components/layout/PageShell";
 
 function getStatusBadge(status: DeliveryStatus) {
   switch (status) {
@@ -191,7 +192,7 @@ const InvestorReports = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <PageShell>
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-muted rounded w-1/4" />
           <div className="grid grid-cols-3 gap-4">
@@ -201,16 +202,16 @@ const InvestorReports = () => {
           </div>
           <div className="h-96 bg-muted rounded" />
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <PageShell>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Statement Manager</h1>
+          <h1 className="text-2xl font-bold">Statement Manager</h1>
           <p className="text-muted-foreground">Generate, preview, and deliver monthly statements</p>
         </div>
         <Select value={selectedMonth} onValueChange={(v) => setFilter("month", v)}>
@@ -452,7 +453,7 @@ const InvestorReports = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   );
 };
 

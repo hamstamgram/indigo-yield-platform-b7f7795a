@@ -21,6 +21,7 @@ import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hoo
 import { useSortableColumns } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { PageShell } from "@/components/layout/PageShell";
 
 const TRANSACTION_TYPES = [
   { value: "all", label: "All Types" },
@@ -159,18 +160,18 @@ export default function InvestorTransactionsPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-[1400px] mx-auto pb-20 animate-fade-in px-1">
+    <PageShell>
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-display font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Transactions
             <span className="flex h-3 w-3 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
             </span>
           </h1>
-          <p className="text-slate-400 mt-2 text-lg">
+          <p className="text-slate-400 mt-1 text-sm">
             Search and filter your complete yield history
           </p>
         </div>
@@ -207,7 +208,7 @@ export default function InvestorTransactionsPage() {
         </div>
       </div>
 
-      <div className="glass-panel rounded-3xl border border-white/5 p-6 space-y-6">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 space-y-4">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="relative flex-1">
@@ -252,7 +253,7 @@ export default function InvestorTransactionsPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/5 overflow-hidden bg-black/20">
+        <div className="rounded-xl border border-white/10 overflow-hidden">
           {isLoading ? (
             <div className="py-12">
               <PageLoadingSpinner />
@@ -274,6 +275,6 @@ export default function InvestorTransactionsPage() {
           )}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

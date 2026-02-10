@@ -38,6 +38,7 @@ import {
 import { AdminGuard } from "@/components/admin";
 import { Link } from "react-router-dom";
 import { usePlatformSettingsForm } from "@/hooks/data/admin";
+import { PageShell } from "@/components/layout/PageShell";
 
 function AdminSettingsContent() {
   const { toast } = useToast();
@@ -87,10 +88,10 @@ function AdminSettingsContent() {
   ];
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <PageShell maxWidth="narrow">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
             <Settings className="h-8 w-8" />
             Platform Settings
           </h1>
@@ -325,7 +326,7 @@ function AdminSettingsContent() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageShell>
   );
 }
 

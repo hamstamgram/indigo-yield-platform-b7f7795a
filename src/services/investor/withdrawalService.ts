@@ -278,40 +278,6 @@ export const withdrawalService = {
   },
 
   /**
-   * Approve a withdrawal request using secure RPC with server-side admin check
-   */
-  async approveWithdrawal(
-    withdrawalId: string,
-    processedAmount: number,
-    adminNotes?: string,
-    correlationId?: string
-  ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId("wdr_appr");
-    const log = createCorrelatedLogger(corrId);
-
-    log.info("Approving withdrawal", { withdrawalId, processedAmount });
-
-    const { error } = await rpc.call("approve_withdrawal", {
-      p_request_id: withdrawalId,
-      p_approved_amount: processedAmount,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-    });
-
-    if (error) {
-      log.error("Error approving withdrawal", error);
-      const errorMessage = error.message || "Failed to approve withdrawal";
-      throw new Error(
-        errorMessage.includes("Admin only")
-          ? "You don't have admin privileges to approve withdrawals"
-          : errorMessage
-      );
-    }
-
-    log.info("Withdrawal approved successfully");
-    return { correlationId: corrId };
-  },
-
-  /**
    * Reject a withdrawal request using secure RPC with server-side admin check
    */
   async rejectWithdrawal(
@@ -342,83 +308,6 @@ export const withdrawalService = {
     }
 
     log.info("Withdrawal rejected successfully");
-    return { correlationId: corrId };
-  },
-
-  /**
-   * Mark withdrawal as processing using secure RPC with server-side admin check
-   */
-  async markAsProcessing(
-    withdrawalId: string,
-    txHash?: string,
-    adminNotes?: string,
-    correlationId?: string
-  ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId("wdr_proc");
-    const log = createCorrelatedLogger(corrId);
-
-    log.info("Starting withdrawal processing", { withdrawalId, txHash });
-
-    const { error } = await rpc.call("start_processing_withdrawal", {
-      p_request_id: withdrawalId,
-      p_processed_amount: undefined,
-      p_tx_hash: txHash ?? undefined,
-      p_settlement_date: undefined,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-    });
-
-    if (error) {
-      log.error("Error marking withdrawal as processing", error);
-      const errorMessage = error.message || "Failed to start processing withdrawal";
-      throw new Error(
-        errorMessage.includes("Admin only")
-          ? "You don't have admin privileges to process withdrawals"
-          : errorMessage.includes("approved")
-            ? "Withdrawal must be approved before processing"
-            : errorMessage
-      );
-    }
-
-    log.info("Withdrawal marked as processing");
-    return { correlationId: corrId };
-  },
-
-  /**
-   * Mark withdrawal as completed using secure RPC with server-side admin check
-   */
-  async markAsCompleted(
-    withdrawalId: string,
-    closingAum: string,
-    txHash?: string,
-    adminNotes?: string,
-    correlationId?: string
-  ): Promise<{ correlationId: string }> {
-    const corrId = correlationId || generateCorrelationId("wdr_comp");
-    const log = createCorrelatedLogger(corrId);
-
-    log.info("Completing withdrawal", { withdrawalId, txHash });
-
-    const { error } = await rpc.call("complete_withdrawal", {
-      p_request_id: withdrawalId,
-      p_closing_aum: parseFloat(closingAum),
-      p_event_ts: new Date().toISOString(),
-      p_transaction_hash: txHash ?? undefined,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-    });
-
-    if (error) {
-      log.error("Error completing withdrawal", error);
-      const errorMessage = error.message || "Failed to complete withdrawal";
-      throw new Error(
-        errorMessage.includes("Admin only")
-          ? "You don't have admin privileges to complete withdrawals"
-          : errorMessage.includes("processing")
-            ? "Withdrawal must be in processing state before completing"
-            : errorMessage
-      );
-    }
-
-    log.info("Withdrawal completed successfully");
     return { correlationId: corrId };
   },
 

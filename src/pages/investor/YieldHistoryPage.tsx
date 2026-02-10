@@ -6,11 +6,8 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/services/auth";
 import { PageHeader } from "@/components/layout";
+import { PageShell } from "@/components/layout/PageShell";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   Badge,
   Select,
   SelectContent,
@@ -128,8 +125,7 @@ export default function YieldHistoryPage() {
   const isLoading = eventsLoading || cumulativeLoading;
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
+    <PageShell maxWidth="narrow">
       <PageHeader
         title="Yield History"
         subtitle="Your finalized yield earnings across all funds"
@@ -138,48 +134,44 @@ export default function YieldHistoryPage() {
 
       {/* Cumulative Summary */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Coins className="h-8 w-8 text-green-500/30" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Total Yield Earned</p>
-                {isLoading ? (
-                  <Skeleton className="h-7 w-24" />
-                ) : (cumulative?.byFund || []).length === 0 ? (
-                  <p className="text-2xl font-mono font-bold text-muted-foreground">--</p>
-                ) : (
-                  <div className="space-y-1">
-                    {(cumulative?.byFund || []).map((fund: CumulativeYieldByFund) => (
-                      <div key={fund.fundId} className="flex items-center gap-2">
-                        <CryptoIcon symbol={fund.fundAsset} className="h-4 w-4" />
-                        <p className="text-lg font-mono font-bold text-green-600">
-                          +{formatValue(fund.totalNetYield)} {fund.fundAsset}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
+          <div className="flex items-center gap-3">
+            <Coins className="h-8 w-8 text-emerald-500/30" />
+            <div>
+              <p className="text-xs text-muted-foreground uppercase">Total Yield Earned</p>
+              {isLoading ? (
+                <Skeleton className="h-7 w-24" />
+              ) : (cumulative?.byFund || []).length === 0 ? (
+                <p className="text-2xl font-mono font-bold text-muted-foreground">--</p>
+              ) : (
+                <div className="space-y-1">
+                  {(cumulative?.byFund || []).map((fund: CumulativeYieldByFund) => (
+                    <div key={fund.fundId} className="flex items-center gap-2">
+                      <CryptoIcon symbol={fund.fundAsset} className="h-4 w-4" />
+                      <p className="text-lg font-mono font-bold text-emerald-400">
+                        +{formatValue(fund.totalNetYield)} {fund.fundAsset}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-muted-foreground/30" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Yield Events</p>
-                {isLoading ? (
-                  <Skeleton className="h-7 w-16" />
-                ) : (
-                  <p className="text-2xl font-mono font-bold">{cumulative?.eventCount || 0}</p>
-                )}
-              </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-8 w-8 text-muted-foreground/30" />
+            <div>
+              <p className="text-xs text-muted-foreground uppercase">Yield Events</p>
+              {isLoading ? (
+                <Skeleton className="h-7 w-16" />
+              ) : (
+                <p className="text-2xl font-mono font-bold">{cumulative?.eventCount || 0}</p>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -224,15 +216,13 @@ export default function YieldHistoryPage() {
           ))}
         </div>
       ) : monthGroups.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p>No yield history found</p>
-            <p className="text-sm mt-1">
-              Yield will appear here after monthly distributions are finalized
-            </p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-8 text-center text-muted-foreground">
+          <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-30" />
+          <p>No yield history found</p>
+          <p className="text-sm mt-1">
+            Yield will appear here after monthly distributions are finalized
+          </p>
+        </div>
       ) : (
         <div className="space-y-4">
           {monthGroups.map((group) => (
@@ -244,7 +234,7 @@ export default function YieldHistoryPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }
 
@@ -293,9 +283,9 @@ function MonthSection({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card>
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
         <CollapsibleTrigger className="w-full">
-          <CardHeader className="pb-3">
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ChevronDown
@@ -304,27 +294,27 @@ function MonthSection({
                     !isOpen && "-rotate-90"
                   )}
                 />
-                <CardTitle className="text-lg">{group.label}</CardTitle>
+                <span className="text-lg font-semibold">{group.label}</span>
                 <Badge variant="secondary">{group.events.length} events</Badge>
               </div>
               <div className="flex items-center gap-4 text-sm">
                 {fundGroups.map((fg) => (
                   <div key={fg.fund.id} className="text-right flex items-center gap-1.5">
                     <CryptoIcon symbol={fg.fund.asset} className="h-4 w-4" />
-                    <span className="font-mono font-semibold text-green-600">
+                    <span className="font-mono font-semibold text-emerald-400">
                       +{formatValue(fg.totals.net)} {fg.fund.asset}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
-          </CardHeader>
+          </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <CardContent className="pt-0 space-y-4">
+          <div className="px-4 pb-4 space-y-4">
             {fundGroups.map((fg) => (
-              <div key={fg.fund.id} className="border rounded-lg p-4">
+              <div key={fg.fund.id} className="border border-white/10 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <CryptoIcon symbol={fg.fund.asset} className="h-6 w-6" />
@@ -333,7 +323,9 @@ function MonthSection({
                   </div>
                   <div className="text-sm text-right">
                     <span className="text-muted-foreground">Net: </span>
-                    <span className="font-mono text-green-600">+{formatValue(fg.totals.net)}</span>
+                    <span className="font-mono text-emerald-400">
+                      +{formatValue(fg.totals.net)}
+                    </span>
                   </div>
                 </div>
 
@@ -364,7 +356,7 @@ function MonthSection({
                             ? `${(e.fund_yield_pct * 100).toFixed(2)}%`
                             : "--"}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-green-600 font-semibold">
+                        <TableCell className="text-right font-mono text-emerald-400 font-semibold">
                           +{formatValue(e.net_yield_amount)}
                         </TableCell>
                       </TableRow>
@@ -373,9 +365,9 @@ function MonthSection({
                 </Table>
               </div>
             ))}
-          </CardContent>
+          </div>
         </CollapsibleContent>
-      </Card>
+      </div>
     </Collapsible>
   );
 }

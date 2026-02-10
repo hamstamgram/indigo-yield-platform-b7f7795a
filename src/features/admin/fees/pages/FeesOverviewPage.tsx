@@ -5,8 +5,8 @@
  */
 
 import { useState, useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger, Badge } from "@/components/ui";
-import { Loader2, ArrowRightLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { Loader2 } from "lucide-react";
 import { ExportButton } from "@/components/common";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import { AdminGuard } from "@/components/admin";
@@ -14,13 +14,11 @@ import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO
 import { useFeesOverview, type FeeSummary } from "@/hooks/data";
 import {
   FeesBalanceCard,
-  InternalRoutingSummaryCard,
   YieldEarnedSummaryCard,
   FeeDateRangeFilter,
   FeeSummaryCards,
   FeeTransactionsTable,
   FeeAllocationAuditTable,
-  InternalRoutingTab,
   YieldEarnedTab,
 } from "@/components/admin/fees";
 
@@ -51,8 +49,6 @@ function FeesOverviewContent() {
   const indigoFeesBalance = data?.indigoFeesBalance || {};
   const feeAllocations = data?.feeAllocations || [];
   const yieldEarned = data?.yieldEarned || [];
-  const routingAuditEntries = data?.routingAuditEntries || [];
-  const routingSummary = data?.routingSummary || { totalAmount: 0, totalCount: 0, byAsset: {} };
 
   // Filter fees by date range and fund
   const filteredFees = useMemo(() => {
@@ -112,23 +108,13 @@ function FeesOverviewContent() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="audit">Audit Trail</TabsTrigger>
-          <TabsTrigger value="routing" className="flex items-center gap-1.5">
-            <ArrowRightLeft className="h-3.5 w-3.5" />
-            Internal Routing
-            {routingSummary.totalCount > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                {routingSummary.totalCount}
-              </Badge>
-            )}
-          </TabsTrigger>
           <TabsTrigger value="yield">Yield Earned</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4">
           {/* Summary Cards Row */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <FeesBalanceCard balances={indigoFeesBalance} />
-            <InternalRoutingSummaryCard summary={routingSummary} />
             <YieldEarnedSummaryCard yields={yieldEarned} />
           </div>
 
@@ -157,10 +143,6 @@ function FeesOverviewContent() {
 
         <TabsContent value="audit" className="space-y-6 mt-4">
           <FeeAllocationAuditTable allocations={feeAllocations} />
-        </TabsContent>
-
-        <TabsContent value="routing" className="space-y-6 mt-4">
-          <InternalRoutingTab summary={routingSummary} entries={routingAuditEntries} />
         </TabsContent>
 
         <TabsContent value="yield" className="space-y-6 mt-4">
