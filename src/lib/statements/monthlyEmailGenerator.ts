@@ -346,7 +346,7 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding: 0 10px;">
-                    <a href="https://www.linkedin.com/company/indigo-fund" target="_blank">
+                    <a href="https://www.linkedin.com/company/indigofund" target="_blank">
                       <img src="https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png"
                         alt="LinkedIn" width="24" style="border:0;">
                     </a>
@@ -373,7 +373,7 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
           <!-- Copyright -->
           <tr>
             <td align="center">
-              <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size:12px; color: #94a3b8;">© 2025 Indigo Fund. All rights reserved.</p>
+              <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size:12px; color: #94a3b8;">© ${new Date().getFullYear()} Indigo Fund. All rights reserved.</p>
               <p class="mobile-footer-text" style="margin: 0; font-size:12px; color: #94a3b8;">
                 <a href="{{unsubscribe_url}}" target="_blank" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
               </p>
@@ -395,9 +395,8 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
  */
 export function generateStatementPreview(dataOrHtml: MonthlyStatementData | string): string {
   // Handle both HTML string and data object
-  const html = typeof dataOrHtml === 'string' 
-    ? dataOrHtml 
-    : generateMonthlyStatementHTML(dataOrHtml);
+  const html =
+    typeof dataOrHtml === "string" ? dataOrHtml : generateMonthlyStatementHTML(dataOrHtml);
 
   // Add preview notice at top
   const previewNotice = `
@@ -407,10 +406,7 @@ export function generateStatementPreview(dataOrHtml: MonthlyStatementData | stri
   </div>`;
 
   // Insert preview notice after opening body tag
-  return html.replace(
-    /<body([^>]*)>/i,
-    `<body$1>\n${previewNotice}`
-  );
+  return html.replace(/<body([^>]*)>/i, `<body$1>\n${previewNotice}`);
 }
 
 /**
@@ -418,37 +414,37 @@ export function generateStatementPreview(dataOrHtml: MonthlyStatementData | stri
  */
 export function validateGeneratedHtml(html: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   const requiredElements = [
-    { pattern: '<!DOCTYPE html>', name: 'DOCTYPE declaration' },
-    { pattern: 'x-apple-disable-message-reformatting', name: 'Apple Mail meta tag' },
-    { pattern: 'format-detection', name: 'Format detection meta tag' },
-    { pattern: "font-family: 'Montserrat'", name: 'Montserrat font family' },
-    { pattern: 'fonts.googleapis.com/css2?family=Montserrat', name: 'Google Fonts link' },
-    { pattern: 'bgcolor="#f1f5f9"', name: 'Body bgcolor fallback' },
-    { pattern: 'bgcolor="#edf0fe"', name: 'Header bgcolor fallback' },
-    { pattern: 'bgcolor="#f8fafc"', name: 'Content bgcolor fallback' },
-    { pattern: 'bgcolor="#ffffff"', name: 'Fund block bgcolor fallback' },
-    { pattern: '<!--[if mso]>', name: 'MSO conditional start' },
-    { pattern: '<![endif]-->', name: 'MSO conditional end' },
-    { pattern: 'print-color-adjust: exact', name: 'Print CSS' },
-    { pattern: '<style>', name: 'Style block' },
-    { pattern: 'background-color:#edf0fe', name: 'Header background color' },
-    { pattern: 'border-radius:10px', name: 'Border radius styling' },
+    { pattern: "<!DOCTYPE html>", name: "DOCTYPE declaration" },
+    { pattern: "x-apple-disable-message-reformatting", name: "Apple Mail meta tag" },
+    { pattern: "format-detection", name: "Format detection meta tag" },
+    { pattern: "font-family: 'Montserrat'", name: "Montserrat font family" },
+    { pattern: "fonts.googleapis.com/css2?family=Montserrat", name: "Google Fonts link" },
+    { pattern: 'bgcolor="#f1f5f9"', name: "Body bgcolor fallback" },
+    { pattern: 'bgcolor="#edf0fe"', name: "Header bgcolor fallback" },
+    { pattern: 'bgcolor="#f8fafc"', name: "Content bgcolor fallback" },
+    { pattern: 'bgcolor="#ffffff"', name: "Fund block bgcolor fallback" },
+    { pattern: "<!--[if mso]>", name: "MSO conditional start" },
+    { pattern: "<![endif]-->", name: "MSO conditional end" },
+    { pattern: "print-color-adjust: exact", name: "Print CSS" },
+    { pattern: "<style>", name: "Style block" },
+    { pattern: "background-color:#edf0fe", name: "Header background color" },
+    { pattern: "border-radius:10px", name: "Border radius styling" },
   ];
-  
+
   for (const element of requiredElements) {
     if (!html.includes(element.pattern)) {
       errors.push(`Missing: ${element.name} (${element.pattern})`);
     }
   }
-  
+
   // Check for forbidden patterns (USD outside of asset names)
-  const htmlWithoutAssetNames = html.replace(/USD[CT]/g, '').replace(/stylesheet/g, '');
-  if (htmlWithoutAssetNames.includes('USD') || htmlWithoutAssetNames.includes('$')) {
-    errors.push('Contains USD or $ symbol (token-denominated only)');
+  const htmlWithoutAssetNames = html.replace(/USD[CT]/g, "").replace(/stylesheet/g, "");
+  if (htmlWithoutAssetNames.includes("USD") || htmlWithoutAssetNames.includes("$")) {
+    errors.push("Contains USD or $ symbol (token-denominated only)");
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,
@@ -491,9 +487,9 @@ export function convertToStatementData(
 ): MonthlyStatementData {
   return {
     investor_name: investorName,
-    investor_email: '',
+    investor_email: "",
     period_ended: periodEnded,
-    funds: performanceData.map(fund => ({
+    funds: performanceData.map((fund) => ({
       fund_name: fund.fund_name,
       mtd_beginning_balance: String(fund.mtd_beginning_balance ?? 0),
       mtd_additions: String(fund.mtd_additions ?? 0),

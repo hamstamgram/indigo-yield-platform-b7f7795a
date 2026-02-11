@@ -513,12 +513,36 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
                         <tr>
                           <td style={{ textAlign: "center", paddingBottom: "16px" }}>
                             <a
-                              href="https://www.linkedin.com/company/indigo-yield"
+                              href="https://www.linkedin.com/company/indigofund"
                               style={{ display: "inline-block", marginRight: "12px" }}
                             >
                               <img
                                 src={SOCIAL_ICONS.linkedin}
                                 alt="LinkedIn"
+                                width="24"
+                                height="24"
+                                style={{ border: 0 }}
+                              />
+                            </a>
+                            <a
+                              href="https://www.instagram.com/indigo.fund"
+                              style={{ display: "inline-block", marginRight: "12px" }}
+                            >
+                              <img
+                                src={SOCIAL_ICONS.instagram}
+                                alt="Instagram"
+                                width="24"
+                                height="24"
+                                style={{ border: 0 }}
+                              />
+                            </a>
+                            <a
+                              href="https://twitter.com/indigo_fund"
+                              style={{ display: "inline-block" }}
+                            >
+                              <img
+                                src={SOCIAL_ICONS.twitter}
+                                alt="X"
                                 width="24"
                                 height="24"
                                 style={{ border: 0 }}
@@ -742,8 +766,18 @@ ${fundBlocksHtml}
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td style="padding:0 10px;">
-                    <a href="https://www.linkedin.com/company/indigo-yield" style="display:block;">
+                    <a href="https://www.linkedin.com/company/indigofund" style="display:block;">
                       <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="display:block;border:0;">
+                    </a>
+                  </td>
+                  <td style="padding:0 10px;">
+                    <a href="https://www.instagram.com/indigo.fund" style="display:block;">
+                      <img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="display:block;border:0;">
+                    </a>
+                  </td>
+                  <td style="padding:0 10px;">
+                    <a href="https://twitter.com/indigo_fund" style="display:block;">
+                      <img src="${SOCIAL_ICONS.twitter}" alt="X" width="24" height="24" style="display:block;border:0;">
                     </a>
                   </td>
                 </tr>
