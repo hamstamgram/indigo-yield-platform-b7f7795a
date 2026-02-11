@@ -1,10 +1,12 @@
 /**
  * Yield Earned Summary Card
- * Quick yield stats for INDIGO Fees account
+ * Displays yield earned on fee balances, broken down by asset
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Info } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
+import { formatFeeAmount } from "./utils/feeUtils";
 import type { YieldEarned } from "@/hooks/data";
 
 interface YieldEarnedSummaryCardProps {
@@ -12,8 +14,16 @@ interface YieldEarnedSummaryCardProps {
 }
 
 export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) {
-  const totalYield = yields.reduce((sum, y) => sum + y.totalYieldEarned, 0);
-  const totalDistributions = yields.reduce((sum, y) => sum + y.transactionCount, 0);
+  // Group by asset (multiple funds may share the same asset)
+  const byAsset = yields.reduce<Record<string, { total: number; count: number }>>((acc, y) => {
+    const existing = acc[y.asset] || { total: 0, count: 0 };
+    existing.total += y.totalYieldEarned;
+    existing.count += y.transactionCount;
+    acc[y.asset] = existing;
+    return acc;
+  }, {});
+
+  const assetEntries = Object.entries(byAsset);
 
   return (
     <Card>
@@ -27,20 +37,26 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          {yields.length > 0 ? (
-            <>
-              <p className="text-2xl font-mono font-bold text-emerald-600">
-                +
-                {totalYield.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 4,
-                })}
-              </p>
-              <p className="text-xs text-muted-foreground">{totalDistributions} distributions</p>
-            </>
+        <div className="grid gap-3 md:grid-cols-2">
+          {assetEntries.length > 0 ? (
+            assetEntries.map(([asset, { total, count }]) => (
+              <div key={asset} className="flex items-center gap-3 p-2.5 rounded-lg bg-background">
+                <CryptoIcon symbol={asset} className="h-7 w-7" />
+                <div>
+                  <p className="font-mono font-semibold text-sm text-emerald-600">
+                    +{formatFeeAmount(total, asset)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {asset} &middot; {count} dist.
+                  </p>
+                </div>
+              </div>
+            ))
           ) : (
-            <p className="text-sm text-muted-foreground">No yield earned yet</p>
+            <div className="col-span-2 flex items-center gap-3 p-3 rounded-lg bg-muted/50 text-muted-foreground">
+              <Info className="h-4 w-4" />
+              <p className="text-sm">No yield earned yet</p>
+            </div>
           )}
         </div>
       </CardContent>
