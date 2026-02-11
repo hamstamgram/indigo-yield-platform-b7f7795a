@@ -258,6 +258,12 @@ serve(async (req) => {
               continue;
             }
 
+            // Generate deterministic reference_id for idempotency
+            const txDateStr = new Date(row[mapping.transactions.mappings.tx_date])
+              .toISOString()
+              .split("T")[0];
+            const referenceId = `import:${txDateStr}:${investor.id}:${fund.id}:${amount}`;
+
             const transactionData = {
               investor_id: investor.id,
               fund_id: fund.id,
@@ -266,11 +272,24 @@ serve(async (req) => {
               amount,
               type: "DEPOSIT",
               tx_hash: row["Transaction Hash"] || null,
-              notes: row["Notes"] || null,
+              notes: row["Notes"] || `Excel import - ${new Date().toISOString()}`,
               created_by: user.id,
+              // CRITICAL: reference_id ensures idempotency (UNIQUE constraint)
+              reference_id: referenceId,
+              // Mark as migration source for audit trail
+              tx_source: "migration",
+              // Historical imports are admin-visible only until verified
+              visibility_scope: "admin_only",
             };
 
             if (!validateOnly) {
+              // WARNING: Direct insert bypasses crystallization flow.
+              // This is intentional for historical data imports where:
+              // 1. No prior yield exists to crystallize
+              // 2. Positions are being bootstrapped from external records
+              // 3. The trg_ledger_sync trigger DOES fire to update positions
+              //
+              // For live operations, use apply_transaction_with_crystallization RPC.
               const { error } = await supabase.from("transactions_v2").insert(transactionData);
 
               if (error) {

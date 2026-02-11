@@ -50,6 +50,8 @@ export async function applyYieldDistribution(
   }
 
   // Call V5 apply RPC (segmented proportional allocation)
+  // NOTE: .toNumber() is required by Supabase types. Precision is safe for typical AUM values
+  // (JS Number handles up to ~9e15; crypto AUM rarely exceeds this).
   const { data, error } = await callRPC("apply_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),

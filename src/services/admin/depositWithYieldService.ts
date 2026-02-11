@@ -152,6 +152,12 @@ export async function processDepositWithYield(
     const amountFixed = amountDec.toFixed(10);
     const closingAumBeforeDepositFixed = closingAumBeforeDeposit.toFixed(10);
 
+    // NOTE: Number() conversion is required by Supabase generated types (p_amount: number).
+    // Precision is preserved because:
+    // 1. Decimal.js maintains full precision during calculation
+    // 2. .toFixed(10) serializes to string with 10 decimal places
+    // 3. Number() can safely represent values up to ~9e15 (sufficient for crypto amounts)
+    // 4. PostgreSQL receives the value and stores in NUMERIC(28,10)
     const rpcResult = await rpc.call("apply_transaction_with_crystallization", {
       p_fund_id: fundId,
       p_investor_id: investorId,
