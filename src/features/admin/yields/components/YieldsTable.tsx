@@ -43,6 +43,11 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
     fund: true,
     date: true,
     aum: true,
+    grossYield: true,
+    netYield: true,
+    fees: true,
+    ib: true,
+    investors: true,
     purpose: true,
     monthEnd: true,
     source: true,
@@ -158,6 +163,97 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
       cell: (record: RecordedYieldRecord) => (
         <FinancialValue value={record.total_aum} asset={record.fund_asset} />
       ),
+    },
+    {
+      id: "grossYield",
+      header: (
+        <SortableTableHead
+          column="gross_yield"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-end w-full"
+        >
+          Gross Yield
+        </SortableTableHead>
+      ),
+      className: "text-right",
+      cell: (record: RecordedYieldRecord) =>
+        record.gross_yield != null ? (
+          <FinancialValue value={record.gross_yield} asset={record.fund_asset} />
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        ),
+    },
+    {
+      id: "netYield",
+      header: (
+        <SortableTableHead
+          column="net_yield"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-end w-full"
+        >
+          Net Yield
+        </SortableTableHead>
+      ),
+      className: "text-right",
+      cell: (record: RecordedYieldRecord) =>
+        record.net_yield != null ? (
+          <FinancialValue value={record.net_yield} asset={record.fund_asset} />
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        ),
+    },
+    {
+      id: "fees",
+      header: (
+        <SortableTableHead
+          column="total_fees"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-end w-full"
+        >
+          Fees
+        </SortableTableHead>
+      ),
+      className: "text-right",
+      cell: (record: RecordedYieldRecord) =>
+        record.total_fees != null ? (
+          <FinancialValue value={record.total_fees} asset={record.fund_asset} />
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        ),
+    },
+    {
+      id: "ib",
+      header: (
+        <SortableTableHead
+          column="total_ib"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-end w-full"
+        >
+          IB
+        </SortableTableHead>
+      ),
+      className: "text-right",
+      cell: (record: RecordedYieldRecord) =>
+        record.total_ib != null ? (
+          <FinancialValue value={record.total_ib} asset={record.fund_asset} />
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        ),
+    },
+    {
+      id: "investors",
+      header: "Investors",
+      className: "text-center",
+      cell: (record: RecordedYieldRecord) =>
+        record.allocation_count != null ? (
+          <span>{record.allocation_count}</span>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        ),
     },
     {
       id: "purpose",
@@ -404,6 +500,25 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
                         )}
                       </div>
                     </div>
+                    {record.gross_yield != null && (
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                        <div>
+                          <span className="text-muted-foreground text-xs">Gross Yield</span>
+                          <div className="font-medium">
+                            <FinancialValue value={record.gross_yield} asset={record.fund_asset} />
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Net Yield</span>
+                          <div className="font-medium">
+                            <FinancialValue
+                              value={record.net_yield || 0}
+                              asset={record.fund_asset}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex justify-between items-center pt-2 border-t">
                       <div className="text-xs text-muted-foreground">

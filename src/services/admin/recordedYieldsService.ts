@@ -29,6 +29,13 @@ export interface YieldRecord {
   is_voided: boolean;
   voided_at?: string | null;
   void_reason?: string | null;
+  // Yield distribution fields (joined when a distribution exists)
+  gross_yield?: number | null;
+  net_yield?: number | null;
+  total_fees?: number | null;
+  total_ib?: number | null;
+  allocation_count?: number | null;
+  distribution_id?: string | null;
 }
 
 export interface YieldFilters {
@@ -136,13 +143,73 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
     ])
   );
 
-  return records.map((r) => ({
-    ...r,
-    fund_name: fundMap.get(r.fund_id)?.name || r.fund_id,
-    fund_asset: fundMap.get(r.fund_id)?.asset || "Unknown",
-    created_by_name: r.created_by ? profileMap.get(r.created_by) || "Unknown" : undefined,
-    purpose: r.purpose as AumPurpose,
-  }));
+  // Get yield distribution data for reporting records (join by fund_id + effective_date)
+  const reportingRecords = records.filter(
+    (r) => r.purpose === "reporting" && r.source === "yield_distribution_v5"
+  );
+  const distMap = new Map<
+    string,
+    {
+      id: string;
+      gross_yield: number;
+      net_yield: number;
+      total_fees: number;
+      total_ib: number;
+      allocation_count: number;
+    }
+  >();
+
+  if (reportingRecords.length > 0) {
+    const reportingFundDates = reportingRecords.map((r) => ({
+      fund_id: r.fund_id,
+      date: r.aum_date,
+    }));
+    const uniqueFundIds = [...new Set(reportingFundDates.map((rd) => rd.fund_id))];
+    const uniqueDates = [...new Set(reportingFundDates.map((rd) => rd.date))];
+
+    const { data: distributions } = await supabase
+      .from("yield_distributions")
+      .select(
+        "id, fund_id, effective_date, gross_yield, net_yield, total_fees, total_ib, allocation_count"
+      )
+      .in("fund_id", uniqueFundIds)
+      .in("effective_date", uniqueDates)
+      .eq("purpose", "reporting")
+      .eq("is_voided", false)
+      .limit(1000);
+
+    if (distributions) {
+      for (const d of distributions) {
+        const key = `${d.fund_id}:${d.effective_date}`;
+        distMap.set(key, {
+          id: d.id,
+          gross_yield: Number(d.gross_yield) || 0,
+          net_yield: Number(d.net_yield) || 0,
+          total_fees: Number(d.total_fees) || 0,
+          total_ib: Number(d.total_ib) || 0,
+          allocation_count: d.allocation_count || 0,
+        });
+      }
+    }
+  }
+
+  return records.map((r) => {
+    const distKey = `${r.fund_id}:${r.aum_date}`;
+    const dist = distMap.get(distKey);
+    return {
+      ...r,
+      fund_name: fundMap.get(r.fund_id)?.name || r.fund_id,
+      fund_asset: fundMap.get(r.fund_id)?.asset || "Unknown",
+      created_by_name: r.created_by ? profileMap.get(r.created_by) || "Unknown" : undefined,
+      purpose: r.purpose as AumPurpose,
+      gross_yield: dist?.gross_yield ?? null,
+      net_yield: dist?.net_yield ?? null,
+      total_fees: dist?.total_fees ?? null,
+      total_ib: dist?.total_ib ?? null,
+      allocation_count: dist?.allocation_count ?? null,
+      distribution_id: dist?.id ?? null,
+    };
+  });
 }
 
 /**

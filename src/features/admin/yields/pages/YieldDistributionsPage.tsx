@@ -765,6 +765,92 @@ function YieldDistributionsContent() {
                                                   {formatAssetValue(totalGross, fund?.asset || "")}
                                                 </span>
                                               </div>
+                                              {(() => {
+                                                const sj = distribution.summary_json as {
+                                                  version?: string;
+                                                  opening_aum?: number;
+                                                  crystals_consolidated?: number;
+                                                  segments?: Array<{
+                                                    start: string;
+                                                    end: string;
+                                                    yield: number;
+                                                    closing_aum: number;
+                                                    seg_idx: number;
+                                                    skipped: boolean;
+                                                    investors: number;
+                                                  }>;
+                                                } | null;
+                                                if (!sj?.version) return null;
+                                                const seg = sj.segments?.[0];
+                                                return (
+                                                  <>
+                                                    <div className="border-t border-border my-2" />
+                                                    <div className="flex justify-between">
+                                                      <span className="text-muted-foreground">
+                                                        Engine
+                                                      </span>
+                                                      <span className="uppercase text-xs">
+                                                        {sj.version}
+                                                      </span>
+                                                    </div>
+                                                    {sj.opening_aum != null && (
+                                                      <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">
+                                                          Opening AUM
+                                                        </span>
+                                                        <FinancialValue
+                                                          value={sj.opening_aum}
+                                                          asset={fund?.asset}
+                                                        />
+                                                      </div>
+                                                    )}
+                                                    {seg && (
+                                                      <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">
+                                                          Closing AUM
+                                                        </span>
+                                                        <FinancialValue
+                                                          value={seg.closing_aum}
+                                                          asset={fund?.asset}
+                                                        />
+                                                      </div>
+                                                    )}
+                                                    {seg &&
+                                                      sj.opening_aum != null &&
+                                                      sj.opening_aum > 0 && (
+                                                        <div className="flex justify-between">
+                                                          <span className="text-muted-foreground">
+                                                            Yield %
+                                                          </span>
+                                                          <span>
+                                                            {formatPercentage(
+                                                              ((seg.closing_aum - sj.opening_aum) /
+                                                                sj.opening_aum) *
+                                                                100,
+                                                              2
+                                                            )}
+                                                          </span>
+                                                        </div>
+                                                      )}
+                                                    {(sj.segments?.length ?? 0) > 1 && (
+                                                      <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">
+                                                          Segments
+                                                        </span>
+                                                        <span>{sj.segments?.length}</span>
+                                                      </div>
+                                                    )}
+                                                    {(sj.crystals_consolidated ?? 0) > 0 && (
+                                                      <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">
+                                                          Crystals Consolidated
+                                                        </span>
+                                                        <span>{sj.crystals_consolidated}</span>
+                                                      </div>
+                                                    )}
+                                                  </>
+                                                );
+                                              })()}
                                               {isCrystallization && yieldEvents.length > 0 && (
                                                 <>
                                                   <div className="border-t border-border my-2" />
