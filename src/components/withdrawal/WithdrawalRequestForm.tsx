@@ -66,13 +66,15 @@ export function WithdrawalRequestForm({
 
   const availableBalance = positions.find((p) => p.asset_symbol === selectedAsset);
 
+  const hasValidAmount = requestedAmount && !isNaN(requestedAmount) && requestedAmount > 0;
+
   const isAmountValid =
-    availableBalance && requestedAmount
+    availableBalance && hasValidAmount
       ? toDecimal(requestedAmount).lessThanOrEqualTo(toDecimal(availableBalance.amount))
       : false;
 
   const isFullWithdrawal =
-    availableBalance && requestedAmount && availableBalance.amount > 0
+    availableBalance && hasValidAmount && availableBalance.amount > 0
       ? toDecimal(requestedAmount)
           .dividedBy(toDecimal(availableBalance.amount))
           .greaterThanOrEqualTo(0.99)
@@ -170,7 +172,7 @@ export function WithdrawalRequestForm({
               {...register("amount", { valueAsNumber: true })}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
-            {requestedAmount && availableBalance && !isAmountValid && (
+            {hasValidAmount && availableBalance && !isAmountValid && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>Amount exceeds available balance</AlertDescription>
