@@ -99,12 +99,14 @@ class FeeScheduleService {
     fundId: string | null;
     feePct: number;
     effectiveDate: string;
+    endDate?: string | null;
   }): Promise<void> {
     const result = await db.insert("investor_fee_schedule", {
       investor_id: params.investorId,
       fund_id: params.fundId,
       fee_pct: params.feePct,
       effective_date: params.effectiveDate,
+      ...(params.endDate ? { end_date: params.endDate } : {}),
     });
 
     if (result.error) {

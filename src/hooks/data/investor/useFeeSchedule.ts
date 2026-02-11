@@ -49,6 +49,7 @@ export function useAddFeeScheduleEntry() {
         fundId: params.fundId,
         feePct: params.feePct,
         effectiveDate: params.effectiveDate,
+        endDate: params.endDate,
       }),
     onSuccess: (_, { investorId }) => {
       queryClient.invalidateQueries({

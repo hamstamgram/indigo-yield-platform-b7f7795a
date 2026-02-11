@@ -578,12 +578,8 @@ function YieldDistributionsContent() {
                                     (sum, a) => sum + (a.gross_amount || 0),
                                     0
                                   );
-                                  const sumGrossAllocations = allocations.reduce(
-                                    (sum, a) => sum + (a.gross_amount || 0),
-                                    0
-                                  );
                                   const grossDiscrepancy = Math.abs(
-                                    sumGrossAllocations - distribution.gross_yield
+                                    totalGross - distribution.gross_yield
                                   );
                                   const hasDiscrepancy =
                                     allocations.length > 0 && grossDiscrepancy > 0.01;
@@ -672,7 +668,7 @@ function YieldDistributionsContent() {
                                               <FinancialValue
                                                 value={
                                                   allocations.length > 0
-                                                    ? sumGrossAllocations
+                                                    ? totalGross
                                                     : sumGrossEvents
                                                 }
                                                 asset={fund?.asset}
