@@ -14,6 +14,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 import type { InvestorProfileStatus } from "@/lib/typeAdapters/investorAdapter";
 
 // =============================================================================
@@ -232,10 +233,10 @@ export async function getInvestorsForList(
 
   // Search by name or email
   if (search && search.trim()) {
-    const searchTerm = `%${search.trim()}%`;
-    query = query.or(
-      `email.ilike.${searchTerm},first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`
-    );
+    const safeFilter = buildSafeOrFilter(search, ["email", "first_name", "last_name"]);
+    if (safeFilter) {
+      query = query.or(safeFilter);
+    }
   }
 
   const { data, error } = await query;

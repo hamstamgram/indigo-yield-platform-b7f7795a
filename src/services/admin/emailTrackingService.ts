@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getTodayString } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
+import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 // =====================================================
 // TYPES
@@ -68,7 +69,10 @@ export async function getEmailStats(filters?: EmailFilters): Promise<EmailStats>
   }
 
   if (filters?.search) {
-    query = query.or(`recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`);
+    const safeFilter = buildSafeOrFilter(filters.search, ["recipient_email", "subject"]);
+    if (safeFilter) {
+      query = query.or(safeFilter);
+    }
   }
 
   if (filters?.dateFrom) {
@@ -136,7 +140,10 @@ export async function getEmailDeliveries(filters: EmailFilters): Promise<EmailDe
   }
 
   if (filters.search) {
-    query = query.or(`recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`);
+    const safeFilter = buildSafeOrFilter(filters.search, ["recipient_email", "subject"]);
+    if (safeFilter) {
+      query = query.or(safeFilter);
+    }
   }
 
   if (filters.dateFrom) {

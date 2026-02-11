@@ -273,9 +273,9 @@ function MonthSection({
       }
       const fg = map.get(e.fund_id)!;
       fg.events.push(e);
-      fg.totals.gross += e.gross_yield_amount;
-      fg.totals.fees += e.fee_amount;
-      fg.totals.net += e.net_yield_amount;
+      fg.totals.gross += e.gross_yield_amount || 0;
+      fg.totals.fees += e.fee_amount || 0;
+      fg.totals.net += e.net_yield_amount || 0;
     });
 
     return Array.from(map.values());
