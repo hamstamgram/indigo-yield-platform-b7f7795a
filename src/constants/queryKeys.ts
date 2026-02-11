@@ -484,6 +484,7 @@ export const QUERY_KEYS = {
   investorPerformanceForPeriod: (investorId: string, periodId?: string) =>
     ["investor-performance-for-period", investorId, periodId] as const,
   investorFeeSchedule: (investorId: string) => ["investor-fee-schedule", investorId] as const,
+  investorIBSchedule: (investorId: string) => ["investor-ib-schedule", investorId] as const,
 
   // ============ Investor Portal ============
   investorProfile: (userId?: string) =>

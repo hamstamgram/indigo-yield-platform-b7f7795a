@@ -337,7 +337,7 @@ export async function fetchInvestors(): Promise<
     first_name: profile.first_name || null,
     last_name: profile.last_name || null,
     created_at: profile.created_at || new Date().toISOString(),
-    fee_percentage: profile.fee_pct || 20.0,
+    fee_percentage: profile.fee_pct ?? 0,
     portfolio_summary: {},
   }));
 }

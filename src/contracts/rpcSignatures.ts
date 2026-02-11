@@ -66,7 +66,7 @@ export const RPC_SIGNATURES = {
     returnsSet: false,
     securityDefiner: true,
     requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum"] as const,
-    optionalParams: ["p_admin_id", "p_purpose"] as const,
+    optionalParams: ["p_admin_id", "p_purpose", "p_distribution_date"] as const,
   },
   approve_and_complete_withdrawal: {
     name: "approve_and_complete_withdrawal" as const,

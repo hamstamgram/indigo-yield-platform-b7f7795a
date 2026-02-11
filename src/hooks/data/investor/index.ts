@@ -143,5 +143,8 @@ export {
   type FeeScheduleEntry,
 } from "./useFeeSchedule";
 
+// IB commission schedule hooks
+export { useIBSchedule, useAddIBScheduleEntry, useDeleteIBScheduleEntry } from "./useIBSchedule";
+
 // Realtime invalidation
 export { useInvestorRealtimeInvalidation } from "./useInvestorRealtimeInvalidation";

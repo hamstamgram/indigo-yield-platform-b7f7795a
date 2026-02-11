@@ -25,6 +25,7 @@
     "test:cross-platform": "playwright test tests/cross-platform-verification.spec.ts",
     "test:unit": "vitest run tests/unit --coverage",
     "test:integration": "vitest run tests/integration --coverage",
+    "test:integration:yield": "vitest run -c vitest.integration.config.ts",
     "test:accessibility": "playwright test tests/accessibility",
     "test:ci": "vitest run --coverage --pool=threads --poolOptions.threads.maxThreads=2",
     "test:all": "./scripts/run-all-tests.sh",
@@ -143,6 +144,7 @@
     "@types/node": "^20.11.16",
     "@types/react": "^18.2.52",
     "@types/react-dom": "^18.2.18",
+    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
     "@vitejs/plugin-react-swc": "^4.2.2",
@@ -168,7 +170,8 @@
     "tailwindcss": "^3.4.1",
     "terser": "^5.44.0",
     "typescript": "^5.3.3",
-    "typescript-eslint": "^8.0.1"
+    "typescript-eslint": "^8.0.1",
+    "uuid": "^13.0.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

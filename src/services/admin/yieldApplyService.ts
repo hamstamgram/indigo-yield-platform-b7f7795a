@@ -57,6 +57,7 @@ export async function applyYieldDistribution(
     p_recorded_aum: parsedAum.toString() as unknown as number,
     p_admin_id: adminId,
     p_purpose: purpose,
+    p_distribution_date: formatDateForDB(targetDate),
   });
 
   if (error) {

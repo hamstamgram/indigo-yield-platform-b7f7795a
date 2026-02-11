@@ -41,6 +41,7 @@ import {
   Crown,
   Trash2,
 } from "lucide-react";
+import { IBScheduleSection } from "./IBScheduleSection";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
@@ -419,6 +420,9 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </CardContent>
         </Card>
       )}
+
+      {/* IB Commission Schedule */}
+      <IBScheduleSection investorId={investorId} />
 
       {/* Create/Find IB Dialog */}
       <Dialog open={showCreateIBDialog} onOpenChange={setShowCreateIBDialog}>
