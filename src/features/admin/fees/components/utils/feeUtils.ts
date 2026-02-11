@@ -108,7 +108,7 @@ export function exportFeesToPDF(
       .join("");
 
     const html = `<!DOCTYPE html>
-<html><head><title>Fee Revenue Report - ${dateStr}</title>
+<html><head><title>INDIGO FEES Report - ${dateStr}</title>
 <style>
   body { font-family: system-ui, sans-serif; padding: 24px; color: #1a1a1a; }
   h1 { font-size: 20px; margin-bottom: 4px; }
@@ -118,7 +118,7 @@ export function exportFeesToPDF(
   td { border-bottom: 1px solid #e5e5e5; padding: 5px 8px; }
   .footer { margin-top: 24px; font-size: 11px; color: #888; }
 </style></head><body>
-  <h1>Fee Revenue Report</h1>
+  <h1>INDIGO FEES Report</h1>
   <p class="sub">Generated ${escapeHtml(dateStr)} | ${fees.length} transactions</p>
   <table>
     <thead><tr><th>Date</th><th>Investor</th><th>Fund</th><th>Asset</th><th style="text-align:right">Amount</th></tr></thead>

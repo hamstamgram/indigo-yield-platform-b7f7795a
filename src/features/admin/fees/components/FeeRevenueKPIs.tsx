@@ -1,5 +1,5 @@
 /**
- * Fee Revenue KPI Cards
+ * INDIGO FEES KPI Cards
  * Shows MTD, YTD, and ITD fee revenue totals grouped by asset.
  */
 
