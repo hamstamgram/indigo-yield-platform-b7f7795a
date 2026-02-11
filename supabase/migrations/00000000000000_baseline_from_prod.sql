@@ -5261,11 +5261,11 @@ begin
     v_reused_preflow := true;
     v_snapshot_id := v_existing_preflow.aum_event_id;
 
-    -- Core Fix 4: Read opening AUM from fund_daily_aum (transaction purpose)
+    -- FIX: Use <= instead of < to include same-day fund_daily_aum records
     select total_aum, aum_date into v_fund_daily_aum_record
     from fund_daily_aum
     where fund_id = p_fund_id
-      and aum_date < v_event_date
+      and aum_date <= v_event_date
       and purpose = 'transaction'
       and is_voided = false
     order by aum_date desc
@@ -5275,7 +5275,6 @@ begin
       v_opening_aum := v_fund_daily_aum_record.total_aum;
       v_period_start := v_fund_daily_aum_record.aum_date;
     else
-      -- Fallback: use fund_aum_events for backwards compatibility
       select id, coalesce(post_flow_aum, closing_aum) as effective_aum, event_ts, event_date
       into v_last_checkpoint
       from fund_aum_events
@@ -5308,11 +5307,11 @@ begin
     );
   end if;
 
-  -- Core Fix 4: Read opening AUM from fund_daily_aum (transaction purpose)
+  -- FIX: Use <= instead of < to include same-day fund_daily_aum records
   select total_aum, aum_date into v_fund_daily_aum_record
   from fund_daily_aum
   where fund_id = p_fund_id
-    and aum_date < v_event_date
+    and aum_date <= v_event_date
     and purpose = 'transaction'
     and is_voided = false
   order by aum_date desc
@@ -5344,8 +5343,10 @@ begin
   v_days_in_period := v_event_date - v_period_start;
   v_yield_amount := p_closing_aum - v_opening_aum;
 
+  -- FIX: Treat negative yield as zero instead of blocking the deposit.
+  -- When fund value drops, there's no yield to distribute, but deposits must still work.
   if v_yield_amount < 0 then
-    raise exception 'Gross yield amount cannot be negative (closing AUM % is less than opening AUM %)', p_closing_aum, v_opening_aum;
+    v_yield_amount := 0;
   end if;
 
   if v_opening_aum > 0 then
@@ -5353,6 +5354,8 @@ begin
   else
     v_yield_pct := 0;
   end if;
+
+  perform set_canonical_rpc(true);
 
   insert into fund_aum_events (
     fund_id, event_date, event_ts, trigger_type, trigger_reference,
@@ -5363,8 +5366,6 @@ begin
   ) returning id into v_snapshot_id;
 
   if v_opening_aum > 0 and v_yield_amount > 0 then
-
-    perform set_canonical_rpc(true);
 
     update investor_yield_events
     set is_voided = true, voided_at = now(), voided_by = p_admin_id
