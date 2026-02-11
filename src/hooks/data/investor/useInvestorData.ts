@@ -10,6 +10,7 @@ import {
   fetchInvestorsForSelector,
   InvestorPositionRow,
 } from "@/services/investor";
+import { profileService } from "@/services/shared";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateInvestorData } from "@/utils/cacheInvalidation";
@@ -242,15 +243,13 @@ export function useUpdateInvestorStatus() {
       const fields = updates || {};
       if (status) fields.status = status;
 
-      const { error } = await supabase.rpc("update_user_profile_secure", {
-        p_user_id: investorId,
-        p_first_name: fields.first_name != null ? String(fields.first_name) : null,
-        p_last_name: fields.last_name != null ? String(fields.last_name) : null,
-        p_phone: fields.phone != null ? String(fields.phone) : null,
-        p_status: fields.status != null ? String(fields.status) : null,
+      await profileService.updateProfileSecure({
+        userId: investorId,
+        firstName: fields.first_name != null ? String(fields.first_name) : null,
+        lastName: fields.last_name != null ? String(fields.last_name) : null,
+        phone: fields.phone != null ? String(fields.phone) : null,
+        status: fields.status != null ? String(fields.status) : null,
       });
-
-      if (error) throw error;
     },
     onSuccess: (_, variables) => {
       invalidateInvestorData(queryClient, variables.investorId);

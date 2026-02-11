@@ -356,6 +356,99 @@ class ProfileService {
       isSystemAccount: false,
     }));
   }
+
+  /**
+   * Update profile via secure RPC (validates permissions server-side)
+   */
+  async updateProfileSecure(params: {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+    status?: string | null;
+  }): Promise<void> {
+    const { error } = await supabase.rpc("update_user_profile_secure", {
+      p_user_id: params.userId,
+      p_first_name: params.firstName ?? null,
+      p_last_name: params.lastName ?? null,
+      p_phone: params.phone ?? null,
+      p_status: params.status ?? null,
+    });
+
+    if (error) throw error;
+  }
+
+  /**
+   * Get last activity dates for multiple investors (batch)
+   */
+  async getLastActivityBatch(investorIds: string[]): Promise<Map<string, string>> {
+    if (investorIds.length === 0) return new Map();
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, last_activity_at")
+      .in("id", investorIds);
+
+    if (error) throw error;
+
+    const result = new Map<string, string>();
+    (data || []).forEach((p) => {
+      if (p.id && p.last_activity_at) {
+        result.set(p.id, p.last_activity_at);
+      }
+    });
+    return result;
+  }
+
+  /**
+   * Get IB parent relationships for multiple investors (batch)
+   */
+  async getIBParentsBatch(investorIds: string[]): Promise<Map<string, string>> {
+    if (investorIds.length === 0) return new Map();
+
+    // Get investors with IB parents
+    const { data: investorsWithIB, error: ibError } = await supabase
+      .from("profiles")
+      .select("id, ib_parent_id")
+      .in("id", investorIds)
+      .not("ib_parent_id", "is", null);
+
+    if (ibError) throw ibError;
+
+    const ibParentIds = [
+      ...new Set(
+        (investorsWithIB || []).map((p) => p.ib_parent_id).filter((id): id is string => Boolean(id))
+      ),
+    ];
+
+    if (ibParentIds.length === 0) return new Map();
+
+    // Get parent names
+    const { data: parents, error: parentError } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name")
+      .in("id", ibParentIds);
+
+    if (parentError) throw parentError;
+
+    const ibParentNames = new Map<string, string>();
+    (parents || []).forEach((p) => {
+      if (p.id) {
+        const name = [p.first_name, p.last_name].filter(Boolean).join(" ");
+        ibParentNames.set(p.id, name);
+      }
+    });
+
+    // Map investor -> parent name
+    const result = new Map<string, string>();
+    (investorsWithIB || []).forEach((p) => {
+      if (p.id && p.ib_parent_id && ibParentNames.has(p.ib_parent_id)) {
+        result.set(p.id, ibParentNames.get(p.ib_parent_id)!);
+      }
+    });
+
+    return result;
+  }
 }
 
 export const profileService = new ProfileService();
