@@ -6,6 +6,7 @@ import { rpc } from "@/lib/rpc/index";
 import { getTodayString } from "@/utils/dateUtils";
 import { generateUUID } from "@/lib/utils";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";
+import { parseFinancial } from "@/utils/financial";
 
 // Type for Supabase join result with profile
 interface TransactionWithProfile {
@@ -155,7 +156,7 @@ export class DepositService {
       throw new Error(`Fund not found for asset symbol ${assetSymbol}`);
     }
 
-    const amount = Number(formData.amount);
+    const amount = parseFloat(formData.amount);
     const txDate = formData.tx_date || getTodayString();
 
     const closingAum = formData.closing_aum;
@@ -181,7 +182,7 @@ export class DepositService {
       p_amount: amount,
       p_tx_date: txDate,
       p_reference_id: triggerReference,
-      p_new_total_aum: Number(closingAum),
+      p_new_total_aum: parseFloat(closingAum),
       p_admin_id: user.id,
       p_notes: `Deposit - ${triggerReference}`,
       p_purpose: "transaction",
@@ -341,17 +342,22 @@ export class DepositService {
       pending: 0,
       verified: data?.length || 0,
       rejected: 0,
-      total_amount: data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
-      by_asset: {} as Record<string, { count: number; amount: number }>,
+      total_amount:
+        data
+          ?.reduce((sum, d) => sum.plus(parseFinancial(d.amount)), parseFinancial(0))
+          .toString() || "0",
+      by_asset: {} as Record<string, { count: number; amount: string }>,
     };
 
     data?.forEach((deposit) => {
       const asset = deposit.asset || "UNKNOWN";
       if (!stats.by_asset[asset]) {
-        stats.by_asset[asset] = { count: 0, amount: 0 };
+        stats.by_asset[asset] = { count: 0, amount: "0" };
       }
       stats.by_asset[asset].count++;
-      stats.by_asset[asset].amount += Number(deposit.amount);
+      stats.by_asset[asset].amount = parseFinancial(stats.by_asset[asset].amount)
+        .plus(parseFinancial(deposit.amount))
+        .toString();
     });
 
     return stats;

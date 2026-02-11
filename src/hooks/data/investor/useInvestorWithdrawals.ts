@@ -15,7 +15,7 @@ import { formatCrypto } from "@/utils/financial";
 export interface WithdrawalPosition {
   fund_id: string;
   asset_symbol: string;
-  amount: number;
+  amount: string;
 }
 
 /**

@@ -18,9 +18,9 @@ export interface WithdrawalRequest {
   fund_name: string;
   fund_class: string;
   asset: string;
-  requested_amount: number;
-  approved_amount?: number;
-  processed_amount?: number;
+  requested_amount: string;
+  approved_amount?: string;
+  processed_amount?: string;
   withdrawal_type: string;
   status: string;
   notes?: string | null;
@@ -65,9 +65,9 @@ export async function getWithdrawalRequests(): Promise<WithdrawalRequest[]> {
       fund_name: fund?.name || "Unknown",
       fund_class: fund?.fund_class || "Standard",
       asset: fund?.asset || "Unknown",
-      requested_amount: Number(request.requested_amount),
-      approved_amount: request.approved_amount ? Number(request.approved_amount) : undefined,
-      processed_amount: request.processed_amount ? Number(request.processed_amount) : undefined,
+      requested_amount: String(request.requested_amount),
+      approved_amount: request.approved_amount ? String(request.approved_amount) : undefined,
+      processed_amount: request.processed_amount ? String(request.processed_amount) : undefined,
       withdrawal_type: request.withdrawal_type,
       status: request.status,
       notes: request.notes,

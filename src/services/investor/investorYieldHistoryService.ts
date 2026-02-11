@@ -16,9 +16,9 @@ import type { FundRelation } from "@/types/domains/relations";
 export interface YieldHistoryEntry {
   date: string;
   asset: string;
-  balance_before: number;
-  yield_amount: number;
-  balance_after: number;
+  balance_before: string;
+  yield_amount: string;
+  balance_after: string;
   daily_rate: number;
   annual_rate: number;
 }
@@ -36,7 +36,7 @@ export interface InvestorDocument {
 export interface PendingTransaction {
   id: string;
   type: "DEPOSIT" | "WITHDRAWAL";
-  amount: number;
+  amount: string;
   asset: string;
   created_at: string;
   status: string;
@@ -75,9 +75,9 @@ export async function getYieldHistory(days: number = 30): Promise<YieldHistoryEn
   return (data || []).map((entry) => ({
     date: entry.tx_date,
     asset: entry.asset,
-    balance_before: Number(entry.balance_before || 0),
-    yield_amount: Number(entry.amount),
-    balance_after: Number(entry.balance_after || 0),
+    balance_before: String(entry.balance_before || "0"),
+    yield_amount: String(entry.amount || "0"),
+    balance_after: String(entry.balance_after || "0"),
     daily_rate: 0,
     annual_rate: 0,
   }));

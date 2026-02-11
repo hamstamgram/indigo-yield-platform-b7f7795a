@@ -35,7 +35,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 export interface WithdrawalPosition {
   fund_id: string;
   asset_symbol: string;
-  amount: number;
+  amount: string;
 }
 
 interface WithdrawalRequestFormProps {
@@ -74,7 +74,7 @@ export function WithdrawalRequestForm({
       : false;
 
   const isFullWithdrawal =
-    availableBalance && hasValidAmount && availableBalance.amount > 0
+    availableBalance && hasValidAmount && toDecimal(availableBalance.amount).greaterThan(0)
       ? toDecimal(requestedAmount)
           .dividedBy(toDecimal(availableBalance.amount))
           .greaterThanOrEqualTo(0.99)

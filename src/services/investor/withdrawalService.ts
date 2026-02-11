@@ -500,7 +500,7 @@ export const withdrawalService = {
     return (data || []).map((pos: any) => ({
       fund_id: pos.fund_id,
       asset_symbol: pos.funds?.asset || "UNKNOWN",
-      amount: Number(pos.shares),
+      amount: String(pos.shares || "0"),
     }));
   },
 
