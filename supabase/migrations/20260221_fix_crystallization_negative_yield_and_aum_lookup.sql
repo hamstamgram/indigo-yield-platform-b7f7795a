@@ -235,11 +235,9 @@ begin
       p_purpose, p_trigger_type, v_snapshot_id, 'applied'
     ) returning id into v_distribution_id;
 
+    -- ADB: amounts are already signed (negative for WITHDRAWAL/FEE), so use directly
     select coalesce(sum(
-      case when t.type in ('DEPOSIT','YIELD','FEE_CREDIT','IB_CREDIT') then t.amount
-           when t.type in ('WITHDRAWAL','FEE') then -t.amount
-           else 0 end
-      * (v_event_date - t.tx_date)
+      t.amount * (v_event_date - t.tx_date)
     ), 0) into v_total_adb
     from transactions_v2 t
     where t.fund_id = p_fund_id
@@ -253,10 +251,7 @@ begin
       where ip.fund_id = p_fund_id and ip.is_active = true and ip.current_value > 0
     loop
       select coalesce(sum(
-        case when t.type in ('DEPOSIT','YIELD','FEE_CREDIT','IB_CREDIT') then t.amount
-             when t.type in ('WITHDRAWAL','FEE') then -t.amount
-             else 0 end
-        * (v_event_date - t.tx_date)
+        t.amount * (v_event_date - t.tx_date)
       ), 0) into v_investor_adb
       from transactions_v2 t
       where t.fund_id = p_fund_id
