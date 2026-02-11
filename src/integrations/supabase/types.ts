@@ -1765,6 +1765,7 @@ export type Database = {
           fund_id: string
           fund_yield_pct: number
           gross_yield_amount: number
+          ib_amount: number | null
           id: string
           investor_balance: number
           investor_id: string
@@ -1794,6 +1795,7 @@ export type Database = {
           fund_id: string
           fund_yield_pct: number
           gross_yield_amount: number
+          ib_amount?: number | null
           id?: string
           investor_balance: number
           investor_id: string
@@ -1823,6 +1825,7 @@ export type Database = {
           fund_id?: string
           fund_yield_pct?: number
           gross_yield_amount?: number
+          ib_amount?: number | null
           id?: string
           investor_balance?: number
           investor_id?: string
@@ -4935,34 +4938,6 @@ export type Database = {
         }
         Returns: Json
       }
-      apply_adb_yield_distribution_v4:
-        | {
-            Args: {
-              p_admin_id?: string
-              p_distribution_date?: string
-              p_fund_id: string
-              p_gross_yield_amount: number
-              p_period_end: string
-              p_period_start: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_recorded_aum?: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_distribution_date?: string
-              p_fund_id: string
-              p_gross_yield_amount: number
-              p_period_end: string
-              p_period_start: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_recorded_aum?: number
-              p_snapshot_time?: string
-            }
-            Returns: Json
-          }
       apply_daily_yield_with_validation: {
         Args: {
           p_created_by: string
@@ -4986,6 +4961,16 @@ export type Database = {
           p_purpose?: string
           p_tx_hash?: string
           p_tx_subtype?: string
+        }
+        Returns: Json
+      }
+      apply_segmented_yield_distribution_v5: {
+        Args: {
+          p_admin_id?: string
+          p_fund_id: string
+          p_period_end: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_recorded_aum: number
         }
         Returns: Json
       }
@@ -5020,27 +5005,17 @@ export type Database = {
         }
         Returns: Json
       }
-      approve_and_complete_withdrawal:
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_processed_amount?: number
-              p_request_id: string
-              p_tx_hash?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_is_full_exit?: boolean
-              p_processed_amount?: number
-              p_request_id: string
-              p_send_precision?: number
-              p_tx_hash?: string
-            }
-            Returns: Json
-          }
+      approve_and_complete_withdrawal: {
+        Args: {
+          p_admin_notes?: string
+          p_is_full_exit?: boolean
+          p_processed_amount?: number
+          p_request_id: string
+          p_send_precision?: number
+          p_tx_hash?: string
+        }
+        Returns: Json
+      }
       approve_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -5708,16 +5683,6 @@ export type Database = {
         Args: { p_investor_id?: string }
         Returns: number
       }
-      preview_adb_yield_distribution_v4: {
-        Args: {
-          p_fund_id: string
-          p_gross_yield_amount: number
-          p_period_end: string
-          p_period_start: string
-          p_purpose?: string
-        }
-        Returns: Json
-      }
       preview_crystallization: {
         Args: {
           p_fund_id: string
@@ -5738,6 +5703,15 @@ export type Database = {
       }
       preview_merge_duplicate_profiles: {
         Args: { p_keep_profile_id: string; p_merge_profile_id: string }
+        Returns: Json
+      }
+      preview_segmented_yield_distribution_v5: {
+        Args: {
+          p_fund_id: string
+          p_period_end: string
+          p_purpose?: string
+          p_recorded_aum: number
+        }
         Returns: Json
       }
       process_yield_distribution: {
@@ -6205,6 +6179,7 @@ export type Database = {
           p_admin_id: string
           p_distribution_id: string
           p_reason?: string
+          p_void_crystals?: boolean
         }
         Returns: Json
       }

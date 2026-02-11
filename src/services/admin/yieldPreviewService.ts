@@ -103,7 +103,7 @@ export async function previewYieldDistribution(
   }
 
   // Call ADB preview RPC (time-weighted allocation)
-  const { data, error } = await callRPC("preview_adb_yield_distribution_v4", {
+  const { data, error } = await callRPC("preview_adb_yield_distribution_v4" as any, {
     p_fund_id: fundId,
     p_period_start: formatDateForDB(periodStartDate),
     p_period_end: formatDateForDB(periodEndDate),

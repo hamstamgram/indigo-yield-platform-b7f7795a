@@ -266,7 +266,7 @@ export async function applyYield(params: {
   /** Recorded AUM as string for NUMERIC precision */
   recordedAum?: string;
 }): Promise<RPCResult<unknown>> {
-  return call("apply_adb_yield_distribution_v4", {
+  return call("apply_adb_yield_distribution_v4" as any, {
     p_fund_id: params.fundId,
     p_period_start: params.periodStart,
     p_period_end: params.periodEnd,
@@ -285,7 +285,7 @@ export async function previewYield(params: {
   grossYieldAmount: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("preview_adb_yield_distribution_v4", {
+  return call("preview_adb_yield_distribution_v4" as any, {
     p_fund_id: params.fundId,
     p_period_start: params.periodStart,
     p_period_end: params.periodEnd,

@@ -84,7 +84,7 @@ export async function applyYieldDistribution(
   // Transaction mode: distribution_date = today (when admin runs it)
   // Reporting mode: omit distribution_date -- SQL defaults to period_end for historical accuracy
   // Pass p_recorded_aum so fund_daily_aum stores what the admin entered
-  const { data, error } = await callRPC("apply_adb_yield_distribution_v4", {
+  const { data, error } = await callRPC("apply_adb_yield_distribution_v4" as any, {
     p_fund_id: fundId,
     p_period_start: formatDateForDB(periodStartDate),
     p_period_end: formatDateForDB(periodEndDate),
