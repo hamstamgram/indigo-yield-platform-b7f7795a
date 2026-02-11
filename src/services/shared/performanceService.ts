@@ -82,6 +82,19 @@ function computePeriodStats(
     }
   }
   const denominator = beginningBalance + (additions - redemptions) / 2;
+  if (denominator <= 0 && netIncome !== 0) {
+    logError(
+      "performanceService.computePeriodStats",
+      new Error("Zero or negative denominator in Modified Dietz calculation"),
+      {
+        beginningBalance,
+        additions,
+        redemptions,
+        netIncome,
+        denominator,
+      }
+    );
+  }
   const rateOfReturn = denominator > 0 && netIncome !== 0 ? (netIncome / denominator) * 100 : 0;
   return { beginningBalance, additions, redemptions, netIncome, endingBalance, rateOfReturn };
 }

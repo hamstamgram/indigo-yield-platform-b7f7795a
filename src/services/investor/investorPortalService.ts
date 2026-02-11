@@ -243,6 +243,12 @@ export async function getInvestorProfile(userId: string): Promise<InvestorProfil
     throw new Error("User not authenticated");
   }
 
+  // Defense-in-depth: verify the requesting user matches the requested profile.
+  // RLS is the authoritative gate, but this prevents accidental IDOR at the service layer.
+  if (userId !== user.id) {
+    throw new Error("Unauthorized");
+  }
+
   // Create minimal profile from auth
   const minimalProfile: InvestorProfile = {
     id: user.id,

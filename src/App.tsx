@@ -14,7 +14,6 @@ import { queryClientConfig, setQueryClient } from "./utils/performance/caching";
 import { Toaster } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { CookieConsent } from "./components/privacy/CookieConsent";
-import { InstallPrompt as SimpleInstallPrompt } from "./pwa/installPrompt";
 
 // Routing
 import { AppRoutes } from "./routing/AppRoutes";
@@ -65,7 +64,6 @@ function AppContent() {
       </main>
       <Toaster />
       <CookieConsent />
-      <SimpleInstallPrompt />
     </>
   );
 }

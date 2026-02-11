@@ -88,7 +88,7 @@ serve(async (req) => {
           .single();
 
         if (recipient?.email) {
-          const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "notifications@indigoyield.com";
+          const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@indigo.fund";
           const fromName = Deno.env.get("RESEND_FROM_NAME") || "Indigo Yield";
           const resendResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",

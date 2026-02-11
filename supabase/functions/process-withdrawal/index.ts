@@ -111,7 +111,9 @@ function normalizeAmountTo28_10String(input: unknown): string {
 }
 
 function startOfUtcDayIso(now: Date): string {
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)).toISOString();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)
+  ).toISOString();
 }
 
 function startOfUtcMonthIso(now: Date): string {
@@ -177,13 +179,15 @@ async function getWithdrawalTotalsScaled28_10(
   return { todayTotal: sum(todayRows), monthTotal: sum(monthRows) };
 }
 
-async function normalizeRequestBody(body: unknown, now: Date): Promise<NormalizedWithdrawalRequest> {
+async function normalizeRequestBody(
+  body: unknown,
+  now: Date
+): Promise<NormalizedWithdrawalRequest> {
   if (!isRecord(body)) {
     throw new Error("Request body must be a JSON object.");
   }
 
-  const investorId =
-    getStringField(body, ["investor_id", "investorId"], { required: true }) ?? "";
+  const investorId = getStringField(body, ["investor_id", "investorId"], { required: true }) ?? "";
   const fundId = getStringField(body, ["fund_id", "fundId"], { required: true }) ?? "";
 
   const withdrawalTypeRaw =
@@ -255,13 +259,8 @@ serve(async (req) => {
   }
 
   try {
-    const csrfToken = req.headers.get("x-csrf-token");
-    if (!csrfToken || csrfToken.length < 32) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid CSRF token" }), {
-        headers: { ...headers, "Content-Type": "application/json" },
-        status: 403,
-      });
-    }
+    // CSRF defense: JWT bearer token + CORS origin validation.
+    // No separate CSRF token needed for API-only endpoints with Authorization headers.
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -312,11 +311,14 @@ serve(async (req) => {
       throw new Error("Investor account is not active");
     }
 
-    const { data: canWithdrawResult, error: canWithdrawError } = await supabaseClient.rpc("can_withdraw", {
-      p_investor_id: normalized.investorId,
-      p_fund_id: normalized.fundId,
-      p_amount: normalized.requestedAmount28_10,
-    });
+    const { data: canWithdrawResult, error: canWithdrawError } = await supabaseClient.rpc(
+      "can_withdraw",
+      {
+        p_investor_id: normalized.investorId,
+        p_fund_id: normalized.fundId,
+        p_amount: normalized.requestedAmount28_10,
+      }
+    );
 
     if (canWithdrawError) {
       throw new Error(`Withdrawal eligibility check failed: ${canWithdrawError.message}`);
@@ -401,4 +403,3 @@ serve(async (req) => {
     );
   }
 });
-

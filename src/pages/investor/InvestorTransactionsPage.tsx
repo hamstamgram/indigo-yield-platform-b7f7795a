@@ -82,7 +82,10 @@ export default function InvestorTransactionsPage() {
       ),
       cell: (item: Record<string, unknown>) => (
         <span className="text-sm text-slate-400 font-mono">
-          {format(new Date(String(item.tx_date || item.created_at)), "MMM d, yyyy")}
+          {format(
+            new Date(String(item.tx_date || item.created_at || new Date().toISOString())),
+            "MMM d, yyyy"
+          )}
         </span>
       ),
     },

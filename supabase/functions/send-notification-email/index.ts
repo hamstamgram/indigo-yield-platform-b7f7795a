@@ -17,7 +17,13 @@ const corsHeaders = (origin: string | null) => ({
 interface EmailRequest {
   to: string;
   subject: string;
-  template: "statement_ready" | "withdrawal_status" | "welcome" | "admin_notification" | "deposit_confirmed" | "yield_distributed";
+  template:
+    | "statement_ready"
+    | "withdrawal_status"
+    | "welcome"
+    | "admin_notification"
+    | "deposit_confirmed"
+    | "yield_distributed";
   data: Record<string, any>;
 }
 
@@ -30,14 +36,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // CSRF validation for state-changing operations
-    const csrfToken = req.headers.get("x-csrf-token");
-    if (!csrfToken || csrfToken.length < 32) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid CSRF token" }), {
-        headers: { ...headers, "Content-Type": "application/json" },
-        status: 403,
-      });
-    }
+    // CSRF defense: JWT bearer token + CORS origin validation.
+    // No separate CSRF token needed for API-only endpoints with Authorization headers.
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""

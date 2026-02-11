@@ -197,7 +197,7 @@ const StatementsPage = () => {
                   <p className="text-xs text-muted-foreground uppercase">Beginning Balance</p>
                   <p className="text-sm font-mono font-medium text-white">
                     {formatInvestorAmount(
-                      parseFloat(statement.begin_balance),
+                      parseFloat(statement.begin_balance) || 0,
                       statement.asset_code
                     )}
                   </p>
@@ -205,19 +205,30 @@ const StatementsPage = () => {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Additions</p>
                   <p className="text-sm font-mono font-medium text-emerald-400">
-                    +{formatInvestorAmount(parseFloat(statement.additions), statement.asset_code)}
+                    +
+                    {formatInvestorAmount(
+                      parseFloat(statement.additions) || 0,
+                      statement.asset_code
+                    )}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Net Income</p>
                   <p className="text-sm font-mono font-medium text-indigo-400">
-                    +{formatInvestorAmount(parseFloat(statement.net_income), statement.asset_code)}
+                    +
+                    {formatInvestorAmount(
+                      parseFloat(statement.net_income) || 0,
+                      statement.asset_code
+                    )}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Ending Balance</p>
                   <p className="text-sm font-mono font-semibold text-white">
-                    {formatInvestorAmount(parseFloat(statement.end_balance), statement.asset_code)}
+                    {formatInvestorAmount(
+                      parseFloat(statement.end_balance) || 0,
+                      statement.asset_code
+                    )}
                   </p>
                 </div>
               </div>
@@ -226,7 +237,7 @@ const StatementsPage = () => {
                 <div className="mt-3 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-emerald-400" />
                   <span className="text-sm font-mono font-medium text-emerald-400">
-                    Return: {parseFloat(statement.rate_of_return_mtd).toFixed(2)}% MTD
+                    Return: {(parseFloat(statement.rate_of_return_mtd) || 0).toFixed(2)}% MTD
                   </span>
                 </div>
               )}

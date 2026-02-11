@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, getCorsHeaders } from "../_shared/cors.ts";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 interface IntegrityCheck {
   name: string;
@@ -345,6 +346,33 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify admin JWT - integrity checks expose sensitive system state
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authorization required" }), {
+        status: 401,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+
+    const adminCheck = await checkAdminAccess(supabase, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(headers, "Integrity monitoring requires admin access");
+    }
 
     // Parse triggered_by from request body
     let triggeredBy = "scheduled";

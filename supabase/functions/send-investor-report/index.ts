@@ -5,13 +5,13 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 interface EmailRequest {
-  to: string | string[];  // Support single email or array
+  to: string | string[]; // Support single email or array
   cc?: string[];
   bcc?: string[];
   investorId?: string;
   investorName: string;
   reportMonth: string; // YYYY-MM
-  subject?: string;    // Optional custom subject
+  subject?: string; // Optional custom subject
   htmlContent: string;
 }
 
@@ -23,16 +23,16 @@ const RATE_WINDOW_MS = 60000; // 1 minute
 function checkRateLimit(adminId: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(adminId);
-  
+
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(adminId, { count: 1, resetAt: now + RATE_WINDOW_MS });
     return true;
   }
-  
+
   if (entry.count >= RATE_LIMIT) {
     return false;
   }
-  
+
   entry.count++;
   return true;
 }
@@ -94,10 +94,13 @@ serve(async (req: Request) => {
 
     // Check rate limit
     if (!checkRateLimit(user.id)) {
-      return new Response(JSON.stringify({ error: "Rate limit exceeded. Max 10 emails per minute." }), {
-        status: 429,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Max 10 emails per minute." }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Parse request body
@@ -124,26 +127,20 @@ serve(async (req: Request) => {
     const allEmails = [...toArray, ...(cc || []), ...(bcc || [])];
     for (const email of allEmails) {
       if (!emailRegex.test(email)) {
-        return new Response(
-          JSON.stringify({ error: `Invalid email format: ${email}` }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: `Invalid email format: ${email}` }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
     // Check if RESEND_API_KEY is configured
     if (!RESEND_API_KEY) {
       console.error("RESEND_API_KEY not configured");
-      return new Response(
-        JSON.stringify({ error: "Email service not configured" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Email service not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Format report month for subject
@@ -169,7 +166,7 @@ Indigo Yield Team`;
 
     // Send email via Resend
     const emailPayload: Record<string, unknown> = {
-      from: "Indigo Yield <reports@indigoyield.com>",
+      from: "Indigo Yield <noreply@indigo.fund>",
       to: toArray,
       subject: emailSubject,
       html: htmlContent,
@@ -184,7 +181,9 @@ Indigo Yield Team`;
       emailPayload.bcc = bcc;
     }
 
-    console.log(`Sending email to ${toArray.length} recipient(s) for ${investorName}, report month ${reportMonth}`);
+    console.log(
+      `Sending email to ${toArray.length} recipient(s) for ${investorName}, report month ${reportMonth}`
+    );
     if (cc?.length) console.log(`CC: ${cc.join(", ")}`);
     if (bcc?.length) console.log(`BCC: ${bcc.join(", ")}`);
 

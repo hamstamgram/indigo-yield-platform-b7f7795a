@@ -8,7 +8,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Allowed sender domains for security
-const ALLOWED_SENDER_DOMAINS = ["indigoyield.com"];
+const ALLOWED_SENDER_DOMAINS = ["indigo.fund", "indigoyield.com"];
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
@@ -29,30 +29,27 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       console.error("[send-email] Missing authorization header");
-      return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const token = authHeader.replace("Bearer ", "");
     const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    
+
     // Verify the user's JWT token
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser(token);
+
     if (authError || !user) {
       console.error("[send-email] Invalid token:", authError?.message);
-      return new Response(
-        JSON.stringify({ error: "Unauthorized - invalid token" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized - invalid token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Check if user is an admin
@@ -64,13 +61,10 @@ serve(async (req) => {
 
     if (profileError || !profile?.is_admin) {
       console.error("[send-email] Non-admin attempted to send email:", user.email);
-      return new Response(
-        JSON.stringify({ error: "Admin access required to send emails" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Admin access required to send emails" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log("[send-email] Admin authorized:", user.email);
@@ -86,15 +80,15 @@ serve(async (req) => {
     // ========================================
     // SECURITY FIX: Validate sender domain
     // ========================================
-    const sender = from || "Indigo Yield Platform <noreply@indigoyield.com>";
-    
+    const sender = from || "Indigo Yield Platform <noreply@indigo.fund>";
+
     // Extract domain from sender email
     const senderMatch = sender.match(/<([^>]+)>/) || sender.match(/([^\s]+@[^\s]+)/);
     if (senderMatch) {
       const senderEmail = senderMatch[1] || senderMatch[0];
       const senderDomain = senderEmail.split("@")[1]?.toLowerCase();
-      
-      if (senderDomain && !ALLOWED_SENDER_DOMAINS.some(d => senderDomain.endsWith(d))) {
+
+      if (senderDomain && !ALLOWED_SENDER_DOMAINS.some((d) => senderDomain.endsWith(d))) {
         console.error("[send-email] Invalid sender domain:", senderDomain);
         return new Response(
           JSON.stringify({ error: "Invalid sender domain. Only approved domains are allowed." }),
@@ -129,7 +123,7 @@ serve(async (req) => {
 
     if (!res.ok) {
       console.error("[send-email] Resend API error:", data);
-      
+
       // Log failure
       for (const recipient of recipients) {
         await supabase.from("email_logs").insert({

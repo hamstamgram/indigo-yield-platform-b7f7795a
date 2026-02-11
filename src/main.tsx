@@ -17,13 +17,9 @@ import "@fontsource/jetbrains-mono/600.css";
 import "@fontsource/jetbrains-mono/700.css";
 
 import { initPostHog } from "./utils/analytics/posthog";
-import { registerSW } from "./pwa/registerSW";
 
 // Initialize analytics
 initPostHog();
-
-// Register service worker for PWA
-registerSW();
 
 createRoot(document.getElementById("root")!).render(<App />);
 // Deployment trigger - 2026-01-28T12:42:00Z

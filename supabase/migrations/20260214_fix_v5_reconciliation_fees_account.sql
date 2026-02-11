@@ -919,6 +919,7 @@ BEGIN
           gross_yield_amount = v_alloc.total_gross,
           fee_pct = get_investor_fee_pct(v_alloc.investor_id, p_fund_id, v_period_end),
           fee_amount = v_alloc.total_fee,
+          ib_amount = v_alloc.total_ib,
           net_yield_amount = v_alloc.total_net
         WHERE trigger_transaction_id = v_yield_tx_id AND is_voided = false;
       END IF;

@@ -34,9 +34,11 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // SECURITY: Use OR for resilience - either source confirming admin is sufficient
-  // Both sources query user_roles table server-side, so both are secure
-  // Using AND caused race conditions where one source loads before the other
+  // SECURITY: Frontend OR check is defense-in-depth only.
+  // The authoritative admin gate is Supabase RLS (is_admin() on every table).
+  // OR is used here because AND caused false-negative race conditions when
+  // one source (AuthContext vs useUserRole) resolves before the other.
+  // Both sources query the user_roles table server-side, so both are trustworthy.
   const isVerifiedAdmin = authIsAdmin || roleIsAdmin;
 
   if (!isVerifiedAdmin) {

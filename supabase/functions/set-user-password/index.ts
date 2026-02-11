@@ -92,6 +92,15 @@ serve(async (req) => {
         });
       }
 
+      // Audit log: password reset
+      await supabaseAdmin.from("audit_log").insert({
+        action: "PASSWORD_RESET",
+        entity: "auth_user",
+        entity_id: String(existingUser.id),
+        actor_user: user.id,
+        meta: { target_email: email },
+      });
+
       return new Response(
         JSON.stringify({
           message: "Password updated successfully",
@@ -116,6 +125,15 @@ serve(async (req) => {
           status: 400,
         });
       }
+
+      // Audit log: user creation
+      await supabaseAdmin.from("audit_log").insert({
+        action: "USER_CREATED",
+        entity: "auth_user",
+        entity_id: String(data.user?.id),
+        actor_user: user.id,
+        meta: { target_email: email },
+      });
 
       return new Response(
         JSON.stringify({

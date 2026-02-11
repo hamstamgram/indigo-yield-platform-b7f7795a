@@ -61,37 +61,47 @@ serve(async (req: Request): Promise<Response> => {
     // Get raw body for signature verification
     const rawBody = await req.text();
 
-    // Verify webhook signature if secret is configured
-    if (WEBHOOK_SECRET) {
-      const signature = req.headers.get("resend-signature");
+    // Require webhook signing secret - reject if not configured
+    if (!WEBHOOK_SECRET) {
+      console.error("RESEND_WEBHOOK_SIGNING_SECRET not configured - rejecting all webhooks");
+      return new Response(JSON.stringify({ error: "Webhook signing not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-      if (signature) {
-        // Resend uses HMAC-SHA256 for webhook signatures
-        const encoder = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-          "raw",
-          encoder.encode(WEBHOOK_SECRET),
-          { name: "HMAC", hash: "SHA-256" },
-          false,
-          ["sign"]
-        );
+    // Require signature header
+    const signature = req.headers.get("resend-signature");
+    if (!signature) {
+      console.error("Missing resend-signature header - rejecting request");
+      return new Response(JSON.stringify({ error: "Missing signature" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-        const signatureBytes = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
+    // Verify HMAC-SHA256 signature
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(WEBHOOK_SECRET),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
 
-        const expectedSignature = Array.from(new Uint8Array(signatureBytes))
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join("");
+    const signatureBytes = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
 
-        if (signature !== expectedSignature) {
-          console.error("Webhook signature verification failed - rejecting request");
-          return new Response(JSON.stringify({ error: "Invalid signature" }), {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-      }
-    } else {
-      console.warn("RESEND_WEBHOOK_SIGNING_SECRET not configured - signature verification skipped");
+    const expectedSignature = Array.from(new Uint8Array(signatureBytes))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    if (signature !== expectedSignature) {
+      console.error("Webhook signature verification failed - rejecting request");
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Parse webhook payload

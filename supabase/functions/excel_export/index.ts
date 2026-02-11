@@ -289,6 +289,15 @@ serve(async (req) => {
     const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "");
     const filename = `indigo_export_${dateStr}_${timeStr}.xlsx`;
 
+    // Audit log: data export
+    await supabase.from("audit_log").insert({
+      action: "DATA_EXPORT",
+      entity: "excel_workbook",
+      entity_id: filename,
+      actor_user: user.id,
+      meta: { export_type: exportType, start_date: startDate, end_date: endDate },
+    });
+
     return new Response(new Uint8Array(excelBuffer), {
       headers: {
         ...headers,
