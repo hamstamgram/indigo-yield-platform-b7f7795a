@@ -101,19 +101,48 @@ function computePeriodStats(
 
 /**
  * Fetch transactions for a position, optionally filtered by start date.
+ * Note: RLS filters transactions_v2 to investor_visible only for non-admins.
+ * YIELD transactions from transaction-purpose distributions are admin_only,
+ * so we separately query investor_yield_events for yield data.
  */
 async function fetchFilteredTxs(userId: string, fundId: string, startDate?: string) {
-  let query = supabase
+  // Fetch non-yield transactions from transactions_v2
+  let txQuery = supabase
     .from("transactions_v2")
     .select("type, amount, tx_date")
     .eq("investor_id", userId)
     .eq("fund_id", fundId)
+    .eq("is_voided", false)
+    .in("type", ["DEPOSIT", "WITHDRAWAL"]);
+  if (startDate) {
+    txQuery = txQuery.gte("tx_date", startDate);
+  }
+  const { data: txData } = await txQuery;
+
+  // Fetch yield amounts from investor_yield_events (visible to investors)
+  let yieldQuery = supabase
+    .from("investor_yield_events")
+    .select("net_yield_amount, event_date")
+    .eq("investor_id", userId)
+    .eq("fund_id", fundId)
+    .eq("visibility_scope", "investor_visible")
     .eq("is_voided", false);
   if (startDate) {
-    query = query.gte("tx_date", startDate);
+    yieldQuery = yieldQuery.gte("event_date", startDate);
   }
-  const { data } = await query;
-  return data || [];
+  const { data: yieldData } = await yieldQuery;
+
+  // Combine: transactions + yield events as pseudo-transactions
+  const combined: Array<{ type: string; amount: string | number; tx_date: string | null }> = [
+    ...(txData || []),
+    ...(yieldData || []).map((y) => ({
+      type: "YIELD",
+      amount: y.net_yield_amount,
+      tx_date: y.event_date,
+    })),
+  ];
+
+  return combined;
 }
 
 /**
