@@ -70,7 +70,7 @@ export function QuickYieldEntry() {
     }
 
     // Navigate to Monthly Data Entry with pre-selected fund
-    navigate(`/admin/monthly-data-entry?fund=${selectedFund}&aum=${newAUM}`);
+    navigate(`/admin/yield?fund=${selectedFund}&aum=${newAUM}`);
   };
 
   const formatCrypto = (value: string | number, decimals: number = 4) => {
@@ -203,7 +203,7 @@ export function QuickYieldEntry() {
             <Button
               variant="ghost"
               className="w-full text-xs"
-              onClick={() => navigate("/admin/monthly-data-entry")}
+              onClick={() => navigate("/admin/yield")}
             >
               Open Full Data Entry
               <ArrowRight className="h-3 w-3 ml-1" />

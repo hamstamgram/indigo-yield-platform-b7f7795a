@@ -48,7 +48,7 @@ export function useLoginMutation() {
     onSuccess: ({ isAdmin }) => {
       toast.success("Welcome back!");
       // Redirect based on role - DashboardLayout provides safety net if this fails
-      navigate(isAdmin ? "/admin" : "/dashboard", { replace: true });
+      navigate(isAdmin ? "/admin" : "/investor", { replace: true });
     },
     onError: (error: Error) => {
       logError("useLoginMutation", error);
@@ -122,7 +122,7 @@ export function useEmailVerification(tokenHash: string | null) {
     meta: {
       onSuccess: () => {
         toast.success("Email verified successfully!");
-        setTimeout(() => navigate("/dashboard"), 2000);
+        setTimeout(() => navigate("/investor"), 2000);
       },
       onError: () => {
         toast.error("Failed to verify email");

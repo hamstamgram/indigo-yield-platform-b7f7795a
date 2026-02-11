@@ -34,84 +34,337 @@ const FundBlock: React.FC<{ fund: InvestorFund }> = ({ fund }) => {
 
   return (
     <tr>
-      <td style={{ backgroundColor: "#ffffff", borderRadius: "10px", padding: "20px", border: "1px solid #e2e8f0" }}>
+      <td
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "10px",
+          padding: "20px",
+          border: "1px solid #e2e8f0",
+        }}
+      >
         <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
           <tbody>
             <tr>
               <td style={{ width: "40px" }} valign="middle">
-                <img src={iconUrl} alt={fund.name} width="32" style={{ border: 0, maxWidth: "100%" }} />
+                <img
+                  src={iconUrl}
+                  alt={fund.name}
+                  width="32"
+                  style={{ border: 0, maxWidth: "100%" }}
+                />
               </td>
               <td valign="middle" style={{ paddingLeft: "12px" }}>
-                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#1a202c" }}>{fund.name}</h2>
+                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#1a202c" }}>
+                  {fund.name}
+                </h2>
               </td>
             </tr>
           </tbody>
         </table>
 
         {/* Data Table */}
-        <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
+        <table
+          role="presentation"
+          cellPadding="0"
+          cellSpacing="0"
+          style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}
+        >
           <thead>
             <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-              <th scope="col" style={{ padding: "10px 8px", textAlign: "left", fontSize: "12px", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Capital Account Summary</th>
-              <th scope="col" style={{ padding: "10px 8px", textAlign: "right", fontSize: "12px", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>MTD ({fund.currency})</th>
-              <th scope="col" style={{ padding: "10px 8px", textAlign: "right", fontSize: "12px", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>QTD ({fund.currency})</th>
-              <th scope="col" style={{ padding: "10px 8px", textAlign: "right", fontSize: "12px", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>YTD ({fund.currency})</th>
-              <th scope="col" style={{ padding: "10px 8px", textAlign: "right", fontSize: "12px", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>ITD ({fund.currency})</th>
+              <th
+                scope="col"
+                style={{
+                  padding: "10px 8px",
+                  textAlign: "left",
+                  fontSize: "12px",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                }}
+              >
+                Capital Account Summary
+              </th>
+              <th
+                scope="col"
+                style={{
+                  padding: "10px 8px",
+                  textAlign: "right",
+                  fontSize: "12px",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                }}
+              >
+                MTD ({fund.currency})
+              </th>
+              <th
+                scope="col"
+                style={{
+                  padding: "10px 8px",
+                  textAlign: "right",
+                  fontSize: "12px",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                }}
+              >
+                QTD ({fund.currency})
+              </th>
+              <th
+                scope="col"
+                style={{
+                  padding: "10px 8px",
+                  textAlign: "right",
+                  fontSize: "12px",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                }}
+              >
+                YTD ({fund.currency})
+              </th>
+              <th
+                scope="col"
+                style={{
+                  padding: "10px 8px",
+                  textAlign: "right",
+                  fontSize: "12px",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                }}
+              >
+                ITD ({fund.currency})
+              </th>
             </tr>
           </thead>
           <tbody>
             {/* Beginning Balance */}
             <tr>
-              <td style={{ padding: "8px", fontSize: "14px", color: "#334155" }}>Beginning Balance</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.begin_balance_mtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.begin_balance_qtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.begin_balance_ytd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.begin_balance_itd}</td>
+              <td style={{ padding: "8px", fontSize: "14px", color: "#334155" }}>
+                Beginning Balance
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.begin_balance_mtd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.begin_balance_qtd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.begin_balance_ytd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.begin_balance_itd}
+              </td>
             </tr>
 
             {/* Additions */}
             <tr>
               <td style={{ padding: "8px", fontSize: "14px", color: "#334155" }}>Additions</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.additions_mtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.additions_qtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.additions_ytd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.additions_itd}</td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.additions_mtd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.additions_qtd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.additions_ytd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.additions_itd}
+              </td>
             </tr>
 
             {/* Redemptions */}
             <tr>
               <td style={{ padding: "8px", fontSize: "14px", color: "#334155" }}>Redemptions</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.redemptions_mtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.redemptions_qtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.redemptions_ytd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}>{fund.redemptions_itd}</td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.redemptions_mtd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.redemptions_qtd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.redemptions_ytd}
+              </td>
+              <td
+                style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b" }}
+              >
+                {fund.redemptions_itd}
+              </td>
             </tr>
 
             {/* Net Income - with color logic */}
             <tr>
               <td style={{ padding: "8px", fontSize: "14px", color: "#334155" }}>Net Income</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.net_income_mtd) }}>{fund.net_income_mtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.net_income_qtd) }}>{fund.net_income_qtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.net_income_ytd) }}>{fund.net_income_ytd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.net_income_itd) }}>{fund.net_income_itd}</td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.net_income_mtd),
+                }}
+              >
+                {fund.net_income_mtd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.net_income_qtd),
+                }}
+              >
+                {fund.net_income_qtd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.net_income_ytd),
+                }}
+              >
+                {fund.net_income_ytd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.net_income_itd),
+                }}
+              >
+                {fund.net_income_itd}
+              </td>
             </tr>
 
             {/* Ending Balance */}
             <tr style={{ borderTop: "1px solid #e2e8f0" }}>
-              <td style={{ padding: "8px", fontSize: "14px", color: "#334155", fontWeight: 600 }}>Ending Balance</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b", fontWeight: 600 }}>{fund.ending_balance_mtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b", fontWeight: 600 }}>{fund.ending_balance_qtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b", fontWeight: 600 }}>{fund.ending_balance_ytd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", color: "#1e293b", fontWeight: 600 }}>{fund.ending_balance_itd}</td>
+              <td style={{ padding: "8px", fontSize: "14px", color: "#334155", fontWeight: 600 }}>
+                Ending Balance
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  color: "#1e293b",
+                  fontWeight: 600,
+                }}
+              >
+                {fund.ending_balance_mtd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  color: "#1e293b",
+                  fontWeight: 600,
+                }}
+              >
+                {fund.ending_balance_qtd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  color: "#1e293b",
+                  fontWeight: 600,
+                }}
+              >
+                {fund.ending_balance_ytd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  color: "#1e293b",
+                  fontWeight: 600,
+                }}
+              >
+                {fund.ending_balance_itd}
+              </td>
             </tr>
 
             {/* Rate of Return - with color logic */}
             <tr style={{ backgroundColor: "#f8fafc" }}>
-              <td style={{ padding: "8px", fontSize: "14px", color: "#334155", fontWeight: 600 }}>Rate of Return</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.return_rate_mtd) }}>{fund.return_rate_mtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.return_rate_qtd) }}>{fund.return_rate_qtd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.return_rate_ytd) }}>{fund.return_rate_ytd}</td>
-              <td style={{ padding: "8px", textAlign: "right", fontSize: "14px", fontWeight: 700, color: getValueColor(fund.return_rate_itd) }}>{fund.return_rate_itd}</td>
+              <td style={{ padding: "8px", fontSize: "14px", color: "#334155", fontWeight: 600 }}>
+                Rate of Return
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.return_rate_mtd),
+                }}
+              >
+                {fund.return_rate_mtd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.return_rate_qtd),
+                }}
+              >
+                {fund.return_rate_qtd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.return_rate_ytd),
+                }}
+              >
+                {fund.return_rate_ytd}
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: getValueColor(fund.return_rate_itd),
+                }}
+              >
+                {fund.return_rate_itd}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -122,23 +375,59 @@ const FundBlock: React.FC<{ fund: InvestorFund }> = ({ fund }) => {
 
 export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ investor }) => {
   return (
-    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%", fontFamily: "'Montserrat', Arial, sans-serif" }}>
+    <table
+      role="presentation"
+      cellPadding="0"
+      cellSpacing="0"
+      style={{ width: "100%", fontFamily: "'Montserrat', Arial, sans-serif" }}
+    >
       <tbody>
         <tr>
           <td align="center" style={{ padding: "24px 12px" }}>
-            <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "600px", maxWidth: "100%" }}>
+            <table
+              role="presentation"
+              cellPadding="0"
+              cellSpacing="0"
+              style={{ width: "600px", maxWidth: "100%" }}
+            >
               <tbody>
                 {/* Brand Header */}
                 <tr>
-                  <td style={{ backgroundColor: "#edf0fe", padding: "20px 24px", borderRadius: "10px 10px 0 0" }}>
-                    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
+                  <td
+                    style={{
+                      backgroundColor: "#edf0fe",
+                      padding: "20px 24px",
+                      borderRadius: "10px 10px 0 0",
+                    }}
+                  >
+                    <table
+                      role="presentation"
+                      cellPadding="0"
+                      cellSpacing="0"
+                      style={{ width: "100%" }}
+                    >
                       <tbody>
                         <tr>
                           <td valign="middle">
-                            <img src={LOGO_URL} alt="Indigo Logo" height="24" style={{ display: "block", border: 0, height: "24px", width: "auto" }} />
+                            <img
+                              src={LOGO_URL}
+                              alt="Indigo Logo"
+                              height="24"
+                              style={{ display: "block", border: 0, height: "24px", width: "auto" }}
+                            />
                           </td>
                           <td valign="middle" align="right">
-                            <h1 style={{ margin: 0, fontSize: "22px", lineHeight: 1.2, color: "#0f172a", fontWeight: 700 }}>Monthly Report</h1>
+                            <h1
+                              style={{
+                                margin: 0,
+                                fontSize: "22px",
+                                lineHeight: 1.2,
+                                color: "#0f172a",
+                                fontWeight: 700,
+                              }}
+                            >
+                              Monthly Report
+                            </h1>
                           </td>
                         </tr>
                       </tbody>
@@ -148,18 +437,48 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
 
                 {/* Investor Header */}
                 <tr>
-                  <td style={{ backgroundColor: "#f8fafc", borderLeft: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0", padding: "20px 24px" }}>
-                    <p style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: 600, color: "#334155" }}>Investor: {investor.name}</p>
+                  <td
+                    style={{
+                      backgroundColor: "#f8fafc",
+                      borderLeft: "1px solid #e2e8f0",
+                      borderRight: "1px solid #e2e8f0",
+                      padding: "20px 24px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        margin: "0 0 4px 0",
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "#334155",
+                      }}
+                    >
+                      Investor: {investor.name}
+                    </p>
                     <p style={{ margin: 0, fontSize: "13px", lineHeight: 1.5, color: "#64748b" }}>
-                      Investor Statement for the Period Ended: <strong>{investor.reportDate}</strong>
+                      Investor Statement for the Period Ended:{" "}
+                      <strong>{investor.reportDate}</strong>
                     </p>
                   </td>
                 </tr>
 
                 {/* Main Content Area */}
                 <tr>
-                  <td style={{ padding: "24px", backgroundColor: "#f8fafc", borderRadius: "0 0 10px 10px", border: "1px solid #e2e8f0", borderTop: 0 }}>
-                    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
+                  <td
+                    style={{
+                      padding: "24px",
+                      backgroundColor: "#f8fafc",
+                      borderRadius: "0 0 10px 10px",
+                      border: "1px solid #e2e8f0",
+                      borderTop: 0,
+                    }}
+                  >
+                    <table
+                      role="presentation"
+                      cellPadding="0"
+                      cellSpacing="0"
+                      style={{ width: "100%" }}
+                    >
                       <tbody>
                         {investor.funds.map((fund, index) => (
                           <React.Fragment key={fund.name}>
@@ -184,25 +503,41 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
                 {/* Footer */}
                 <tr>
                   <td style={{ padding: "0 24px" }}>
-                    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
+                    <table
+                      role="presentation"
+                      cellPadding="0"
+                      cellSpacing="0"
+                      style={{ width: "100%" }}
+                    >
                       <tbody>
                         <tr>
                           <td style={{ textAlign: "center", paddingBottom: "16px" }}>
-                            <a href="https://linkedin.com" style={{ display: "inline-block", marginRight: "12px" }}>
-                              <img src={SOCIAL_ICONS.linkedin} alt="LinkedIn" width="24" height="24" style={{ border: 0 }} />
-                            </a>
-                            <a href="https://instagram.com" style={{ display: "inline-block", marginRight: "12px" }}>
-                              <img src={SOCIAL_ICONS.instagram} alt="Instagram" width="24" height="24" style={{ border: 0 }} />
-                            </a>
-                            <a href="https://twitter.com" style={{ display: "inline-block" }}>
-                              <img src={SOCIAL_ICONS.twitter} alt="Twitter" width="24" height="24" style={{ border: 0 }} />
+                            <a
+                              href="https://www.linkedin.com/company/indigo-yield"
+                              style={{ display: "inline-block", marginRight: "12px" }}
+                            >
+                              <img
+                                src={SOCIAL_ICONS.linkedin}
+                                alt="LinkedIn"
+                                width="24"
+                                height="24"
+                                style={{ border: 0 }}
+                              />
                             </a>
                           </td>
                         </tr>
                         <tr>
-                          <td style={{ textAlign: "center", fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>
+                          <td
+                            style={{
+                              textAlign: "center",
+                              fontSize: "12px",
+                              color: "#64748b",
+                              lineHeight: 1.5,
+                            }}
+                          >
                             <p style={{ margin: "0 0 8px 0" }}>
-                              This report is confidential and intended solely for the named recipient.
+                              This report is confidential and intended solely for the named
+                              recipient.
                             </p>
                             <p style={{ margin: 0 }}>
                               © {new Date().getFullYear()} Indigo Fund. All rights reserved.
@@ -227,12 +562,13 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
  * Uses the exact HTML template structure with bgcolor fallbacks for email compatibility
  */
 export function renderReportToHtml(investor: InvestorData): string {
-  const fundBlocksHtml = investor.funds.map((fund, index) => {
-    const iconUrl = FUND_ICONS[fund.name] || FUND_ICONS["USDC YIELD FUND"];
-    // Spacer is exactly 16px as per template requirement
-    const spacer = index > 0 ? '<tr><td style="height:16px;"></td></tr>' : '';
-    
-    return `${spacer}
+  const fundBlocksHtml = investor.funds
+    .map((fund, index) => {
+      const iconUrl = FUND_ICONS[fund.name] || FUND_ICONS["USDC YIELD FUND"];
+      // Spacer is exactly 16px as per template requirement
+      const spacer = index > 0 ? '<tr><td style="height:16px;"></td></tr>' : "";
+
+      return `${spacer}
                 <tr>
                   <td>
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;" bgcolor="#ffffff">
@@ -308,7 +644,8 @@ export function renderReportToHtml(investor: InvestorData): string {
                     </table>
                   </td>
                 </tr>`;
-  }).join('\n');
+    })
+    .join("\n");
 
   return `<!DOCTYPE html>
 <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -405,18 +742,8 @@ ${fundBlocksHtml}
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td style="padding:0 10px;">
-                    <a href="https://linkedin.com" style="display:block;">
+                    <a href="https://www.linkedin.com/company/indigo-yield" style="display:block;">
                       <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="display:block;border:0;">
-                    </a>
-                  </td>
-                  <td style="padding:0 10px;">
-                    <a href="https://instagram.com" style="display:block;">
-                      <img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="display:block;border:0;">
-                    </a>
-                  </td>
-                  <td style="padding:0 10px;">
-                    <a href="https://twitter.com" style="display:block;">
-                      <img src="${SOCIAL_ICONS.twitter}" alt="X" width="24" height="24" style="display:block;border:0;">
                     </a>
                   </td>
                 </tr>
@@ -427,10 +754,7 @@ ${fundBlocksHtml}
           <!-- Copyright & Unsubscribe -->
           <tr>
             <td align="center" style="padding-bottom:24px;background-color:#ffffff;" bgcolor="#ffffff">
-              <p style="margin:0 0 8px 0;font-size:12px;color:#94a3b8;" class="mobile-footer-text">© 2025 Indigo Fund. All rights reserved.</p>
-              <p style="margin:0;font-size:12px;" class="mobile-footer-text">
-                <a href="#" style="color:#6366f1;text-decoration:underline;">Unsubscribe</a>
-              </p>
+              <p style="margin:0;font-size:12px;color:#94a3b8;" class="mobile-footer-text">© ${new Date().getFullYear()} Indigo Fund. All rights reserved.</p>
             </td>
           </tr>
 

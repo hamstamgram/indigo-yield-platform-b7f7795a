@@ -22,7 +22,6 @@ import {
 } from "@/components/ui";
 import ProfileTab from "@/components/account/ProfileTab";
 import SecurityTab from "@/components/account/SecurityTab";
-import NotificationsTab from "@/components/account/NotificationsTab";
 import { useAuth } from "@/services/auth";
 import {
   useInvestorProfileData,
@@ -165,12 +164,6 @@ export default function InvestorSettingsPage() {
             Security
           </TabsTrigger>
           <TabsTrigger
-            value="notifications"
-            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
-          >
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger
             value="appearance"
             className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
           >
@@ -186,10 +179,6 @@ export default function InvestorSettingsPage() {
 
             <TabsContent value="security" className="mt-0 space-y-6">
               <SecurityTab />
-            </TabsContent>
-
-            <TabsContent value="notifications" className="mt-0 space-y-6">
-              <NotificationsTab />
             </TabsContent>
 
             <TabsContent value="appearance" className="mt-0 space-y-8">

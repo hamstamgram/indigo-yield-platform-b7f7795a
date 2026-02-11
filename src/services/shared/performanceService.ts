@@ -46,6 +46,104 @@ import { logError } from "@/lib/logger";
 import type { PerformanceWithPeriod } from "@/types/domains/yield";
 import { getInvestorPositions } from "@/services/investor/investorPositionService";
 
+/**
+ * Get the start date for each performance period.
+ */
+function getPeriodStartDates(): { mtd: string; qtd: string; ytd: string } {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed
+  const q = Math.floor(m / 3) * 3; // quarter start month
+  return {
+    mtd: new Date(y, m, 1).toISOString().slice(0, 10),
+    qtd: new Date(y, q, 1).toISOString().slice(0, 10),
+    ytd: new Date(y, 0, 1).toISOString().slice(0, 10),
+  };
+}
+
+/**
+ * Compute period stats from a filtered set of transactions.
+ * Uses Modified Dietz: RoR = netIncome / (beginningBalance + (additions - redemptions) / 2)
+ */
+function computePeriodStats(
+  txs: Array<{ type: string; amount: string | number }>,
+  endingBalance: number,
+  beginningBalance: number
+) {
+  let additions = 0;
+  let redemptions = 0;
+  let netIncome = 0;
+  for (const tx of txs) {
+    const amt = Math.abs(Number(tx.amount));
+    if (tx.type === "DEPOSIT") additions += amt;
+    else if (tx.type === "WITHDRAWAL") redemptions += amt;
+    else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
+      netIncome += Number(tx.amount);
+    }
+  }
+  const denominator = beginningBalance + (additions - redemptions) / 2;
+  const rateOfReturn = denominator > 0 && netIncome !== 0 ? (netIncome / denominator) * 100 : 0;
+  return { beginningBalance, additions, redemptions, netIncome, endingBalance, rateOfReturn };
+}
+
+/**
+ * Fetch transactions for a position, optionally filtered by start date.
+ */
+async function fetchFilteredTxs(userId: string, fundId: string, startDate?: string) {
+  let query = supabase
+    .from("transactions_v2")
+    .select("type, amount, tx_date")
+    .eq("investor_id", userId)
+    .eq("fund_id", fundId)
+    .eq("is_voided", false);
+  if (startDate) {
+    query = query.gte("tx_date", startDate);
+  }
+  const { data } = await query;
+  return data || [];
+}
+
+/**
+ * Build per-period stats for a position from raw transactions.
+ * Computes MTD, QTD, YTD, ITD independently with proper date filtering.
+ */
+async function buildPeriodStatsFromTxs(userId: string, fundId: string, endingBalance: number) {
+  const dates = getPeriodStartDates();
+
+  // Fetch all transactions (ITD) and filter in-memory for sub-periods
+  const allTxs = await fetchFilteredTxs(userId, fundId);
+
+  const filterByDate = (txs: typeof allTxs, startDate: string) =>
+    txs.filter((tx) => (tx.tx_date || "") >= startDate);
+
+  const mtdTxs = filterByDate(allTxs, dates.mtd);
+  const qtdTxs = filterByDate(allTxs, dates.qtd);
+  const ytdTxs = filterByDate(allTxs, dates.ytd);
+
+  // Beginning balance = ending balance - (deposits - withdrawals + netIncome) for the period
+  const calcBeginning = (txs: typeof allTxs) => {
+    let deposits = 0;
+    let withdrawals = 0;
+    let income = 0;
+    for (const tx of txs) {
+      const amt = Math.abs(Number(tx.amount));
+      if (tx.type === "DEPOSIT") deposits += amt;
+      else if (tx.type === "WITHDRAWAL") withdrawals += amt;
+      else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
+        income += Number(tx.amount);
+      }
+    }
+    return endingBalance - deposits + withdrawals - income;
+  };
+
+  return {
+    mtd: computePeriodStats(mtdTxs, endingBalance, calcBeginning(mtdTxs)),
+    qtd: computePeriodStats(qtdTxs, endingBalance, calcBeginning(qtdTxs)),
+    ytd: computePeriodStats(ytdTxs, endingBalance, calcBeginning(ytdTxs)),
+    itd: computePeriodStats(allTxs, endingBalance, 0),
+  };
+}
+
 export const performanceService = {
   /**
    * Fetch performance history for an investor
@@ -165,45 +263,15 @@ export const performanceService = {
     // Group by period to find the latest one if no periodId specified
     const rows = perfRows || [];
     if (rows.length === 0) {
-      // No performance data - compute from transactions
+      // No performance data - compute from transactions with proper period filtering
       const computedAssets = [];
       for (const pos of activePositions) {
-        const { data: txSums } = await supabase
-          .from("transactions_v2")
-          .select("type, amount")
-          .eq("investor_id", userId)
-          .eq("fund_id", pos.fundId)
-          .eq("is_voided", false);
-
-        let additions = 0;
-        let redemptions = 0;
-        let netIncome = 0;
-        for (const tx of txSums || []) {
-          const amt = Math.abs(Number(tx.amount));
-          if (tx.type === "DEPOSIT") additions += amt;
-          else if (tx.type === "WITHDRAWAL") redemptions += amt;
-          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-            netIncome += Number(tx.amount);
-          }
-        }
-
-        const itdStats = {
-          beginningBalance: 0,
-          additions,
-          redemptions,
-          netIncome,
-          endingBalance: pos.currentValue,
-          rateOfReturn: additions > 0 && netIncome !== 0 ? (netIncome / additions) * 100 : 0,
-        };
-
+        const periodStats = await buildPeriodStatsFromTxs(userId, pos.fundId, pos.currentValue);
         computedAssets.push({
           fundName: pos.fundName,
           assetSymbol: pos.asset,
           periodName: "Current",
-          mtd: itdStats,
-          qtd: itdStats,
-          ytd: itdStats,
-          itd: itdStats,
+          ...periodStats,
         });
       }
       return {
@@ -301,44 +369,13 @@ export const performanceService = {
     );
 
     if (missingPositions.length > 0) {
-      // Batch fetch transaction sums for all missing positions
       for (const pos of missingPositions) {
-        const { data: txSums } = await supabase
-          .from("transactions_v2")
-          .select("type, amount")
-          .eq("investor_id", userId)
-          .eq("fund_id", pos.fundId)
-          .eq("is_voided", false);
-
-        let additions = 0;
-        let redemptions = 0;
-        let netIncome = 0;
-        for (const tx of txSums || []) {
-          const amt = Math.abs(Number(tx.amount));
-          if (tx.type === "DEPOSIT") additions += amt;
-          else if (tx.type === "WITHDRAWAL") redemptions += amt;
-          else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-            netIncome += Number(tx.amount);
-          }
-        }
-
-        const itdStats = {
-          beginningBalance: 0,
-          additions,
-          redemptions,
-          netIncome,
-          endingBalance: pos.currentValue,
-          rateOfReturn: additions > 0 && netIncome !== 0 ? (netIncome / additions) * 100 : 0,
-        };
-
+        const periodStats = await buildPeriodStatsFromTxs(userId, pos.fundId, pos.currentValue);
         perAssetStats.push({
           fundName: pos.fundName,
           assetSymbol: pos.asset,
           periodName: periodLabel || "Current",
-          mtd: itdStats,
-          qtd: itdStats,
-          ytd: itdStats,
-          itd: itdStats,
+          ...periodStats,
         });
       }
     }

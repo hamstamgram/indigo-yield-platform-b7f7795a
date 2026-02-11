@@ -35,7 +35,7 @@ export function useSignIn() {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
-      navigate(isAdmin ? "/admin" : "/dashboard", { replace: true });
+      navigate(isAdmin ? "/admin" : "/investor", { replace: true });
     },
     onError: (error: Error) => {
       logError("signIn", error);
@@ -189,7 +189,7 @@ export function useAcceptInvestorInvite() {
         description: "Your investor account has been created successfully.",
       });
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/investor");
       }, 3000);
     },
     onError: (error: Error) => {

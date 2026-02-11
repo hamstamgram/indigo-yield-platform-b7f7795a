@@ -59,7 +59,7 @@ export const FEATURE_FLAGS: FeatureFlags = {
   SCHEDULED_REPORTS: false, // ⚠️ Requires cron job or Edge Function implementation
   PUSH_NOTIFICATIONS: false, // ⚠️ Requires service worker + push API setup
   TWO_FACTOR_AUTH: false, // ⚠️ TOTP implementation needs encryption key rotation
-  DARK_MODE: false, // ⚠️ UI theme system not implemented
+  DARK_MODE: true, // Dark theme is always forced on
   OFFLINE_MODE: false, // ⚠️ Service worker + cache strategy not implemented
 
   // ===== PHASE 3 - DISABLED (Future) =====

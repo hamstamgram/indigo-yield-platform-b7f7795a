@@ -58,7 +58,7 @@ export default function AdminInviteCallback() {
 
         // Redirect to admin dashboard after a moment
         setTimeout(() => {
-          navigate("/admin/dashboard", { replace: true });
+          navigate("/admin", { replace: true });
         }, 2000);
       } catch (error) {
         logError("AdminInviteCallback.callbackError", error);

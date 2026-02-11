@@ -28,7 +28,7 @@ export default function Login() {
   // Redirect if already authenticated
   useEffect(() => {
     if (authData) {
-      navigate(authData.isAdmin ? "/admin" : "/dashboard", { replace: true });
+      navigate(authData.isAdmin ? "/admin" : "/investor", { replace: true });
     }
   }, [authData, navigate]);
 

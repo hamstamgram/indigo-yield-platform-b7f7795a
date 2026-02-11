@@ -93,11 +93,6 @@ export function CoreInvestorRoutes() {
       <Route path="/statements" element={<Navigate to="/investor/statements" replace />} />
       <Route path="/transactions" element={<Navigate to="/investor/transactions" replace />} />
       <Route path="/account" element={<Navigate to="/investor/settings" replace />} />
-      <Route
-        path="/portfolio/analytics"
-        element={<Navigate to="/investor/performance" replace />}
-      />
-
       {/* Detail routes */}
       <Route
         path="/transactions/:id"

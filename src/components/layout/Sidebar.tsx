@@ -72,7 +72,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     if (view === "admin") {
       navigate("/admin");
     } else if (view === "investor") {
-      navigate("/dashboard");
+      navigate("/investor");
     }
   };
 
@@ -201,7 +201,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               className="flex items-center gap-3 cursor-pointer group"
               onClick={() => {
                 if (activePortal === "admin") navigate("/admin");
-                else navigate("/dashboard");
+                else navigate("/investor");
               }}
             >
               <div className="relative">
