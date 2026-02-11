@@ -1,22 +1,31 @@
 /**
- * INDIGO Fees Page
- * Shows platform fee collection, INDIGO FEES account balance, yield earned,
- * and audit trail with full distribution history
+ * Fee Revenue Page
+ * Shows platform fee revenue KPIs, INDIGO FEES account balance, yield earned,
+ * and fee credit transaction audit trail.
  */
 
 import { useState, useMemo } from "react";
-import { Loader2 } from "lucide-react";
-import { ExportButton } from "@/components/common";
-import type { ExportColumn } from "@/lib/export/csv-export";
+import { Loader2, Download, FileText, Table2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { CSVExporter, type ExportColumn } from "@/lib/export/csv-export";
 import { AdminGuard } from "@/components/admin";
+import { useToast } from "@/hooks";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { useFeesOverview, type FeeSummary } from "@/hooks/data";
 import {
   FeesBalanceCard,
   YieldEarnedSummaryCard,
+  FeeRevenueKPIs,
   FeeDateRangeFilter,
   FeeSummaryCards,
   FeeTransactionsTable,
+  exportFeesToPDF,
 } from "@/components/admin/fees";
 
 const feeExportColumns: ExportColumn[] = [
@@ -25,11 +34,11 @@ const feeExportColumns: ExportColumn[] = [
   { key: "asset", label: "Asset" },
   { key: "amount", label: "Amount" },
   { key: "fundName", label: "Fund" },
-  { key: "type", label: "Type" },
 ];
 
 function FeesOverviewContent() {
   const { data, isLoading } = useFeesOverview();
+  const { toast } = useToast();
 
   const [selectedFund, setSelectedFund] = useState<string>("all");
 
@@ -86,20 +95,61 @@ function FeesOverviewContent() {
     <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">INDIGO Fees</h1>
+          <h1 className="text-3xl font-display font-bold tracking-tight">Fee Revenue</h1>
           <p className="text-muted-foreground mt-1">
-            Platform fee collection and yield participation tracking
+            Platform fee revenue and INDIGO account overview
           </p>
         </div>
-        <ExportButton
-          data={filteredFees}
-          columns={feeExportColumns}
-          filename="fee-transactions"
-          disabled={filteredFees.length === 0}
-        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={filteredFees.length === 0}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={async () => {
+                const result = await CSVExporter.exportToCSV(filteredFees, {
+                  filename: "fee-revenue",
+                  columns: feeExportColumns,
+                  includeHeaders: true,
+                  encoding: "utf-8-bom",
+                });
+                if (result.success) {
+                  toast({
+                    title: "Export complete",
+                    description: `${result.rowCount} rows exported`,
+                  });
+                } else {
+                  toast({
+                    title: "Export failed",
+                    description: result.error,
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              <Table2 className="h-4 w-4 mr-2" />
+              Export CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportFeesToPDF(filteredFees)}>
+              <FileText className="h-4 w-4 mr-2" />
+              Export PDF
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Summary Cards Row */}
+      {/* Revenue KPI Cards: MTD / YTD / ITD */}
+      <FeeRevenueKPIs fees={fees} />
+
+      {/* Balance + Yield Earned Row */}
       <div className="grid gap-4 md:grid-cols-2">
         <FeesBalanceCard balances={indigoFeesBalance} />
         <YieldEarnedSummaryCard yields={yieldEarned} />

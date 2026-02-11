@@ -6,6 +6,7 @@
 // Cards
 export { FeesBalanceCard } from "./FeesBalanceCard";
 export { YieldEarnedSummaryCard } from "./YieldEarnedSummaryCard";
+export { FeeRevenueKPIs } from "./FeeRevenueKPIs";
 
 // Filters
 export { FeeDateRangeFilter } from "./FeeDateRangeFilter";
@@ -19,4 +20,4 @@ export { FeeAllocationAuditTable } from "./FeeAllocationAuditTable";
 export { YieldEarnedTab } from "./YieldEarnedTab";
 
 // Utilities
-export { formatFeeAmount, exportFeesToCSV } from "./utils/feeUtils";
+export { formatFeeAmount, exportFeesToCSV, exportFeesToPDF } from "./utils/feeUtils";

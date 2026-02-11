@@ -6,6 +6,7 @@
 export {
   FeesBalanceCard,
   YieldEarnedSummaryCard,
+  FeeRevenueKPIs,
   FeeDateRangeFilter,
   FeeSummaryCards,
   FeeTransactionsTable,
@@ -13,4 +14,5 @@ export {
   YieldEarnedTab,
   formatFeeAmount,
   exportFeesToCSV,
+  exportFeesToPDF,
 } from "@/features/admin/fees/components";

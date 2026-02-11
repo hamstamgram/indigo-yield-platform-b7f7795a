@@ -1,6 +1,6 @@
 /**
  * Fee Transactions Table
- * Main table showing individual fee records with filters
+ * Shows FEE_CREDIT transactions with fund filter and sorting.
  */
 
 import { format } from "date-fns";
@@ -22,12 +22,11 @@ import {
   SelectTrigger,
   SelectValue,
   Badge,
-  Button,
   SortableTableHead,
 } from "@/components/ui";
-import { Download, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { formatFeeAmount, exportFeesToCSV } from "./utils/feeUtils";
+import { formatFeeAmount } from "./utils/feeUtils";
 import type { FeeRecord } from "@/hooks/data";
 import { useSortableColumns } from "@/hooks";
 
@@ -61,33 +60,22 @@ export function FeeTransactionsTable({
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle>Fee Transactions</CardTitle>
-            <CardDescription>Individual fee deductions and credits</CardDescription>
+            <CardTitle>Fee Credit Transactions</CardTitle>
+            <CardDescription>Platform fee credits from yield distributions</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedFund} onValueChange={onFundChange}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by fund" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Funds</SelectItem>
-                {funds.map((fund) => (
-                  <SelectItem key={fund.id} value={fund.id}>
-                    {fund.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportFeesToCSV(fees)}
-              disabled={fees.length === 0}
-            >
-              <Download className="h-4 w-4 mr-1" />
-              Export
-            </Button>
-          </div>
+          <Select value={selectedFund} onValueChange={onFundChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by fund" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Funds</SelectItem>
+              {funds.map((fund) => (
+                <SelectItem key={fund.id} value={fund.id}>
+                  {fund.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
       <CardContent>
@@ -108,9 +96,6 @@ export function FeeTransactionsTable({
                 <SortableTableHead column="fundName" currentSort={sortConfig} onSort={requestSort}>
                   Fund
                 </SortableTableHead>
-                <SortableTableHead column="type" currentSort={sortConfig} onSort={requestSort}>
-                  Type
-                </SortableTableHead>
                 <SortableTableHead
                   column="amount"
                   currentSort={sortConfig}
@@ -120,20 +105,18 @@ export function FeeTransactionsTable({
                   Amount
                 </SortableTableHead>
                 <TableHead>Purpose</TableHead>
-                <TableHead>Visibility</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     <div className="space-y-2">
                       <AlertCircle className="h-8 w-8 mx-auto opacity-50" />
-                      <p>No fee transactions found</p>
+                      <p>No fee credit transactions found</p>
                       <p className="text-xs max-w-md mx-auto">
-                        Fee transactions (FEE, FEE_CREDIT, IB_CREDIT) are created during yield
-                        distributions. Try adjusting the date range or run a yield distribution to
-                        generate fee records.
+                        Fee credits are created during yield distributions. Try adjusting the date
+                        range or run a yield distribution to generate fee records.
                       </p>
                     </div>
                   </TableCell>
@@ -156,20 +139,6 @@ export function FeeTransactionsTable({
                         <span className="text-sm">{fee.fundName}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          fee.type === "FEE_CREDIT"
-                            ? "default"
-                            : fee.type === "IB_CREDIT"
-                              ? "secondary"
-                              : "outline"
-                        }
-                        className={fee.type === "FEE_CREDIT" ? "bg-emerald-600" : ""}
-                      >
-                        {fee.type}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="text-right font-mono">
                       <span className={fee.amount > 0 ? "text-emerald-600" : ""}>
                         {fee.amount > 0 ? "+" : ""}
@@ -179,15 +148,8 @@ export function FeeTransactionsTable({
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
-                        {fee.purpose || "—"}
+                        {fee.purpose || "---"}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-xs ${fee.visibilityScope === "admin_only" ? "text-amber-500" : "text-muted-foreground"}`}
-                      >
-                        {fee.visibilityScope || "—"}
-                      </span>
                     </TableCell>
                   </TableRow>
                 ))
