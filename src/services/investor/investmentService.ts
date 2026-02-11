@@ -4,6 +4,7 @@ import { logError } from "@/lib/logger";
 import { rpc } from "@/lib/rpc/index";
 import { getTodayString } from "@/utils/dateUtils";
 import { generateUUID } from "@/lib/utils";
+import { parseFinancial } from "@/utils/financial";
 
 export const investmentService = {
   /**
@@ -21,9 +22,7 @@ export const investmentService = {
 
     // Map transaction type
     const type = data.transaction_type === "redemption" ? "WITHDRAWAL" : "DEPOSIT";
-    const amount = Math.abs(
-      typeof data.amount === "string" ? parseFloat(data.amount) : data.amount
-    );
+    const amountDec = parseFinancial(data.amount).abs();
 
     const closingAum = data.closing_aum;
     if (!closingAum) {
@@ -53,10 +52,10 @@ export const investmentService = {
       p_fund_id: data.fund_id,
       p_investor_id: data.investor_id,
       p_tx_type: type,
-      p_amount: amount,
+      p_amount: amountDec.toString() as unknown as number,
       p_tx_date: txDate,
       p_reference_id: triggerReference,
-      p_new_total_aum: Number(closingAum),
+      p_new_total_aum: parseFinancial(closingAum).toString() as unknown as number,
       p_admin_id: user.id,
       p_notes: `${type === "DEPOSIT" ? "Investment" : "Redemption"} - ${triggerReference}`,
       p_purpose: "transaction",

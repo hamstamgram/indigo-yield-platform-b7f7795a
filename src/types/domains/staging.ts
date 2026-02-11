@@ -102,7 +102,8 @@ export interface CSVImportRow {
   investor_email?: string;
   investor_id?: string;
   type: string;
-  amount: string | number;
+  /** @precision NUMERIC(28,10) - use string for precision */
+  amount: string;
   tx_date: string;
   reference_id?: string;
   notes?: string;

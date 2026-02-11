@@ -50,12 +50,11 @@ export async function applyYieldDistribution(
   }
 
   // Call V5 apply RPC (segmented proportional allocation)
-  // NOTE: .toNumber() is required by Supabase types. Precision is safe for typical AUM values
-  // (JS Number handles up to ~9e15; crypto AUM rarely exceeds this).
+  // Use .toString() for financial precision - PostgreSQL NUMERIC handles string input correctly
   const { data, error } = await callRPC("apply_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),
-    p_recorded_aum: parsedAum.toNumber(),
+    p_recorded_aum: parsedAum.toString() as unknown as number,
     p_admin_id: adminId,
     p_purpose: purpose,
   });
@@ -98,17 +97,19 @@ export async function applyYieldDistribution(
     .eq("is_voided", false);
 
   if (affectedInvestors?.length && fundInfo) {
-    const openingAum = Number(result.opening_aum || 0);
-    const grossYield = Number(result.gross_yield || 0);
+    const openingAumDec = parseFinancial(result.opening_aum);
+    const grossYieldDec = parseFinancial(result.gross_yield);
     const notificationDistributions = affectedInvestors.map((inv) => ({
       userId: inv.investor_id,
       distributionId: `yield:${fundId}:${formatDateForDB(periodEndDate)}:${inv.investor_id}`,
       fundId,
       fundName: fundInfo.name,
-      amount: Number(inv.amount),
+      amount: parseFinancial(inv.amount).toNumber(), // Safe for notification display
       asset: fundInfo.asset,
       yieldDate: formatDateForDB(periodEndDate),
-      yieldPercentage: openingAum > 0 ? (grossYield / openingAum) * 100 : undefined,
+      yieldPercentage: openingAumDec.gt(0)
+        ? grossYieldDec.div(openingAumDec).times(100).toNumber()
+        : undefined,
     }));
 
     yieldNotifications
@@ -133,7 +134,7 @@ export async function applyYieldDistribution(
     yieldDate: targetDate,
     purpose,
     currentAUM: String(result?.opening_aum || 0),
-    newAUM: String(result?.recorded_aum || parsedAum.toNumber()),
+    newAUM: String(result?.recorded_aum || parsedAum.toString()),
     grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,

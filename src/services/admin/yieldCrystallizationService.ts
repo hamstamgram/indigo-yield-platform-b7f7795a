@@ -87,7 +87,7 @@ export async function crystallizeYieldBeforeFlow(
   //   p_trigger_reference, p_event_ts, p_admin_id, p_purpose)
   const { data, error } = await callRPC("crystallize_yield_before_flow", {
     p_fund_id: fundId, // 1. uuid
-    p_closing_aum: Number(closingAum), // 2. numeric
+    p_closing_aum: parseFinancial(closingAum).toString() as unknown as number, // 2. numeric - string for precision
     p_trigger_type: triggerType, // 3. text
     p_trigger_reference: triggerReference || null, // 4. text (nullable)
     p_event_ts: eventTs.toISOString(), // 5. timestamptz
@@ -397,7 +397,7 @@ export async function crystallizeMonthEnd(
   const { data, error } = await callRPC("crystallize_month_end", {
     p_fund_id: fundId,
     p_month_end_date: formatDateForDB(monthEndDate),
-    p_closing_aum: Number(closingAum),
+    p_closing_aum: parseFinancial(closingAum).toString() as unknown as number,
     p_admin_id: adminId,
   });
 

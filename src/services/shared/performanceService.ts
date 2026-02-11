@@ -45,6 +45,7 @@ import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
 import { logError } from "@/lib/logger";
 import type { PerformanceWithPeriod } from "@/types/domains/yield";
 import { getInvestorPositions } from "@/services/investor/investorPositionService";
+import { parseFinancial, toDecimal } from "@/utils/financial";
 
 /**
  * Get the start date for each performance period.
@@ -70,33 +71,44 @@ function computePeriodStats(
   endingBalance: number,
   beginningBalance: number
 ) {
-  let additions = 0;
-  let redemptions = 0;
-  let netIncome = 0;
+  let additionsDec = toDecimal(0);
+  let redemptionsDec = toDecimal(0);
+  let netIncomeDec = toDecimal(0);
   for (const tx of txs) {
-    const amt = Math.abs(Number(tx.amount));
-    if (tx.type === "DEPOSIT") additions += amt;
-    else if (tx.type === "WITHDRAWAL") redemptions += amt;
+    const amt = parseFinancial(tx.amount).abs();
+    if (tx.type === "DEPOSIT") additionsDec = additionsDec.plus(amt);
+    else if (tx.type === "WITHDRAWAL") redemptionsDec = redemptionsDec.plus(amt);
     else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-      netIncome += Number(tx.amount);
+      netIncomeDec = netIncomeDec.plus(parseFinancial(tx.amount));
     }
   }
-  const denominator = beginningBalance + (additions - redemptions) / 2;
-  if (denominator <= 0 && netIncome !== 0) {
+  const beginningBalanceDec = toDecimal(beginningBalance);
+  const denominator = beginningBalanceDec.plus(additionsDec.minus(redemptionsDec).div(2));
+  if (denominator.lte(0) && !netIncomeDec.isZero()) {
     logError(
       "performanceService.computePeriodStats",
       new Error("Zero or negative denominator in Modified Dietz calculation"),
       {
         beginningBalance,
-        additions,
-        redemptions,
-        netIncome,
-        denominator,
+        additions: additionsDec.toNumber(),
+        redemptions: redemptionsDec.toNumber(),
+        netIncome: netIncomeDec.toNumber(),
+        denominator: denominator.toNumber(),
       }
     );
   }
-  const rateOfReturn = denominator > 0 && netIncome !== 0 ? (netIncome / denominator) * 100 : 0;
-  return { beginningBalance, additions, redemptions, netIncome, endingBalance, rateOfReturn };
+  const rateOfReturn =
+    denominator.gt(0) && !netIncomeDec.isZero()
+      ? netIncomeDec.div(denominator).times(100).toNumber()
+      : 0;
+  return {
+    beginningBalance,
+    additions: additionsDec.toNumber(),
+    redemptions: redemptionsDec.toNumber(),
+    netIncome: netIncomeDec.toNumber(),
+    endingBalance,
+    rateOfReturn,
+  };
 }
 
 /**

@@ -216,32 +216,32 @@ export interface ADBYieldRPCResult {
   fund_id?: string;
   fund_code?: string;
   fund_asset?: string;
-  /** @precision NUMERIC - string for financial safety */
-  gross_yield?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  net_yield?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  total_fees?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  total_ib?: string | number;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  gross_yield?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  net_yield?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  total_fees?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  total_ib?: string;
   investor_count?: number;
-  /** @precision NUMERIC - string for financial safety */
-  yield_rate_pct?: string | number;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  yield_rate_pct?: string;
   days_in_period?: number;
-  /** @precision NUMERIC - string for financial safety */
-  total_adb?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  total_loss_offset?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  dust_amount?: string | number;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  total_adb?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  total_loss_offset?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  dust_amount?: string;
   features?: string[];
   conservation_check?: boolean;
   // Preview-specific fields
   allocations?: ADBAllocationItem[];
   // Crystallization info (reporting purpose)
   crystals_in_period?: number;
-  /** @precision NUMERIC - string for financial safety */
-  crystal_gross_total?: string | number;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  crystal_gross_total?: string;
 }
 
 /**
@@ -253,29 +253,29 @@ export interface ADBAllocationItem {
   investor_email?: string;
   investor_name: string;
   account_type?: string;
-  /** @precision NUMERIC - string for financial safety */
-  adb: string | number;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  adb: string;
   /** Percentage weight (0-100) based on ADB */
-  adb_share_pct: string | number;
-  fee_pct: string | number;
+  adb_share_pct: string;
+  fee_pct: string;
   /** Gross yield amount allocated to this investor */
-  gross_yield: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  fee_amount: string | number;
+  gross_yield: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  fee_amount: string;
   /** Net yield after fees */
-  net_yield: string | number;
+  net_yield: string;
   ib_parent_id?: string;
   ib_parent_name?: string;
   /** IB commission rate percentage */
-  ib_rate?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  ib_amount?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  carried_loss?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  loss_offset?: string | number;
-  /** @precision NUMERIC - string for financial safety */
-  taxable_gain?: string | number;
+  ib_rate?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  ib_amount?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  carried_loss?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  loss_offset?: string;
+  /** @precision NUMERIC(28,10) - string for financial safety */
+  taxable_gain?: string;
   has_ib?: boolean;
 }
 

@@ -149,23 +149,16 @@ export async function processDepositWithYield(
     const triggerReference = (
       txHash || `deposit_yield:${txDate}:${investorId}:${generateUUID()}`
     ).replace(/^DEP:/, "");
-    const amountFixed = amountDec.toFixed(10);
-    const closingAumBeforeDepositFixed = closingAumBeforeDeposit.toFixed(10);
 
-    // NOTE: Number() conversion is required by Supabase generated types (p_amount: number).
-    // Precision is preserved because:
-    // 1. Decimal.js maintains full precision during calculation
-    // 2. .toFixed(10) serializes to string with 10 decimal places
-    // 3. Number() can safely represent values up to ~9e15 (sufficient for crypto amounts)
-    // 4. PostgreSQL receives the value and stores in NUMERIC(28,10)
+    // Use string representation for financial precision - PostgreSQL NUMERIC handles strings correctly
     const rpcResult = await rpc.call("apply_transaction_with_crystallization", {
       p_fund_id: fundId,
       p_investor_id: investorId,
       p_tx_type: "DEPOSIT",
-      p_amount: Number(amountFixed),
+      p_amount: amountDec.toString() as unknown as number,
       p_tx_date: txDate,
       p_reference_id: triggerReference,
-      p_new_total_aum: Number(closingAumBeforeDepositFixed),
+      p_new_total_aum: closingAumBeforeDeposit.toString() as unknown as number,
       p_admin_id: user.id,
       p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
       p_purpose: "transaction",
