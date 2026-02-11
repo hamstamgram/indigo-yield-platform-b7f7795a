@@ -8,7 +8,6 @@ export {
   YieldEarnedSummaryCard,
   FeeRevenueKPIs,
   FeeDateRangeFilter,
-  FeeSummaryCards,
   FeeTransactionsTable,
   FeeAllocationAuditTable,
   YieldEarnedTab,

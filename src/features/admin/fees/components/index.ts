@@ -10,7 +10,6 @@ export { FeeRevenueKPIs } from "./FeeRevenueKPIs";
 
 // Filters
 export { FeeDateRangeFilter } from "./FeeDateRangeFilter";
-export { FeeSummaryCards } from "./FeeSummaryCards";
 
 // Tables
 export { FeeTransactionsTable } from "./FeeTransactionsTable";

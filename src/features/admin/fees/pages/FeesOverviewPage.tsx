@@ -1,6 +1,6 @@
 /**
- * Fee Revenue Page
- * Shows platform fee revenue KPIs, INDIGO FEES account balance, yield earned,
+ * INDIGO FEES Page
+ * Shows INDIGO fees account balance, revenue KPIs, yield earned,
  * and fee credit transaction audit trail.
  */
 
@@ -17,13 +17,12 @@ import { CSVExporter, type ExportColumn } from "@/lib/export/csv-export";
 import { AdminGuard } from "@/components/admin";
 import { useToast } from "@/hooks";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
-import { useFeesOverview, type FeeSummary } from "@/hooks/data";
+import { useFeesOverview } from "@/hooks/data";
 import {
   FeesBalanceCard,
   YieldEarnedSummaryCard,
   FeeRevenueKPIs,
   FeeDateRangeFilter,
-  FeeSummaryCards,
   FeeTransactionsTable,
   exportFeesToPDF,
 } from "@/components/admin/fees";
@@ -67,22 +66,6 @@ function FeesOverviewContent() {
     });
   }, [fees, selectedFund, dateFrom, dateTo]);
 
-  // Calculate filtered summaries
-  const filteredSummaries = useMemo(() => {
-    const summaryMap = new Map<string, FeeSummary>();
-    filteredFees.forEach((fee) => {
-      const existing = summaryMap.get(fee.asset) || {
-        assetCode: fee.asset,
-        totalAmount: 0,
-        transactionCount: 0,
-      };
-      existing.totalAmount += fee.amount;
-      existing.transactionCount += 1;
-      summaryMap.set(fee.asset, existing);
-    });
-    return Array.from(summaryMap.values());
-  }, [filteredFees]);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -95,9 +78,9 @@ function FeesOverviewContent() {
     <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Fee Revenue</h1>
+          <h1 className="text-3xl font-display font-bold tracking-tight">INDIGO FEES</h1>
           <p className="text-muted-foreground mt-1">
-            Platform fee revenue and INDIGO account overview
+            INDIGO fees account overview and transaction audit trail
           </p>
         </div>
         <DropdownMenu>
@@ -116,7 +99,7 @@ function FeesOverviewContent() {
             <DropdownMenuItem
               onClick={async () => {
                 const result = await CSVExporter.exportToCSV(filteredFees, {
-                  filename: "fee-revenue",
+                  filename: "indigo-fees",
                   columns: feeExportColumns,
                   includeHeaders: true,
                   encoding: "utf-8-bom",
@@ -146,36 +129,37 @@ function FeesOverviewContent() {
         </DropdownMenu>
       </div>
 
-      {/* Revenue KPI Cards: MTD / YTD / ITD */}
+      {/* Revenue Overview - MTD / YTD / ITD */}
       <FeeRevenueKPIs fees={fees} />
 
-      {/* Balance + Yield Earned Row */}
+      {/* Divider */}
+      <div className="border-t border-border" />
+
+      {/* Account Status - Balance + Yield Earned */}
       <div className="grid gap-4 md:grid-cols-2">
         <FeesBalanceCard balances={indigoFeesBalance} />
         <YieldEarnedSummaryCard yields={yieldEarned} />
       </div>
 
-      {/* Date Filter and Summary Cards */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      {/* Divider */}
+      <div className="border-t border-border" />
+
+      {/* Transaction Audit Trail */}
+      <div className="space-y-4">
         <FeeDateRangeFilter
           dateFrom={dateFrom}
           dateTo={dateTo}
           onDateFromChange={setDateFrom}
           onDateToChange={setDateTo}
         />
-        <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <FeeSummaryCards summaries={filteredSummaries} />
-        </div>
+        <FeeTransactionsTable
+          fees={filteredFees}
+          totalCount={fees.length}
+          funds={funds}
+          selectedFund={selectedFund}
+          onFundChange={setSelectedFund}
+        />
       </div>
-
-      {/* Fee Records Table */}
-      <FeeTransactionsTable
-        fees={filteredFees}
-        totalCount={fees.length}
-        funds={funds}
-        selectedFund={selectedFund}
-        onFundChange={setSelectedFund}
-      />
     </div>
   );
 }

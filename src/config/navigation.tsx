@@ -63,7 +63,7 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "Fee Revenue",
+        title: "INDIGO FEES",
         href: "/admin/fees",
         icon: <DollarSign className="h-5 w-5" />,
         adminOnly: true,
