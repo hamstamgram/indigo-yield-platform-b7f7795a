@@ -1,6 +1,6 @@
 /**
  * Yield Distributions Admin Page
- * Monthly distribution overview with per-investor ADB + allocation breakdown
+ * Monthly distribution overview with per-investor allocation breakdown
  * Features: void distribution, export, reconciliation checks
  */
 
@@ -302,10 +302,10 @@ function YieldDistributionsContent() {
   );
 
   const handleVoidConfirm = useCallback(
-    async (distributionId: string, reason: string) => {
+    async (distributionId: string, reason: string, voidCrystals: boolean = false) => {
       setVoidPending(true);
       try {
-        await voidYieldDistribution(distributionId, reason);
+        await voidYieldDistribution(distributionId, reason, voidCrystals);
         toast({ title: "Distribution voided successfully" });
         setVoidTarget(null);
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
@@ -355,7 +355,7 @@ function YieldDistributionsContent() {
         <div>
           <h1 className="text-2xl font-display font-bold tracking-tight">Yield Distributions</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Monthly distribution ledger with per-investor ADB ownership and allocation math.
+            Monthly distribution ledger with per-investor allocation breakdown.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -574,8 +574,8 @@ function YieldDistributionsContent() {
                                   const yieldEvents =
                                     yieldEventsByDistribution[distribution.id] || [];
                                   const isCrystallization = isCrystallizationDist(distribution);
-                                  const totalAdb = allocations.reduce(
-                                    (sum, a) => sum + (a.adb_share || 0),
+                                  const totalGross = allocations.reduce(
+                                    (sum, a) => sum + (a.gross_amount || 0),
                                     0
                                   );
                                   const sumGrossAllocations = allocations.reduce(
@@ -763,10 +763,10 @@ function YieldDistributionsContent() {
                                               </div>
                                               <div className="flex justify-between">
                                                 <span className="text-muted-foreground">
-                                                  Total ADB
+                                                  Total Gross
                                                 </span>
                                                 <span>
-                                                  {formatAssetValue(totalAdb, fund?.asset || "")}
+                                                  {formatAssetValue(totalGross, fund?.asset || "")}
                                                 </span>
                                               </div>
                                               {isCrystallization && yieldEvents.length > 0 && (
@@ -842,10 +842,7 @@ function YieldDistributionsContent() {
                                                         Investor
                                                       </TableHead>
                                                       <TableHead className="text-right whitespace-nowrap">
-                                                        ADB
-                                                      </TableHead>
-                                                      <TableHead className="text-right whitespace-nowrap">
-                                                        Own%
+                                                        Share%
                                                       </TableHead>
                                                       <TableHead className="text-right whitespace-nowrap">
                                                         Gross
@@ -879,20 +876,12 @@ function YieldDistributionsContent() {
                                                             </div>
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 tabular-nums">
-                                                            {formatAssetValue(
-                                                              allocation.adb_share || 0,
-                                                              fund?.asset || ""
-                                                            )}
-                                                          </TableCell>
-                                                          <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
-                                                              allocation.ownership_pct
-                                                                ? allocation.ownership_pct
-                                                                : totalAdb > 0
-                                                                  ? ((allocation.adb_share || 0) /
-                                                                      totalAdb) *
+                                                              totalGross !== 0
+                                                                ? ((allocation.gross_amount || 0) /
+                                                                    totalGross) *
                                                                     100
-                                                                  : 0,
+                                                                : 0,
                                                               2
                                                             )}
                                                           </TableCell>

@@ -18,7 +18,7 @@ export type RPCFunctionName = keyof RPCFunctions;
 
 /** All registered RPC function names */
 export const RPC_FUNCTIONS = [
-  "apply_adb_yield_distribution_v4",
+  "apply_segmented_yield_distribution_v5",
   "apply_transaction_with_crystallization",
   "approve_and_complete_withdrawal",
   "batch_crystallize_fund",
@@ -35,7 +35,7 @@ export const RPC_FUNCTIONS = [
   "get_ib_referrals",
   "is_admin",
   "merge_duplicate_profiles",
-  "preview_adb_yield_distribution_v4",
+  "preview_segmented_yield_distribution_v5",
   "qa_admin_id",
   "qa_fees_account_id",
   "qa_fund_id",
@@ -60,24 +60,13 @@ export const RPC_FUNCTIONS = [
 // =============================================================================
 
 export const RPC_SIGNATURES = {
-  apply_adb_yield_distribution_v4: {
-    name: "apply_adb_yield_distribution_v4" as const,
+  apply_segmented_yield_distribution_v5: {
+    name: "apply_segmented_yield_distribution_v5" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [
-      "p_fund_id",
-      "p_gross_yield_amount",
-      "p_period_end",
-      "p_period_start",
-    ] as const,
-    optionalParams: [
-      "p_admin_id",
-      "p_distribution_date",
-      "p_purpose",
-      "p_recorded_aum",
-      "p_snapshot_time",
-    ] as const,
+    securityDefiner: true,
+    requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum"] as const,
+    optionalParams: ["p_admin_id", "p_purpose"] as const,
   },
   approve_and_complete_withdrawal: {
     name: "approve_and_complete_withdrawal" as const,
@@ -177,17 +166,12 @@ export const RPC_SIGNATURES = {
     requiredParams: [] as const,
     optionalParams: [] as const,
   },
-  preview_adb_yield_distribution_v4: {
-    name: "preview_adb_yield_distribution_v4" as const,
+  preview_segmented_yield_distribution_v5: {
+    name: "preview_segmented_yield_distribution_v5" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [
-      "p_fund_id",
-      "p_gross_yield_amount",
-      "p_period_end",
-      "p_period_start",
-    ] as const,
+    securityDefiner: true,
+    requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum"] as const,
     optionalParams: ["p_purpose"] as const,
   },
   qa_admin_id: {
@@ -290,9 +274,9 @@ export const RPC_SIGNATURES = {
     name: "void_yield_distribution" as const,
     returnType: "Json",
     returnsSet: false,
-    securityDefiner: false,
+    securityDefiner: true,
     requiredParams: ["p_admin_id", "p_distribution_id"] as const,
-    optionalParams: ["p_reason"] as const,
+    optionalParams: ["p_reason", "p_void_crystals"] as const,
   },
 } as const;
 
@@ -334,7 +318,7 @@ export const CANONICAL_MUTATION_RPCS = {
   /** Canonical RPC for withdrawal approval + completion (atomic) */
   WITHDRAWAL: "approve_and_complete_withdrawal",
   /** Canonical RPC for yield distribution */
-  YIELD: "apply_adb_yield_distribution_v4",
+  YIELD: "apply_segmented_yield_distribution_v5",
   /** Canonical RPC for voiding transactions */
   VOID: "void_transaction",
   /** Canonical RPC for unvoiding transactions */

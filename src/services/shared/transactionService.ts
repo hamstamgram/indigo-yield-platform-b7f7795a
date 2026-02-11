@@ -244,7 +244,7 @@ export async function createTransactionWithCrystallization(
     // Direct inserts for YIELD, INTEREST, FEE are violations of the canonical mutation pattern.
     //
     // CORRECT PATHWAYS:
-    // - YIELD/INTEREST: Use apply_adb_yield_distribution_v4 RPC
+    // - YIELD/INTEREST: Use apply_segmented_yield_distribution_v5 RPC
     // - FEE: Use fee allocation RPCs
     //
     // This code path should not be reached. If you need to create these transaction types,
@@ -253,7 +253,7 @@ export async function createTransactionWithCrystallization(
 
     throw new Error(
       `Transaction type ${dbType} cannot be created through this service. ` +
-        `YIELD/INTEREST must use apply_adb_yield_distribution_v4 RPC. ` +
+        `YIELD/INTEREST must use apply_segmented_yield_distribution_v5 RPC. ` +
         `FEE must use fee allocation RPCs. ` +
         `See docs/FLOW_MATRIX.md for canonical mutation pathways.`
     );

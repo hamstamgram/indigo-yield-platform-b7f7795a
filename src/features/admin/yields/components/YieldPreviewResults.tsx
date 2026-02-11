@@ -1,13 +1,11 @@
 /**
- * YieldPreviewResults - Displays yield distribution preview with investor breakdown
- * Updated to support ADB (time-weighted) calculation with full transparency
- * Per-investor crystallization sub-rows for reporting purpose
+ * YieldPreviewResults - Displays V5 segmented yield distribution preview with investor breakdown
+ * Shows per-investor allocation with expandable segment details
  */
 
 import {
   Card,
   CardContent,
-  CardHeader,
   Button,
   Input,
   Label,
@@ -23,21 +21,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui";
-import {
-  CheckCircle,
-  Building2,
-  UserCheck,
-  ArrowRightLeft,
-  AlertTriangle,
-  Clock,
-  TrendingDown,
-} from "lucide-react";
+import { CheckCircle, Building2, AlertTriangle, Layers, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type YieldCalculationResult, type YieldDistribution } from "@/services/admin";
-import { type InvestorCrystallizationEvent } from "@/services/admin/yieldCrystallizationService";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
 import { toNum } from "@/utils/numeric";
-import React from "react";
+import React, { useState } from "react";
 
 interface YieldPreviewResultsProps {
   yieldPreview: YieldCalculationResult;
@@ -52,7 +41,7 @@ interface YieldPreviewResultsProps {
   getFilteredDistributions: (distributions: YieldDistribution[]) => YieldDistribution[];
   onConfirmApply: () => void;
   applyLoading: boolean;
-  crystallizationMap?: Map<string, InvestorCrystallizationEvent[]>;
+  crystallizationMap?: Map<string, unknown[]>;
   yieldPurpose?: string;
 }
 
@@ -69,13 +58,22 @@ export function YieldPreviewResults({
   getFilteredDistributions,
   onConfirmApply,
   applyLoading,
-  crystallizationMap,
-  yieldPurpose,
 }: YieldPreviewResultsProps) {
   const asset = selectedFund?.asset || "";
-  const isAdb = yieldPreview.calculationMethod === "adb_v4";
-  const hasCrystallization =
-    yieldPurpose === "reporting" && crystallizationMap && crystallizationMap.size > 0;
+  const isV5 = yieldPreview.calculationMethod === "segmented_v5";
+  const [expandedInvestors, setExpandedInvestors] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (investorId: string) => {
+    setExpandedInvestors((prev) => {
+      const next = new Set(prev);
+      if (next.has(investorId)) {
+        next.delete(investorId);
+      } else {
+        next.add(investorId);
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
@@ -86,19 +84,32 @@ export function YieldPreviewResults({
         <h3 className="font-semibold">Confirm & Apply</h3>
       </div>
 
-      {/* ADB Method Badge */}
-      {isAdb && (
+      {/* V5 Method Badge */}
+      {isV5 && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-blue-950/30 text-blue-400 border-blue-800">
-              <Clock className="h-3 w-3 mr-1" />
-              Time-Weighted (ADB)
+            <Badge variant="outline" className="bg-indigo-950/30 text-indigo-400 border-indigo-800">
+              <Layers className="h-3 w-3 mr-1" />
+              Segmented V5
             </Badge>
-            {yieldPreview.daysInPeriod && (
+            {yieldPreview.periodStart && yieldPreview.periodEnd && (
               <span className="text-xs text-muted-foreground">
-                {yieldPreview.periodStart} to {yieldPreview.periodEnd} ({yieldPreview.daysInPeriod}{" "}
-                days)
+                {yieldPreview.periodStart} to {yieldPreview.periodEnd}
+                {yieldPreview.daysInPeriod ? ` (${yieldPreview.daysInPeriod} days)` : ""}
               </span>
+            )}
+            {(yieldPreview.segmentCount ?? 0) > 1 && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-amber-950/20 text-amber-400 border-amber-700"
+              >
+                {yieldPreview.segmentCount} segments
+              </Badge>
+            )}
+            {(yieldPreview.crystalsInPeriod ?? 0) > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {yieldPreview.crystalsInPeriod} crystal(s)
+              </Badge>
             )}
           </div>
           {yieldPreview.conservationCheck !== undefined && (
@@ -109,18 +120,6 @@ export function YieldPreviewResults({
               {yieldPreview.conservationCheck ? "Conservation OK" : "Conservation Error"}
             </Badge>
           )}
-        </div>
-      )}
-
-      {/* Loss Carryforward Summary */}
-      {yieldPreview.totalLossOffset !== undefined && toNum(yieldPreview.totalLossOffset) > 0 && (
-        <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
-          <TrendingDown className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <div>
-            <strong>Loss carryforward applied.</strong>{" "}
-            {formatValue(toNum(yieldPreview.totalLossOffset), asset)} {asset} of prior losses offset
-            against this period&apos;s gains, reducing fees.
-          </div>
         </div>
       )}
 
@@ -137,15 +136,15 @@ export function YieldPreviewResults({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {/* Total ADB (for ADB method) */}
-        {yieldPreview.totalAdb !== undefined && toNum(yieldPreview.totalAdb) > 0 && (
+        {/* Opening AUM */}
+        {yieldPreview.openingAum && toNum(yieldPreview.openingAum) > 0 && (
           <Card className="border-slate-200 bg-slate-950/20">
             <CardContent className="p-3 text-center">
-              <p className="text-xs text-muted-foreground">Total ADB</p>
+              <p className="text-xs text-muted-foreground">Opening AUM</p>
               <p className="text-lg font-mono font-semibold">
-                {formatValue(toNum(yieldPreview.totalAdb), asset)}
+                {formatValue(toNum(yieldPreview.openingAum), asset)}
               </p>
-              <p className="text-xs text-muted-foreground">Time-weighted capital</p>
+              <p className="text-xs text-muted-foreground">Start of period</p>
             </CardContent>
           </Card>
         )}
@@ -161,11 +160,6 @@ export function YieldPreviewResults({
               {toNum(yieldPreview.grossYield) >= 0 ? "+" : ""}
               {formatValue(toNum(yieldPreview.grossYield), asset)}
             </p>
-            {yieldPreview.yieldRatePct !== undefined && (
-              <p className="text-xs text-muted-foreground">
-                {toNum(yieldPreview.yieldRatePct).toFixed(4)}%
-              </p>
-            )}
           </CardContent>
         </Card>
         <Card>
@@ -220,81 +214,75 @@ export function YieldPreviewResults({
         </Card>
       )}
 
-      {/* Yield Math Explanation (collapsible) */}
-      {isAdb && (
+      {/* V5 Yield Math Explanation (collapsible) */}
+      {isV5 && (
         <details className="border rounded-md">
           <summary className="cursor-pointer p-3 text-sm font-medium hover:bg-muted/50">
-            Yield calculation details (ADB method)
+            Yield calculation details (Segmented V5)
           </summary>
           <div className="p-3 pt-0 space-y-2 text-sm text-muted-foreground">
             <p>
-              We crystallize yield before any deposit/withdrawal because ownership changes after
-              each flow. This locks the pre-flow ownership for the days already elapsed, then
-              recalculates ownership for the remaining days.
+              V5 splits the month into segments at each crystallization event (deposit/withdrawal).
+              Each segment allocates yield proportionally by balance. Running balances carry forward
+              between segments with NET yield, fees, and IB commissions included.
             </p>
             <div className="grid gap-1 text-xs">
               <div>
-                <span className="font-medium text-foreground">ADB share %</span> = investor ADB /
-                total ADB
+                <span className="font-medium text-foreground">Segment yield</span> = closing AUM -
+                sum(running balances)
               </div>
               <div>
-                <span className="font-medium text-foreground">Gross</span> = gross yield x ADB share
-                %
+                <span className="font-medium text-foreground">Share %</span> = investor balance /
+                sum(all balances)
               </div>
               <div>
-                <span className="font-medium text-foreground">Investor fee</span> = gross x fee %
+                <span className="font-medium text-foreground">Gross</span> = segment yield x share %
               </div>
               <div>
-                <span className="font-medium text-foreground">IB commission</span> = gross x IB %
+                <span className="font-medium text-foreground">Fee</span> = gross x fee %
+                (per-investor hierarchy)
+              </div>
+              <div>
+                <span className="font-medium text-foreground">IB</span> = gross x IB % (from gross,
+                not additional)
               </div>
               <div>
                 <span className="font-medium text-foreground">Net</span> = gross - fee - IB
               </div>
             </div>
+
+            {/* Segment Breakdown */}
+            {yieldPreview.segments && yieldPreview.segments.length > 0 && (
+              <div className="mt-3 space-y-1">
+                <p className="font-medium text-foreground text-xs">Segment Breakdown:</p>
+                {yieldPreview.segments.map((seg) => (
+                  <div key={seg.seg_idx} className="flex items-center gap-2 text-xs">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] py-0 h-4",
+                        seg.skipped
+                          ? "border-muted-foreground/30 text-muted-foreground"
+                          : "border-indigo-500/30 text-indigo-400"
+                      )}
+                    >
+                      Seg {seg.seg_idx}
+                    </Badge>
+                    <span>
+                      {seg.start} to {seg.end}
+                    </span>
+                    <span className="font-mono">
+                      {seg.skipped ? "(skipped)" : `yield: +${formatValue(seg.yield, asset)}`}
+                    </span>
+                    <span className="text-muted-foreground">
+                      AUM: {formatValue(seg.closing_aum, asset)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </details>
-      )}
-
-      {/* IB Credits Summary */}
-      {yieldPreview.ibCredits && yieldPreview.ibCredits.length > 0 && (
-        <Card className="border-purple-200 bg-purple-950/20">
-          <CardHeader className="pb-2 pt-3 px-3">
-            <div className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium">
-                IB Credits ({yieldPreview.ibCredits.length})
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-              {yieldPreview.ibCredits.map((ib, idx) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
-                    <span className="truncate max-w-[150px]">{ib.ibInvestorName}</span>
-                    <span className="text-xs text-muted-foreground">({ib.ibPercentage}%)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-purple-600">
-                      +{formatValue(toNum(ib.amount), asset)}
-                    </span>
-                    {ib.wouldSkip && (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Badge variant="outline" className="text-xs">
-                            Skip
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>Already exists</TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       )}
 
       {/* Filter Controls */}
@@ -340,31 +328,7 @@ export function YieldPreviewResults({
           <TableHeader className="sticky top-0 bg-card z-10">
             <TableRow>
               <TableHead>Investor</TableHead>
-              {/* ADB columns */}
-              {isAdb && (
-                <>
-                  <TableHead className="text-right">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="cursor-help underline decoration-dotted underline-offset-4">
-                          ADB
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-[280px]">
-                        <p className="text-xs">
-                          Average Daily Balance: Time-weighted balance used to calculate each
-                          investor's proportional share of the yield
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableHead>
-                  <TableHead className="text-right">Weight</TableHead>
-                </>
-              )}
-              {!isAdb && <TableHead className="text-right">Current</TableHead>}
               <TableHead className="text-right">Gross</TableHead>
-              {/* Loss offset column for ADB */}
-              {isAdb && <TableHead className="text-right">Loss Offset</TableHead>}
               <TableHead className="text-right">Fee %</TableHead>
               <TableHead className="text-right">Fee</TableHead>
               <TableHead className="text-right">Net</TableHead>
@@ -373,40 +337,30 @@ export function YieldPreviewResults({
           </TableHeader>
           <TableBody>
             {getFilteredDistributions(yieldPreview.distributions).map((inv) => {
-              const events = hasCrystallization
-                ? crystallizationMap.get(inv.investorId)
-                : undefined;
-              const hasEvents = events && events.length > 0;
-
-              // Compute crystal totals for this investor
-              const crystalGross = hasEvents
-                ? events.reduce((s, e) => s + toNum(e.grossYield), 0)
-                : 0;
-              const crystalFee = hasEvents ? events.reduce((s, e) => s + toNum(e.feeAmount), 0) : 0;
-              const crystalNet = hasEvents ? events.reduce((s, e) => s + toNum(e.netYield), 0) : 0;
-
-              // Month totals = crystal + new
-              const monthGross = crystalGross + toNum(inv.grossYield);
-              const monthFee = crystalFee + toNum(inv.feeAmount);
-              const monthNet = crystalNet + toNum(inv.netYield);
-
-              // Display values: show aggregated totals on parent row when crystals exist
-              const displayGross = hasEvents ? monthGross : toNum(inv.grossYield);
-              const displayFee = hasEvents ? monthFee : toNum(inv.feeAmount);
-              const displayNet = hasEvents ? monthNet : toNum(inv.netYield);
+              const hasSegments = inv.segmentDetails && inv.segmentDetails.length > 1;
+              const isExpanded = expandedInvestors.has(inv.investorId);
 
               return (
                 <React.Fragment key={inv.investorId}>
-                  {/* Main investor row - shows TOTAL aggregated when crystals exist */}
+                  {/* Main investor row */}
                   <TableRow
                     className={cn(
                       inv.wouldSkip && "opacity-50",
                       checkSystemAccount(inv) && "bg-blue-950/20",
-                      toNum(inv.carriedLoss ?? 0) > 0 && "bg-amber-950/10"
+                      hasSegments && "cursor-pointer hover:bg-muted/30"
                     )}
+                    onClick={hasSegments ? () => toggleExpand(inv.investorId) : undefined}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
+                        {hasSegments && (
+                          <ChevronRight
+                            className={cn(
+                              "h-3 w-3 transition-transform flex-shrink-0",
+                              isExpanded && "rotate-90"
+                            )}
+                          />
+                        )}
                         {checkSystemAccount(inv) && <Building2 className="h-3 w-3 text-blue-400" />}
                         <div>
                           <p className="font-medium text-sm truncate max-w-[120px]">
@@ -424,91 +378,43 @@ export function YieldPreviewResults({
                             Skip
                           </Badge>
                         )}
-                        {hasEvents && (
+                        {hasSegments && (
                           <Badge
                             variant="outline"
                             className="text-[10px] py-0 h-4 border-muted-foreground/30 text-muted-foreground"
                           >
-                            {events.length + 1} events
+                            {inv.segmentDetails!.length} segs
                           </Badge>
                         )}
                       </div>
                     </TableCell>
-                    {/* ADB columns */}
-                    {isAdb && (
-                      <>
-                        <TableCell className="text-right font-mono text-xs">
-                          {formatValue(toNum(inv.adb ?? inv.currentBalance), asset)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-blue-400">
-                          {(
-                            (toNum(inv.adbWeight ?? 0) || toNum(inv.allocationPercentage) / 100) *
-                            100
-                          ).toFixed(2)}
-                          %
-                        </TableCell>
-                      </>
-                    )}
-                    {!isAdb && (
-                      <TableCell className="text-right font-mono text-xs">
-                        {formatValue(toNum(inv.currentBalance), asset)}
-                      </TableCell>
-                    )}
-                    {/* Gross - aggregated total when crystals exist */}
                     <TableCell className="text-right font-mono text-xs">
                       <span
                         className={cn(
                           "font-bold",
-                          displayGross >= 0 ? "text-emerald-400" : "text-rose-400"
+                          toNum(inv.grossYield) >= 0 ? "text-emerald-400" : "text-rose-400"
                         )}
                       >
-                        {displayGross >= 0 ? "+" : ""}
-                        {formatValue(displayGross, asset)}
+                        {toNum(inv.grossYield) >= 0 ? "+" : ""}
+                        {formatValue(toNum(inv.grossYield), asset)}
                       </span>
                     </TableCell>
-                    {/* Loss offset column for ADB */}
-                    {isAdb && (
-                      <TableCell className="text-right font-mono text-xs">
-                        {toNum(inv.lossOffset ?? 0) > 0 ? (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <span className="text-amber-600">
-                                -{formatValue(toNum(inv.lossOffset ?? 0), asset)}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="text-xs">
-                                <p>
-                                  Carried loss: {formatValue(toNum(inv.carriedLoss ?? 0), asset)}
-                                </p>
-                                <p>
-                                  Offset applied: {formatValue(toNum(inv.lossOffset ?? 0), asset)}
-                                </p>
-                                <p>Taxable: {formatValue(toNum(inv.taxableGain ?? 0), asset)}</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          <span className="text-muted-foreground">{"\u2014"}</span>
-                        )}
-                      </TableCell>
-                    )}
                     <TableCell className="text-right font-mono text-xs">
                       {inv.feePercentage}%
                     </TableCell>
-                    {/* Fee - aggregated total when crystals exist */}
                     <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                      {displayFee > 0 ? `-${formatValue(displayFee, asset)}` : "\u2014"}
+                      {toNum(inv.feeAmount) > 0
+                        ? `-${formatValue(toNum(inv.feeAmount), asset)}`
+                        : "\u2014"}
                     </TableCell>
-                    {/* Net - aggregated total when crystals exist */}
                     <TableCell
                       className={cn(
                         "text-right font-mono text-xs font-semibold",
-                        displayNet >= 0 ? "" : "text-rose-400"
+                        toNum(inv.netYield) >= 0 ? "" : "text-rose-400"
                       )}
                     >
-                      {displayNet >= 0 ? "+" : ""}
-                      {formatValue(displayNet, asset)}
+                      {toNum(inv.netYield) >= 0 ? "+" : ""}
+                      {formatValue(toNum(inv.netYield), asset)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs text-purple-600">
                       {toNum(inv.ibAmount) > 0
@@ -517,89 +423,43 @@ export function YieldPreviewResults({
                     </TableCell>
                   </TableRow>
 
-                  {/* Month-end yield sub-row (appears FIRST, before crystals) */}
-                  {hasEvents && (
-                    <TableRow className="bg-green-950/15 border-green-500/10">
-                      <TableCell colSpan={isAdb ? 3 : 2} className="text-xs pl-6">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
-                          <span className="font-mono text-green-400">
-                            {yieldPreview.periodEnd || "Month-end"}
-                          </span>
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] py-0 h-4 border-green-500/30 text-green-400"
-                          >
-                            month-end
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs text-green-400">
-                        +{formatValue(toNum(inv.grossYield), asset)}
-                      </TableCell>
-                      {isAdb && (
-                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                          {"\u2014"}
-                        </TableCell>
-                      )}
-                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                        {"\u2014"}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs text-green-400/70">
-                        {toNum(inv.feeAmount) > 0
-                          ? `-${formatValue(toNum(inv.feeAmount), asset)}`
-                          : "\u2014"}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs font-semibold text-green-400">
-                        +{formatValue(toNum(inv.netYield), asset)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                        {"\u2014"}
-                      </TableCell>
-                    </TableRow>
-                  )}
-
-                  {/* Crystallization sub-rows (amber highlight) */}
-                  {hasEvents &&
-                    events.map((evt, idx) => (
+                  {/* Per-segment sub-rows (expanded) */}
+                  {hasSegments &&
+                    isExpanded &&
+                    inv.segmentDetails!.map((seg) => (
                       <TableRow
-                        key={`${inv.investorId}-crystal-${idx}`}
-                        className="bg-amber-950/20 border-amber-500/10"
+                        key={`${inv.investorId}-seg-${seg.seg}`}
+                        className="bg-indigo-950/10 border-indigo-500/10"
                       >
-                        <TableCell colSpan={isAdb ? 3 : 2} className="text-xs pl-6">
+                        <TableCell className="text-xs pl-8">
                           <div className="flex items-center gap-2">
-                            <ArrowRightLeft className="h-3 w-3 text-amber-500 flex-shrink-0" />
-                            <span className="font-mono text-amber-300">{evt.eventDate}</span>
                             <Badge
                               variant="outline"
-                              className="text-[10px] py-0 h-4 border-amber-500/30 text-amber-400"
+                              className="text-[10px] py-0 h-4 border-indigo-500/30 text-indigo-400"
                             >
-                              {evt.triggerType}
+                              Seg {seg.seg}
                             </Badge>
+                            {seg.start && seg.end && (
+                              <span className="text-muted-foreground font-mono">
+                                {seg.start} - {seg.end}
+                              </span>
+                            )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-amber-300">
-                          +{formatValue(toNum(evt.grossYield), asset)}
-                        </TableCell>
-                        {/* Loss offset placeholder for ADB */}
-                        {isAdb && (
-                          <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                            {"\u2014"}
-                          </TableCell>
-                        )}
-                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                          {"\u2014"}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-amber-300/70">
-                          {toNum(evt.feeAmount) > 0
-                            ? `-${formatValue(toNum(evt.feeAmount), asset)}`
-                            : "\u2014"}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs font-semibold text-amber-300">
-                          +{formatValue(toNum(evt.netYield), asset)}
+                        <TableCell className="text-right font-mono text-xs text-indigo-300">
+                          +{formatValue(seg.gross, asset)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                          {"\u2014"}
+                          {seg.fee_pct}%
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs text-indigo-300/70">
+                          {seg.fee > 0 ? `-${formatValue(seg.fee, asset)}` : "\u2014"}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs font-semibold text-indigo-300">
+                          +{formatValue(seg.net, asset)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                          {seg.ib > 0 ? `-${formatValue(seg.ib, asset)}` : "\u2014"}
                         </TableCell>
                       </TableRow>
                     ))}

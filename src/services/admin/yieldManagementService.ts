@@ -119,8 +119,9 @@ export async function voidYieldRecord(recordId: string, reason: string): Promise
  */
 export async function voidYieldDistribution(
   distributionId: string,
-  reason: string
-): Promise<{ success: boolean; voided_count?: number; error?: string }> {
+  reason: string,
+  voidCrystals: boolean = false
+): Promise<{ success: boolean; voided_count?: number; voided_crystals?: number; error?: string }> {
   // Get current user
   const {
     data: { user },
@@ -129,11 +130,11 @@ export async function voidYieldDistribution(
     throw new Error("Not authenticated");
   }
 
-  // Canonical signature: void_yield_distribution(p_distribution_id, p_admin_id, p_reason)
   const { data, error } = await callRPC("void_yield_distribution", {
     p_distribution_id: distributionId,
     p_admin_id: user.id,
     p_reason: reason,
+    p_void_crystals: voidCrystals,
   });
 
   if (error) {
@@ -141,7 +142,12 @@ export async function voidYieldDistribution(
     throw new Error(error.message || "Failed to void yield distribution");
   }
 
-  return data as unknown as { success: boolean; voided_count?: number; error?: string };
+  return data as unknown as {
+    success: boolean;
+    voided_count?: number;
+    voided_crystals?: number;
+    error?: string;
+  };
 }
 
 /**

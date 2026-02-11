@@ -20,7 +20,7 @@ const RATE_LIMITED_RPCS: Record<
     maxRequests: 10,
     actionType: "transaction",
   },
-  apply_adb_yield_distribution_v4: {
+  apply_segmented_yield_distribution_v5: {
     windowMs: 60000,
     maxRequests: 5,
     actionType: "yield_distribution",
@@ -257,39 +257,32 @@ export async function withdrawal(params: {
 
 export async function applyYield(params: {
   fundId: string;
-  periodStart: string;
   periodEnd: string;
-  /** Gross yield amount as string for NUMERIC precision */
-  grossYieldAmount: string;
+  /** Recorded AUM as string for NUMERIC precision */
+  recordedAum: string;
   adminId: string;
   purpose?: "reporting" | "transaction";
-  /** Recorded AUM as string for NUMERIC precision */
-  recordedAum?: string;
 }): Promise<RPCResult<unknown>> {
-  return call("apply_adb_yield_distribution_v4" as any, {
+  return call("apply_segmented_yield_distribution_v5", {
     p_fund_id: params.fundId,
-    p_period_start: params.periodStart,
     p_period_end: params.periodEnd,
-    p_gross_yield_amount: Number(params.grossYieldAmount),
+    p_recorded_aum: Number(params.recordedAum),
     p_admin_id: params.adminId,
     p_purpose: params.purpose,
-    ...(params.recordedAum != null && { p_recorded_aum: Number(params.recordedAum) }),
   });
 }
 
 export async function previewYield(params: {
   fundId: string;
-  periodStart: string;
   periodEnd: string;
-  /** Gross yield amount as string for NUMERIC precision */
-  grossYieldAmount: string;
+  /** Recorded AUM as string for NUMERIC precision */
+  recordedAum: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("preview_adb_yield_distribution_v4" as any, {
+  return call("preview_segmented_yield_distribution_v5", {
     p_fund_id: params.fundId,
-    p_period_start: params.periodStart,
     p_period_end: params.periodEnd,
-    p_gross_yield_amount: Number(params.grossYieldAmount),
+    p_recorded_aum: Number(params.recordedAum),
     p_purpose: params.purpose,
   });
 }

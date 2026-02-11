@@ -64,6 +64,8 @@ export interface YieldDistribution {
   /** Taxable gain - string for NUMERIC(28,10) precision */
   taxableGain?: string;
   hasIb?: boolean; // Whether investor has an IB parent
+  // V5 segmented fields
+  segmentDetails?: V5InvestorSegmentDetail[];
 }
 
 /**
@@ -160,12 +162,17 @@ export interface YieldCalculationResult {
   totalLossOffset?: string;
   /** Dust/rounding amount - string for NUMERIC(28,10) precision */
   dustAmount?: string;
-  calculationMethod?: "pro_rata" | "adb_v3" | "adb_v4";
-  features?: string[]; // e.g., ['time_weighted', 'loss_carryforward']
+  calculationMethod?: "pro_rata" | "adb_v3" | "adb_v4" | "segmented_v5";
+  features?: string[];
   conservationCheck?: boolean; // Whether gross = net + fees + ib + dust
   // Crystallization info (reporting purpose)
   crystalsInPeriod?: number;
   crystalGrossTotal?: string;
+  // V5 segmented fields
+  segmentCount?: number;
+  segments?: V5SegmentSummary[];
+  openingAum?: string;
+  recordedAum?: string;
 }
 
 /**
@@ -200,8 +207,8 @@ export type YieldPurpose = "reporting" | "transaction";
 export type YieldStatus = "preview" | "applied";
 
 /**
- * ADB (Average Daily Balance) Yield Distribution RPC Result
- * Type-safe interface for apply_adb_yield_distribution_v4 and preview_adb_yield_distribution_v4 results
+ * ADB (Average Daily Balance) Yield Distribution RPC Result (Legacy V4)
+ * Kept for backwards compatibility with existing data
  */
 export interface ADBYieldRPCResult {
   success: boolean;
@@ -238,7 +245,7 @@ export interface ADBYieldRPCResult {
 }
 
 /**
- * Individual investor allocation from ADB RPC (preview_adb_yield_distribution_v4)
+ * Individual investor allocation from ADB RPC (legacy V4)
  * Field names match the actual JSONB keys returned by the PostgreSQL function.
  */
 export interface ADBAllocationItem {
@@ -270,6 +277,98 @@ export interface ADBAllocationItem {
   /** @precision NUMERIC - string for financial safety */
   taxable_gain?: string | number;
   has_ib?: boolean;
+}
+
+// =============================================================================
+// V5 Segmented Yield Types
+// =============================================================================
+
+/** Summary of a single segment in V5 yield distribution */
+export interface V5SegmentSummary {
+  seg_idx: number;
+  start: string;
+  end: string;
+  closing_aum: number;
+  yield: number;
+  investors?: number;
+  skipped: boolean;
+  allocations?: V5SegmentAllocation[];
+}
+
+/** Per-investor allocation within a single V5 segment */
+export interface V5SegmentAllocation {
+  investor_id: string;
+  investor_name?: string;
+  balance: number;
+  share_pct: number;
+  gross: number;
+  fee_pct: number;
+  fee: number;
+  ib_rate: number;
+  ib: number;
+  net: number;
+}
+
+/** Per-investor segment detail (from _v5_tot.seg_detail) */
+export interface V5InvestorSegmentDetail {
+  seg: number;
+  start?: string;
+  end?: string;
+  gross: number;
+  fee_pct: number;
+  fee: number;
+  ib: number;
+  net: number;
+}
+
+/** V5 allocation item from the RPC response */
+export interface V5AllocationItem {
+  investor_id: string;
+  investor_name: string;
+  investor_email?: string;
+  account_type?: string;
+  gross: number;
+  fee_pct: number;
+  fee: number;
+  ib_parent_id?: string;
+  ib_rate: number;
+  ib: number;
+  net: number;
+  segments: V5InvestorSegmentDetail[];
+}
+
+/** V5 RPC result shape */
+export interface V5YieldRPCResult {
+  success: boolean;
+  error?: string;
+  fund_id?: string;
+  fund_code?: string;
+  fund_asset?: string;
+  period_start?: string;
+  period_end?: string;
+  days_in_period?: number;
+  opening_aum?: number;
+  recorded_aum?: number;
+  total_yield?: number;
+  gross_yield?: number;
+  net_yield?: number;
+  total_fees?: number;
+  total_ib?: number;
+  dust_amount?: number;
+  investor_count?: number;
+  segment_count?: number;
+  crystal_count?: number;
+  segments?: V5SegmentSummary[];
+  allocations?: V5AllocationItem[];
+  conservation_check?: boolean;
+  calculation_method?: string;
+  features?: string[];
+  // Apply-specific
+  distribution_id?: string;
+  position_sum?: number;
+  position_aum_match?: boolean;
+  crystals_consolidated?: number;
+  ib_auto_paid?: boolean;
 }
 
 /**

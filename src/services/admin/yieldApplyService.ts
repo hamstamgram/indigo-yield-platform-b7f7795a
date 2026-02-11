@@ -1,14 +1,13 @@
 /**
  * Yield Apply Service
- * Handles applying yield distributions to investor positions using CFO-grade ADB (time-weighted) allocation.
+ * Handles applying yield distributions using V5 segmented proportional allocation.
  *
- * CALCULATION METHOD: ADB (Average Daily Balance) Time-Weighted
- * - Each investor's allocation is based on their time-weighted capital contribution
- * - Mid-period deposits/withdrawals are properly weighted by days held
- * - Loss carryforward: negative months carry forward to offset future gains before fees
- *
- * Note: Period snapshot functionality removed in P1-03 (Unify AUM Snapshot Tables)
- * The fund_period_snapshot table was unused (0 rows) and has been dropped.
+ * CALCULATION METHOD: Segmented Proportional (V5)
+ * - Each investor's allocation is proportional to their balance within each segment
+ * - Crystallization events define segment boundaries (mid-period flows)
+ * - Per-segment fee lookup via get_investor_fee_pct hierarchy
+ * - IB commissions tracked in running balances between segments
+ * - AUM-only input: gross yield derived from recorded_aum - opening positions
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -18,101 +17,61 @@ import { logWarn, logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
 import { parseFinancial } from "@/utils/financial";
-import { startOfMonth } from "date-fns";
-
-// NOTE: MV refresh removed - platform now uses live views (v_fund_summary_live, v_daily_platform_metrics_live)
-// that compute in real-time. No refresh needed.
 
 import type {
   YieldCalculationInput,
   YieldDistribution,
   YieldTotals,
   YieldCalculationResult,
-  ADBYieldRPCResult,
+  V5YieldRPCResult,
 } from "@/types/domains/yield";
 
 /**
- * Apply yield distribution using CFO-grade ADB (time-weighted) allocation.
+ * Apply yield distribution using V5 segmented proportional allocation.
  * This permanently updates investor positions and creates transactions.
  *
- * The ADB method allocates yield based on each investor's time-weighted capital:
- * - Investor who held $100K for 30 days gets 2x weight vs investor who held $100K for 15 days
- * - Loss carryforward ensures negative months offset future gains before fees
+ * The V5 method:
+ * - Reads crystallization events to split the month into segments
+ * - Allocates yield proportionally by balance within each segment
+ * - Creates one aggregated YIELD tx per investor covering the full month
+ * - Running balances track NET yield, fees, IB between segments
  */
 export async function applyYieldDistribution(
   input: YieldCalculationInput,
   adminId: string,
   purpose: "reporting" | "transaction" = "reporting"
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, periodStart, newTotalAUM, baseAUM, snapshotTime } = input;
+  const { fundId, targetDate, newTotalAUM } = input;
 
-  // Calculate period dates (always full month: 1st to last day)
   const periodEndDate = targetDate;
-  const periodStartDate = periodStart || startOfMonth(targetDate);
-
-  // Use baseAUM (as-of AUM the admin saw) when provided; otherwise fall back to positions
-  let currentAUM = parseFinancial(0);
-  if (baseAUM) {
-    currentAUM = parseFinancial(baseAUM);
-  } else {
-    const { data: positions, error: positionsError } = await supabase
-      .from("investor_positions")
-      .select("current_value")
-      .eq("fund_id", fundId)
-      .eq("is_active", true)
-      .gt("current_value", 0);
-
-    if (positionsError) {
-      logError("applyYieldDistribution.positions", positionsError, { fundId });
-      throw new Error(`Failed to fetch positions: ${positionsError.message}`);
-    }
-
-    currentAUM = (positions || []).reduce(
-      (sum, p) => sum.plus(parseFinancial(p.current_value)),
-      parseFinancial(0)
-    );
-  }
-
   const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
-  const hasNewAum = parsedAum !== null && !parsedAum.isNaN();
-  const grossYieldAmount = hasNewAum ? parsedAum.minus(currentAUM).toNumber() : 0;
-  if (grossYieldAmount < 0) {
-    throw new Error("Yield must be non-negative (positive or zero).");
+  if (!parsedAum || parsedAum.isNaN() || parsedAum.lte(0)) {
+    throw new Error("Recorded AUM must be a positive number.");
   }
 
-  // Call ADB apply RPC (time-weighted allocation with loss carryforward)
-  // Transaction mode: distribution_date = today (when admin runs it)
-  // Reporting mode: omit distribution_date -- SQL defaults to period_end for historical accuracy
-  // Pass p_recorded_aum so fund_daily_aum stores what the admin entered
-  const { data, error } = await callRPC("apply_adb_yield_distribution_v4" as any, {
+  // Call V5 apply RPC (segmented proportional allocation)
+  const { data, error } = await callRPC("apply_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
-    p_period_start: formatDateForDB(periodStartDate),
     p_period_end: formatDateForDB(periodEndDate),
-    p_gross_yield_amount: grossYieldAmount,
+    p_recorded_aum: parsedAum.toNumber(),
     p_admin_id: adminId,
     p_purpose: purpose,
-    ...(purpose !== "reporting" && { p_distribution_date: formatDateForDB(new Date()) }),
-    ...(hasNewAum && { p_recorded_aum: parsedAum.toNumber() }),
-    ...(snapshotTime && { p_snapshot_time: snapshotTime }),
   });
 
   if (error) {
-    logError("applyYieldDistribution.adb", error, {
+    logError("applyYieldDistribution.v5", error, {
       fundId,
-      periodStart: formatDateForDB(periodStartDate),
       periodEnd: formatDateForDB(periodEndDate),
       purpose,
     });
     throw new Error(`Failed to apply yield: ${error.message}`);
   }
 
-  const result = data as unknown as ADBYieldRPCResult;
+  const result = data as unknown as V5YieldRPCResult;
 
   if (!result || !result.success) {
     throw new Error(result?.error || "Apply failed: Invalid response from server");
   }
-
-  // NOTE: MV refresh removed - platform now uses live views that compute in real-time
 
   // Finalize yield visibility
   try {
@@ -137,6 +96,8 @@ export async function applyYieldDistribution(
     .eq("is_voided", false);
 
   if (affectedInvestors?.length && fundInfo) {
+    const openingAum = Number(result.opening_aum || 0);
+    const grossYield = Number(result.gross_yield || 0);
     const notificationDistributions = affectedInvestors.map((inv) => ({
       userId: inv.investor_id,
       distributionId: `yield:${fundId}:${formatDateForDB(periodEndDate)}:${inv.investor_id}`,
@@ -145,9 +106,7 @@ export async function applyYieldDistribution(
       amount: Number(inv.amount),
       asset: fundInfo.asset,
       yieldDate: formatDateForDB(periodEndDate),
-      yieldPercentage: currentAUM.gt(0)
-        ? (grossYieldAmount / currentAUM.toNumber()) * 100
-        : undefined,
+      yieldPercentage: openingAum > 0 ? (grossYield / openingAum) * 100 : undefined,
     }));
 
     yieldNotifications
@@ -157,7 +116,7 @@ export async function applyYieldDistribution(
 
   const yieldDistributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
-    gross: String(result?.gross_yield ?? grossYieldAmount),
+    gross: String(result?.gross_yield ?? 0),
     fees: String(result?.total_fees ?? 0),
     ibFees: String(result?.total_ib ?? 0),
     net: String(result?.net_yield ?? 0),
@@ -171,13 +130,13 @@ export async function applyYieldDistribution(
     fundAsset: result?.fund_asset || fundInfo?.asset || "",
     yieldDate: targetDate,
     purpose,
-    currentAUM: currentAUM.toFixed(10),
-    newAUM: hasNewAum ? parsedAum.toFixed(10) : currentAUM.toFixed(10),
+    currentAUM: String(result?.opening_aum || 0),
+    newAUM: String(result?.recorded_aum || parsedAum.toNumber()),
     grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
-    yieldPercentage: String(result?.yield_rate_pct ?? 0),
+    yieldPercentage: "0",
     investorCount: Number(result?.investor_count ?? 0),
     distributions: yieldDistributions,
     ibCredits: [],
@@ -186,16 +145,18 @@ export async function applyYieldDistribution(
     hasConflicts: false,
     totals,
     status: "applied",
-    // ADB-specific fields
-    periodStart: formatDateForDB(periodStartDate),
-    periodEnd: formatDateForDB(periodEndDate),
+    // V5 segmented fields
+    periodStart: result?.period_start,
+    periodEnd: result?.period_end,
     daysInPeriod: Number(result?.days_in_period ?? 0),
-    totalAdb: String(result?.total_adb ?? 0),
-    yieldRatePct: String(result?.yield_rate_pct ?? 0),
-    totalLossOffset: String(result?.total_loss_offset ?? 0),
     dustAmount: String(result?.dust_amount ?? 0),
-    calculationMethod: "adb_v4",
-    features: result?.features || ["time_weighted", "loss_carryforward"],
+    calculationMethod: "segmented_v5",
+    features: result?.features || ["segmented_proportional"],
     conservationCheck: Boolean(result?.conservation_check),
+    segmentCount: result?.segment_count,
+    segments: result?.segments,
+    openingAum: String(result?.opening_aum || 0),
+    recordedAum: String(result?.recorded_aum || 0),
+    crystalsInPeriod: result?.crystals_consolidated ?? 0,
   };
 }

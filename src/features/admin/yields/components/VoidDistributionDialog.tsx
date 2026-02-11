@@ -44,7 +44,7 @@ interface VoidDistributionDialogProps {
   distribution: DistributionSummary | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (distributionId: string, reason: string) => Promise<void>;
+  onConfirm: (distributionId: string, reason: string, voidCrystals: boolean) => Promise<void>;
   isPending?: boolean;
 }
 
@@ -57,6 +57,7 @@ export function VoidDistributionDialog({
 }: VoidDistributionDialogProps) {
   const [reason, setReason] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [voidCrystals, setVoidCrystals] = useState(false);
   const [impact, setImpact] = useState<VoidYieldImpactResult | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
 
@@ -81,9 +82,10 @@ export function VoidDistributionDialog({
 
   const handleConfirm = async () => {
     if (!isValid || !distribution) return;
-    await onConfirm(distribution.id, reason.trim());
+    await onConfirm(distribution.id, reason.trim(), voidCrystals);
     setReason("");
     setConfirmed(false);
+    setVoidCrystals(false);
     setImpact(null);
   };
 
@@ -91,6 +93,7 @@ export function VoidDistributionDialog({
     if (!newOpen) {
       setReason("");
       setConfirmed(false);
+      setVoidCrystals(false);
       setImpact(null);
     }
     onOpenChange(newOpen);
@@ -218,6 +221,18 @@ export function VoidDistributionDialog({
             {reason.length > 0 && reason.length < 5 && (
               <p className="text-xs text-destructive">Reason must be at least 5 characters</p>
             )}
+          </div>
+
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="void-crystals"
+              checked={voidCrystals}
+              onCheckedChange={(checked) => setVoidCrystals(checked === true)}
+            />
+            <label htmlFor="void-crystals" className="text-sm leading-tight cursor-pointer">
+              Also void crystallization distributions created within this period (use when
+              re-distributing from scratch).
+            </label>
           </div>
 
           <div className="flex items-start space-x-2">

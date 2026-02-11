@@ -1,12 +1,13 @@
 /**
  * Fee Schedule Hooks
- * Query and mutation hooks for investor fee schedule management
+ *
+ * CRUD hooks for investor_fee_schedule table.
+ * Used by the FeeScheduleSection in InvestorSettingsTab.
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { feeScheduleService } from "@/services/admin/feeScheduleService";
-import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export interface FeeScheduleEntry {
   id: string;
@@ -18,14 +19,20 @@ export interface FeeScheduleEntry {
   fund?: { name: string } | null;
 }
 
-export function useFeeSchedule(investorId: string | undefined) {
-  return useQuery<FeeScheduleEntry[]>({
-    queryKey: [QUERY_KEYS.investorFeeSchedule, investorId],
-    queryFn: () => feeScheduleService.getFeeScheduleWithFunds(investorId!),
+/**
+ * Fetch fee schedule entries for an investor
+ */
+export function useFeeSchedule(investorId: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.investorFeeSchedule(investorId),
+    queryFn: () => feeScheduleService.getFeeScheduleWithFunds(investorId),
     enabled: !!investorId,
   });
 }
 
+/**
+ * Add a fee schedule entry
+ */
 export function useAddFeeScheduleEntry() {
   const queryClient = useQueryClient();
 
@@ -35,33 +42,35 @@ export function useAddFeeScheduleEntry() {
       fundId: string | null;
       feePct: number;
       effectiveDate: string;
-    }) => feeScheduleService.addFeeEntry(params),
-    onSuccess: (_data, variables) => {
+      endDate?: string | null;
+    }) =>
+      feeScheduleService.addFeeEntry({
+        investorId: params.investorId,
+        fundId: params.fundId,
+        feePct: params.feePct,
+        effectiveDate: params.effectiveDate,
+      }),
+    onSuccess: (_, { investorId }) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.investorFeeSchedule, variables.investorId],
+        queryKey: QUERY_KEYS.investorFeeSchedule(investorId),
       });
-      toast.success("Fee schedule entry added");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to add fee schedule entry");
     },
   });
 }
 
+/**
+ * Delete a fee schedule entry
+ */
 export function useDeleteFeeScheduleEntry() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (params: { entryId: string; investorId: string }) =>
       feeScheduleService.deleteFeeEntry(params.entryId),
-    onSuccess: (_data, variables) => {
+    onSuccess: (_, { investorId }) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.investorFeeSchedule, variables.investorId],
+        queryKey: QUERY_KEYS.investorFeeSchedule(investorId),
       });
-      toast.success("Fee schedule entry deleted");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete fee schedule entry");
     },
   });
 }

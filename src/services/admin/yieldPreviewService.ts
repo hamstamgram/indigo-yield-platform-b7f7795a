@@ -1,14 +1,13 @@
 /**
  * Yield Preview Service
- * Handles yield distribution preview calculations using CFO-grade ADB (time-weighted) allocation.
+ * Handles yield distribution preview using V5 segmented proportional allocation.
  *
- * CALCULATION METHOD: ADB (Average Daily Balance) Time-Weighted
- * - Each investor's allocation is based on their time-weighted capital contribution
- * - Mid-period deposits/withdrawals are properly weighted by days held
- * - Loss carryforward: negative months carry forward to offset future gains before fees
- *
- * Note: Period snapshot functionality removed in P1-03 (Unify AUM Snapshot Tables)
- * The fund_period_snapshot table was unused (0 rows) and has been dropped.
+ * CALCULATION METHOD: Segmented Proportional (V5)
+ * - Each investor's allocation is proportional to their balance within each segment
+ * - Crystallization events define segment boundaries (mid-period flows)
+ * - Per-segment fee lookup via get_investor_fee_pct hierarchy
+ * - IB commissions tracked in running balances between segments
+ * - AUM-only input: gross yield derived from recorded_aum - opening positions
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +15,6 @@ import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
 import { parseFinancial } from "@/utils/financial";
-import { startOfMonth } from "date-fns";
 
 import type {
   YieldCalculationInput,
@@ -24,8 +22,8 @@ import type {
   IBCredit,
   YieldTotals,
   YieldCalculationResult,
-  ADBYieldRPCResult,
-  ADBAllocationItem,
+  V5YieldRPCResult,
+  V5AllocationItem,
 } from "@/types/domains/yield";
 
 // UUID validation regex
@@ -35,37 +33,30 @@ function isValidUUID(value: string): boolean {
   return UUID_REGEX.test(value);
 }
 
-// Use canonical formatDateForDB from dateUtils - see src/utils/dateUtils.ts for why
-// toISOString().split("T")[0] is NOT timezone-safe
-
 /**
- * Preview yield distribution using CFO-grade ADB (time-weighted) allocation.
- * This is a read-only operation that returns computed distributions.
+ * Preview yield distribution using V5 segmented proportional allocation.
+ * This is a read-only operation that returns computed distributions with segment breakdown.
  *
- * The ADB method allocates yield based on each investor's time-weighted capital:
- * - Investor who held $100K for 30 days gets 2x weight vs investor who held $100K for 15 days
- * - Loss carryforward ensures negative months offset future gains before fees
+ * The V5 method:
+ * - Reads crystallization events to split the month into segments
+ * - Allocates yield proportionally by balance within each segment
+ * - Running balances track NET yield, fees, IB between segments
+ * - Per-segment fee lookup via get_investor_fee_pct hierarchy
  */
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, periodStart, newTotalAUM, baseAUM, purpose = "reporting" } = input;
+  const { fundId, targetDate, newTotalAUM, purpose = "reporting" } = input;
 
   // Validate fundId is a valid UUID
   if (!fundId || !isValidUUID(fundId)) {
     throw new Error(`Invalid fund ID format: "${fundId}". Expected a valid UUID.`);
   }
 
-  // Calculate period dates
   const periodEndDate = targetDate;
-  const periodStartDate = periodStart || startOfMonth(targetDate);
-
-  // Get user ID
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Authentication required");
+  const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
+  if (!parsedAum || parsedAum.isNaN() || parsedAum.lte(0)) {
+    throw new Error("Recorded AUM must be a positive number.");
   }
 
   // Get fund info
@@ -76,97 +67,61 @@ export async function previewYieldDistribution(
     .maybeSingle();
   const fund = fundResult.data;
 
-  // Use baseAUM (as-of AUM the admin saw) when provided; otherwise fall back to positions
-  let currentAUM = parseFinancial(0);
-  if (baseAUM) {
-    currentAUM = parseFinancial(baseAUM);
-  } else {
-    const positionsResult = await supabase
-      .from("investor_positions")
-      .select("current_value")
-      .eq("fund_id", fundId)
-      .eq("is_active", true)
-      .gt("current_value", 0);
-
-    currentAUM = (positionsResult.data || []).reduce(
-      (sum, p) => sum.plus(parseFinancial(p.current_value)),
-      parseFinancial(0)
-    );
-  }
-
-  // Calculate gross yield amount from AUM difference when provided
-  const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
-  const hasNewAum = parsedAum !== null && !parsedAum.isNaN();
-  const grossYieldAmount = hasNewAum ? parsedAum.minus(currentAUM).toNumber() : 0;
-  if (grossYieldAmount < 0) {
-    throw new Error("Yield must be non-negative (positive or zero).");
-  }
-
-  // Call ADB preview RPC (time-weighted allocation)
-  const { data, error } = await callRPC("preview_adb_yield_distribution_v4" as any, {
+  // Call V5 preview RPC (segmented proportional allocation)
+  const { data, error } = await callRPC("preview_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
-    p_period_start: formatDateForDB(periodStartDate),
     p_period_end: formatDateForDB(periodEndDate),
-    p_gross_yield_amount: grossYieldAmount,
+    p_recorded_aum: parsedAum.toNumber(),
     p_purpose: purpose,
   });
 
   if (error) {
-    logError("yieldPreview.adb", error, {
+    logError("yieldPreview.v5", error, {
       fundId,
-      periodStart: formatDateForDB(periodStartDate),
       periodEnd: formatDateForDB(periodEndDate),
     });
     throw new Error(`Failed to preview yield: ${error.message}`);
   }
 
-  const result = data as unknown as ADBYieldRPCResult;
+  const result = data as unknown as V5YieldRPCResult;
 
   if (!result || !result.success) {
     throw new Error(result?.error || "Preview failed: Invalid response from server");
   }
 
-  // Map distributions from ADB backend format
-  // Field names match the RPC's JSONB output: adb_share_pct, gross_yield, net_yield, ib_rate
+  // Map distributions from V5 backend format
   const distributions: YieldDistribution[] = (result.allocations || []).map(
-    (d: ADBAllocationItem) => ({
+    (d: V5AllocationItem) => ({
       investorId: d.investor_id,
       investorName: d.investor_name,
       accountType: d.account_type,
-      currentBalance: String(d.adb || 0), // Use ADB as "current" context
-      allocationPercentage: String(d.adb_share_pct || 0),
+      currentBalance: String(d.gross || 0), // Use gross as "current" context for display
+      allocationPercentage: "0",
       feePercentage: String(d.fee_pct || 0),
-      grossYield: String(d.gross_yield || 0),
-      feeAmount: String(d.fee_amount || 0),
-      netYield: String(d.net_yield || 0),
-      newBalance: "0", // Not applicable for preview
-      positionDelta: String(d.net_yield || 0),
+      grossYield: String(d.gross || 0),
+      feeAmount: String(d.fee || 0),
+      netYield: String(d.net || 0),
+      newBalance: "0",
+      positionDelta: String(d.net || 0),
       ibParentId: d.ib_parent_id,
-      ibParentName: d.ib_parent_name,
       ibPercentage: String(d.ib_rate || 0),
-      ibAmount: String(d.ib_amount || 0),
+      ibAmount: String(d.ib || 0),
       referenceId: "",
       wouldSkip: false,
-      // ADB-specific fields
-      adb: String(d.adb || 0),
-      adbWeight: String(Number(d.adb_share_pct || 0) / 100), // Convert % to decimal
-      carriedLoss: String(d.carried_loss || 0),
-      lossOffset: String(d.loss_offset || 0),
-      taxableGain: String(d.taxable_gain || 0),
       hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
+      // V5-specific: per-investor segment breakdown
+      segmentDetails: d.segments || [],
     })
   );
 
-  // IB credits are computed separately in ADB model
   const ibCredits: IBCredit[] = [];
 
-  // Extract totals from ADB response
   const totals: YieldTotals = {
-    gross: String(result.gross_yield || grossYieldAmount),
+    gross: String(result.gross_yield || 0),
     fees: String(result.total_fees || 0),
     ibFees: String(result.total_ib || 0),
     net: String(result.net_yield || 0),
-    indigoCredit: String(result.total_fees || 0), // Platform fees = INDIGO credit
+    indigoCredit: String(result.total_fees || 0),
   };
 
   return {
@@ -179,13 +134,16 @@ export async function previewYieldDistribution(
     effectiveDate: formatDateForDB(periodEndDate),
     purpose,
     isMonthEnd: false,
-    currentAUM: currentAUM.toFixed(10),
-    newAUM: hasNewAum ? parsedAum.toFixed(10) : currentAUM.toFixed(10),
-    grossYield: String(result.gross_yield || grossYieldAmount),
-    netYield: String(result.net_yield ?? totals.net),
-    totalFees: String(result.total_fees ?? totals.fees),
-    totalIbFees: String(result.total_ib ?? totals.ibFees),
-    yieldPercentage: String(result.yield_rate_pct || 0),
+    currentAUM: String(result.opening_aum || 0),
+    newAUM: String(result.recorded_aum || parsedAum.toNumber()),
+    grossYield: totals.gross,
+    netYield: totals.net,
+    totalFees: totals.fees,
+    totalIbFees: totals.ibFees,
+    yieldPercentage:
+      result.opening_aum && Number(result.opening_aum) > 0
+        ? String(((Number(result.gross_yield) || 0) / Number(result.opening_aum)) * 100)
+        : "0",
     investorCount: Number(result.investor_count || distributions.length),
     distributions,
     ibCredits,
@@ -195,18 +153,18 @@ export async function previewYieldDistribution(
     hasConflicts: false,
     totals,
     status: "preview",
-    // ADB-specific fields
-    periodStart: formatDateForDB(periodStartDate),
-    periodEnd: formatDateForDB(periodEndDate),
+    // V5 segmented fields
+    periodStart: result.period_start,
+    periodEnd: result.period_end,
     daysInPeriod: Number(result.days_in_period || 0),
-    totalAdb: String(result.total_adb || 0),
-    yieldRatePct: String(result.yield_rate_pct || 0),
-    totalLossOffset: String(result.total_loss_offset || 0),
     dustAmount: String(result.dust_amount || 0),
-    calculationMethod: "adb_v4",
-    features: result.features || ["time_weighted", "loss_carryforward"],
+    calculationMethod: "segmented_v5",
+    features: result.features || ["segmented_proportional"],
     conservationCheck: Boolean(result.conservation_check),
-    crystalsInPeriod: result.crystals_in_period ?? 0,
-    crystalGrossTotal: String(result.crystal_gross_total ?? 0),
+    segmentCount: result.segment_count,
+    segments: result.segments,
+    openingAum: String(result.opening_aum || 0),
+    recordedAum: String(result.recorded_aum || 0),
+    crystalsInPeriod: result.crystal_count ?? 0,
   };
 }
