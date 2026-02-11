@@ -199,32 +199,19 @@ export async function processDepositWithYield(
 }
 
 /**
- * Get current fund AUM from fund_daily_aum (transaction purpose).
- * Falls back to ALL active positions if no snapshot exists (new fund).
+ * Get current fund AUM from live investor positions.
+ * Positions are the canonical source of truth (maintained by trg_ledger_sync),
+ * always reflecting the latest state after any deposit, yield, or void.
+ * Using fund_daily_aum snapshots can return stale pre-yield values.
  */
 export async function getCurrentFundAum(fundId: string): Promise<number> {
-  const { data, error } = await supabase
-    .from("fund_daily_aum")
-    .select("total_aum")
-    .eq("fund_id", fundId)
-    .eq("purpose", "transaction")
-    .eq("is_voided", false)
-    .order("aum_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) throw new Error(`Failed to fetch AUM: ${error.message}`);
-
-  if (data) return Number(data.total_aum);
-
-  // Fallback: sum ALL active positions (new fund with no AUM history)
-  const { data: positions, error: posError } = await supabase
+  const { data: positions, error } = await supabase
     .from("investor_positions")
     .select("current_value")
     .eq("fund_id", fundId)
     .eq("is_active", true)
     .gt("current_value", 0);
 
-  if (posError) throw new Error(`Failed to fetch positions: ${posError.message}`);
+  if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
   return (positions || []).reduce((sum, p) => sum + Number(p.current_value || 0), 0);
 }
