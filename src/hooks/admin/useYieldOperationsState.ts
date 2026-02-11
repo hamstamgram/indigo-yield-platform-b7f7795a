@@ -273,49 +273,33 @@ export function useYieldOperationsState() {
     return { valid: true };
   }, [state.yieldPurpose, state.reportingMonth, state.aumDate]);
 
-  const getLatestTransactionDate = useCallback(async (fundId: string) => {
-    const { data, error } = await supabase
-      .from("transactions_v2")
-      .select("tx_date")
-      .eq("fund_id", fundId)
-      .eq("is_voided", false)
-      .order("tx_date", { ascending: false })
-      .limit(1);
-
-    if (error) {
-      logError("yieldOperations.getLatestTransactionDate", error, { fundId });
-      return null;
-    }
-
-    return data?.[0]?.tx_date ?? null;
-  }, []);
-
   const checkExistingDistribution = useCallback(
     async (fundId: string, effectiveDate: Date, purpose: YieldPurpose) => {
-      const reportingDate = purpose === "reporting" ? await getLatestTransactionDate(fundId) : null;
-      const yieldDate = reportingDate ?? formatDateForDB(effectiveDate);
-      if (!yieldDate) {
+      const effectiveDateStr = formatDateForDB(effectiveDate);
+      if (!effectiveDateStr) {
         return { exists: false, id: null, date: null };
       }
 
+      // For reporting: check by period_end matching the effective date (end of month)
+      // This avoids false positives when yield_date differs from period_end
       const { data, error } = await supabase
         .from("yield_distributions")
         .select("id")
         .eq("fund_id", fundId)
-        .eq("yield_date", yieldDate)
+        .eq("period_end", effectiveDateStr)
         .eq("is_voided", false)
         .eq("purpose", purpose)
         .limit(1);
 
       if (error) {
-        logError("yieldOperations.checkExistingDistribution", error, { fundId, yieldDate });
-        return { exists: false, id: null, date: yieldDate };
+        logError("yieldOperations.checkExistingDistribution", error, { fundId, effectiveDateStr });
+        return { exists: false, id: null, date: effectiveDateStr };
       }
 
       const existingId = data?.[0]?.id ?? null;
-      return { exists: Boolean(existingId), id: existingId, date: yieldDate };
+      return { exists: Boolean(existingId), id: existingId, date: effectiveDateStr };
     },
-    [getLatestTransactionDate]
+    []
   );
 
   // Handle preview yield - uses as-of AUM for comparison
@@ -348,11 +332,6 @@ export function useYieldOperationsState() {
           state.aumDate,
           state.yieldPurpose
         );
-        if (!existing.date) {
-          setState((prev) => ({ ...prev, previewLoading: false }));
-          toast.error("Reporting requires at least one transaction in this fund.");
-          return;
-        }
         if (existing.exists) {
           setState((prev) => ({
             ...prev,
@@ -418,11 +397,6 @@ export function useYieldOperationsState() {
           state.aumDate,
           state.yieldPurpose
         );
-        if (!existing.date) {
-          setState((prev) => ({ ...prev, applyLoading: false }));
-          toast.error("Reporting requires at least one transaction in this fund.");
-          return;
-        }
         if (existing.exists) {
           setState((prev) => ({
             ...prev,
