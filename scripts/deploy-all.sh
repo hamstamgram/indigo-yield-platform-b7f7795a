@@ -104,7 +104,7 @@ npm run check:services
 # Step 7: Deployment
 echo -e "${YELLOW}Step 7: Deployment${NC}"
 echo "Build complete. Push to main branch and Lovable will auto-deploy."
-echo "Production URL: https://indigo-yield-platform-v01.lovable.app/"
+echo "Production URL: https://indigo-yield-platform.lovable.app/"
 
 echo ""
 echo "========================================="

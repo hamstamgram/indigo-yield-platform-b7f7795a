@@ -25,7 +25,7 @@ IB routes (`/ib/*`) are not recognized, causing the layout to incorrectly classi
 **Password**: QaTest2026!
 **User ID**: e6571dc6-dcc8-4bbe-aa96-cb813c91cee3
 **Role**: IB (verified in user_roles table)
-**Test URL**: https://indigo-yield-platform-v01.lovable.app/
+**Test URL**: https://indigo-yield-platform.lovable.app/
 
 ---
 

@@ -1,7 +1,7 @@
 # Comprehensive Test Report - Indigo Yield Platform
 
 **Test Date:** January 24, 2026
-**Environment:** Lovable Preview (indigo-yield-platform-v01.lovable.app)
+**Environment:** Lovable Preview (indigo-yield-platform.lovable.app)
 **Tester:** Automated via Claude Code + Playwright MCP + Supabase MCP
 
 ---

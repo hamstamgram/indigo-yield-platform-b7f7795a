@@ -1,7 +1,7 @@
 import { test, expect, devices } from "@playwright/test";
 import fs from "fs/promises";
 
-const PREVIEW_URL = "https://indigo-yield-platform-v01.lovable.app";
+const PREVIEW_URL = "https://indigo-yield-platform.lovable.app";
 
 test.describe("Phase 4 PWA Validation", () => {
   test("validates service worker, manifest, and install prompt", async ({ page }) => {

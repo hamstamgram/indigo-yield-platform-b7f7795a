@@ -3,7 +3,7 @@
 ## Executive Summary
 
 **Test Date:** January 21, 2026
-**Platform URL:** https://indigo-yield-platform-v01.lovable.app
+**Platform URL:** https://indigo-yield-platform.lovable.app
 **Test Type:** Comprehensive Fortune 500 / CFO / CTO Grade Platform Verification
 **Test Method:** Playwright UI Automation + Supabase MCP Backend Verification
 **Overall Status:** ✅ **PASSED**

@@ -3,7 +3,7 @@
 **Date**: 2026-02-03
 **Auditor**: Claude Opus 4.5 (Playwright MCP + Supabase MCP)
 **Scope**: All 3 portals (Admin, Investor, IB) — page-by-page UI + SQL verification
-**Production URL**: `https://indigo-yield-platform-v01.lovable.app`
+**Production URL**: `https://indigo-yield-platform.lovable.app`
 **Screenshots**: `audit/` directory (45 screenshots)
 
 ---

@@ -1,6 +1,6 @@
 # UI Verification Report
 **Date**: 2026-02-02
-**Test Environment**: https://indigo-yield-platform-v01.lovable.app (Production)
+**Test Environment**: https://indigo-yield-platform.lovable.app (Production)
 **Tester**: AI QA Agent via Playwright MCP
 **Test Credentials**: QA test accounts (Admin, Investor, IB)
 
@@ -20,7 +20,7 @@ UI testing revealed a **CRITICAL BUG** in the Investor Portal: duplicate fund ca
 ### 1. Investor Portal ❌ FAILED
 
 **Test Account**: `qa.investor@indigo.fund` / `QaTest2026!`
-**Test URL**: https://indigo-yield-platform-v01.lovable.app/investor
+**Test URL**: https://indigo-yield-platform.lovable.app/investor
 
 #### Issue: Duplicate Fund Cards
 
@@ -77,7 +77,7 @@ The duplicate is NOT in the database—it's in the frontend rendering logic. Inv
 
 ### 2. Portfolio Page ❌ FAILED
 
-**Test URL**: https://indigo-yield-platform-v01.lovable.app/investor/portfolio
+**Test URL**: https://indigo-yield-platform.lovable.app/investor/portfolio
 
 **Observed Behavior**:
 The Portfolio table shows "2 ASSETS" in the header, indicating the same duplicate issue affects the portfolio view.
@@ -98,7 +98,7 @@ The Portfolio table shows "2 ASSETS" in the header, indicating the same duplicat
 ### 3. IB Portal ✅ PASSED
 
 **Test Account**: `qa.ib@indigo.fund` / `QaTest2026!`
-**Test URL**: https://indigo-yield-platform-v01.lovable.app/ib
+**Test URL**: https://indigo-yield-platform.lovable.app/ib
 
 **Observed Behavior**: ✅ All correct
 - Total Referrals: 1 (correct - QA Investor)
@@ -117,7 +117,7 @@ The Portfolio table shows "2 ASSETS" in the header, indicating the same duplicat
 ### 4. Admin Portal ⚠️ PARTIAL
 
 **Test Account**: `qa.admin@indigo.fund` / `QaTest2026!`
-**Test URL**: https://indigo-yield-platform-v01.lovable.app/admin
+**Test URL**: https://indigo-yield-platform.lovable.app/admin
 
 **Observed Behavior**:
 - Command Center loaded successfully
@@ -126,7 +126,7 @@ The Portfolio table shows "2 ASSETS" in the header, indicating the same duplicat
 - Risk Analysis tabs visible (Liquidity, Concentration, Platform Metrics)
 
 **Data Integrity Page**:
-- URL: https://indigo-yield-platform-v01.lovable.app/admin/integrity
+- URL: https://indigo-yield-platform.lovable.app/admin/integrity
 - Status: "No check results yet" - integrity checks were not run during this session
 - Note: Previous session dismissed stale alerts, but checks should be run to verify current state
 

@@ -1,6 +1,6 @@
 CONTRACT MAP (Runtime-Verified)
 Generated: 2026-01-30
-Environment: production (https://indigo-yield-platform-v01.lovable.app)
+Environment: production (https://indigo-yield-platform.lovable.app)
 Supabase project: nkfimvovosdehmyyjubn
 
 Summary

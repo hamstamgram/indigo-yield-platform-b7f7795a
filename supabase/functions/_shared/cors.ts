@@ -1,9 +1,8 @@
 // Allowed origins for CORS - restrict to known domains only
 const ALLOWED_ORIGINS = [
-  "https://indigo-yield-platform-v01.lovable.app",
+  "https://indigo-yield-platform.lovable.app",
   "https://app.indigofund.com",
   "https://www.indigofund.com",
-  "https://indigo-yield-platform-v01-hamstamgrams-projects.vercel.app",
   "http://localhost:3000",
   "http://localhost:5173", // Vite dev server
   "http://localhost:8080", // Vite dev server (alt port)

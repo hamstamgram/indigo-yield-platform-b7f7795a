@@ -3,7 +3,7 @@
 **Date:** 2026-01-27
 **Auditor:** Claude (Automated UI Audit)
 **Test User:** qa.ib@indigo.fund
-**Environment:** https://indigo-yield-platform-v01.lovable.app/
+**Environment:** https://indigo-yield-platform.lovable.app/
 
 ---
 

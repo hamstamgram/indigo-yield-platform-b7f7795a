@@ -2,7 +2,7 @@
 
 **Tester**: Automated (Claude Code + Playwright MCP)
 **Date**: 2026-02-07
-**Target**: Vercel deployment (https://indigo-yield-platform-v01-hamstamgrams-projects.vercel.app)
+**Target**: Lovable deployment (https://indigo-yield-platform.lovable.app)
 **Note**: Primary Lovable deployment is DOWN ("Project not found"). Vercel deployment is STALE (running old code).
 
 ---
@@ -11,7 +11,7 @@
 
 ### BUG-001: Lovable deployment is down
 - **Severity**: CRITICAL
-- **URL**: https://indigo-yield-platform-v01.lovable.app/
+- **URL**: https://indigo-yield-platform.lovable.app/
 - **Expected**: App loads normally
 - **Actual**: Returns "Project not found" page
 - **Impact**: Production is inaccessible
@@ -19,7 +19,7 @@
 
 ### BUG-002: Vercel deployment is stale (old code)
 - **Severity**: CRITICAL
-- **URL**: https://indigo-yield-platform-v01-hamstamgrams-projects.vercel.app
+- **URL**: https://indigo-yield-platform.lovable.app
 - **Evidence**:
   - Calls RPCs that no longer exist in current code (`get_profile_basic`, `get_profile_by_id`)
   - Queries table `investors` which doesn't exist (current code uses `profiles`)

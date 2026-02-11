@@ -206,7 +206,7 @@ async function sendSlackAlert(webhookUrl: string, results: CheckResult[]): Promi
       elements: [
         {
           type: "mrkdwn",
-          text: `Checked at ${new Date().toISOString()} | <https://indigo-yield-platform-v01.lovable.app/admin/integrity|View Dashboard>`,
+          text: `Checked at ${new Date().toISOString()} | <https://indigo-yield-platform.lovable.app/admin/integrity|View Dashboard>`,
         },
       ],
     },
@@ -243,7 +243,7 @@ async function sendEmailAlert(supabase: any, email: string, results: CheckResult
         )
         .join("")}
     </ul>
-    <p><a href="https://indigo-yield-platform-v01.lovable.app/admin/integrity">View Dashboard</a></p>
+    <p><a href="https://indigo-yield-platform.lovable.app/admin/integrity">View Dashboard</a></p>
     <p style="color: #666; font-size: 12px;">Checked at ${new Date().toISOString()}</p>
   `;
 

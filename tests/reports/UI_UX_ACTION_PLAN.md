@@ -451,7 +451,7 @@ import { useState } from 'react';
 
 function ReferralLinkSection({ ibId }) {
   const [copied, setCopied] = useState(false);
-  const referralUrl = `https://indigo-yield-platform-v01.lovable.app/signup?ref=${ibId}`;
+  const referralUrl = `https://indigo-yield-platform.lovable.app/signup?ref=${ibId}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralUrl);
@@ -495,7 +495,7 @@ npx tsc --noEmit
 npm run build
 
 # Accessibility audit
-npx @axe-core/cli https://indigo-yield-platform-v01.lovable.app/admin
+npx @axe-core/cli https://indigo-yield-platform.lovable.app/admin
 ```
 
 ### Manual Testing

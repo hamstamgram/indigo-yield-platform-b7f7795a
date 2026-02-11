@@ -1,7 +1,7 @@
 # Indigo Yield Platform — Comprehensive Functional E2E Test Report
 
 **Date**: 2026-02-03
-**Target**: `https://indigo-yield-platform-v01.lovable.app`
+**Target**: `https://indigo-yield-platform.lovable.app`
 **Method**: Playwright MCP browser automation + Supabase MCP SQL verification
 **Executed Across**: 3 sessions (~13 context windows total)
 **Plan File**: `/Users/mama/.claude/plans/whimsical-hatching-rivest.md`

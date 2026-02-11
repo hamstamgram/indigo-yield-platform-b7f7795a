@@ -23,7 +23,7 @@ The IB Portal is **fully functional** and all pages are accessible. Initial test
 
 ## Test Environment
 
-**Platform URL**: https://indigo-yield-platform-v01.lovable.app/
+**Platform URL**: https://indigo-yield-platform.lovable.app/
 **Test User**: qa.ib@indigo.fund
 **Password**: QaTest2026!
 **User ID**: e6571dc6-dcc8-4bbe-aa96-cb813c91cee3

@@ -42,7 +42,7 @@ This report documents testing attempts for the remaining Admin Portal pages: Tra
 **Time**: 14:01:00
 **Status**: Partial Success
 
-1. ✅ Navigated to https://indigo-yield-platform-v01.lovable.app/admin
+1. ✅ Navigated to https://indigo-yield-platform.lovable.app/admin
 2. ✅ Logged in successfully as qa.admin@indigo.fund
 3. ✅ Command Center loaded with:
    - 44 investors (43 active)
@@ -332,7 +332,7 @@ The Admin Portal testing session was **unable to complete** due to persistent se
 
 - **Platform**: darwin (macOS)
 - **Browser**: Chromium (Playwright)
-- **URL**: https://indigo-yield-platform-v01.lovable.app
+- **URL**: https://indigo-yield-platform.lovable.app
 - **Test Date**: 2026-01-27
 - **Test Duration**: ~4 minutes
 - **Authentication Method**: Form login

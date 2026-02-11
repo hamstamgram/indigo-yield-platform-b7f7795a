@@ -8,7 +8,7 @@ Help me deploy the indigo-yield-platform:
 3. Build: `npm run build`
 4. If all pass, commit and push to main — Lovable auto-deploys
 
-Production URL: https://indigo-yield-platform-v01.lovable.app/
+Production URL: https://indigo-yield-platform.lovable.app/
 
 Check for any environment variables that need updating.
 

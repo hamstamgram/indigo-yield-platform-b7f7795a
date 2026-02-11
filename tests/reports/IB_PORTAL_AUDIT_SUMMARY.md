@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-27
 **Status:** CRITICAL FAILURE - Portal Completely Inaccessible
-**Environment:** Production (https://indigo-yield-platform-v01.lovable.app/)
+**Environment:** Production (https://indigo-yield-platform.lovable.app/)
 
 ---
 

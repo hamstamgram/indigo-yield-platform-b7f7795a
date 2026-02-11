@@ -1,7 +1,7 @@
 # Indigo Yield Platform — E2E Retest Report (Post-Remediation)
 
 **Date**: 2026-02-03
-**Target**: `https://indigo-yield-platform-v01.lovable.app` (UI) + Supabase MCP (SQL)
+**Target**: `https://indigo-yield-platform.lovable.app` (UI) + Supabase MCP (SQL)
 **Method**: Playwright MCP browser automation + Supabase MCP SQL verification
 **Scope**: Verify all 12 bugs from `tests/E2E_FINAL_REPORT.md` are resolved
 **Plan File**: `/Users/mama/.claude/plans/whimsical-hatching-rivest.md`

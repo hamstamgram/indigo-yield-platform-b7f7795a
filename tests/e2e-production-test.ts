@@ -1,12 +1,12 @@
 /**
  * Production UI End-to-End Tests v3
- * Tests critical paths on https://indigo-yield-platform-v01.lovable.app/
+ * Tests critical paths on https://indigo-yield-platform.lovable.app/
  * Fixed: Correct login route is /login, not /auth/login
  */
 
 import { chromium, Page } from "playwright";
 
-const BASE_URL = "https://indigo-yield-platform-v01.lovable.app";
+const BASE_URL = "https://indigo-yield-platform.lovable.app";
 
 interface TestResult {
   name: string;

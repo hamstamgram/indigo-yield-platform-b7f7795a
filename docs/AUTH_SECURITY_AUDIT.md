@@ -1148,7 +1148,7 @@ MEDIUM RISK if:
 **Option 1**: Remove wildcard, use explicit subdomain list:
 ```typescript
 const ALLOWED_ORIGINS = [
-  "https://indigo-yield-platform-v01.lovable.app", // Production
+  "https://indigo-yield-platform.lovable.app", // Production
   "https://indigo-staging.lovable.app", // Staging
   "https://indigo-dev.lovable.app", // Dev
   "https://app.indigofund.com",

@@ -14,7 +14,7 @@ import { test, expect, Page } from "@playwright/test";
 // Test Configuration
 // ============================================
 
-const BASE_URL = process.env.TEST_URL || "https://indigo-yield-platform-v01.lovable.app";
+const BASE_URL = process.env.TEST_URL || "https://indigo-yield-platform.lovable.app";
 const QA_INVESTOR_EMAIL = "qa.investor@indigo.fund";
 const QA_INVESTOR_PASSWORD = "QaTest2026!";
 const QA_ADMIN_EMAIL = "qa.admin@indigo.fund";

@@ -2,7 +2,7 @@
  * Production Smoke Test
  *
  * Run against the live Lovable Cloud app to verify critical flows:
- *   PLAYWRIGHT_BASE_URL=https://indigo-yield-platform-v01.lovable.app npx playwright test tests/e2e/production-smoke.spec.ts --project=chromium
+ *   PLAYWRIGHT_BASE_URL=https://indigo-yield-platform.lovable.app npx playwright test tests/e2e/production-smoke.spec.ts --project=chromium
  *
  * Tests:
  *  1. Admin login + dashboard loads

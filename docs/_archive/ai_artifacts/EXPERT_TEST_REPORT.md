@@ -2,7 +2,7 @@
 
 **Date**: January 17, 2026  
 **Platform**: Indigo Yield Platform v01  
-**Production URL**: https://indigo-yield-platform-v01.lovable.app
+**Production URL**: https://indigo-yield-platform.lovable.app
 
 ---
 

@@ -6,7 +6,7 @@ import * as fs from "fs";
 
 const ADMIN_EMAIL = "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = "QaTest2026!";
-const BASE_URL = "https://indigo-yield-platform-v01.lovable.app";
+const BASE_URL = "https://indigo-yield-platform.lovable.app";
 const OUTPUT_DIR = "/tmp/playwright-output";
 
 async function verifyAUMProduction() {

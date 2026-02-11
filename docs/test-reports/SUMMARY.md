@@ -2,7 +2,7 @@
 
 **Date**: February 10, 2026
 **Duration**: Multi-session (Feb 9-10, 2026)
-**Environment**: Lovable Cloud (https://indigo-yield-platform-v01.lovable.app)
+**Environment**: Lovable Cloud (https://indigo-yield-platform.lovable.app)
 **Test Period**: September - December 2025 (4 simulated months)
 
 ---

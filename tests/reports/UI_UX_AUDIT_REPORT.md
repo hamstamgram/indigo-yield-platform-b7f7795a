@@ -2,7 +2,7 @@
 
 **Date:** February 3, 2026
 **Auditor:** Frontend Architect
-**Platform:** https://indigo-yield-platform-v01.lovable.app
+**Platform:** https://indigo-yield-platform.lovable.app
 **Portals Tested:** Admin, Investor, IB (Introducing Broker)
 
 ---

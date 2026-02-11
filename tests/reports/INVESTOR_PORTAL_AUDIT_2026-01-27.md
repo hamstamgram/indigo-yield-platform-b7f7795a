@@ -2,7 +2,7 @@
 **Date**: January 27, 2026
 **Auditor**: Claude (Comprehensive UI Audit)
 **Test User**: qa.investor@indigo.fund
-**Environment**: https://indigo-yield-platform-v01.lovable.app/
+**Environment**: https://indigo-yield-platform.lovable.app/
 
 ---
 
@@ -187,7 +187,7 @@ According to documentation in CLAUDE.md, the QA investor (qa.investor@indigo.fun
 
 #### Issues Identified
 - **HIGH**: 500 Server Error during page load
-  - Error URL: `https://indigo-yield-platform-v01.lovable.app/investor/documents` returned HTTP 500
+  - Error URL: `https://indigo-yield-platform.lovable.app/investor/documents` returned HTTP 500
 - **CRITICAL**: Cannot test document display
 - Cannot test document download
 - Backend error suggests potential RPC or database issue
