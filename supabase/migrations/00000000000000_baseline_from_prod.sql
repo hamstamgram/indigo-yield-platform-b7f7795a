@@ -2365,6 +2365,7 @@ DECLARE
   v_dust_credit_tx_id uuid;
   v_fees_account_id uuid;
   v_crystal_result jsonb;
+  v_closing_aum numeric(28,10);
 BEGIN
   -- Require admin
   IF NOT public.is_admin() THEN
@@ -2401,13 +2402,17 @@ BEGIN
   -- If full exit, auto-crystallize yield first
   IF p_is_full_exit THEN
     BEGIN
+      SELECT COALESCE(SUM(ip.current_value), 0) INTO v_closing_aum
+      FROM investor_positions ip
+      WHERE ip.fund_id = v_request.fund_id AND ip.is_active = true;
+
       SELECT public.crystallize_yield_before_flow(
         v_request.fund_id,
-        0, -- dummy amount, crystallization reads position
+        v_closing_aum,
         'withdrawal',
-        'transaction',
+        'full-exit:' || p_request_id::text,
         NOW(),
-        v_request.investor_id
+        v_admin_id
       ) INTO v_crystal_result;
     EXCEPTION WHEN OTHERS THEN
       -- Crystallization may fail if no yield to distribute; that's OK
@@ -10324,7 +10329,7 @@ BEGIN
     ), 0),
     p.account_type::text,
     p.ib_parent_id,
-    COALESCE(p.ib_percentage, 0),
+    get_investor_ib_pct(p.id, p_fund_id, v_period_end),
     trim(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')),
     p.email
   FROM investor_positions ip
@@ -10404,7 +10409,7 @@ BEGIN
         v_inv.flow_amount,
         p.account_type::text,
         p.ib_parent_id,
-        COALESCE(p.ib_percentage, 0),
+        get_investor_ib_pct(v_inv.investor_id, p_fund_id, v_seg_end),
         trim(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')),
         p.email
       FROM profiles p WHERE p.id = v_inv.investor_id
@@ -11304,33 +11309,23 @@ BEGIN
       t.tx_date,
       t.type,
       t.amount,
-      CASE
-        WHEN t.type IN ('DEPOSIT', 'INTEREST', 'FEE_CREDIT', 'IB_CREDIT') THEN
-          (p_period_end - t.tx_date)::numeric / v_days_in_period
-        WHEN t.type IN ('WITHDRAWAL', 'FEE') THEN
-          (p_period_end - t.tx_date)::numeric / v_days_in_period
-        ELSE 0
-      END as time_weight
+      (p_period_end - t.tx_date)::numeric / v_days_in_period as time_weight
     FROM transactions_v2 t
     WHERE t.fund_id = p_fund_id
       AND t.purpose = p_purpose
       AND t.tx_date BETWEEN p_period_start AND p_period_end
+      AND t.is_voided = false
   ),
 
   beginning_balances AS (
     SELECT
       t.investor_id AS inv_id,
-      COALESCE(SUM(
-        CASE
-          WHEN t.type IN ('DEPOSIT', 'INTEREST', 'FEE_CREDIT', 'IB_CREDIT') THEN t.amount
-          WHEN t.type IN ('WITHDRAWAL', 'FEE') THEN -t.amount
-          ELSE 0
-        END
-      ), 0) as balance
+      COALESCE(SUM(t.amount), 0) as balance
     FROM transactions_v2 t
     WHERE t.fund_id = p_fund_id
       AND t.purpose = p_purpose
       AND t.tx_date < p_period_start
+      AND t.is_voided = false
     GROUP BY t.investor_id
   ),
 
@@ -11338,14 +11333,8 @@ BEGIN
     SELECT
       pt.inv_id,
       COALESCE(SUM(CASE WHEN pt.type = 'DEPOSIT' THEN pt.amount ELSE 0 END), 0) as additions,
-      COALESCE(SUM(CASE WHEN pt.type = 'WITHDRAWAL' THEN pt.amount ELSE 0 END), 0) as redemptions,
-      COALESCE(SUM(
-        CASE
-          WHEN pt.type = 'DEPOSIT' THEN pt.amount * pt.time_weight
-          WHEN pt.type = 'WITHDRAWAL' THEN -pt.amount * pt.time_weight
-          ELSE 0
-        END
-      ), 0) as time_weighted_adjustment
+      COALESCE(SUM(CASE WHEN pt.type = 'WITHDRAWAL' THEN ABS(pt.amount) ELSE 0 END), 0) as redemptions,
+      COALESCE(SUM(pt.amount * pt.time_weight), 0) as time_weighted_adjustment
     FROM period_txns pt
     GROUP BY pt.inv_id
   ),
