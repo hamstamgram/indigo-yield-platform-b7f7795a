@@ -139,11 +139,11 @@ export async function calculateTransactionSummary(): Promise<UserTransactionSumm
       if (txType === "DEPOSIT") {
         summary.totalDeposits = parseFinancial(summary.totalDeposits)
           .plus(parseFinancial(tx.amount))
-          .toFixed();
+          .toString();
       } else if (txType === "WITHDRAWAL") {
         summary.totalWithdrawals = parseFinancial(summary.totalWithdrawals)
           .plus(parseFinancial(tx.amount))
-          .toFixed();
+          .toString();
       }
     });
 

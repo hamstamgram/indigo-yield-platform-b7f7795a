@@ -133,7 +133,7 @@ export function useTransactionSelection(
 
     const formattedAmounts: Record<string, string> = {};
     for (const [asset, amount] of Object.entries(amountsByAsset)) {
-      formattedAmounts[asset] = amount.toFixed();
+      formattedAmounts[asset] = amount.toString();
     }
 
     return {
