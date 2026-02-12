@@ -212,29 +212,11 @@ Deno.serve(async (req) => {
     const fundAssetById = new Map((funds || []).map((f: any) => [f.id, f.asset] as const));
     const activeAssets = new Set((funds || []).map((f: any) => f.asset));
 
-    // Step 2c: Get current positions for asset discovery (not balance source)
-    const { data: positions, error: positionsError } = await supabase
-      .from("investor_positions")
-      .select(
-        `
-        investor_id,
-        fund_id,
-        current_value,
-        funds!inner (
-          asset,
-          status
-        )
-      `
-      )
-      .in("investor_id", investorIds)
-      .gt("current_value", 0);
-
-    if (positionsError) throw positionsError;
-
-    // Filter only active funds
-    const activePositions = (positions || []).filter((p: any) => p.funds?.status === "active");
-
-    console.log(`Found ${activePositions.length} active positions`);
+    // Step 2c: Positions are NOT fetched here. If an investor has a position,
+    // they must have at least one transaction (deposit), so transactionGroups
+    // will always contain their key. Using current positions as a balance
+    // fallback is unsafe for historical periods (would inject current-time
+    // values into past reports).
 
     // Step 3: Calculate date ranges
     const mtdStart = new Date(periodYear, periodMonth - 1, 1);
@@ -287,14 +269,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const positionBalances = new Map<string, number>();
-    for (const pos of activePositions) {
-      const fundData = pos.funds as unknown as { asset: string; status: string };
-      const key = `${pos.investor_id}:${fundData.asset}`;
-      const currentValue = Number(pos.current_value) || 0;
-      positionBalances.set(key, (positionBalances.get(key) || 0) + currentValue);
-    }
-
     const transactionGroups = new Map<string, any[]>();
     for (const tx of transactions || []) {
       const key = `${(tx as any).investor_id}:${(tx as any).asset}`;
@@ -304,11 +278,7 @@ Deno.serve(async (req) => {
       transactionGroups.get(key)!.push(tx);
     }
 
-    const allKeys = new Set<string>([
-      ...snapshotBalances.keys(),
-      ...positionBalances.keys(),
-      ...transactionGroups.keys(),
-    ]);
+    const allKeys = new Set<string>([...snapshotBalances.keys(), ...transactionGroups.keys()]);
 
     const performanceRecords: any[] = [];
 
@@ -363,11 +333,7 @@ Deno.serve(async (req) => {
       // Prefer snapshot balances at period end; fallback to transaction-derived balance
       let endingBalance = snapshotBalances.get(key);
       if (endingBalance === undefined) {
-        if (investorTxs.length > 0) {
-          endingBalance = sumBalanceThrough(investorTxs, mtdEnd);
-        } else {
-          endingBalance = positionBalances.get(key) || 0;
-        }
+        endingBalance = investorTxs.length > 0 ? sumBalanceThrough(investorTxs, mtdEnd) : 0;
       }
 
       // ============= MTD CALCULATIONS =============

@@ -13135,22 +13135,33 @@ BEGIN
   IF v_violation_count = 0 THEN v_passed_count := v_passed_count + 1; ELSE v_failed_count := v_failed_count + 1; END IF;
 
   -- ========== CORE CHECK 2: fund_aum_matches_positions ==========
+  -- Fixed: filter transaction-purpose AUM only, is_active positions only,
+  -- and only compare when AUM snapshot is recent (within 1 day).
+  -- Stale AUM snapshots naturally diverge from live positions and are not violations.
   WITH latest_aum AS (
     SELECT DISTINCT ON (fund_id) fund_id, total_aum, aum_date
-    FROM fund_daily_aum WHERE is_voided = false
+    FROM fund_daily_aum
+    WHERE is_voided = false
+      AND purpose = 'transaction'
     ORDER BY fund_id, aum_date DESC
   ),
   pos_sums AS (
-    SELECT fund_id, SUM(COALESCE(current_value,0)) as position_sum FROM investor_positions GROUP BY fund_id
+    SELECT fund_id, SUM(COALESCE(current_value, 0)) as position_sum
+    FROM investor_positions
+    WHERE is_active = true
+    GROUP BY fund_id
   ),
   aum_check AS (
-    SELECT a.fund_id, a.total_aum as aum_value, COALESCE(p.position_sum,0) as position_sum,
-           a.total_aum - COALESCE(p.position_sum,0) as drift
+    SELECT a.fund_id, a.total_aum as aum_value, COALESCE(p.position_sum, 0) as position_sum,
+           a.total_aum - COALESCE(p.position_sum, 0) as drift,
+           a.aum_date
     FROM latest_aum a LEFT JOIN pos_sums p ON p.fund_id = a.fund_id
-    WHERE ABS(a.total_aum - COALESCE(p.position_sum,0)) > 0.01
+    WHERE a.aum_date = CURRENT_DATE
+      AND ABS(a.total_aum - COALESCE(p.position_sum, 0)) > 0.01
   )
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'fund_id', fund_id, 'aum_value', aum_value, 'position_sum', position_sum, 'drift', drift
+    'fund_id', fund_id, 'aum_value', aum_value, 'position_sum', position_sum,
+    'drift', drift, 'aum_date', aum_date
   )), '[]'::jsonb), COUNT(*)
   INTO v_violations, v_violation_count FROM aum_check;
 

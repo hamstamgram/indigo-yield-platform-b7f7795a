@@ -30,9 +30,11 @@ COMMENT ON COLUMN public.ib_commission_schedule.ib_percentage IS
 -- ============================================================
 ALTER TABLE public.ib_commission_schedule ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS admin_all ON public.ib_commission_schedule;
 CREATE POLICY admin_all ON public.ib_commission_schedule
   FOR ALL USING (public.is_admin());
 
+DROP POLICY IF EXISTS investor_select ON public.ib_commission_schedule;
 CREATE POLICY investor_select ON public.ib_commission_schedule
   FOR SELECT USING (auth.uid() = investor_id);
 
@@ -64,6 +66,7 @@ $$;
 COMMENT ON FUNCTION public.auto_close_previous_ib_schedule() IS
   'Trigger function: Auto-closes previous IB schedule entries when a new one is inserted for the same investor+fund scope by setting end_date.';
 
+DROP TRIGGER IF EXISTS trg_auto_close_previous_ib_schedule ON public.ib_commission_schedule;
 CREATE TRIGGER trg_auto_close_previous_ib_schedule
   BEFORE INSERT ON public.ib_commission_schedule
   FOR EACH ROW EXECUTE FUNCTION public.auto_close_previous_ib_schedule();
