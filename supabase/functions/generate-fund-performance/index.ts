@@ -1,6 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import {
+  generateMonthlyReportHtml,
+  generateFundBlockHtml as generateFundBlockHtmlV2,
+  extractAssetFromFundName,
+} from "../_shared/monthly-report-template-v2.ts";
 
 interface RequestBody {
   periodYear: number;
@@ -563,19 +568,48 @@ Deno.serve(async (req) => {
           ? `${profile.first_name} ${profile.last_name}`
           : profile?.email || "Investor";
 
-      // Build fund data for HTML generation
+      // Build fund blocks using V2 template
       const fundNames: string[] = [];
-      const fundsHtml = records
-        .map((record, index) => {
-          fundNames.push(record.fund_name);
-          const currency = record.fund_name.split(" ")[0]; // Extract currency from fund name
+      const fundBlocks = records.map((record) => {
+        fundNames.push(record.fund_name);
+        const asset = extractAssetFromFundName(record.fund_name);
 
-          return generateFundBlockHtml(record, currency, index > 0);
-        })
-        .join("");
+        return generateFundBlockHtmlV2({
+          fundName: record.fund_name,
+          asset,
+          mtdBeginning: record.mtd_beginning_balance,
+          qtdBeginning: record.qtd_beginning_balance,
+          ytdBeginning: record.ytd_beginning_balance,
+          itdBeginning: record.itd_beginning_balance,
+          mtdAdditions: record.mtd_additions,
+          qtdAdditions: record.qtd_additions,
+          ytdAdditions: record.ytd_additions,
+          itdAdditions: record.itd_additions,
+          mtdRedemptions: record.mtd_redemptions,
+          qtdRedemptions: record.qtd_redemptions,
+          ytdRedemptions: record.ytd_redemptions,
+          itdRedemptions: record.itd_redemptions,
+          mtdNetIncome: record.mtd_net_income,
+          qtdNetIncome: record.qtd_net_income,
+          ytdNetIncome: record.ytd_net_income,
+          itdNetIncome: record.itd_net_income,
+          mtdEnding: record.mtd_ending_balance,
+          qtdEnding: record.qtd_ending_balance,
+          ytdEnding: record.ytd_ending_balance,
+          itdEnding: record.itd_ending_balance,
+          mtdRor: record.mtd_rate_of_return,
+          qtdRor: record.qtd_rate_of_return,
+          ytdRor: record.ytd_rate_of_return,
+          itdRor: record.itd_rate_of_return,
+        });
+      });
 
-      // Generate full HTML statement
-      const htmlContent = generateStatementHtml(investorName, reportDate, fundsHtml);
+      // Generate full HTML statement using V2 template
+      const htmlContent = generateMonthlyReportHtml({
+        investorName,
+        periodEndedLong: reportDate,
+        fundBlocks,
+      });
 
       // Upsert into generated_statements
       const { error: statementError } = await supabase.from("generated_statements").upsert(
@@ -622,74 +656,7 @@ Deno.serve(async (req) => {
   }
 });
 
-// Helper functions for HTML generation
-
-const FUND_ICONS: Record<string, string> = {
-  "BTC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  "ETH YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "USDC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  "USDT YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  "SOL YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
-  "EURC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
-  "XAUT YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
-  "XRP YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
-};
-
-const LOGO_URL =
-  "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
-
-const SOCIAL_ICONS = {
-  linkedin:
-    "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
-  instagram:
-    "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
-  twitter:
-    "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
-};
-
-/** Format a number for display; returns "-" when value is zero (for additions/redemptions) */
-function formatActivity(value: number, decimals: number): string {
-  if (value === 0) return "-";
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
-
-/** Format a number with sign prefix: "+1.2345" for positive, "(1.2345)" for negative, "-" for zero */
-function formatSignedNumber(value: number, decimals: number): string {
-  if (value === 0) return "-";
-  if (value < 0) {
-    return `(${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })})`;
-  }
-  return `+${value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
-}
-
-/** Format percentage with sign: "+0.43%", "(0.43%)", or "-" for zero */
-function formatSignedPercent(value: number): string {
-  if (value === 0) return "-";
-  if (value < 0) {
-    return `(${Math.abs(value).toFixed(2)}%)`;
-  }
-  return `+${value.toFixed(2)}%`;
-}
-
-/** Format a balance number (always show digits, no sign prefix) */
-function formatBalance(value: number, decimals: number): string {
-  if (value === 0) return "-";
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
+// Helper functions for report date formatting
 
 /** Get ordinal suffix for a day number */
 function getOrdinalSuffix(day: number): string {
@@ -712,218 +679,4 @@ function formatReportDate(date: Date): string {
   const day = date.getDate();
   const year = date.getFullYear();
   return `${month} ${day}${getOrdinalSuffix(day)}, ${year}`;
-}
-
-/** Color for net income / rate of return values */
-function getValueColor(value: number): string {
-  if (value > 0) return "#16a34a";
-  if (value < 0) return "#dc2626";
-  return "#1e293b";
-}
-
-function generateFundBlockHtml(record: any, currency: string, hasSpacer: boolean): string {
-  const fundName = `${currency} YIELD FUND`;
-  const iconUrl = FUND_ICONS[fundName] || FUND_ICONS["USDC YIELD FUND"];
-  const spacer = hasSpacer ? '<tr><td style="height:20px;"></td></tr>' : "";
-  const decimals = getAssetDecimals(currency);
-
-  const row = (
-    label: string,
-    mtd: string,
-    qtd: string,
-    ytd: string,
-    itd: string,
-    opts: { bold?: boolean; color?: string; borderTop?: boolean } = {}
-  ) => {
-    const weight = opts.bold ? "font-weight:700;" : "";
-    const color = opts.color || "#1e293b";
-    const topBorder = opts.borderTop ? "border-top:2px solid #e2e8f0;" : "";
-    return `<tr>
-      <td style="padding:12px 12px;font-size:14px;color:#475569;${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${label}</td>
-      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${mtd}</td>
-      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${qtd}</td>
-      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${ytd}</td>
-      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${itd}</td>
-    </tr>`;
-  };
-
-  return `${spacer}
-    <tr>
-      <td>
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;" bgcolor="#ffffff">
-          <tr>
-            <td style="padding:20px;background-color:#ffffff;" bgcolor="#ffffff">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td width="40" valign="middle">
-                    <img src="${iconUrl}" alt="${fundName}" width="32" height="32" style="display:block;border:0;">
-                  </td>
-                  <td valign="middle" style="padding-left:12px;">
-                    <h2 style="margin:0;font-size:18px;font-weight:600;color:#1e293b;">${fundName}</h2>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:0 20px 20px 20px;background-color:#ffffff;" bgcolor="#ffffff">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
-                <tr>
-                  <th scope="col" style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">Capital Account Summary</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">MTD (${currency})</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">QTD (${currency})</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">YTD (${currency})</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">ITD (${currency})</th>
-                </tr>
-                ${row(
-                  "Beginning Balance",
-                  formatBalance(record.mtd_beginning_balance, decimals),
-                  formatBalance(record.qtd_beginning_balance, decimals),
-                  formatBalance(record.ytd_beginning_balance, decimals),
-                  formatBalance(record.itd_beginning_balance, decimals)
-                )}
-                ${row(
-                  "Additions",
-                  formatActivity(record.mtd_additions, decimals),
-                  formatActivity(record.qtd_additions, decimals),
-                  formatActivity(record.ytd_additions, decimals),
-                  formatActivity(record.itd_additions, decimals)
-                )}
-                ${row(
-                  "Redemptions",
-                  formatActivity(record.mtd_redemptions, decimals),
-                  formatActivity(record.qtd_redemptions, decimals),
-                  formatActivity(record.ytd_redemptions, decimals),
-                  formatActivity(record.itd_redemptions, decimals)
-                )}
-                <tr>
-                  <td style="padding:12px 12px;font-size:14px;color:#475569;font-weight:700;border-bottom:1px solid #f1f5f9;">Net Income</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.mtd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.mtd_net_income, decimals)}</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.qtd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.qtd_net_income, decimals)}</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.ytd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.ytd_net_income, decimals)}</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.itd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.itd_net_income, decimals)}</td>
-                </tr>
-                ${row(
-                  "Ending Balance",
-                  formatBalance(record.mtd_ending_balance, decimals),
-                  formatBalance(record.qtd_ending_balance, decimals),
-                  formatBalance(record.ytd_ending_balance, decimals),
-                  formatBalance(record.itd_ending_balance, decimals),
-                  { bold: true, borderTop: true }
-                )}
-                <tr>
-                  <td style="padding:12px 12px;font-size:14px;color:#475569;font-weight:600;">Rate of Return</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.mtd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.mtd_rate_of_return)}</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.qtd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.qtd_rate_of_return)}</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.ytd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.ytd_rate_of_return)}</td>
-                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.itd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.itd_rate_of_return)}</td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>`;
-}
-
-function generateStatementHtml(
-  investorName: string,
-  reportDate: string,
-  fundsHtml: string
-): string {
-  const currentYear = new Date().getFullYear();
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${investorName} - Monthly Report - ${reportDate}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    @media only screen and (max-width: 480px) {
-      .email-container { width: 100% !important; padding: 12px !important; }
-      .fund-block { border-radius: 8px !important; }
-      .fund-block td { font-size: 11px !important; padding: 8px 4px !important; }
-      .fund-header h2 { font-size: 15px !important; }
-      .fund-icon { width: 24px !important; height: 24px !important; }
-      .header-title { font-size: 20px !important; }
-      .investor-name { font-size: 16px !important; }
-      .period-text { font-size: 12px !important; }
-    }
-  </style>
-</head>
-<body style="margin:0;padding:0;background-color:#ffffff;font-family:'Montserrat',Arial,sans-serif;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;" bgcolor="#ffffff">
-    <tr>
-      <td align="center" style="padding:24px 12px;">
-        <table class="email-container" role="presentation" cellpadding="0" cellspacing="0" border="0" width="640" style="max-width:640px;">
-          <!-- Brand Header -->
-          <tr>
-            <td style="background-color:#ffffff;padding:24px 24px 20px 24px;border-bottom:2px solid #e2e8f0;" bgcolor="#ffffff">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td valign="middle">
-                    <img src="${LOGO_URL}" alt="Indigo" height="48" style="display:block;border:0;height:48px;width:auto;">
-                  </td>
-                  <td valign="middle" align="right">
-                    <h1 class="header-title" style="margin:0;font-size:24px;line-height:1.2;color:#0f172a;font-weight:700;">Monthly Report</h1>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Investor Header -->
-          <tr>
-            <td style="background-color:#ffffff;padding:24px 24px 16px 24px;" bgcolor="#ffffff">
-              <h2 class="investor-name" style="margin:0 0 6px 0;font-size:20px;font-weight:600;color:#1e293b;">${investorName}</h2>
-              <p class="period-text" style="margin:0;font-size:14px;line-height:1.5;color:#64748b;">
-                For the period ending <strong style="color:#334155;">${reportDate}</strong>
-              </p>
-            </td>
-          </tr>
-          <!-- Main Content -->
-          <tr>
-            <td style="padding:0 24px 24px 24px;background-color:#ffffff;" bgcolor="#ffffff">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                ${fundsHtml}
-              </table>
-            </td>
-          </tr>
-          <!-- Spacer -->
-          <tr>
-            <td style="height:24px;"></td>
-          </tr>
-          <!-- Footer -->
-          <tr>
-            <td style="padding:0 24px;border-top:1px solid #e2e8f0;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="text-align:center;padding:20px 0 16px 0;">
-                    <a href="https://linkedin.com" style="display:inline-block;margin-right:12px;">
-                      <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="border:0;">
-                    </a>
-                    <a href="https://instagram.com" style="display:inline-block;margin-right:12px;">
-                      <img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="border:0;">
-                    </a>
-                    <a href="https://twitter.com" style="display:inline-block;">
-                      <img src="${SOCIAL_ICONS.twitter}" alt="Twitter" width="24" height="24" style="border:0;">
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align:center;font-size:11px;color:#94a3b8;line-height:1.6;padding-bottom:20px;">
-                    <p style="margin:0 0 8px 0;">This document is for informational purposes only and does not constitute an offer to sell or a solicitation of an offer to buy any securities. Past performance is not indicative of future results.</p>
-                    <p style="margin:0;">&copy; ${currentYear} Indigo Fund. All rights reserved.</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
 }

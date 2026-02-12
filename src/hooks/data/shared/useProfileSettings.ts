@@ -50,6 +50,7 @@ export function useUpdatePersonalInfo() {
       first_name?: string;
       last_name?: string;
       phone?: string;
+      avatar_url?: string;
     }) => {
       if (!user) throw new Error("Not authenticated");
       return profileService.updatePersonalInfo(user.id, updates);
@@ -57,6 +58,7 @@ export function useUpdatePersonalInfo() {
     onSuccess: () => {
       if (user) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.personalInfo(user.id) });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorProfile(user.id) });
       }
       toast({
         title: "Success",
