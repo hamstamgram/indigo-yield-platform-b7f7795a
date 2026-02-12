@@ -4676,7 +4676,7 @@ BEGIN
         SELECT 1 FROM transactions_v2 t
         WHERE t.investor_id = ip.investor_id
           AND t.fund_id = ip.fund_id
-          AND t.voided_at IS NULL
+          AND t.is_voided = false
       )
   LOOP
     IF NOT p_dry_run THEN
@@ -6573,17 +6573,29 @@ BEGIN
   ELSIF (TG_OP = 'UPDATE' AND NEW.is_voided = true AND OLD.is_voided = false) THEN
     -- Reverse the effect of voided transaction
     UPDATE public.investor_positions
-    SET 
+    SET
         current_value = current_value - v_delta,
         updated_at = NOW(),
-        cost_basis = CASE 
+        cost_basis = CASE
             WHEN NEW.type = 'DEPOSIT' THEN GREATEST(cost_basis - ABS(NEW.amount), 0)
             WHEN NEW.type = 'WITHDRAWAL' THEN cost_basis + ABS(NEW.amount)
             ELSE cost_basis
         END
     WHERE investor_id = NEW.investor_id AND fund_id = NEW.fund_id;
+  ELSIF (TG_OP = 'UPDATE' AND NEW.is_voided = false AND OLD.is_voided = true) THEN
+    -- UNVOID: Restore the effect of the transaction
+    UPDATE public.investor_positions
+    SET
+        current_value = current_value + v_delta,
+        updated_at = NOW(),
+        cost_basis = CASE
+            WHEN NEW.type = 'DEPOSIT' THEN cost_basis + ABS(NEW.amount)
+            WHEN NEW.type = 'WITHDRAWAL' THEN GREATEST(cost_basis - ABS(NEW.amount), 0)
+            ELSE cost_basis
+        END
+    WHERE investor_id = NEW.investor_id AND fund_id = NEW.fund_id;
   END IF;
-  
+
   RETURN NEW;
 END;
 $$;
@@ -7032,7 +7044,7 @@ BEGIN
     COALESCE(SUM(CASE WHEN t.type = 'WITHDRAWAL' THEN t.amount ELSE 0 END), 0) as outflows,
     COALESCE(SUM(CASE
       WHEN t.type = 'DEPOSIT' THEN t.amount
-      WHEN t.type = 'WITHDRAWAL' THEN -t.amount
+      WHEN t.type = 'WITHDRAWAL' THEN t.amount
       ELSE 0
     END), 0) as net_flow
   FROM public.transactions_v2 t
@@ -7072,27 +7084,27 @@ BEGIN
     COALESCE((
       SELECT SUM(t.amount)
       FROM transactions_v2 t
-      WHERE t.fund_id = f.id AND t.type = 'DEPOSIT'
+      WHERE t.fund_id = f.id AND t.type = 'DEPOSIT' AND t.is_voided = false
     ), 0) AS total_deposits,
     COALESCE((
       SELECT SUM(t.amount)
       FROM transactions_v2 t
-      WHERE t.fund_id = f.id AND t.type = 'WITHDRAWAL'
+      WHERE t.fund_id = f.id AND t.type = 'WITHDRAWAL' AND t.is_voided = false
     ), 0) AS total_withdrawals,
     COALESCE((
       SELECT SUM(t.amount)
       FROM transactions_v2 t
-      WHERE t.fund_id = f.id AND t.type = 'YIELD'
+      WHERE t.fund_id = f.id AND t.type = 'YIELD' AND t.is_voided = false
     ), 0) AS total_yield_distributed,
     COALESCE((
       SELECT SUM(t.amount)
       FROM transactions_v2 t
-      WHERE t.fund_id = f.id AND t.type = 'FEE_CREDIT'
+      WHERE t.fund_id = f.id AND t.type = 'FEE_CREDIT' AND t.is_voided = false
     ), 0) AS total_fees_collected,
     (
       SELECT MAX(t.tx_date)
       FROM transactions_v2 t
-      WHERE t.fund_id = f.id AND t.type = 'YIELD'
+      WHERE t.fund_id = f.id AND t.type = 'YIELD' AND t.is_voided = false
     ) AS last_yield_date,
     f.created_at
   FROM funds f
@@ -11949,41 +11961,44 @@ CREATE OR REPLACE FUNCTION "public"."reconcile_investor_position_internal"("p_fu
     AS $$
 DECLARE
   v_calculated_position numeric(28,10);
-  v_deposits numeric(28,10);
-  v_withdrawals numeric(28,10);
-  v_yield numeric(28,10);
-  v_other numeric(28,10);
+  v_cost_basis numeric(28,10);
 BEGIN
-  -- Calculate position from ledger (include ALL transaction types)
-  -- Note: Using only valid tx_type enum values
-  SELECT
-    COALESCE(SUM(CASE WHEN t.type = 'DEPOSIT' THEN t.amount ELSE 0 END), 0),
-    COALESCE(SUM(CASE WHEN t.type = 'WITHDRAWAL' THEN ABS(t.amount) ELSE 0 END), 0),
-    COALESCE(SUM(CASE WHEN t.type IN ('YIELD', 'INTEREST') THEN t.amount ELSE 0 END), 0),
-    COALESCE(SUM(CASE WHEN t.type IN ('ADJUSTMENT', 'FEE_CREDIT', 'IB_CREDIT', 'INTERNAL_CREDIT') THEN t.amount ELSE 0 END), 0)
-  INTO v_deposits, v_withdrawals, v_yield, v_other
+  SELECT COALESCE(SUM(t.amount), 0)
+  INTO v_calculated_position
   FROM transactions_v2 t
   WHERE t.fund_id = p_fund_id
     AND t.investor_id = p_investor_id
-    AND COALESCE(t.is_voided, false) = false;
+    AND t.is_voided = false;
 
-  v_calculated_position := v_deposits - v_withdrawals + v_yield + v_other;
+  SELECT COALESCE(SUM(
+    CASE
+      WHEN t.type = 'DEPOSIT' THEN ABS(t.amount)
+      WHEN t.type = 'WITHDRAWAL' THEN -ABS(t.amount)
+      ELSE 0
+    END
+  ), 0)
+  INTO v_cost_basis
+  FROM transactions_v2 t
+  WHERE t.fund_id = p_fund_id
+    AND t.investor_id = p_investor_id
+    AND t.is_voided = false;
 
-  -- Update position (use BOTH config vars for compatibility)
+  v_cost_basis := GREATEST(v_cost_basis, 0);
+
   PERFORM set_config('app.canonical_rpc', 'true', true);
   PERFORM set_config('indigo.canonical_rpc', 'true', true);
-  
+
   UPDATE investor_positions
   SET current_value = v_calculated_position,
       shares = v_calculated_position,
+      cost_basis = v_cost_basis,
       updated_at = now()
   WHERE fund_id = p_fund_id
     AND investor_id = p_investor_id;
-    
-  -- If no position exists, create one
+
   IF NOT FOUND AND v_calculated_position != 0 THEN
     INSERT INTO investor_positions (investor_id, fund_id, shares, current_value, cost_basis)
-    VALUES (p_investor_id, p_fund_id, v_calculated_position, v_calculated_position, v_calculated_position);
+    VALUES (p_investor_id, p_fund_id, v_calculated_position, v_calculated_position, v_cost_basis);
   END IF;
 END;
 $$;
