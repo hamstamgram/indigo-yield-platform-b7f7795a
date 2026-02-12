@@ -511,7 +511,7 @@ export const performanceService = {
 
     return {
       totalBalance,
-      ytdReturn: ytdReturn / 100, // Convert to decimal for formatting
+      ytdReturn, // Already percentage from DB (e.g., 5.23 = 5.23%)
       activeFunds,
       lastFinalizedDate: periodToUse?.period_end_date || null,
       isCurrentMonth,

@@ -33,6 +33,7 @@ import {
 } from "@/hooks/data/investor/useInvestorYield";
 import { format, getYear, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
+import { parseFinancial } from "@/utils/financial";
 import type {
   InvestorYieldEvent,
   CumulativeYieldByFund,
@@ -273,9 +274,13 @@ function MonthSection({
       }
       const fg = map.get(e.fund_id)!;
       fg.events.push(e);
-      fg.totals.gross += e.gross_yield_amount || 0;
-      fg.totals.fees += e.fee_amount || 0;
-      fg.totals.net += e.net_yield_amount || 0;
+      fg.totals.gross = parseFinancial(fg.totals.gross)
+        .plus(parseFinancial(e.gross_yield_amount))
+        .toNumber();
+      fg.totals.fees = parseFinancial(fg.totals.fees).plus(parseFinancial(e.fee_amount)).toNumber();
+      fg.totals.net = parseFinancial(fg.totals.net)
+        .plus(parseFinancial(e.net_yield_amount))
+        .toNumber();
     });
 
     return Array.from(map.values());
