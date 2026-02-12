@@ -85,7 +85,7 @@ export const StatementManager: React.FC = () => {
           if (!assetMap.has(asset)) assetMap.set(asset, { open: 0, in: 0, out: 0, close: 0 });
           const rec = assetMap.get(asset);
 
-          const txDate = new Date(tx.created_at);
+          const txDate = new Date(tx.tx_date);
           const amount = Number(tx.amount);
 
           if (txDate < startDate) {
