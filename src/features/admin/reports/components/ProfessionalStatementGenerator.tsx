@@ -159,7 +159,7 @@ const ProfessionalStatementGenerator = () => {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">
-                    {selectedInvestorData.name} - Your Account Statement
+                    {selectedInvestorData.name} - Monthly Report
                   </h1>
                   <p className="text-sm text-muted-foreground">CAPITAL ACCOUNT SUMMARY</p>
                 </div>

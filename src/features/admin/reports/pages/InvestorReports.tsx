@@ -469,7 +469,7 @@ const InvestorReports = () => {
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {previewName} - Your Account Statement - {getMonthLabel(selectedMonth)}
+              {previewName} - Monthly Report - {getMonthLabel(selectedMonth)}
             </DialogTitle>
           </DialogHeader>
           {previewHtml && (

@@ -280,16 +280,58 @@ Deno.serve(async (req) => {
 
     const allKeys = new Set<string>([...snapshotBalances.keys(), ...transactionGroups.keys()]);
 
+    // Step 4c: Prior-period chain for beginning balance fallback
+    // When sumBalanceUpTo returns 0 (e.g., deposit date = period start), use
+    // prior month's ending balance from investor_fund_performance.
+    const priorMonth = periodMonth === 1 ? 12 : periodMonth - 1;
+    const priorYear = periodMonth === 1 ? periodYear - 1 : periodYear;
+
+    const priorEndingBalances = new Map<string, number>();
+
+    const { data: priorPeriod } = await supabase
+      .from("statement_periods")
+      .select("id")
+      .eq("year", priorYear)
+      .eq("month", priorMonth)
+      .maybeSingle();
+
+    if (priorPeriod) {
+      const { data: priorPerf } = await supabase
+        .from("investor_fund_performance")
+        .select("investor_id, fund_name, mtd_ending_balance")
+        .eq("period_id", priorPeriod.id)
+        .eq("purpose", "reporting");
+
+      for (const row of priorPerf || []) {
+        const bal = Number((row as any).mtd_ending_balance) || 0;
+        if (bal > 0) {
+          priorEndingBalances.set(`${(row as any).investor_id}:${(row as any).fund_name}`, bal);
+        }
+      }
+      console.log(
+        `Loaded ${priorEndingBalances.size} prior-period ending balances from ${priorYear}-${priorMonth}`
+      );
+    }
+
     const performanceRecords: any[] = [];
 
-    const inflowTypes = new Set(["DEPOSIT", "INTERNAL_CREDIT", "YIELD"]);
-    const outflowTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL"]);
+    const inflowTypes = new Set([
+      "DEPOSIT",
+      "INTERNAL_CREDIT",
+      "YIELD",
+      "INTEREST",
+      "FEE_CREDIT",
+      "IB_CREDIT",
+      "ADJUSTMENT",
+      "DUST_SWEEP",
+    ]);
+    const outflowTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL", "IB_DEBIT", "FEE"]);
     const additionTypes = new Set(["DEPOSIT", "INTERNAL_CREDIT"]);
     const redemptionTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL"]);
 
     const sumBalanceUpTo = (txs: any[], beforeDate: Date): number => {
       return txs
-        .filter((tx: any) => new Date(tx.tx_date) < beforeDate)
+        .filter((tx: any) => new Date(tx.tx_date) <= beforeDate)
         .reduce((sum: number, tx: any) => {
           const amount = Math.abs(Number(tx.amount));
           if (inflowTypes.has(tx.type)) return sum + amount;
@@ -302,7 +344,7 @@ Deno.serve(async (req) => {
       return txs
         .filter((tx: any) => {
           const txDate = new Date(tx.tx_date);
-          return txDate >= startDate && txDate <= endDate && types.has(tx.type);
+          return txDate > startDate && txDate <= endDate && types.has(tx.type);
         })
         .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
     };
@@ -337,7 +379,14 @@ Deno.serve(async (req) => {
       }
 
       // ============= MTD CALCULATIONS =============
-      const mtdBeginning = sumBalanceUpTo(investorTxs, mtdStart);
+      let mtdBeginning = sumBalanceUpTo(investorTxs, mtdStart);
+      // Fallback: if tx-derived beginning is 0, use prior period ending balance
+      if (mtdBeginning === 0) {
+        const priorBal = priorEndingBalances.get(key);
+        if (priorBal && priorBal > 0) {
+          mtdBeginning = priorBal;
+        }
+      }
       const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, additionTypes);
       const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, redemptionTypes);
 
@@ -503,11 +552,7 @@ Deno.serve(async (req) => {
 
     // Generate HTML for each investor and upsert to generated_statements
     const periodEndDate = new Date(periodYear, periodMonth, 0);
-    const reportDate = new Intl.DateTimeFormat("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }).format(periodEndDate);
+    const reportDate = formatReportDate(periodEndDate);
 
     let statementsGenerated = 0;
 
@@ -610,46 +655,111 @@ const SOCIAL_ICONS = {
     "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
 };
 
-function formatNumber(value: number, decimals: number = 2): string {
-  if (value < 0) {
-    return `(${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })})`;
-  }
+/** Format a number for display; returns "-" when value is zero (for additions/redemptions) */
+function formatActivity(value: number, decimals: number): string {
+  if (value === 0) return "-";
   return value.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
 }
 
-function formatPercent(value: number): string {
+/** Format a number with sign prefix: "+1.2345" for positive, "(1.2345)" for negative, "-" for zero */
+function formatSignedNumber(value: number, decimals: number): string {
+  if (value === 0) return "-";
+  if (value < 0) {
+    return `(${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })})`;
+  }
+  return `+${value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+}
+
+/** Format percentage with sign: "+0.43%", "(0.43%)", or "-" for zero */
+function formatSignedPercent(value: number): string {
+  if (value === 0) return "-";
   if (value < 0) {
     return `(${Math.abs(value).toFixed(2)}%)`;
   }
-  return `${value.toFixed(2)}%`;
+  return `+${value.toFixed(2)}%`;
 }
 
+/** Format a balance number (always show digits, no sign prefix) */
+function formatBalance(value: number, decimals: number): string {
+  if (value === 0) return "-";
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+/** Get ordinal suffix for a day number */
+function getOrdinalSuffix(day: number): string {
+  if (day >= 11 && day <= 13) return "th";
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
+/** Format date as "December 31st, 2025" */
+function formatReportDate(date: Date): string {
+  const month = new Intl.DateTimeFormat("en-US", { month: "long" }).format(date);
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${month} ${day}${getOrdinalSuffix(day)}, ${year}`;
+}
+
+/** Color for net income / rate of return values */
 function getValueColor(value: number): string {
-  return value < 0 ? "#dc2626" : "#16a34a";
+  if (value > 0) return "#16a34a";
+  if (value < 0) return "#dc2626";
+  return "#1e293b";
 }
 
 function generateFundBlockHtml(record: any, currency: string, hasSpacer: boolean): string {
   const fundName = `${currency} YIELD FUND`;
   const iconUrl = FUND_ICONS[fundName] || FUND_ICONS["USDC YIELD FUND"];
-  const spacer = hasSpacer ? '<tr><td style="height:16px;"></td></tr>' : "";
+  const spacer = hasSpacer ? '<tr><td style="height:20px;"></td></tr>' : "";
   const decimals = getAssetDecimals(currency);
+
+  const row = (
+    label: string,
+    mtd: string,
+    qtd: string,
+    ytd: string,
+    itd: string,
+    opts: { bold?: boolean; color?: string; borderTop?: boolean } = {}
+  ) => {
+    const weight = opts.bold ? "font-weight:700;" : "";
+    const color = opts.color || "#1e293b";
+    const topBorder = opts.borderTop ? "border-top:2px solid #e2e8f0;" : "";
+    return `<tr>
+      <td style="padding:12px 12px;font-size:14px;color:#475569;${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${label}</td>
+      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${mtd}</td>
+      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${qtd}</td>
+      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${ytd}</td>
+      <td style="padding:12px 8px;text-align:right;font-size:14px;color:${color};${weight}border-bottom:1px solid #f1f5f9;${topBorder}">${itd}</td>
+    </tr>`;
+  };
 
   return `${spacer}
     <tr>
       <td>
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;" bgcolor="#ffffff">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;" bgcolor="#ffffff">
           <tr>
-            <td style="padding:16px 20px;background-color:#ffffff;" bgcolor="#ffffff">
+            <td style="padding:20px;background-color:#ffffff;" bgcolor="#ffffff">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
-                  <td width="36" valign="middle">
-                    <img src="${iconUrl}" alt="${fundName}" width="28" height="28" style="display:block;border:0;">
+                  <td width="40" valign="middle">
+                    <img src="${iconUrl}" alt="${fundName}" width="32" height="32" style="display:block;border:0;">
                   </td>
                   <td valign="middle" style="padding-left:12px;">
-                    <h2 style="margin:0;font-size:18px;font-weight:700;color:#1a202c;">${fundName}</h2>
+                    <h2 style="margin:0;font-size:18px;font-weight:600;color:#1e293b;">${fundName}</h2>
                   </td>
                 </tr>
               </table>
@@ -658,54 +768,55 @@ function generateFundBlockHtml(record: any, currency: string, hasSpacer: boolean
           <tr>
             <td style="padding:0 20px 20px 20px;background-color:#ffffff;" bgcolor="#ffffff">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
-                <tr style="background-color:#0f172a;">
-                  <th scope="col" style="padding:10px 8px;text-align:left;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a">Capital Account Summary</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a">MTD (${currency})</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a">QTD (${currency})</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a">YTD (${currency})</th>
-                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a">ITD (${currency})</th>
+                <tr>
+                  <th scope="col" style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">Capital Account Summary</th>
+                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">MTD (${currency})</th>
+                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">QTD (${currency})</th>
+                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">YTD (${currency})</th>
+                  <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;border-bottom:2px solid #e2e8f0;">ITD (${currency})</th>
                 </tr>
-                <tr style="background-color:#f8fafc;">
-                  <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Beginning Balance</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_beginning_balance, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_beginning_balance, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_beginning_balance, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_beginning_balance, decimals)}</td>
+                ${row(
+                  "Beginning Balance",
+                  formatBalance(record.mtd_beginning_balance, decimals),
+                  formatBalance(record.qtd_beginning_balance, decimals),
+                  formatBalance(record.ytd_beginning_balance, decimals),
+                  formatBalance(record.itd_beginning_balance, decimals)
+                )}
+                ${row(
+                  "Additions",
+                  formatActivity(record.mtd_additions, decimals),
+                  formatActivity(record.qtd_additions, decimals),
+                  formatActivity(record.ytd_additions, decimals),
+                  formatActivity(record.itd_additions, decimals)
+                )}
+                ${row(
+                  "Redemptions",
+                  formatActivity(record.mtd_redemptions, decimals),
+                  formatActivity(record.qtd_redemptions, decimals),
+                  formatActivity(record.ytd_redemptions, decimals),
+                  formatActivity(record.itd_redemptions, decimals)
+                )}
+                <tr>
+                  <td style="padding:12px 12px;font-size:14px;color:#475569;font-weight:700;border-bottom:1px solid #f1f5f9;">Net Income</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.mtd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.mtd_net_income, decimals)}</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.qtd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.qtd_net_income, decimals)}</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.ytd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.ytd_net_income, decimals)}</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.itd_net_income)};font-weight:700;border-bottom:1px solid #f1f5f9;">${formatSignedNumber(record.itd_net_income, decimals)}</td>
                 </tr>
-                <tr style="background-color:#ffffff;">
-                  <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#ffffff;" bgcolor="#ffffff">Additions</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.mtd_additions, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.qtd_additions, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.ytd_additions, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.itd_additions, decimals)}</td>
-                </tr>
-                <tr style="background-color:#f8fafc;">
-                  <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Redemptions</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_redemptions, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_redemptions, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_redemptions, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_redemptions, decimals)}</td>
-                </tr>
-                <tr style="background-color:#ffffff;">
-                  <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#ffffff;" bgcolor="#ffffff">Net Income</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.mtd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.mtd_net_income, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.qtd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.qtd_net_income, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.ytd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.ytd_net_income, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.itd_net_income)};background-color:#ffffff;" bgcolor="#ffffff">${formatNumber(record.itd_net_income, decimals)}</td>
-                </tr>
-                <tr style="background-color:#f8fafc;border-top:1px solid #e2e8f0;">
-                  <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">Ending Balance</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.mtd_ending_balance, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.qtd_ending_balance, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.ytd_ending_balance, decimals)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;background-color:#f8fafc;" bgcolor="#f8fafc">${formatNumber(record.itd_ending_balance, decimals)}</td>
-                </tr>
-                <tr style="background-color:#e2e8f0;">
-                  <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;background-color:#e2e8f0;" bgcolor="#e2e8f0">Rate of Return</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.mtd_rate_of_return)};background-color:#e2e8f0;" bgcolor="#e2e8f0">${formatPercent(record.mtd_rate_of_return)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.qtd_rate_of_return)};background-color:#e2e8f0;" bgcolor="#e2e8f0">${formatPercent(record.qtd_rate_of_return)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.ytd_rate_of_return)};background-color:#e2e8f0;" bgcolor="#e2e8f0">${formatPercent(record.ytd_rate_of_return)}</td>
-                  <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(record.itd_rate_of_return)};background-color:#e2e8f0;" bgcolor="#e2e8f0">${formatPercent(record.itd_rate_of_return)}</td>
+                ${row(
+                  "Ending Balance",
+                  formatBalance(record.mtd_ending_balance, decimals),
+                  formatBalance(record.qtd_ending_balance, decimals),
+                  formatBalance(record.ytd_ending_balance, decimals),
+                  formatBalance(record.itd_ending_balance, decimals),
+                  { bold: true, borderTop: true }
+                )}
+                <tr>
+                  <td style="padding:12px 12px;font-size:14px;color:#475569;font-weight:600;">Rate of Return</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.mtd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.mtd_rate_of_return)}</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.qtd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.qtd_rate_of_return)}</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.ytd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.ytd_rate_of_return)}</td>
+                  <td style="padding:12px 8px;text-align:right;font-size:14px;color:${getValueColor(record.itd_rate_of_return)};font-weight:600;">${formatSignedPercent(record.itd_rate_of_return)}</td>
                 </tr>
               </table>
             </td>
@@ -727,24 +838,36 @@ function generateStatementHtml(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${investorName} – Your Account Statement – ${reportDate}</title>
+  <title>${investorName} - Monthly Report - ${reportDate}</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 480px) {
+      .email-container { width: 100% !important; padding: 12px !important; }
+      .fund-block { border-radius: 8px !important; }
+      .fund-block td { font-size: 11px !important; padding: 8px 4px !important; }
+      .fund-header h2 { font-size: 15px !important; }
+      .fund-icon { width: 24px !important; height: 24px !important; }
+      .header-title { font-size: 20px !important; }
+      .investor-name { font-size: 16px !important; }
+      .period-text { font-size: 12px !important; }
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Montserrat',Arial,sans-serif;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f1f5f9;" bgcolor="#f1f5f9">
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:'Montserrat',Arial,sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;" bgcolor="#ffffff">
     <tr>
       <td align="center" style="padding:24px 12px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;">
+        <table class="email-container" role="presentation" cellpadding="0" cellspacing="0" border="0" width="640" style="max-width:640px;">
           <!-- Brand Header -->
           <tr>
-            <td style="background-color:#edf0fe;padding:20px 24px;border-radius:10px 10px 0 0;" bgcolor="#edf0fe">
+            <td style="background-color:#ffffff;padding:24px 24px 20px 24px;border-bottom:2px solid #e2e8f0;" bgcolor="#ffffff">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td valign="middle">
-                    <img src="${LOGO_URL}" alt="Indigo Logo" height="24" style="display:block;border:0;height:24px;width:auto;">
+                    <img src="${LOGO_URL}" alt="Indigo" height="48" style="display:block;border:0;height:48px;width:auto;">
                   </td>
                   <td valign="middle" align="right">
-                    <h1 style="margin:0;font-size:22px;line-height:1.2;color:#0f172a;font-weight:700;">Your Account Statement</h1>
+                    <h1 class="header-title" style="margin:0;font-size:24px;line-height:1.2;color:#0f172a;font-weight:700;">Monthly Report</h1>
                   </td>
                 </tr>
               </table>
@@ -752,16 +875,16 @@ function generateStatementHtml(
           </tr>
           <!-- Investor Header -->
           <tr>
-            <td style="background-color:#f8fafc;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;padding:20px 24px;" bgcolor="#f8fafc">
-              <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#334155;">Investor: ${investorName}</p>
-              <p style="margin:0;font-size:13px;line-height:1.5;color:#64748b;">
-                Investor Statement for the Period Ended: <strong>${reportDate}</strong>
+            <td style="background-color:#ffffff;padding:24px 24px 16px 24px;" bgcolor="#ffffff">
+              <h2 class="investor-name" style="margin:0 0 6px 0;font-size:20px;font-weight:600;color:#1e293b;">${investorName}</h2>
+              <p class="period-text" style="margin:0;font-size:14px;line-height:1.5;color:#64748b;">
+                For the period ending <strong style="color:#334155;">${reportDate}</strong>
               </p>
             </td>
           </tr>
           <!-- Main Content -->
           <tr>
-            <td style="padding:24px;background-color:#f8fafc;border-radius:0 0 10px 10px;border:1px solid #e2e8f0;border-top:0;" bgcolor="#f8fafc">
+            <td style="padding:0 24px 24px 24px;background-color:#ffffff;" bgcolor="#ffffff">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 ${fundsHtml}
               </table>
@@ -773,10 +896,10 @@ function generateStatementHtml(
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="padding:0 24px;">
+            <td style="padding:0 24px;border-top:1px solid #e2e8f0;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
-                  <td style="text-align:center;padding-bottom:16px;">
+                  <td style="text-align:center;padding:20px 0 16px 0;">
                     <a href="https://linkedin.com" style="display:inline-block;margin-right:12px;">
                       <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="border:0;">
                     </a>
@@ -789,9 +912,9 @@ function generateStatementHtml(
                   </td>
                 </tr>
                 <tr>
-                  <td style="text-align:center;font-size:12px;color:#64748b;line-height:1.5;">
-                    <p style="margin:0 0 8px 0;">This report is confidential and intended solely for the named recipient.</p>
-                    <p style="margin:0;">© ${currentYear} Indigo Fund. All rights reserved.</p>
+                  <td style="text-align:center;font-size:11px;color:#94a3b8;line-height:1.6;padding-bottom:20px;">
+                    <p style="margin:0 0 8px 0;">This document is for informational purposes only and does not constitute an offer to sell or a solicitation of an offer to buy any securities. Past performance is not indicative of future results.</p>
+                    <p style="margin:0;">&copy; ${currentYear} Indigo Fund. All rights reserved.</p>
                   </td>
                 </tr>
               </table>
