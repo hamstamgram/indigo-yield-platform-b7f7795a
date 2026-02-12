@@ -6,6 +6,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { sanitizeSearchInput } from "@/utils/searchSanitizer";
+import { parseFinancial } from "@/utils/financial";
+import Decimal from "decimal.js";
 
 // ============================================================================
 // Internal Types for Query Results
@@ -65,37 +67,37 @@ interface PerformanceReportRow {
 
 export interface InvestorReportAsset {
   asset_code: string;
-  opening_balance: number;
-  closing_balance: number;
-  additions: number;
-  withdrawals: number;
-  yield_earned: number;
+  opening_balance: string;
+  closing_balance: string;
+  additions: string;
+  withdrawals: string;
+  yield_earned: string;
   report_id: string;
   // Full performance data
-  mtd_beginning_balance: number;
-  mtd_additions: number;
-  mtd_redemptions: number;
-  mtd_net_income: number;
-  mtd_ending_balance: number;
-  mtd_rate_of_return: number;
-  qtd_beginning_balance: number;
-  qtd_additions: number;
-  qtd_redemptions: number;
-  qtd_net_income: number;
-  qtd_ending_balance: number;
-  qtd_rate_of_return: number;
-  ytd_beginning_balance: number;
-  ytd_additions: number;
-  ytd_redemptions: number;
-  ytd_net_income: number;
-  ytd_ending_balance: number;
-  ytd_rate_of_return: number;
-  itd_beginning_balance: number;
-  itd_additions: number;
-  itd_redemptions: number;
-  itd_net_income: number;
-  itd_ending_balance: number;
-  itd_rate_of_return: number;
+  mtd_beginning_balance: string;
+  mtd_additions: string;
+  mtd_redemptions: string;
+  mtd_net_income: string;
+  mtd_ending_balance: string;
+  mtd_rate_of_return: string;
+  qtd_beginning_balance: string;
+  qtd_additions: string;
+  qtd_redemptions: string;
+  qtd_net_income: string;
+  qtd_ending_balance: string;
+  qtd_rate_of_return: string;
+  ytd_beginning_balance: string;
+  ytd_additions: string;
+  ytd_redemptions: string;
+  ytd_net_income: string;
+  ytd_ending_balance: string;
+  ytd_rate_of_return: string;
+  itd_beginning_balance: string;
+  itd_additions: string;
+  itd_redemptions: string;
+  itd_net_income: string;
+  itd_ending_balance: string;
+  itd_rate_of_return: string;
 }
 
 export interface InvestorReportEmail {
@@ -112,8 +114,8 @@ export interface InvestorReportSummary {
   investor_email: string;
   investor_emails: InvestorReportEmail[];
   assets: InvestorReportAsset[];
-  total_value: number;
-  total_yield: number;
+  total_value: string;
+  total_yield: string;
   has_reports: boolean;
   report_count: number;
   delivery_status: DeliveryStatus;
@@ -295,8 +297,8 @@ export async function fetchAdminInvestorReports(
         investor_email: investor.email,
         investor_emails: emailsByInvestor[investor.id] || [],
         assets: [],
-        total_value: 0,
-        total_yield: 0,
+        total_value: "0",
+        total_yield: "0",
         has_reports: false,
         report_count: 0,
         delivery_status: "missing" as DeliveryStatus,
@@ -362,40 +364,44 @@ export async function fetchAdminInvestorReports(
 
     const assets: InvestorReportAsset[] = investorPerf.map((report) => ({
       asset_code: report.fund_name,
-      opening_balance: Number(report.mtd_beginning_balance) || 0,
-      closing_balance: Number(report.mtd_ending_balance) || 0,
-      additions: Number(report.mtd_additions) || 0,
-      withdrawals: Number(report.mtd_redemptions) || 0,
-      yield_earned: Number(report.mtd_net_income) || 0,
+      opening_balance: String(report.mtd_beginning_balance || "0"),
+      closing_balance: String(report.mtd_ending_balance || "0"),
+      additions: String(report.mtd_additions || "0"),
+      withdrawals: String(report.mtd_redemptions || "0"),
+      yield_earned: String(report.mtd_net_income || "0"),
       report_id: report.id,
-      mtd_beginning_balance: Number(report.mtd_beginning_balance) || 0,
-      mtd_additions: Number(report.mtd_additions) || 0,
-      mtd_redemptions: Number(report.mtd_redemptions) || 0,
-      mtd_net_income: Number(report.mtd_net_income) || 0,
-      mtd_ending_balance: Number(report.mtd_ending_balance) || 0,
-      mtd_rate_of_return: Number(report.mtd_rate_of_return) || 0,
-      qtd_beginning_balance: Number(report.qtd_beginning_balance) || 0,
-      qtd_additions: Number(report.qtd_additions) || 0,
-      qtd_redemptions: Number(report.qtd_redemptions) || 0,
-      qtd_net_income: Number(report.qtd_net_income) || 0,
-      qtd_ending_balance: Number(report.qtd_ending_balance) || 0,
-      qtd_rate_of_return: Number(report.qtd_rate_of_return) || 0,
-      ytd_beginning_balance: Number(report.ytd_beginning_balance) || 0,
-      ytd_additions: Number(report.ytd_additions) || 0,
-      ytd_redemptions: Number(report.ytd_redemptions) || 0,
-      ytd_net_income: Number(report.ytd_net_income) || 0,
-      ytd_ending_balance: Number(report.ytd_ending_balance) || 0,
-      ytd_rate_of_return: Number(report.ytd_rate_of_return) || 0,
-      itd_beginning_balance: Number(report.itd_beginning_balance) || 0,
-      itd_additions: Number(report.itd_additions) || 0,
-      itd_redemptions: Number(report.itd_redemptions) || 0,
-      itd_net_income: Number(report.itd_net_income) || 0,
-      itd_ending_balance: Number(report.itd_ending_balance) || 0,
-      itd_rate_of_return: Number(report.itd_rate_of_return) || 0,
+      mtd_beginning_balance: String(report.mtd_beginning_balance || "0"),
+      mtd_additions: String(report.mtd_additions || "0"),
+      mtd_redemptions: String(report.mtd_redemptions || "0"),
+      mtd_net_income: String(report.mtd_net_income || "0"),
+      mtd_ending_balance: String(report.mtd_ending_balance || "0"),
+      mtd_rate_of_return: String(report.mtd_rate_of_return || "0"),
+      qtd_beginning_balance: String(report.qtd_beginning_balance || "0"),
+      qtd_additions: String(report.qtd_additions || "0"),
+      qtd_redemptions: String(report.qtd_redemptions || "0"),
+      qtd_net_income: String(report.qtd_net_income || "0"),
+      qtd_ending_balance: String(report.qtd_ending_balance || "0"),
+      qtd_rate_of_return: String(report.qtd_rate_of_return || "0"),
+      ytd_beginning_balance: String(report.ytd_beginning_balance || "0"),
+      ytd_additions: String(report.ytd_additions || "0"),
+      ytd_redemptions: String(report.ytd_redemptions || "0"),
+      ytd_net_income: String(report.ytd_net_income || "0"),
+      ytd_ending_balance: String(report.ytd_ending_balance || "0"),
+      ytd_rate_of_return: String(report.ytd_rate_of_return || "0"),
+      itd_beginning_balance: String(report.itd_beginning_balance || "0"),
+      itd_additions: String(report.itd_additions || "0"),
+      itd_redemptions: String(report.itd_redemptions || "0"),
+      itd_net_income: String(report.itd_net_income || "0"),
+      itd_ending_balance: String(report.itd_ending_balance || "0"),
+      itd_rate_of_return: String(report.itd_rate_of_return || "0"),
     }));
 
-    const total_value = assets.reduce((sum, asset) => sum + asset.closing_balance, 0);
-    const total_yield = assets.reduce((sum, asset) => sum + asset.yield_earned, 0);
+    const total_value = assets
+      .reduce((sum, asset) => sum.plus(parseFinancial(asset.closing_balance)), new Decimal(0))
+      .toString();
+    const total_yield = assets
+      .reduce((sum, asset) => sum.plus(parseFinancial(asset.yield_earned)), new Decimal(0))
+      .toString();
 
     const investorEmails = emailsByInvestor[investor.id] || [];
     if (investorEmails.length === 0 && investor.email) {
@@ -557,36 +563,36 @@ export async function fetchLatestPerformance(
 
   return {
     MTD: {
-      beginning_balance: Number(latestPerformance.mtd_beginning_balance || 0),
-      additions: Number(latestPerformance.mtd_additions || 0),
-      withdrawals: Number(latestPerformance.mtd_redemptions || 0),
-      net_income: Number(latestPerformance.mtd_net_income || 0),
-      ending_balance: Number(latestPerformance.mtd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.mtd_rate_of_return || 0),
+      beginning_balance: String(latestPerformance.mtd_beginning_balance || "0"),
+      additions: String(latestPerformance.mtd_additions || "0"),
+      withdrawals: String(latestPerformance.mtd_redemptions || "0"),
+      net_income: String(latestPerformance.mtd_net_income || "0"),
+      ending_balance: String(latestPerformance.mtd_ending_balance || "0"),
+      rate_of_return: String(latestPerformance.mtd_rate_of_return || "0"),
     },
     QTD: {
-      beginning_balance: Number(latestPerformance.qtd_beginning_balance || 0),
-      additions: Number(latestPerformance.qtd_additions || 0),
-      withdrawals: Number(latestPerformance.qtd_redemptions || 0),
-      net_income: Number(latestPerformance.qtd_net_income || 0),
-      ending_balance: Number(latestPerformance.qtd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.qtd_rate_of_return || 0),
+      beginning_balance: String(latestPerformance.qtd_beginning_balance || "0"),
+      additions: String(latestPerformance.qtd_additions || "0"),
+      withdrawals: String(latestPerformance.qtd_redemptions || "0"),
+      net_income: String(latestPerformance.qtd_net_income || "0"),
+      ending_balance: String(latestPerformance.qtd_ending_balance || "0"),
+      rate_of_return: String(latestPerformance.qtd_rate_of_return || "0"),
     },
     YTD: {
-      beginning_balance: Number(latestPerformance.ytd_beginning_balance || 0),
-      additions: Number(latestPerformance.ytd_additions || 0),
-      withdrawals: Number(latestPerformance.ytd_redemptions || 0),
-      net_income: Number(latestPerformance.ytd_net_income || 0),
-      ending_balance: Number(latestPerformance.ytd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.ytd_rate_of_return || 0),
+      beginning_balance: String(latestPerformance.ytd_beginning_balance || "0"),
+      additions: String(latestPerformance.ytd_additions || "0"),
+      withdrawals: String(latestPerformance.ytd_redemptions || "0"),
+      net_income: String(latestPerformance.ytd_net_income || "0"),
+      ending_balance: String(latestPerformance.ytd_ending_balance || "0"),
+      rate_of_return: String(latestPerformance.ytd_rate_of_return || "0"),
     },
     ITD: {
-      beginning_balance: Number(latestPerformance.itd_beginning_balance || 0),
-      additions: Number(latestPerformance.itd_additions || 0),
-      withdrawals: Number(latestPerformance.itd_redemptions || 0),
-      net_income: Number(latestPerformance.itd_net_income || 0),
-      ending_balance: Number(latestPerformance.itd_ending_balance || 0),
-      rate_of_return: Number(latestPerformance.itd_rate_of_return || 0),
+      beginning_balance: String(latestPerformance.itd_beginning_balance || "0"),
+      additions: String(latestPerformance.itd_additions || "0"),
+      withdrawals: String(latestPerformance.itd_redemptions || "0"),
+      net_income: String(latestPerformance.itd_net_income || "0"),
+      ending_balance: String(latestPerformance.itd_ending_balance || "0"),
+      rate_of_return: String(latestPerformance.itd_rate_of_return || "0"),
     },
   };
 }

@@ -39,7 +39,7 @@ export interface YieldPreviewResult {
 
 export interface DepositWithYieldResult {
   success: boolean;
-  yieldDistributed: number;
+  yieldDistributed: string;
   yieldInvestorsAffected: number;
   depositProcessed: boolean;
   transactionId?: string;
@@ -125,7 +125,7 @@ export async function processDepositWithYield(
   if (!user) {
     return {
       success: false,
-      yieldDistributed: 0,
+      yieldDistributed: "0",
       yieldInvestorsAffected: 0,
       depositProcessed: false,
       error: "Not authenticated",
@@ -138,7 +138,7 @@ export async function processDepositWithYield(
   if (closingAumBeforeDeposit.isNegative()) {
     return {
       success: false,
-      yieldDistributed: 0,
+      yieldDistributed: "0",
       yieldInvestorsAffected: 0,
       depositProcessed: false,
       error: "Invalid AUM inputs: newTotalAum must be >= deposit amount",
@@ -168,7 +168,7 @@ export async function processDepositWithYield(
       logError("processDepositWithYield", rpcResult.error, { fundId, investorId });
       return {
         success: false,
-        yieldDistributed: 0,
+        yieldDistributed: "0",
         yieldInvestorsAffected: 0,
         depositProcessed: false,
         error: `Deposit failed: ${rpcResult.error.message}`,
@@ -176,7 +176,7 @@ export async function processDepositWithYield(
     }
 
     const result = rpcResult.data as unknown as DepositCrystallizationResult | null;
-    const grossYield = Number(result?.crystallization?.gross_yield || 0);
+    const grossYield = String(result?.crystallization?.gross_yield || "0");
 
     return {
       success: true,
@@ -189,7 +189,7 @@ export async function processDepositWithYield(
     logError("processDepositWithYield.exception", err, { fundId, investorId });
     return {
       success: false,
-      yieldDistributed: 0,
+      yieldDistributed: "0",
       yieldInvestorsAffected: 0,
       depositProcessed: false,
       error: `Deposit exception: ${err}`,

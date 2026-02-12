@@ -5,6 +5,7 @@ import { formatInvestorAmount, getAssetLogo, getAssetName } from "@/utils/assets
 import { Loader2, TrendingUp, Calendar } from "lucide-react";
 import { usePerformanceHistory } from "@/hooks/data/investor";
 import { type PerformanceHistoryRecord } from "@/services/shared";
+import { parseFinancial } from "@/utils/financial";
 
 // Pre-calculate rate of return for a report
 interface ProcessedReport extends PerformanceHistoryRecord {
@@ -60,9 +61,13 @@ interface ProcessedReport extends PerformanceHistoryRecord {
  * @returns Rate of return as a percentage (e.g., 2.5 for 2.5%)
  */
 const calculateRate = (report: PerformanceHistoryRecord): number => {
-  const netFlows = (report.additions || 0) - (report.withdrawals || 0);
-  const denominator = (report.opening_balance || 0) + netFlows / 2;
-  return denominator !== 0 ? ((report.yield_earned || 0) / denominator) * 100 : 0;
+  const additions = parseFinancial(report.additions);
+  const withdrawals = parseFinancial(report.withdrawals);
+  const opening = parseFinancial(report.opening_balance);
+  const yieldEarned = parseFinancial(report.yield_earned);
+  const netFlows = additions.minus(withdrawals);
+  const denominator = opening.plus(netFlows.div(2));
+  return !denominator.isZero() ? yieldEarned.div(denominator).times(100).toNumber() : 0;
 };
 
 // Memoized asset section component
@@ -102,15 +107,15 @@ const AssetSection = memo(function AssetSection({
       },
       {
         header: "Opening Balance",
-        accessor: (report) => formatInvestorAmount(report.opening_balance || 0, assetCode),
+        accessor: (report) => formatInvestorAmount(report.opening_balance || "0", assetCode),
         className: "text-right font-mono",
       },
       {
         header: "Additions",
         accessor: (report) => (
           <span className="text-emerald-400">
-            {report.additions && report.additions > 0 ? "+" : ""}
-            {formatInvestorAmount(report.additions || 0, assetCode)}
+            {report.additions && parseFinancial(report.additions).gt(0) ? "+" : ""}
+            {formatInvestorAmount(report.additions || "0", assetCode)}
           </span>
         ),
         className: "text-right font-mono",
@@ -119,8 +124,8 @@ const AssetSection = memo(function AssetSection({
         header: "Withdrawals",
         accessor: (report) => (
           <span className="text-rose-400">
-            {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
-            {formatInvestorAmount(report.withdrawals || 0, assetCode)}
+            {report.withdrawals && parseFinancial(report.withdrawals).gt(0) ? "-" : ""}
+            {formatInvestorAmount(report.withdrawals || "0", assetCode)}
           </span>
         ),
         className: "text-right font-mono",
@@ -129,7 +134,7 @@ const AssetSection = memo(function AssetSection({
         header: "Yield Earned",
         accessor: (report) => (
           <span className="text-blue-400 font-semibold">
-            +{formatInvestorAmount(report.yield_earned || 0, assetCode)}
+            +{formatInvestorAmount(report.yield_earned || "0", assetCode)}
           </span>
         ),
         className: "text-right font-mono",
@@ -141,7 +146,7 @@ const AssetSection = memo(function AssetSection({
       },
       {
         header: "Closing Balance",
-        accessor: (report) => formatInvestorAmount(report.closing_balance || 0, assetCode),
+        accessor: (report) => formatInvestorAmount(report.closing_balance || "0", assetCode),
         className: "text-right font-mono font-bold bg-muted/10",
       },
     ],

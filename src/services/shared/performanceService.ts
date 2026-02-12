@@ -176,18 +176,18 @@ async function buildPeriodStatsFromTxs(userId: string, fundId: string, endingBal
 
   // Beginning balance = ending balance - (deposits - withdrawals + netIncome) for the period
   const calcBeginning = (txs: typeof allTxs) => {
-    let deposits = 0;
-    let withdrawals = 0;
-    let income = 0;
+    let deposits = toDecimal(0);
+    let withdrawals = toDecimal(0);
+    let income = toDecimal(0);
     for (const tx of txs) {
-      const amt = Math.abs(Number(tx.amount));
-      if (tx.type === "DEPOSIT") deposits += amt;
-      else if (tx.type === "WITHDRAWAL") withdrawals += amt;
+      const amt = parseFinancial(tx.amount).abs();
+      if (tx.type === "DEPOSIT") deposits = deposits.plus(amt);
+      else if (tx.type === "WITHDRAWAL") withdrawals = withdrawals.plus(amt);
       else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-        income += Number(tx.amount);
+        income = income.plus(parseFinancial(tx.amount));
       }
     }
-    return endingBalance - deposits + withdrawals - income;
+    return toDecimal(endingBalance).minus(deposits).plus(withdrawals).minus(income).toNumber();
   };
 
   return {
@@ -485,18 +485,22 @@ export const performanceService = {
       .eq("investor_id", userId)
       .eq("period_id", periodToUse?.id || "");
 
-    // Calculate totals
+    // Calculate totals using Decimal.js for precision
     const totalBalance =
-      performance?.reduce((sum, p) => sum + Number(p.mtd_ending_balance || 0), 0) || 0;
+      performance
+        ?.reduce((sum, p) => sum.plus(parseFinancial(p.mtd_ending_balance)), toDecimal(0))
+        .toNumber() || 0;
 
     // Get weighted average YTD return
     const ytdReturn = performance?.length
-      ? performance.reduce((sum, p) => sum + Number(p.ytd_rate_of_return || 0), 0) /
-        performance.length
+      ? performance
+          .reduce((sum, p) => sum.plus(parseFinancial(p.ytd_rate_of_return)), toDecimal(0))
+          .div(performance.length)
+          .toNumber()
       : 0;
 
     const activeFunds =
-      performance?.filter((p) => Number(p.mtd_ending_balance || 0) > 0).length || 0;
+      performance?.filter((p) => parseFinancial(p.mtd_ending_balance).gt(0)).length || 0;
 
     // Check if finalized period is current month
     const now = new Date();
@@ -545,11 +549,11 @@ export const performanceService = {
       id: r.id,
       report_month: r.period?.period_end_date || "",
       asset_code: r.fund_name,
-      opening_balance: Number(r.mtd_beginning_balance || 0),
-      closing_balance: Number(r.mtd_ending_balance || 0),
-      additions: Number(r.mtd_additions || 0),
-      withdrawals: Number(r.mtd_redemptions || 0),
-      yield_earned: Number(r.mtd_net_income || 0),
+      opening_balance: String(r.mtd_beginning_balance || "0"),
+      closing_balance: String(r.mtd_ending_balance || "0"),
+      additions: String(r.mtd_additions || "0"),
+      withdrawals: String(r.mtd_redemptions || "0"),
+      yield_earned: String(r.mtd_net_income || "0"),
     }));
 
     // Group by asset
@@ -572,9 +576,9 @@ export interface PerformanceHistoryRecord {
   id: string;
   report_month: string;
   asset_code: string;
-  opening_balance: number;
-  closing_balance: number;
-  additions: number;
-  withdrawals: number;
-  yield_earned: number;
+  opening_balance: string;
+  closing_balance: string;
+  additions: string;
+  withdrawals: string;
+  yield_earned: string;
 }
