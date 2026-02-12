@@ -218,10 +218,10 @@ export async function deposit(params: {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "DEPOSIT",
-    p_amount: Number(params.amount),
+    p_amount: parseFloat(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: Number(params.closingAum),
+    p_new_total_aum: parseFloat(params.closingAum),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,
@@ -245,10 +245,10 @@ export async function withdrawal(params: {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "WITHDRAWAL",
-    p_amount: Number(params.amount),
+    p_amount: parseFloat(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: Number(params.newTotalAum),
+    p_new_total_aum: parseFloat(params.newTotalAum),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,
@@ -266,7 +266,7 @@ export async function applyYield(params: {
   return call("apply_segmented_yield_distribution_v5", {
     p_fund_id: params.fundId,
     p_period_end: params.periodEnd,
-    p_recorded_aum: Number(params.recordedAum),
+    p_recorded_aum: parseFloat(params.recordedAum),
     p_admin_id: params.adminId,
     p_purpose: params.purpose,
   });
@@ -282,7 +282,7 @@ export async function previewYield(params: {
   return call("preview_segmented_yield_distribution_v5", {
     p_fund_id: params.fundId,
     p_period_end: params.periodEnd,
-    p_recorded_aum: Number(params.recordedAum),
+    p_recorded_aum: parseFloat(params.recordedAum),
     p_purpose: params.purpose,
   });
 }

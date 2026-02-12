@@ -187,7 +187,7 @@ class IBManagementService {
       investor_id: row.investor_id,
       fund_id: row.fund_id ?? "",
       asset: row.asset ?? "",
-      amount: Number(row.amount),
+      amount: String(row.amount || "0"),
     }));
   }
 
@@ -198,7 +198,7 @@ class IBManagementService {
     Array<{
       ib_investor_id: string;
       fund_id: string | null;
-      ib_fee_amount: number;
+      ib_fee_amount: string;
       source_investor_name: string | null;
     }>
   > {
@@ -222,7 +222,7 @@ class IBManagementService {
       return {
         ib_investor_id: row.ib_investor_id,
         fund_id: row.fund_id,
-        ib_fee_amount: Number(row.ib_fee_amount),
+        ib_fee_amount: String(row.ib_fee_amount || "0"),
         source_investor_name: profile
           ? [profile.first_name, profile.last_name].filter(Boolean).join(" ") || null
           : null,
