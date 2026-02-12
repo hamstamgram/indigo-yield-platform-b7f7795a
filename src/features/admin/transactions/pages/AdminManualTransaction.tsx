@@ -267,13 +267,13 @@ export default function AdminManualTransaction() {
 
         // Invalidate caches
         invalidateAfterTransaction(queryClient, data.investorId, data.fundId);
-        if (result.yieldDistributed > 0) {
+        if (parseFloat(result.yieldDistributed) > 0) {
           invalidateAfterYieldOp(queryClient);
         }
 
         const yieldMsg =
-          result.yieldDistributed > 0
-            ? ` Yield of ${formatAUM(result.yieldDistributed, selectedFund.asset)} ${selectedFund.asset} distributed to ${result.yieldInvestorsAffected} investors.`
+          parseFloat(result.yieldDistributed) > 0
+            ? ` Yield of ${formatAUM(parseFloat(result.yieldDistributed), selectedFund.asset)} ${selectedFund.asset} distributed to ${result.yieldInvestorsAffected} investors.`
             : "";
 
         toast({

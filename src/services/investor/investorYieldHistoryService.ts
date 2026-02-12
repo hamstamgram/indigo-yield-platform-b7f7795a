@@ -165,7 +165,7 @@ export async function getPendingTransactions(
     return {
       id: w.id,
       type: "WITHDRAWAL" as const,
-      amount: w.requested_amount,
+      amount: String(w.requested_amount || "0"),
       asset: fund?.asset || "Unknown",
       created_at: w.request_date || "",
       status: w.status || "pending",

@@ -317,10 +317,10 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                       <FormattedNumber value={event.investor_balance} type="number" />
                     </TableCell>
                     <TableCell className="text-right tabular-nums py-1.5">
-                      <PercentageValue value={event.investor_share_pct * 100} decimals={4} />
+                      <PercentageValue value={event.investor_share_pct} decimals={4} />
                     </TableCell>
                     <TableCell className="text-right tabular-nums py-1.5">
-                      <PercentageValue value={event.fund_yield_pct * 100} decimals={4} />
+                      <PercentageValue value={event.fund_yield_pct} decimals={4} />
                     </TableCell>
                     <TableCell className="text-right tabular-nums py-1.5">
                       <FormattedNumber value={event.gross_yield_amount} type="number" />

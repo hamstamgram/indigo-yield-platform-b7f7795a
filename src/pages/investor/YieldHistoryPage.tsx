@@ -352,9 +352,7 @@ function MonthSection({
                           {e.investor_balance > 0 ? formatValue(e.investor_balance) : "--"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground">
-                          {(e.fund_yield_pct ?? 0) > 0
-                            ? `${(e.fund_yield_pct * 100).toFixed(2)}%`
-                            : "--"}
+                          {(e.fund_yield_pct ?? 0) > 0 ? `${e.fund_yield_pct.toFixed(2)}%` : "--"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-emerald-400 font-semibold">
                           +{formatValue(e.net_yield_amount)}

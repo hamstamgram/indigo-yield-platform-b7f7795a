@@ -475,36 +475,36 @@ export async function fetchLatestPerformance(
   assetCode: string
 ): Promise<{
   MTD: {
-    beginning_balance: number;
-    additions: number;
-    withdrawals: number;
-    net_income: number;
-    ending_balance: number;
-    rate_of_return: number;
+    beginning_balance: string;
+    additions: string;
+    withdrawals: string;
+    net_income: string;
+    ending_balance: string;
+    rate_of_return: string;
   };
   QTD: {
-    beginning_balance: number;
-    additions: number;
-    withdrawals: number;
-    net_income: number;
-    ending_balance: number;
-    rate_of_return: number;
+    beginning_balance: string;
+    additions: string;
+    withdrawals: string;
+    net_income: string;
+    ending_balance: string;
+    rate_of_return: string;
   };
   YTD: {
-    beginning_balance: number;
-    additions: number;
-    withdrawals: number;
-    net_income: number;
-    ending_balance: number;
-    rate_of_return: number;
+    beginning_balance: string;
+    additions: string;
+    withdrawals: string;
+    net_income: string;
+    ending_balance: string;
+    rate_of_return: string;
   };
   ITD: {
-    beginning_balance: number;
-    additions: number;
-    withdrawals: number;
-    net_income: number;
-    ending_balance: number;
-    rate_of_return: number;
+    beginning_balance: string;
+    additions: string;
+    withdrawals: string;
+    net_income: string;
+    ending_balance: string;
+    rate_of_return: string;
   };
 } | null> {
   // Note: Supabase JS v2 doesn't fully support order() on relation fields in TypeScript,

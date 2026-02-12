@@ -170,7 +170,7 @@ class IBManagementService {
       investor_id: string;
       fund_id: string;
       asset: string;
-      amount: number;
+      amount: string;
     }>
   > {
     if (!ibUserIds.length) return [];

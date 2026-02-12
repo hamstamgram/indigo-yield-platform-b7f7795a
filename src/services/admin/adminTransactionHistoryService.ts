@@ -264,10 +264,10 @@ async function voidAndReissueTransaction(
 
   const { data, error } = await rpc.call("void_and_reissue_transaction", {
     p_original_tx_id: params.transactionId,
-    p_new_amount: parseFinancial(params.newValues.amount).toString(),
+    p_new_amount: parseFinancial(params.newValues.amount).toNumber(),
     p_new_date: params.newValues.tx_date,
     p_new_notes: mergedNotes ?? undefined,
-    p_closing_aum: parseFinancial(params.closingAum).toString(),
+    p_closing_aum: parseFinancial(params.closingAum).toNumber(),
     p_admin_id: user.id,
     p_reason: params.reason,
   });

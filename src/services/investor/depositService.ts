@@ -305,8 +305,8 @@ export class DepositService {
     pending: number;
     verified: number;
     rejected: number;
-    total_amount: number;
-    by_asset: Record<string, { count: number; amount: number }>;
+    total_amount: string;
+    by_asset: Record<string, { count: number; amount: string }>;
   }> {
     let query = supabase
       .from("transactions_v2")
