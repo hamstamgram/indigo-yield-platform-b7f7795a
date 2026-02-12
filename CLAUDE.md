@@ -247,6 +247,7 @@ END; $$;
 8. **No console.log in production code**
 9. **No emojis in code, comments, or documentation**
 10. **Scope discipline** - Never change code beyond what was asked
+11. **Full-stack completeness** - Every SQL migration MUST have matching UI wiring in the same PR. Never create a backend table/RPC/trigger without the corresponding frontend component, service, hook, and route. If a migration adds a feature, the UI must be functional before the task is declared complete.
 
 ## Known Risks & Tech Debt
 

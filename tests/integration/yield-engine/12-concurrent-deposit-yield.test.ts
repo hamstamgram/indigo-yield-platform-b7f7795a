@@ -15,6 +15,7 @@ import {
   createTestAum,
   createTestAdmin,
   createFeesAccount,
+  createTestDeposit,
 } from "./helpers/seed-helpers";
 import {
   applyYieldDistribution,
@@ -23,13 +24,13 @@ import {
 } from "./helpers/rpc-helpers";
 
 describe("Concurrent Deposit During Yield Distribution", () => {
-  let fund: { id: string; code: string };
+  let fund: { id: string; code: string; asset: string };
   let admin: { id: string };
   let investor1: { id: string };
   let investor2: { id: string };
 
   beforeAll(async () => {
-    fund = await createTestFund({ asset: "BTC" });
+    fund = await createTestFund();
     admin = await createTestAdmin();
     investor1 = await createTestInvestor({ fee_pct: 30 });
     investor2 = await createTestInvestor({ fee_pct: 30 });
@@ -37,7 +38,9 @@ describe("Concurrent Deposit During Yield Distribution", () => {
 
     // Seed positions
     await createTestPosition(investor1.id, fund.id, { current_value: "5" });
+    await createTestDeposit(investor1.id, fund.id, "5", "2025-01-15", fund.asset);
     await createTestPosition(investor2.id, fund.id, { current_value: "5" });
+    await createTestDeposit(investor2.id, fund.id, "5", "2025-01-15", fund.asset);
 
     // Seed AUM
     await createTestAum({

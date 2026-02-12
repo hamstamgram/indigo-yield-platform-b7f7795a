@@ -22,7 +22,6 @@ import { cn } from "@/lib/utils";
 
 // Refactored imports
 import { useTransactionForm, TransactionFormData } from "./hooks/useTransactionForm";
-import { GlobalYieldFlow } from "./components/GlobalYieldFlow";
 import { useTransactionSubmit } from "./hooks/useTransactionSubmit";
 import { AssetInput } from "./components/AssetInput";
 import { InvestorSelect } from "./components/InvestorSelect";
@@ -198,18 +197,11 @@ export function AddTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(
-          "max-h-[90vh] overflow-y-auto transition-all duration-300",
-          txnType === "YIELD" ? "sm:max-w-4xl" : "sm:max-w-[500px]"
-        )}
-      >
+      <DialogContent className="max-h-[90vh] overflow-y-auto transition-all duration-300 sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
           <DialogDescription>
-            {txnType === "YIELD"
-              ? "Distribute algorithmic yield to all investors in the selected fund."
-              : "Manually create a transaction for an investor. All fields are validated and logged."}
+            Manually create a transaction for an investor. All fields are validated and logged.
           </DialogDescription>
         </DialogHeader>
 
@@ -253,201 +245,185 @@ export function AddTransactionDialog({
               <Input type="hidden" {...form.register("asset")} />
             </div>
 
-            {/* CONDITIONAL CONTENT */}
-            {txnType === "YIELD" ? (
-              /* Global Yield Flow */
-              <GlobalYieldFlow
-                fundId={selectedFundId}
-                onSuccess={() => {
-                  onSuccess();
-                  onOpenChange(false);
-                }}
-                onCancel={handleCancel}
+            {/* Standard Transaction Flow */}
+            <>
+              {/* Investor Selector */}
+              <InvestorSelect
+                investors={investors}
+                isLoading={isLoadingInvestors}
+                selectedInvestorId={selectedInvestorId}
+                onSelect={setSelectedInvestorId}
+                error={investorError}
               />
-            ) : (
-              /* Standard Transaction Flow */
-              <>
-                {/* Investor Selector */}
-                <InvestorSelect
-                  investors={investors}
-                  isLoading={isLoadingInvestors}
-                  selectedInvestorId={selectedInvestorId}
-                  onSelect={setSelectedInvestorId}
-                  error={investorError}
-                />
 
-                {/* Balance indicator */}
-                {selectedInvestorId && selectedFundId && (
-                  <Alert variant={isFirstInvestment ? "default" : "default"} className="py-2">
-                    <Info className="h-4 w-4" />
-                    <AlertDescription className="text-sm">
-                      {isCheckingBalance ? (
-                        "Checking balance..."
-                      ) : isFirstInvestment ? (
-                        <span className="text-amber-600 dark:text-amber-400">
-                          <strong>No existing position</strong> — Use "First Investment" for
-                          deposits
-                        </span>
-                      ) : (
-                        <span>
-                          <strong>Current balance:</strong>{" "}
-                          {formatAUM(currentBalance ?? 0, selectedFund?.asset || "tokens")} — Use
-                          "Deposit" for top-ups
-                        </span>
-                      )}
-                    </AlertDescription>
-                  </Alert>
+              {/* Balance indicator */}
+              {selectedInvestorId && selectedFundId && (
+                <Alert variant={isFirstInvestment ? "default" : "default"} className="py-2">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    {isCheckingBalance ? (
+                      "Checking balance..."
+                    ) : isFirstInvestment ? (
+                      <span className="text-amber-600 dark:text-amber-400">
+                        <strong>No existing position</strong> — Use "First Investment" for deposits
+                      </span>
+                    ) : (
+                      <span>
+                        <strong>Current balance:</strong>{" "}
+                        {formatAUM(currentBalance ?? 0, selectedFund?.asset || "tokens")} — Use
+                        "Deposit" for top-ups
+                      </span>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Amount */}
+              <TransactionAmountInput />
+
+              {/* Transaction Date */}
+              <TransactionDateInput />
+
+              {/* Asset Input (Preflow AUM) */}
+              {selectedFundId &&
+                txDate &&
+                ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
+                  <AssetInput
+                    fundId={selectedFundId}
+                    txDate={txDate}
+                    asset={selectedFund?.asset || "tokens"}
+                  />
                 )}
 
-                {/* Amount */}
-                <TransactionAmountInput />
+              {/* Metadata Inputs (Reference ID, Hash, Notes) */}
+              <TransactionMetadataInputs />
 
-                {/* Transaction Date */}
-                <TransactionDateInput />
+              {/* Yield preview validation (Deposit / First Investment) */}
+              {isDeposit && (
+                <div className="rounded-lg border border-border bg-muted/30 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold">Yield crystallization preview</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Preview the yield that will be crystallized before the deposit is applied.
+                      </p>
+                    </div>
+                    {depositPreviewLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  </div>
 
-                {/* Asset Input (Preflow AUM) */}
-                {selectedFundId &&
-                  txDate &&
-                  ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
-                    <AssetInput
-                      fundId={selectedFundId}
-                      txDate={txDate}
-                      asset={selectedFund?.asset || "tokens"}
-                    />
+                  {depositPreviewError && (
+                    <p className="mt-3 text-xs text-destructive">{depositPreviewError}</p>
                   )}
 
-                {/* Metadata Inputs (Reference ID, Hash, Notes) */}
-                <TransactionMetadataInputs />
-
-                {/* Yield preview validation (Deposit / First Investment) */}
-                {isDeposit && (
-                  <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <div className="flex items-center justify-between">
+                  {depositYieldPreview && (
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <h4 className="text-sm font-semibold">Yield crystallization preview</h4>
-                        <p className="text-xs text-muted-foreground">
-                          Preview the yield that will be crystallized before the deposit is applied.
+                        <p className="text-xs text-muted-foreground">Opening AUM</p>
+                        <p className="font-medium">
+                          {formatAUM(
+                            toDecimal(depositYieldPreview.currentAum).toNumber(),
+                            depositYieldPreview.fundAsset
+                          )}{" "}
+                          {depositYieldPreview.fundAsset}
                         </p>
                       </div>
-                      {depositPreviewLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                      <div>
+                        <p className="text-xs text-muted-foreground">Pre-deposit yield</p>
+                        <p
+                          className={cn(
+                            "font-medium",
+                            toDecimal(depositYieldPreview.preDepositYield).gt(0)
+                              ? "text-emerald-600"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {toDecimal(depositYieldPreview.preDepositYield).gt(0) ? "+" : ""}
+                          {formatAUM(
+                            toDecimal(depositYieldPreview.preDepositYield).toNumber(),
+                            depositYieldPreview.fundAsset
+                          )}{" "}
+                          {depositYieldPreview.fundAsset}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Yield %</p>
+                        <p className="font-medium">
+                          {toDecimal(depositYieldPreview.yieldPercentage).toFixed(6)}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Investors impacted</p>
+                        <p className="font-medium">{depositYieldPreview.investorCount}</p>
+                      </div>
                     </div>
+                  )}
 
-                    {depositPreviewError && (
-                      <p className="mt-3 text-xs text-destructive">{depositPreviewError}</p>
-                    )}
+                  {yieldPreviewValidation.hasError && (
+                    <p className="mt-3 text-xs text-destructive">
+                      {yieldPreviewValidation.message}
+                    </p>
+                  )}
+                </div>
+              )}
 
-                    {depositYieldPreview && (
-                      <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Opening AUM</p>
-                          <p className="font-medium">
-                            {formatAUM(
-                              toDecimal(depositYieldPreview.currentAum).toNumber(),
-                              depositYieldPreview.fundAsset
-                            )}{" "}
-                            {depositYieldPreview.fundAsset}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Pre-deposit yield</p>
-                          <p
-                            className={cn(
-                              "font-medium",
-                              toDecimal(depositYieldPreview.preDepositYield).gt(0)
-                                ? "text-emerald-600"
-                                : "text-muted-foreground"
-                            )}
-                          >
-                            {toDecimal(depositYieldPreview.preDepositYield).gt(0) ? "+" : ""}
-                            {formatAUM(
-                              toDecimal(depositYieldPreview.preDepositYield).toNumber(),
-                              depositYieldPreview.fundAsset
-                            )}{" "}
-                            {depositYieldPreview.fundAsset}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Yield %</p>
-                          <p className="font-medium">
-                            {toDecimal(depositYieldPreview.yieldPercentage).toFixed(6)}%
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Investors impacted</p>
-                          <p className="font-medium">{depositYieldPreview.investorCount}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {yieldPreviewValidation.hasError && (
-                      <p className="mt-3 text-xs text-destructive">
-                        {yieldPreviewValidation.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Bug #3: Large deposit confirmation */}
-                {pendingLargeDeposit && (
-                  <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                    <AlertDescription className="space-y-3">
-                      <p className="font-semibold text-amber-800 dark:text-amber-200">
-                        Large deposit — please confirm
-                      </p>
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
-                        You are depositing{" "}
-                        <strong>
-                          {Number(pendingLargeDeposit.amount).toLocaleString()}{" "}
+              {/* Bug #3: Large deposit confirmation */}
+              {pendingLargeDeposit && (
+                <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="space-y-3">
+                    <p className="font-semibold text-amber-800 dark:text-amber-200">
+                      Large deposit — please confirm
+                    </p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      You are depositing{" "}
+                      <strong>
+                        {Number(pendingLargeDeposit.amount).toLocaleString()} {selectedFund?.asset}
+                      </strong>
+                      {closingAum && Number(closingAum) > 0 && (
+                        <>
+                          {" "}
+                          — this is{" "}
+                          <strong>
+                            {(Number(pendingLargeDeposit.amount) / Number(closingAum)).toFixed(1)}x
+                          </strong>{" "}
+                          the current fund AUM of {Number(closingAum).toLocaleString()}{" "}
                           {selectedFund?.asset}
-                        </strong>
-                        {closingAum && Number(closingAum) > 0 && (
-                          <>
-                            {" "}
-                            — this is{" "}
-                            <strong>
-                              {(Number(pendingLargeDeposit.amount) / Number(closingAum)).toFixed(1)}
-                              x
-                            </strong>{" "}
-                            the current fund AUM of {Number(closingAum).toLocaleString()}{" "}
-                            {selectedFund?.asset}
-                          </>
-                        )}
-                      </p>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="destructive" onClick={confirmLargeDeposit}>
-                          Confirm Amount is Correct
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={cancelLargeDeposit}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                        </>
+                      )}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="destructive" onClick={confirmLargeDeposit}>
+                        Confirm Amount is Correct
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={cancelLargeDeposit}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
 
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={
-                      loading ||
-                      fundsLoading ||
-                      isLoadingInvestors ||
-                      (isDeposit && (depositPreviewLoading || !!depositPreviewError)) ||
-                      (isDeposit && requiresYieldPreview && !depositYieldPreview) ||
-                      yieldPreviewValidation.hasError ||
-                      !!pendingLargeDeposit
-                    }
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Transaction
-                  </Button>
-                </DialogFooter>
-              </>
-            )}
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    loading ||
+                    fundsLoading ||
+                    isLoadingInvestors ||
+                    (isDeposit && (depositPreviewLoading || !!depositPreviewError)) ||
+                    (isDeposit && requiresYieldPreview && !depositYieldPreview) ||
+                    yieldPreviewValidation.hasError ||
+                    !!pendingLargeDeposit
+                  }
+                >
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create Transaction
+                </Button>
+              </DialogFooter>
+            </>
           </form>
         </FormProvider>
       </DialogContent>

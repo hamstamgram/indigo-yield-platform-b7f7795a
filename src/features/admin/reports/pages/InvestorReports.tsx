@@ -214,22 +214,51 @@ const InvestorReports = () => {
           <h1 className="text-2xl font-bold">Statement Manager</h1>
           <p className="text-muted-foreground">Generate, preview, and deliver monthly statements</p>
         </div>
-        <Select value={selectedMonth} onValueChange={(v) => setFilter("month", v)}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select month" />
-          </SelectTrigger>
-          <SelectContent>
-            {Array.from({ length: 12 }, (_, i) => {
-              const date = subMonths(new Date(), i);
-              const monthValue = format(date, "yyyy-MM");
-              return (
-                <SelectItem key={monthValue} value={monthValue}>
-                  {format(date, "MMMM yyyy")}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select
+            value={selectedMonth.split("-")[0]}
+            onValueChange={(year) => {
+              const month = selectedMonth.split("-")[1];
+              setFilter("month", `${year}-${month}`);
+            }}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: new Date().getFullYear() - 2024 + 1 }, (_, i) => {
+                const year = String(2024 + i);
+                return (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+          <Select
+            value={selectedMonth.split("-")[1]}
+            onValueChange={(month) => {
+              const year = selectedMonth.split("-")[0];
+              setFilter("month", `${year}-${month}`);
+            }}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }, (_, i) => {
+                const monthValue = String(i + 1).padStart(2, "0");
+                const label = format(new Date(2024, i), "MMMM");
+                return (
+                  <SelectItem key={monthValue} value={monthValue}>
+                    {label}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Summary Cards */}

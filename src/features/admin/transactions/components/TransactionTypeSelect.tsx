@@ -52,7 +52,6 @@ export function TransactionTypeSelect({
           >
             Withdrawal {isFirstInvestment && "(no position)"}
           </SelectItem>
-          <SelectItem value="YIELD">Yield</SelectItem>
         </SelectContent>
       </Select>
       {error && <p className="text-sm text-destructive">{error}</p>}

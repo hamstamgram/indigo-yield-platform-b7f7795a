@@ -50,6 +50,7 @@ export interface YieldOperationsState {
   existingDistributionDate: string | null;
   existingDistributionId: string | null;
   aumTime: string; // HH:MM for transaction-purpose audit trail
+  distributionDate: Date; // Date recorded on yield transactions (defaults to today)
 }
 
 const initialState: YieldOperationsState = {
@@ -74,6 +75,7 @@ const initialState: YieldOperationsState = {
   existingDistributionDate: null,
   existingDistributionId: null,
   aumTime: format(new Date(), "HH:mm"),
+  distributionDate: new Date(),
 };
 
 export function useYieldOperationsState() {
@@ -179,6 +181,10 @@ export function useYieldOperationsState() {
     setState((prev) => ({ ...prev, aumTime: time }));
   }, []);
 
+  const setDistributionDate = useCallback((date: Date) => {
+    setState((prev) => ({ ...prev, distributionDate: date }));
+  }, []);
+
   // Generate available months for selection
   // FIX: Use date-fns format instead of toISOString to avoid timezone bugs
   const getAvailableMonths = useCallback((): { value: string; label: string }[] => {
@@ -222,6 +228,7 @@ export function useYieldOperationsState() {
       existingDistributionDate: null,
       existingDistributionId: null,
       aumTime: format(new Date(), "HH:mm"),
+      distributionDate: new Date(),
     }));
   }, []);
 
@@ -353,6 +360,7 @@ export function useYieldOperationsState() {
         newTotalAUM: String(newAUMValue),
         baseAUM: baseAum != null ? String(baseAum) : undefined,
         purpose: state.yieldPurpose,
+        distributionDate: state.distributionDate,
       });
       setState((prev) => ({
         ...prev,
@@ -420,6 +428,7 @@ export function useYieldOperationsState() {
           newTotalAUM: state.newAUM,
           baseAUM: asOfAum != null ? String(asOfAum) : undefined,
           snapshotTime: isTransaction ? state.aumTime : undefined,
+          distributionDate: state.distributionDate,
         },
         user.id,
         state.yieldPurpose
@@ -518,6 +527,7 @@ export function useYieldOperationsState() {
     setSearchInvestor,
     setAcknowledgeDiscrepancy,
     setAumTime,
+    setDistributionDate,
 
     // Helpers
     getAvailableMonths,

@@ -68,7 +68,7 @@ export function InvestorSettingsTab({
       {/* Per-Fund Fee Schedule */}
       <FeeScheduleSection investorId={investorId} />
 
-      {/* IB Settings */}
+      {/* IB Settings (parent config, promote, referrals, commission schedule) */}
       <IBSettingsSection investorId={investorId} onUpdate={onDataChange} />
 
       {/* Report Recipients Link (drawer only) */}

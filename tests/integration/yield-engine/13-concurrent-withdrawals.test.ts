@@ -15,22 +15,24 @@ import {
   createTestAum,
   createTestAdmin,
   createFeesAccount,
+  createTestDeposit,
 } from "./helpers/seed-helpers";
 import { applyTransactionWithCrystallization, getInvestorPosition } from "./helpers/rpc-helpers";
 
 describe("Concurrent Withdrawals (Same Investor)", () => {
-  let fund: { id: string; code: string };
+  let fund: { id: string; code: string; asset: string };
   let admin: { id: string };
   let investor: { id: string };
 
   beforeAll(async () => {
-    fund = await createTestFund({ asset: "BTC" });
+    fund = await createTestFund();
     admin = await createTestAdmin();
     investor = await createTestInvestor({ fee_pct: 30 });
     await createFeesAccount();
 
     // Investor has 10 BTC
     await createTestPosition(investor.id, fund.id, { current_value: "10" });
+    await createTestDeposit(investor.id, fund.id, "10", "2025-02-15", fund.asset);
     await createTestAum({
       fund_id: fund.id,
       aum_date: "2025-03-01",
@@ -53,7 +55,7 @@ describe("Concurrent Withdrawals (Same Investor)", () => {
         investor_id: investor.id,
         fund_id: fund.id,
         tx_type: "WITHDRAWAL",
-        amount: "-8",
+        amount: "8",
         tx_date: "2025-03-15",
         reference_id: ref1,
         admin_id: admin.id,
@@ -64,7 +66,7 @@ describe("Concurrent Withdrawals (Same Investor)", () => {
         investor_id: investor.id,
         fund_id: fund.id,
         tx_type: "WITHDRAWAL",
-        amount: "-8",
+        amount: "8",
         tx_date: "2025-03-15",
         reference_id: ref2,
         admin_id: admin.id,

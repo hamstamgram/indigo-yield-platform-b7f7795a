@@ -26,8 +26,12 @@ function calculatePerformanceMetrics(
   // CORRECT formula per audit requirements:
   const netIncome = endingBalance - beginningBalance - additions + redemptions;
 
-  // Avoid divide by zero - return 0% if no beginning balance
+  // When no beginning balance, use additions as denominator (same approach as ITD)
   if (beginningBalance <= 0) {
+    if (additions > 0) {
+      const rateOfReturn = (netIncome / additions) * 100;
+      return { netIncome, rateOfReturn };
+    }
     return { netIncome, rateOfReturn: 0 };
   }
 
@@ -350,6 +354,12 @@ Deno.serve(async (req) => {
 
       const investorTxs = transactionGroups.get(key) || [];
 
+      // Skip investors with no transactions before period end and no snapshot
+      // They had no position in this period (e.g., invested months later)
+      if (investorTxs.length === 0 && !snapshotBalances.has(key)) {
+        continue;
+      }
+
       // Prefer snapshot balances at period end; fallback to transaction-derived balance
       let endingBalance = snapshotBalances.get(key);
       if (endingBalance === undefined) {
@@ -357,11 +367,6 @@ Deno.serve(async (req) => {
           endingBalance = sumBalanceThrough(investorTxs, mtdEnd);
         } else {
           endingBalance = positionBalances.get(key) || 0;
-          if (endingBalance > 0) {
-            console.warn(
-              `No transactions or snapshots for ${key}; using current position value as fallback`
-            );
-          }
         }
       }
 

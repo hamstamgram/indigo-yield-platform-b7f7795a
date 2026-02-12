@@ -41,7 +41,7 @@ export async function applyYieldDistribution(
   adminId: string,
   purpose: "reporting" | "transaction" = "reporting"
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, newTotalAUM } = input;
+  const { fundId, targetDate, newTotalAUM, distributionDate } = input;
 
   const periodEndDate = targetDate;
   const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
@@ -57,7 +57,7 @@ export async function applyYieldDistribution(
     p_recorded_aum: parsedAum.toString() as unknown as number,
     p_admin_id: adminId,
     p_purpose: purpose,
-    p_distribution_date: formatDateForDB(targetDate),
+    p_distribution_date: formatDateForDB(distributionDate ?? targetDate),
   });
 
   if (error) {

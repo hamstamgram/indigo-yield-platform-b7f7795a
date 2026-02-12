@@ -93,3 +93,4 @@ ios/
 # SECURITY: Test user setup files
 **/setup-test-users*
 **/create-test-users*
+coverage/

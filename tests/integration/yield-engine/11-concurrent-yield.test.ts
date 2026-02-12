@@ -15,18 +15,19 @@ import {
   createTestAum,
   createTestAdmin,
   createFeesAccount,
+  createTestDeposit,
 } from "./helpers/seed-helpers";
 import { applyYieldDistribution } from "./helpers/rpc-helpers";
 import { supabase } from "./helpers/supabase-client";
 
 describe("Concurrent Yield Distribution", () => {
-  let fund: { id: string; code: string };
+  let fund: { id: string; code: string; asset: string };
   let admin1: { id: string };
   let admin2: { id: string };
   let investor: { id: string };
 
   beforeAll(async () => {
-    fund = await createTestFund({ asset: "BTC" });
+    fund = await createTestFund();
     admin1 = await createTestAdmin();
     admin2 = await createTestAdmin();
     investor = await createTestInvestor({ fee_pct: 30 });
@@ -34,6 +35,7 @@ describe("Concurrent Yield Distribution", () => {
 
     // Seed position and AUM
     await createTestPosition(investor.id, fund.id, { current_value: "10" });
+    await createTestDeposit(investor.id, fund.id, "10", "2024-12-15", fund.asset);
     await createTestAum({
       fund_id: fund.id,
       aum_date: "2025-01-01",

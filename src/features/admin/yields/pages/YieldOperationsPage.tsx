@@ -204,6 +204,8 @@ function YieldOperationsContent() {
               existingDistributionDate={ops.existingDistributionDate}
               aumTime={ops.aumTime}
               setAumTime={ops.setAumTime}
+              distributionDate={ops.distributionDate}
+              setDistributionDate={ops.setDistributionDate}
             />
 
             {/* Preview Results */}

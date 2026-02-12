@@ -17,6 +17,8 @@ export interface YieldCalculationInput {
   purpose?: "reporting" | "transaction";
   /** HH:MM when admin recorded the AUM snapshot (transaction purpose only, audit trail) */
   snapshotTime?: string;
+  /** Actual date to record on transactions (defaults to today for reporting, effective date for transaction) */
+  distributionDate?: Date;
 }
 
 /**

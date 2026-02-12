@@ -214,7 +214,12 @@ BEGIN
           v_share := v_inv.balance / v_balance_sum;
           v_gross := ROUND((v_seg_yield * v_share)::numeric, 8);
 
-          v_fee_pct := get_investor_fee_pct(v_inv.investor_id, p_fund_id, v_seg_end);
+          -- fees_account earns yield at 0% fee (fees circle back to itself)
+          IF v_inv.account_type = 'fees_account' THEN
+            v_fee_pct := 0;
+          ELSE
+            v_fee_pct := get_investor_fee_pct(v_inv.investor_id, p_fund_id, v_seg_end);
+          END IF;
           v_fee := ROUND((v_gross * v_fee_pct / 100)::numeric, 8);
 
           IF v_inv.ib_parent_id IS NOT NULL AND v_inv.ib_rate > 0 THEN
@@ -227,7 +232,7 @@ BEGIN
 
           UPDATE _v5p_bal SET balance = balance + v_net WHERE investor_id = v_inv.investor_id;
 
-          IF v_fee > 0 AND v_fees_account_id IS NOT NULL THEN
+          IF v_fee > 0 AND v_fees_account_id IS NOT NULL AND v_inv.account_type != 'fees_account' THEN
             INSERT INTO _v5p_bal (investor_id, balance, account_type)
             VALUES (v_fees_account_id, v_fee, 'fees_account')
             ON CONFLICT (investor_id) DO UPDATE SET balance = _v5p_bal.balance + v_fee;
