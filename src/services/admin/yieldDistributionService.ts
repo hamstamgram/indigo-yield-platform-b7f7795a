@@ -1,12 +1,12 @@
 /**
  * Yield Distribution Service
- * 
+ *
  * REFACTORED: This file now re-exports from focused sub-services:
  * - yieldPreviewService.ts - Preview calculations
  * - yieldApplyService.ts - Apply distributions
  * - yieldHistoryService.ts - AUM history and fund data
  * - yieldReportsService.ts - Performance reports
- * 
+ *
  * Import from this file for backwards compatibility.
  * For new code, import directly from the specific service.
  */
@@ -42,6 +42,7 @@ export {
   getFundInvestorCompositionWithYield as getFundInvestorComposition,
   getStatementPeriodId,
   getInvestorPositionsWithFunds,
+  checkExistingDistribution,
 } from "./yieldHistoryService";
 
 // Reports service

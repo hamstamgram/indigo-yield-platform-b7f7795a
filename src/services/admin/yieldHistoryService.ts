@@ -5,7 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { FundDailyAUM } from "@/types/domains/yield";
+import type { FundDailyAUM, YieldPurpose } from "@/types/domains/yield";
 import { formatDateForDB, getTodayString, getMonthStartDate } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
@@ -473,4 +473,34 @@ export async function getInvestorPositionsWithFunds(investorId: string): Promise
       current_value: p.current_value || 0,
       shares: p.shares || 0,
     }));
+}
+/**
+ * Check if a distribution already exists for a fund, date, and purpose
+ */
+export async function checkExistingDistribution(
+  fundId: string,
+  effectiveDate: Date,
+  purpose: YieldPurpose
+) {
+  const effectiveDateStr = formatDateForDB(effectiveDate);
+  if (!effectiveDateStr) {
+    return { exists: false, id: null, date: null };
+  }
+
+  const { data, error } = await supabase
+    .from("yield_distributions")
+    .select("id")
+    .eq("fund_id", fundId)
+    .eq("period_end", effectiveDateStr)
+    .eq("is_voided", false)
+    .eq("purpose", purpose)
+    .limit(1);
+
+  if (error) {
+    logError("yieldHistoryService.checkExistingDistribution", error, { fundId, effectiveDateStr });
+    return { exists: false, id: null, date: effectiveDateStr };
+  }
+
+  const existingId = data?.[0]?.id ?? null;
+  return { exists: Boolean(existingId), id: existingId, date: effectiveDateStr };
 }
