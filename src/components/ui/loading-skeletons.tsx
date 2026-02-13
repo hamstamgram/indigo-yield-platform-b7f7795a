@@ -114,7 +114,7 @@ export const ChartSkeleton: React.FC<{ className?: string }> = ({ className }) =
         </div>
       </div>
 
-      <div className="relative h-64">
+      <div className="relative aspect-video">
         <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
           {Array.from({ length: 12 }).map((_, i) => {
             // Use deterministic heights based on index to prevent jittering on re-render

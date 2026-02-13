@@ -18,6 +18,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  TableSkeleton,
 } from "@/components/ui";
 
 export interface Column<T> {
@@ -139,10 +140,7 @@ export function OptimizedTable<T>({
       const scrollTop = container.scrollTop;
       const containerHeight = container.clientHeight;
       const start = Math.max(0, Math.floor(scrollTop / rowHeight) - 5);
-      const end = Math.min(
-        data.length,
-        Math.ceil((scrollTop + containerHeight) / rowHeight) + 5
-      );
+      const end = Math.min(data.length, Math.ceil((scrollTop + containerHeight) / rowHeight) + 5);
 
       setVisibleRange({ start, end });
     };
@@ -154,15 +152,13 @@ export function OptimizedTable<T>({
     return () => container.removeEventListener("scroll", handleScroll);
   }, [data.length, rowHeight, enableVirtualScroll]);
 
-  const visibleData = enableVirtualScroll
-    ? data.slice(visibleRange.start, visibleRange.end)
-    : data;
+  const visibleData = enableVirtualScroll ? data.slice(visibleRange.start, visibleRange.end) : data;
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+      <div className={cn("p-4 border rounded-md bg-background", className)}>
+        <TableSkeleton rows={8} columns={columns.length} />
       </div>
     );
   }
@@ -171,9 +167,7 @@ export function OptimizedTable<T>({
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center p-8">
-        {emptyState || (
-          <p className="text-muted-foreground">No data available</p>
-        )}
+        {emptyState || <p className="text-muted-foreground">No data available</p>}
       </div>
     );
   }
@@ -199,9 +193,8 @@ export function OptimizedTable<T>({
   const handleSort = (column: Column<T>) => {
     if (!column.sortable || !onSort) return;
 
-    const accessor = typeof column.accessor === "function"
-      ? column.header
-      : String(column.accessor);
+    const accessor =
+      typeof column.accessor === "function" ? column.header : String(column.accessor);
 
     onSort(accessor);
   };
@@ -217,25 +210,18 @@ export function OptimizedTable<T>({
             <Card key={key} className="overflow-hidden">
               {getMobileTitle && (
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">
-                    {getMobileTitle(row)}
-                  </CardTitle>
+                  <CardTitle className="text-base">{getMobileTitle(row)}</CardTitle>
                 </CardHeader>
               )}
               <CardContent className="space-y-2">
                 {columns
                   .filter((col) => !col.hideOnMobile)
                   .map((column, colIndex) => (
-                    <div
-                      key={colIndex}
-                      className="flex justify-between items-center"
-                    >
+                    <div key={colIndex} className="flex justify-between items-center">
                       <span className="text-sm font-medium text-muted-foreground">
                         {column.header}:
                       </span>
-                      <span className="text-sm font-medium">
-                        {renderCell(row, column)}
-                      </span>
+                      <span className="text-sm font-medium">{renderCell(row, column)}</span>
                     </div>
                   ))}
               </CardContent>
@@ -294,37 +280,30 @@ export function OptimizedTable<T>({
               >
                 <div className="flex items-center gap-2">
                   {column.header}
-                  {column.sortable && sortColumn ===
-                    (typeof column.accessor === "function"
-                      ? column.header
-                      : String(column.accessor)) && (
-                    <span className="text-xs">
-                      {sortDirection === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
+                  {column.sortable &&
+                    sortColumn ===
+                      (typeof column.accessor === "function"
+                        ? column.header
+                        : String(column.accessor)) && (
+                      <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    )}
                 </div>
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {enableVirtualScroll && (
-            <tr style={{ height: visibleRange.start * rowHeight }} />
-          )}
+          {enableVirtualScroll && <tr style={{ height: visibleRange.start * rowHeight }} />}
           {visibleData.map((row) => {
             const key = getRowKey(row);
             return (
               <TableRow
                 key={key}
                 className="hover:bg-muted/50 transition-colors"
-                style={
-                  enableVirtualScroll ? { height: `${rowHeight}px` } : undefined
-                }
+                style={enableVirtualScroll ? { height: `${rowHeight}px` } : undefined}
               >
                 {columns.map((column, colIndex) => (
-                  <TableCell key={colIndex}>
-                    {renderCell(row, column)}
-                  </TableCell>
+                  <TableCell key={colIndex}>{renderCell(row, column)}</TableCell>
                 ))}
               </TableRow>
             );
