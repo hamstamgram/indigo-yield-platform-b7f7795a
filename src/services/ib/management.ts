@@ -9,9 +9,13 @@ import { db } from "@/lib/db/index";
 class IBManagementService {
   /**
    * Create IB role for a user
-   * Returns the user ID if successful
+   * If user doesn't exist, it will create one via the admin-user-management edge function
    */
-  async createIB(email: string): Promise<{ userId: string }> {
+  async createIB(
+    email: string,
+    firstName: string = "",
+    lastName: string = ""
+  ): Promise<{ userId: string }> {
     // First, check if user already exists
     const { data: existingProfile, error: checkError } = await supabase
       .from("profiles")
@@ -22,9 +26,20 @@ class IBManagementService {
     if (checkError) throw checkError;
 
     if (!existingProfile) {
-      throw new Error(
-        "User profile does not exist. Please invite this user first through the investor invite flow, then assign IB role."
-      );
+      // User doesn't exist, use edge function to create them with IB role
+      const { data, error } = await supabase.functions.invoke("admin-user-management", {
+        body: {
+          action: "createIB",
+          email,
+          firstName,
+          lastName,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to create IB via edge function");
+
+      return { userId: data.user_id };
     }
 
     const userId = existingProfile.id;
@@ -55,8 +70,12 @@ class IBManagementService {
   /**
    * Create IB role (alias for createIB)
    */
-  async createIBRole(email: string): Promise<{ userId: string }> {
-    return this.createIB(email);
+  async createIBRole(
+    email: string,
+    firstName: string = "",
+    lastName: string = ""
+  ): Promise<{ userId: string }> {
+    return this.createIB(email, firstName, lastName);
   }
 
   /**

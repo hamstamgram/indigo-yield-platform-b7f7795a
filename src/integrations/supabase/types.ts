@@ -783,6 +783,100 @@ export type Database = {
           },
         ];
       };
+      fund_yield_snapshots: {
+        Row: {
+          closing_aum: number | null;
+          created_at: string;
+          created_by: string | null;
+          days_in_period: number | null;
+          fund_id: string;
+          gross_yield_amount: number | null;
+          gross_yield_pct: number | null;
+          id: string;
+          opening_aum: number | null;
+          period_end: string | null;
+          period_start: string | null;
+          snapshot_date: string;
+          trigger_reference: string | null;
+          trigger_type: string;
+        };
+        Insert: {
+          closing_aum?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          days_in_period?: number | null;
+          fund_id: string;
+          gross_yield_amount?: number | null;
+          gross_yield_pct?: number | null;
+          id?: string;
+          opening_aum?: number | null;
+          period_end?: string | null;
+          period_start?: string | null;
+          snapshot_date: string;
+          trigger_reference?: string | null;
+          trigger_type: string;
+        };
+        Update: {
+          closing_aum?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          days_in_period?: number | null;
+          fund_id?: string;
+          gross_yield_amount?: number | null;
+          gross_yield_pct?: number | null;
+          id?: string;
+          opening_aum?: number | null;
+          period_end?: string | null;
+          period_start?: string | null;
+          snapshot_date?: string;
+          trigger_reference?: string | null;
+          trigger_type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "aum_position_reconciliation";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "fund_aum_mismatch";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "funds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_crystallization_dashboard";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_fund_aum_position_health";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_liquidity_risk";
+            referencedColumns: ["fund_id"];
+          },
+        ];
+      };
       funds: {
         Row: {
           asset: string;
@@ -1315,6 +1409,159 @@ export type Database = {
           },
         ];
       };
+      ib_commission_schedule: {
+        Row: {
+          created_at: string;
+          effective_date: string;
+          end_date: string | null;
+          fund_id: string | null;
+          ib_percentage: number;
+          id: string;
+          investor_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          effective_date: string;
+          end_date?: string | null;
+          fund_id?: string | null;
+          ib_percentage: number;
+          id?: string;
+          investor_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          effective_date?: string;
+          end_date?: string | null;
+          fund_id?: string | null;
+          ib_percentage?: number;
+          id?: string;
+          investor_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ib_commission_schedule_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "aum_position_reconciliation";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "ib_commission_schedule_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "fund_aum_mismatch";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "ib_commission_schedule_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "funds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ib_commission_schedule_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_crystallization_dashboard";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "ib_commission_schedule_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_fund_aum_position_health";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "ib_commission_schedule_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_liquidity_risk";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "ib_commission_schedule_investor_id_fkey";
+            columns: ["investor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      investor_daily_balance: {
+        Row: {
+          balance_date: string;
+          created_at: string;
+          end_of_day_balance: number;
+          fund_id: string;
+          id: string;
+          investor_id: string;
+        };
+        Insert: {
+          balance_date: string;
+          created_at?: string;
+          end_of_day_balance?: number;
+          fund_id: string;
+          id?: string;
+          investor_id: string;
+        };
+        Update: {
+          balance_date?: string;
+          created_at?: string;
+          end_of_day_balance?: number;
+          fund_id?: string;
+          id?: string;
+          investor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "aum_position_reconciliation";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "fund_aum_mismatch";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "funds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_crystallization_dashboard";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_fund_aum_position_health";
+            referencedColumns: ["fund_id"];
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "v_liquidity_risk";
+            referencedColumns: ["fund_id"];
+          },
+        ];
+      };
       investor_emails: {
         Row: {
           created_at: string | null;
@@ -1429,54 +1676,6 @@ export type Database = {
           },
           {
             foreignKeyName: "investor_fee_schedule_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      ib_commission_schedule: {
-        Row: {
-          created_at: string;
-          effective_date: string;
-          end_date: string | null;
-          fund_id: string | null;
-          ib_percentage: number;
-          id: string;
-          investor_id: string;
-          updated_at: string | null;
-        };
-        Insert: {
-          created_at?: string;
-          effective_date: string;
-          end_date?: string | null;
-          fund_id?: string | null;
-          ib_percentage: number;
-          id?: string;
-          investor_id: string;
-          updated_at?: string | null;
-        };
-        Update: {
-          created_at?: string;
-          effective_date?: string;
-          end_date?: string | null;
-          fund_id?: string | null;
-          ib_percentage?: number;
-          id?: string;
-          investor_id?: string;
-          updated_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "ib_commission_schedule_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "funds";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "ib_commission_schedule_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -4933,6 +5132,10 @@ export type Database = {
         Args: { p_date: string; p_fund_id: string; p_investor_id: string };
         Returns: number;
       };
+      _resolve_investor_ib_pct: {
+        Args: { p_date: string; p_fund_id: string; p_investor_id: string };
+        Returns: number;
+      };
       acquire_delivery_batch: {
         Args: {
           p_batch_size?: number;
@@ -4977,6 +5180,19 @@ export type Database = {
           p_investor_id: string;
           p_reason: string;
           p_tx_date?: string;
+        };
+        Returns: Json;
+      };
+      apply_adb_yield_distribution_v3: {
+        Args: {
+          p_admin_id?: string;
+          p_distribution_date?: string;
+          p_fund_id: string;
+          p_gross_yield_amount: number;
+          p_period_end: string;
+          p_period_start: string;
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"];
+          p_recorded_aum?: number;
         };
         Returns: Json;
       };
@@ -5484,9 +5700,14 @@ export type Database = {
         Returns: number;
       };
       get_investor_ib_pct: {
-        Args: { p_fund_id: string; p_investor_id: string };
+        Args: {
+          p_effective_date?: string;
+          p_fund_id: string;
+          p_investor_id: string;
+        };
         Returns: number;
       };
+      get_investor_reports_v2: { Args: { p_period_id: string }; Returns: Json };
       get_latest_health_status: {
         Args: never;
         Returns: {
@@ -5725,6 +5946,16 @@ export type Database = {
       populate_investor_fund_performance: {
         Args: { p_investor_id?: string };
         Returns: number;
+      };
+      preview_adb_yield_distribution_v3: {
+        Args: {
+          p_fund_id: string;
+          p_gross_yield_amount: number;
+          p_period_end: string;
+          p_period_start: string;
+          p_purpose?: string;
+        };
+        Returns: Json;
       };
       preview_crystallization: {
         Args: {

@@ -53,7 +53,7 @@ import { logError } from "@/lib/logger";
 const reissueSchema = z.object({
   tx_date: z.string().min(1, "Transaction date is required"),
   amount: z.string().min(1, "Amount is required"),
-  closing_aum: z.string().min(1, "Closing AUM is required"),
+  closing_aum: z.string().optional(),
   notes: z.string().optional(),
   reason: z.string().min(10, "Reason must be at least 10 characters for audit trail"),
 });
@@ -207,9 +207,9 @@ export function VoidAndReissueDialog({
       return;
     }
 
-    const closingAum = parseFloat(data.closing_aum);
-    if (!isFinite(closingAum) || closingAum <= 0) {
-      toast.error("Closing AUM must be a positive number");
+    const closingAum = data.closing_aum ? parseFloat(data.closing_aum) : null;
+    if (closingAum !== null && (!isFinite(closingAum) || closingAum <= 0)) {
+      toast.error("Closing AUM must be a positive number if provided");
       return;
     }
 
@@ -218,13 +218,15 @@ export function VoidAndReissueDialog({
       try {
         const user = await authService.getCurrentUser();
 
-        await preflowAumService.ensure(
-          transaction.fundId,
-          data.tx_date,
-          closingAum,
-          user.id,
-          "transaction"
-        );
+        if (closingAum !== null) {
+          await preflowAumService.ensure(
+            transaction.fundId,
+            data.tx_date,
+            closingAum,
+            user.id,
+            "transaction"
+          );
+        }
       } catch (err) {
         logError("VoidAndReissueDialog.ensurePreflow", err, {
           fundId: transaction.fundId,
@@ -242,7 +244,7 @@ export function VoidAndReissueDialog({
           amount: data.amount, // Keep as string for NUMERIC precision
           notes: data.notes || null,
         },
-        closingAum: String(closingAum),
+        closingAum: closingAum !== null ? String(closingAum) : undefined,
         reason: data.reason.trim(),
         investorId: transaction.investorId,
         fundId: transaction.fundId || undefined,
@@ -383,7 +385,7 @@ export function VoidAndReissueDialog({
 
               <div className="space-y-2">
                 <Label htmlFor="closing_aum">
-                  Closing AUM Snapshot ({transaction.asset}) *
+                  Closing AUM Snapshot ({transaction.asset})
                   {existingPreflow && (
                     <span className="ml-2 text-xs text-emerald-400 font-medium">
                       (Using existing preflow)

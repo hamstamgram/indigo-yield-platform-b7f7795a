@@ -41,7 +41,6 @@ import {
   Crown,
   Trash2,
 } from "lucide-react";
-import { IBScheduleSection } from "./IBScheduleSection";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
@@ -52,6 +51,7 @@ import {
   useAssignIBRole,
   usePromoteToIB,
   useRemoveIBRole,
+  useCreateIB,
   type UserSearchResult,
 } from "@/hooks/data";
 
@@ -71,6 +71,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   const assignIBRoleMutation = useAssignIBRole();
   const promoteToIBMutation = usePromoteToIB();
   const removeIBRoleMutation = useRemoveIBRole();
+  const createIBMutation = useCreateIB();
 
   // Local state for form
   const [ibParentId, setIbParentId] = useState<string | null>(null);
@@ -83,6 +84,8 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   const [searchEmail, setSearchEmail] = useState("");
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newIBForm, setNewIBForm] = useState({ firstName: "", lastName: "" });
 
   // Sync local state with fetched data
   useState(() => {
@@ -131,6 +134,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
     if (!searchEmail.trim()) return;
 
     setSearching(true);
+    setIsCreatingNew(false);
     try {
       const results = await searchUsers(searchEmail);
       setSearchResults(results);
@@ -143,6 +147,43 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
       });
     } finally {
       setSearching(false);
+    }
+  };
+
+  const handleCreateNewIB = async () => {
+    if (!searchEmail || !newIBForm.firstName || !newIBForm.lastName) {
+      toast({
+        title: "Required Fields",
+        description: "Email, first name, and last name are required to create a new IB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const result = await createIBMutation.mutateAsync({
+        email: searchEmail,
+        firstName: newIBForm.firstName,
+        lastName: newIBForm.lastName,
+      });
+
+      if (result.userId) {
+        setIbParentId(result.userId);
+        setShowCreateIBDialog(false);
+        setIsCreatingNew(false);
+        setNewIBForm({ firstName: "", lastName: "" });
+
+        toast({
+          title: "IB Created & Assigned",
+          description: `New IB account created for ${searchEmail} and assigned as parent.`,
+        });
+
+        // Refetch to get the new parent in the list
+        refetch();
+      }
+    } catch (err) {
+      logError("IBSettingsSection.handleCreateNewIB", err);
+      // Toast is handled by the mutation hook
     }
   };
 
@@ -337,6 +378,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                       setShowCreateIBDialog(true);
                       setSearchEmail("");
                       setSearchResults([]);
+                      setIsCreatingNew(false);
                     }}
                     title="Find or create IB"
                   >
@@ -421,8 +463,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
         </Card>
       )}
 
-      {/* IB Commission Schedule */}
-      <IBScheduleSection investorId={investorId} />
+      {/* Referrals List moved naturally above */}
 
       {/* Create/Find IB Dialog */}
       <Dialog open={showCreateIBDialog} onOpenChange={setShowCreateIBDialog}>
@@ -430,8 +471,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           <DialogHeader>
             <DialogTitle>Find or Assign IB</DialogTitle>
             <DialogDescription>
-              Search for an existing user to assign as IB parent. If they don't have the IB role,
-              you can grant it.
+              Search for an existing user to assign as IB parent or create a new one.
             </DialogDescription>
           </DialogHeader>
 
@@ -498,10 +538,73 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
               </div>
             )}
 
-            {searchResults.length === 0 && searchEmail && !searching && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No users found matching "{searchEmail}"
-              </p>
+            {searchResults.length === 0 && searchEmail && !searching && !isCreatingNew && (
+              <div className="text-center py-6 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  No users found matching "{searchEmail}"
+                </p>
+                <Button variant="outline" onClick={() => setIsCreatingNew(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create New IB with this Email
+                </Button>
+              </div>
+            )}
+
+            {isCreatingNew && (
+              <div className="space-y-4 border p-4 rounded-lg bg-muted/30">
+                <p className="text-sm font-medium">Create New IB Account</p>
+                <div className="grid gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Email</Label>
+                    <Input value={searchEmail} readOnly className="bg-muted" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="new-ib-first" className="text-xs">
+                        First Name
+                      </Label>
+                      <Input
+                        id="new-ib-first"
+                        placeholder="John"
+                        value={newIBForm.firstName}
+                        onChange={(e) =>
+                          setNewIBForm((prev) => ({ ...prev, firstName: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="new-ib-last" className="text-xs">
+                        Last Name
+                      </Label>
+                      <Input
+                        id="new-ib-last"
+                        placeholder="Doe"
+                        value={newIBForm.lastName}
+                        onChange={(e) =>
+                          setNewIBForm((prev) => ({ ...prev, lastName: e.target.value }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setIsCreatingNew(false)}>
+                    Back to Search
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleCreateNewIB}
+                    disabled={createIBMutation.isPending}
+                  >
+                    {createIBMutation.isPending ? (
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    ) : (
+                      <Save className="h-3 w-3 mr-1" />
+                    )}
+                    Create & Assign
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
 

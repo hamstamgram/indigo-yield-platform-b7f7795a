@@ -24,6 +24,7 @@ import {
 import { Trash2, ExternalLink, Mail, AlertTriangle, Loader2 } from "lucide-react";
 import { IBSettingsSection } from "../shared/IBSettingsSection";
 import { FeeScheduleSection } from "../shared/FeeScheduleSection";
+import { IBScheduleSection } from "../shared/IBScheduleSection";
 
 interface InvestorSettingsTabProps {
   investorId: string;
@@ -64,12 +65,25 @@ export function InvestorSettingsTab({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Per-Fund Fee Schedule */}
-      <FeeScheduleSection investorId={investorId} />
+    <div className="space-y-8">
+      {/* Investor Financials Section */}
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold px-1">Investor Financials</h3>
+        <FeeScheduleSection investorId={investorId} />
+      </section>
 
-      {/* IB Settings (parent config, promote, referrals, commission schedule) */}
-      <IBSettingsSection investorId={investorId} onUpdate={onDataChange} />
+      {/* Partnership & IB Settings Section */}
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold px-1">Partnership & IB Settings</h3>
+        <IBSettingsSection investorId={investorId} onUpdate={onDataChange} />
+
+        <div className="mt-4">
+          <h4 className="text-sm font-medium mb-3 px-1 text-muted-foreground uppercase tracking-wider">
+            Per-Fund IB Commission Schedule
+          </h4>
+          <IBScheduleSection investorId={investorId} />
+        </div>
+      </section>
 
       {/* Report Recipients Link (drawer only) */}
       {compact && (

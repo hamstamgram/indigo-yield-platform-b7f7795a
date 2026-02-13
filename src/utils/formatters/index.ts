@@ -133,6 +133,14 @@ function getAUMDecimals(asset: string): AUMDecimalConfig {
 export function formatAUM(value: number, asset: string, options: FormatOptions = {}): string {
   if (!value && value !== 0) return "0";
 
+  // Safety check for missing asset
+  if (!asset) {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+
   const { min, max } = getAUMDecimals(asset);
   const effectiveMax = options.maxDecimals !== undefined ? options.maxDecimals : max;
   const effectiveMin = Math.min(min, effectiveMax);

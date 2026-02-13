@@ -257,3 +257,34 @@ export function useRemoveIBRole() {
     },
   });
 }
+
+export interface CreateIBCallbacks {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Hook to create a new IB
+ */
+export function useCreateIB(callbacks?: CreateIBCallbacks) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { email: string; firstName: string; lastName: string }) => {
+      return ibManagementService.createIB(data.email);
+    },
+    onSuccess: () => {
+      toast.success("IB Created", {
+        description: "The Introducing Broker has been set up.",
+      });
+      invalidateAfterIBOperation(queryClient);
+      callbacks?.onSuccess?.();
+    },
+    onError: (error) => {
+      toast.error("Error", {
+        description: error instanceof Error ? error.message : "Failed to create IB",
+      });
+      callbacks?.onError?.(error instanceof Error ? error : new Error("Failed to create IB"));
+    },
+  });
+}

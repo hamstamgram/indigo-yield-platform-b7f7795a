@@ -36,27 +36,29 @@ const WizardContent: React.FC<WizardContentProps> = ({ onSubmit, isLoading, onCa
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full space-y-6">
       {/* Step Indicator */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b">
+      <div className="flex items-center justify-between pb-6 border-b border-white/5 overflow-x-auto scrollbar-none">
         {WIZARD_STEPS.map((step, idx) => (
-          <div key={step.id} className="flex items-center">
+          <div key={step.id} className="flex items-center shrink-0">
             <div
               className={cn(
-                "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors",
+                "flex items-center justify-center w-7 h-7 rounded-full text-[10px] font-bold transition-all duration-300",
                 idx < stepIndex
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/30"
                   : idx === stepIndex
-                    ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
-                    : "bg-muted text-muted-foreground"
+                    ? "bg-primary text-primary-foreground ring-4 ring-primary/20 scale-110 shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                    : "bg-white/5 text-muted-foreground/50 border border-white/5"
               )}
             >
               {idx + 1}
             </div>
             <span
               className={cn(
-                "ml-2 text-sm hidden sm:inline",
-                idx === stepIndex ? "font-medium" : "text-muted-foreground"
+                "ml-2.5 text-[11px] uppercase tracking-wider hidden sm:inline-block transition-colors duration-300",
+                idx === stepIndex
+                  ? "font-bold text-white shadow-sm"
+                  : "text-muted-foreground/60 font-medium"
               )}
             >
               {step.label}
@@ -64,8 +66,8 @@ const WizardContent: React.FC<WizardContentProps> = ({ onSubmit, isLoading, onCa
             {idx < WIZARD_STEPS.length - 1 && (
               <div
                 className={cn(
-                  "w-8 sm:w-12 h-0.5 mx-2",
-                  idx < stepIndex ? "bg-primary" : "bg-muted"
+                  "w-6 sm:w-10 h-[1px] mx-3 transition-colors duration-500",
+                  idx < stepIndex ? "bg-emerald-500/30" : "bg-white/5"
                 )}
               />
             )}
@@ -74,35 +76,49 @@ const WizardContent: React.FC<WizardContentProps> = ({ onSubmit, isLoading, onCa
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-y-auto min-h-[300px]">{renderStep()}</div>
+      <div className="flex-1 overflow-y-auto min-h-[350px] pr-2 scrollbar-thin scrollbar-thumb-white/5">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">{renderStep()}</div>
+      </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6 mt-6 border-t">
+      <div className="flex justify-between items-center pt-6 border-t border-white/5">
         <Button
           type="button"
           variant="ghost"
+          size="sm"
           onClick={stepIndex === 0 ? onCancel : prevStep}
           disabled={isLoading}
+          className="text-xs text-muted-foreground hover:text-white transition-colors"
         >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          {stepIndex === 0 ? "Cancel" : "Back"}
+          <ChevronLeft className="h-4 w-4 mr-1.5 opacity-70" />
+          {stepIndex === 0 ? "Cancel Request" : "Back to Previous"}
         </Button>
 
         {isLastStep ? (
-          <Button onClick={onSubmit} disabled={!canProceed || isLoading}>
+          <Button
+            size="sm"
+            onClick={onSubmit}
+            disabled={!canProceed || isLoading}
+            className="px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/10 transition-all active:scale-95"
+          >
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating...
+                Finalizing...
               </>
             ) : (
-              "Create Investor"
+              "Complete Onboarding"
             )}
           </Button>
         ) : (
-          <Button onClick={nextStep} disabled={!canProceed}>
-            Next
-            <ChevronRight className="h-4 w-4 ml-1" />
+          <Button
+            size="sm"
+            onClick={nextStep}
+            disabled={!canProceed}
+            className="px-6 group transition-all"
+          >
+            Continue
+            <ChevronRight className="h-4 w-4 ml-1.5 transition-transform group-hover:translate-x-0.5" />
           </Button>
         )}
       </div>

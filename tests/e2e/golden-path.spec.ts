@@ -17,7 +17,7 @@
 import { test, expect, Page } from "@playwright/test";
 
 // Test configuration
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
 const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "admin@test.indigo.com";
 const TEST_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "testpassword123";
 
@@ -48,7 +48,7 @@ async function login(page: Page, email: string, password: string) {
 async function navigateToFunds(page: Page) {
   // Look for funds link in navigation
   const fundsLink = page.locator('a[href*="fund"], nav >> text=Funds, [data-testid="funds-nav"]');
-  if (await fundsLink.count() > 0) {
+  if ((await fundsLink.count()) > 0) {
     await fundsLink.first().click();
     await page.waitForLoadState("networkidle");
   } else {
@@ -59,8 +59,10 @@ async function navigateToFunds(page: Page) {
 
 async function selectFund(page: Page, fundId: string) {
   // Click on fund row or card
-  const fundElement = page.locator(`[data-fund-id="${fundId}"], tr:has-text("TEST-ALPHA"), [href*="${fundId}"]`);
-  if (await fundElement.count() > 0) {
+  const fundElement = page.locator(
+    `[data-fund-id="${fundId}"], tr:has-text("TEST-ALPHA"), [href*="${fundId}"]`
+  );
+  if ((await fundElement.count()) > 0) {
     await fundElement.first().click();
     await page.waitForLoadState("networkidle");
   }
@@ -105,7 +107,7 @@ test.describe("Golden Path E2E Tests", () => {
     await login(page, TEST_ADMIN_EMAIL, TEST_ADMIN_PASSWORD);
 
     // Should see dashboard content
-    const dashboardContent = page.locator('text=/dashboard|welcome|overview/i');
+    const dashboardContent = page.locator("text=/dashboard|welcome|overview/i");
     await expect(dashboardContent.first()).toBeVisible({ timeout: 10000 });
   });
 
@@ -136,7 +138,7 @@ test.describe("Golden Path E2E Tests", () => {
     await page.waitForLoadState("networkidle");
 
     // Check for yield-related content
-    const yieldContent = page.locator('text=/yield|distribution|preview/i');
+    const yieldContent = page.locator("text=/yield|distribution|preview/i");
     await expect(yieldContent.first()).toBeVisible({ timeout: 10000 });
 
     // No error messages should be visible
@@ -156,13 +158,13 @@ test.describe("Golden Path E2E Tests", () => {
 
     // Find and fill AUM input
     const aumInput = page.locator('input[name*="aum"], input[placeholder*="AUM"]');
-    if (await aumInput.count() > 0) {
+    if ((await aumInput.count()) > 0) {
       await aumInput.first().fill("80400"); // 0.5% increase from 80k
     }
 
     // Find and fill date input
     const dateInput = page.locator('input[type="date"], input[name*="date"]');
-    if (await dateInput.count() > 0) {
+    if ((await dateInput.count()) > 0) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       await dateInput.first().fill(yesterday.toISOString().split("T")[0]);
@@ -170,7 +172,7 @@ test.describe("Golden Path E2E Tests", () => {
 
     // Click preview button
     const previewButton = page.locator('button:has-text("Preview"), button:has-text("Calculate")');
-    if (await previewButton.count() > 0) {
+    if ((await previewButton.count()) > 0) {
       await previewButton.first().click();
       await page.waitForLoadState("networkidle");
 
@@ -179,7 +181,7 @@ test.describe("Golden Path E2E Tests", () => {
 
       // Check that no error occurred
       const errorToast = page.locator('[class*="toast"][class*="error"], .error-message');
-      const hasError = await errorToast.count() > 0;
+      const hasError = (await errorToast.count()) > 0;
       expect(hasError).toBe(false);
     }
   });
@@ -202,9 +204,8 @@ test.describe("Golden Path E2E Tests", () => {
     const carolRow = page.locator('text=Carol, tr:has-text("Carol")');
 
     // At least one investor should be visible
-    const hasInvestors = await aliceRow.count() > 0 ||
-                        await bobRow.count() > 0 ||
-                        await carolRow.count() > 0;
+    const hasInvestors =
+      (await aliceRow.count()) > 0 || (await bobRow.count()) > 0 || (await carolRow.count()) > 0;
 
     expect(hasInvestors).toBe(true);
   });
@@ -221,9 +222,11 @@ test.describe("Golden Path E2E Tests", () => {
       if (msg.type() === "error") {
         const text = msg.text();
         // Ignore some known non-critical errors
-        if (!text.includes("favicon") &&
-            !text.includes("manifest") &&
-            !text.includes("ResizeObserver")) {
+        if (
+          !text.includes("favicon") &&
+          !text.includes("manifest") &&
+          !text.includes("ResizeObserver")
+        ) {
           consoleErrors.push(text);
         }
       }
@@ -247,12 +250,13 @@ test.describe("Golden Path E2E Tests", () => {
     }
 
     // Check for critical errors
-    const criticalErrors = consoleErrors.filter(e =>
-      e.includes("FIRST_INVESTMENT") ||
-      e.includes("yield_date") ||
-      e.includes("enum") ||
-      e.includes("column") ||
-      e.includes("does not exist")
+    const criticalErrors = consoleErrors.filter(
+      (e) =>
+        e.includes("FIRST_INVESTMENT") ||
+        e.includes("yield_date") ||
+        e.includes("enum") ||
+        e.includes("column") ||
+        e.includes("does not exist")
     );
 
     expect(criticalErrors).toHaveLength(0);
@@ -283,10 +287,8 @@ test.describe("Golden Path E2E Tests", () => {
     await page.waitForTimeout(2000);
 
     // Filter out expected 404s and auth-related errors
-    const criticalErrors = apiErrors.filter(e =>
-      e.status !== 404 &&
-      !e.body.includes("not found") &&
-      !e.body.includes("unauthorized")
+    const criticalErrors = apiErrors.filter(
+      (e) => e.status !== 404 && !e.body.includes("not found") && !e.body.includes("unauthorized")
     );
 
     // Log any errors for debugging
@@ -308,7 +310,7 @@ test.describe("Golden Path E2E Tests", () => {
 
     // Try to submit without filling fields
     const submitButton = page.locator('button[type="submit"], button:has-text("Apply")');
-    if (await submitButton.count() > 0) {
+    if ((await submitButton.count()) > 0) {
       await submitButton.first().click();
 
       // Should see validation message
@@ -320,7 +322,7 @@ test.describe("Golden Path E2E Tests", () => {
 
       // Form should either show validation or prevent submission
       // (we just check that clicking doesn't cause an error)
-      const hasValidation = await validationMessage.count() > 0;
+      const hasValidation = (await validationMessage.count()) > 0;
 
       // This is informational - forms may work differently
       console.log(`Form validation visible: ${hasValidation}`);
@@ -340,7 +342,7 @@ test.describe("Golden Path E2E Tests", () => {
       'button:has-text("Logout"), a:has-text("Logout"), [data-testid="logout"]'
     );
 
-    if (await logoutButton.count() > 0) {
+    if ((await logoutButton.count()) > 0) {
       await logoutButton.first().click();
       await page.waitForLoadState("networkidle");
 
