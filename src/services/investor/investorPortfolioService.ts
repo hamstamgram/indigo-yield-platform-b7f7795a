@@ -89,6 +89,7 @@ export const investorPortfolioService = {
       `
       )
       .eq("investor_id", investorId)
+      .eq("is_active", true)
       .gt("current_value", 0);
 
     if (error) throw error;

@@ -166,7 +166,7 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
 
   doc.setFontSize(18);
   doc.setTextColor(...textDark);
-  doc.text("Your Account Statement", pageWidth - margin - 4, yPos + 13, { align: "right" });
+  doc.text("Monthly Report", pageWidth - margin - 4, yPos + 13, { align: "right" });
 
   yPos += 26;
 
@@ -179,7 +179,7 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
   doc.setTextColor(...textDark);
   const periodDate = new Date(data.period.year, data.period.month - 1);
   const periodLabel = format(periodDate, "MMMM yyyy");
-  doc.text(`${data.investor.name} – Your Account Statement – ${periodLabel}`, margin + 6, yPos + 7);
+  doc.text(`${data.investor.name} – Monthly Report – ${periodLabel}`, margin + 6, yPos + 7);
 
   doc.setFontSize(10);
   doc.setTextColor(...textMuted);

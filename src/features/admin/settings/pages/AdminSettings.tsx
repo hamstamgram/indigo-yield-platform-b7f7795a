@@ -49,6 +49,7 @@ import {
   Copy,
   Mail,
   XCircle,
+  UserCog,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
 import { usePlatformSettingsForm } from "@/hooks/data/admin";
@@ -61,6 +62,9 @@ import {
 import { useAuth } from "@/services/auth";
 import { PageShell } from "@/components/layout/PageShell";
 import { SuperAdminGuard } from "@/features/admin/shared/SuperAdminGuard";
+import ProfileTab from "@/components/account/ProfileTab";
+import SecurityTab from "@/components/account/SecurityTab";
+import { usePersonalInfo } from "@/hooks/data/shared/useProfileSettings";
 
 // ============================================================================
 // Admin Management Tab
@@ -334,6 +338,33 @@ function AdminManagementTab() {
 }
 
 // ============================================================================
+// Account Tab (Profile + Security)
+// ============================================================================
+
+function AdminAccountTab() {
+  const { data: personalInfo, isLoading } = usePersonalInfo();
+
+  // Map PersonalInfo to the shape ProfileTab expects
+  const profile = personalInfo
+    ? {
+        id: personalInfo.id,
+        first_name: personalInfo.first_name,
+        last_name: personalInfo.last_name,
+        phone: personalInfo.phone,
+        email: personalInfo.email,
+        avatar_url: personalInfo.avatar_url,
+      }
+    : null;
+
+  return (
+    <div className="space-y-6">
+      <ProfileTab profile={profile} loading={isLoading} />
+      <SecurityTab />
+    </div>
+  );
+}
+
+// ============================================================================
 // Main Settings Page
 // ============================================================================
 
@@ -378,7 +409,7 @@ function AdminSettingsContent() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             General
@@ -394,6 +425,10 @@ function AdminSettingsContent() {
           <TabsTrigger value="admins" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Admins
+          </TabsTrigger>
+          <TabsTrigger value="account" className="flex items-center gap-2">
+            <UserCog className="h-4 w-4" />
+            Account
           </TabsTrigger>
         </TabsList>
 
@@ -518,6 +553,11 @@ function AdminSettingsContent() {
         {/* Admin Management */}
         <TabsContent value="admins">
           <AdminManagementTab />
+        </TabsContent>
+
+        {/* Account (Personal Profile + Security) */}
+        <TabsContent value="account">
+          <AdminAccountTab />
         </TabsContent>
       </Tabs>
     </PageShell>

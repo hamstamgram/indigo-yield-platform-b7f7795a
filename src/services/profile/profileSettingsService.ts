@@ -12,6 +12,7 @@ export interface PersonalInfo {
   last_name: string | null;
   phone: string | null;
   email: string | null;
+  avatar_url: string | null;
 }
 
 export interface NotificationPreferences {
@@ -38,7 +39,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
 export async function getPersonalInfo(userId: string): Promise<PersonalInfo | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, phone, email")
+    .select("id, first_name, last_name, phone, email, avatar_url")
     .eq("id", userId)
     .maybeSingle();
 
@@ -55,6 +56,7 @@ export async function updatePersonalInfo(
     first_name?: string;
     last_name?: string;
     phone?: string;
+    avatar_url?: string;
   }
 ): Promise<void> {
   const { error } = await supabase
@@ -71,9 +73,7 @@ export async function updatePersonalInfo(
 /**
  * Get notification preferences for a user
  */
-export async function getNotificationPreferences(
-  userId: string
-): Promise<NotificationPreferences> {
+export async function getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
   const { data } = await supabase
     .from("profiles")
     .select("preferences")
@@ -134,7 +134,9 @@ export async function changePassword(newPassword: string): Promise<void> {
  * Get user email
  */
 export async function getUserEmail(): Promise<string | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return user?.email ?? null;
 }
 
@@ -154,7 +156,9 @@ export function loadLocalPreferences(): Record<string, unknown> | null {
     try {
       return JSON.parse(saved);
     } catch (e) {
-      logWarn("profileSettings.loadLocalPreferences", { error: "Failed to parse saved preferences" });
+      logWarn("profileSettings.loadLocalPreferences", {
+        error: "Failed to parse saved preferences",
+      });
       return null;
     }
   }

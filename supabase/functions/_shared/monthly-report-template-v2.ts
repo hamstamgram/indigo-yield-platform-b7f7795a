@@ -383,7 +383,7 @@ ${fundBlocksHtml}
           <!-- Copyright -->
           <tr>
             <td style="padding: 0 24px 24px 24px; text-align: center; background-color: #ffffff;" bgcolor="#ffffff">
-              <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">© 2025 Indigo Fund. All rights reserved.</p>
+              <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">© ${new Date().getFullYear()} Indigo Fund. All rights reserved.</p>
               <p class="mobile-footer-text" style="margin: 0;">
                 <a href="#" style="font-size: 11px; color: #6366f1; text-decoration: none;">Unsubscribe</a>
               </p>
@@ -407,7 +407,7 @@ export function validateGeneratedHtml(html: string): { valid: boolean; errors: s
     "Your Account Statement",
     "Capital Account Summary",
     "storage.mlcdn.com",
-    "© 2025 Indigo Fund",
+    "Indigo Fund. All rights reserved",
     "This document is not an offer",
     "linkedin",
     "instagram",

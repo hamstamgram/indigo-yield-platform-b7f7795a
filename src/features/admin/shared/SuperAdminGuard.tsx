@@ -20,12 +20,42 @@ export function SuperAdminGuard({ children, fallback }: SuperAdminGuardProps) {
   // Use React Query hook for checking super admin status
   const { data: isSuperAdmin, isLoading: checkingRole } = useSuperAdminCheck(user?.id);
 
+  const [timedOut, setTimedOut] = React.useState(false);
+
+  React.useEffect(() => {
+    if (loading || checkingRole) {
+      const timer = setTimeout(() => {
+        setTimedOut(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, checkingRole]);
+
   // Show loading state
-  if (loading || checkingRole) {
+  if ((loading || checkingRole) && !timedOut) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground">Verifying access...</p>
+      </div>
+    );
+  }
+
+  // Handle timeout
+  if (timedOut && !isSuperAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 px-4 text-center">
+        <Shield className="h-12 w-12 text-destructive mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Access Verification Timeout</h2>
+        <p className="text-muted-foreground mb-4">
+          We couldn't verify your super admin status in time. Please try refreshing the page.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="text-sm text-primary hover:underline"
+        >
+          Refresh Page
+        </button>
       </div>
     );
   }

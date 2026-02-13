@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 
-interface SkeletonProps {
+interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
@@ -116,9 +116,18 @@ export const ChartSkeleton: React.FC<{ className?: string }> = ({ className }) =
 
       <div className="relative h-64">
         <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={i} className={`w-8 h-${Math.floor(Math.random() * 8) + 5}`} />
-          ))}
+          {Array.from({ length: 12 }).map((_, i) => {
+            // Use deterministic heights based on index to prevent jittering on re-render
+            const heights = [40, 60, 45, 80, 55, 70, 40, 90, 65, 50, 75, 60];
+            const heightClass = `h-[${heights[i % heights.length]}%]`;
+            return (
+              <Skeleton
+                key={i}
+                className={cn("w-8", heightClass)}
+                style={{ height: `${heights[i % heights.length]}%` }}
+              />
+            );
+          })}
         </div>
       </div>
 
