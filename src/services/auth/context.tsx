@@ -179,6 +179,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     } finally {
       setProfileLoading(false);
+      // Ensure main loading is also cleared
       setLoading(false);
     }
   };
@@ -208,7 +209,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     profile,
-    loading: loading || (user !== null && profileLoading),
+    // SECURITY: Combine states but ensure top-level 'loading' can force an unblock
+    loading: loading && (user === null || profileLoading),
     isAdmin: profile?.is_admin ?? false,
     signIn: handleSignIn,
     signOut: handleSignOut,
