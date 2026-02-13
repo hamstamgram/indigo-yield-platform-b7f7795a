@@ -332,7 +332,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
 
       {/* IB Parent Configuration */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 border-b">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
             IB (Introducing Broker) Settings
@@ -341,7 +341,8 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
             Configure referral relationships and commission percentages
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6 pt-6">
+          {/* Read-only Alert */}
           {isReadOnly && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
@@ -351,10 +352,13 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
             </Alert>
           )}
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* IB Parent and Global Percentage Grid */}
+          <div className="grid gap-6 md:grid-cols-2">
             {/* IB Parent Selection */}
             <div className="space-y-2">
-              <Label htmlFor="ib-parent">IB Parent (Referrer)</Label>
+              <Label htmlFor="ib-parent" className="text-sm font-medium">
+                IB Parent (Referrer)
+              </Label>
               <div className="flex gap-2">
                 <Select
                   value={ibParentId || "none"}
@@ -396,7 +400,9 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
 
             {/* IB Percentage */}
             <div className="space-y-2">
-              <Label htmlFor="ib-percentage">IB Commission (%)</Label>
+              <Label htmlFor="ib-percentage" className="text-sm font-medium">
+                IB Commission (%)
+              </Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="ib-percentage"
@@ -418,12 +424,8 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </div>
 
           {!isReadOnly && (
-            <div className="pt-2 border-t mt-4">
-              <Button
-                onClick={handleSave}
-                disabled={updateIBConfigMutation.isPending}
-                className="w-full sm:w-auto"
-              >
+            <div className="flex justify-start">
+              <Button onClick={handleSave} disabled={updateIBConfigMutation.isPending} size="sm">
                 {updateIBConfigMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
@@ -434,34 +436,37 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
             </div>
           )}
 
-          {/* Priority Explanation */}
-          <div className="flex items-start gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-md text-sm">
-            <Info className="h-4 w-4 text-indigo-500 mt-0.5" />
+          {/* Priority Explanation Box */}
+          <div className="flex items-start gap-3 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-lg text-sm">
+            <Info className="h-5 w-5 text-indigo-500 mt-0.5 shrink-0" />
             <div className="space-y-1">
-              <p className="font-medium text-indigo-400">Commission Priority</p>
+              <p className="font-semibold text-indigo-400">Commission Priority</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                The platform checks for a **Per-Fund Override** first. If none exists for the
-                transaction's fund, it falls back to the **Global IB Percentage** configured above.
+                The platform checks for a{" "}
+                <span className="text-foreground font-medium">Per-Fund Override</span> first. If
+                none exists for the transaction's fund, it falls back to the{" "}
+                <span className="text-foreground font-medium">Global IB Percentage</span> configured
+                above.
               </p>
             </div>
           </div>
+
+          {/* Overrides Header */}
+          <div className="pt-6 border-t border-muted">
+            <div className="mb-6">
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Commission Overrides
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Specific rules that take priority over the global percentage
+              </p>
+            </div>
+
+            {/* Embed Schedule Section - with internal Card removed previously */}
+            <IBScheduleSection investorId={investorId} />
+          </div>
         </CardContent>
       </Card>
-
-      {/* Per-Fund overrides moved inside the flow */}
-      <div className="mt-4 pt-4 border-t border-muted">
-        <div className="flex items-center justify-between mb-4 px-1">
-          <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mr-2">
-              Commission Overrides
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              Specific rules that take priority over the global percentage
-            </p>
-          </div>
-        </div>
-        <IBScheduleSection investorId={investorId} />
-      </div>
 
       {/* Referrals List */}
       {referrals.length > 0 && (
