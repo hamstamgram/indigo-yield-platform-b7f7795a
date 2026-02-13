@@ -86,7 +86,10 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
   const stats = useMemo(() => {
     const pending = filteredEvents.filter((e) => e.visibility_scope === "admin_only").length;
     const visible = filteredEvents.filter((e) => e.visibility_scope === "investor_visible").length;
-    const totalYield = filteredEvents.reduce((sum, e) => sum + e.net_yield_amount, 0);
+    const totalYield = filteredEvents.reduce(
+      (sum, e) => sum + parseFloat(String(e.net_yield_amount)),
+      0
+    );
     return { pending, visible, total: filteredEvents.length, totalYield };
   }, [filteredEvents]);
 
@@ -326,7 +329,10 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                       <FormattedNumber value={event.gross_yield_amount} type="number" />
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground tabular-nums py-1.5">
-                      <FormattedNumber value={-event.fee_amount} type="number" />
+                      <FormattedNumber
+                        value={-parseFloat(String(event.fee_amount))}
+                        type="number"
+                      />
                     </TableCell>
                     <TableCell className="text-right font-medium tabular-nums py-1.5">
                       <FormattedNumber value={event.net_yield_amount} type="number" colorize />

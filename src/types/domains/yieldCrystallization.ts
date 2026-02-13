@@ -98,24 +98,31 @@ export interface FundYieldSnapshot {
  */
 export interface CrystallizationResult {
   success: boolean;
+  error?: string;
   skipped?: boolean;
   reason?: string;
   snapshot_id?: string;
+  event_id?: string;
   fund_id?: string;
   trigger_date?: string;
   trigger_type?: string;
   period_start?: string;
-  /** Previous AUM - string for NUMERIC(28,10) precision */
+  /** Previous / opening AUM - string for NUMERIC(28,10) precision */
   previous_aum?: string;
-  /** Current AUM - string for NUMERIC(28,10) precision */
+  opening_aum?: string;
+  /** Current / closing AUM - string for NUMERIC(28,10) precision */
   current_aum?: string;
+  closing_aum?: string;
   /** Fund yield percentage - string for decimal precision */
   fund_yield_pct?: string;
   /** Gross yield - string for NUMERIC(28,10) precision */
-  gross_yield?: string;
+  gross_yield?: string | number;
   investors_processed?: number;
+  yield_tx_count?: number;
   /** Total yield distributed - string for NUMERIC(28,10) precision */
   total_yield_distributed?: string;
+  allocated_sum?: string;
+  remainder?: string;
 }
 
 /**

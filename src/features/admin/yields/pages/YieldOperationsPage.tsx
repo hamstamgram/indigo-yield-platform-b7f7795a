@@ -113,7 +113,7 @@ function YieldOperationsContent() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         <div className="glass-panel rounded-2xl p-6 border border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Coins className="h-24 w-24 text-indigo-400 transform rotate-12" />

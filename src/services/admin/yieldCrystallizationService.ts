@@ -8,27 +8,13 @@ import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
 import { parseFinancial } from "@/utils/financial";
+import type {
+  CrystallizationResult,
+  FinalizationResult,
+} from "@/types/domains/yieldCrystallization";
 
-export interface CrystallizationResult {
-  success: boolean;
-  fund_id?: string;
-  event_id?: string;
-  opening_aum?: string;
-  closing_aum?: string;
-  gross_yield?: string;
-  yield_tx_count?: number;
-  allocated_sum?: string;
-  remainder?: string;
-}
-
-export interface FinalizationResult {
-  success: boolean;
-  fund_id: string;
-  period_start: string;
-  period_end: string;
-  events_made_visible: number;
-  total_yield_finalized: number;
-}
+// CrystallizationResult and FinalizationResult imported from @/types/domains/yieldCrystallization
+export type { CrystallizationResult, FinalizationResult };
 
 export interface YieldEvent {
   id: string;
@@ -37,15 +23,16 @@ export interface YieldEvent {
   event_date: string;
   trigger_type: string;
   trigger_transaction_id: string | null;
-  fund_aum_before: number;
-  fund_aum_after: number;
-  investor_balance: number;
-  investor_share_pct: number;
-  fund_yield_pct: number;
-  gross_yield_amount: number;
-  fee_pct: number;
-  fee_amount: number;
-  net_yield_amount: number;
+  fund_aum_before: string;
+  fund_aum_after: string;
+  investor_balance: string;
+  investor_share_pct: string;
+  fund_yield_pct: string;
+  gross_yield_amount: string;
+  fee_pct: string;
+  fee_amount: string;
+  net_yield_amount: string;
+  ib_amount: string | null;
   period_start: string;
   period_end: string;
   days_in_period: number;
@@ -55,21 +42,7 @@ export interface YieldEvent {
   created_at: string;
 }
 
-export interface YieldSnapshot {
-  id: string;
-  fund_id: string;
-  snapshot_date: string;
-  opening_aum: number;
-  closing_aum: number;
-  gross_yield_pct: number;
-  gross_yield_amount: number;
-  period_start: string;
-  period_end: string;
-  days_in_period: number;
-  trigger_type: string;
-  is_voided: boolean;
-  created_at: string;
-}
+// YieldSnapshot interface removed — fund_yield_snapshots table was dropped in P1-03
 
 /**
  * Crystallize yield before a capital flow (deposit/withdrawal)
@@ -161,7 +134,7 @@ export async function getYieldEventsForFund(
   const { data, error } = await query;
 
   if (error) throw error;
-  return (data || []) as YieldEvent[];
+  return (data || []) as unknown as YieldEvent[];
 }
 
 /**
@@ -203,7 +176,7 @@ export async function getYieldEventsForInvestor(
   const { data, error } = await query;
 
   if (error) throw error;
-  return (data || []) as YieldEvent[];
+  return (data || []) as unknown as YieldEvent[];
 }
 
 /**
@@ -312,7 +285,7 @@ export async function getInvestorCrystallizationEvents(
   const { data, error } = await supabase
     .from("investor_yield_events")
     .select(
-      "investor_id, event_date, trigger_type, gross_yield_amount, fee_amount, net_yield_amount"
+      "investor_id, event_date, trigger_type, gross_yield_amount, fee_amount, net_yield_amount, ib_amount"
     )
     .eq("fund_id", fundId)
     .gte("event_date", periodStart)
@@ -335,7 +308,7 @@ export async function getInvestorCrystallizationEvents(
       triggerType: TRIGGER_LABELS[row.trigger_type] || row.trigger_type,
       grossYield: String(row.gross_yield_amount ?? 0),
       feeAmount: String(row.fee_amount ?? 0),
-      ibAmount: "0",
+      ibAmount: String(row.ib_amount ?? 0),
       netYield: String(row.net_yield_amount ?? 0),
     };
 
@@ -350,8 +323,7 @@ export async function getInvestorCrystallizationEvents(
   return result;
 }
 
-// Note: getFundYieldSnapshots removed in P1-03 (Unify AUM Snapshot Tables)
-// The fund_yield_snapshots table was unused (0 rows) and has been dropped.
+// getFundYieldSnapshots and YieldSnapshot removed in P1-03 (Unify AUM Snapshot Tables)
 
 /**
  * Get pending (admin_only) yield events count for a fund in a period

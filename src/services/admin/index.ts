@@ -120,7 +120,6 @@ export {
   type InvestorCrystallizationEvent,
   type FinalizationResult,
   type YieldEvent,
-  type YieldSnapshot,
 } from "./yieldCrystallizationService";
 
 export {

@@ -59,15 +59,15 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
     const pending = active.filter((e) => e.visibility_scope === "admin_only");
     const visible = active.filter((e) => e.visibility_scope === "investor_visible");
     const voidedCount = yieldEvents.filter((e) => e.is_voided).length;
-    const totalGross = active.reduce((sum, e) => sum + e.gross_yield_amount, 0);
-    const totalFees = active.reduce((sum, e) => sum + e.fee_amount, 0);
-    const totalNet = active.reduce((sum, e) => sum + e.net_yield_amount, 0);
+    const totalGross = active.reduce((sum, e) => sum + parseFloat(String(e.gross_yield_amount)), 0);
+    const totalFees = active.reduce((sum, e) => sum + parseFloat(String(e.fee_amount)), 0);
+    const totalNet = active.reduce((sum, e) => sum + parseFloat(String(e.net_yield_amount)), 0);
 
     return {
       pendingCount: pending.length,
       visibleCount: visible.length,
       voidedCount,
-      pendingYield: pending.reduce((sum, e) => sum + e.net_yield_amount, 0),
+      pendingYield: pending.reduce((sum, e) => sum + parseFloat(String(e.net_yield_amount)), 0),
       totalGross,
       totalFees,
       totalNet,
@@ -268,7 +268,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             event.is_voided && "line-through"
                           )}
                         >
-                          {formatNumber(event.investor_balance, 4)}
+                          {formatNumber(parseFloat(String(event.investor_balance)), 4)}
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -276,7 +276,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             event.is_voided && "line-through"
                           )}
                         >
-                          {formatPercent(event.fund_yield_pct)}
+                          {formatPercent(parseFloat(String(event.fund_yield_pct)))}
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -284,7 +284,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             event.is_voided && "line-through"
                           )}
                         >
-                          {formatNumber(event.gross_yield_amount)}
+                          {formatNumber(parseFloat(String(event.gross_yield_amount)))}
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -292,19 +292,19 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             event.is_voided && "line-through"
                           )}
                         >
-                          -{formatNumber(event.fee_amount)}
+                          -{formatNumber(parseFloat(String(event.fee_amount)))}
                         </TableCell>
                         <TableCell
                           className={cn(
                             "text-right font-mono tabular-nums font-medium py-1.5",
                             event.is_voided
                               ? "line-through text-muted-foreground"
-                              : event.net_yield_amount >= 0
+                              : parseFloat(String(event.net_yield_amount)) >= 0
                                 ? "text-emerald-400"
                                 : "text-rose-400"
                           )}
                         >
-                          {formatNumber(event.net_yield_amount)}
+                          {formatNumber(parseFloat(String(event.net_yield_amount)))}
                         </TableCell>
                         <TableCell className="py-1.5">
                           {event.is_voided ? (

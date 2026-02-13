@@ -24,11 +24,11 @@ import { logError } from "@/lib/logger";
 // TYPE GUARDS FOR CRYSTALLIZATION RESULTS
 // ============================================================================
 
-interface CrystallizationResult {
+import type { CrystallizationResult } from "@/types/domains/yieldCrystallization";
+
+interface FinalizeResult {
   success: boolean;
-  snapshot_id?: string;
-  gross_yield?: string | number;
-  yield_tx_count?: number;
+  events_made_visible?: number;
   error?: string;
 }
 
@@ -253,7 +253,6 @@ export function useCrystallizeYield() {
       }
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundYieldEvents() });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundYieldSnapshots() });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorYieldEventsAdmin() });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingYieldEvents() });
     },
