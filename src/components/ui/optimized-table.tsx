@@ -7,19 +7,9 @@
 import * as React from "react";
 import { useIsMobile } from "@/hooks";
 import { cn } from "@/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  TableSkeleton,
-} from "@/components/ui";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
+import { Card, CardContent, CardHeader, CardTitle } from "./card";
+import { TableSkeleton } from "./loading-skeletons";
 
 export interface Column<T> {
   /**

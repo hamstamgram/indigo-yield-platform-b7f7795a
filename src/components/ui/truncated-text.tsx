@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { cn } from "@/lib/utils";
 
 interface TruncatedTextProps {

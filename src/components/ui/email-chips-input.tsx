@@ -1,6 +1,7 @@
 import React, { useState, KeyboardEvent, ClipboardEvent } from "react";
 import { X } from "lucide-react";
-import { Input, Badge } from "@/components/ui";
+import { Input } from "./input";
+import { Badge } from "./badge";
 import { cn } from "@/lib/utils";
 
 interface EmailChipsInputProps {
@@ -59,7 +60,7 @@ export const EmailChipsInput: React.FC<EmailChipsInputProps> = ({
     e.preventDefault();
     const pastedText = e.clipboardData.getData("text");
     const emails = pastedText.split(/[,;\s]+/).filter(Boolean);
-    
+
     const validEmails: string[] = [];
     for (const email of emails) {
       const trimmed = email.trim().toLowerCase();
@@ -67,7 +68,7 @@ export const EmailChipsInput: React.FC<EmailChipsInputProps> = ({
         validEmails.push(trimmed);
       }
     }
-    
+
     if (validEmails.length > 0) {
       onChange([...value, ...validEmails]);
       setError(null);
