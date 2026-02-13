@@ -406,34 +406,8 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
             </div>
           )}
 
-          {/* Priority Explanation Box */}
-          <div className="flex items-start gap-3 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-lg text-sm">
-            <Info className="h-5 w-5 text-indigo-500 mt-0.5 shrink-0" />
-            <div className="space-y-1">
-              <p className="font-semibold text-indigo-400">Commission Priority</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Management of commissions has been moved to the{" "}
-                <span className="text-foreground font-medium">Commission Overrides</span> section
-                below. Use <span className="text-foreground font-medium">Add → All Funds</span> to
-                set a global default, or specify fund-specific rates.
-              </p>
-            </div>
-          </div>
-
-          {/* Overrides Header */}
-          <div className="pt-6 border-t border-muted">
-            <div className="mb-6">
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Commission Overrides
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                Specific rules that take priority over the global percentage
-              </p>
-            </div>
-
-            {/* Embed Schedule Section - with internal Card removed previously */}
-            <IBScheduleSection investorId={investorId} />
-          </div>
+          {/* Overrides Header removed for direct integration */}
+          <IBScheduleSection investorId={investorId} />
         </CardContent>
       </Card>
 
