@@ -22,7 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
-import { Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger, Calendar } from "@/components/ui";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAddIBScheduleEntry } from "@/hooks/data/investor/useIBSchedule";
@@ -155,26 +158,76 @@ export function AddIBScheduleDialog({ investorId, open, onOpenChange }: AddIBSch
 
           {/* Effective Date */}
           <div className="space-y-2">
-            <Label htmlFor="ib-schedule-effective">Effective Date</Label>
-            <Input
-              id="ib-schedule-effective"
-              type="date"
-              value={effectiveDate}
-              onChange={(e) => setEffectiveDate(e.target.value)}
-            />
+            <Label>Effective Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !effectiveDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {effectiveDate ? (
+                    format(new Date(effectiveDate + "T00:00:00"), "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={effectiveDate ? new Date(effectiveDate + "T00:00:00") : undefined}
+                  onSelect={(date) => date && setEffectiveDate(format(date, "yyyy-MM-dd"))}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* End Date (optional) */}
           <div className="space-y-2">
-            <Label htmlFor="ib-schedule-end">
+            <Label>
               End Date <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
-            <Input
-              id="ib-schedule-end"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? (
+                    format(new Date(endDate + "T00:00:00"), "PPP")
+                  ) : (
+                    <span>No end date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate ? new Date(endDate + "T00:00:00") : undefined}
+                  onSelect={(date) => setEndDate(date ? format(date, "yyyy-MM-dd") : "")}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {endDate && (
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs text-muted-foreground"
+                onClick={() => setEndDate("")}
+              >
+                Clear end date
+              </Button>
+            )}
           </div>
         </div>
 

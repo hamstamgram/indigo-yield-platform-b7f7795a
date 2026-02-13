@@ -24,7 +24,10 @@ import {
 import { Trash2, ExternalLink, Mail, AlertTriangle, Loader2 } from "lucide-react";
 import { IBSettingsSection } from "../shared/IBSettingsSection";
 import { FeeScheduleSection } from "../shared/FeeScheduleSection";
-import { IBScheduleSection } from "../shared/IBScheduleSection";
+import { ReportRecipientsEditor } from "../reports/ReportRecipientsEditor";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface InvestorSettingsTabProps {
   investorId: string;
@@ -45,6 +48,20 @@ export function InvestorSettingsTab({
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch investor email for the ReportRecipientsEditor
+  const { data: investorData } = useQuery({
+    queryKey: [QUERY_KEYS.investor, investorId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", investorId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleDeleteConfirm = async () => {
     if (!onDelete) return;
@@ -76,33 +93,13 @@ export function InvestorSettingsTab({
       <section className="space-y-4">
         <h3 className="text-lg font-semibold px-1">Partnership & IB Settings</h3>
         <IBSettingsSection investorId={investorId} onUpdate={onDataChange} />
-
-        <div className="mt-4">
-          <h4 className="text-sm font-medium mb-3 px-1 text-muted-foreground uppercase tracking-wider">
-            Per-Fund IB Commission Schedule
-          </h4>
-          <IBScheduleSection investorId={investorId} />
-        </div>
       </section>
 
-      {/* Report Recipients Link (drawer only) */}
-      {compact && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Report Recipients
-            </CardTitle>
-            <CardDescription>Configure email recipients for investor reports</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" onClick={handleOpenFullProfile}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Manage in Full Profile
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Report Emails Section */}
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold px-1">Report Communications</h3>
+        <ReportRecipientsEditor investorId={investorId} investorEmail={investorData?.email || ""} />
+      </section>
 
       {/* Danger Zone */}
       {onDelete && (

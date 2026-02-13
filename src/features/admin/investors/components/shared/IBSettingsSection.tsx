@@ -40,6 +40,7 @@ import {
   Search,
   Crown,
   Trash2,
+  Info,
 } from "lucide-react";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
@@ -54,6 +55,8 @@ import {
   useCreateIB,
   type UserSearchResult,
 } from "@/hooks/data";
+
+import { IBScheduleSection } from "./IBScheduleSection";
 
 interface IBSettingsSectionProps {
   investorId: string;
@@ -415,21 +418,50 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </div>
 
           {!isReadOnly && (
-            <Button
-              onClick={handleSave}
-              disabled={updateIBConfigMutation.isPending}
-              className="w-full sm:w-auto"
-            >
-              {updateIBConfigMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save IB Settings
-            </Button>
+            <div className="pt-2 border-t mt-4">
+              <Button
+                onClick={handleSave}
+                disabled={updateIBConfigMutation.isPending}
+                className="w-full sm:w-auto"
+              >
+                {updateIBConfigMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Save Global IB Settings
+              </Button>
+            </div>
           )}
+
+          {/* Priority Explanation */}
+          <div className="flex items-start gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-md text-sm">
+            <Info className="h-4 w-4 text-indigo-500 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-medium text-indigo-400">Commission Priority</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                The platform checks for a **Per-Fund Override** first. If none exists for the
+                transaction's fund, it falls back to the **Global IB Percentage** configured above.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Per-Fund overrides moved inside the flow */}
+      <div className="mt-4 pt-4 border-t border-muted">
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div>
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mr-2">
+              Commission Overrides
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              Specific rules that take priority over the global percentage
+            </p>
+          </div>
+        </div>
+        <IBScheduleSection investorId={investorId} />
+      </div>
 
       {/* Referrals List */}
       {referrals.length > 0 && (
