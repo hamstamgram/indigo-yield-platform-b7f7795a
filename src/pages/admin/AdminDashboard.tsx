@@ -45,11 +45,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { AddTransactionDialog } from "@/features/admin/transactions/AddTransactionDialog";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+
 function AdminDashboardContent() {
-  const { stats, loading } = useAdminStats();
+  const { stats, loading, refetch: refetchStats } = useAdminStats();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
 
   // Real-time alerts subscription and count
   useRealtimeAlerts();
@@ -123,13 +127,23 @@ function AdminDashboardContent() {
           <Button
             size="lg"
             className="h-12 px-6 bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/20"
-            onClick={() => navigate("/admin/transactions/new")}
+            onClick={() => setShowAddTransaction(true)}
           >
             <Command className="h-4 w-4 mr-2" />
             New Transaction
           </Button>
         </div>
       </div>
+
+      <AddTransactionDialog
+        open={showAddTransaction}
+        onOpenChange={setShowAddTransaction}
+        onSuccess={() => {
+          setShowAddTransaction(false);
+          invalidateAfterTransaction(queryClient);
+          refetchStats();
+        }}
+      />
 
       {/* Quick Actions Bar - Floating Glass */}
       <div className="sticky top-4 z-30">

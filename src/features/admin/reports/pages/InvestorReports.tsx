@@ -35,6 +35,7 @@ import {
   Eye,
   AlertCircle,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUrlFilters } from "@/hooks";
@@ -43,6 +44,7 @@ import {
   useAdminInvestorReports,
   useGenerateFundPerformance,
   useSendReportEmail,
+  useDeleteInvestorReport,
 } from "@/hooks/data";
 import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
 import { sanitizeHtml } from "@/utils/sanitize";
@@ -73,6 +75,8 @@ const InvestorReports = () => {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewName, setPreviewName] = useState("");
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sendingAll, setSendingAll] = useState(false);
 
   // URL-persisted filters
@@ -94,6 +98,7 @@ const InvestorReports = () => {
 
   const generateMutation = useGenerateFundPerformance();
   const sendMutation = useSendReportEmail();
+  const deleteMutation = useDeleteInvestorReport();
 
   // Filter reports
   const filteredReports = reports.filter((report) => {
@@ -122,6 +127,42 @@ const InvestorReports = () => {
       { year: parseInt(yearStr), month: parseInt(monthStr) },
       { onSuccess: () => refetch() }
     );
+  };
+
+  const handleRegenerate = async (report: InvestorReportSummary) => {
+    const [yearStr, monthStr] = selectedMonth.split("-");
+    setRegeneratingId(report.investor_id);
+    try {
+      await generateMutation.mutateAsync({
+        year: parseInt(yearStr),
+        month: parseInt(monthStr),
+        investorId: report.investor_id,
+      });
+      refetch();
+    } finally {
+      setRegeneratingId(null);
+    }
+  };
+
+  const handleDelete = async (report: InvestorReportSummary) => {
+    if (!periodId) return;
+    if (!confirm(`Are you sure you want to delete reports for ${report.investor_name}?`)) return;
+
+    setDeletingId(report.investor_id);
+    try {
+      await deleteMutation.mutateAsync({
+        investorId: report.investor_id,
+        periodId,
+      });
+      refetch();
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleRegenerateAll = async () => {
+    if (!confirm("This will clear and recalculate ALL reports for this month. Proceed?")) return;
+    handleGenerate();
   };
 
   const handlePreview = async (report: InvestorReportSummary) => {
@@ -307,7 +348,20 @@ const InvestorReports = () => {
           ) : (
             <FileText className="h-4 w-4 mr-2" />
           )}
-          {generateMutation.isPending ? "Generating..." : "Generate All Missing"}
+          {generateMutation.isPending ? "Generating..." : "Generate Missing"}
+        </Button>
+        <Button
+          onClick={handleRegenerateAll}
+          disabled={generateMutation.isPending}
+          variant="outline"
+          className="text-amber-500 border-amber-500/50 hover:bg-amber-500/10"
+        >
+          {generateMutation.isPending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4 mr-2" />
+          )}
+          Regenerate All
         </Button>
         <Button onClick={handleSendAll} disabled={sendingAll || !periodId} variant="outline">
           {sendingAll ? (
@@ -443,6 +497,35 @@ const InvestorReports = () => {
                             )}
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRegenerate(report)}
+                          disabled={
+                            regeneratingId === report.investor_id || generateMutation.isPending
+                          }
+                          title="Regenerate Report"
+                        >
+                          {regeneratingId === report.investor_id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3" />
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDelete(report)}
+                          disabled={deletingId === report.investor_id || !report.has_reports}
+                          title="Delete Report"
+                          className="text-destructive hover:bg-destructive/10"
+                        >
+                          {deletingId === report.investor_id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
+                        </Button>
                         {report.delivery_status === "failed" && (
                           <Button
                             size="sm"

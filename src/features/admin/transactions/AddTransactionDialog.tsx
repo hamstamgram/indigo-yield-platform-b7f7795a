@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { FormProvider } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -23,17 +23,12 @@ import { cn } from "@/lib/utils";
 // Refactored imports
 import { useTransactionForm, TransactionFormData } from "./hooks/useTransactionForm";
 import { useTransactionSubmit } from "./hooks/useTransactionSubmit";
-import { AssetInput } from "./components/AssetInput";
+
 import { InvestorSelect } from "./components/InvestorSelect";
 import { TransactionTypeSelect } from "./components/TransactionTypeSelect";
 import { TransactionAmountInput } from "./components/TransactionAmountInput";
 import { TransactionDateInput } from "./components/TransactionDateInput";
 import { TransactionMetadataInputs } from "./components/TransactionMetadataInputs";
-import {
-  previewDepositYield,
-  type YieldPreviewResult,
-} from "@/services/admin/depositWithYieldService";
-import { toDecimal } from "@/utils/financial";
 import { formatAUM } from "@/utils/formatters";
 
 interface AddTransactionDialogProps {
@@ -76,7 +71,6 @@ export function AddTransactionDialog({
   const selectedFundId = watch("fund_id");
   const txDate = watch("tx_date");
   const amount = watch("amount");
-  const closingAum = watch("closing_aum");
 
   const { onSubmit, loading, pendingLargeDeposit, confirmLargeDeposit, cancelLargeDeposit } =
     useTransactionSubmit({
@@ -104,28 +98,6 @@ export function AddTransactionDialog({
 
   const selectedFund = funds?.find((f) => f.id === selectedFundId);
   const isDeposit = txnType === "FIRST_INVESTMENT" || txnType === "DEPOSIT";
-  const requiresYieldPreview = Boolean(
-    isDeposit && selectedFundId && amount && closingAum && Number(closingAum) > 0
-  );
-
-  const [depositYieldPreview, setDepositYieldPreview] = useState<YieldPreviewResult | null>(null);
-  const [depositPreviewLoading, setDepositPreviewLoading] = useState(false);
-  const [depositPreviewError, setDepositPreviewError] = useState<string | null>(null);
-
-  const yieldPreviewValidation = useMemo(() => {
-    if (!depositYieldPreview) {
-      return { hasError: false, message: null };
-    }
-    const grossYield = toDecimal(depositYieldPreview.preDepositYield);
-    if (grossYield.isNegative()) {
-      return {
-        hasError: true,
-        message:
-          "Negative yield detected. Yield distributions must be zero or positive. Adjust AUM inputs before continuing.",
-      };
-    }
-    return { hasError: false, message: null };
-  }, [depositYieldPreview]);
 
   // Set initial fund and asset when dialog opens or fundId prop changes
   useEffect(() => {
@@ -147,46 +119,6 @@ export function AddTransactionDialog({
       }
     }
   }, [selectedFundId, funds, setValue]);
-
-  useEffect(() => {
-    if (!requiresYieldPreview) {
-      setDepositYieldPreview(null);
-      setDepositPreviewError(null);
-      return;
-    }
-
-    let amountDec;
-    let closingAumDec;
-    try {
-      amountDec = toDecimal(amount ?? "0");
-      closingAumDec = toDecimal(closingAum ?? "0");
-    } catch {
-      setDepositYieldPreview(null);
-      setDepositPreviewError(null);
-      return;
-    }
-
-    if (amountDec.lte(0) || closingAumDec.lte(0)) {
-      setDepositYieldPreview(null);
-      setDepositPreviewError(null);
-      return;
-    }
-
-    const newTotalAum = closingAumDec.plus(amountDec).toFixed(10);
-    setDepositPreviewLoading(true);
-    previewDepositYield(selectedFundId, amountDec.toFixed(10), newTotalAum)
-      .then((preview) => {
-        setDepositYieldPreview(preview);
-        setDepositPreviewError(null);
-      })
-      .catch((error) => {
-        setDepositYieldPreview(null);
-        setDepositPreviewError(
-          error instanceof Error ? error.message : "Failed to preview deposit yield"
-        );
-      })
-      .finally(() => setDepositPreviewLoading(false));
-  }, [requiresYieldPreview, amount, closingAum, selectedFundId]);
 
   const handleCancel = () => {
     reset();
@@ -284,87 +216,8 @@ export function AddTransactionDialog({
               {/* Transaction Date */}
               <TransactionDateInput />
 
-              {/* Asset Input (Preflow AUM) */}
-              {selectedFundId &&
-                txDate &&
-                ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
-                  <AssetInput
-                    fundId={selectedFundId}
-                    txDate={txDate}
-                    asset={selectedFund?.asset || "tokens"}
-                  />
-                )}
-
               {/* Metadata Inputs (Reference ID, Hash, Notes) */}
               <TransactionMetadataInputs />
-
-              {/* Yield preview validation (Deposit / First Investment) */}
-              {isDeposit && (
-                <div className="rounded-lg border border-border bg-muted/30 p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-semibold">Yield crystallization preview</h4>
-                      <p className="text-xs text-muted-foreground">
-                        Preview the yield that will be crystallized before the deposit is applied.
-                      </p>
-                    </div>
-                    {depositPreviewLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  </div>
-
-                  {depositPreviewError && (
-                    <p className="mt-3 text-xs text-destructive">{depositPreviewError}</p>
-                  )}
-
-                  {depositYieldPreview && (
-                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Opening AUM</p>
-                        <p className="font-medium">
-                          {formatAUM(
-                            toDecimal(depositYieldPreview.currentAum).toNumber(),
-                            depositYieldPreview.fundAsset
-                          )}{" "}
-                          {depositYieldPreview.fundAsset}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Pre-deposit yield</p>
-                        <p
-                          className={cn(
-                            "font-medium",
-                            toDecimal(depositYieldPreview.preDepositYield).gt(0)
-                              ? "text-emerald-600"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          {toDecimal(depositYieldPreview.preDepositYield).gt(0) ? "+" : ""}
-                          {formatAUM(
-                            toDecimal(depositYieldPreview.preDepositYield).toNumber(),
-                            depositYieldPreview.fundAsset
-                          )}{" "}
-                          {depositYieldPreview.fundAsset}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Yield %</p>
-                        <p className="font-medium">
-                          {toDecimal(depositYieldPreview.yieldPercentage).toFixed(6)}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Investors impacted</p>
-                        <p className="font-medium">{depositYieldPreview.investorCount}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {yieldPreviewValidation.hasError && (
-                    <p className="mt-3 text-xs text-destructive">
-                      {yieldPreviewValidation.message}
-                    </p>
-                  )}
-                </div>
-              )}
 
               {/* Bug #3: Large deposit confirmation */}
               {pendingLargeDeposit && (
@@ -379,17 +232,6 @@ export function AddTransactionDialog({
                       <strong>
                         {Number(pendingLargeDeposit.amount).toLocaleString()} {selectedFund?.asset}
                       </strong>
-                      {closingAum && Number(closingAum) > 0 && (
-                        <>
-                          {" "}
-                          — this is{" "}
-                          <strong>
-                            {(Number(pendingLargeDeposit.amount) / Number(closingAum)).toFixed(1)}x
-                          </strong>{" "}
-                          the current fund AUM of {Number(closingAum).toLocaleString()}{" "}
-                          {selectedFund?.asset}
-                        </>
-                      )}
                     </p>
                     <div className="flex gap-2">
                       <Button size="sm" variant="destructive" onClick={confirmLargeDeposit}>
@@ -409,15 +251,7 @@ export function AddTransactionDialog({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    loading ||
-                    fundsLoading ||
-                    isLoadingInvestors ||
-                    (isDeposit && (depositPreviewLoading || !!depositPreviewError)) ||
-                    (isDeposit && requiresYieldPreview && !depositYieldPreview) ||
-                    yieldPreviewValidation.hasError ||
-                    !!pendingLargeDeposit
-                  }
+                  disabled={loading || fundsLoading || isLoadingInvestors || !!pendingLargeDeposit}
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Transaction

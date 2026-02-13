@@ -15,6 +15,7 @@ import {
   fetchActiveInvestorsForStatements,
   sendReportEmail,
   fetchHistoricalReports,
+  deleteInvestorReport,
 } from "@/services/admin";
 import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
 
@@ -57,8 +58,15 @@ export function useGenerateFundPerformance() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ year, month }: { year: number; month: number }) =>
-      generateFundPerformanceReports(year, month),
+    mutationFn: ({
+      year,
+      month,
+      investorId,
+    }: {
+      year: number;
+      month: number;
+      investorId?: string;
+    }) => generateFundPerformanceReports(year, month, investorId),
     onSuccess: (data) => {
       toast.success("Reports Generated", {
         description: data.message || `Generated ${data.recordsCreated} performance records`,
@@ -107,6 +115,25 @@ export function useSendReportEmail() {
     },
     onError: (error: Error) => {
       toast.error("Failed to send email", { description: error.message });
+    },
+  });
+}
+
+/**
+ * Hook to delete an investor's report for a period
+ */
+export function useDeleteInvestorReport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ investorId, periodId }: { investorId: string; periodId: string }) =>
+      deleteInvestorReport(investorId, periodId),
+    onSuccess: () => {
+      toast.success("Report deleted successfully");
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorReports() });
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete report", { description: error.message });
     },
   });
 }

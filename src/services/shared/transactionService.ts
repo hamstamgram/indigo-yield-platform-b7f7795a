@@ -186,12 +186,8 @@ export async function createTransactionWithCrystallization(
 
     // For DEPOSIT/WITHDRAWAL, use crystallize-before-flow RPCs (no manual position writes).
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
-      const closingAum = params.closing_aum;
-      if (!closingAum) {
-        throw new Error(
-          "closing_aum is required for DEPOSIT/WITHDRAWAL (crystallize-before-flow). Provide the authoritative AUM snapshot for this event."
-        );
-      }
+      // closing_aum is now optional — when not provided, pass 0 (no crystallization)
+      const closingAumValue = params.closing_aum ? parseFloat(String(params.closing_aum)) : 0;
 
       // Generate unique trigger reference client-side (idempotency key)
       const triggerReferenceRaw =
@@ -206,7 +202,7 @@ export async function createTransactionWithCrystallization(
         p_amount: parseFloat(String(params.amount)),
         p_tx_date: params.tx_date,
         p_reference_id: triggerReference,
-        p_new_total_aum: parseFloat(String(closingAum)),
+        p_new_total_aum: closingAumValue,
         p_admin_id: user.id,
         p_notes: params.notes || `${dbType} - ${triggerReference}`,
         p_purpose: "transaction",
@@ -286,12 +282,8 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const closingAum = params.closingAum;
-  if (!closingAum) {
-    throw new Error(
-      "closingAum is required for DEPOSIT/WITHDRAWAL (crystallize-before-flow). Provide the authoritative AUM snapshot for this event."
-    );
-  }
+  // closingAum is now optional — when not provided, pass 0 (no crystallization)
+  const closingAumValue = params.closingAum ? parseFloat(String(params.closingAum)) : 0;
 
   const today = getTodayString();
 
@@ -305,7 +297,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
     p_amount: parseFloat(String(params.amount)),
     p_tx_date: today,
     p_reference_id: triggerReference,
-    p_new_total_aum: parseFloat(String(closingAum)),
+    p_new_total_aum: closingAumValue,
     p_admin_id: user.id,
     p_notes: params.description || `${params.type} - ${triggerReference}`,
     p_purpose: "transaction",

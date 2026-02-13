@@ -10,6 +10,7 @@ import {
 interface RequestBody {
   periodYear: number;
   periodMonth: number;
+  investorId?: string;
 }
 
 /**
@@ -132,7 +133,7 @@ Deno.serve(async (req) => {
 
     console.log(`Admin ${adminCheck.email} generating performance data`);
 
-    const { periodYear, periodMonth }: RequestBody = await req.json();
+    const { periodYear, periodMonth, investorId }: RequestBody = await req.json();
 
     if (!periodYear || !periodMonth) {
       return new Response(JSON.stringify({ error: "periodYear and periodMonth are required" }), {
@@ -182,10 +183,16 @@ Deno.serve(async (req) => {
     console.log(`Using period ID: ${periodId}`);
 
     // Step 2: Resolve eligible investors (exclude non-investor account types)
-    const { data: investorProfiles, error: investorProfilesError } = await supabase
+    const profilesQuery = supabase
       .from("profiles")
       .select("id, account_type, is_admin")
       .eq("is_admin", false);
+
+    if (investorId) {
+      profilesQuery.eq("id", investorId);
+    }
+
+    const { data: investorProfiles, error: investorProfilesError } = await profilesQuery;
 
     if (investorProfilesError) throw investorProfilesError;
 
@@ -345,6 +352,18 @@ Deno.serve(async (req) => {
         }, 0);
     };
 
+    // Strict "before" comparison for beginning balances: excludes transactions ON the date
+    const sumBalanceBefore = (txs: any[], beforeDate: Date): number => {
+      return txs
+        .filter((tx: any) => new Date(tx.tx_date) < beforeDate)
+        .reduce((sum: number, tx: any) => {
+          const amount = Math.abs(Number(tx.amount));
+          if (inflowTypes.has(tx.type)) return sum + amount;
+          if (outflowTypes.has(tx.type)) return sum - amount;
+          return sum;
+        }, 0);
+    };
+
     const sumByType = (txs: any[], startDate: Date, endDate: Date, types: Set<string>): number => {
       return txs
         .filter((tx: any) => {
@@ -377,6 +396,16 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Guard: skip investors whose first transaction is AFTER the period end
+      // This prevents ghost reports (e.g., Sam Johnson getting September report
+      // when he first invested in November)
+      if (investorTxs.length > 0) {
+        const firstTxDate = new Date(investorTxs[0].tx_date); // txs are ordered by tx_date asc
+        if (firstTxDate > mtdEnd) {
+          continue;
+        }
+      }
+
       // Prefer snapshot balances at period end; fallback to transaction-derived balance
       let endingBalance = snapshotBalances.get(key);
       if (endingBalance === undefined) {
@@ -384,7 +413,9 @@ Deno.serve(async (req) => {
       }
 
       // ============= MTD CALCULATIONS =============
-      let mtdBeginning = sumBalanceUpTo(investorTxs, mtdStart);
+      // Use strict "before" for beginning balance: transactions ON the first day of the month
+      // are additions, not part of the beginning balance
+      let mtdBeginning = sumBalanceBefore(investorTxs, mtdStart);
       // Fallback: if tx-derived beginning is 0, use prior period ending balance
       if (mtdBeginning === 0) {
         const priorBal = priorEndingBalances.get(key);
@@ -394,6 +425,18 @@ Deno.serve(async (req) => {
       }
       const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, additionTypes);
       const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, redemptionTypes);
+
+      // Guard: skip investors with zero activity AND zero balance
+      // (This is the definitive fix for ghost reports like Sam Johnson)
+      const epsilon = 1e-10;
+      if (
+        Math.abs(mtdBeginning) < epsilon &&
+        Math.abs(mtdAdditions) < epsilon &&
+        Math.abs(mtdRedemptions) < epsilon &&
+        Math.abs(endingBalance) < epsilon
+      ) {
+        continue;
+      }
 
       // CORRECT FORMULA: net_income = ending - beginning - additions + redemptions
       const mtdMetrics = calculatePerformanceMetrics(

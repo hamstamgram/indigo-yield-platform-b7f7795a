@@ -63,10 +63,7 @@ export function useTransactionSubmit({
     // Bug #3: Large deposit confirmation
     const isDeposit = data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT";
     const numericAmount = typeof data.amount === "string" ? parseFloat(data.amount) : data.amount;
-    const closingAumNum = data.closing_aum ? parseFloat(String(data.closing_aum)) : 0;
-    const isLargeAmount =
-      isDeposit &&
-      (numericAmount > 1_000_000 || (closingAumNum > 0 && numericAmount > closingAumNum * 10));
+    const isLargeAmount = isDeposit && numericAmount > 1_000_000;
 
     if (isLargeAmount && !largeDepositConfirmed) {
       setPendingLargeDeposit(data);
@@ -81,17 +78,7 @@ export function useTransactionSubmit({
     try {
       setLoading(true);
 
-      // For DEPOSIT/WITHDRAWAL, require closing_aum (preflow AUM snapshot)
-      const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.txn_type);
-
-      // Use the form's closing_aum field
-      const closingAumValue = data.closing_aum;
-
-      if (requiresAum && !closingAumValue) {
-        toast.error("Preflow AUM Snapshot is required for deposits and withdrawals.");
-        setLoading(false);
-        return;
-      }
+      // Transactions are pure capital flows — no preflow AUM / crystallization
 
       const result = await createTransactionWithCrystallization({
         investor_id: selectedInvestorId,
@@ -100,7 +87,7 @@ export function useTransactionSubmit({
         asset: data.asset,
         amount: data.amount,
         tx_date: data.tx_date,
-        closing_aum: closingAumValue || undefined,
+        closing_aum: undefined,
         event_ts: `${data.tx_date}T00:00:00.000Z`,
         reference_id: data.reference_id || undefined,
         tx_hash: data.tx_hash || undefined,

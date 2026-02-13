@@ -7,7 +7,7 @@ import { useInvestorBalance, useTransactionHistory } from "@/hooks";
 
 // Transaction validation schema
 export const transactionSchema = z.object({
-  txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "YIELD"], {
+  txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"], {
     required_error: "Transaction type is required",
   }),
   fund_id: z.string().uuid("Please select a valid fund"),
@@ -28,13 +28,7 @@ export const transactionSchema = z.object({
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid date format",
     }),
-  closing_aum: z
-    .string()
-    .trim()
-    .optional()
-    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
-      message: "Preflow AUM must be a valid non-negative number",
-    }),
+
   reference_id: z
     .string()
     .trim()

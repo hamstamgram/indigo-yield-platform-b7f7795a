@@ -140,6 +140,7 @@ export {
   useActiveInvestorsForStatements,
   useSendReportEmail,
   useHistoricalReports,
+  useDeleteInvestorReport,
 } from "./useReports";
 
 // Statements

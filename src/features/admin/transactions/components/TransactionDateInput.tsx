@@ -31,7 +31,7 @@ export function TransactionDateInput() {
             {txDate ? format(new Date(txDate), "PPP") : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-[280px] p-0" align="start" sideOffset={4}>
           <Calendar
             mode="single"
             selected={txDate ? new Date(txDate) : undefined}

@@ -24,18 +24,11 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, RotateCcw as ResetIcon, Percent } from "lucide-react";
 import { logError } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
-import { format } from "date-fns";
-import {
-  createFund,
-  updateFund,
-  codeExists,
-  checkFundUsage,
-  type CreateFundInput,
-} from "@/services/admin";
+import { updateFund, checkFundUsage, feeSettingsService } from "@/services/admin";
 import { auditLogService } from "@/services/shared";
 import type { Fund } from "@/types/domains/fund";
 
@@ -51,6 +44,7 @@ const editFundSchema = z.object({
     .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
   inception_date: z.string().min(1, "Inception date is required"),
   status: z.enum(["active", "deprecated"]),
+  perf_fee_bps: z.number().min(0).max(10000).optional(),
 });
 
 type EditFundFormData = z.infer<typeof editFundSchema>;
@@ -78,6 +72,7 @@ export function EditFundDialog({
     positions: number;
     transactions: number;
   } | null>(null);
+  const [isResettingFee, setIsResettingFee] = useState(false);
   const { user } = useAuth();
 
   const {
@@ -103,6 +98,7 @@ export function EditFundDialog({
         asset: fund.asset,
         inception_date: fund.inception_date,
         status: fund.status as "active" | "deprecated",
+        perf_fee_bps: Number(fund.perf_fee_bps) || 0,
       });
       setLogoUrl(fund.logo_url || null);
       setConfirmTickerChange("");
@@ -117,6 +113,21 @@ export function EditFundDialog({
     } catch (error) {
       logError("EditFundDialog.checkFundUsage", error, { fundId });
       setTickerChangeBlocked(true);
+    }
+  };
+
+  const resetToGlobalDefault = async () => {
+    setIsResettingFee(true);
+    try {
+      const globalFee = await feeSettingsService.getGlobalPlatformFee();
+      // Convert decimal (0.20) to BPS (2000)
+      const globalBps = Math.round(globalFee * 10000);
+      setValue("perf_fee_bps", globalBps);
+      toast.success(`Fee reset to global default: ${(globalFee * 100).toFixed(0)}%`);
+    } catch (error) {
+      toast.error("Failed to fetch global fee settings");
+    } finally {
+      setIsResettingFee(false);
     }
   };
 
@@ -156,6 +167,7 @@ export function EditFundDialog({
         inception_date: fund.inception_date,
         status: fund.status,
         logo_url: fund.logo_url,
+        perf_fee_bps: fund.perf_fee_bps,
       };
 
       const updatePayload: Record<string, any> = {
@@ -165,6 +177,7 @@ export function EditFundDialog({
         inception_date: data.inception_date,
         status: data.status,
         logo_url: logoUrl,
+        perf_fee_bps: data.perf_fee_bps,
       };
 
       // Also update code if ticker changed
@@ -305,6 +318,51 @@ export function EditFundDialog({
               </SelectContent>
             </Select>
             {errors.status && <p className="text-sm text-destructive">{errors.status.message}</p>}
+          </div>
+
+          {/* Fee Configuration */}
+          <div className="space-y-4 pt-4 border-t border-white/5">
+            <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+              <Percent className="h-4 w-4 text-indigo-400" />
+              Fee Configuration
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="perf_fee_bps" className="text-slate-400">
+                  Default Performance Fee (Basis Points)
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="perf_fee_bps"
+                    type="number"
+                    {...register("perf_fee_bps", { valueAsNumber: true })}
+                    className="bg-black/20 border-white/10 text-white font-mono"
+                    placeholder="e.g. 2000 for 20%"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 border-white/10 hover:bg-white/5 text-slate-400 hover:text-white"
+                    title="Reset to Global Default"
+                    onClick={resetToGlobalDefault}
+                    disabled={isResettingFee}
+                  >
+                    {isResettingFee ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ResetIcon className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  Currently set to {((watch("perf_fee_bps") || 0) / 100).toFixed(2)}%
+                </p>
+                {errors.perf_fee_bps && (
+                  <p className="text-sm text-destructive">{errors.perf_fee_bps.message}</p>
+                )}
+              </div>
+            </div>
           </div>
 
           <DialogFooter>

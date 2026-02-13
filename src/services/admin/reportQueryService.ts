@@ -454,12 +454,14 @@ export async function fetchAdminInvestorReports(
  */
 export async function generateFundPerformanceReports(
   periodYear: number,
-  periodMonth: number
+  periodMonth: number,
+  investorId?: string
 ): Promise<{ message: string; recordsCreated: number }> {
   const { data, error } = await supabase.functions.invoke("generate-fund-performance", {
     body: {
       periodYear,
       periodMonth,
+      investorId,
     },
   });
 
@@ -780,5 +782,51 @@ export async function deletePerformanceReport(id: string): Promise<void> {
         }
       : null,
     new_values: null,
+  });
+}
+
+/**
+ * Delete all report components for a specific investor and period
+ */
+export async function deleteInvestorReport(investorId: string, periodId: string): Promise<void> {
+  if (!investorId || !periodId) throw new Error("Missing required parameters");
+
+  // 1. Delete performance records (V2)
+  const { error: perfError } = await supabase
+    .from("investor_fund_performance")
+    .delete()
+    .eq("investor_id", investorId)
+    .eq("period_id", periodId);
+
+  if (perfError) throw perfError;
+
+  // 2. Delete generated statement record (HTML/PDF)
+  const { error: stmtError } = await supabase
+    .from("generated_statements")
+    .delete()
+    .eq("investor_id", investorId)
+    .eq("period_id", periodId);
+
+  if (stmtError) throw stmtError;
+
+  // 3. Delete delivery logs
+  const { error: delError } = await supabase
+    .from("statement_email_delivery")
+    .delete()
+    .eq("investor_id", investorId)
+    .eq("period_id", periodId);
+
+  if (delError) throw delError;
+
+  // 4. Log the action
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  await supabase.from("audit_log").insert({
+    actor_user: user?.id ?? null,
+    action: "INVESTOR_REPORT_DELETED",
+    entity: "generated_statements",
+    entity_id: `${investorId}:${periodId}`,
+    old_values: { investor_id: investorId, period_id: periodId },
   });
 }

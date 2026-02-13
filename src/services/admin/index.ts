@@ -188,3 +188,4 @@ export { commandPaletteService, type InvestorSearchResult } from "./commandPalet
 // ADMIN TOOLS & UTILITIES
 // =============================================================================
 export { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "./feeScheduleService";
+export { feeSettingsService } from "./feeSettingsService";
