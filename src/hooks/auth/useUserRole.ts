@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * useUserRole Hook
  * Checks the current user's role from user_roles table
@@ -29,6 +30,18 @@ interface UseUserRoleResult {
 
 export function useUserRole(): UseUserRoleResult {
   const { user, loading: authLoading, isAdmin: authIsAdmin } = useAuth();
+  const [safetyLoading, setSafetyLoading] = React.useState(false);
+
+  // Safety timeout: if rolesLoading and authLoading take too long, force proceed
+  React.useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (authLoading) {
+      timeoutId = setTimeout(() => {
+        setSafetyLoading(false);
+      }, 7000);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [authLoading]);
 
   const { data: userRoles, isLoading: rolesLoading } = useQuery({
     queryKey: QUERY_KEYS.userRoles(user?.id),
@@ -55,7 +68,8 @@ export function useUserRole(): UseUserRoleResult {
   });
 
   const roles = userRoles || [];
-  const isLoading = authLoading || rolesLoading;
+  // Use safety flag if it times out
+  const isLoading = (authLoading || rolesLoading) && !safetyLoading;
 
   // Check specific roles
   const hasIBRole = roles.includes("ib");

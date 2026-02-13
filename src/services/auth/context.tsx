@@ -68,6 +68,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // SECURITY: Add a safety timeout to force loading to false if auth hangs
+    // This prevents infinite "Loading..." screens on page refresh/cache clear
+    const safetyTimeout = setTimeout(() => {
+      if (loading) {
+        logWarn("auth.initialization_timeout", {
+          message: "Auth initialization timed out after 5s, forcing loading to false",
+        });
+        setLoading(false);
+      }
+    }, 5000);
+
     // Set up auth state listener FIRST
     const {
       data: { subscription },
@@ -84,21 +95,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         profileFetchedRef.current = null;
         setProfile(null);
         setLoading(false);
+        clearTimeout(safetyTimeout);
       }
     });
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfileOnce(session.user.id);
-      } else {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchProfileOnce(session.user.id);
+        } else {
+          setLoading(false);
+          clearTimeout(safetyTimeout);
+        }
+      })
+      .catch((error) => {
+        logError("auth.getSession_error", error);
         setLoading(false);
-      }
-    });
+        clearTimeout(safetyTimeout);
+      });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+    };
   }, [fetchProfileOnce]);
 
   const fetchProfile = async (userId: string) => {
