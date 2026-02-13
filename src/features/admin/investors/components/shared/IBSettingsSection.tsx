@@ -105,15 +105,8 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   }
 
   const handleSave = async () => {
-    // Validation: IB percentage required if IB parent is set
-    if (ibParentId && ibPercentage <= 0) {
-      toast({
-        title: "Validation Error",
-        description: "IB commission percentage is required when an IB parent is set",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Validation: IB parent choice handles its own assignment logic,
+    // but the schedule now handles all commission percentages.
 
     // Validation: percentage range
     if (ibPercentage < 0 || ibPercentage > 100) {
@@ -365,7 +358,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                   onValueChange={(value) => setIbParentId(value === "none" ? null : value)}
                   disabled={isReadOnly}
                 >
-                  <SelectTrigger id="ib-parent" className="flex-1">
+                  <SelectTrigger id="ib-parent" className="w-full">
                     <SelectValue placeholder="Select IB parent..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -388,6 +381,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                       setIsCreatingNew(false);
                     }}
                     title="Find or create IB"
+                    className="shrink-0"
                   >
                     <UserPlus className="h-4 w-4" />
                   </Button>
@@ -395,30 +389,6 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
               </div>
               <p className="text-xs text-muted-foreground">
                 The investor who referred this account
-              </p>
-            </div>
-
-            {/* IB Percentage */}
-            <div className="space-y-2">
-              <Label htmlFor="ib-percentage" className="text-sm font-medium">
-                IB Commission (%)
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="ib-percentage"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={ibPercentage}
-                  onChange={(e) => setIbPercentage(parseFloat(e.target.value) || 0)}
-                  disabled={isReadOnly || !ibParentId}
-                  className="font-mono"
-                />
-                <Percent className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Percentage of net income allocated to IB parent
               </p>
             </div>
           </div>
@@ -431,7 +401,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                Save Global IB Settings
+                Update IB Parent
               </Button>
             </div>
           )}
@@ -442,11 +412,10 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
             <div className="space-y-1">
               <p className="font-semibold text-indigo-400">Commission Priority</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                The platform checks for a{" "}
-                <span className="text-foreground font-medium">Per-Fund Override</span> first. If
-                none exists for the transaction's fund, it falls back to the{" "}
-                <span className="text-foreground font-medium">Global IB Percentage</span> configured
-                above.
+                Management of commissions has been moved to the{" "}
+                <span className="text-foreground font-medium">Commission Overrides</span> section
+                below. Use <span className="text-foreground font-medium">Add → All Funds</span> to
+                set a global default, or specify fund-specific rates.
               </p>
             </div>
           </div>
