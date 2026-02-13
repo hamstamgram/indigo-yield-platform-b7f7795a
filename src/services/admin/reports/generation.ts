@@ -7,7 +7,7 @@ export async function generateFundPerformanceReports(
   periodYear: number,
   periodMonth: number,
   investorId?: string
-): Promise<{ message: string; recordsCreated: number }> {
+): Promise<{ message: string; recordsCreated: number; statementsGenerated: number }> {
   const { data, error } = await supabase.functions.invoke("generate-fund-performance", {
     body: {
       periodYear,

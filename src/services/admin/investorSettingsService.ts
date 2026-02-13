@@ -70,10 +70,7 @@ export async function getInvestorProfileForSettings(
  * Delete an investor profile
  */
 export async function deleteInvestorProfile(investorId: string): Promise<void> {
-  const { error } = await supabase
-    .from("profiles")
-    .delete()
-    .eq("id", investorId);
+  const { error } = await supabase.from("profiles").delete().eq("id", investorId);
 
   if (error) {
     logError("deleteInvestorProfile", error, { investorId });
@@ -118,11 +115,14 @@ export async function getInvestorReportPeriods(
   }
 
   // Build period summary
-  const perfByPeriod = (perfData || []).reduce((acc, p) => {
-    if (!acc[p.period_id]) acc[p.period_id] = [];
-    acc[p.period_id].push(p.fund_name);
-    return acc;
-  }, {} as Record<string, string[]>);
+  const perfByPeriod = (perfData || []).reduce(
+    (acc, p) => {
+      if (!acc[p.period_id]) acc[p.period_id] = [];
+      acc[p.period_id].push(p.fund_name);
+      return acc;
+    },
+    {} as Record<string, string[]>
+  );
 
   const mappedPeriods: ReportPeriod[] = periodsData.map((p) => ({
     id: p.id,
@@ -132,7 +132,11 @@ export async function getInvestorReportPeriods(
     fundCount: perfByPeriod[p.id]?.length || 0,
   }));
 
+  // Filter out periods with no data, but keep at least the most recent one
+  // so the UI shows something for newly created investors
+  const filteredPeriods = mappedPeriods.filter((p, index) => p.hasData || index === 0);
+
   const latestPeriod = mappedPeriods.find((p) => p.hasData) || null;
 
-  return { periods: mappedPeriods, latestPeriod };
+  return { periods: filteredPeriods, latestPeriod };
 }

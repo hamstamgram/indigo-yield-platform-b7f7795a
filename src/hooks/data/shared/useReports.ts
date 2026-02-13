@@ -68,10 +68,18 @@ export function useGenerateFundPerformance() {
       investorId?: string;
     }) => generateFundPerformanceReports(year, month, investorId),
     onSuccess: (data) => {
-      toast.success("Reports Generated", {
-        description: data.message || `Generated ${data.recordsCreated} performance records`,
-      });
+      const title = data.statementsGenerated > 0 ? "Reports Processed" : "Generation Complete";
+      const description =
+        data.message ||
+        `Generated ${data.recordsCreated} performance records and ${data.statementsGenerated} statements.`;
+
+      toast.success(title, { description });
+
+      // Invalidate all report-related queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorReports() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.statements });
+      queryClient.invalidateQueries({ queryKey: ["investor-report-periods"] });
     },
     onError: (error: Error) => {
       toast.error("Generation Failed", { description: error.message });
