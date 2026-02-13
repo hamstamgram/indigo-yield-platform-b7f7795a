@@ -138,9 +138,13 @@ export default function InvestorOverviewPage() {
                           className="w-full h-full text-white"
                         />
                       </div>
-                      <div>
-                        <h3 className="font-bold text-lg text-white">{asset.assetSymbol} Fund</h3>
-                        <p className="text-xs text-slate-400 font-mono">{asset.fundName}</p>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-lg text-white truncate">
+                          {asset.assetSymbol} Fund
+                        </h3>
+                        <p className="text-xs text-slate-400 font-mono truncate">
+                          {asset.fundName}
+                        </p>
                       </div>
                     </div>
                     <div className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
@@ -218,9 +222,11 @@ export default function InvestorOverviewPage() {
                       key={fund.asset_code}
                       className="flex justify-between items-center p-3 rounded-xl bg-white/5"
                     >
-                      <div className="flex items-center gap-2">
-                        <CryptoIcon symbol={fund.asset_code} className="h-4 w-4" />
-                        <span className="text-sm text-slate-300">{fund.asset_code} Fund</span>
+                      <div className="flex items-center gap-2 min-w-0 mr-2">
+                        <CryptoIcon symbol={fund.asset_code} className="h-4 w-4 shrink-0" />
+                        <span className="text-sm text-slate-300 truncate">
+                          {fund.asset_code} Fund
+                        </span>
                       </div>
                       <span className="text-sm font-mono text-white font-bold">
                         {formatCurrency(fund.ending_balance, fund.asset_code)} {fund.asset_code}
@@ -308,10 +314,10 @@ export default function InvestorOverviewPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right min-w-0 ml-2">
                       <p
                         className={cn(
-                          "text-sm font-mono font-bold",
+                          "text-sm font-mono font-bold truncate",
                           tx.type === "DEPOSIT" ||
                             tx.type === "YIELD" ||
                             tx.type === "FEE_CREDIT" ||
@@ -329,8 +335,10 @@ export default function InvestorOverviewPage() {
                         {formatCurrency(Number(tx.amount) || 0, tx.asset)}
                       </p>
                       <div className="flex items-center gap-1 justify-end">
-                        <CryptoIcon symbol={tx.asset} className="h-3 w-3" />
-                        <p className="text-[10px] text-slate-500 font-bold uppercase">{tx.asset}</p>
+                        <CryptoIcon symbol={tx.asset} className="h-3 w-3 shrink-0" />
+                        <p className="text-[10px] text-slate-500 font-bold uppercase truncate">
+                          {tx.asset}
+                        </p>
                       </div>
                     </div>
                   </div>

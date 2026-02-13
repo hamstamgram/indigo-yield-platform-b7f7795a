@@ -77,7 +77,7 @@ export function ResponsiveTable<T>({
                       <span className="font-medium text-sm text-muted-foreground w-1/3">
                         {col.header}:
                       </span>
-                      <span className="text-sm font-medium text-right flex-1 break-words">
+                      <span className="text-sm font-medium text-right flex-1 break-words min-w-0">
                         {col.cell
                           ? col.cell(item)
                           : (item[col.accessorKey as keyof T] as ReactNode)}

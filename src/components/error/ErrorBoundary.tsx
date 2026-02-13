@@ -64,7 +64,13 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   handleGoHome = () => {
-    window.location.href = "/";
+    // If we're already at home and it's crashing, a simple href = "/" might not be enough.
+    // Try to clear some state and navigate to login as a last resort if "/" doesn't work.
+    if (window.location.pathname === "/") {
+      window.location.reload();
+    } else {
+      window.location.href = "/";
+    }
   };
 
   render() {

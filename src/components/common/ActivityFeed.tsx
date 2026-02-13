@@ -207,7 +207,7 @@ function ActivityItemRow({ activity }: { activity: ControlledActivityItem }) {
           </div>
         )}
       </div>
-      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+      <span className="text-[10px] text-muted-foreground whitespace-nowrap pt-1">
         {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
       </span>
     </div>

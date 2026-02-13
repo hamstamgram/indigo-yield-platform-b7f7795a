@@ -10,7 +10,7 @@ interface PeriodSelectorProps {
 export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
   return (
     <Tabs value={value} onValueChange={(v) => onChange(v as PerformancePeriod)}>
-      <TabsList className="grid w-full max-w-md grid-cols-4">
+      <TabsList className="grid w-full grid-cols-4 lg:max-w-md">
         <TabsTrigger value="mtd">MTD</TabsTrigger>
         <TabsTrigger value="qtd">QTD</TabsTrigger>
         <TabsTrigger value="ytd">YTD</TabsTrigger>

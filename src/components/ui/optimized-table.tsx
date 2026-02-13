@@ -211,7 +211,9 @@ export function OptimizedTable<T>({
                       <span className="text-sm font-medium text-muted-foreground">
                         {column.header}:
                       </span>
-                      <span className="text-sm font-medium">{renderCell(row, column)}</span>
+                      <span className="text-sm font-medium truncate ml-2 text-right">
+                        {renderCell(row, column)}
+                      </span>
                     </div>
                   ))}
               </CardContent>
