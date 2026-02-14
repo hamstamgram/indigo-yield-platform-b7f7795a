@@ -104,70 +104,30 @@ export async function getInvestorVisibleYield(
 
 /**
  * Get yield summary by fund for an investor
+ * Uses server-side RPC for scalable aggregation (no 500-row ceiling)
  */
 export async function getInvestorYieldSummaryByFund(
   investorId: string,
   year?: number,
   month?: number
 ): Promise<InvestorYieldSummary[]> {
-  let query = supabase
-    .from("investor_yield_events")
-    .select(
-      `
-      fund_id,
-      gross_yield_amount,
-      fee_amount,
-      net_yield_amount,
-      fund:funds(name, asset)
-    `
-    )
-    .eq("investor_id", investorId)
-    .eq("visibility_scope", "investor_visible")
-    .eq("is_voided", false)
-    .limit(500);
-
-  if (year && month) {
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0);
-    query = query.gte("event_date", formatDateForDB(start)).lte("event_date", formatDateForDB(end));
-  }
-
-  const { data, error } = await query;
+  const { data, error } = await supabase.rpc("get_investor_yield_summary", {
+    p_investor_id: investorId,
+    p_year: year ?? null,
+    p_month: month ?? null,
+  });
 
   if (error) throw error;
 
-  // Aggregate by fund
-  const byFund = new Map<string, InvestorYieldSummary>();
-
-  for (const row of data || []) {
-    const fundData = row.fund as { name: string; asset: string } | null;
-    const existing = byFund.get(row.fund_id);
-
-    if (existing) {
-      existing.totalGrossYield = parseFinancial(existing.totalGrossYield)
-        .plus(parseFinancial(row.gross_yield_amount))
-        .toNumber();
-      existing.totalFees = parseFinancial(existing.totalFees)
-        .plus(parseFinancial(row.fee_amount))
-        .toNumber();
-      existing.totalNetYield = parseFinancial(existing.totalNetYield)
-        .plus(parseFinancial(row.net_yield_amount))
-        .toNumber();
-      existing.eventCount += 1;
-    } else {
-      byFund.set(row.fund_id, {
-        fundId: row.fund_id,
-        fundName: fundData?.name || "Unknown",
-        fundAsset: fundData?.asset || "USD",
-        totalGrossYield: parseFinancial(row.gross_yield_amount).toNumber(),
-        totalFees: parseFinancial(row.fee_amount).toNumber(),
-        totalNetYield: parseFinancial(row.net_yield_amount).toNumber(),
-        eventCount: 1,
-      });
-    }
-  }
-
-  return Array.from(byFund.values());
+  return (data || []).map((row: any) => ({
+    fundId: row.fund_id,
+    fundName: row.fund_name || "Unknown",
+    fundAsset: row.fund_asset || "USD",
+    totalGrossYield: parseFinancial(row.total_gross).toNumber(),
+    totalFees: parseFinancial(row.total_fees).toNumber(),
+    totalNetYield: parseFinancial(row.total_net).toNumber(),
+    eventCount: Number(row.event_count),
+  }));
 }
 
 export interface CumulativeYieldByFund {
@@ -184,43 +144,27 @@ export interface CumulativeYieldResult {
 
 /**
  * Get cumulative yield earned for an investor, grouped by fund
+ * Uses server-side RPC for scalable aggregation (no 500-row ceiling)
  * Prevents cross-currency summing (e.g. BTC + USDT)
  */
 export async function getInvestorCumulativeYield(
   investorId: string
 ): Promise<CumulativeYieldResult> {
-  const { data, error } = await supabase
-    .from("investor_yield_events")
-    .select("fund_id, net_yield_amount, fund:funds(name, asset)")
-    .eq("investor_id", investorId)
-    .eq("visibility_scope", "investor_visible")
-    .eq("is_voided", false)
-    .limit(500);
+  const { data, error } = await supabase.rpc("get_investor_cumulative_yield", {
+    p_investor_id: investorId,
+  });
 
   if (error) throw error;
 
-  const events = data || [];
-
-  const byFund = new Map<string, CumulativeYieldByFund>();
-  for (const e of events) {
-    const fundData = e.fund as { name: string; asset: string } | null;
-    const existing = byFund.get(e.fund_id);
-    if (existing) {
-      existing.totalNetYield = parseFinancial(existing.totalNetYield)
-        .plus(parseFinancial(e.net_yield_amount))
-        .toNumber();
-    } else {
-      byFund.set(e.fund_id, {
-        fundId: e.fund_id,
-        fundName: fundData?.name || "Unknown",
-        fundAsset: fundData?.asset || "USD",
-        totalNetYield: parseFinancial(e.net_yield_amount).toNumber(),
-      });
-    }
-  }
+  const rows = (data || []) as any[];
 
   return {
-    byFund: Array.from(byFund.values()),
-    eventCount: events.length,
+    byFund: rows.map((row) => ({
+      fundId: row.fund_id,
+      fundName: row.fund_name || "Unknown",
+      fundAsset: row.fund_asset || "USD",
+      totalNetYield: parseFinancial(row.total_net_yield).toNumber(),
+    })),
+    eventCount: rows.reduce((sum: number, r: any) => sum + Number(r.event_count), 0),
   };
 }

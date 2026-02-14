@@ -213,67 +213,34 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
 
 /**
  * Calculate total AUM across all investors (excludes fees/IB accounts)
+ * Uses server-side aggregation via get_platform_stats RPC
  */
 export async function getTotalAUM(): Promise<number> {
-  // Query positions with joined profiles to filter by account_type
-  const { data, error } = await supabase
-    .from("investor_positions")
-    .select("current_value, investor_id")
-    .gt("current_value", 0)
-    .limit(500);
+  const { data, error } = await supabase.rpc("get_platform_stats");
 
-  if (error) throw error;
+  if (error) {
+    logError("investorPosition.getTotalAUM", error);
+    throw error;
+  }
 
-  // Fetch investor profiles to filter by account_type
-  const investorIds = [...new Set(data?.map((p) => p.investor_id) || [])];
-  if (investorIds.length === 0) return 0;
-
-  const { data: profiles, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, account_type")
-    .in("id", investorIds)
-    .eq("account_type", "investor")
-    .limit(500);
-
-  if (profileError) throw profileError;
-
-  const investorSet = new Set(profiles?.map((p) => p.id) || []);
-
-  // Only sum positions for investor account types
-  return (
-    data
-      ?.filter((pos) => investorSet.has(pos.investor_id))
-      .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
-      .toNumber() || 0
-  );
+  // data is { total_aum, investor_count, admin_count }
+  // RPC returns numeric as number or string? usually number for jsonb
+  return Number((data as any)?.total_aum || 0);
 }
 
 /**
  * Get investor count with active positions (excludes fees/IB accounts)
+ * Uses server-side aggregation via get_platform_stats RPC
  */
 export async function getActiveInvestorCount(): Promise<number> {
-  const { data, error } = await supabase
-    .from("investor_positions")
-    .select("investor_id")
-    .gt("current_value", 0)
-    .limit(500);
+  const { data, error } = await supabase.rpc("get_platform_stats");
 
-  if (error) throw error;
+  if (error) {
+    logError("investorPosition.getActiveInvestorCount", error);
+    throw error;
+  }
 
-  // Fetch profiles to filter by account_type = 'investor'
-  const investorIds = [...new Set(data?.map((p) => p.investor_id) || [])];
-  if (investorIds.length === 0) return 0;
-
-  const { data: profiles, error: profileError } = await supabase
-    .from("profiles")
-    .select("id")
-    .in("id", investorIds)
-    .eq("account_type", "investor")
-    .limit(500);
-
-  if (profileError) throw profileError;
-
-  return profiles?.length || 0;
+  return Number((data as any)?.investor_count || 0);
 }
 
 // ============================================

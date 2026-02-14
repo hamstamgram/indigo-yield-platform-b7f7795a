@@ -46,11 +46,12 @@ test.describe("Production Critical Path", () => {
     page.on("response", (response) => console.log(`<< ${response.status()} ${response.url()}`));
     await page.goto(`${BASE_URL}/admin/investors`);
 
-    // Wait for page content
+    // Wait for page content - virtualized table doesn't use <table> tags
     await expect(page.locator('h1:has-text("Investors")')).toBeVisible({
       timeout: 30000,
     });
-    await expect(page.locator("table")).toBeVisible({ timeout: 30000 });
+    // Check for either the total count or a list item
+    await expect(page.locator('p:has-text("total")')).toBeVisible({ timeout: 30000 });
     console.log("✅ Investors page loaded.");
   });
 
@@ -72,11 +73,20 @@ test.describe("Production Critical Path", () => {
     await expect(dialog).toBeVisible({ timeout: 10000 });
 
     await dialog.locator('input[name="email"]').fill(INVESTOR_EMAIL);
-    await dialog.locator('input[name="firstName"]').fill("Auto");
-    await dialog.locator('input[name="lastName"]').fill("TestUser");
+    await dialog.locator('input[name="first_name"]').fill("Auto");
+    await dialog.locator('input[name="last_name"]').fill("TestUser");
 
-    // Submit
-    await dialog.locator('button[type="submit"]').click();
+    // Navigate Wizard: Identity -> IB
+    await dialog.locator('button:has-text("Continue")').click();
+
+    // IB Step -> Fees
+    await dialog.locator('button:has-text("Continue")').click();
+
+    // Fees Step -> Review
+    await dialog.locator('button:has-text("Continue")').click();
+
+    // Review Step -> Submit
+    await dialog.locator('button:has-text("Complete Onboarding")').click();
 
     // Wait for dialog to close (success)
     await expect(dialog).toBeHidden({ timeout: 15000 });

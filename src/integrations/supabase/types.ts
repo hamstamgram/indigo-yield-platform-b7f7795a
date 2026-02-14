@@ -5545,6 +5545,18 @@ export type Database = {
         };
         Returns: string;
       };
+      get_active_funds_summary: {
+        Args: never;
+        Returns: {
+          fund_id: string;
+          fund_code: string;
+          fund_name: string;
+          fund_asset: string;
+          total_aum: number;
+          investor_count: number;
+          aum_record_count: number;
+        }[];
+      };
       get_admin_name: { Args: { admin_id: string }; Returns: string };
       get_all_dust_tolerances: { Args: never; Returns: Json };
       get_aum_position_reconciliation: {
@@ -5599,12 +5611,14 @@ export type Database = {
       };
       get_fund_base_asset: { Args: { p_fund_id: string }; Returns: string };
       get_fund_composition: {
-        Args: { p_date: string; p_fund_id: string };
+        Args: { p_fund_id: string };
         Returns: {
-          balance: number;
-          email: string;
+          investor_id: string;
           investor_name: string;
+          investor_email: string;
+          current_value: number;
           ownership_pct: number;
+          mtd_yield: number;
         }[];
       };
       get_fund_net_flows: {
@@ -5708,6 +5722,28 @@ export type Database = {
         Returns: number;
       };
       get_investor_reports_v2: { Args: { p_period_id: string }; Returns: Json };
+      get_investor_yield_summary: {
+        Args: { p_investor_id: string; p_year?: number; p_month?: number };
+        Returns: {
+          fund_id: string;
+          fund_name: string;
+          fund_asset: string;
+          total_gross: number;
+          total_fees: number;
+          total_net: number;
+          event_count: number;
+        }[];
+      };
+      get_investor_cumulative_yield: {
+        Args: { p_investor_id: string };
+        Returns: {
+          fund_id: string;
+          fund_name: string;
+          fund_asset: string;
+          total_net_yield: number;
+          event_count: number;
+        }[];
+      };
       get_latest_health_status: {
         Args: never;
         Returns: {
@@ -5724,6 +5760,14 @@ export type Database = {
           month: string;
           total_aum: number;
         }[];
+      };
+      get_platform_stats: {
+        Args: never;
+        Returns: {
+          total_aum: number;
+          investor_count: number;
+          admin_count: number;
+        };
       };
       get_position_reconciliation: {
         Args: { p_as_of_date?: string; p_fund_id?: string };

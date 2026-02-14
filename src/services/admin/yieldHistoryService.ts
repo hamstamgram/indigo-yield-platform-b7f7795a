@@ -226,6 +226,10 @@ export async function saveDraftAUMEntry(
  * AUM includes all active position holders (investor + fees_account + ib).
  * Investor count remains investor-only for UI readability.
  */
+/**
+ * Get active funds with AUM and record counts
+ * Uses server-side aggregation via get_active_funds_summary RPC
+ */
 export async function getActiveFundsWithAUM(): Promise<
   Array<{
     id: string;
@@ -237,86 +241,31 @@ export async function getActiveFundsWithAUM(): Promise<
     aum_record_count: number;
   }>
 > {
-  const { data: fundsData, error } = await supabase
-    .from("funds")
-    .select("id, code, name, asset")
-    .eq("status", "active")
-    .order("code")
-    .limit(100);
+  const { data, error } = await supabase.rpc("get_active_funds_summary");
 
-  if (error) throw new Error(`Failed to fetch funds: ${error.message}`);
-  if (!fundsData || fundsData.length === 0) return [];
+  if (error) {
+    logError("yieldHistoryService.getActiveFundsWithAUM", error);
+    throw new Error(`Failed to fetch active funds summary: ${error.message}`);
+  }
 
-  const fundIds = fundsData.map((f) => f.id);
-
-  // Batch fetch all positions for all funds with current_value > 0
-  const { data: allPositions } = await supabase
-    .from("investor_positions")
-    .select("fund_id, current_value, investor_id")
-    .in("fund_id", fundIds)
-    .gt("current_value", 0) // Exclude zero-balance positions
-    .limit(500);
-
-  // Fetch profiles to count investor-only participants.
-  const investorIds = [...new Set((allPositions || []).map((p) => p.investor_id).filter(Boolean))];
-  const { data: investorProfiles } = await supabase
-    .from("profiles")
-    .select("id")
-    .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"])
-    .eq("account_type", "investor")
-    .limit(500);
-
-  const investorSet = new Set(investorProfiles?.map((p) => p.id) || []);
-
-  // Batch fetch all AUM record counts
-  const { data: aumRecords } = await supabase
-    .from("fund_daily_aum")
-    .select("fund_id")
-    .in("fund_id", fundIds)
-    .limit(500);
-
-  // Build lookup maps
-  type FundPositionRow = { fund_id: string; current_value: number | null; investor_id: string };
-  const positionsByFund = new Map<string, FundPositionRow[]>();
-  const investorCountByFund = new Map<string, Set<string>>();
-
-  (allPositions || []).forEach((p) => {
-    const existing = positionsByFund.get(p.fund_id) || [];
-    existing.push(p as FundPositionRow);
-    positionsByFund.set(p.fund_id, existing);
-
-    if (investorSet.has(p.investor_id)) {
-      const investorIdsForFund = investorCountByFund.get(p.fund_id) || new Set<string>();
-      investorIdsForFund.add(p.investor_id);
-      investorCountByFund.set(p.fund_id, investorIdsForFund);
-    }
-  });
-
-  const aumCountByFund = new Map<string, number>();
-  (aumRecords || []).forEach((r) => {
-    aumCountByFund.set(r.fund_id, (aumCountByFund.get(r.fund_id) || 0) + 1);
-  });
-
-  const fundsWithAUM = fundsData.map((fund) => {
-    const positions = positionsByFund.get(fund.id) || [];
-    const total_aum = positions
-      .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
-      .toNumber();
-    const investorCount = investorCountByFund.get(fund.id)?.size || 0;
-
-    return {
-      ...fund,
-      total_aum,
-      investor_count: investorCount,
-      aum_record_count: aumCountByFund.get(fund.id) || 0,
-    };
-  });
-
-  return fundsWithAUM.sort((a, b) => b.total_aum - a.total_aum);
+  return (data || []).map((f: any) => ({
+    id: f.fund_id,
+    code: f.fund_code,
+    name: f.fund_name,
+    asset: f.fund_asset,
+    total_aum: parseFinancial(f.total_aum).toNumber(),
+    investor_count: Number(f.investor_count),
+    aum_record_count: Number(f.aum_record_count),
+  }));
 }
 
 /**
  * Get investor composition for a fund with MTD yield
+ * NOTE: Composition is investor-only by design (fees/IB omitted).
+ */
+/**
+ * Get investor composition for a fund with MTD yield
+ * Uses server-side aggregation via get_fund_composition RPC
  * NOTE: Composition is investor-only by design (fees/IB omitted).
  */
 export async function getFundInvestorCompositionWithYield(fundId: string): Promise<
@@ -329,93 +278,23 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     mtd_yield: number;
   }>
 > {
-  // Get positions for this fund with current_value > 0
-  const { data: positions, error } = await supabase
-    .from("investor_positions")
-    .select("investor_id, current_value")
-    .eq("fund_id", fundId)
-    .gt("current_value", 0) // Exclude zero-balance positions
-    .limit(500);
-
-  if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
-
-  const investorIds = [...new Set(positions?.map((p) => p.investor_id).filter(Boolean))];
-
-  // Get investor profiles with account_type
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name, email, account_type")
-    .in("id", investorIds.length > 0 ? investorIds : ["00000000-0000-0000-0000-000000000000"])
-    .limit(500);
-
-  // Filter to investor accounts only (exclude fee accounts, IB accounts)
-  const investorProfiles = (profiles || []).filter((p) => p.account_type === "investor");
-  const investorProfileIds = new Set(investorProfiles.map((p) => p.id));
-  const profileMap = new Map(investorProfiles.map((p) => [p.id, p]));
-
-  // Filter positions to only include investor accounts
-  const investorPositions = (positions || []).filter((p) => investorProfileIds.has(p.investor_id));
-
-  const totalAUM = investorPositions
-    .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
-    .toNumber();
-
-  // Calculate MTD period
-  const now = new Date();
-  const mtdStart = getMonthStartDate(now.getFullYear(), now.getMonth() + 1);
-  const mtdEnd = getTodayString();
-
-  // Fetch MTD yield transactions for investor accounts only
-  const investorIdList = [...investorProfileIds];
-  const { data: yieldTransactions } = await supabase
-    .from("transactions_v2")
-    .select("investor_id, type, amount")
-    .eq("fund_id", fundId)
-    .in(
-      "investor_id",
-      investorIdList.length > 0 ? investorIdList : ["00000000-0000-0000-0000-000000000000"]
-    )
-    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "FEE"])
-    .gte("tx_date", mtdStart)
-    .lte("tx_date", mtdEnd)
-    .eq("is_voided", false)
-    .limit(500);
-
-  // Calculate MTD yield per investor
-  const mtdYieldMap = new Map<string, number>();
-  (yieldTransactions || []).forEach((tx) => {
-    const currentYield = mtdYieldMap.get(tx.investor_id!) || 0;
-    if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-      mtdYieldMap.set(
-        tx.investor_id!,
-        parseFinancial(currentYield).plus(parseFinancial(tx.amount)).toNumber()
-      );
-    } else if (tx.type === "FEE") {
-      mtdYieldMap.set(
-        tx.investor_id!,
-        parseFinancial(currentYield).minus(parseFinancial(tx.amount).abs()).toNumber()
-      );
-    }
+  const { data, error } = await supabase.rpc("get_fund_composition", {
+    p_fund_id: fundId,
   });
 
-  // Build investor positions list (only investor accounts)
-  return investorPositions
-    .filter((p) => p.investor_id)
-    .map((p) => {
-      const profile = profileMap.get(p.investor_id);
-      const name = profile
-        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
-        : "Unknown";
+  if (error) {
+    logError("yieldHistoryService.getFundInvestorCompositionWithYield", error);
+    throw new Error(`Failed to fetch fund composition: ${error.message}`);
+  }
 
-      return {
-        investor_id: p.investor_id!,
-        investor_name: name,
-        investor_email: profile?.email || "",
-        current_value: p.current_value || 0,
-        ownership_pct: totalAUM > 0 ? ((p.current_value || 0) / totalAUM) * 100 : 0,
-        mtd_yield: mtdYieldMap.get(p.investor_id!) || 0,
-      };
-    });
+  return (data || []).map((row: any) => ({
+    investor_id: row.investor_id,
+    investor_name: row.investor_name,
+    investor_email: row.investor_email,
+    current_value: Number(row.current_value),
+    ownership_pct: Number(row.ownership_pct),
+    mtd_yield: Number(row.mtd_yield),
+  }));
 }
 
 /**
