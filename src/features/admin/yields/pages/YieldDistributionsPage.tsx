@@ -21,6 +21,7 @@ import { ExportButton } from "@/components/common/ExportButton";
 import { LastUpdated } from "@/components/common/LastUpdated";
 import { VoidDistributionDialog } from "@/features/admin/yields/components/VoidDistributionDialog";
 import { voidYieldDistribution } from "@/services/admin/yieldManagementService";
+import { executeInternalRoute } from "@/services/admin/internalRouteService";
 import { formatAssetValue, formatPercentage } from "@/utils/formatters";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import {
@@ -28,6 +29,14 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Badge,
   Button,
   Card,
@@ -49,7 +58,7 @@ import {
 } from "@/components/ui";
 import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
@@ -279,6 +288,18 @@ function YieldDistributionsContent() {
     period_end?: string;
   } | null>(null);
   const [voidPending, setVoidPending] = useState(false);
+
+  // Route-to-fees dialog state
+  const [routeTarget, setRouteTarget] = useState<{
+    id: string;
+    fund_id: string;
+    fund_name: string;
+    fund_asset: string;
+    total_fees: number;
+    effective_date: string;
+  } | null>(null);
+  const [routePending, setRoutePending] = useState(false);
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -321,6 +342,60 @@ function YieldDistributionsContent() {
     },
     [queryClient, toast]
   );
+
+  const handleRouteToFeesOpen = useCallback(
+    (distribution: DistributionRow) => {
+      const fund = fundMap.get(distribution.fund_id);
+      setRouteTarget({
+        id: distribution.id,
+        fund_id: distribution.fund_id,
+        fund_name: fund?.name || "Unknown",
+        fund_asset: fund?.asset || "",
+        total_fees: distribution.total_fees || 0,
+        effective_date: distribution.effective_date,
+      });
+    },
+    [fundMap]
+  );
+
+  const handleRouteToFeesConfirm = useCallback(async () => {
+    if (!routeTarget) return;
+    setRoutePending(true);
+    try {
+      // Route the total fee amount from this distribution to INDIGO FEES
+      const allocs = allocationsByDistribution[routeTarget.id] || [];
+      let routedCount = 0;
+
+      for (const allocation of allocs) {
+        const feeAmount = allocation.fee_amount || 0;
+        if (feeAmount <= 0) continue;
+
+        await executeInternalRoute({
+          fromInvestorId: allocation.investor_id,
+          fundId: routeTarget.fund_id,
+          amount: feeAmount,
+          effectiveDate: routeTarget.effective_date.split("T")[0],
+          reason: `Fee routing from distribution ${routeTarget.id}`,
+        });
+        routedCount++;
+      }
+
+      toast({
+        title: "Fees routed to INDIGO FEES",
+        description: `Routed fees from ${routedCount} investor allocation(s).`,
+      });
+      setRouteTarget(null);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+    } catch (err) {
+      toast({
+        title: "Failed to route fees",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setRoutePending(false);
+    }
+  }, [routeTarget, allocationsByDistribution, queryClient, toast]);
 
   // Export data enriched with fund names
   const exportData = useMemo(() => {
@@ -646,15 +721,31 @@ function YieldDistributionsContent() {
                                                 "MMM d, yyyy HH:mm"
                                               )}
                                             </span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-                                              onClick={() => handleVoidOpen(distribution)}
-                                            >
-                                              <Trash2 className="h-4 w-4 mr-1" />
-                                              Void
-                                            </Button>
+                                            <div className="ml-auto flex items-center gap-1">
+                                              {!distribution.is_voided &&
+                                                (distribution.total_fees || 0) > 0 && (
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-primary hover:text-primary hover:bg-primary/10"
+                                                    onClick={() =>
+                                                      handleRouteToFeesOpen(distribution)
+                                                    }
+                                                  >
+                                                    <ArrowRightLeft className="h-4 w-4 mr-1" />
+                                                    Route to INDIGO FEES
+                                                  </Button>
+                                                )}
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                onClick={() => handleVoidOpen(distribution)}
+                                              >
+                                                <Trash2 className="h-4 w-4 mr-1" />
+                                                Void
+                                              </Button>
+                                            </div>
                                           </div>
                                         </CardTitle>
                                       </CardHeader>
@@ -1056,6 +1147,71 @@ function YieldDistributionsContent() {
         onConfirm={handleVoidConfirm}
         isPending={voidPending}
       />
+
+      {/* Route to INDIGO FEES Confirmation Dialog */}
+      <AlertDialog
+        open={routeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRouteTarget(null);
+        }}
+      >
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5 text-primary" />
+              Route Fees to INDIGO FEES
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left space-y-3">
+              <p>
+                This will route the collected fees from this distribution to the{" "}
+                <strong>INDIGO FEES</strong> account via internal transfers.
+              </p>
+              {routeTarget && (
+                <div className="bg-muted rounded-md p-3 space-y-1 text-sm">
+                  <p>
+                    <span className="text-muted-foreground">Fund:</span>{" "}
+                    <span className="font-medium">{routeTarget.fund_name}</span>
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground">Total Fees:</span>{" "}
+                    <span className="font-medium">
+                      {formatAssetValue(routeTarget.total_fees, routeTarget.fund_asset)}{" "}
+                      {routeTarget.fund_asset.toUpperCase()}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground">Date:</span>{" "}
+                    <span className="font-medium">
+                      {format(new Date(routeTarget.effective_date), "MMM d, yyyy")}
+                    </span>
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                This creates paired INTERNAL_WITHDRAWAL and INTERNAL_CREDIT transactions per
+                investor, hidden from investor view.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={routePending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRouteToFeesConfirm}
+              disabled={routePending}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {routePending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                "Route to INDIGO FEES"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageShell>
   );
 }
