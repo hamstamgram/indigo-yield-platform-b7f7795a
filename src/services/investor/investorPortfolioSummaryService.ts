@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getInvestorPositions, type InvestorPositionDetail } from "./investorPositionService";
 import { logError } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
+import { batchProcess } from "@/utils/batchHelper";
 
 // ============================================
 // Types
@@ -160,23 +161,28 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
 
   if (!investors || investors.length === 0) return [];
 
-  // Step 2: Get ALL positions with fund data in one query (fixes N+1)
+  // Step 2: Get ALL positions with fund data using batching (fixes URI Too Long)
   const investorIds = investors.map((inv) => inv.id);
-  const { data: allPositions } = await supabase
-    .from("investor_positions")
-    .select(
+
+  const allPositions = await batchProcess(investorIds, 50, async (batchIds) => {
+    const { data, error } = await supabase
+      .from("investor_positions")
+      .select(
+        `
+        investor_id,
+        shares,
+        current_value,
+        cost_basis,
+        unrealized_pnl,
+        funds (asset)
       `
-      investor_id,
-      shares,
-      current_value,
-      cost_basis,
-      unrealized_pnl,
-      funds (asset)
-    `
-    )
-    .in("investor_id", investorIds)
-    .gt("shares", 0)
-    .limit(500);
+      )
+      .in("investor_id", batchIds)
+      .gt("shares", 0);
+
+    if (error) throw error;
+    return data;
+  });
 
   // Step 3: Group positions by investor_id for O(1) lookup
   const positionsByInvestor = new Map<string, typeof allPositions>();

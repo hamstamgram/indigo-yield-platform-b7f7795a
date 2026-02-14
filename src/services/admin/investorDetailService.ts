@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { batchMapProcess } from "@/utils/batchHelper";
 
 export interface InvestorDetailData {
   id: string;
@@ -221,21 +222,23 @@ export async function getPendingWithdrawalCountsBatch(
 ): Promise<Map<string, number>> {
   if (investorIds.length === 0) return new Map();
 
-  const { data, error } = await supabase
-    .from("withdrawal_requests")
-    .select("investor_id")
-    .in("investor_id", investorIds)
-    .eq("status", "pending");
+  return batchMapProcess(investorIds, 50, async (batchIds) => {
+    const { data, error } = await supabase
+      .from("withdrawal_requests")
+      .select("investor_id")
+      .in("investor_id", batchIds)
+      .eq("status", "pending");
 
-  if (error) throw error;
+    if (error) throw error;
 
-  const counts = new Map<string, number>();
-  (data || []).forEach((w) => {
-    if (w.investor_id) {
-      counts.set(w.investor_id, (counts.get(w.investor_id) || 0) + 1);
-    }
+    const counts = new Map<string, number>();
+    (data || []).forEach((w) => {
+      if (w.investor_id) {
+        counts.set(w.investor_id, (counts.get(w.investor_id) || 0) + 1);
+      }
+    });
+    return counts;
   });
-  return counts;
 }
 
 /**
@@ -246,23 +249,25 @@ export async function getLastReportPeriodsBatch(
 ): Promise<Map<string, string>> {
   if (investorIds.length === 0) return new Map();
 
-  const { data, error } = await supabase
-    .from("generated_statements")
-    .select("investor_id, period_id, created_at, statement_periods!period_id(period_name)")
-    .in("investor_id", investorIds)
-    .order("created_at", { ascending: false });
+  return batchMapProcess(investorIds, 50, async (batchIds) => {
+    const { data, error } = await supabase
+      .from("generated_statements")
+      .select("investor_id, period_id, created_at, statement_periods!period_id(period_name)")
+      .in("investor_id", batchIds)
+      .order("created_at", { ascending: false });
 
-  if (error) throw error;
+    if (error) throw error;
 
-  const lastReports = new Map<string, string>();
-  (data || []).forEach((r: any) => {
-    // Only keep first (most recent) report per investor
-    if (!lastReports.has(r.investor_id)) {
-      const periodName = r.statement_periods?.period_name;
-      lastReports.set(r.investor_id, periodName || r.period_id);
-    }
+    const lastReports = new Map<string, string>();
+    (data || []).forEach((r: any) => {
+      // Only keep first (most recent) report per investor
+      if (!lastReports.has(r.investor_id)) {
+        const periodName = r.statement_periods?.period_name;
+        lastReports.set(r.investor_id, periodName || r.period_id);
+      }
+    });
+    return lastReports;
   });
-  return lastReports;
 }
 
 export const investorDetailService = {

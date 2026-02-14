@@ -221,5 +221,13 @@ export function useYieldOperationsState() {
     getFilteredDistributions,
     formatValue: (value: number, asset: string) => formatAUM(value, asset),
     refetchFunds,
+
+    // Exposed actions
+    openYieldDialog,
+    handleReportingMonthChange,
+
+    // Reconciliation
+    acknowledgeDiscrepancy: calculation.acknowledgeDiscrepancy,
+    setAcknowledgeDiscrepancy: calculation.setAcknowledgeDiscrepancy,
   };
 }

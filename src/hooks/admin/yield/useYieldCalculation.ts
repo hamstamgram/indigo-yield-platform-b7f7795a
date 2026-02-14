@@ -15,6 +15,7 @@ export function useYieldCalculation() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [existingDistributionDate, setExistingDistributionDate] = useState<string | null>(null);
   const [existingDistributionId, setExistingDistributionId] = useState<string | null>(null);
+  const [acknowledgeDiscrepancy, setAcknowledgeDiscrepancy] = useState(false);
 
   const handlePreviewYield = useCallback(
     async ({
@@ -74,7 +75,11 @@ export function useYieldCalculation() {
         setYieldPreview(result);
         setPreviewLoading(false);
         setExistingDistributionDate(null);
+        setYieldPreview(result);
+        setPreviewLoading(false);
+        setExistingDistributionDate(null);
         setExistingDistributionId(null);
+        setAcknowledgeDiscrepancy(false);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to preview yield.");
         setPreviewLoading(false);
@@ -96,5 +101,7 @@ export function useYieldCalculation() {
     setExistingDistributionId,
     handlePreviewYield,
     checkExistingDistribution,
+    acknowledgeDiscrepancy,
+    setAcknowledgeDiscrepancy,
   };
 }

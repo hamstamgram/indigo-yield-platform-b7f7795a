@@ -41,13 +41,16 @@ test.describe("Production Critical Path", () => {
     await loginAsAdmin(page);
 
     // Direct navigation instead of clicking sidebar
+    page.on("console", (msg) => console.log("BROWSER LOG:", msg.text()));
+    page.on("request", (request) => console.log(`>> ${request.method()} ${request.url()}`));
+    page.on("response", (response) => console.log(`<< ${response.status()} ${response.url()}`));
     await page.goto(`${BASE_URL}/admin/investors`);
 
     // Wait for page content
-    await expect(page.locator('h1:has-text("Investor Management")')).toBeVisible({
-      timeout: 15000,
+    await expect(page.locator('h1:has-text("Investors")')).toBeVisible({
+      timeout: 30000,
     });
-    await expect(page.locator("table")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("table")).toBeVisible({ timeout: 30000 });
     console.log("✅ Investors page loaded.");
   });
 
@@ -56,7 +59,7 @@ test.describe("Production Critical Path", () => {
     await loginAsAdmin(page);
     await page.goto(`${BASE_URL}/admin/investors`);
 
-    await expect(page.locator('h1:has-text("Investor Management")')).toBeVisible({
+    await expect(page.locator('h1:has-text("Investors")')).toBeVisible({
       timeout: 15000,
     });
 

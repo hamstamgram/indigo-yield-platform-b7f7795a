@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { batchProcess, batchMapProcess } from "@/utils/batchHelper";
 
 export interface ProfileSummary {
   id: string;
@@ -384,20 +385,22 @@ class ProfileService {
   async getLastActivityBatch(investorIds: string[]): Promise<Map<string, string>> {
     if (investorIds.length === 0) return new Map();
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, last_activity_at")
-      .in("id", investorIds);
+    return batchMapProcess(investorIds, 50, async (batchIds) => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, last_activity_at")
+        .in("id", batchIds);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const result = new Map<string, string>();
-    (data || []).forEach((p) => {
-      if (p.id && p.last_activity_at) {
-        result.set(p.id, p.last_activity_at);
-      }
+      const result = new Map<string, string>();
+      (data || []).forEach((p) => {
+        if (p.id && p.last_activity_at) {
+          result.set(p.id, p.last_activity_at);
+        }
+      });
+      return result;
     });
-    return result;
   }
 
   /**
@@ -406,33 +409,39 @@ class ProfileService {
   async getIBParentsBatch(investorIds: string[]): Promise<Map<string, string>> {
     if (investorIds.length === 0) return new Map();
 
-    // Get investors with IB parents
-    const { data: investorsWithIB, error: ibError } = await supabase
-      .from("profiles")
-      .select("id, ib_parent_id")
-      .in("id", investorIds)
-      .not("ib_parent_id", "is", null);
+    // Step 1: Batch fetch IB parent IDs
+    const investorsWithIB = await batchProcess(investorIds, 50, async (batchIds) => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, ib_parent_id")
+        .in("id", batchIds)
+        .not("ib_parent_id", "is", null);
 
-    if (ibError) throw ibError;
+      if (error) throw error;
+      return data;
+    });
 
     const ibParentIds = [
       ...new Set(
-        (investorsWithIB || []).map((p) => p.ib_parent_id).filter((id): id is string => Boolean(id))
+        investorsWithIB.map((p) => p.ib_parent_id).filter((id): id is string => Boolean(id))
       ),
     ];
 
     if (ibParentIds.length === 0) return new Map();
 
-    // Get parent names
-    const { data: parents, error: parentError } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name")
-      .in("id", ibParentIds);
+    // Step 2: Batch fetch parent names (if > 50 parents)
+    const parents = await batchProcess(ibParentIds, 50, async (batchIds) => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", batchIds);
 
-    if (parentError) throw parentError;
+      if (error) throw error;
+      return data;
+    });
 
     const ibParentNames = new Map<string, string>();
-    (parents || []).forEach((p) => {
+    parents.forEach((p) => {
       if (p.id) {
         const name = [p.first_name, p.last_name].filter(Boolean).join(" ");
         ibParentNames.set(p.id, name);
@@ -441,7 +450,7 @@ class ProfileService {
 
     // Map investor -> parent name
     const result = new Map<string, string>();
-    (investorsWithIB || []).forEach((p) => {
+    investorsWithIB.forEach((p) => {
       if (p.id && p.ib_parent_id && ibParentNames.has(p.ib_parent_id)) {
         result.set(p.id, ibParentNames.get(p.ib_parent_id)!);
       }
