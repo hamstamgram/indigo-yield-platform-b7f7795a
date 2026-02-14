@@ -23,9 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui";
-import { CalendarDays, Plus, Trash2, Loader2 } from "lucide-react";
+import { CalendarDays, Plus, Trash2, Loader2, Save, Percent } from "lucide-react";
 import { toast } from "sonner";
 import { useFeeSchedule, useDeleteFeeScheduleEntry } from "@/hooks/data/investor/useFeeSchedule";
+import {
+  useInvestorProfileSettings,
+  useUpdatePerformanceFee,
+} from "@/hooks/data/investor/useInvestorSettings";
+import { Input, Label } from "@/components/ui";
 import { AddFeeScheduleDialog } from "./AddFeeScheduleDialog";
 
 interface FeeScheduleSectionProps {
@@ -33,13 +38,36 @@ interface FeeScheduleSectionProps {
 }
 
 export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
+  const { data: profile } = useInvestorProfileSettings(investorId);
   const { data: entries, isLoading } = useFeeSchedule(investorId);
   const deleteMutation = useDeleteFeeScheduleEntry();
+  const updatePerformanceFeeMutation = useUpdatePerformanceFee();
+
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [globalFeePct, setGlobalFeePct] = useState<number>(20);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     fundName: string;
   } | null>(null);
+
+  // Sync global fee state
+  const [initialSync, setInitialSync] = useState(false);
+  if (profile && !initialSync) {
+    setGlobalFeePct(profile.feePct);
+    setInitialSync(true);
+  }
+
+  const handleSaveGlobalFee = async () => {
+    try {
+      await updatePerformanceFeeMutation.mutateAsync({
+        investorId,
+        feePct: globalFeePct,
+      });
+      toast.success("Global performance fee updated");
+    } catch (err) {
+      toast.error("Failed to update global fee");
+    }
+  };
 
   const handleDelete = () => {
     if (!deleteTarget) return;
@@ -80,20 +108,66 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
-                Fee Schedule
+                Fee Management
               </CardTitle>
-              <CardDescription>
-                Per-fund fee overrides with date ranges. Takes priority over the global fee override
-                above.
-              </CardDescription>
+              <CardDescription>Configure global defaults and per-fund overrides</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Global Performance Fee */}
+          <div className="space-y-4 pb-4 border-b">
+            <div className="space-y-2 max-w-sm">
+              <Label htmlFor="global-fee-pct" className="text-sm font-medium">
+                Global Performance Fee (%)
+              </Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="global-fee-pct"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={globalFeePct}
+                    onChange={(e) => setGlobalFeePct(parseFloat(e.target.value) || 0)}
+                    className="pr-8 font-mono"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    %
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={handleSaveGlobalFee}
+                  disabled={updatePerformanceFeeMutation.isPending}
+                >
+                  {updatePerformanceFeeMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-1 text-xs" />
+                  )}
+                  Save
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Default performance fee applied to all funds unless overridden below.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-semibold">Per-Fund Fee Overrides</h4>
+              <p className="text-xs text-muted-foreground">
+                Overrides take priority over the global fee default.
+              </p>
             </div>
             <Button size="sm" variant="outline" onClick={() => setAddDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
-              Add
+              Add Override
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
           {scheduleEntries.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               No per-fund fee schedule entries. The global fee override or fund default will be

@@ -12,6 +12,7 @@ export interface IBConfig {
   investorId: string;
   ibParentId: string | null;
   ibPercentage: number;
+  ibCommissionSource: "manual" | "investor_fee";
 }
 
 // ============ Functions ============
@@ -22,7 +23,7 @@ export interface IBConfig {
 export async function getInvestorIBConfig(investorId: string): Promise<IBConfig | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, ib_parent_id, ib_percentage")
+    .select("id, ib_parent_id, ib_percentage, ib_commission_source")
     .eq("id", investorId)
     .maybeSingle();
 
@@ -35,6 +36,7 @@ export async function getInvestorIBConfig(investorId: string): Promise<IBConfig 
     investorId: data.id,
     ibParentId: data.ib_parent_id,
     ibPercentage: data.ib_percentage || 0,
+    ibCommissionSource: (data.ib_commission_source as "manual" | "investor_fee") || "manual",
   };
 }
 
@@ -44,7 +46,8 @@ export async function getInvestorIBConfig(investorId: string): Promise<IBConfig 
 export async function updateInvestorIBConfig(
   investorId: string,
   ibParentId: string | null,
-  ibPercentage: number
+  ibPercentage: number,
+  ibCommissionSource: "manual" | "investor_fee" = "manual"
 ): Promise<{ success: boolean; error?: string }> {
   // Validate percentage
   if (ibPercentage < 0 || ibPercentage > 100) {
@@ -61,6 +64,7 @@ export async function updateInvestorIBConfig(
     .update({
       ib_parent_id: ibParentId,
       ib_percentage: ibPercentage,
+      ib_commission_source: ibCommissionSource,
     })
     .eq("id", investorId);
 

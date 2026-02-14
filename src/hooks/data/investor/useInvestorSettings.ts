@@ -8,6 +8,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   getInvestorProfileForSettings,
   deleteInvestorProfile,
+  updatePerformanceFee,
   getInvestorReportPeriods,
   type InvestorProfileData,
   type ReportPeriod,
@@ -35,6 +36,23 @@ export function useDeleteInvestorProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorProfileSettings("") });
+    },
+  });
+}
+
+/**
+ * Hook to update an investor's performance fee
+ */
+export function useUpdatePerformanceFee() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ investorId, feePct }: { investorId: string; feePct: number }) =>
+      updatePerformanceFee(investorId, feePct),
+    onSuccess: (_, { investorId }) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.investorProfileSettings(investorId),
+      });
     },
   });
 }

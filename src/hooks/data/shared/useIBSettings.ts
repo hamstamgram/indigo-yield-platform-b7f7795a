@@ -42,6 +42,7 @@ export interface UserSearchResult {
 export interface IBConfig {
   ibParentId: string | null;
   ibPercentage: number;
+  ibCommissionSource: "manual" | "investor_fee";
   hasIBRole: boolean;
   availableParents: IBParentOption[];
   referrals: Referral[];
@@ -61,6 +62,7 @@ async function fetchIBSettings(investorId: string): Promise<IBConfig> {
   return {
     ibParentId: config?.ibParentId || null,
     ibPercentage: config?.ibPercentage || 0,
+    ibCommissionSource: config?.ibCommissionSource || "manual",
     hasIBRole: hasRole,
     availableParents: parents,
     referrals: refs,
@@ -123,12 +125,19 @@ export function useUpdateIBConfig() {
       investorId,
       ibParentId,
       ibPercentage,
+      ibCommissionSource,
     }: {
       investorId: string;
       ibParentId: string | null;
       ibPercentage: number;
+      ibCommissionSource?: "manual" | "investor_fee";
     }) => {
-      const result = await updateInvestorIBConfig(investorId, ibParentId, ibPercentage);
+      const result = await updateInvestorIBConfig(
+        investorId,
+        ibParentId,
+        ibPercentage,
+        ibCommissionSource
+      );
       if (!result.success) {
         throw new Error(result.error || "Failed to update IB settings");
       }

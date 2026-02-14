@@ -178,8 +178,12 @@ class SecurityLogger {
    */
   private handleLoggingError(error: unknown, event: SecurityEventData, throwError: boolean): void {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+    // Mask sensitive data before storing in localStorage
+    const maskedEvent = this.maskSensitiveData(event);
+
     const errorDetails = {
-      event,
+      event: maskedEvent,
       error: errorMessage,
       timestamp: new Date().toISOString(),
     };
@@ -282,6 +286,36 @@ class SecurityLogger {
     const eventType =
       type === "EXPORT" ? SecurityEventType.DATA_EXPORT : SecurityEventType.DATA_DELETION;
     await this.logEvent(eventType, SecuritySeverity.HIGH, { gdpr_action: type, ...details });
+  }
+
+  /**
+   * Mask sensitive data (emails, IPs) for storage
+   */
+  private maskSensitiveData(event: SecurityEventData): SecurityEventData {
+    const masked = { ...event };
+
+    // Mask details if they exist
+    if (masked.details) {
+      const details = { ...masked.details };
+
+      // Mask email if present
+      if (details.email && typeof details.email === "string") {
+        const [local, domain] = details.email.split("@");
+        if (local && domain) {
+          details.email = `${local[0]}***@${domain}`;
+        }
+      }
+
+      masked.details = details;
+    }
+
+    // IP address is usually fetched server-side in this architecture,
+    // but we redact it if it ever appears in the client-side event object
+    if (masked.ip_address) {
+      masked.ip_address = "REDACTED";
+    }
+
+    return masked;
   }
 }
 

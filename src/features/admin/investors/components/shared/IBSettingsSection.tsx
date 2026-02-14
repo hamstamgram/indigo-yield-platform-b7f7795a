@@ -29,6 +29,7 @@ import {
   DialogTitle,
   Alert,
   AlertDescription,
+  Switch,
 } from "@/components/ui";
 import {
   Loader2,
@@ -41,6 +42,8 @@ import {
   Crown,
   Trash2,
   Info,
+  Link2,
+  Link2Off,
 } from "lucide-react";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
@@ -79,6 +82,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   // Local state for form
   const [ibParentId, setIbParentId] = useState<string | null>(null);
   const [ibPercentage, setIbPercentage] = useState<number>(0);
+  const [ibCommissionSource, setIbCommissionSource] = useState<"manual" | "investor_fee">("manual");
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [showRemoveIBDialog, setShowRemoveIBDialog] = useState(false);
 
@@ -95,6 +99,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
     if (ibSettings) {
       setIbParentId(ibSettings.ibParentId);
       setIbPercentage(ibSettings.ibPercentage);
+      setIbCommissionSource(ibSettings.ibCommissionSource);
     }
   });
 
@@ -102,6 +107,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   if (ibSettings && ibParentId === null && ibSettings.ibParentId !== null) {
     setIbParentId(ibSettings.ibParentId);
     setIbPercentage(ibSettings.ibPercentage);
+    setIbCommissionSource(ibSettings.ibCommissionSource);
   }
 
   const handleSave = async () => {
@@ -122,6 +128,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
       investorId,
       ibParentId,
       ibPercentage,
+      ibCommissionSource,
     });
     onUpdate?.();
   };
@@ -390,6 +397,51 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
               <p className="text-xs text-muted-foreground">
                 The investor who referred this account
               </p>
+            </div>
+
+            {/* Global IB Commission */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="ib-percentage" className="text-sm font-medium">
+                    Global IB Commission (%)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="link-fees" className="text-xs text-muted-foreground">
+                      Link to Investor Fee
+                    </Label>
+                    <Switch
+                      id="link-fees"
+                      checked={ibCommissionSource === "investor_fee"}
+                      onCheckedChange={(checked) =>
+                        setIbCommissionSource(checked ? "investor_fee" : "manual")
+                      }
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="ib-percentage"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={ibPercentage}
+                    onChange={(e) => setIbPercentage(parseFloat(e.target.value) || 0)}
+                    disabled={isReadOnly || ibCommissionSource === "investor_fee"}
+                    className="pr-8 font-mono"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    %
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {ibCommissionSource === "investor_fee"
+                    ? "Automatically synced with investor's performance fee"
+                    : "Default commission percentage for all funds"}
+                </p>
+              </div>
             </div>
           </div>
 

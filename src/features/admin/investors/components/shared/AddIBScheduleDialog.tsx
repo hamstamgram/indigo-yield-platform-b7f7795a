@@ -140,9 +140,9 @@ export function AddIBScheduleDialog({ investorId, open, onOpenChange }: AddIBSch
             </Select>
           </div>
 
-          {/* IB Percentage */}
+          {/* IB Commission Percentage */}
           <div className="space-y-2">
-            <Label htmlFor="ib-schedule-pct">IB Commission (%)</Label>
+            <Label htmlFor="ib-schedule-pct">Commission Percentage (%)</Label>
             <Input
               id="ib-schedule-pct"
               type="number"
