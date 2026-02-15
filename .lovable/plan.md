@@ -1,41 +1,44 @@
 
 
-## Fix: Navigation Active State Bug + Reorganize INDIGO Fees Position
+# Fix: "Permission denied for function void_transaction"
 
-### Problem 1: Two nav items highlighted simultaneously
+## Problem
 
-When clicking a sidebar menu item, the previous item sometimes stays highlighted. The root cause is in `NavSection.tsx`'s `isActive` function. For investor routes, the logic checks:
-
+The database logs clearly show repeated errors:
 ```
-href !== "/" && location.pathname.startsWith(href + "/")
+permission denied for function void_transaction
 ```
 
-This means when you're on `/investor/portfolio`, the path starts with `/investor/` — so both "Overview" (`/investor`) and "Portfolio" (`/investor/portfolio`) show as active.
+This means the `void_transaction` RPC function exists but the `authenticated` role (used by logged-in users via Supabase) does not have `EXECUTE` permission on it. Every attempt to void a deposit (or any transaction) from the Admin Transactions page fails with this error.
 
-**Fix**: Add an exception for base routes like `/investor` so they only match on exact path equality, not prefix matching.
+The same issue also affects `get_void_transaction_impact` (the impact preview), and `get_investor_reports_v2`.
 
-### Problem 2: INDIGO Fees should be right after Command Center
+## Root Cause
 
-Currently, INDIGO Fees lives inside the "Yield & Reporting" nav group. It needs to move into the "Command" group, positioned immediately after "Command Center".
+The function was likely created with `SECURITY DEFINER` but the `GRANT EXECUTE` statement was either missing or was lost during a migration.
 
-**Fix**: Move the INDIGO Fees entry from the "Yield & Reporting" group to the "Command" group in `src/config/navigation.tsx`.
+## Fix
 
-### Problem 3: Build error (periodEndDate)
+Run a single SQL migration to grant execute permissions on the affected functions:
 
-`InvestorOverviewPage.tsx` references `assetStats.periodEndDate` but the return type of `usePerAssetStats` only has `{ assets, activeFunds }`. This property doesn't exist.
+```sql
+-- Grant execute on void_transaction and related functions to authenticated role
+GRANT EXECUTE ON FUNCTION public.void_transaction(uuid, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_void_transaction_impact(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_investor_reports_v2(uuid, uuid) TO authenticated;
+```
 
-**Fix**: Remove the `periodEndDate` conditional block (lines 222-230) since the data source never provides this field.
+Note: The exact parameter signatures may need verification. I will check the precise signatures from the database types before running the migration.
 
----
+## Technical Details
 
-### Technical Changes
+- **Affected functions**: `void_transaction`, `get_void_transaction_impact`, `get_investor_reports_v2`
+- **Required grant**: `EXECUTE` to `authenticated` role
+- **No code changes needed** -- the frontend service layer (`adminTransactionHistoryService.voidTransaction`) and the `VoidTransactionDialog` component are correctly implemented
+- **Security**: The functions themselves contain internal `is_admin()` / `check_is_admin()` guards, so granting `EXECUTE` to `authenticated` is safe -- non-admin users will still be rejected inside the function body
 
-**File 1: `src/components/sidebar/NavSection.tsx`**
-- Update `isActive()` to treat `/investor` and `/dashboard` as exact-match-only routes, preventing them from prefix-matching child routes like `/investor/portfolio`
-
-**File 2: `src/config/navigation.tsx`**
-- Move the "INDIGO Fees" nav item from the "Yield & Reporting" group into the "Command" group, right after "Command Center"
-
-**File 3: `src/pages/investor/InvestorOverviewPage.tsx`**
-- Remove lines 222-230 that reference the non-existent `periodEndDate` property to fix the TypeScript build error
+## Steps
+1. Verify exact function signatures from `supabase/types`
+2. Run SQL migration with `GRANT EXECUTE` statements
+3. Test voiding a deposit from the Admin Transactions page
 
