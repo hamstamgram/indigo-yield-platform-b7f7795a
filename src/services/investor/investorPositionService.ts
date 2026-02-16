@@ -314,22 +314,6 @@ export async function fetchInvestors(): Promise<
   }));
 }
 
-/**
- * Fetch pending invites
- * @deprecated admin_invites table was dropped. This function always returns an empty array.
- */
-export async function fetchPendingInvites(): Promise<
-  {
-    id: string;
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-    created_at: string;
-  }[]
-> {
-  return [];
-}
-
 // ============================================
 // Expert View Functions
 // ============================================

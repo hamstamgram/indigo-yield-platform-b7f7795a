@@ -31,7 +31,6 @@ export {
   updatePositionValue,
   checkAdminStatus,
   fetchInvestors,
-  fetchPendingInvites,
   getInvestorPositions as getInvestorPositionsList,
   getUserPositions,
   getTotalAUM,
@@ -128,7 +127,6 @@ export {
   saveUserPreferences,
   getActiveSessions,
   getAccessLogs,
-  revokeSession,
 } from "./investorPortalService";
 
 // Fund view service (investor-focused fund operations)

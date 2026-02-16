@@ -44,7 +44,6 @@ export {
   getPlatformStats,
   fetchInvestorsForSelector,
   fetchInvestors,
-  fetchPendingInvites,
   getAllInvestorsExpertSummary,
   getInvestorExpertView,
   updatePositionValue,

@@ -23,9 +23,6 @@ export interface TransactionRecord {
   created_at: string;
 }
 
-/** @deprecated Use TransactionRecord instead */
-export type TransactionV2 = TransactionRecord;
-
 export interface TransactionFilters {
   search?: string;
   type?: string;

@@ -5,7 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { getActiveFunds as getActiveFundsFromFundService } from "./fundService";
+import { getActiveFunds } from "./fundService";
 
 // ==================== Types ====================
 
@@ -73,14 +73,6 @@ export interface FeesOverviewData {
 }
 
 // ==================== Service Functions ====================
-
-/**
- * Load all active funds
- * @deprecated Use getActiveFunds from fundService.ts instead
- */
-export async function getActiveFunds(): Promise<FundRef[]> {
-  return getActiveFundsFromFundService();
-}
 
 /**
  * Load fee-related transactions with investor and fund details

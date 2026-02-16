@@ -4,9 +4,9 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { getActiveFunds } from "@/services/admin/fundService";
 import {
   getFeesOverviewData,
-  getActiveFunds,
   getFeeTransactions,
   getIndigoFeesBalance,
   getFeeAllocations,

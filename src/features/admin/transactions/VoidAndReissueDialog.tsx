@@ -47,7 +47,7 @@ import { FinancialValue } from "@/components/common/FinancialValue";
 import usePlatformError, { routeErrorAction } from "@/hooks/usePlatformError";
 import { PlatformErrorCode } from "@/types/errors/platformErrors";
 import { preflowAumService } from "@/services/admin";
-import { authService } from "@/services/shared";
+import { getCurrentUser } from "@/services/auth/authService";
 import { logError } from "@/lib/logger";
 
 const reissueSchema = z.object({
@@ -216,7 +216,7 @@ export function VoidAndReissueDialog({
     // Ensure preflow exists for fund/date (idempotent). If one exists, it will be reused.
     if (transaction.fundId) {
       try {
-        const user = await authService.getCurrentUser();
+        const user = await getCurrentUser();
 
         if (closingAum !== null) {
           await preflowAumService.ensure(

@@ -68,7 +68,6 @@ export {
   useSaveUserPreferences,
   useActiveSessions,
   useAccessLogs,
-  useRevokeSession,
   type Session,
   type AccessLog,
   type UserSettings,

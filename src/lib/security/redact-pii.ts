@@ -199,4 +199,9 @@ export const RedactionPresets = {
   },
 } as const;
 
-export { redactForLogging, redactForAdmin, redactForAudit } from "./redact-pii-simple";
+/**
+ * Convenience functions for common redaction scenarios
+ */
+export const redactForLogging = <T>(data: T) => redactPII(data, { ...RedactionPresets.LOGGING });
+export const redactForAdmin = <T>(data: T) => redactPII(data, { ...RedactionPresets.ADMIN_DISPLAY, patterns: [...RedactionPresets.ADMIN_DISPLAY.patterns] });
+export const redactForAudit = <T>(data: T) => redactPII(data, { ...RedactionPresets.AUDIT, keys: [...RedactionPresets.AUDIT.keys], patterns: [...RedactionPresets.AUDIT.patterns] });

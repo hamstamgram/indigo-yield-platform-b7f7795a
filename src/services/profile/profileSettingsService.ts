@@ -123,15 +123,6 @@ export async function updateNotificationPreferences(
 }
 
 /**
- * Change user password
- * @deprecated Use updatePassword from authService.ts instead
- */
-export async function changePassword(newPassword: string): Promise<void> {
-  const { updatePassword } = await import("@/services/auth/authService");
-  return updatePassword(newPassword);
-}
-
-/**
  * Get user email
  */
 export async function getUserEmail(): Promise<string | null> {

@@ -48,7 +48,7 @@ import {
 } from "@/features/admin/yields/hooks/useYieldCrystallization";
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { getMonth, getYear } from "date-fns";
-import { useYieldOperationsState, type Fund } from "@/hooks/admin/useYieldOperationsState";
+import { useYieldOperationsState, type Fund } from "@/hooks/data/admin/useYieldOperationsState";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/layout/PageShell";
 
