@@ -1,173 +1,237 @@
 
+# Comprehensive Codebase and Backend Audit Report
 
-# Deep Platform Audit Report
+## Executive Summary
 
-## Summary
+The platform has a well-defined layered architecture (Components > Hooks > Services > DB) with strong foundations: a contract-first design (`src/contracts/`), an RPC gateway (`src/lib/rpc/`), and typed database views (`src/lib/db/viewTypes.ts`). However, there are structural inconsistencies, leftover legacy code, and organizational gaps that reduce maintainability and increase cognitive load.
 
-After extensive codebase analysis, I identified **14 findings** across 4 categories: duplicate functions, logic/math issues, architectural violations, and dead code.
-
----
-
-## Category 1: Duplicate Functions (6 findings)
-
-### D1. `getActiveFunds()` -- 3 identical implementations
-
-- `src/services/admin/fundService.ts` line 294
-- `src/services/admin/feesService.ts` line 79
-- `src/services/shared/profileService.ts` line 226 (class method)
-
-All three query `funds` with `status = 'active'`, select `id, code, name, asset`. Plus a 4th near-duplicate `getActiveFundsForList()` in `src/services/investor/fundViewService.ts` line 62.
-
-**Fix**: Delete from `feesService` and `profileService`; import from `fundService`.
-
-### D2. `getFundInvestorComposition()` -- 2 different implementations
-
-- `src/services/admin/dashboardMetricsService.ts` line 187 -- direct DB query, includes ALL account types
-- `src/services/admin/yieldHistoryService.ts` line 271 (`getFundInvestorCompositionWithYield`) -- uses `get_fund_composition` RPC, investor-only
-
-Both are exported from the admin barrel. The dashboard version includes fees/IB accounts (correct for dashboard) while the yield version excludes them (correct for yield). However, the yield barrel re-exports with an alias `as getFundInvestorComposition`, creating a name collision in the barrel.
-
-**Fix**: Rename the yield version to `getFundInvestorCompositionForYield` to eliminate ambiguity.
-
-### D3. `getInvestorPositionsWithFunds()` -- 2 implementations
-
-- `src/services/investor/fundViewService.ts` line 140 -- full join, filters zero-value
-- `src/services/admin/yieldHistoryService.ts` line 322 -- minimal join, filters active funds only
-
-Different return types and filters. Both are re-exported from barrels.
-
-**Fix**: Rename yield version to `getInvestorPositionsForYield` to prevent import confusion.
-
-### D4. `changePassword()` vs `updatePassword()` -- duplicate auth functions
-
-- `src/services/auth/authService.ts:updatePassword()` -- canonical
-- `src/services/profile/profileSettingsService.ts:changePassword()` -- identical body
-
-**Fix**: Delete `changePassword` from profileSettingsService; consumers import from authService.
-
-### D5. `resetPasswordForEmail()` vs `sendPasswordResetEmail()` -- duplicate in same file
-
-- `src/services/auth/authService.ts` lines 128 and 203 -- both call `supabase.auth.resetPasswordForEmail` with nearly identical logic
-
-**Fix**: Delete `sendPasswordResetEmail`; use `resetPasswordForEmail` everywhere.
-
-### D6. `deleteInvestorProfile()` vs `deleteInvestorUser()` vs `forceDeleteInvestor()`
-
-Three different deletion paths:
-- `investorSettingsService.deleteInvestorProfile()` -- direct `profiles.delete()` (bypasses RLS policy `no_profile_deletes` which uses `USING (false)` -- this will ALWAYS fail silently or error)
-- `userService.deleteInvestorUser()` -- edge function call
-- `reconciliationService.forceDeleteInvestor()` -- RPC call
-
-**Critical**: `deleteInvestorProfile` uses `supabase.from("profiles").delete()` but the RLS policy `no_profile_deletes` is `USING (false)` -- meaning this call will always return 0 rows deleted without error (Supabase silent failure). This is dead/broken code.
-
-**Fix**: Remove `deleteInvestorProfile`. All deletions must go through the edge function or RPC.
+14 findings are organized below from most critical to optional.
 
 ---
 
-## Category 2: Math/Precision Issues (3 findings)
+## 1. Investor Domain Has No `src/features/investor/` (Critical -- Structural Gap)
 
-### M1. `Number()` used for financial values instead of `Decimal.js`
+The admin domain is 95% migrated to `src/features/admin/` with well-organized subdirectories (dashboard, funds, investors, transactions, yields, etc.). The investor domain, however, is fragmented across **four separate locations**:
 
-Per project standards (documented in `DUPLICATE_PREVENTION_GOVERNANCE.md`), financial math must use `Decimal.js`. However, multiple services use raw `Number()`:
+- `src/pages/investor/` -- 7 page files + 3 subdirectories
+- `src/components/investor/` -- 4 small component files across 4 subdirs
+- `src/hooks/data/investor/` -- 23 hook files
+- `src/services/investor/` -- 14 service files
 
-- `investorPositionService.ts` lines 112-115, 169-175, 502-508 -- `Number(pos.shares || 0)`
-- `investorPortfolioService.ts` lines 65-66
-- `feesService.ts` line 221
+There is no `src/features/investor/` directory at all.
 
-These convert database `NUMERIC(28,10)` values to JavaScript `Number`, which only has ~15 digits of precision. For large balances this could cause rounding errors.
+**Recommendation**: Create `src/features/investor/` mirroring the admin pattern (portfolio, statements, transactions, settings, withdrawals subdomains). Move investor pages and components into it. This is the single highest-impact structural change.
 
-**Fix**: Use `parseFinancial()` consistently (already imported in some of these files but not used for all conversions).
+---
 
-### M2. Allocation percentage uses native division
+## 2. `src/services/api/` -- Misplaced and Partially Dead (Critical -- Dead Code)
 
-`investorPositionService.ts` line 175:
+Two files exist in `src/services/api/`:
+
+- **`reportsApi.ts`** (330 lines) -- A `ReportsApi` class where 4 of 7 public methods return empty arrays or `null` because the underlying tables (`generated_reports`, `report_access_logs`) were dropped. Only the `report_schedules` CRUD remains functional.
+- **`statementsApi.ts`** (954 lines) -- A large procedural file with direct `supabase.from()` queries, `auth.getUser()` calls, and HTML generation logic mixed together. This is the biggest single-file service-layer-isolation violator.
+
+Both files sit in an `api/` directory that does not conform to the established `services/{domain}/` pattern.
+
+**Recommendation**:
+- Move functional `report_schedules` CRUD from `reportsApi.ts` into `src/services/admin/reportService.ts`. Delete dead methods.
+- Break `statementsApi.ts` into `src/services/admin/` subdomain files (e.g., period CRUD, statement generation, email delivery). It currently mixes data access, business logic, and presentation (HTML generation).
+
+---
+
+## 3. `src/services/shared/` -- Oversized Catch-All (High -- Structural)
+
+This directory has **17 files** spanning wildly different domains:
+
+| File | Actual Domain |
+|------|---------------|
+| `authService.ts` | Auth (duplicate of `src/services/auth/`) |
+| `transactionService.ts` | Transactions |
+| `performanceService.ts` (584 lines) | Reporting/Performance |
+| `performanceDataService.ts` (231 lines) | Reporting/Performance |
+| `profileService.ts` | Investor/Profile |
+| `statementsService.ts` | Statements |
+| `investorDataExportService.ts` | GDPR/Compliance |
+| `historicalDataService.ts` | Reporting |
+
+The `shared/` directory has become a dumping ground. Files like `performanceService.ts` and `performanceDataService.ts` are large, domain-specific modules that belong in `services/admin/` or `services/reports/`.
+
+**Recommendation**: Redistribute files to their correct domain directories. Keep only truly cross-cutting utilities (audit logging, storage, system config, notifications) in `shared/`.
+
+---
+
+## 4. Dual Auth Services (High -- Duplication)
+
+Two separate auth service files exist:
+- `src/services/auth/authService.ts` -- Full auth operations (sign in, sign up, sign out, password reset, OTP, OAuth) -- 206 lines
+- `src/services/shared/authService.ts` -- Just `getCurrentUser()` and `getCurrentUserOptional()` -- 49 lines
+
+Both are exported through their respective barrels. Consumers must know which one to import from.
+
+**Recommendation**: Merge `shared/authService.ts` functions into `services/auth/authService.ts`. Update the shared barrel to re-export from auth.
+
+---
+
+## 5. Eight `@deprecated` Functions Still in Codebase (Medium -- Dead Code)
+
+The previous audit flagged these and added `@deprecated` tags, but the functions themselves were not removed:
+
+1. `feesService.getActiveFunds()` -- delegates to `fundService`
+2. `profileService.getActiveFunds()` -- same
+3. `profileSettingsService.changePassword()` -- delegates to `authService`
+4. `authService.sendPasswordResetEmail()` -- delegates to `resetPasswordForEmail`
+5. `investorPositionService.fetchPendingInvites()` -- always returns `[]`
+6. `investorPortalService.revokeSession()` -- no-op
+7. `transactionsV2Service.TransactionV2` type alias -- alias for `TransactionRecord`
+8. `reportUpsertService.upsertInvestorReport()` -- replaced by `strictInsertStatement`
+
+These add noise and confuse new contributors.
+
+**Recommendation**: Delete all 8 deprecated exports. Search for any remaining consumers and update them.
+
+---
+
+## 6. Class-Based Service Wrappers (Medium -- Pattern Inconsistency)
+
+The codebase has 20+ class-based service wrappers (e.g., `InvestorDataService`, `FundServiceClass`, `ProfileService`, `AssetService`, `NotificationService`, etc.) that simply wrap functional exports. These add unnecessary indirection:
+
 ```typescript
-allocationPercentage: totalValue > 0 ? (Number(fp.current_value) / totalValue) * 100 : 0
+// Pattern seen in many files:
+class FundServiceClass {
+  getAllFunds = listFunds;
+  getFundById = getFund;
+}
+export const fundService = new FundServiceClass();
 ```
 
-This should use `Decimal.js` division to avoid floating-point artifacts (e.g., 33.33333333333333% vs 33.3333333333%).
+The project standard says to use functional exports. These classes exist only for backwards compatibility but are no longer needed since the functional versions are the canonical exports.
 
-**Fix**: Use `toDecimal(fp.current_value).div(totalValue).times(100).toNumber()`.
-
-### M3. Portfolio performance uses potentially unsafe division
-
-`investorPortfolioSummaryService.ts` line 130:
-```typescript
-ytd_percentage: totalValue > 0 ? (totalPnL / (totalValue - totalPnL)) * 100 : 0
-```
-
-If `totalValue === totalPnL` (100% gain), this divides by zero. No guard for this edge case.
-
-**Fix**: Add `(totalValue - totalPnL) !== 0` guard.
+**Recommendation**: Audit consumers of each `xxxService.method()` pattern. Replace with direct function imports. Remove class wrappers in a phased approach (lowest-usage classes first).
 
 ---
 
-## Category 3: Architectural Violations (3 findings)
+## 7. `src/hooks/data/shared/` Contains Admin-Specific Hooks (Medium -- Misplacement)
 
-### A1. `checkAdminStatus()` in investor position service
+Several hooks in the `shared/` directory are admin-only:
+- `useDashboardMetrics.ts` -- admin dashboard metrics
+- `useDashboardQueries.ts` -- admin dashboard queries
+- `useInvestorEnrichment.ts` -- admin investor enrichment
+- `useInvestorDetailHooks.ts` -- admin investor detail
+- `useInvestorMutations.ts` -- admin investor mutations
+- `useInvestorQueries.ts` -- admin investor queries
 
-`src/services/investor/investorPositionService.ts` line 516 contains an admin check function that queries `profiles.is_admin` directly. Per project memory, admin status must come from `is_admin()` RPC or `user_roles` table, not `profiles.is_admin` field (which the auth context explicitly says can be manipulated).
+These are not "shared" -- they are admin-specific data hooks that should live in `src/hooks/data/admin/`.
 
-**Fix**: Replace with `rpc.call("is_admin")` or remove entirely (auth context already provides `isAdmin`).
-
-### A2. Direct Supabase query in feature hooks
-
-`src/features/admin/reports/hooks/useStatementData.ts` line 173 uses `supabase.from("generated_statements").delete()` directly instead of going through a service layer. This violates the service-layer isolation standard.
-
-**Fix**: Move to `statementAdminService.ts`.
-
-### A3. `getTotalAUM()` and `getActiveInvestorCount()` make redundant RPC calls
-
-Both functions in `investorPositionService.ts` (lines 218 and 235) independently call `supabase.rpc("get_platform_stats")` -- meaning if both are called together (which `adminService.ts` line 48-49 does), the same RPC executes twice.
-
-**Fix**: Create a unified `getPlatformStats()` that returns both values from a single call.
+**Recommendation**: Move these 6 files to `src/hooks/data/admin/exports/` or directly into the admin barrel.
 
 ---
 
-## Category 4: Dead/Broken Code (2 findings)
+## 8. Yield Service Sprawl (Medium -- Fragmentation)
 
-### B1. `fetchPendingInvites()` returns empty array
+The admin services directory has **8 yield-related files**:
 
-`investorPositionService.ts` line 316 -- the comment says "admin_invites table was dropped" and the function returns `[]`. This is dead code still exported and potentially called.
+1. `yieldApplyService.ts`
+2. `yieldCrystallizationService.ts`
+3. `yieldDistributionService.ts`
+4. `yieldDistributionsPageService.ts`
+5. `yieldHistoryService.ts`
+6. `yieldManagementService.ts`
+7. `yieldPreviewService.ts`
+8. `yieldReportsService.ts`
 
-**Fix**: Remove function and update consumers.
+Plus `recordedYieldsService.ts` and `depositWithYieldService.ts`. This makes it hard to know where new yield logic should go.
 
-### B2. `revokeSession()` is a no-op
-
-`investorPortalService.ts` line 326 -- "user_sessions table was dropped - no-op". Dead code.
-
-**Fix**: Remove function and update consumers to show a "not available" message.
+**Recommendation**: Consolidate into a `src/services/admin/yields/` subdirectory with a clear internal barrel, similar to how `src/services/admin/reports/` is organized.
 
 ---
 
-## Implementation Priority
+## 9. `src/components/dashboard/index.ts` is Empty (Low -- Dead Module)
 
-| Priority | Finding | Risk | Effort |
-|----------|---------|------|--------|
-| P0 | D6 (deleteInvestorProfile always fails) | Data integrity | Low |
-| P0 | M3 (division by zero in portfolio) | Runtime crash | Low |
-| P0 | A1 (admin check bypasses RBAC) | Security | Low |
-| P1 | M1 (Number() precision loss) | Financial accuracy | Medium |
-| P1 | D1 (3x getActiveFunds) | Maintainability | Low |
-| P1 | A3 (double RPC call) | Performance | Low |
-| P2 | D2-D5 (other duplicates) | Code quality | Low |
-| P2 | A2, B1, B2 (cleanup) | Code quality | Low |
+This file contains only a comment with no exports. It is a dead module.
 
-## Technical Implementation
+**Recommendation**: Delete the file and directory.
 
-### Step 1 -- P0 Fixes
-1. Delete `deleteInvestorProfile` from `investorSettingsService.ts` and remove from barrel
-2. Add division-by-zero guard in `investorPortfolioSummaryService.ts` line 130
-3. Replace `checkAdminStatus()` body with `rpc.call("is_admin")` or deprecate
+---
 
-### Step 2 -- P1 Fixes
-4. Consolidate `getActiveFunds` into `fundService.ts` only; update imports in `feesService` and `profileService`
-5. Create `getPlatformStats()` function returning `{ totalAum, investorCount }` from a single RPC call
-6. Replace `Number()` casts with `parseFinancial()` in position mapping functions
+## 10. Report Components Outside Feature Directory (Low -- Misplacement)
 
-### Step 3 -- P2 Cleanup
-7. Delete `sendPasswordResetEmail` and `changePassword` duplicates
-8. Rename ambiguous `getInvestorPositionsWithFunds` and `getFundInvestorComposition` variants
-9. Move direct Supabase call from `useStatementData.ts` to service layer
-10. Remove dead `fetchPendingInvites` and `revokeSession` functions
+`src/components/reports/ReportHistory.tsx` and `src/components/reports/ReportBuilder.tsx` import directly from `src/services/api/reportsApi.ts`. These components should be in `src/features/admin/reports/components/` and should use hooks rather than calling service APIs directly.
 
+**Recommendation**: Move to `src/features/admin/reports/components/`. Create corresponding hooks if they do not exist.
+
+---
+
+## 11. Redundant Performance Services (Low -- Duplication)
+
+Two performance services exist in `shared/`:
+- `performanceService.ts` (584 lines) -- Read-only queries, RoR calculations, formatting
+- `performanceDataService.ts` (231 lines) -- CRUD operations on `investor_fund_performance`
+
+Plus `src/services/admin/investorPerformanceService.ts` which handles admin-specific performance updates.
+
+Three files for one domain table is excessive. The read vs. write split across two shared files is arbitrary.
+
+**Recommendation**: Merge `performanceService.ts` and `performanceDataService.ts` into a single `performanceService.ts` in `services/admin/` (since only admins write performance data). Keep investor-facing reads as a thin wrapper.
+
+---
+
+## 12. `src/lib/security/` Has Two PII Redaction Files (Low -- Duplication)
+
+- `redact-pii.ts` -- Full implementation
+- `redact-pii-simple.ts` -- Simplified version
+
+Having both creates confusion about which to use.
+
+**Recommendation**: Consolidate into a single file with an optional `simple` mode parameter.
+
+---
+
+## 13. `src/hooks/admin/` vs `src/hooks/data/admin/` (Low -- Confusing Structure)
+
+Two admin hook directories exist:
+- `src/hooks/admin/` -- Contains `yield/` subdir and `useYieldOperationsState.ts`
+- `src/hooks/data/admin/` -- Main admin data hooks
+
+The first directory has only 2 files and overlaps conceptually with the second.
+
+**Recommendation**: Move `src/hooks/admin/` contents into `src/hooks/data/admin/` for a single source of truth.
+
+---
+
+## 14. `src/utils/` Has Overlapping Numeric Utilities (Optional -- Cleanup)
+
+Three files deal with numbers:
+- `numeric.ts`
+- `numericHelpers.ts`
+- `financial.ts`
+
+All provide number formatting and precision utilities. Some functions may overlap.
+
+**Recommendation**: Audit for duplicates. Consolidate into `numericHelpers.ts` (the canonical file per project memory) and `financial.ts` (for finance-specific formatters).
+
+---
+
+## Prioritized Action Steps
+
+| Step | Finding | Impact | Effort |
+|------|---------|--------|--------|
+| 1 | Delete 8 `@deprecated` functions (#5) | Reduces confusion immediately | Low |
+| 2 | Merge dual auth services (#4) | Eliminates import ambiguity | Low |
+| 3 | Delete empty `components/dashboard/` (#9) | Remove dead code | Trivial |
+| 4 | Move admin hooks from `shared/` to `admin/` (#7) | Correct categorization | Low |
+| 5 | Consolidate `services/api/` into proper domains (#2) | Remove dead code, fix isolation | Medium |
+| 6 | Reorganize yield services into subdirectory (#8) | Reduce sprawl | Medium |
+| 7 | Redistribute `services/shared/` files (#3) | Clean shared boundary | Medium |
+| 8 | Remove class-based wrappers (#6) | Align with functional standard | Medium |
+| 9 | Create `features/investor/` structure (#1) | Complete feature-first migration | High |
+| 10 | Consolidate performance services (#11) | Reduce fragmentation | Medium |
+| 11 | Move report components (#10) | Complete feature isolation | Low |
+| 12 | Merge PII redaction files (#12) | Minor cleanup | Trivial |
+| 13 | Merge hooks/admin directories (#13) | Single source of truth | Low |
+| 14 | Consolidate numeric utilities (#14) | Minor cleanup | Low |
+
+---
+
+## Backend/RLS Notes
+
+The previous audit addressed the critical backend issues (GRANT permissions, division-by-zero, insecure admin checks). The current RLS posture is solid with a consistent pattern of `is_admin()` for admin tables and `investor_id = auth.uid()` for investor tables. The `fund_aum_events` table still uses `profiles.is_admin` in its RLS policies rather than `is_admin()`, which was flagged in the prior audit's security memory. No new backend gaps were identified beyond what was already addressed.
