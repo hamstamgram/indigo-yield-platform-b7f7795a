@@ -4,6 +4,7 @@
  */
 
 import { useState, useMemo } from "react";
+import { parseFinancial } from "@/utils/financial";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
@@ -87,10 +88,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
     const pending = filteredEvents.filter((e) => e.visibility_scope === "admin_only").length;
     const visible = filteredEvents.filter((e) => e.visibility_scope === "investor_visible").length;
     const totalYield = filteredEvents.reduce(
-      (sum, e) => {
-        const val = parseFloat(String(e.net_yield_amount));
-        return Number.isFinite(val) ? sum + val : sum;
-      },
+      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount || 0)).toNumber(),
       0
     );
     return { pending, visible, total: filteredEvents.length, totalYield };

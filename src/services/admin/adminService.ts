@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { parseFinancial } from "@/utils/financial";
 import { db } from "@/lib/db/index";
 import { logError } from "@/lib/logger";
 import { investorDataService } from "@/services/investor/investorDataService";
@@ -52,7 +53,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .eq("status", "pending");
 
     const pendingWithdrawals =
-      withdrawalRequests?.reduce((sum, req) => sum + Number(req.requested_amount), 0) || 0;
+      withdrawalRequests?.reduce(
+        (sum, req) => parseFinancial(sum).plus(parseFinancial(req.requested_amount)).toNumber(),
+        0
+      ) || 0;
 
     const interest24h = totalAum * 0.0001;
 

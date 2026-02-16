@@ -321,7 +321,7 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
   const yieldByFund = new Map<string, { total: number; count: number }>();
   yieldTxs.forEach((tx) => {
     const existing = yieldByFund.get(tx.fund_id) || { total: 0, count: 0 };
-    existing.total += Number(tx.amount || 0);
+    existing.total = parseFinancial(existing.total).plus(parseFinancial(tx.amount || 0)).toNumber();
     existing.count += 1;
     yieldByFund.set(tx.fund_id, existing);
   });
