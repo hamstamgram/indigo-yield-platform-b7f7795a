@@ -141,8 +141,8 @@ export async function previewYieldDistribution(
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
     yieldPercentage:
-      result.opening_aum && Number(result.opening_aum) > 0
-        ? String(((Number(result.gross_yield) || 0) / Number(result.opening_aum)) * 100)
+      result.opening_aum && parseFinancial(result.opening_aum).gt(0)
+        ? parseFinancial(result.gross_yield || 0).div(parseFinancial(result.opening_aum)).times(100).toString()
         : "0",
     investorCount: Number(result.investor_count || distributions.length),
     distributions,

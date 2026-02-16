@@ -87,7 +87,10 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
     const pending = filteredEvents.filter((e) => e.visibility_scope === "admin_only").length;
     const visible = filteredEvents.filter((e) => e.visibility_scope === "investor_visible").length;
     const totalYield = filteredEvents.reduce(
-      (sum, e) => sum + parseFloat(String(e.net_yield_amount)),
+      (sum, e) => {
+        const val = parseFloat(String(e.net_yield_amount));
+        return Number.isFinite(val) ? sum + val : sum;
+      },
       0
     );
     return { pending, visible, total: filteredEvents.length, totalYield };

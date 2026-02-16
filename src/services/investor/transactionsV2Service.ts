@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { logError } from "@/lib/logger";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";
+import { parseFinancial } from "@/utils/financial";
 import type { Database } from "@/integrations/supabase/types";
 
 export interface TransactionRecord {
@@ -168,27 +169,29 @@ export async function getSummary(investorId: string): Promise<{
 
   if (error) throw error;
 
-  const summary = {
-    totalDeposits: 0,
-    totalWithdrawals: 0,
-    totalYield: 0,
-    transactionCount: data?.length || 0,
-  };
+  let totalDeposits = parseFinancial(0);
+  let totalWithdrawals = parseFinancial(0);
+  let totalYield = parseFinancial(0);
 
   data?.forEach((tx) => {
     const type = (tx.type || "").toUpperCase();
-    const amount = Number(tx.amount);
+    const amount = parseFinancial(tx.amount);
 
     if (type === "DEPOSIT") {
-      summary.totalDeposits += amount;
+      totalDeposits = totalDeposits.plus(amount);
     } else if (type === "WITHDRAWAL") {
-      summary.totalWithdrawals += Math.abs(amount);
+      totalWithdrawals = totalWithdrawals.plus(amount.abs());
     } else if (type === "YIELD" || type === "FEE_CREDIT" || type === "IB_CREDIT") {
-      summary.totalYield += amount;
+      totalYield = totalYield.plus(amount);
     }
   });
 
-  return summary;
+  return {
+    totalDeposits: totalDeposits.toNumber(),
+    totalWithdrawals: totalWithdrawals.toNumber(),
+    totalYield: totalYield.toNumber(),
+    transactionCount: data?.length || 0,
+  };
 }
 
 // Plain object singleton for transactionsV2Service.method() pattern

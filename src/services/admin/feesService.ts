@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { getActiveFunds } from "./fundService";
+import { parseFinancial } from "@/utils/financial";
 
 // ==================== Types ====================
 
@@ -204,7 +205,8 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
   indigoPositions.forEach((p) => {
     const asset = fundAssetMap.get(p.fund_id);
     if (asset) {
-      balances[asset] = (balances[asset] || 0) + parseFloat(String(p.current_value || 0));
+      const current = parseFinancial(balances[asset] || 0);
+      balances[asset] = current.plus(parseFinancial(p.current_value || 0)).toNumber();
     }
   });
   return balances;
