@@ -6032,15 +6032,25 @@ export type Database = {
         Args: { p_keep_profile_id: string; p_merge_profile_id: string }
         Returns: Json
       }
-      preview_segmented_yield_distribution_v5: {
-        Args: {
-          p_fund_id: string
-          p_period_end: string
-          p_purpose?: string
-          p_recorded_aum: number
-        }
-        Returns: Json
-      }
+      preview_segmented_yield_distribution_v5:
+        | {
+            Args: {
+              p_fund_id: string
+              p_period_end: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_recorded_aum: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_fund_id: string
+              p_period_end: string
+              p_purpose?: string
+              p_recorded_aum: number
+            }
+            Returns: Json
+          }
       process_yield_distribution: {
         Args: {
           p_admin_id?: string

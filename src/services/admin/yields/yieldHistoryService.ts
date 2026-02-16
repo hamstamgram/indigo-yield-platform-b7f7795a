@@ -118,7 +118,7 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
 
   const investorSet = new Set(
     (profiles || [])
-      .filter((p) => p.account_type === "investor" || p.account_type === "ib")
+      .filter((p) => p.account_type === "investor" || p.account_type === "ib" || p.account_type === "fees_account")
       .map((p) => p.id)
   );
 
