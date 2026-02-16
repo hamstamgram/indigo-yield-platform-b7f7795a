@@ -7,7 +7,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { toDecimal } from "@/utils/financial";
+import { toDecimal, parseFinancial } from "@/utils/financial";
 import { logError } from "@/lib/logger";
 import { rpc } from "@/lib/rpc/index";
 import type { DepositCrystallizationResult } from "@/types/domains/fund";
@@ -212,5 +212,8 @@ export async function getCurrentFundAum(fundId: string): Promise<number> {
     .gt("current_value", 0);
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
-  return (positions || []).reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+  return (positions || []).reduce(
+    (sum, p) => parseFinancial(sum).plus(parseFinancial(p.current_value || 0)).toNumber(),
+    0
+  );
 }

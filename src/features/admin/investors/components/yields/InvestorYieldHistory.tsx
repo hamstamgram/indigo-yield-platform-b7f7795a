@@ -4,6 +4,7 @@
  */
 
 import { useState, useMemo } from "react";
+import { parseFinancial } from "@/utils/financial";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
@@ -59,15 +60,15 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
     const pending = active.filter((e) => e.visibility_scope === "admin_only");
     const visible = active.filter((e) => e.visibility_scope === "investor_visible");
     const voidedCount = yieldEvents.filter((e) => e.is_voided).length;
-    const totalGross = active.reduce((sum, e) => sum + parseFloat(String(e.gross_yield_amount)), 0);
-    const totalFees = active.reduce((sum, e) => sum + parseFloat(String(e.fee_amount)), 0);
-    const totalNet = active.reduce((sum, e) => sum + parseFloat(String(e.net_yield_amount)), 0);
+    const totalGross = active.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.gross_yield_amount)).toNumber(), 0);
+    const totalFees = active.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.fee_amount)).toNumber(), 0);
+    const totalNet = active.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(), 0);
 
     return {
       pendingCount: pending.length,
       visibleCount: visible.length,
       voidedCount,
-      pendingYield: pending.reduce((sum, e) => sum + parseFloat(String(e.net_yield_amount)), 0),
+      pendingYield: pending.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(), 0),
       totalGross,
       totalFees,
       totalNet,
