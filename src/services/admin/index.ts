@@ -104,23 +104,8 @@ export { adminInviteService, type AdminInvite } from "./adminInviteService";
 // =============================================================================
 // YIELD MANAGEMENT
 // =============================================================================
-export * from "./yieldDistributionService";
+export * from "./yields";
 export * from "./recordedYieldsService";
-export * from "./yieldManagementService";
-export {
-  crystallizeYieldBeforeFlow,
-  finalizeMonthYield,
-  getYieldEventsForFund,
-  getYieldEventsForInvestor,
-  getAggregatedYieldForPeriod,
-  getPendingYieldEventsCount,
-  crystallizeMonthEnd,
-  getInvestorCrystallizationEvents,
-  type CrystallizationResult,
-  type InvestorCrystallizationEvent,
-  type FinalizationResult,
-  type YieldEvent,
-} from "./yieldCrystallizationService";
 
 export {
   preflowAumService,

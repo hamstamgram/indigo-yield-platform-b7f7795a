@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
+import { renderReportToHtml } from "@/features/admin/reports/components/InvestorReportTemplate";
 import { InvestorData } from "@/types/domains";
 
 /**
