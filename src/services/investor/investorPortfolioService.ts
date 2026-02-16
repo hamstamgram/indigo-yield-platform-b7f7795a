@@ -62,8 +62,8 @@ export const investorPortfolioService = {
     return (data || []).map((pos: any) => ({
       investor_id: pos.investor_id,
       fund_id: pos.fund_id,
-      shares: Number(pos.shares) || 0,
-      current_value: Number(pos.current_value) || 0,
+      shares: parseFloat(String(pos.shares)) || 0,
+      current_value: parseFloat(String(pos.current_value)) || 0,
       fund_class: pos.fund_class,
       fund: pos.funds || { id: "", name: "Unknown", code: "UNK", asset: "N/A" },
     }));

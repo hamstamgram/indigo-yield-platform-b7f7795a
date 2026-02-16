@@ -33,3 +33,12 @@ export async function sendStatementEmail(params: SendStatementParams): Promise<v
   if (error) throw error;
   return data;
 }
+
+/**
+ * Delete a generated statement
+ * Moved from useStatementData.ts to maintain service-layer isolation
+ */
+export async function deleteGeneratedStatement(statementId: string): Promise<void> {
+  const { error } = await supabase.from("generated_statements").delete().eq("id", statementId);
+  if (error) throw error;
+}

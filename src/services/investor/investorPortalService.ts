@@ -321,8 +321,8 @@ export async function getAccessLogs(_userId: string, _limit = 20): Promise<Acces
 }
 
 /**
- * NOTE: user_sessions table was dropped - no-op
+ * @deprecated user_sessions table was dropped. This function is a no-op.
  */
 export async function revokeSession(_sessionId: string): Promise<void> {
-  // user_sessions table was dropped - no-op
+  throw new Error("Session revocation is not available. The user_sessions table has been removed.");
 }

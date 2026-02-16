@@ -41,6 +41,7 @@ export {
   fetchInvestorPositions,
   getTotalAUM,
   getActiveInvestorCount,
+  getPlatformStats,
   fetchInvestorsForSelector,
   fetchInvestors,
   fetchPendingInvites,
