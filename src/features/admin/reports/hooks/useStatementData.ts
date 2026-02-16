@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
+import { deleteGeneratedStatement } from "@/services/admin/statementAdminService";
 
 export interface GeneratedStatement {
   id: string;
@@ -169,11 +170,7 @@ export function useDeleteStatement() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (statementId: string) => {
-      const { error } = await supabase.from("generated_statements").delete().eq("id", statementId);
-
-      if (error) throw error;
-    },
+    mutationFn: deleteGeneratedStatement,
     onSuccess: () => {
       invalidateAfterStatementOp(queryClient);
       toast.success("Statement deleted successfully");

@@ -120,6 +120,11 @@ export async function getInvestorPortfolio(investorId?: string): Promise<Investo
   const totalValue = summary.totalAUM;
   const totalPnL = summary.totalEarned;
 
+  const denominator = totalValue - totalPnL;
+  const safePercentage = totalValue > 0 && denominator !== 0
+    ? (totalPnL / denominator) * 100
+    : 0;
+
   const performanceMetrics: PortfolioPerformance = {
     mtd_return: 0,
     qtd_return: 0,
@@ -127,8 +132,8 @@ export async function getInvestorPortfolio(investorId?: string): Promise<Investo
     itd_return: totalPnL,
     mtd_percentage: 0,
     qtd_percentage: 0,
-    ytd_percentage: totalValue > 0 ? (totalPnL / (totalValue - totalPnL)) * 100 : 0,
-    itd_percentage: totalValue > 0 ? (totalPnL / (totalValue - totalPnL)) * 100 : 0,
+    ytd_percentage: safePercentage,
+    itd_percentage: safePercentage,
   };
 
   return {

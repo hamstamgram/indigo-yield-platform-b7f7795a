@@ -36,6 +36,7 @@ export {
   getUserPositions,
   getTotalAUM,
   getActiveInvestorCount,
+  getPlatformStats,
   getPositionsByFund,
   expertInvestorService,
 } from "./investorPositionService";

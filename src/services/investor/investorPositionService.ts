@@ -109,10 +109,10 @@ function mapPositionToExpert(pos: RawPositionRow): ExpertPosition {
     fund_code: fund.code || fund.id || "",
     asset: fund.asset || "UNKNOWN",
     fund_class: pos.fund_class || fund.fund_class || null,
-    shares: Number(pos.shares || 0),
-    cost_basis: Number(pos.cost_basis || 0),
-    current_value: Number(pos.current_value || 0),
-    total_earnings: Number(pos.realized_pnl || 0) + Number(pos.unrealized_pnl || 0),
+    shares: parseFinancial(pos.shares || 0).toNumber(),
+    cost_basis: parseFinancial(pos.cost_basis || 0).toNumber(),
+    current_value: parseFinancial(pos.current_value || 0).toNumber(),
+    total_earnings: parseFinancial(pos.realized_pnl || 0).plus(parseFinancial(pos.unrealized_pnl || 0)).toNumber(),
     last_transaction_date: pos.last_transaction_date || null,
   };
 }
@@ -166,13 +166,13 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     fundCode: fp.funds?.code || "N/A",
     asset: fp.funds?.asset || "Unknown",
     fundClass: fp.fund_class || fp.funds?.fund_class || "Standard",
-    shares: Number(fp.shares) || 0,
-    currentValue: Number(fp.current_value) || 0,
-    costBasis: Number(fp.cost_basis) || 0,
-    unrealizedPnl: Number(fp.unrealized_pnl) || 0,
-    realizedPnl: Number(fp.realized_pnl) || 0,
+    shares: parseFinancial(fp.shares || 0).toNumber(),
+    currentValue: parseFinancial(fp.current_value || 0).toNumber(),
+    costBasis: parseFinancial(fp.cost_basis || 0).toNumber(),
+    unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toNumber(),
+    realizedPnl: parseFinancial(fp.realized_pnl || 0).toNumber(),
     lastTransactionDate: fp.last_transaction_date || fp.updated_at,
-    allocationPercentage: totalValue > 0 ? (Number(fp.current_value) / totalValue) * 100 : 0,
+    allocationPercentage: totalValue > 0 ? parseFinancial(fp.current_value || 0).div(totalValue).times(100).toNumber() : 0,
   }));
 }
 
@@ -216,16 +216,8 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
  * Uses server-side aggregation via get_platform_stats RPC
  */
 export async function getTotalAUM(): Promise<number> {
-  const { data, error } = await supabase.rpc("get_platform_stats");
-
-  if (error) {
-    logError("investorPosition.getTotalAUM", error);
-    throw error;
-  }
-
-  // data is { total_aum, investor_count, admin_count }
-  // RPC returns numeric as number or string? usually number for jsonb
-  return Number((data as any)?.total_aum || 0);
+  const stats = await getPlatformStats();
+  return stats.totalAum;
 }
 
 /**
@@ -233,14 +225,27 @@ export async function getTotalAUM(): Promise<number> {
  * Uses server-side aggregation via get_platform_stats RPC
  */
 export async function getActiveInvestorCount(): Promise<number> {
+  const stats = await getPlatformStats();
+  return stats.investorCount;
+}
+
+/**
+ * Get platform stats from a single RPC call
+ * Prevents duplicate RPC calls when both AUM and investor count are needed
+ */
+export async function getPlatformStats(): Promise<{ totalAum: number; investorCount: number; adminCount: number }> {
   const { data, error } = await supabase.rpc("get_platform_stats");
 
   if (error) {
-    logError("investorPosition.getActiveInvestorCount", error);
+    logError("investorPosition.getPlatformStats", error);
     throw error;
   }
 
-  return Number((data as any)?.investor_count || 0);
+  return {
+    totalAum: parseFinancial((data as any)?.total_aum || 0).toNumber(),
+    investorCount: Number((data as any)?.investor_count || 0),
+    adminCount: Number((data as any)?.admin_count || 0),
+  };
 }
 
 // ============================================
@@ -311,7 +316,7 @@ export async function fetchInvestors(): Promise<
 
 /**
  * Fetch pending invites
- * NOTE: admin_invites table was dropped - returns empty
+ * @deprecated admin_invites table was dropped. This function always returns an empty array.
  */
 export async function fetchPendingInvites(): Promise<
   {
@@ -499,19 +504,20 @@ export async function getPositionsByFund(
     fundCode: fp.funds?.code || "N/A",
     asset: fp.funds?.asset || "Unknown",
     fundClass: fp.fund_class || fp.funds?.fund_class || "Standard",
-    shares: Number(fp.shares) || 0,
-    currentValue: Number(fp.current_value) || 0,
-    costBasis: Number(fp.cost_basis) || 0,
-    unrealizedPnl: Number(fp.unrealized_pnl) || 0,
-    realizedPnl: Number(fp.realized_pnl) || 0,
+    shares: parseFinancial(fp.shares || 0).toNumber(),
+    currentValue: parseFinancial(fp.current_value || 0).toNumber(),
+    costBasis: parseFinancial(fp.cost_basis || 0).toNumber(),
+    unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toNumber(),
+    realizedPnl: parseFinancial(fp.realized_pnl || 0).toNumber(),
     lastTransactionDate: fp.last_transaction_date || fp.updated_at,
-    allocationPercentage: totalValue > 0 ? (Number(fp.current_value) / totalValue) * 100 : 0,
+    allocationPercentage: totalValue > 0 ? parseFinancial(fp.current_value || 0).div(totalValue).times(100).toNumber() : 0,
     investorId: fp.investor_id,
   }));
 }
 
 /**
  * Check if current user is admin
+ * Uses is_admin() RPC for secure server-side validation
  */
 export async function checkAdminStatus(): Promise<{ isAdmin: boolean | null }> {
   const {
@@ -519,18 +525,14 @@ export async function checkAdminStatus(): Promise<{ isAdmin: boolean | null }> {
   } = await supabase.auth.getUser();
   if (!user) return { isAdmin: false };
 
-  const { data: profileData, error } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("is_admin");
 
   if (error) {
     logError("investorPosition.checkAdminStatus", error);
     return { isAdmin: false };
   }
 
-  return { isAdmin: profileData?.is_admin === true };
+  return { isAdmin: data === true };
 }
 
 /**

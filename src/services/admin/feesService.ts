@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
+import { getActiveFunds as getActiveFundsFromFundService } from "./fundService";
 
 // ==================== Types ====================
 
@@ -75,17 +76,10 @@ export interface FeesOverviewData {
 
 /**
  * Load all active funds
+ * @deprecated Use getActiveFunds from fundService.ts instead
  */
 export async function getActiveFunds(): Promise<FundRef[]> {
-  const { data, error } = await supabase
-    .from("funds")
-    .select("id, code, name, asset")
-    .eq("status", "active")
-    .order("code")
-    .limit(100);
-
-  if (error) throw error;
-  return data || [];
+  return getActiveFundsFromFundService();
 }
 
 /**
@@ -218,7 +212,7 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
   indigoPositions.forEach((p) => {
     const asset = fundAssetMap.get(p.fund_id);
     if (asset) {
-      balances[asset] = (balances[asset] || 0) + Number(p.current_value || 0);
+      balances[asset] = (balances[asset] || 0) + parseFloat(String(p.current_value || 0));
     }
   });
   return balances;

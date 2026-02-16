@@ -70,14 +70,12 @@ export async function getInvestorProfileForSettings(
 
 /**
  * Delete an investor profile
+ * IMPORTANT: Uses edge function (not direct delete) because RLS policy
+ * `no_profile_deletes` uses USING(false), blocking all direct deletes.
  */
 export async function deleteInvestorProfile(investorId: string): Promise<void> {
-  const { error } = await supabase.from("profiles").delete().eq("id", investorId);
-
-  if (error) {
-    logError("deleteInvestorProfile", error, { investorId });
-    throw error;
-  }
+  const { deleteInvestorUser } = await import("./userService");
+  await deleteInvestorUser(investorId);
 }
 
 /**

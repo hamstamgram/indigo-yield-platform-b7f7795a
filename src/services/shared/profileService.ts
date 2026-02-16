@@ -222,19 +222,13 @@ class ProfileService {
 
   /**
    * Get all active funds
+   * @deprecated Use getActiveFunds from fundService.ts instead
    */
   async getActiveFunds(): Promise<
     Array<{ id: string; name: string; code: string; asset: string }>
   > {
-    const { data, error } = await supabase
-      .from("funds")
-      .select("id, name, code, asset")
-      .eq("status", "active")
-      .order("asset", { ascending: true })
-      .limit(100);
-
-    if (error) throw error;
-    return data || [];
+    const { getActiveFunds: getFromFundService } = await import("@/services/admin/fundService");
+    return getFromFundService();
   }
 
   /**
