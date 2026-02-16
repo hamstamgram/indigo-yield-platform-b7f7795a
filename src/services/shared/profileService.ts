@@ -221,17 +221,6 @@ class ProfileService {
   }
 
   /**
-   * Get all active funds
-   * @deprecated Use getActiveFunds from fundService.ts instead
-   */
-  async getActiveFunds(): Promise<
-    Array<{ id: string; name: string; code: string; asset: string }>
-  > {
-    const { getActiveFunds: getFromFundService } = await import("@/services/admin/fundService");
-    return getFromFundService();
-  }
-
-  /**
    * Get current user's profile
    */
   async getMyProfile(): Promise<ProfileSummary | null> {

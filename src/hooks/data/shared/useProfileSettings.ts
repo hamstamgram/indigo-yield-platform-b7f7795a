@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import * as profileService from "@/services/profile/profileSettingsService";
+import { updatePassword } from "@/services/auth/authService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { logError } from "@/lib/logger";
 
@@ -133,7 +134,7 @@ export function useChangePassword() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: profileService.changePassword,
+    mutationFn: updatePassword,
     onSuccess: () => {
       toast({
         title: "Password updated",

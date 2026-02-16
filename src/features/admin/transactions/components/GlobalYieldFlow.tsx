@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useYieldOperationsState } from "@/hooks/admin/useYieldOperationsState";
+import { useYieldOperationsState } from "@/hooks/data/admin/useYieldOperationsState";
 import { YieldInputForm } from "@/features/admin/yields/components/YieldInputForm";
 import { YieldPreviewResults } from "@/features/admin/yields/components/YieldPreviewResults";
 import { YieldConfirmDialog } from "@/features/admin/yields/components/YieldConfirmDialog";

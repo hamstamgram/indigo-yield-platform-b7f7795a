@@ -19,7 +19,6 @@ import {
   saveUserPreferences,
   getActiveSessions,
   getAccessLogs,
-  revokeSession,
 } from "@/services/investor";
 import {
   type Session,
@@ -179,14 +178,3 @@ export function useAccessLogs(limit = 20) {
   });
 }
 
-export function useRevokeSession() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: revokeSession,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeSessions(user?.id) });
-    },
-  });
-}

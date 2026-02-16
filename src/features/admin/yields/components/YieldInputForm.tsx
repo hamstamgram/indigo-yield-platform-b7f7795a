@@ -33,7 +33,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
-import { type YieldPurpose, type Fund } from "@/hooks/admin/useYieldOperationsState";
+import { type YieldPurpose, type Fund } from "@/hooks/data/admin/useYieldOperationsState";
 
 interface ReconciliationData {
   has_warning: boolean;
