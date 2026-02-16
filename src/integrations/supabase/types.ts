@@ -6254,7 +6254,12 @@ export type Database = {
         Args: { p_scope_fund_id?: string; p_scope_investor_id?: string }
         Returns: Json
       }
-      run_integrity_pack: { Args: never; Returns: Json }
+      run_integrity_pack:
+        | { Args: never; Returns: Json }
+        | {
+            Args: { p_scope_fund_id?: string; p_scope_investor_id?: string }
+            Returns: Json
+          }
       run_invariant_checks: { Args: never; Returns: Json }
       set_canonical_rpc: { Args: { enabled?: boolean }; Returns: undefined }
       set_fund_daily_aum: {

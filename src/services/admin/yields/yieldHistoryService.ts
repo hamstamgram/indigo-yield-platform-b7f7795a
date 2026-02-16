@@ -261,12 +261,8 @@ export async function getActiveFundsWithAUM(): Promise<
 
 /**
  * Get investor composition for a fund with MTD yield
- * NOTE: Composition is investor-only by design (fees/IB omitted).
- */
-/**
- * Get investor composition for a fund with MTD yield
  * Uses server-side aggregation via get_fund_composition RPC
- * NOTE: Composition is investor-only by design (fees/IB omitted).
+ * Includes all account types (investor, IB, fees_account) with balance > 0.
  */
 export async function getFundInvestorCompositionWithYield(fundId: string): Promise<
   Array<{
