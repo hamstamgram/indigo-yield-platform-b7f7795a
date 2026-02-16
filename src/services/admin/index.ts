@@ -185,6 +185,16 @@ export * from "./emailTrackingService";
 export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";
 
 // =============================================================================
+// REPORT SCHEDULES
+// =============================================================================
+export {
+  getReportSchedules,
+  createReportSchedule,
+  updateReportSchedule,
+  deleteReportSchedule,
+} from "./reportScheduleService";
+
+// =============================================================================
 // ADMIN TOOLS & UTILITIES
 // =============================================================================
 export { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "./feeScheduleService";
