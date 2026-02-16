@@ -2,7 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/services/auth";
 import { PageLoadingSpinner } from "@/components/ui";
 import { useUserRole } from "@/hooks";
-import { useInvestorRealtimeInvalidation } from "@/hooks/data/investor/useInvestorRealtimeInvalidation";
+import { useInvestorRealtimeInvalidation } from "@/features/investor/shared/hooks/useInvestorRealtimeInvalidation";
 
 interface InvestorRouteProps {
   children: React.ReactNode;

@@ -26,7 +26,7 @@ import {
 } from "@/components/ui";
 import { CalendarDays, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useIBSchedule, useDeleteIBScheduleEntry } from "@/hooks/data/investor/useIBSchedule";
+import { useIBSchedule, useDeleteIBScheduleEntry } from "@/features/investor/shared/hooks/useIBSchedule";
 import { AddIBScheduleDialog } from "./AddIBScheduleDialog";
 
 interface IBScheduleSectionProps {

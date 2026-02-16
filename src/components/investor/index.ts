@@ -1,21 +1,21 @@
 /**
- * Investor Components
- * Investor dashboard and portfolio components
+ * Investor Components - Re-export shim
+ * Components have moved to src/features/investor/
  */
 
 // Overview
-export { HoldingsByToken } from "./overview/HoldingsByToken";
+export { HoldingsByToken } from "@/features/investor/overview/components/HoldingsByToken";
 
 // Performance
-export { PerformanceCard } from "./performance/PerformanceCard";
+export { PerformanceCard } from "@/features/investor/performance/components/PerformanceCard";
 export {
   PeriodSelector,
   PERIOD_LABELS,
   type PerformancePeriod,
-} from "./performance/PeriodSelector";
+} from "@/features/investor/performance/components/PeriodSelector";
 
 // Portfolio
-export { default as MyPerformanceHistory } from "./portfolio/MyPerformanceHistory";
+export { default as MyPerformanceHistory } from "@/features/investor/portfolio/components/MyPerformanceHistory";
 
 // Reports
-export { PerformanceReportTable } from "./reports/PerformanceReportTable";
+export { PerformanceReportTable } from "@/features/investor/reports/components/PerformanceReportTable";

@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@/components/ui";
-import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
+import { PerformanceReportTable } from "@/features/investor/reports/components/PerformanceReportTable";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useInvestorPerformance, useAssetMeta, usePerAssetStats } from "@/hooks";
 import { useAuth } from "@/services/auth";

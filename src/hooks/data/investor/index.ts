@@ -1,43 +1,17 @@
 /**
- * Investor Hooks - Barrel Export
+ * Investor Hooks - Barrel Export (Re-export shim)
  *
- * Domain-specific hooks for investor operations
+ * All investor hooks now live under src/features/investor/.
+ * This file re-exports them for backward compatibility.
  */
-
-// Balance hooks
-export { useInvestorBalance, useTransactionHistory, useAUMExists } from "./useInvestorBalance";
-
-// Investor data hooks
-export {
-  useInvestorList,
-  useInvestorsForSelector,
-  useInvestorQuickView,
-  useInvestorRecentActivity,
-  useUpdateInvestorStatus,
-  type InvestorListItem,
-  type InvestorQuickViewData,
-  type InvestorPosition,
-  type InvestorSelectorItem,
-  type InvestorPositionRow,
-} from "./useInvestorData";
-
-// Position hooks (canonical export)
-export { useInvestorPositions } from "./useInvestorPositions";
-
-// Invite hooks
-export { useInvestorInvite } from "./useInvestorInvite";
-
-// Ledger hooks
-export { useInvestorLedger, type LedgerTransaction } from "./useInvestorLedger";
 
 // Overview hooks
 export {
   useInvestorOverview,
   useInvestorDefaultFund,
   type InvestorOverviewData,
-} from "./useInvestorOverview";
+} from "@/features/investor/overview/hooks/useInvestorOverview";
 
-// Overview query hooks
 export {
   useRecentInvestorTransactions,
   usePendingWithdrawalsCount,
@@ -45,7 +19,22 @@ export {
   useLatestStatementSummary,
   type RecentTransaction,
   type LatestStatementSummary,
-} from "./useInvestorOverviewQueries";
+} from "@/features/investor/overview/hooks/useInvestorOverviewQueries";
+
+// Portfolio hooks
+export {
+  usePortfolioPositions,
+  useWithdrawalFormPositions,
+  useMyWithdrawalsWithFunds,
+  useCreateWithdrawalRequest,
+  type PortfolioPosition,
+  type WithdrawalFormPosition,
+} from "@/features/investor/portfolio/hooks/usePortfolio";
+
+export { useInvestorPositions } from "@/features/investor/portfolio/hooks/useInvestorPositions";
+export { useInvestorPositions as useInvestorPositionsDetail } from "@/features/investor/portfolio/hooks/useInvestorPositions";
+
+export { useInvestorBalance, useTransactionHistory, useAUMExists } from "@/features/investor/portfolio/hooks/useInvestorBalance";
 
 // Performance hooks
 export {
@@ -53,9 +42,15 @@ export {
   usePerAssetStats,
   useInvestorAssetStats,
   useAvailableStatementPeriods,
-} from "./useInvestorPerformance";
+} from "@/features/investor/performance/hooks/useInvestorPerformance";
 
-// Portal hooks
+export {
+  useStatementPeriodId,
+  useInvestorPositionsWithFunds,
+  useInvestorPerformanceForPeriod,
+} from "@/features/investor/performance/hooks/useInvestorYieldData";
+
+// Transaction hooks
 export {
   useInvestorTransactionAssets,
   useInvestorTransactionsList,
@@ -73,13 +68,15 @@ export {
   type UserSettings,
   type InvestorProfile,
   type MonthlyStatement,
-} from "./useInvestorPortal";
+} from "@/features/investor/transactions/hooks/useInvestorPortal";
 
-// Position detail hooks (alias for backwards compatibility)
-export { useInvestorPositions as useInvestorPositionsDetail } from "./useInvestorPositions";
-
-// Search hooks
-export { useInvestorSearch } from "./useInvestorSearch";
+// Document hooks
+export {
+  useInvestorDocuments,
+  useDocumentDownload,
+  usePerformanceHistory,
+  usePendingTransactions,
+} from "@/features/investor/documents/hooks/useInvestorPortfolioQueries";
 
 // Settings hooks
 export {
@@ -88,62 +85,50 @@ export {
   useInvestorReportPeriods,
   type InvestorProfileData,
   type ReportPeriod,
-} from "./useInvestorSettings";
+} from "@/features/investor/settings/hooks/useInvestorSettings";
 
-// Withdrawal hooks
-export {
-  useInvestorWithdrawals,
-  useWithdrawalPositions,
-  useSubmitWithdrawal,
-  type WithdrawalPosition,
-} from "./useInvestorWithdrawals";
+// Fund details hooks
+export { useAssetMeta, type AssetMeta } from "@/features/investor/funds/hooks/useFundDetailsPage";
 
-// Yield data hooks
-export {
-  useStatementPeriodId,
-  useInvestorPositionsWithFunds,
-  useInvestorPerformanceForPeriod,
-} from "./useInvestorYieldData";
+// Shared hooks
+export { useInvestorSearch } from "@/features/investor/shared/hooks/useInvestorSearch";
+export { useInvestorRealtimeInvalidation } from "@/features/investor/shared/hooks/useInvestorRealtimeInvalidation";
 
-// Portfolio hooks
-export {
-  usePortfolioPositions,
-  useWithdrawalFormPositions,
-  useMyWithdrawalsWithFunds,
-  useCreateWithdrawalRequest,
-  type PortfolioPosition,
-  type WithdrawalFormPosition,
-} from "./usePortfolio";
-
-// useFundDetailsPage (new - for FundDetailsPage)
-export { useAssetMeta, type AssetMeta } from "./useFundDetailsPage";
-
-// useInvestorPortfolioQueries (moved from hooks/investor/)
-export {
-  useInvestorDocuments,
-  useDocumentDownload,
-  usePerformanceHistory,
-  usePendingTransactions,
-} from "./useInvestorPortfolioQueries";
-
-// useInvestorNotifications (for NotificationsPage)
 export {
   useInvestorNotifications,
   useMarkNotificationAsRead,
   useDeleteNotification,
   type InvestorNotification,
-} from "./useInvestorNotifications";
+} from "@/features/investor/shared/hooks/useInvestorNotifications";
 
-// Fee schedule hooks
+export {
+  useInvestorList,
+  useInvestorsForSelector,
+  useInvestorQuickView,
+  useInvestorRecentActivity,
+  useUpdateInvestorStatus,
+  type InvestorListItem,
+  type InvestorQuickViewData,
+  type InvestorPosition,
+  type InvestorSelectorItem,
+  type InvestorPositionRow,
+} from "@/features/investor/shared/hooks/useInvestorData";
+
+export { useInvestorInvite } from "@/features/investor/shared/hooks/useInvestorInvite";
+export { useInvestorLedger, type LedgerTransaction } from "@/features/investor/shared/hooks/useInvestorLedger";
+
+export {
+  useInvestorWithdrawals,
+  useWithdrawalPositions,
+  useSubmitWithdrawal,
+  type WithdrawalPosition,
+} from "@/features/investor/shared/hooks/useInvestorWithdrawals";
+
 export {
   useFeeSchedule,
   useAddFeeScheduleEntry,
   useDeleteFeeScheduleEntry,
   type FeeScheduleEntry,
-} from "./useFeeSchedule";
+} from "@/features/investor/shared/hooks/useFeeSchedule";
 
-// IB commission schedule hooks
-export { useIBSchedule, useAddIBScheduleEntry, useDeleteIBScheduleEntry } from "./useIBSchedule";
-
-// Realtime invalidation
-export { useInvestorRealtimeInvalidation } from "./useInvestorRealtimeInvalidation";
+export { useIBSchedule, useAddIBScheduleEntry, useDeleteIBScheduleEntry } from "@/features/investor/shared/hooks/useIBSchedule";

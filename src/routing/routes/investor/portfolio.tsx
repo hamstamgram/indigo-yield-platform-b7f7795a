@@ -11,7 +11,7 @@ import { InvestorRoute } from "../../InvestorRoute";
 const WithdrawalsPage = lazy(() => import("@/pages/withdrawals/WithdrawalHistoryPage"));
 const NewWithdrawalPage = lazy(() => import("@/pages/withdrawals/NewWithdrawalPage"));
 const PortfolioAnalyticsPage = lazy(
-  () => import("@/pages/investor/portfolio/PortfolioAnalyticsPage")
+  () => import("@/features/investor/portfolio/pages/PortfolioAnalyticsPage")
 );
 
 export function PortfolioRoutes() {

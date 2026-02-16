@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger, Calendar } from "@/components/ui";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAddFeeScheduleEntry } from "@/hooks/data/investor/useFeeSchedule";
+import { useAddFeeScheduleEntry } from "@/features/investor/shared/hooks/useFeeSchedule";
 import { getTodayString } from "@/utils/dateUtils";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 

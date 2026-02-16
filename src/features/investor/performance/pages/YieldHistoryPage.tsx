@@ -30,7 +30,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   useInvestorYieldEvents,
   useInvestorCumulativeYield,
-} from "@/hooks/data/investor/useInvestorYield";
+} from "@/features/investor/performance/hooks/useInvestorYield";
 import { format, getYear, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { parseFinancial } from "@/utils/financial";

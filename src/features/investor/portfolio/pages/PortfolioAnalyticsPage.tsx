@@ -1,4 +1,4 @@
-import MyPerformanceHistory from "@/components/investor/portfolio/MyPerformanceHistory";
+import MyPerformanceHistory from "@/features/investor/portfolio/components/MyPerformanceHistory";
 
 export default function PortfolioAnalyticsPage() {
   return (

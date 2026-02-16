@@ -8,16 +8,16 @@ import { lazy } from "react";
 import { InvestorRoute } from "../../InvestorRoute";
 
 // New investor pages
-const InvestorOverviewPage = lazy(() => import("@/pages/investor/InvestorOverviewPage"));
-const InvestorPortfolioPage = lazy(() => import("@/pages/investor/InvestorPortfolioPage"));
-const InvestorPerformancePage = lazy(() => import("@/pages/investor/InvestorPerformancePage"));
-const InvestorTransactionsPage = lazy(() => import("@/pages/investor/InvestorTransactionsPage"));
-const StatementsPage = lazy(() => import("@/pages/investor/statements/StatementsPage"));
-const InvestorDocumentsPage = lazy(() => import("@/pages/investor/InvestorDocumentsPage"));
-const InvestorSettingsPage = lazy(() => import("@/pages/investor/InvestorSettingsPage"));
+const InvestorOverviewPage = lazy(() => import("@/features/investor/overview/pages/InvestorOverviewPage"));
+const InvestorPortfolioPage = lazy(() => import("@/features/investor/portfolio/pages/InvestorPortfolioPage"));
+const InvestorPerformancePage = lazy(() => import("@/features/investor/performance/pages/InvestorPerformancePage"));
+const InvestorTransactionsPage = lazy(() => import("@/features/investor/transactions/pages/InvestorTransactionsPage"));
+const StatementsPage = lazy(() => import("@/features/investor/statements/pages/StatementsPage"));
+const InvestorDocumentsPage = lazy(() => import("@/features/investor/documents/pages/InvestorDocumentsPage"));
+const InvestorSettingsPage = lazy(() => import("@/features/investor/settings/pages/InvestorSettingsPage"));
 const TransactionDetailsPage = lazy(() => import("@/pages/transactions/TransactionDetailsPage"));
-const FundDetailsPage = lazy(() => import("@/pages/investor/funds/FundDetailsPage"));
-const YieldHistoryPage = lazy(() => import("@/pages/investor/YieldHistoryPage"));
+const FundDetailsPage = lazy(() => import("@/features/investor/funds/pages/FundDetailsPage"));
+const YieldHistoryPage = lazy(() => import("@/features/investor/performance/pages/YieldHistoryPage"));
 
 export function CoreInvestorRoutes() {
   return (
