@@ -41,12 +41,6 @@ export function useYieldCalculation() {
 
       const baseAum = asOfAum ?? selectedFund.total_aum;
 
-      if (newAUMValue < baseAum) {
-        toast.error("New AUM cannot be lower than current AUM. Yield must be >= 0.");
-        return;
-      } else if (newAUMValue === baseAum) {
-        toast.info("New AUM equals current AUM. No yield to distribute.");
-      }
 
       setPreviewLoading(true);
       try {
