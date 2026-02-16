@@ -1,149 +1,125 @@
 
 
-# Remaining Audit Steps: 9, 11, 12, and 13
+# Steps 9 + 13: Investor Feature Migration and Final Cleanup
 
-## Status Check
+## Overview
 
-Steps completed: 1-8, 10, 14, plus the export collision hotfix.
-Steps remaining: 9, 11, 12, 13.
+Migrate all investor-domain code into `src/features/investor/` (mirroring the admin pattern), then clean up empty directories and barrel files. Steps 11 and 12 are already complete.
 
 ---
 
 ## Step 9: Create `src/features/investor/` Structure
 
-Mirror the feature-first pattern already established for `src/features/admin/` (which has `components/`, `hooks/`, `pages/` per sub-domain).
+### Files to Move
 
-### Current Investor Code Locations (scattered)
-- `src/pages/investor/` -- 7 page files + 2 subdirectories
-- `src/components/investor/` -- 4 subdirectories (overview, performance, portfolio, reports)
-- `src/hooks/data/investor/` -- 23 hook files
-- `src/services/investor/` -- 15 service files
+**Pages (8 files):**
 
-### Target Structure
-```text
-src/features/investor/
-  overview/
-    pages/          -- InvestorOverviewPage.tsx
-    components/     -- from src/components/investor/overview/
-    hooks/          -- useInvestorOverview.ts, useInvestorOverviewQueries.ts
-  portfolio/
-    pages/          -- InvestorPortfolioPage.tsx, PortfolioAnalyticsPage.tsx
-    components/     -- from src/components/investor/portfolio/
-    hooks/          -- usePortfolio.ts, useInvestorPositions.ts, useInvestorBalance.ts
-  performance/
-    pages/          -- InvestorPerformancePage.tsx
-    components/     -- from src/components/investor/performance/
-    hooks/          -- useInvestorPerformance.ts, useInvestorYieldData.ts
-  transactions/
-    pages/          -- InvestorTransactionsPage.tsx
-    hooks/          -- useInvestorPortal.ts (transaction parts)
-  statements/
-    pages/          -- StatementsPage.tsx (from src/pages/investor/statements/)
-    hooks/          -- useInvestorPortal.ts (statement parts)
-  documents/
-    pages/          -- InvestorDocumentsPage.tsx
-    hooks/          -- useInvestorPortfolioQueries.ts (document parts)
-  settings/
-    pages/          -- InvestorSettingsPage.tsx
-    hooks/          -- useInvestorSettings.ts
-  funds/
-    pages/          -- FundDetailsPage.tsx
-    hooks/          -- useFundDetailsPage.ts
-  reports/
-    components/     -- from src/components/investor/reports/
-  shared/
-    hooks/          -- useInvestorSearch.ts, useInvestorRealtimeInvalidation.ts, useInvestorNotifications.ts
-```
+| From | To |
+|------|----|
+| `src/pages/investor/InvestorOverviewPage.tsx` | `src/features/investor/overview/pages/InvestorOverviewPage.tsx` |
+| `src/pages/investor/InvestorPortfolioPage.tsx` | `src/features/investor/portfolio/pages/InvestorPortfolioPage.tsx` |
+| `src/pages/investor/portfolio/PortfolioAnalyticsPage.tsx` | `src/features/investor/portfolio/pages/PortfolioAnalyticsPage.tsx` |
+| `src/pages/investor/InvestorPerformancePage.tsx` | `src/features/investor/performance/pages/InvestorPerformancePage.tsx` |
+| `src/pages/investor/InvestorTransactionsPage.tsx` | `src/features/investor/transactions/pages/InvestorTransactionsPage.tsx` |
+| `src/pages/investor/statements/StatementsPage.tsx` | `src/features/investor/statements/pages/StatementsPage.tsx` |
+| `src/pages/investor/InvestorDocumentsPage.tsx` | `src/features/investor/documents/pages/InvestorDocumentsPage.tsx` |
+| `src/pages/investor/InvestorSettingsPage.tsx` | `src/features/investor/settings/pages/InvestorSettingsPage.tsx` |
+| `src/pages/investor/YieldHistoryPage.tsx` | `src/features/investor/performance/pages/YieldHistoryPage.tsx` |
+| `src/pages/investor/funds/FundDetailsPage.tsx` | `src/features/investor/funds/pages/FundDetailsPage.tsx` |
 
-### Migration Approach
-- Move files incrementally, one sub-domain at a time
-- Update import paths in route files (`src/routing/routes/investor/core.tsx`, `portfolio.tsx`, `reports.tsx`)
-- Keep `src/services/investor/` in place (services stay in the service layer per architecture standards)
-- Update barrel exports in `src/hooks/data/investor/index.ts` to re-export from new locations
-- Old `src/components/investor/` and `src/pages/investor/` directories become empty and are deleted
+**Components (5 files):**
 
-### Files Moved (~30)
-- 7 page files from `src/pages/investor/`
-- ~10 component files from `src/components/investor/`
-- 23 hook files from `src/hooks/data/investor/`
+| From | To |
+|------|----|
+| `src/components/investor/overview/HoldingsByToken.tsx` | `src/features/investor/overview/components/HoldingsByToken.tsx` |
+| `src/components/investor/performance/PerformanceCard.tsx` | `src/features/investor/performance/components/PerformanceCard.tsx` |
+| `src/components/investor/performance/PeriodSelector.tsx` | `src/features/investor/performance/components/PeriodSelector.tsx` |
+| `src/components/investor/portfolio/MyPerformanceHistory.tsx` | `src/features/investor/portfolio/components/MyPerformanceHistory.tsx` |
+| `src/components/investor/reports/PerformanceReportTable.tsx` | `src/features/investor/reports/components/PerformanceReportTable.tsx` |
+
+**Hooks (22 files) -- all from `src/hooks/data/investor/`:**
+
+| Hook File | Target Subdomain |
+|-----------|-----------------|
+| `useInvestorOverview.ts` | `overview/hooks/` |
+| `useInvestorOverviewQueries.ts` | `overview/hooks/` |
+| `usePortfolio.ts` | `portfolio/hooks/` |
+| `useInvestorPositions.ts` | `portfolio/hooks/` |
+| `useInvestorBalance.ts` | `portfolio/hooks/` |
+| `useInvestorPerformance.ts` | `performance/hooks/` |
+| `useInvestorYieldData.ts` | `performance/hooks/` |
+| `useInvestorYield.ts` | `performance/hooks/` |
+| `useInvestorYieldEvents.ts` | `performance/hooks/` |
+| `useInvestorPortal.ts` | `transactions/hooks/` |
+| `useInvestorPortfolioQueries.ts` | `documents/hooks/` |
+| `useInvestorSettings.ts` | `settings/hooks/` |
+| `useFundDetailsPage.ts` | `funds/hooks/` |
+| `useInvestorSearch.ts` | `shared/hooks/` |
+| `useInvestorRealtimeInvalidation.ts` | `shared/hooks/` |
+| `useInvestorNotifications.ts` | `shared/hooks/` |
+| `useInvestorData.ts` | `shared/hooks/` |
+| `useInvestorInvite.ts` | `shared/hooks/` |
+| `useInvestorLedger.ts` | `shared/hooks/` |
+| `useInvestorWithdrawals.ts` | `shared/hooks/` |
+| `useFeeSchedule.ts` | `shared/hooks/` |
+| `useIBSchedule.ts` | `shared/hooks/` |
+
+### Import Updates Required
+
+**Route files (2 files):**
+- `src/routing/routes/investor/core.tsx` -- update all 10 lazy imports from `@/pages/investor/...` to `@/features/investor/.../pages/...`
+- `src/routing/routes/investor/portfolio.tsx` -- update `PortfolioAnalyticsPage` import
+
+**Cross-domain consumers (5 files importing from `@/hooks/data/investor/` or `@/components/investor/`):**
+- `src/routing/InvestorRoute.tsx` -- update `useInvestorRealtimeInvalidation` import
+- `src/features/admin/investors/components/shared/IBScheduleSection.tsx` -- update `useIBSchedule` import
+- `src/features/admin/investors/components/shared/FeeScheduleSection.tsx` -- update `useFeeSchedule` and `useInvestorSettings` imports
+- `src/features/admin/investors/components/shared/AddIBScheduleDialog.tsx` -- update `useAddIBScheduleEntry` import
+- `src/features/admin/investors/components/shared/AddFeeScheduleDialog.tsx` -- update `useAddFeeScheduleEntry` import
+
+**Internal page-to-component imports (3 pages):**
+- `FundDetailsPage.tsx` -- update `PerformanceReportTable` import
+- `PortfolioAnalyticsPage.tsx` -- update `MyPerformanceHistory` import
+- `InvestorPerformancePage.tsx` -- update `PerformanceCard`/`PeriodSelector` imports
+
+### Barrel Files
+
+Create a new `src/features/investor/index.ts` barrel that re-exports all public hooks, components, and types. Update `src/hooks/data/investor/index.ts` to re-export from `@/features/investor/` for backward compatibility (consumers importing from `@/hooks/data` or `@/hooks` continue working).
+
+---
+
+## Step 13: Final Cleanup
+
+### Directories to Delete (emptied by Step 9)
+- `src/pages/investor/` (all files moved)
+- `src/pages/investor/portfolio/` (including `index.tsx`)
+- `src/pages/investor/funds/`
+- `src/pages/investor/statements/`
+- `src/components/investor/` (all files moved)
+
+### Barrel Updates
+- `src/hooks/data/investor/index.ts` -- rewrite to re-export from `@/features/investor/`
+- `src/components/investor/index.ts` -- delete (replaced by feature barrel)
+
+### Build Verification
+- Confirm zero TypeScript errors after migration
+
+---
+
+## Technical Details
+
+### Execution Sequence
+1. Create all new directories and files under `src/features/investor/`
+2. Update internal imports within moved files (component/hook references)
+3. Update route files to point to new page locations
+4. Update cross-domain consumer imports (admin components, InvestorRoute)
+5. Rewrite `src/hooks/data/investor/index.ts` as re-export shim
+6. Delete old files and directories
 
 ### Risk
-Low -- purely structural. All imports update to `@/features/investor/...`. Barrel re-exports from `src/hooks/data/investor/index.ts` maintain backward compatibility during transition.
+Low -- purely structural. No behavioral changes. The `src/hooks/data/investor/index.ts` re-export shim ensures any imports via `@/hooks/data` or `@/hooks` continue working without changes.
 
----
-
-## Step 11: Consolidate Performance Services
-
-### Current State
-Two performance-related service files exist:
-1. `src/services/shared/performanceService.ts` (584 lines) -- read-only operations: `getInvestorPerformance`, `getPerAssetStats`, `getFinalizedInvestorData`, `getPerformanceHistoryGrouped`, `getAvailableStatementPeriods`
-2. `src/services/admin/investorPerformanceService.ts` (36 lines) -- single write operation: `updateFundPerformance`
-
-### Assessment
-These are **not overlapping** -- they serve distinct purposes (reads vs. admin writes). Consolidation is not needed. The only action is to verify no consumers import from the wrong file.
-
-### Action
-- Confirm 3 consumer hooks (`useInvestorPerformance.ts`, `useInvestorPortfolioQueries.ts`, `useFinalizedPortfolio.ts`) all import from `@/services/shared` (verified -- they do).
-- Confirm `updateFundPerformance` is only imported via `@/services/admin` barrel (verified -- it is).
-- **No file changes needed.** Mark Step 11 as complete.
-
----
-
-## Step 12: Remove Remaining Class Wrappers in Shared/IB Services
-
-Step 8 converted investor and admin service classes. Several class wrappers remain in shared and IB services:
-
-### Classes to Convert
-| File | Class | Lines | Complexity |
-|------|-------|-------|------------|
-| `src/services/shared/profileService.ts` | `ProfileService` | ~80 | Low |
-| `src/services/shared/auditLogService.ts` | `AuditLogService` | ~90 | Low |
-| `src/services/shared/notificationService.ts` | `NotificationService` | ~60 | Low |
-| `src/services/shared/systemConfigService.ts` | `SystemConfigService` | ~50 | Low |
-| `src/services/shared/inviteService.ts` | `InviteService` | ~40 | Low |
-| `src/services/shared/investorDataExportService.ts` | `InvestorDataExportService` | ~50 | Low |
-| `src/services/shared/statementsService.ts` | `StatementsService` | ~100 | Medium |
-| `src/services/shared/fundDailyAumService.ts` | `FundDailyAumService` | ~60 | Low |
-| `src/services/shared/assetService.ts` | `AssetService` | ~80 | Low |
-| `src/services/ib/management.ts` | `IBManagementService` | ~80 | Low |
-
-### Pattern
-Same as Step 8: extract methods to standalone functions, export a plain object singleton with the same name (e.g., `profileService`). Since all consumers already use `profileService.getProfile()` syntax, no consumer changes are needed.
-
-### Files Modified (~10)
-Each of the 10 files listed above.
-
----
-
-## Step 13: Final Barrel and Import Cleanup
-
-After Steps 9 and 12, perform a final sweep:
-
-### Actions
-1. Remove any empty directories left after Step 9 migration
-2. Remove deprecated shim files in `src/hooks/data/` (identified in earlier steps)
-3. Verify all barrel files (`src/hooks/data/index.ts`, `src/services/shared/index.ts`) export from correct locations
-4. Remove any `type` keyword from re-exports that should be value exports (or vice versa)
-5. Run a full build to confirm zero errors
-
-### Files Modified (~5)
-- `src/hooks/data/investor/index.ts` -- update to re-export from `@/features/investor/`
-- `src/components/investor/index.ts` -- delete (moved to features)
-- `src/pages/investor/` -- delete directory (moved to features)
-- Any remaining deprecated shims
-
----
-
-## Execution Order
-
-1. **Step 11** -- No changes needed, just verification (mark complete)
-2. **Step 12** -- Convert shared/IB class wrappers (low risk, isolated)
-3. **Step 9** -- Migrate investor domain to features (larger, structural)
-4. **Step 13** -- Final cleanup after migration
-
-### Total Scope
-- ~30 files moved (Step 9)
-- ~10 files refactored (Step 12)
-- ~5 files cleaned up (Step 13)
-- 0 behavioral changes
-
+### Total File Count
+- ~37 new files created (moved content + barrel indexes)
+- ~37 old files deleted
+- ~10 existing files updated (route files, cross-domain consumers, barrel)
