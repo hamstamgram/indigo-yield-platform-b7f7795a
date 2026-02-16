@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { db } from "@/lib/db/index";
+
 export interface PlatformSettings {
   maintenance_mode: boolean;
   allow_new_registrations: boolean;
@@ -25,52 +26,43 @@ export const defaultPlatformSettings: PlatformSettings = {
   platform_name: "Indigo Yield Platform",
 };
 
-class SystemConfigService {
-  /**
-   * Get a config value by key
-   */
-  async getConfig<T = any>(key: string): Promise<T | null> {
-    const { data, error } = await supabase
-      .from("system_config")
-      .select("key, value")
-      .eq("key", key)
-      .maybeSingle();
+async function getConfig<T = any>(key: string): Promise<T | null> {
+  const { data, error } = await supabase
+    .from("system_config")
+    .select("key, value")
+    .eq("key", key)
+    .maybeSingle();
 
-    if (error && error.code !== "PGRST116") {
-      logError("systemConfig.getConfig", error, { key });
-      return null;
-    }
-
-    return data?.value as T | null;
+  if (error && error.code !== "PGRST116") {
+    logError("systemConfig.getConfig", error, { key });
+    return null;
   }
 
-  /**
-   * Get platform settings with defaults
-   */
-  async getPlatformSettings(): Promise<PlatformSettings> {
-    const value = await this.getConfig<PlatformSettings>("platform_settings");
-    return { ...defaultPlatformSettings, ...(value || {}) };
-  }
-
-  /**
-   * Upsert a config value
-   */
-  async upsertConfig<T = any>(key: string, value: T): Promise<void> {
-    const { error } = await db.upsert("system_config", {
-      key,
-      value: value as any,
-      updated_at: new Date().toISOString(),
-    } as any);
-
-    if (error) throw new Error(error.userMessage || error.message);
-  }
-
-  /**
-   * Save platform settings
-   */
-  async savePlatformSettings(settings: PlatformSettings): Promise<void> {
-    await this.upsertConfig("platform_settings", settings);
-  }
+  return data?.value as T | null;
 }
 
-export const systemConfigService = new SystemConfigService();
+async function getPlatformSettings(): Promise<PlatformSettings> {
+  const value = await getConfig<PlatformSettings>("platform_settings");
+  return { ...defaultPlatformSettings, ...(value || {}) };
+}
+
+async function upsertConfig<T = any>(key: string, value: T): Promise<void> {
+  const { error } = await db.upsert("system_config", {
+    key,
+    value: value as any,
+    updated_at: new Date().toISOString(),
+  } as any);
+
+  if (error) throw new Error(error.userMessage || error.message);
+}
+
+async function savePlatformSettings(settings: PlatformSettings): Promise<void> {
+  await upsertConfig("platform_settings", settings);
+}
+
+export const systemConfigService = {
+  getConfig,
+  getPlatformSettings,
+  upsertConfig,
+  savePlatformSettings,
+};

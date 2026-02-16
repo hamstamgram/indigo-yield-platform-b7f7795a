@@ -8,50 +8,43 @@ export interface InvestorExportData {
   documents: any[];
 }
 
-class InvestorDataExportService {
-  /**
-   * Export all data for an investor (GDPR data export)
-   */
-  async exportInvestorData(userId: string): Promise<InvestorExportData> {
-    const [profile, investments, transactions, documents] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      supabase.from("investor_positions").select("*").eq("investor_id", userId),
-      // Note: Includes ALL transactions (including voided) for complete GDPR audit trail
-      // Users have the right to see their full data history under GDPR Article 15
-      supabase.from("transactions_v2").select("*").eq("investor_id", userId),
-      supabase.from("documents").select("*").eq("user_id", userId),
-    ]);
+async function exportInvestorData(userId: string): Promise<InvestorExportData> {
+  const [profile, investments, transactions, documents] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+    supabase.from("investor_positions").select("*").eq("investor_id", userId),
+    supabase.from("transactions_v2").select("*").eq("investor_id", userId),
+    supabase.from("documents").select("*").eq("user_id", userId),
+  ]);
 
-    return {
-      exportDate: new Date().toISOString(),
-      profile: profile.data,
-      investments: investments.data || [],
-      transactions: transactions.data || [],
-      documents: (documents.data || []).map((d: any) => ({
-        id: d.id,
-        type: d.document_type || d.type,
-        status: d.status,
-        uploadedAt: d.created_at,
-      })),
-    };
-  }
-
-  /**
-   * Download export data as JSON file
-   */
-  downloadAsJson(data: InvestorExportData): void {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `indigo-data-export-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
+  return {
+    exportDate: new Date().toISOString(),
+    profile: profile.data,
+    investments: investments.data || [],
+    transactions: transactions.data || [],
+    documents: (documents.data || []).map((d: any) => ({
+      id: d.id,
+      type: d.document_type || d.type,
+      status: d.status,
+      uploadedAt: d.created_at,
+    })),
+  };
 }
 
-export const investorDataExportService = new InvestorDataExportService();
+function downloadAsJson(data: InvestorExportData): void {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `indigo-data-export-${Date.now()}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export const investorDataExportService = {
+  exportInvestorData,
+  downloadAsJson,
+};
