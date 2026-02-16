@@ -1,170 +1,206 @@
 
 
-# Zero Trust Forensic Audit Report
+# Zero Trust Forensic Audit -- Round 2 Report
 
-## SECTION 1: FINANCIAL CORE ("The Money Audit")
-
-### 1. The "Dust" and Precision Inquiry
-
-**RED FLAG REPORT -- Files Using Floating-Point Math for Financial Values:**
-
-| File | Line(s) | Pattern | Severity |
-|------|---------|---------|----------|
-| `src/services/admin/yields/yieldPreviewService.ts` | 144-145 | `Number(result.opening_aum) * 100` for yield percentage | MEDIUM |
-| `src/services/admin/yields/yieldHistoryService.ts` | 290-292 | `Number(row.current_value)` for composition values | MEDIUM |
-| `src/services/shared/transactionService.ts` | 190, 202, 286, 297 | `parseFloat(String(params.amount))` passed to RPC | LOW (SQL handles precision) |
-| `src/services/investor/transactionsV2Service.ts` | 180 | `Number(tx.amount)` for summary accumulation | HIGH |
-| `src/features/admin/yields/components/YieldEventsTable.tsx` | 90 | `parseFloat(String(e.net_yield_amount))` for sum | HIGH |
-| `src/features/admin/dashboard/QuickYieldEntry.tsx` | 46-56 | `parseFloat(newAUM)` for yield calc | MEDIUM (display only) |
-| `src/services/admin/feesService.ts` | 207 | `parseFloat(String(p.current_value || 0))` for balances | HIGH |
-| `src/services/shared/performanceService.ts` | 386-416 | `Number(r.mtd_beginning_balance)` etc. | LOW (display mapping) |
-
-**Rounding Mode:** Backend SQL uses `ROUND(value::numeric, 8)` which is PostgreSQL "round half away from zero." Frontend Decimal.js defaults to `ROUND_HALF_UP`. These are compatible. Dust residual in V5 is assigned to the largest non-fees investor (correct).
-
-**Verdict:** Core yield engine (preview/apply RPCs and apply service) correctly uses `parseFinancial()` (Decimal.js). However, several peripheral services and UI components use raw `Number()` / `parseFloat()` for financial aggregation, which can cause dust-level discrepancies in display totals.
-
-### 2. Conservation of Value Check
-
-**Status: PASS**
-
-- The V5 engine enforces `v_total_gross = v_total_net + v_total_fees + v_total_ib` in the RPC return.
-- Dust residual is explicitly tracked and assigned (not lost).
-- Opening AUM now correctly includes all account types (fixed in prior session).
-
-**Orphaned Remainder Handling:** Dust goes to the largest non-fees investor. This is acceptable.
-
-### 3. Historical Immutability
-
-**Status: PASS**
-
-- `trg_protect_immutable_fields` triggers on `transactions_v2`, `fee_allocations`, `ib_allocations`, `audit_log`, and `yield_distributions` prevent modification of `created_at`, `reference_id`, and actor fields.
-- Voiding is the only way to "undo" -- creates a new void transaction, never edits the original.
-- `trg_enforce_canonical_position_write` blocks direct position edits.
-
-### 4. Zero and Negative Yield
-
-**Status: Partially Addressed**
-
-- Zero yield: Frontend block removed (prior session). Backend handles it correctly.
-- Negative yield: V5 engine **skips** segments with negative yield (`IF v_seg_yield > 0`). Losses are not distributed. This is a **design decision**, not a bug, but it means the platform cannot report losses.
+All critical issues from the prior audit sessions have been verified as fixed. This round focuses on **residual floating-point precision leaks** that remain in peripheral services and UI components, plus a confirmation of all previously audited sections.
 
 ---
 
-## SECTION 2: SYSTEM INTEGRITY ("The Code Audit")
+## SECTION 1: FINANCIAL CORE
 
-### 5. Concurrency and Race Conditions ("Double Spend")
+### 1. Dust and Precision -- Remaining Floating-Point Usage
 
-**THE LOCK REPORT -- Status: PASS**
+**Previously Fixed (confirmed):**
+- `transactionsV2Service.ts` -- now uses `parseFinancial()` (Decimal.js). PASS.
+- `yieldPreviewService.ts` -- yield percentage now uses `parseFinancial` division. PASS.
+- `feesService.ts` lines 204-211 -- INDIGO balance accumulation now uses `parseFinancial`. PASS.
 
-| Operation | Lock Mechanism | Idempotency Key |
-|-----------|---------------|-----------------|
-| Yield Distribution (V5) | `pg_advisory_xact_lock(md5(fund_id + period_end))` | `reference_id` unique constraint on `transactions_v2` |
-| Deposit/Withdrawal | `pg_advisory_xact_lock(hashtext('crystallize:' + fund_id))` | `reference_id` unique per trigger reference |
-| Void Transaction | `SELECT ... FOR UPDATE` on transaction row | N/A (row-level lock) |
+**Still Using `Number()` / `parseFloat()` for Financial Values:**
 
-Two admins clicking "Apply" simultaneously: the second will block on the advisory lock and then fail on the existing distribution check (idempotency). **No double-spend possible.**
+| File | Line(s) | Pattern | Risk | Action |
+|------|---------|---------|------|--------|
+| `src/services/admin/feesService.ts` | 147 | `Number(tx.amount)` for fee record mapping | LOW -- display only, no aggregation | No change needed |
+| `src/services/admin/feesService.ts` | 287-289 | `Number(a.gross_yield_amount)`, `Number(a.fee_percentage)`, `Number(a.fee_amount)` for fee allocation mapping | LOW -- display mapping to UI | No change needed |
+| `src/services/admin/feesService.ts` | 324 | `Number(tx.amount)` in yield-by-fund accumulation loop | **HIGH** -- running sum loses precision | **FIX** |
+| `src/services/admin/depositWithYieldService.ts` | 215 | `Number(p.current_value)` in AUM sum reduce | **HIGH** -- AUM calculation with precision loss | **FIX** |
+| `src/services/admin/adminService.ts` | 55 | `Number(req.requested_amount)` in pending withdrawals sum | MEDIUM -- dashboard display total | **FIX** |
+| `src/services/investor/investorPortfolioService.ts` | 65-66, 99-100 | `parseFloat(pos.shares)`, `Number(pos.current_value)` | LOW -- UI display values only | No change needed |
+| `src/features/admin/investors/components/yields/InvestorYieldHistory.tsx` | 62-64, 70 | `parseFloat(String(e.gross_yield_amount))` in summary reduce | **HIGH** -- financial sum in UI | **FIX** |
+| `src/features/admin/yields/components/YieldEventsTable.tsx` | 91 | `parseFloat(String(e.net_yield_amount))` with `isFinite` guard | MEDIUM -- partially fixed, still uses float | **FIX** |
+| `src/hooks/data/admin/yield/useYieldSubmission.ts` | 84 | `parseFloat(yieldPreview.grossYield)` for toast message | LOW -- display-only for toast text | No change needed |
+| `src/hooks/data/admin/yield/useYieldCalculation.ts` | 36 | `parseFloat(newAUM)` for input validation | LOW -- validation only, not calculation | No change needed |
+
+**Rounding Mode:** Backend SQL uses `ROUND(value, 8)` (half away from zero). Frontend `Decimal.js` defaults to `ROUND_HALF_UP`. These are compatible. No action needed.
+
+### 2. Conservation of Value
+
+**Status: PASS** (confirmed from prior audit)
+- V5 engine enforces `gross = net + fees + ib`.
+- Dust residual assigned to largest non-fees investor.
+- Opening AUM includes all account types.
+
+### 3. Indigo Fee Recursive Loop
+
+**Status: PASS** (confirmed from prior audit)
+- INDIGO FEES has `fee_pct = 0` and `account_type = 'fees_account'`.
+- V5 engine explicitly sets `v_fee_pct := 0` for `fees_account`.
+- INDIGO earns gross yield, pays zero fees. No recursive loop.
+- IB accounts pay standard fees on yield (confirmed as intended business rule).
+
+---
+
+## SECTION 2: SYSTEM INTEGRITY
+
+### 4. Concurrency and Race Conditions
+
+**Status: PASS** (confirmed from prior audit)
+
+| Operation | Lock | Idempotency |
+|-----------|------|-------------|
+| Yield Distribution | `pg_advisory_xact_lock` | `reference_id` unique constraint |
+| Deposit/Withdrawal | `pg_advisory_xact_lock` | `reference_id` unique per trigger |
+| Void Transaction | `SELECT ... FOR UPDATE` | Row-level lock |
+
+### 5. Historical Immutability
+
+**Status: PASS** (confirmed from prior audit)
+- `trg_protect_immutable_fields` on all financial tables.
+- Void-only correction model (no edits to history).
 
 ### 6. Zombie and Ghost Accounts
 
-**THE ORPHAN REPORT -- Status: CLEAN**
-
-| Check | Result |
-|-------|--------|
-| Ledger entries without valid profile | **0 orphans** |
-| Positions without valid profile | **0 orphans** |
-| Zero-balance positions still marked active | **0 zombies** |
-
-The system also has dedicated integrity views (`v_orphaned_transactions`, `v_orphaned_positions`, `v_fee_calculation_orphans`) monitored via the Integrity Dashboard.
-
-### 7. The "Super-Admin" God Mode -- RBAC Audit
-
-**Status: 5 tables use insecure `profiles.is_admin` instead of `is_admin()` RPC**
-
-| Table | Policies Using `profiles.is_admin` | Risk |
-|-------|-----------------------------------|------|
-| `fund_aum_events` | INSERT, UPDATE, SELECT (3 policies) | HIGH -- privilege escalation if profile field manipulated |
-| `global_fee_settings` | ALL (1 policy) | HIGH -- fee config exposed |
-| `investor_fund_performance` | ALL (1 policy) | MEDIUM -- performance data write access |
-| `statement_periods` | ALL (1 policy) | MEDIUM |
-| `system_config` | ALL (1 policy) | HIGH -- system config exposed |
-
-**The Fix:** Replace all `profiles.is_admin = true` checks with `is_admin()` which queries the `user_roles` table (the secure source of truth).
-
-### 8. The "Indigo Fee" Recursive Loop Check
-
-**Status: CORRECTLY HANDLED**
-
-- INDIGO FEES has `fee_pct = 0.000` in profiles and `account_type = 'fees_account'`.
-- The V5 engine explicitly checks: `IF v_inv.account_type = 'fees_account' THEN v_fee_pct := 0`.
-- **Result:** INDIGO earns gross yield, pays zero fees. The house does not pay fees to the house.
-
-**IB Accounts:** IBs (Ryan, Lars, Alex) have `fee_pct = 20.000` in their profile. The V5 engine does NOT override IB fees to 0. This means **IBs pay platform fees on their own yield earnings**. This may or may not be intentional -- it depends on the business rule. If IBs should not pay fees on commission-earned capital, their fee schedule needs an override (either in `investor_fee_schedule` or via an `account_type = 'ib'` check in the V5 engine similar to `fees_account`).
+**Status: PASS** (confirmed from prior audit)
+- 0 orphaned ledger entries, 0 zombie positions.
+- Integrity views monitor continuously.
 
 ---
 
-## SECTION 3: DATA and STATE ("The Truth Audit")
+## SECTION 3: DATA and STATE
 
-### 9. Timezone and Date Boundary
+### 7. Timezone and Date Boundary
 
-**Status: PASS (with enforced standard)**
+**Status: PASS** (confirmed from prior audit)
+- All dates use `formatDateForDB()` / `date-fns.format()`.
+- `toISOString().split("T")[0]` is prohibited.
+- PostgreSQL `date` type is timezone-agnostic for financial dates.
 
-- All date-to-string conversions use `date-fns.format(date, "yyyy-MM-dd")` via `formatDateForDB()`.
-- `toISOString().split("T")[0]` is prohibited (documented in memory).
-- PostgreSQL stores dates as timezone-agnostic `date` type for financial dates.
+### 8. Negative Yield
 
-### 10. Yield Percentage Calculation Precision Bug
+**Status: BY DESIGN**
+- V5 engine skips segments with `v_seg_yield > 0` guard -- negative yield segments are not distributed.
+- `crystallize_yield_before_flow` raises exception for negative gross yield.
+- This is an intentional design decision: the platform distributes gains only.
+- The frontend hides negative yield display in the input form (cosmetic -- does not block submission).
 
-**File:** `src/services/admin/yields/yieldPreviewService.ts` lines 143-145
+---
+
+## FIX PLAN (5 items, Priority order)
+
+### Fix 1: HIGH -- `feesService.ts` line 324 -- Yield Accumulation Precision
+
+Replace `Number()` accumulation with `parseFinancial()`:
 
 ```typescript
-yieldPercentage:
-  result.opening_aum && Number(result.opening_aum) > 0
-    ? String(((Number(result.gross_yield) || 0) / Number(result.opening_aum)) * 100)
-    : "0",
+// BEFORE:
+existing.total += Number(tx.amount || 0);
+
+// AFTER:
+existing.total = parseFinancial(existing.total).plus(parseFinancial(tx.amount || 0)).toNumber();
 ```
 
-This uses `Number()` division for a financial percentage. Should use `parseFinancial(result.gross_yield).div(parseFinancial(result.opening_aum)).times(100).toString()`.
+### Fix 2: HIGH -- `depositWithYieldService.ts` line 215 -- AUM Sum Precision
+
+Replace `Number()` reduce with `parseFinancial()`:
+
+```typescript
+// BEFORE:
+return (positions || []).reduce((sum, p) => sum + Number(p.current_value || 0), 0);
+
+// AFTER:
+return (positions || []).reduce(
+  (sum, p) => parseFinancial(sum).plus(parseFinancial(p.current_value || 0)).toNumber(),
+  0
+);
+```
+
+### Fix 3: HIGH -- `InvestorYieldHistory.tsx` lines 62-64, 70 -- Summary Stats Precision
+
+Replace `parseFloat()` reduces with `parseFinancial()`:
+
+```typescript
+// BEFORE:
+const totalGross = active.reduce((sum, e) => sum + parseFloat(String(e.gross_yield_amount)), 0);
+
+// AFTER:
+const totalGross = active.reduce(
+  (sum, e) => parseFinancial(sum).plus(parseFinancial(e.gross_yield_amount)).toNumber(),
+  0
+);
+```
+Apply same pattern to `totalFees`, `totalNet`, and `pendingYield`.
+
+### Fix 4: MEDIUM -- `YieldEventsTable.tsx` line 91 -- Total Yield Precision
+
+Replace `parseFloat()` reduce with `parseFinancial()`:
+
+```typescript
+// BEFORE:
+const totalYield = filteredEvents.reduce(
+  (sum, e) => {
+    const val = parseFloat(String(e.net_yield_amount));
+    return Number.isFinite(val) ? sum + val : sum;
+  },
+  0
+);
+
+// AFTER:
+const totalYield = filteredEvents.reduce(
+  (sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount || 0)).toNumber(),
+  0
+);
+```
+
+### Fix 5: MEDIUM -- `adminService.ts` line 55 -- Pending Withdrawals Sum
+
+Replace `Number()` reduce with `parseFinancial()`:
+
+```typescript
+// BEFORE:
+const pendingWithdrawals =
+  withdrawalRequests?.reduce((sum, req) => sum + Number(req.requested_amount), 0) || 0;
+
+// AFTER:
+const pendingWithdrawals =
+  withdrawalRequests?.reduce(
+    (sum, req) => parseFinancial(sum).plus(parseFinancial(req.requested_amount)).toNumber(),
+    0
+  ) || 0;
+```
 
 ---
 
-## PRIORITIZED FIX PLAN
+## Audit Verdict Summary
 
-### Priority 1: SECURITY -- RLS Policies Using `profiles.is_admin` (5 tables, 7 policies)
+| Section | Status | Action Required |
+|---------|--------|-----------------|
+| Core Yield Engine Precision | PASS | None |
+| Peripheral Service Precision | 5 files with float math | 5 fixes above |
+| Conservation of Value | PASS | None |
+| Indigo Fee Loop | PASS (0% fee confirmed) | None |
+| Concurrency/Locks | PASS | None |
+| Historical Immutability | PASS | None |
+| Orphaned Records | PASS (0 found) | None |
+| RLS Security | PASS (fixed in prior session) | None |
+| Timezone/Date | PASS | None |
+| Negative Yield | BY DESIGN (gains only) | None |
 
-**Database migration** to replace all `profiles.is_admin = true` checks with `is_admin()` on:
-- `fund_aum_events` (3 policies)
-- `global_fee_settings` (1 policy)
-- `investor_fund_performance` (1 policy)
-- `statement_periods` (1 policy)
-- `system_config` (1 policy)
+### Files to Change
 
-### Priority 2: PRECISION -- Floating-Point in Financial Aggregation (3 files)
-
-| File | Fix |
-|------|-----|
-| `src/services/investor/transactionsV2Service.ts` line 180 | Replace `Number(tx.amount)` accumulation with `parseFinancial()` chain |
-| `src/features/admin/yields/components/YieldEventsTable.tsx` line 90 | Replace `parseFloat(String(...))` sum with `parseFinancial()` reduce |
-| `src/services/admin/feesService.ts` line 207 | Replace `parseFloat()` accumulation with `parseFinancial()` |
-
-### Priority 3: PRECISION -- Yield Percentage Calculation (1 file)
-
-| File | Fix |
-|------|-----|
-| `src/services/admin/yields/yieldPreviewService.ts` lines 143-145 | Use `parseFinancial` division instead of `Number()` |
-
-### Priority 4: DESIGN DECISION -- IB Fee-on-Yield Policy
-
-IB accounts (Ryan, Lars, Alex) have `fee_pct = 20%` in their profiles. When they earn yield on their commission capital, 20% of that yield goes to INDIGO FEES as a platform fee. **Confirm with business whether this is intended.** If not, add `account_type = 'ib'` to the fee exemption logic in the V5 engine alongside `fees_account`.
-
-### Summary
-
-| Category | Issues Found | Critical | Needs Fix |
-|----------|-------------|----------|-----------|
-| Floating-point precision | 8 files flagged | 3 HIGH | 3 files |
-| Concurrency/Locks | All critical paths locked | 0 | None |
-| Orphaned records | 0 found | 0 | None |
-| Historical immutability | Triggers enforce | 0 | None |
-| RLS security (profiles.is_admin) | 7 policies on 5 tables | 3 HIGH | DB migration |
-| Fee recursive loop | Correctly handled for INDIGO | 0 | IB policy TBD |
-| Conservation of value | Enforced in V5 | 0 | None |
+| File | Change | Priority |
+|------|--------|----------|
+| `src/services/admin/feesService.ts` | `parseFinancial()` for yield accumulation (line 324) | HIGH |
+| `src/services/admin/depositWithYieldService.ts` | `parseFinancial()` for AUM sum (line 215) | HIGH |
+| `src/features/admin/investors/components/yields/InvestorYieldHistory.tsx` | `parseFinancial()` for 4 summary reduces (lines 62-64, 70) | HIGH |
+| `src/features/admin/yields/components/YieldEventsTable.tsx` | `parseFinancial()` for total yield reduce (line 91) | MEDIUM |
+| `src/services/admin/adminService.ts` | `parseFinancial()` for pending withdrawals sum (line 55) | MEDIUM |
 
