@@ -1,70 +1,107 @@
 
 
-# Steps 4 and 5: Implementation Plan
+# Steps 6, 7, and 10: Yield Service Cleanup, Shared Service Pruning, and Report Component Migration
 
-## Step 4: Move Admin-Specific Hooks to Admin Barrel
+## Overview
 
-### 4a. Create `src/hooks/data/admin/exports/dashboard.ts`
-Re-export all dashboard hooks from `shared/useDashboardMetrics` and `shared/useDashboardQueries`:
-- `useFinancialMetrics`, `useHistoricalFlowData`, `useFundComposition`, `useDeliveryStatus`, `useRetryDelivery`, `useDeliveryDiagnostics`, `useDeliveryExclusionBreakdown` + types
-- `useFundsWithAUM`, `useRecentActivities`, `usePendingItems`
+Three structural changes to continue the audit:
 
-### 4b. Update `src/hooks/data/admin/index.ts`
-Add `export * from "./exports/dashboard"` line.
-
-### 4c. Update `src/hooks/data/shared/index.ts`
-Remove the dashboard metrics (lines 29-44) and dashboard queries (line 47) exports. The investor detail/enrichment/mutation/query hooks are already re-exported via `admin/exports/investors.ts`, but they must stay in shared barrel too since `useInvestorHooks.ts` consolidates them and shared consumers exist. Only dashboard hooks move exclusively to admin.
+1. **Step 6** -- Group the 8 yield service files under `src/services/admin/yields/` with a sub-barrel
+2. **Step 7** -- Remove dead shared services (`historicalDataService`, `performanceDataService`) that have zero consumers
+3. **Step 10** -- Move `src/components/reports/` components into `src/features/admin/reports/` to align with the feature-first structure
 
 ---
 
-## Step 5: Eliminate `src/services/api/`
+## Step 6: Organize Yield Services into a Sub-Directory
 
-### 5a. Delete `src/services/api/statementsApi.ts`
-Zero external importers confirmed -- fully dead file (954 lines).
+Currently there are 8 yield-related files scattered in `src/services/admin/`:
+- `yieldDistributionService.ts` (re-export facade)
+- `yieldPreviewService.ts`
+- `yieldApplyService.ts`
+- `yieldHistoryService.ts`
+- `yieldReportsService.ts`
+- `yieldCrystallizationService.ts`
+- `yieldManagementService.ts`
+- `yieldDistributionsPageService.ts`
 
-### 5b. Create `src/services/admin/reportScheduleService.ts`
-Extract 4 live CRUD methods from `reportsApi.ts` as functional exports:
-- `getReportSchedules()`
-- `createReportSchedule(schedule)`
-- `updateReportSchedule(id, updates)`
-- `deleteReportSchedule(id)`
-- Private `mapReportSchedule()` helper
+### Changes
 
-### 5c. Update `src/services/admin/index.ts`
-Add export for the new `reportScheduleService`.
+1. Create `src/services/admin/yields/` directory
+2. Move all 8 files into it
+3. Create `src/services/admin/yields/index.ts` barrel that re-exports everything
+4. Update `src/services/admin/index.ts` yield section to point to `./yields` barrel
+5. Update 7 files with direct imports (e.g., `from "@/services/admin/yieldManagementService"`) to use `from "@/services/admin/yields/yieldManagementService"` or the barrel
 
-### 5d. Delete `src/services/api/reportsApi.ts` and `src/services/api/` directory
-
-### 5e. Delete `src/hooks/data/shared/useReportHistory.ts`
-The hook calls `ReportsApi.getUserReports()` which always returns `[]`. Dead code.
-
-### 5f. Update `src/hooks/data/shared/index.ts`
-Remove `useReportHistory` and `ReportHistoryFilters` exports (line 206).
-
-### 5g. Update `src/components/reports/ReportHistory.tsx`
-This component uses `useReportHistory` (always returns `[]`) and `ReportsApi.downloadReport`/`deleteReport` (both dead). Replace with a "Feature unavailable" placeholder card.
-
-### 5h. Update `src/components/reports/ReportBuilder.tsx`
-Calls `ReportsApi.generateReportNow` and `generateReport` (both return errors). `loadReportDefinitions` already sets `[]`. Replace with a "Feature unavailable" placeholder card.
-
-### 5i. Update `src/components/reports/index.ts`
-Keep exports (the components still exist, just simplified).
+### Files with direct yield service imports to update
+- `src/services/admin/yieldApplyService.ts` (imports yieldCrystallizationService)
+- `src/features/admin/yields/hooks/useYieldCrystallization.ts`
+- `src/features/admin/yields/components/VoidYieldDialog.tsx`
+- `src/features/admin/yields/pages/YieldDistributionsPage.tsx`
+- `src/hooks/data/shared/useYieldData.ts`
+- `src/hooks/data/investor/useInvestorYieldData.ts`
+- `src/features/admin/yields/hooks/useYieldDistributionsPage.ts`
 
 ---
 
-## Files Created (2)
-- `src/hooks/data/admin/exports/dashboard.ts`
-- `src/services/admin/reportScheduleService.ts`
+## Step 7: Remove Dead Shared Services
 
-## Files Deleted (3)
-- `src/services/api/statementsApi.ts`
-- `src/services/api/reportsApi.ts`
-- `src/hooks/data/shared/useReportHistory.ts`
+### 7a. Delete `src/services/shared/historicalDataService.ts`
+- Exports `getHistoricalReports`, `updateHistoricalReport`, `deleteHistoricalReport`, `generateHistoricalReport`, `BulkGenerateOptions`, `HistoricalReportTemplate`
+- Zero consumers found outside the barrel re-export
+- `reportService.ts` in admin has its own `BulkGenerateOptions` and template generation -- this file is a dead duplicate
 
-## Files Modified (5)
-- `src/hooks/data/admin/index.ts` -- add dashboard export
-- `src/hooks/data/shared/index.ts` -- remove dashboard + reportHistory exports
-- `src/services/admin/index.ts` -- add reportScheduleService export
-- `src/components/reports/ReportHistory.tsx` -- replace with placeholder
-- `src/components/reports/ReportBuilder.tsx` -- replace with placeholder
+### 7b. Delete `src/services/shared/performanceDataService.ts`
+- Exports `PerformanceData`, `upsertPerformanceData`, `getPerformanceByPeriod`, `deletePerformanceRecord`
+- Zero consumers found outside the barrel re-export
+- All actual performance reads go through `performanceService.ts`
+
+### 7c. Update `src/services/shared/index.ts`
+Remove the two dead exports:
+```
+export * from "./performanceDataService";
+export * from "./historicalDataService";
+```
+
+---
+
+## Step 10: Move Report Components to Features
+
+`src/components/reports/` contains 3 files:
+- `ReportBuilder.tsx` -- "Feature Unavailable" placeholder (already simplified in Step 5)
+- `ReportHistory.tsx` -- "Feature Unavailable" placeholder (already simplified in Step 5)
+- `InvestorReportTemplate.tsx` -- 803-line HTML email template (active, used by tests and report generation)
+
+### Changes
+
+1. Move `InvestorReportTemplate.tsx` to `src/features/admin/reports/components/InvestorReportTemplate.tsx`
+2. Move `ReportBuilder.tsx` to `src/features/admin/reports/components/ReportBuilder.tsx`
+3. Move `ReportHistory.tsx` to `src/features/admin/reports/components/ReportHistory.tsx`
+4. Update `src/features/admin/reports/components/index.ts` barrel to export all three
+5. Delete `src/components/reports/` directory
+6. Update consumers:
+   - `src/pages/reports/CustomReport.tsx` -- update import path
+   - `tests/unit/components/reportTemplateSnapshot.test.ts` -- update import path
+
+---
+
+## Technical Summary
+
+### Files Created (1)
+- `src/services/admin/yields/index.ts` -- yield sub-barrel
+
+### Files Moved (11)
+- 8 yield service files into `src/services/admin/yields/`
+- 3 report components into `src/features/admin/reports/components/`
+
+### Files Deleted (2)
+- `src/services/shared/historicalDataService.ts`
+- `src/services/shared/performanceDataService.ts`
+
+### Files Modified (~12)
+- `src/services/admin/index.ts` -- update yield imports to sub-barrel
+- `src/services/shared/index.ts` -- remove dead exports
+- `src/features/admin/reports/components/index.ts` -- add report component exports
+- `src/pages/reports/CustomReport.tsx` -- update import path
+- `tests/unit/components/reportTemplateSnapshot.test.ts` -- update import path
+- 7 files with direct yield service imports (path updates only)
 
