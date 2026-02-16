@@ -3,20 +3,16 @@
  * Handles investor invite operations
  */
 
-class InviteService {
-  /**
-   * Create an investor invite
-   * NOTE: investor_invites table was dropped
-   */
-  async createInvestorInvite(_params: {
-    email: string;
-    investorId: string;
-    inviteCode: string;
-    expiresAt: string;
-    createdBy?: string;
-  }): Promise<void> {
-    throw new Error("Investor invites feature has been removed");
-  }
+async function createInvestorInvite(_params: {
+  email: string;
+  investorId: string;
+  inviteCode: string;
+  expiresAt: string;
+  createdBy?: string;
+}): Promise<void> {
+  throw new Error("Investor invites feature has been removed");
 }
 
-export const inviteService = new InviteService();
+export const inviteService = {
+  createInvestorInvite,
+};
