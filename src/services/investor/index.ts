@@ -19,7 +19,6 @@ export {
 // Unified investor data service (canonical source - facade pattern)
 export { 
   investorDataService, 
-  InvestorDataService,
 } from "./investorDataService";
 
 // Position service exports
@@ -89,7 +88,8 @@ export type {
 } from "./investorYieldHistoryService";
 
 // Deposit service
-export { depositService, DepositService } from "./depositService";
+export { depositService } from "./depositService";
+export type { DepositService } from "./depositService";
 
 // Withdrawal service (admin operations)
 export { withdrawalService } from "./withdrawalService";

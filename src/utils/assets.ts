@@ -4,6 +4,7 @@
  */
 
 import { getAssetConfig, INVESTOR_DISPLAY_DECIMALS } from "@/types/asset";
+import { toNum } from "@/utils/numeric";
 
 // Re-export all asset-related types and functions from the central location
 export {
@@ -22,17 +23,6 @@ export {
   formatAssetPrecision,
   getSupportedAssets,
 } from "@/types/asset";
-
-/**
- * Convert a value to number safely
- * Handles string (from NUMERIC DB fields) and number types
- */
-function toNum(value: string | number | null | undefined): number {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number") return isNaN(value) ? 0 : value;
-  const parsed = parseFloat(value);
-  return isNaN(parsed) ? 0 : parsed;
-}
 
 /**
  * Format an amount with the asset symbol
