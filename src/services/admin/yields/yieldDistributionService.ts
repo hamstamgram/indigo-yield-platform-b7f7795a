@@ -38,8 +38,6 @@ export {
   saveDraftAUMEntry,
   getActiveFundsWithAUM,
   getFundInvestorCompositionWithYield,
-  // Backwards compatible alias
-  getFundInvestorCompositionWithYield as getFundInvestorComposition,
   getStatementPeriodId,
   getInvestorPositionsWithFunds,
   checkExistingDistribution,
