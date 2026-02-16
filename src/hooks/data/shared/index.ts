@@ -26,25 +26,7 @@ export {
   type SignInResult,
 } from "./useAuthFlow";
 
-// Dashboard metrics
-export {
-  useFinancialMetrics,
-  useHistoricalFlowData,
-  useFundComposition,
-  useDeliveryStatus,
-  useRetryDelivery,
-  useDeliveryDiagnostics,
-  useDeliveryExclusionBreakdown,
-  type FinancialMetrics,
-  type FlowData,
-  type InvestorComposition,
-  type DeliveryRecord,
-  type DeliveryDiagnostics,
-  type ExclusionBreakdown,
-} from "./useDashboardMetrics";
-
-// Dashboard queries
-export { useFundsWithAUM, useRecentActivities, usePendingItems } from "./useDashboardQueries";
+// Dashboard metrics and queries -- moved to admin barrel (hooks/data/admin/exports/dashboard.ts)
 
 // Documents
 export { useDocuments } from "./useDocuments";
@@ -202,8 +184,7 @@ export {
 // Storage
 export { useUploadFundLogo } from "./useStorage";
 
-// Report history
-export { useReportHistory, type ReportHistoryFilters } from "./useReportHistory";
+// Report history -- removed (dead code, ReportsApi.getUserReports always returned [])
 
 // Available funds
 export { useAvailableFunds } from "./useAvailableFunds";

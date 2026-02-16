@@ -38,5 +38,8 @@ export * from "./exports/fees";
 // ============= Funds =============
 export * from "./exports/funds";
 
+// ============= Dashboard =============
+export * from "./exports/dashboard";
+
 // ============= Misc (Email, Reports, IB, Audit, etc.) =============
 export * from "./exports/misc";
