@@ -1,159 +1,170 @@
 
-# CFO/CTO Audit Report: Yield Distribution Engine
 
-## Executive Summary
+# Zero Trust Forensic Audit Report
 
-The audit uncovered **3 remaining issues** (1 critical, 1 medium, 1 low) alongside **4 already-fixed items** from prior sessions. The critical issue is that the `preview_segmented_yield_distribution_v5` RPC migration **failed to remove** the fees_account exclusion filter in the final output loop, meaning INDIGO FEES still won't appear in the preview/confirmation table despite being calculated internally.
+## SECTION 1: FINANCIAL CORE ("The Money Audit")
 
----
+### 1. The "Dust" and Precision Inquiry
 
-## Phase 1: CFO Audit Findings
+**RED FLAG REPORT -- Files Using Floating-Point Math for Financial Values:**
 
-### 1. Fee-to-Capital Pipeline
+| File | Line(s) | Pattern | Severity |
+|------|---------|---------|----------|
+| `src/services/admin/yields/yieldPreviewService.ts` | 144-145 | `Number(result.opening_aum) * 100` for yield percentage | MEDIUM |
+| `src/services/admin/yields/yieldHistoryService.ts` | 290-292 | `Number(row.current_value)` for composition values | MEDIUM |
+| `src/services/shared/transactionService.ts` | 190, 202, 286, 297 | `parseFloat(String(params.amount))` passed to RPC | LOW (SQL handles precision) |
+| `src/services/investor/transactionsV2Service.ts` | 180 | `Number(tx.amount)` for summary accumulation | HIGH |
+| `src/features/admin/yields/components/YieldEventsTable.tsx` | 90 | `parseFloat(String(e.net_yield_amount))` for sum | HIGH |
+| `src/features/admin/dashboard/QuickYieldEntry.tsx` | 46-56 | `parseFloat(newAUM)` for yield calc | MEDIUM (display only) |
+| `src/services/admin/feesService.ts` | 207 | `parseFloat(String(p.current_value || 0))` for balances | HIGH |
+| `src/services/shared/performanceService.ts` | 386-416 | `Number(r.mtd_beginning_balance)` etc. | LOW (display mapping) |
 
-**Status: PARTIALLY FIXED -- 1 critical gap remains**
+**Rounding Mode:** Backend SQL uses `ROUND(value::numeric, 8)` which is PostgreSQL "round half away from zero." Frontend Decimal.js defaults to `ROUND_HALF_UP`. These are compatible. Dust residual in V5 is assigned to the largest non-fees investor (correct).
 
-What works:
-- `get_active_funds_summary` RPC: FIXED. Now uses `SUM(ip.current_value)` for AUM (all account types).
-- `get_fund_composition` RPC: FIXED. Removed `account_type = 'investor'` filter. All accounts with balance > 0 appear.
-- `getCurrentFundAUM` frontend: FIXED. Now includes `fees_account` in the filter.
-- V5 preview engine **internal calculation**: CORRECT. The per-segment loop includes `fees_account` in yield allocation at 0% fee (line: `IF v_inv.account_type = 'fees_account' THEN v_fee_pct := 0`). IB accounts also participate.
+**Verdict:** Core yield engine (preview/apply RPCs and apply service) correctly uses `parseFinancial()` (Decimal.js). However, several peripheral services and UI components use raw `Number()` / `parseFloat()` for financial aggregation, which can cause dust-level discrepancies in display totals.
 
-**CRITICAL BUG (still present):** The V5 preview RPC output loop at approx. line 295 still contains:
-
-```sql
-WHERE t.total_gross > 0
-  AND t.investor_id != v_fees_account_id  -- THIS LINE MUST GO
-```
-
-This means INDIGO FEES is calculated correctly internally (earns yield, compounds) but is **excluded from the JSON allocations output**. The frontend preview/confirmation table will never show INDIGO FEES as a row. The previous migration did NOT fix this.
-
-**Fix required:** Remove `AND t.investor_id != v_fees_account_id` from the final output loop of `preview_segmented_yield_distribution_v5`.
-
-### 2. Conservation of Value Equation
-
-**Status: PASS (with caveat)**
-
-- Opening AUM is now correctly computed as `SUM(ALL balances)` = 229,358 XRP (verified via live query).
-- The conservation check in the V5 return: `v_total_gross = v_total_net + v_total_fees + v_total_ib` is present.
-- **Caveat:** The running totals (`v_total_gross`, `v_total_fees`, etc.) **exclude** fees_account's own yield from the header totals (by design -- its yield is "internal compounding"). This is architecturally correct since the gross/fees/net displayed to the admin only reflect real investor economics. The fees_account yield is a separate compounding event.
-
-### 3. Precision and Rounding
+### 2. Conservation of Value Check
 
 **Status: PASS**
 
-- All backend SQL uses `ROUND(... ::numeric, 8)` for 8-decimal precision on every allocation step.
-- Frontend uses `Decimal.js` via `parseFinancial()` utility throughout all financial calculations.
-- No `Number()` or `parseFloat()` used for financial math in service layers.
-- **Minor UI issue:** `handleNewAUMChange` in `YieldInputForm.tsx` line 127 sets yield display to empty string for negative yield instead of showing the negative number. This is cosmetic, not a calculation error.
+- The V5 engine enforces `v_total_gross = v_total_net + v_total_fees + v_total_ib` in the RPC return.
+- Dust residual is explicitly tracked and assigned (not lost).
+- Opening AUM now correctly includes all account types (fixed in prior session).
 
-### 4. Zero and Negative Yield Scenarios
+**Orphaned Remainder Handling:** Dust goes to the largest non-fees investor. This is acceptable.
 
-**Status: PARTIALLY FIXED**
-
-- **Zero yield frontend block:** FIXED (previous session). The validation preventing `newAUM == currentAUM` has been removed from `useYieldCalculation.ts`.
-- **Negative yield (backend):** The V5 engine has `IF v_seg_yield > 0` guards in both preview and apply RPCs. **Segments with negative yield are skipped entirely** (marked `skipped: true` in segment output). This means losses are NOT distributed proportionally to investors -- they are simply ignored.
-- **Negative yield (frontend):** `YieldInputForm.tsx` line 127 hides the yield amount display when negative (`yieldDec.isNegative() ? "" : yieldDec.toString()`).
-
-This is a design decision, not necessarily a bug: the platform doesn't distribute losses, it only distributes gains. But the UI should at minimum display the negative yield amount to the admin for awareness.
-
----
-
-## Phase 2: CTO Audit Findings
-
-### 5. Database Query Integrity (Eligible Investors)
-
-**Status: FIXED**
-
-- `get_active_funds_summary`: No account_type filter on AUM sum. PASS.
-- `get_fund_composition`: No account_type filter. PASS.
-- V5 per-segment allocation loop: Includes all accounts with `balance > 0`. PASS.
-- V5 output loop: **FAIL** -- still filters out `v_fees_account_id` (see Bug 1 above).
-
-### 6. State Transition Integrity (Apply RPC)
+### 3. Historical Immutability
 
 **Status: PASS**
 
-The `apply_segmented_yield_distribution_v5` RPC correctly:
-- Creates YIELD transactions for each investor (including fees_account internally).
-- Creates FEE_CREDIT transactions for the fees account.
-- Creates IB_CREDIT transactions for IB accounts.
-- Updates `investor_positions.current_value` for all affected accounts.
-- The fees_account balance compounds: yield earned in Period T becomes principal in Period T+1 (via position update).
-- Dust residual is assigned to the largest non-fees investor.
+- `trg_protect_immutable_fields` triggers on `transactions_v2`, `fee_allocations`, `ib_allocations`, `audit_log`, and `yield_distributions` prevent modification of `created_at`, `reference_id`, and actor fields.
+- Voiding is the only way to "undo" -- creates a new void transaction, never edits the original.
+- `trg_enforce_canonical_position_write` blocks direct position edits.
 
-### 7. UI/UX Consistency
+### 4. Zero and Negative Yield
 
-**Status: FIXED**
+**Status: Partially Addressed**
 
-- Transaction Date hidden when `isReporting`: CONFIRMED at line 359: `{!isReporting && (`.
-- Zero yield validation removed: CONFIRMED in `useYieldCalculation.ts` (no `baseAum` comparison blocking).
-- **Stale comment:** `yieldHistoryService.ts` lines 265-269 still say "NOTE: Composition is investor-only by design (fees/IB omitted)" -- this is now incorrect after the fix and should be updated.
-
-### 8. `run_integrity_pack` Bug
-
-**Status: BROKEN**
-
-The function references `WHERE ABS(variance) > 0.01` but the `v_ledger_reconciliation` view uses column name `drift`, not `variance`. This causes a runtime error when called.
+- Zero yield: Frontend block removed (prior session). Backend handles it correctly.
+- Negative yield: V5 engine **skips** segments with negative yield (`IF v_seg_yield > 0`). Losses are not distributed. This is a **design decision**, not a bug, but it means the platform cannot report losses.
 
 ---
 
-## Fix Plan (3 items)
+## SECTION 2: SYSTEM INTEGRITY ("The Code Audit")
 
-### Fix 1: CRITICAL -- V5 Preview Output Loop (Database Migration)
+### 5. Concurrency and Race Conditions ("Double Spend")
 
-Remove the fees_account exclusion from the final allocations output in `preview_segmented_yield_distribution_v5`.
+**THE LOCK REPORT -- Status: PASS**
 
-Change the query:
-```sql
--- BEFORE (broken):
-WHERE t.total_gross > 0 AND t.investor_id != v_fees_account_id
+| Operation | Lock Mechanism | Idempotency Key |
+|-----------|---------------|-----------------|
+| Yield Distribution (V5) | `pg_advisory_xact_lock(md5(fund_id + period_end))` | `reference_id` unique constraint on `transactions_v2` |
+| Deposit/Withdrawal | `pg_advisory_xact_lock(hashtext('crystallize:' + fund_id))` | `reference_id` unique per trigger reference |
+| Void Transaction | `SELECT ... FOR UPDATE` on transaction row | N/A (row-level lock) |
 
--- AFTER (fixed):
-WHERE t.total_gross > 0
+Two admins clicking "Apply" simultaneously: the second will block on the advisory lock and then fail on the existing distribution check (idempotency). **No double-spend possible.**
+
+### 6. Zombie and Ghost Accounts
+
+**THE ORPHAN REPORT -- Status: CLEAN**
+
+| Check | Result |
+|-------|--------|
+| Ledger entries without valid profile | **0 orphans** |
+| Positions without valid profile | **0 orphans** |
+| Zero-balance positions still marked active | **0 zombies** |
+
+The system also has dedicated integrity views (`v_orphaned_transactions`, `v_orphaned_positions`, `v_fee_calculation_orphans`) monitored via the Integrity Dashboard.
+
+### 7. The "Super-Admin" God Mode -- RBAC Audit
+
+**Status: 5 tables use insecure `profiles.is_admin` instead of `is_admin()` RPC**
+
+| Table | Policies Using `profiles.is_admin` | Risk |
+|-------|-----------------------------------|------|
+| `fund_aum_events` | INSERT, UPDATE, SELECT (3 policies) | HIGH -- privilege escalation if profile field manipulated |
+| `global_fee_settings` | ALL (1 policy) | HIGH -- fee config exposed |
+| `investor_fund_performance` | ALL (1 policy) | MEDIUM -- performance data write access |
+| `statement_periods` | ALL (1 policy) | MEDIUM |
+| `system_config` | ALL (1 policy) | HIGH -- system config exposed |
+
+**The Fix:** Replace all `profiles.is_admin = true` checks with `is_admin()` which queries the `user_roles` table (the secure source of truth).
+
+### 8. The "Indigo Fee" Recursive Loop Check
+
+**Status: CORRECTLY HANDLED**
+
+- INDIGO FEES has `fee_pct = 0.000` in profiles and `account_type = 'fees_account'`.
+- The V5 engine explicitly checks: `IF v_inv.account_type = 'fees_account' THEN v_fee_pct := 0`.
+- **Result:** INDIGO earns gross yield, pays zero fees. The house does not pay fees to the house.
+
+**IB Accounts:** IBs (Ryan, Lars, Alex) have `fee_pct = 20.000` in their profile. The V5 engine does NOT override IB fees to 0. This means **IBs pay platform fees on their own yield earnings**. This may or may not be intentional -- it depends on the business rule. If IBs should not pay fees on commission-earned capital, their fee schedule needs an override (either in `investor_fee_schedule` or via an `account_type = 'ib'` check in the V5 engine similar to `fees_account`).
+
+---
+
+## SECTION 3: DATA and STATE ("The Truth Audit")
+
+### 9. Timezone and Date Boundary
+
+**Status: PASS (with enforced standard)**
+
+- All date-to-string conversions use `date-fns.format(date, "yyyy-MM-dd")` via `formatDateForDB()`.
+- `toISOString().split("T")[0]` is prohibited (documented in memory).
+- PostgreSQL stores dates as timezone-agnostic `date` type for financial dates.
+
+### 10. Yield Percentage Calculation Precision Bug
+
+**File:** `src/services/admin/yields/yieldPreviewService.ts` lines 143-145
+
+```typescript
+yieldPercentage:
+  result.opening_aum && Number(result.opening_aum) > 0
+    ? String(((Number(result.gross_yield) || 0) / Number(result.opening_aum)) * 100)
+    : "0",
 ```
 
-This ensures INDIGO FEES appears as a visible row in the preview/confirmation table alongside Sam and Ryan.
-
-Note: The running totals (`v_total_gross`, etc.) correctly exclude fees_account yield from the header already, so no double-counting occurs.
-
-### Fix 2: MEDIUM -- `run_integrity_pack` Column Name (Database Migration)
-
-Fix the column reference:
-```sql
--- BEFORE (broken):
-WHERE ABS(variance) > 0.01
-
--- AFTER (fixed):
-WHERE ABS(drift) > 0.01
-```
-
-### Fix 3: LOW -- Stale Comments (Frontend)
-
-Update `yieldHistoryService.ts` lines 265-269 to remove the outdated "investor-only" comments since the composition now includes all account types.
+This uses `Number()` division for a financial percentage. Should use `parseFinancial(result.gross_yield).div(parseFinancial(result.opening_aum)).times(100).toString()`.
 
 ---
 
-## Verification: December 8th Simulation
+## PRIORITIZED FIX PLAN
 
-After Fix 1, run this test:
+### Priority 1: SECURITY -- RLS Policies Using `profiles.is_admin` (5 tables, 7 policies)
 
-| Check | Expected | Current Status |
-|-------|----------|----------------|
-| Total AUM displayed | 229,358 XRP | PASS (verified: `get_active_funds_summary` returns 229,358) |
-| Investor table rows | 3 (Sam, Ryan, INDIGO) | FAIL until Fix 1 (preview output excludes INDIGO) |
-| 1% yield to Sam | +2,292.87 | Correct (proportional to 229,287/229,358) |
-| 1% yield to Ryan | +0.142 | Correct (proportional to 14.20/229,358) |
-| 1% yield to INDIGO | +0.568 | Calculated internally, not shown until Fix 1 |
-| INDIGO closing balance | 57.368 | Correct after apply (position update includes yield) |
-| Conservation check | gross = net + fees + ib | PASS (built into RPC return) |
+**Database migration** to replace all `profiles.is_admin = true` checks with `is_admin()` on:
+- `fund_aum_events` (3 policies)
+- `global_fee_settings` (1 policy)
+- `investor_fund_performance` (1 policy)
+- `statement_periods` (1 policy)
+- `system_config` (1 policy)
 
----
+### Priority 2: PRECISION -- Floating-Point in Financial Aggregation (3 files)
 
-## Files To Change
+| File | Fix |
+|------|-----|
+| `src/services/investor/transactionsV2Service.ts` line 180 | Replace `Number(tx.amount)` accumulation with `parseFinancial()` chain |
+| `src/features/admin/yields/components/YieldEventsTable.tsx` line 90 | Replace `parseFloat(String(...))` sum with `parseFinancial()` reduce |
+| `src/services/admin/feesService.ts` line 207 | Replace `parseFloat()` accumulation with `parseFinancial()` |
 
-| File / RPC | Change | Priority |
-|------------|--------|----------|
-| `preview_segmented_yield_distribution_v5` (DB) | Remove `AND t.investor_id != v_fees_account_id` from output loop | CRITICAL |
-| `run_integrity_pack` (DB) | Change `variance` to `drift` | MEDIUM |
-| `src/services/admin/yields/yieldHistoryService.ts` | Update stale comments (lines 265-269) | LOW |
+### Priority 3: PRECISION -- Yield Percentage Calculation (1 file)
+
+| File | Fix |
+|------|-----|
+| `src/services/admin/yields/yieldPreviewService.ts` lines 143-145 | Use `parseFinancial` division instead of `Number()` |
+
+### Priority 4: DESIGN DECISION -- IB Fee-on-Yield Policy
+
+IB accounts (Ryan, Lars, Alex) have `fee_pct = 20%` in their profiles. When they earn yield on their commission capital, 20% of that yield goes to INDIGO FEES as a platform fee. **Confirm with business whether this is intended.** If not, add `account_type = 'ib'` to the fee exemption logic in the V5 engine alongside `fees_account`.
+
+### Summary
+
+| Category | Issues Found | Critical | Needs Fix |
+|----------|-------------|----------|-----------|
+| Floating-point precision | 8 files flagged | 3 HIGH | 3 files |
+| Concurrency/Locks | All critical paths locked | 0 | None |
+| Orphaned records | 0 found | 0 | None |
+| Historical immutability | Triggers enforce | 0 | None |
+| RLS security (profiles.is_admin) | 7 policies on 5 tables | 3 HIGH | DB migration |
+| Fee recursive loop | Correctly handled for INDIGO | 0 | IB policy TBD |
+| Conservation of value | Enforced in V5 | 0 | None |
+
