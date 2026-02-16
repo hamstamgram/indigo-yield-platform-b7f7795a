@@ -141,3 +141,9 @@ verify_jwt = true
 
 [functions.session-cleanup]
 verify_jwt = true
+
+[functions.grand-simulation]
+verify_jwt = false
+
+[functions.monthly-report-scheduler]
+verify_jwt = false
