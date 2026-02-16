@@ -6,7 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getActiveFundsWithAUM,
-  getFundInvestorComposition,
+  getFundInvestorCompositionWithYield as getFundInvestorComposition,
   applyYieldDistribution,
   type YieldCalculationInput,
 } from "@/services/admin";
