@@ -25,11 +25,11 @@ import {
 } from "@/components/ui";
 import { CalendarDays, Plus, Trash2, Loader2, Save, Percent } from "lucide-react";
 import { toast } from "sonner";
-import { useFeeSchedule, useDeleteFeeScheduleEntry } from "@/hooks/data/investor/useFeeSchedule";
+import { useFeeSchedule, useDeleteFeeScheduleEntry } from "@/features/investor/shared/hooks/useFeeSchedule";
 import {
   useInvestorProfileSettings,
   useUpdatePerformanceFee,
-} from "@/hooks/data/investor/useInvestorSettings";
+} from "@/features/investor/settings/hooks/useInvestorSettings";
 import { Input, Label } from "@/components/ui";
 import { AddFeeScheduleDialog } from "./AddFeeScheduleDialog";
 

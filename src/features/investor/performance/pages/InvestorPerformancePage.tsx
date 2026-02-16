@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { usePerAssetStats, useAvailableStatementPeriods } from "@/hooks";
+import { PerformanceCard } from "@/features/investor/performance/components/PerformanceCard";
 import {
   PeriodSelector,
   PERIOD_LABELS,
-  PerformanceCard,
   type PerformancePeriod,
-} from "@/components/investor";
+} from "@/features/investor/performance/components/PeriodSelector";
 import { EmptyState } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
 import { TrendingUp, Loader2 } from "lucide-react";

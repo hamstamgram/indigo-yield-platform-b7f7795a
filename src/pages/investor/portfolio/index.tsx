@@ -1,5 +1,5 @@
-// Portfolio Management Index - Holdings and performance
-export { default as PortfolioAnalyticsPage } from "./PortfolioAnalyticsPage";
+// Portfolio Management Index - Re-export shim
+export { default as PortfolioAnalyticsPage } from "@/features/investor/portfolio/pages/PortfolioAnalyticsPage";
 
 // Default export for lazy loading
-export { default } from "./PortfolioAnalyticsPage";
+export { default } from "@/features/investor/portfolio/pages/PortfolioAnalyticsPage";
