@@ -1,104 +1,149 @@
 
-# Steps 8 and 14: Remove Class Wrappers and Consolidate Numeric Utilities
 
-## Overview
+# Remaining Audit Steps: 9, 11, 12, and 13
 
-Two cleanup tasks:
-1. **Step 8** -- Remove class-based service wrappers, replacing them with plain object singletons or direct functional exports
-2. **Step 14** -- Eliminate the duplicate `toNum` in `assets.ts` and merge the `numeric.ts` re-export shim into `numericHelpers.ts`
+## Status Check
+
+Steps completed: 1-8, 10, 14, plus the export collision hotfix.
+Steps remaining: 9, 11, 12, 13.
 
 ---
 
-## Step 8: Remove Class-Based Service Wrappers
+## Step 9: Create `src/features/investor/` Structure
 
-Six class wrappers to convert. Each becomes either a plain object literal or direct functional exports.
+Mirror the feature-first pattern already established for `src/features/admin/` (which has `components/`, `hooks/`, `pages/` per sub-domain).
 
-### 8a. `InvestorDataService` (src/services/investor/investorDataService.ts)
+### Current Investor Code Locations (scattered)
+- `src/pages/investor/` -- 7 page files + 2 subdirectories
+- `src/components/investor/` -- 4 subdirectories (overview, performance, portfolio, reports)
+- `src/hooks/data/investor/` -- 23 hook files
+- `src/services/investor/` -- 15 service files
 
-**Current:** 65-line class that delegates every method to sub-service functions.
-**Consumer:** `adminService.ts` uses `investorDataService.getTotalAUM()`, `.getActiveInvestorCount()`, `.getAllInvestorsWithSummary()`, `.getInvestorPositions()`.
-**Action:** Remove the class and singleton. Replace with a plain object:
-```ts
-export const investorDataService = {
-  getInvestorPositions: positionService.getInvestorPositions,
-  getUserPositions: positionService.getUserPositions,
-  getTotalAUM: positionService.getTotalAUM,
-  getActiveInvestorCount: positionService.getActiveInvestorCount,
-  getInvestorPortfolio: portfolioService.getInvestorPortfolio,
-  getInvestorSummary: portfolioService.getInvestorSummary,
-  getAllInvestorsWithSummary: portfolioService.getAllInvestorsWithSummary,
-  // ...remaining methods
-};
+### Target Structure
+```text
+src/features/investor/
+  overview/
+    pages/          -- InvestorOverviewPage.tsx
+    components/     -- from src/components/investor/overview/
+    hooks/          -- useInvestorOverview.ts, useInvestorOverviewQueries.ts
+  portfolio/
+    pages/          -- InvestorPortfolioPage.tsx, PortfolioAnalyticsPage.tsx
+    components/     -- from src/components/investor/portfolio/
+    hooks/          -- usePortfolio.ts, useInvestorPositions.ts, useInvestorBalance.ts
+  performance/
+    pages/          -- InvestorPerformancePage.tsx
+    components/     -- from src/components/investor/performance/
+    hooks/          -- useInvestorPerformance.ts, useInvestorYieldData.ts
+  transactions/
+    pages/          -- InvestorTransactionsPage.tsx
+    hooks/          -- useInvestorPortal.ts (transaction parts)
+  statements/
+    pages/          -- StatementsPage.tsx (from src/pages/investor/statements/)
+    hooks/          -- useInvestorPortal.ts (statement parts)
+  documents/
+    pages/          -- InvestorDocumentsPage.tsx
+    hooks/          -- useInvestorPortfolioQueries.ts (document parts)
+  settings/
+    pages/          -- InvestorSettingsPage.tsx
+    hooks/          -- useInvestorSettings.ts
+  funds/
+    pages/          -- FundDetailsPage.tsx
+    hooks/          -- useFundDetailsPage.ts
+  reports/
+    components/     -- from src/components/investor/reports/
+  shared/
+    hooks/          -- useInvestorSearch.ts, useInvestorRealtimeInvalidation.ts, useInvestorNotifications.ts
 ```
-Remove `InvestorDataService` class export from barrel files.
 
-### 8b. `FundServiceClass` (src/services/admin/fundService.ts)
+### Migration Approach
+- Move files incrementally, one sub-domain at a time
+- Update import paths in route files (`src/routing/routes/investor/core.tsx`, `portfolio.tsx`, `reports.tsx`)
+- Keep `src/services/investor/` in place (services stay in the service layer per architecture standards)
+- Update barrel exports in `src/hooks/data/investor/index.ts` to re-export from new locations
+- Old `src/components/investor/` and `src/pages/investor/` directories become empty and are deleted
 
-**Current:** 15-line class mapping method names to standalone functions.
-**Action:** Replace with a plain object literal. No consumer changes needed since `fundService.getAllFunds()` call syntax is identical.
+### Files Moved (~30)
+- 7 page files from `src/pages/investor/`
+- ~10 component files from `src/components/investor/`
+- 23 hook files from `src/hooks/data/investor/`
 
-### 8c. `DepositService` (src/services/investor/depositService.ts)
-
-**Current:** ~330-line class with real logic.
-**Risk:** Higher -- methods reference `this` internally.
-**Action:** Convert each method to a standalone exported function. Create a plain object `depositService` mapping to those functions. Update barrel and 2 consumers.
-
-### 8d. `TransactionsRecordService` (src/services/investor/transactionsV2Service.ts)
-
-**Current:** ~185-line class.
-**Action:** Same pattern -- extract to standalone functions, plain object singleton. 3 consumers use `transactionsV2Service.methodName()`.
-
-### 8e. `AdminInvestorService` (src/services/admin/adminService.ts)
-
-**Current:** ~300-line class with multiple methods.
-**Action:** Extract to standalone functions, plain object singleton. 3 consumers use `adminInvestorService.methodName()`.
-
-### 8f. `IBScheduleService` and `FeeScheduleService`
-
-**Current:** Small classes (60 and 150 lines respectively).
-**Action:** Convert to standalone functions + plain object singletons.
-
-### 8g. `AdminInviteService` (src/services/admin/adminInviteService.ts)
-
-**Current:** Small class.
-**Action:** Same pattern.
+### Risk
+Low -- purely structural. All imports update to `@/features/investor/...`. Barrel re-exports from `src/hooks/data/investor/index.ts` maintain backward compatibility during transition.
 
 ---
 
-## Step 14: Consolidate Numeric Utilities
+## Step 11: Consolidate Performance Services
 
-### 14a. Remove duplicate `toNum` from `assets.ts`
+### Current State
+Two performance-related service files exist:
+1. `src/services/shared/performanceService.ts` (584 lines) -- read-only operations: `getInvestorPerformance`, `getPerAssetStats`, `getFinalizedInvestorData`, `getPerformanceHistoryGrouped`, `getAvailableStatementPeriods`
+2. `src/services/admin/investorPerformanceService.ts` (36 lines) -- single write operation: `updateFundPerformance`
 
-`src/utils/assets.ts` defines its own private `toNum` (lines 30-35) that is identical to `toNumber` from `numericHelpers.ts`.
-**Action:** Replace with `import { toNum } from "@/utils/numeric"` and delete the local definition.
+### Assessment
+These are **not overlapping** -- they serve distinct purposes (reads vs. admin writes). Consolidation is not needed. The only action is to verify no consumers import from the wrong file.
 
-### 14b. Merge `numeric.ts` into `numericHelpers.ts`
-
-`src/utils/numeric.ts` is a pure re-export shim for `numericHelpers.ts`. Both files exist side by side.
-**Action:** Rename `numericHelpers.ts` to `numeric.ts` (keeping all content), delete the shim. Update the 1 import that references `numericHelpers` directly (the shim itself -- which will be gone).
+### Action
+- Confirm 3 consumer hooks (`useInvestorPerformance.ts`, `useInvestorPortfolioQueries.ts`, `useFinalizedPortfolio.ts`) all import from `@/services/shared` (verified -- they do).
+- Confirm `updateFundPerformance` is only imported via `@/services/admin` barrel (verified -- it is).
+- **No file changes needed.** Mark Step 11 as complete.
 
 ---
 
-## Technical Summary
+## Step 12: Remove Remaining Class Wrappers in Shared/IB Services
 
-### Files Modified (~15)
-- `src/services/investor/investorDataService.ts` -- class to plain object
-- `src/services/investor/depositService.ts` -- class to functions + object
-- `src/services/investor/transactionsV2Service.ts` -- class to functions + object
-- `src/services/admin/adminService.ts` -- class to functions + object
-- `src/services/admin/fundService.ts` -- class to plain object
-- `src/services/admin/ibScheduleService.ts` -- class to functions + object
-- `src/services/admin/feeScheduleService.ts` -- class to functions + object
-- `src/services/admin/adminInviteService.ts` -- class to functions + object
-- `src/services/investor/index.ts` -- remove `InvestorDataService` class export
-- `src/services/admin/index.ts` -- remove class type exports if any
-- `src/utils/assets.ts` -- replace local `toNum` with import
-- `src/utils/numeric.ts` -- absorb content from `numericHelpers.ts`
+Step 8 converted investor and admin service classes. Several class wrappers remain in shared and IB services:
 
-### Files Deleted (1)
-- `src/utils/numericHelpers.ts` -- merged into `numeric.ts`
+### Classes to Convert
+| File | Class | Lines | Complexity |
+|------|-------|-------|------------|
+| `src/services/shared/profileService.ts` | `ProfileService` | ~80 | Low |
+| `src/services/shared/auditLogService.ts` | `AuditLogService` | ~90 | Low |
+| `src/services/shared/notificationService.ts` | `NotificationService` | ~60 | Low |
+| `src/services/shared/systemConfigService.ts` | `SystemConfigService` | ~50 | Low |
+| `src/services/shared/inviteService.ts` | `InviteService` | ~40 | Low |
+| `src/services/shared/investorDataExportService.ts` | `InvestorDataExportService` | ~50 | Low |
+| `src/services/shared/statementsService.ts` | `StatementsService` | ~100 | Medium |
+| `src/services/shared/fundDailyAumService.ts` | `FundDailyAumService` | ~60 | Low |
+| `src/services/shared/assetService.ts` | `AssetService` | ~80 | Low |
+| `src/services/ib/management.ts` | `IBManagementService` | ~80 | Low |
 
-### Risk Mitigation
-- Plain object singletons preserve `service.method()` call syntax so no consumer changes are needed for 8b (FundServiceClass) and 8a (InvestorDataService)
-- For classes with `this` usage (DepositService, TransactionsRecordService), each method is extracted as a standalone function first, then the object maps to them
-- All changes are import-path-only for consumers -- no behavioral changes
+### Pattern
+Same as Step 8: extract methods to standalone functions, export a plain object singleton with the same name (e.g., `profileService`). Since all consumers already use `profileService.getProfile()` syntax, no consumer changes are needed.
+
+### Files Modified (~10)
+Each of the 10 files listed above.
+
+---
+
+## Step 13: Final Barrel and Import Cleanup
+
+After Steps 9 and 12, perform a final sweep:
+
+### Actions
+1. Remove any empty directories left after Step 9 migration
+2. Remove deprecated shim files in `src/hooks/data/` (identified in earlier steps)
+3. Verify all barrel files (`src/hooks/data/index.ts`, `src/services/shared/index.ts`) export from correct locations
+4. Remove any `type` keyword from re-exports that should be value exports (or vice versa)
+5. Run a full build to confirm zero errors
+
+### Files Modified (~5)
+- `src/hooks/data/investor/index.ts` -- update to re-export from `@/features/investor/`
+- `src/components/investor/index.ts` -- delete (moved to features)
+- `src/pages/investor/` -- delete directory (moved to features)
+- Any remaining deprecated shims
+
+---
+
+## Execution Order
+
+1. **Step 11** -- No changes needed, just verification (mark complete)
+2. **Step 12** -- Convert shared/IB class wrappers (low risk, isolated)
+3. **Step 9** -- Migrate investor domain to features (larger, structural)
+4. **Step 13** -- Final cleanup after migration
+
+### Total Scope
+- ~30 files moved (Step 9)
+- ~10 files refactored (Step 12)
+- ~5 files cleaned up (Step 13)
+- 0 behavioral changes
+
