@@ -73,8 +73,7 @@ export {
 } from "./investorYieldHistoryService";
 
 // ============================================
-// InvestorDataService Class (Legacy Wrapper)
-// Delegates to the new sub-service functions
+// Plain object facade (replaces legacy class)
 // ============================================
 
 import * as positionService from "./investorPositionService";
@@ -82,68 +81,18 @@ import * as portfolioService from "./investorPortfolioSummaryService";
 import * as withdrawalService from "./investorWithdrawalService";
 import * as yieldHistoryService from "./investorYieldHistoryService";
 
-export class InvestorDataService {
-  // Position methods
-  async getInvestorPositions(investorId: string) {
-    return positionService.getInvestorPositions(investorId);
-  }
-
-  async getUserPositions(userId: string) {
-    return positionService.getUserPositions(userId);
-  }
-
-  async getTotalAUM() {
-    return positionService.getTotalAUM();
-  }
-
-  async getActiveInvestorCount() {
-    return positionService.getActiveInvestorCount();
-  }
-
-  // Portfolio methods
-  async getInvestorPortfolio(investorId?: string) {
-    return portfolioService.getInvestorPortfolio(investorId);
-  }
-
-  async getInvestorSummary(investorId: string) {
-    return portfolioService.getInvestorSummary(investorId);
-  }
-
-  async getAllInvestorsWithSummary() {
-    return portfolioService.getAllInvestorsWithSummary();
-  }
-
-  // Withdrawal methods
-  async getWithdrawalRequests() {
-    return withdrawalService.getWithdrawalRequests();
-  }
-
-  async createWithdrawalRequest(
-    fundId: string,
-    amount: number,
-    withdrawalType?: string,
-    notes?: string
-  ) {
-    return withdrawalService.createWithdrawalRequest(fundId, amount, withdrawalType, notes);
-  }
-
-  async cancelWithdrawalRequest(requestId: string, reason?: string) {
-    return withdrawalService.cancelWithdrawalRequest(requestId, reason);
-  }
-
-  async getAvailableFunds() {
-    return withdrawalService.getAvailableFunds();
-  }
-
-  // Yield history methods
-  async getYieldHistory(days?: number) {
-    return yieldHistoryService.getYieldHistory(days);
-  }
-
-  async getInvestorDocuments() {
-    return yieldHistoryService.getInvestorDocumentsForUser();
-  }
-}
-
-// Export singleton instance
-export const investorDataService = new InvestorDataService();
+export const investorDataService = {
+  getInvestorPositions: positionService.getInvestorPositions,
+  getUserPositions: positionService.getUserPositions,
+  getTotalAUM: positionService.getTotalAUM,
+  getActiveInvestorCount: positionService.getActiveInvestorCount,
+  getInvestorPortfolio: portfolioService.getInvestorPortfolio,
+  getInvestorSummary: portfolioService.getInvestorSummary,
+  getAllInvestorsWithSummary: portfolioService.getAllInvestorsWithSummary,
+  getWithdrawalRequests: withdrawalService.getWithdrawalRequests,
+  createWithdrawalRequest: withdrawalService.createWithdrawalRequest,
+  cancelWithdrawalRequest: withdrawalService.cancelWithdrawalRequest,
+  getAvailableFunds: withdrawalService.getAvailableFunds,
+  getYieldHistory: yieldHistoryService.getYieldHistory,
+  getInvestorDocuments: yieldHistoryService.getInvestorDocumentsForUser,
+};

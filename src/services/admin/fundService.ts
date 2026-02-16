@@ -360,26 +360,19 @@ export async function updateFundStatus(fundId: string, status: string): Promise<
   return updateFund(fundId, { status: status as Fund["status"] });
 }
 
-// ============= Class-based wrapper for API compatibility =============
-
-/**
- * Class-based wrapper for fundService
- * Provides fundService.method() pattern used by existing consumers
- */
-class FundServiceClass {
-  getAllFunds = listFunds;
-  getFundById = getFund;
-  updateFund = updateFund;
-  updateFundStatus = updateFundStatus;
-  getFundKPIs = getFundKPIs;
-  getLatestNav = getLatestNav;
-  getFundPerformance = getFundPerformance;
-  getActiveFunds = getActiveFunds;
-  getFundsByIds = getFundsByIds;
-  getFundByAsset = getFundByAsset;
-  codeExists = codeExists;
-  createFund = createFundSimple;
-  deactivateFund = deactivateFund;
-}
-
-export const fundService = new FundServiceClass();
+// Plain object singleton for fundService.method() pattern
+export const fundService = {
+  getAllFunds: listFunds,
+  getFundById: getFund,
+  updateFund,
+  updateFundStatus,
+  getFundKPIs,
+  getLatestNav,
+  getFundPerformance,
+  getActiveFunds,
+  getFundsByIds,
+  getFundByAsset,
+  codeExists,
+  createFund: createFundSimple,
+  deactivateFund,
+};
