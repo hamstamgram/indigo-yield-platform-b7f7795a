@@ -12,7 +12,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { yieldNotifications } from "@/services/notifications";
-import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
+import { finalizeMonthYield } from "./yieldCrystallizationService";
 import { logWarn, logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";

@@ -14,10 +14,6 @@ export { assetService } from "./assetService";
 
 // Performance services
 export * from "./performanceService";
-export * from "./performanceDataService";
-
-// Historical data
-export * from "./historicalDataService";
 
 // Transaction service
 export {

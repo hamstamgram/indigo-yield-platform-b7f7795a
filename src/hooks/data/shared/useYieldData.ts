@@ -17,7 +17,7 @@ import type {
   YieldFilters,
   UpdateYieldRecordInput,
 } from "@/services/admin/recordedYieldsService";
-import type { YieldDetails } from "@/services/admin/yieldManagementService";
+import type { YieldDetails } from "@/services/admin/yields/yieldManagementService";
 import { toast } from "sonner";
 import { useAuth } from "@/services/auth";
 import { QUERY_KEYS } from "@/constants/queryKeys";

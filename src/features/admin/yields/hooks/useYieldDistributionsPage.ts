@@ -4,7 +4,7 @@ import {
   fetchYieldDistributionsPageData,
   type YieldDistributionsFilters,
   type YieldDistributionsPageData,
-} from "@/services/admin/yieldDistributionsPageService";
+} from "@/services/admin/yields/yieldDistributionsPageService";
 
 export function useYieldDistributionsPage(filters: YieldDistributionsFilters) {
   return useQuery<YieldDistributionsPageData>({
