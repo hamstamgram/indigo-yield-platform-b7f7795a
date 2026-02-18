@@ -51,13 +51,16 @@ export async function applyYieldDistribution(
 
   // Call V5 apply RPC (segmented proportional allocation)
   // Use .toString() for financial precision - PostgreSQL NUMERIC handles string input correctly
+  // For reporting purpose, always use period end as distribution date (defense-in-depth)
+  const effectiveDistDate =
+    purpose === "reporting" ? periodEndDate : (distributionDate ?? targetDate);
   const { data, error } = await callRPC("apply_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),
     p_recorded_aum: parsedAum.toString() as unknown as number,
     p_admin_id: adminId,
     p_purpose: purpose,
-    p_distribution_date: formatDateForDB(distributionDate ?? targetDate),
+    p_distribution_date: formatDateForDB(effectiveDistDate),
   });
 
   if (error) {

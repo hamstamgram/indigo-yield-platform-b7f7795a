@@ -86,9 +86,27 @@ export function useYieldOperationsState() {
         reportingMonth: monthStart,
         aumDate: lastDayOfMonth,
         asOfDateIso: asOfDateIso,
+        distributionDate: lastDayOfMonth,
       }));
 
       // Clear preview when month changes
+      calculation.setYieldPreview(null);
+      calculation.setNewAUM("");
+      calculation.setExistingDistributionDate(null);
+      calculation.setExistingDistributionId(null);
+    },
+    [period, calculation]
+  );
+
+  // Wrap purpose changes to keep distributionDate in sync
+  const handleSetYieldPurpose = useCallback(
+    (purpose: YieldPurpose) => {
+      period.setPeriod((prev) => ({
+        ...prev,
+        yieldPurpose: purpose,
+        distributionDate: purpose === "reporting" ? prev.aumDate : new Date(),
+      }));
+      // Clear preview when purpose changes
       calculation.setYieldPreview(null);
       calculation.setNewAUM("");
       calculation.setExistingDistributionDate(null);
@@ -183,7 +201,7 @@ export function useYieldOperationsState() {
     asOfDateIso: period.asOfDateIso,
     aumTime: period.aumTime,
     distributionDate: period.distributionDate,
-    setYieldPurpose: period.setYieldPurpose,
+    setYieldPurpose: handleSetYieldPurpose,
     setAumDate,
     setDatePickerOpen: period.setDatePickerOpen,
     setReportingMonth: period.setReportingMonth,
