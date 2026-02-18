@@ -5,8 +5,6 @@
 
 import { useState } from "react";
 import {
-  Card,
-  CardContent,
   Button,
   Input,
   Label,
@@ -21,15 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { NumericInput } from "@/components/common/NumericInput";
-import {
-  ArrowRight,
-  CalendarIcon,
-  AlertTriangle,
-  Info,
-  Clock,
-  Loader2,
-  ChevronDown,
-} from "lucide-react";
+import { ArrowRight, CalendarIcon, AlertTriangle, Info, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
@@ -105,7 +95,6 @@ export function YieldInputForm({
   distributionDate,
   setDistributionDate,
 }: YieldInputFormProps) {
-  const [showAdvancedPurpose, setShowAdvancedPurpose] = useState(false);
   const validationResult = validateEffectiveDate();
 
   // Determine displayed AUM: prefer as-of AUM, fallback to current positions
@@ -163,111 +152,75 @@ export function YieldInputForm({
           </div>
         </div>
 
-        {/* Purpose Selector - Reporting is default, Transaction is advanced */}
+        {/* Purpose Selector - Both options always visible */}
         <div className="space-y-3 mb-4">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Purpose</Label>
-            {isReporting && (
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                onClick={() => setShowAdvancedPurpose(!showAdvancedPurpose)}
-              >
-                {showAdvancedPurpose ? "Hide" : "Switch to Transaction"}
-                <ChevronDown
-                  className={cn(
-                    "h-3 w-3 transition-transform",
-                    showAdvancedPurpose && "rotate-180"
-                  )}
-                />
-              </button>
-            )}
-          </div>
+          <Label className="text-sm font-medium">Purpose</Label>
 
-          {/* Show compact reporting indicator when Transaction is hidden */}
-          {!showAdvancedPurpose && isReporting ? (
-            <div className="flex items-start gap-2 p-3 rounded-md bg-green-950/20 text-green-400 text-sm">
-              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <div>
-                <strong>Reporting</strong> - Visible to investors on statements and dashboards.
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <div
-                  className={cn(
-                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                    yieldPurpose === "reporting"
-                      ? "border-green-500 ring-1 ring-green-500/20"
-                      : "hover:border-green-500/50"
-                  )}
-                  onClick={() => {
-                    setYieldPurpose("reporting");
-                    setShowAdvancedPurpose(false);
-                  }}
-                >
-                  <div
-                    className={cn(
-                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                      yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
-                    )}
-                  />
-                  <div>
-                    <p className="font-medium text-sm">Reporting</p>
-                    <p className="text-xs text-muted-foreground">Month-end official yield</p>
-                  </div>
-                </div>
-                <div
-                  className={cn(
-                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                    yieldPurpose === "transaction"
-                      ? "border-orange-500 ring-1 ring-orange-500/20"
-                      : "hover:border-orange-500/50"
-                  )}
-                  onClick={() => setYieldPurpose("transaction")}
-                >
-                  <div
-                    className={cn(
-                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                      yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
-                    )}
-                  />
-                  <div>
-                    <p className="font-medium text-sm">Transaction</p>
-                    <p className="text-xs text-muted-foreground">
-                      Operational (withdrawals/top-ups)
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Purpose Explainer */}
+          <div className="grid grid-cols-2 gap-3">
+            <div
+              className={cn(
+                "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                yieldPurpose === "transaction"
+                  ? "border-orange-500 ring-1 ring-orange-500/20"
+                  : "hover:border-orange-500/50"
+              )}
+              onClick={() => setYieldPurpose("transaction")}
+            >
               <div
                 className={cn(
-                  "flex items-start gap-2 p-3 rounded-md text-sm",
-                  yieldPurpose === "reporting"
-                    ? "bg-green-950/20 text-green-400"
-                    : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
+                  "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                  yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
                 )}
-              >
-                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <div>
-                  {yieldPurpose === "reporting" ? (
-                    <>
-                      <strong>Visible to investors.</strong> Official month-end yield that appears
-                      on investor statements and dashboards.
-                    </>
-                  ) : (
-                    <>
-                      <strong>Internal only.</strong> Operational yield for processing withdrawals
-                      or top-ups. Not visible to investors.
-                    </>
-                  )}
-                </div>
+              />
+              <div>
+                <p className="font-medium text-sm">Transaction</p>
+                <p className="text-xs text-muted-foreground">Operational (withdrawals/top-ups)</p>
               </div>
-            </>
-          )}
+            </div>
+            <div
+              className={cn(
+                "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                yieldPurpose === "reporting"
+                  ? "border-green-500 ring-1 ring-green-500/20"
+                  : "hover:border-green-500/50"
+              )}
+              onClick={() => setYieldPurpose("reporting")}
+            >
+              <div
+                className={cn(
+                  "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                  yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
+                )}
+              />
+              <div>
+                <p className="font-medium text-sm">Reporting</p>
+                <p className="text-xs text-muted-foreground">Month-end official yield</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Purpose Explainer */}
+          <div
+            className={cn(
+              "flex items-start gap-2 p-3 rounded-md text-sm",
+              isReporting ? "bg-green-950/20 text-green-400" : "bg-orange-950/20 text-orange-400"
+            )}
+          >
+            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <div>
+              {isReporting ? (
+                <>
+                  <strong>Visible to investors.</strong> Official month-end yield that appears on
+                  investor statements and dashboards.
+                </>
+              ) : (
+                <>
+                  <strong>Internal only.</strong> Operational yield for processing withdrawals or
+                  top-ups. Not visible to investors.
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Reporting Month Selector */}
@@ -292,18 +245,10 @@ export function YieldInputForm({
           </div>
         )}
 
-        {/* Effective Date - read-only for reporting (auto-set from month), picker for transaction */}
-        <div className="space-y-2 mb-4">
-          <Label>Effective Date</Label>
-          {isReporting && reportingMonth ? (
-            <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 text-sm">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span>{format(aumDate, "PPP")}</span>
-              <span className="text-xs text-muted-foreground ml-auto">
-                Auto-set to end of month
-              </span>
-            </div>
-          ) : (
+        {/* Effective Date - only shown for transaction purpose */}
+        {!isReporting && (
+          <div className="space-y-2 mb-4">
+            <Label>Effective Date</Label>
             <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -330,16 +275,13 @@ export function YieldInputForm({
                   disabled={(date) => date > new Date()}
                   initialFocus
                   className="p-3 pointer-events-auto"
-                  captionLayout="dropdown-buttons"
                   fromYear={2024}
                   toYear={new Date().getFullYear()}
                 />
               </PopoverContent>
             </Popover>
-          )}
 
-          {/* Time picker for Transaction purpose only */}
-          {!isReporting && (
+            {/* Time picker */}
             <div className="flex items-center gap-2 mt-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <Label className="text-xs text-muted-foreground whitespace-nowrap">
@@ -352,8 +294,8 @@ export function YieldInputForm({
                 className="w-32 h-8 text-sm"
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Transaction Date (recorded on YIELD/FEE_CREDIT/IB_CREDIT transactions) */}
         {!isReporting && (
@@ -382,7 +324,6 @@ export function YieldInputForm({
                   disabled={(date) => date > new Date()}
                   initialFocus
                   className="p-3 pointer-events-auto"
-                  captionLayout="dropdown-buttons"
                   fromYear={2024}
                   toYear={new Date().getFullYear()}
                 />
