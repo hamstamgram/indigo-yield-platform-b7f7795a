@@ -8,7 +8,7 @@
 // TODO: Move to environment variable (VITE_INDIGO_FEES_ACCOUNT_ID) for multi-environment support
 export const INDIGO_FEES_ACCOUNT_ID =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_INDIGO_FEES_ACCOUNT_ID) ||
-  "169bb053-36cb-4f6e-93ea-831f0dfeaf1d";
+  "b464a3f7-60d5-4bc0-9833-7b413bcc6cae";
 
 // Fee types
 export const FEE_TYPES = {
