@@ -59,7 +59,7 @@ export function useYieldOperationsState() {
 
       period.setPeriod({
         ...period,
-        yieldPurpose: "reporting",
+        yieldPurpose: "transaction",
         aumDate: lastDayOfMonth,
         asOfDateIso: asOfDateIso,
         reportingMonth: currentMonthStart,

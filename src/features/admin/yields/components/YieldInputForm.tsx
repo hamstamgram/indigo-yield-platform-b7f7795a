@@ -63,8 +63,6 @@ interface YieldInputFormProps {
   existingDistributionDate: string | null;
   aumTime: string;
   setAumTime: (time: string) => void;
-  distributionDate: Date;
-  setDistributionDate: (date: Date) => void;
 }
 
 export function YieldInputForm({
@@ -92,8 +90,6 @@ export function YieldInputForm({
   existingDistributionDate,
   aumTime,
   setAumTime,
-  distributionDate,
-  setDistributionDate,
 }: YieldInputFormProps) {
   const validationResult = validateEffectiveDate();
 
@@ -294,44 +290,6 @@ export function YieldInputForm({
                 className="w-32 h-8 text-sm"
               />
             </div>
-          </div>
-        )}
-
-        {/* Transaction Date (recorded on YIELD/FEE_CREDIT/IB_CREDIT transactions) */}
-        {!isReporting && (
-          <div className="space-y-2 mb-4">
-            <Label>Transaction Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !distributionDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {distributionDate ? format(distributionDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={distributionDate}
-                  onSelect={(date) => {
-                    if (date) setDistributionDate(date);
-                  }}
-                  disabled={(date) => date > new Date()}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                  fromYear={2024}
-                  toYear={new Date().getFullYear()}
-                />
-              </PopoverContent>
-            </Popover>
-            <p className="text-xs text-muted-foreground">
-              Date recorded on yield transactions (defaults to today)
-            </p>
           </div>
         )}
 

@@ -14,7 +14,7 @@ export interface YieldPeriodState {
 }
 
 export const initialPeriodState: YieldPeriodState = {
-  yieldPurpose: "reporting",
+  yieldPurpose: "transaction",
   aumDate: new Date(),
   datePickerOpen: false,
   reportingMonth: "",
