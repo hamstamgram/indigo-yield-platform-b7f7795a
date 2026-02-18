@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { PageShell } from "@/components/layout/PageShell";
+import { formatInvestorNumber } from "@/utils/assets";
 
 export default function InvestorOverviewPage() {
   const navigate = useNavigate();
@@ -64,14 +65,6 @@ export default function InvestorOverviewPage() {
   });
 
   const isLoading = isLoadingStats || isLoadingTxs || isLoadingWithdrawals;
-
-  // Helpers for display
-  const formatCurrency = (val: number, _asset: string) => {
-    return val.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 3,
-    });
-  };
 
   // Calculate totals across all assets (this is an approximation as assets are different currencies)
   // For the dashboard, we will display per-asset breakdowns primarily.
@@ -158,7 +151,7 @@ export default function InvestorOverviewPage() {
                         Total Balance
                       </p>
                       <p className="text-3xl font-mono font-bold text-white tracking-tight">
-                        {formatCurrency(asset.mtd.endingBalance, asset.assetSymbol)}{" "}
+                        {formatInvestorNumber(asset.mtd.endingBalance)}{" "}
                         <span className="text-lg text-slate-500">{asset.assetSymbol}</span>
                       </p>
                     </div>
@@ -189,7 +182,7 @@ export default function InvestorOverviewPage() {
                         </p>
                         <p className="text-lg font-mono font-bold text-indigo-300">
                           {asset.itd.netIncome !== 0
-                            ? formatCurrency(asset.itd.netIncome, asset.assetSymbol)
+                            ? formatInvestorNumber(asset.itd.netIncome)
                             : "--"}
                         </p>
                       </div>
@@ -229,7 +222,7 @@ export default function InvestorOverviewPage() {
                         </span>
                       </div>
                       <span className="text-sm font-mono text-white font-bold">
-                        {formatCurrency(fund.ending_balance, fund.asset_code)} {fund.asset_code}
+                        {formatInvestorNumber(fund.ending_balance)} {fund.asset_code}
                       </span>
                     </div>
                   ))}
@@ -332,7 +325,7 @@ export default function InvestorOverviewPage() {
                         tx.type === "IB_CREDIT"
                           ? "+"
                           : ""}
-                        {formatCurrency(Number(tx.amount) || 0, tx.asset)}
+                        {formatInvestorNumber(Number(tx.amount) || 0)}
                       </p>
                       <div className="flex items-center gap-1 justify-end">
                         <CryptoIcon symbol={tx.asset} className="h-3 w-3 shrink-0" />

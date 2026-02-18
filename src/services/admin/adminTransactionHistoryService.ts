@@ -147,16 +147,16 @@ async function fetchTransactions(
   if (filters.type) {
     query = query.eq("type", filters.type);
   }
-  // Use datetime filtering on created_at if datetime values are provided
-  // Otherwise fall back to date-only filtering on tx_date
+  // Always filter on tx_date (financial date), not created_at (database write time).
+  // Extract date portion from datetime strings for tx_date comparison.
   if (filters.datetimeFrom) {
-    query = query.gte("created_at", filters.datetimeFrom);
+    query = query.gte("tx_date", filters.datetimeFrom.slice(0, 10));
   } else if (filters.dateFrom) {
     query = query.gte("tx_date", filters.dateFrom);
   }
 
   if (filters.datetimeTo) {
-    query = query.lte("created_at", filters.datetimeTo);
+    query = query.lte("tx_date", filters.datetimeTo.slice(0, 10));
   } else if (filters.dateTo) {
     query = query.lte("tx_date", filters.dateTo);
   }

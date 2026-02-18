@@ -153,11 +153,7 @@ async function getInvestorProfileWithFund(investorId: string) {
     .eq("investor_id", investorId)
     .limit(1);
 
-  const { data: funds } = await supabase
-    .from("funds")
-    .select("id")
-    .eq("status", "active")
-    .limit(1);
+  const { data: funds } = await supabase.from("funds").select("id").eq("status", "active").limit(1);
 
   const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
 
@@ -208,8 +204,45 @@ async function countDocuments(userId: string): Promise<number> {
   return count || 0;
 }
 
-async function getMonthlyReports(_investorId: string, _reportMonth: string): Promise<any[]> {
-  return [];
+async function getMonthlyReports(investorId: string, reportMonth: string): Promise<any[]> {
+  // reportMonth format: "YYYY-MM-01"
+  const [yearStr, monthStr] = reportMonth.split("-");
+  const year = parseInt(yearStr);
+  const month = parseInt(monthStr);
+
+  // Find the statement_period for this month
+  const { data: period } = await supabase
+    .from("statement_periods")
+    .select("id")
+    .eq("year", year)
+    .eq("month", month)
+    .maybeSingle();
+
+  if (!period) return [];
+
+  // Get fund asset mapping
+  const { data: fundsData } = await supabase.from("funds").select("name, asset");
+  const fundAssetMap = new Map<string, string>();
+  fundsData?.forEach((f) => fundAssetMap.set(f.name, f.asset));
+
+  // Get performance data from investor_fund_performance
+  const { data, error } = await supabase
+    .from("investor_fund_performance")
+    .select("*")
+    .eq("investor_id", investorId)
+    .eq("period_id", period.id)
+    .eq("purpose", "reporting");
+
+  if (error) throw error;
+
+  return (data || []).map((record: any) => ({
+    asset_code: fundAssetMap.get(record.fund_name) || record.fund_name,
+    opening_balance: Number(record.mtd_beginning_balance || 0),
+    additions: Number(record.mtd_additions || 0),
+    withdrawals: Number(record.mtd_redemptions || 0),
+    yield_earned: Number(record.mtd_net_income || 0),
+    closing_balance: Number(record.mtd_ending_balance || 0),
+  }));
 }
 
 async function getInvestorFundPerformance(investorId: string): Promise<any[]> {
@@ -224,7 +257,10 @@ async function getInvestorFundPerformance(investorId: string): Promise<any[]> {
   return data || [];
 }
 
-async function getInvestorFundPerformanceByPeriod(investorId: string, periodId: string): Promise<any[]> {
+async function getInvestorFundPerformanceByPeriod(
+  investorId: string,
+  periodId: string
+): Promise<any[]> {
   const { data, error } = await supabase
     .from("investor_fund_performance")
     .select("*")

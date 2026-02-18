@@ -2,31 +2,30 @@
 // Token-denominated only, no USD, no currency symbols
 // Email-safe with bgcolor fallbacks for Outlook compatibility
 
-// Fund icon URLs from CDN
+// Fund icon URLs from jsDelivr CDN (cryptocurrency-icons)
+const CRYPTO_ICON_BASE = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color";
 export const FUND_ICONS: Record<string, string> = {
-  BTC: "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  ETH: "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  SOL: "https://storage.mlcdn.com/account_image/855106/g9NxhkmgPwWcqGD0NHB8LYldfZcMJ5LCMsmQblMt.png",
-  USDT: "https://storage.mlcdn.com/account_image/855106/9xYhDjqnMJwYOoUK4NKBZHDz7NkuGCGPLuQhKsrR.png",
-  USDC: "https://storage.mlcdn.com/account_image/855106/tVPxl7mDm2gBYCHJzclJ3NXbXe4cjdWIvSHMGzHx.png",
-  EURC: "https://storage.mlcdn.com/account_image/855106/rTc1KcZ5RBmNqYLJxZ5nH8vPwQdMkF3gLyJhNxKm.png",
-  XRP: "https://storage.mlcdn.com/account_image/855106/xrp_icon.png",
-  XAUT: "https://storage.mlcdn.com/account_image/855106/xaut_icon.png",
+  BTC: `${CRYPTO_ICON_BASE}/btc.png`,
+  ETH: `${CRYPTO_ICON_BASE}/eth.png`,
+  SOL: `${CRYPTO_ICON_BASE}/sol.png`,
+  USDT: `${CRYPTO_ICON_BASE}/usdt.png`,
+  USDC: `${CRYPTO_ICON_BASE}/usdc.png`,
+  EURC: `${CRYPTO_ICON_BASE}/eur.png`,
+  XRP: `${CRYPTO_ICON_BASE}/xrp.png`,
+  XAUT: `${CRYPTO_ICON_BASE}/gold.png`,
 };
 
-// Social icon URLs
+// Social icon URLs (using simple-icons via jsDelivr)
+const SOCIAL_ICON_BASE = "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons";
 export const SOCIAL_ICONS = {
-  linkedin:
-    "https://storage.mlcdn.com/account_image/855106/RnXQ2wg2CWr8VjTAwj3NvFJoHT4GPmDSVU2sLNx6.png",
-  instagram:
-    "https://storage.mlcdn.com/account_image/855106/2zDqfXd7PHFzKDXCBwrmhVH4NmV2jEWY98LLT1UG.png",
-  twitter:
-    "https://storage.mlcdn.com/account_image/855106/DV8BqtRcMQvXfEJZh5yF0t42cg0l7TFHh1PHmVhj.png",
+  linkedin: `${SOCIAL_ICON_BASE}/linkedin.svg`,
+  instagram: `${SOCIAL_ICON_BASE}/instagram.svg`,
+  twitter: `${SOCIAL_ICON_BASE}/x.svg`,
 };
 
-// Logo URL
+// Logo URL - served from the deployed application
 export const LOGO_URL =
-  "https://storage.mlcdn.com/account_image/855106/l1RYJRY7T2d0hJpEu0SdBnGMhw1WS0mYNNJFBNxZ.png";
+  "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
 
 // Decimal places per asset
 export function getAssetDecimals(asset: string): number {
@@ -406,7 +405,7 @@ export function validateGeneratedHtml(html: string): { valid: boolean; errors: s
   const requiredElements = [
     "Your Account Statement",
     "Capital Account Summary",
-    "storage.mlcdn.com",
+    "cdn.jsdelivr.net",
     "Indigo Fund. All rights reserved",
     "This document is not an offer",
     "linkedin",

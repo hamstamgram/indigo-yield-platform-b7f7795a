@@ -198,6 +198,148 @@ async function buildPeriodStatsFromTxs(userId: string, fundId: string, endingBal
   };
 }
 
+/**
+ * Group performance reports by asset code.
+ */
+function groupReportsByAsset(
+  reports: PerformanceHistoryRecord[]
+): Record<string, PerformanceHistoryRecord[]> {
+  return reports.reduce(
+    (acc: Record<string, PerformanceHistoryRecord[]>, report) => {
+      const asset = report.asset_code;
+      if (!acc[asset]) acc[asset] = [];
+      acc[asset].push(report);
+      return acc;
+    },
+    {} as Record<string, PerformanceHistoryRecord[]>
+  );
+}
+
+/**
+ * Build performance history month-by-month from raw transactions + yield events.
+ * Used as fallback when investor_fund_performance table is empty.
+ */
+async function buildPerformanceHistoryFromTxs(
+  userId: string
+): Promise<Record<string, PerformanceHistoryRecord[]>> {
+  // Get active positions to know which funds to compute for
+  const positions = await getInvestorPositions(userId).catch(() => []);
+  const activePositions = positions.filter((pos) => pos.currentValue > 0);
+  if (activePositions.length === 0) return {};
+
+  const result: Record<string, PerformanceHistoryRecord[]> = {};
+
+  for (const pos of activePositions) {
+    // Get all DEPOSIT/WITHDRAWAL transactions for this fund
+    const { data: txData } = await supabase
+      .from("transactions_v2")
+      .select("type, amount, tx_date")
+      .eq("investor_id", userId)
+      .eq("fund_id", pos.fundId)
+      .eq("is_voided", false)
+      .in("type", ["DEPOSIT", "WITHDRAWAL"])
+      .order("tx_date", { ascending: true });
+
+    // Get all investor-visible yield events for this fund
+    const { data: yieldData } = await supabase
+      .from("investor_yield_events")
+      .select("net_yield_amount, event_date")
+      .eq("investor_id", userId)
+      .eq("fund_id", pos.fundId)
+      .eq("visibility_scope", "investor_visible")
+      .eq("is_voided", false)
+      .order("event_date", { ascending: true });
+
+    // Combine into unified list
+    const allEvents: Array<{
+      type: string;
+      amount: string | number;
+      date: string;
+    }> = [
+      ...(txData || []).map((tx) => ({
+        type: tx.type as string,
+        amount: tx.amount,
+        date: tx.tx_date as string,
+      })),
+      ...(yieldData || []).map((y) => ({
+        type: "YIELD",
+        amount: y.net_yield_amount,
+        date: y.event_date as string,
+      })),
+    ];
+
+    if (allEvents.length === 0) continue;
+
+    // Sort by date ascending
+    allEvents.sort((a, b) => a.date.localeCompare(b.date));
+
+    // Group into months
+    const monthMap = new Map<
+      string,
+      {
+        deposits: typeof toDecimal extends (...a: infer _) => infer R ? R : never;
+        withdrawals: typeof toDecimal extends (...a: infer _) => infer R ? R : never;
+        yields: typeof toDecimal extends (...a: infer _) => infer R ? R : never;
+      }
+    >();
+
+    for (const evt of allEvents) {
+      // month key = YYYY-MM-01
+      const monthKey = evt.date.slice(0, 7) + "-01";
+      if (!monthMap.has(monthKey)) {
+        monthMap.set(monthKey, {
+          deposits: toDecimal(0),
+          withdrawals: toDecimal(0),
+          yields: toDecimal(0),
+        });
+      }
+      const month = monthMap.get(monthKey)!;
+      const amt = parseFinancial(evt.amount);
+      if (evt.type === "DEPOSIT") {
+        month.deposits = month.deposits.plus(amt.abs());
+      } else if (evt.type === "WITHDRAWAL") {
+        month.withdrawals = month.withdrawals.plus(amt.abs());
+      } else if (evt.type === "YIELD") {
+        month.yields = month.yields.plus(amt);
+      }
+    }
+
+    // Compute running balances month by month
+    const months = Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+    const reports: PerformanceHistoryRecord[] = [];
+    let runningBalance = toDecimal(0);
+
+    for (const [monthKey, data] of months) {
+      const openingBalance = runningBalance;
+      const closingBalance = openingBalance
+        .plus(data.deposits)
+        .minus(data.withdrawals)
+        .plus(data.yields);
+
+      reports.push({
+        id: `${pos.fundId}-${monthKey}`,
+        report_month: monthKey,
+        asset_code: pos.asset,
+        opening_balance: openingBalance.toFixed(10),
+        closing_balance: closingBalance.toFixed(10),
+        additions: data.deposits.toFixed(10),
+        withdrawals: data.withdrawals.toFixed(10),
+        yield_earned: data.yields.toFixed(10),
+      });
+
+      runningBalance = closingBalance;
+    }
+
+    // Reverse to show newest first
+    reports.reverse();
+
+    if (!result[pos.asset]) result[pos.asset] = [];
+    result[pos.asset].push(...reports);
+  }
+
+  return result;
+}
+
 export const performanceService = {
   /**
    * Fetch performance history for an investor
@@ -556,18 +698,13 @@ export const performanceService = {
       yield_earned: String(r.mtd_net_income || "0"),
     }));
 
-    // Group by asset
-    const grouped = reports.reduce(
-      (acc: Record<string, PerformanceHistoryRecord[]>, report) => {
-        const asset = report.asset_code;
-        if (!acc[asset]) acc[asset] = [];
-        acc[asset].push(report);
-        return acc;
-      },
-      {} as Record<string, PerformanceHistoryRecord[]>
-    );
+    // If we have pre-computed data, group and return
+    if (reports.length > 0) {
+      return groupReportsByAsset(reports);
+    }
 
-    return grouped;
+    // Fallback: compute from transactions + yield events
+    return buildPerformanceHistoryFromTxs(userId);
   },
 };
 

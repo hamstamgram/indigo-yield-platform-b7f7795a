@@ -12,7 +12,7 @@ const actionConfig: Record<string, { icon: React.ElementType; color: string; lab
   reject: { icon: XCircle, color: "text-red-500", label: "Rejected" },
   processing: { icon: Play, color: "text-amber-500", label: "Processing Started" },
   complete: { icon: CheckCircle2, color: "text-emerald-600", label: "Completed" },
-  cancel: { icon: Ban, color: "text-gray-500", label: "Cancelled" },
+  cancel: { icon: Ban, color: "text-muted-foreground", label: "Cancelled" },
   update: { icon: PlusCircle, color: "text-muted-foreground", label: "Updated" },
 };
 

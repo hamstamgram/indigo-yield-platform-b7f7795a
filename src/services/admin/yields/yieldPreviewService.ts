@@ -68,10 +68,11 @@ export async function previewYieldDistribution(
   const fund = fundResult.data;
 
   // Call V5 preview RPC (segmented proportional allocation)
+  // Use .toString() for financial precision - PostgreSQL NUMERIC handles string input correctly
   const { data, error } = await callRPC("preview_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),
-    p_recorded_aum: parsedAum.toNumber(),
+    p_recorded_aum: parsedAum.toString() as unknown as number,
     p_purpose: purpose,
   });
 
@@ -135,14 +136,17 @@ export async function previewYieldDistribution(
     purpose,
     isMonthEnd: false,
     currentAUM: String(result.opening_aum || 0),
-    newAUM: String(result.recorded_aum || parsedAum.toNumber()),
+    newAUM: String(result.recorded_aum || parsedAum.toString()),
     grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
     yieldPercentage:
       result.opening_aum && parseFinancial(result.opening_aum).gt(0)
-        ? parseFinancial(result.gross_yield || 0).div(parseFinancial(result.opening_aum)).times(100).toString()
+        ? parseFinancial(result.gross_yield || 0)
+            .div(parseFinancial(result.opening_aum))
+            .times(100)
+            .toString()
         : "0",
     investorCount: Number(result.investor_count || distributions.length),
     distributions,

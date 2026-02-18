@@ -375,33 +375,22 @@ export interface InvestorData {
   funds: InvestorFund[];
 }
 
-// CDN URLs for fund icons
+// CDN URLs for fund icons (jsDelivr cryptocurrency-icons)
+const CRYPTO_ICON_CDN = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color";
 export const FUND_ICONS: Record<string, string> = {
-  "BTC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
-  "ETH YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "USDC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  "USDT YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  "SOL YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
-  "EURC YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
-  "XAUT YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
-  "XRP YIELD FUND":
-    "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+  "BTC YIELD FUND": `${CRYPTO_ICON_CDN}/btc.png`,
+  "ETH YIELD FUND": `${CRYPTO_ICON_CDN}/eth.png`,
+  "USDC YIELD FUND": `${CRYPTO_ICON_CDN}/usdc.png`,
+  "USDT YIELD FUND": `${CRYPTO_ICON_CDN}/usdt.png`,
+  "SOL YIELD FUND": `${CRYPTO_ICON_CDN}/sol.png`,
+  "EURC YIELD FUND": `${CRYPTO_ICON_CDN}/eur.png`,
+  "XAUT YIELD FUND": `${CRYPTO_ICON_CDN}/gold.png`,
+  "XRP YIELD FUND": `${CRYPTO_ICON_CDN}/xrp.png`,
   // Legacy name aliases (for backward compatibility with existing data)
-  "STABLECOIN FUND":
-    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-  "TOKENIZED GOLD":
-    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
-  "Tokenized Gold":
-    "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
-  "Stablecoin Fund":
-    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  "STABLECOIN FUND": `${CRYPTO_ICON_CDN}/usdt.png`,
+  "TOKENIZED GOLD": `${CRYPTO_ICON_CDN}/gold.png`,
+  "Tokenized Gold": `${CRYPTO_ICON_CDN}/gold.png`,
+  "Stablecoin Fund": `${CRYPTO_ICON_CDN}/usdt.png`,
 };
 
 /**
@@ -432,15 +421,12 @@ export function getFundIconByAsset(assetCode: string): string {
 }
 
 export const LOGO_URL =
-  "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
+  "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
 
 export const SOCIAL_ICONS = {
-  linkedin:
-    "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
-  instagram:
-    "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
-  twitter:
-    "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
+  linkedin: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkedin.svg",
+  instagram: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg",
+  twitter: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg",
 };
 
 /**

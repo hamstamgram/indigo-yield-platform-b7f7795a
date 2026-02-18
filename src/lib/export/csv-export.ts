@@ -4,7 +4,6 @@
  */
 
 import { format } from "date-fns";
-import { formatAUM, formatPercentage } from "@/utils/formatters";
 import { logError } from "@/lib/logger";
 
 export interface ExportColumn {

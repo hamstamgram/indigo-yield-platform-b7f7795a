@@ -1,7 +1,12 @@
 import React, { useMemo, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { OptimizedTable, Column } from "@/components/ui/optimized-table";
-import { formatInvestorAmount, getAssetLogo, getAssetName } from "@/utils/assets";
+import {
+  formatInvestorAmount,
+  formatSignedInvestorAmount,
+  getAssetLogo,
+  getAssetName,
+} from "@/utils/assets";
 import { Loader2, TrendingUp, Calendar } from "lucide-react";
 import { usePerformanceHistory } from "@/hooks/data/investor";
 import { type PerformanceHistoryRecord } from "@/services/shared";
@@ -132,11 +137,18 @@ const AssetSection = memo(function AssetSection({
       },
       {
         header: "Yield Earned",
-        accessor: (report) => (
-          <span className="text-blue-400 font-semibold">
-            +{formatInvestorAmount(report.yield_earned || "0", assetCode)}
-          </span>
-        ),
+        accessor: (report) => {
+          const yieldVal = parseFinancial(report.yield_earned || "0");
+          return (
+            <span
+              className={
+                yieldVal.gte(0) ? "text-blue-400 font-semibold" : "text-rose-400 font-semibold"
+              }
+            >
+              {formatSignedInvestorAmount(report.yield_earned || "0", assetCode)}
+            </span>
+          );
+        },
         className: "text-right font-mono",
       },
       {

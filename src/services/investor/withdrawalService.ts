@@ -509,7 +509,7 @@ export const withdrawalService = {
    */
   async submitInvestorWithdrawal(params: {
     fundId: string;
-    amount: number;
+    amount: string;
     notes?: string;
   }): Promise<string> {
     const {
@@ -523,7 +523,7 @@ export const withdrawalService = {
     const { data: requestId, error: rpcError } = await rpc.call("create_withdrawal_request", {
       p_investor_id: investorId,
       p_fund_id: params.fundId,
-      p_amount: params.amount,
+      p_amount: parseFloat(params.amount),
       p_type: "partial",
       p_notes: params.notes ? `${params.notes} [${idempotencyKey}]` : `[${idempotencyKey}]`,
     });

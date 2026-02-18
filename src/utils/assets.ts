@@ -109,3 +109,16 @@ export function formatInvestorAmount(amount: string | number, symbol: string): s
 export function formatSignedInvestorAmount(amount: string | number, symbol: string): string {
   return formatSignedAssetAmount(amount, symbol, INVESTOR_DISPLAY_DECIMALS);
 }
+
+/**
+ * Format a number for investor display (exactly 3 decimal places) WITHOUT the asset symbol.
+ * Use when the asset symbol is rendered separately with different styling.
+ * Admin portal should NOT use this - they see full precision.
+ */
+export function formatInvestorNumber(amount: string | number): string {
+  const numAmount = toNum(amount);
+  return numAmount.toLocaleString("en-US", {
+    minimumFractionDigits: INVESTOR_DISPLAY_DECIMALS,
+    maximumFractionDigits: INVESTOR_DISPLAY_DECIMALS,
+  });
+}

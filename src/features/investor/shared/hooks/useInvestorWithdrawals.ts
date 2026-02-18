@@ -54,7 +54,7 @@ export function useWithdrawalPositions() {
 
 interface SubmitWithdrawalParams {
   fundId: string;
-  amount: number;
+  amount: string;
   assetCode: string;
   notes?: string;
 }

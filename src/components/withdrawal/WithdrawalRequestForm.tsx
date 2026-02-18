@@ -93,7 +93,7 @@ export function WithdrawalRequestForm({
     submitMutation.mutate(
       {
         fundId: availableBalance.fund_id,
-        amount: requested.toNumber(),
+        amount: requested.toString(),
         assetCode: data.assetCode,
         notes: data.notes,
       },

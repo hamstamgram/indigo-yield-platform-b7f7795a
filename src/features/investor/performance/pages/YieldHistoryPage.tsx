@@ -34,6 +34,7 @@ import {
 import { format, getYear, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { parseFinancial } from "@/utils/financial";
+import { formatInvestorNumber } from "@/utils/assets";
 import type {
   InvestorYieldEvent,
   CumulativeYieldByFund,
@@ -116,13 +117,6 @@ export default function YieldHistoryPage() {
     });
   }, [events, selectedFund]);
 
-  const formatValue = (value: number, _decimals = 3) => {
-    return value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 3,
-    });
-  };
-
   const isLoading = eventsLoading || cumulativeLoading;
 
   return (
@@ -149,8 +143,14 @@ export default function YieldHistoryPage() {
                   {(cumulative?.byFund || []).map((fund: CumulativeYieldByFund) => (
                     <div key={fund.fundId} className="flex items-center gap-2">
                       <CryptoIcon symbol={fund.fundAsset} className="h-4 w-4" />
-                      <p className="text-lg font-mono font-bold text-emerald-400">
-                        +{formatValue(fund.totalNetYield)} {fund.fundAsset}
+                      <p
+                        className={cn(
+                          "text-lg font-mono font-bold",
+                          fund.totalNetYield >= 0 ? "text-emerald-400" : "text-rose-400"
+                        )}
+                      >
+                        {fund.totalNetYield >= 0 ? "+" : ""}
+                        {formatInvestorNumber(fund.totalNetYield)} {fund.fundAsset}
                       </p>
                     </div>
                   ))}
@@ -227,11 +227,7 @@ export default function YieldHistoryPage() {
       ) : (
         <div className="space-y-4">
           {monthGroups.map((group) => (
-            <MonthSection
-              key={`${group.year}-${group.month}`}
-              group={group}
-              formatValue={formatValue}
-            />
+            <MonthSection key={`${group.year}-${group.month}`} group={group} />
           ))}
         </div>
       )}
@@ -239,13 +235,7 @@ export default function YieldHistoryPage() {
   );
 }
 
-function MonthSection({
-  group,
-  formatValue,
-}: {
-  group: MonthGroup;
-  formatValue: (v: number, d?: number) => string;
-}) {
+function MonthSection({ group }: { group: MonthGroup }) {
   const [isOpen, setIsOpen] = useState(true);
 
   // Group events by fund within month
@@ -306,8 +296,14 @@ function MonthSection({
                 {fundGroups.map((fg) => (
                   <div key={fg.fund.id} className="text-right flex items-center gap-1.5">
                     <CryptoIcon symbol={fg.fund.asset} className="h-4 w-4" />
-                    <span className="font-mono font-semibold text-emerald-400">
-                      +{formatValue(fg.totals.net)} {fg.fund.asset}
+                    <span
+                      className={cn(
+                        "font-mono font-semibold",
+                        fg.totals.net >= 0 ? "text-emerald-400" : "text-rose-400"
+                      )}
+                    >
+                      {fg.totals.net >= 0 ? "+" : ""}
+                      {formatInvestorNumber(fg.totals.net)} {fg.fund.asset}
                     </span>
                   </div>
                 ))}
@@ -328,8 +324,14 @@ function MonthSection({
                   </div>
                   <div className="text-sm text-right">
                     <span className="text-muted-foreground">Net: </span>
-                    <span className="font-mono text-emerald-400">
-                      +{formatValue(fg.totals.net)}
+                    <span
+                      className={cn(
+                        "font-mono",
+                        fg.totals.net >= 0 ? "text-emerald-400" : "text-rose-400"
+                      )}
+                    >
+                      {fg.totals.net >= 0 ? "+" : ""}
+                      {formatInvestorNumber(fg.totals.net)}
                     </span>
                   </div>
                 </div>
@@ -354,13 +356,19 @@ function MonthSection({
                             : "--"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground">
-                          {e.investor_balance > 0 ? formatValue(e.investor_balance) : "--"}
+                          {e.investor_balance > 0 ? formatInvestorNumber(e.investor_balance) : "--"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground">
-                          {(e.fund_yield_pct ?? 0) > 0 ? `${e.fund_yield_pct.toFixed(2)}%` : "--"}
+                          {(e.fund_yield_pct ?? 0) !== 0 ? `${e.fund_yield_pct.toFixed(2)}%` : "--"}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-emerald-400 font-semibold">
-                          +{formatValue(e.net_yield_amount)}
+                        <TableCell
+                          className={cn(
+                            "text-right font-mono font-semibold",
+                            e.net_yield_amount >= 0 ? "text-emerald-400" : "text-rose-400"
+                          )}
+                        >
+                          {e.net_yield_amount >= 0 ? "+" : ""}
+                          {formatInvestorNumber(e.net_yield_amount)}
                         </TableCell>
                       </TableRow>
                     ))}

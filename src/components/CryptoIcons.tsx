@@ -16,9 +16,9 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
   if (error || !symbol) {
     return (
       <div
-        className={`bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center ${className}`}
+        className={`bg-muted border border-border rounded-full flex items-center justify-center ${className}`}
       >
-        <span className="text-gray-500 font-bold text-xs">
+        <span className="text-muted-foreground font-bold text-xs">
           {safeSymbol.substring(0, 3).toUpperCase()}
         </span>
       </div>

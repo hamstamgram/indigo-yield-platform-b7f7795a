@@ -210,7 +210,7 @@ function conservationCheck(
 ): { pass: boolean; details: Record<string, unknown> } {
   const total = round8(Object.values(positions).reduce((a, b) => a + b, 0));
   const dust = round8(Math.abs(total - expectedAum));
-  const pass = dust < 0.00000100; // 1e-6 tolerance
+  const pass = dust < 0.000001; // 1e-6 tolerance
 
   return {
     pass,
@@ -271,10 +271,17 @@ Deno.serve(async (req: Request) => {
   const token = authHeader.replace("Bearer ", "");
 
   // Create user client to get user id, then service client for operations
-  const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") ?? SUPABASE_SERVICE_ROLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-  const { data: { user }, error: userError } = await userClient.auth.getUser();
+  const userClient = createClient(
+    SUPABASE_URL,
+    Deno.env.get("SUPABASE_ANON_KEY") ?? SUPABASE_SERVICE_ROLE_KEY,
+    {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    }
+  );
+  const {
+    data: { user },
+    error: userError,
+  } = await userClient.auth.getUser();
   if (userError || !user) {
     return new Response(JSON.stringify({ error: "Invalid token" }), {
       status: 401,
@@ -282,8 +289,10 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Use service role for all DB operations
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  // Use service role for all DB operations, but pass the user's JWT so auth.uid() and is_admin() work
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
 
   // Admin check
   const adminCheck = await checkAdminAccess(supabase, user.id);
@@ -299,7 +308,14 @@ Deno.serve(async (req: Request) => {
         message: "Would run Q4 simulation against Euro Yield Fund (IND-EURC)",
         fund_id: FUND_ID,
         actors: ACTORS,
-        sequence: ["Nov deposits", "Nov yield", "Dec top-up", "Dec yield", "Jan zero yield", "Feb negative yield"],
+        sequence: [
+          "Nov deposits",
+          "Nov yield",
+          "Dec top-up",
+          "Dec yield",
+          "Jan zero yield",
+          "Feb negative yield",
+        ],
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -331,7 +347,13 @@ Deno.serve(async (req: Request) => {
 
     // 1c. Apply yield: recorded_aum = 165,000 (10% gross on 150k = 15k gross yield)
     const nov_yield = await applyYield(
-      supabase, adminId, 165000, "2025-11-01", "2025-11-30", result.ledger, "Nov yield (10% gross)"
+      supabase,
+      adminId,
+      165000,
+      "2025-11-01",
+      "2025-11-30",
+      result.ledger,
+      "Nov yield (10% gross)"
     );
     if (nov_yield?.distribution_id) createdDistributions.push(nov_yield.distribution_id as string);
 
@@ -365,7 +387,13 @@ Deno.serve(async (req: Request) => {
     const decRecordedAum = round8(preDecYieldAum * 1.05); // 5% gross growth
 
     const dec_yield = await applyYield(
-      supabase, adminId, decRecordedAum, "2025-12-01", "2025-12-31", result.ledger, "Dec yield (5% gross)"
+      supabase,
+      adminId,
+      decRecordedAum,
+      "2025-12-01",
+      "2025-12-31",
+      result.ledger,
+      "Dec yield (5% gross)"
     );
     if (dec_yield?.distribution_id) createdDistributions.push(dec_yield.distribution_id as string);
 
@@ -400,7 +428,9 @@ Deno.serve(async (req: Request) => {
     });
 
     result.compounding_proven = compoundingProven;
-    console.log(`[SIM] Checkpoint 2: ${cp2.pass && compoundingProven ? "PASS" : "FAIL"} -- Compounding=${compoundingProven}`);
+    console.log(
+      `[SIM] Checkpoint 2: ${cp2.pass && compoundingProven ? "PASS" : "FAIL"} -- Compounding=${compoundingProven}`
+    );
 
     // =========================================================================
     // MONTH 3: JANUARY (Zero Yield)
@@ -413,7 +443,13 @@ Deno.serve(async (req: Request) => {
 
     // Apply yield with same AUM (0% growth)
     const jan_yield = await applyYield(
-      supabase, adminId, janAum, "2026-01-01", "2026-01-31", result.ledger, "Jan yield (0% -- zero growth)"
+      supabase,
+      adminId,
+      janAum,
+      "2026-01-01",
+      "2026-01-31",
+      result.ledger,
+      "Jan yield (0% -- zero growth)"
     );
     if (jan_yield?.distribution_id) createdDistributions.push(jan_yield.distribution_id as string);
 
@@ -463,9 +499,16 @@ Deno.serve(async (req: Request) => {
 
     try {
       feb_yield = await applyYield(
-        supabase, adminId, negativeAum, "2026-02-01", "2026-02-28", result.ledger, "Feb yield (-2% -- negative)"
+        supabase,
+        adminId,
+        negativeAum,
+        "2026-02-01",
+        "2026-02-28",
+        result.ledger,
+        "Feb yield (-2% -- negative)"
       );
-      if (feb_yield?.distribution_id) createdDistributions.push(feb_yield.distribution_id as string);
+      if (feb_yield?.distribution_id)
+        createdDistributions.push(feb_yield.distribution_id as string);
     } catch (e: unknown) {
       // V5 engine may throw on negative yield -- that is acceptable behavior
       const msg = e instanceof Error ? e.message : String(e);
@@ -548,7 +591,9 @@ Deno.serve(async (req: Request) => {
             cleanupResult.voided++;
           }
         } catch (e: unknown) {
-          cleanupResult.errors.push(`void dist ${distId}: ${e instanceof Error ? e.message : String(e)}`);
+          cleanupResult.errors.push(
+            `void dist ${distId}: ${e instanceof Error ? e.message : String(e)}`
+          );
         }
       }
 
@@ -574,7 +619,9 @@ Deno.serve(async (req: Request) => {
             cleanupResult.voided++;
           }
         } catch (e: unknown) {
-          cleanupResult.errors.push(`void tx ${tx.id}: ${e instanceof Error ? e.message : String(e)}`);
+          cleanupResult.errors.push(
+            `void tx ${tx.id}: ${e instanceof Error ? e.message : String(e)}`
+          );
         }
       }
 
@@ -582,7 +629,6 @@ Deno.serve(async (req: Request) => {
     }
 
     result.finished_at = new Date().toISOString();
-
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[SIM] FATAL:", msg);

@@ -109,32 +109,28 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "BTC",
     name: "BTC Yield Fund",
     decimals: 8,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png",
     color: "#F7931A",
   },
   ETH: {
     symbol: "ETH",
     name: "ETH Yield Fund",
     decimals: 8,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png",
     color: "#627EEA",
   },
   SOL: {
     symbol: "SOL",
     name: "SOL Yield Fund",
     decimals: 8,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png",
     color: "#14F195",
   },
   USDT: {
     symbol: "USDT",
     name: "Stablecoin Fund",
     decimals: 6,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdt.png",
     color: "#26A17B",
   },
   // NOTE: USDC is not in the database asset_code enum. UI-only display config.
@@ -143,40 +139,35 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdc.png",
     color: "#2775CA",
   },
   EURC: {
     symbol: "EURC",
     name: "EURC Yield Fund",
     decimals: 6,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eur.png",
     color: "#0052FF",
   },
   XAUT: {
     symbol: "xAUT",
     name: "Tokenized Gold",
     decimals: 6,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/gold.png",
     color: "#FFD700",
   },
   xAUT: {
     symbol: "xAUT",
     name: "Tokenized Gold",
     decimals: 6,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/eX8YQ2JiQtWXocPigWGSwju5WPTsGq01eOKmTx5p.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/gold.png",
     color: "#FFD700",
   },
   XRP: {
     symbol: "XRP",
     name: "XRP Yield Fund",
     decimals: 6,
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+    logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xrp.png",
     color: "#00AAE4",
   },
 };

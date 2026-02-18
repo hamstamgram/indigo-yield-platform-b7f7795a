@@ -33,14 +33,13 @@ export function useYieldCalculation() {
     }) => {
       if (!selectedFund) return;
       const isReporting = yieldPurpose === "reporting";
-      const newAUMValue = parseFloat(newAUM);
-      if (isNaN(newAUMValue) || newAUMValue < 0) {
+      const trimmedAUM = newAUM.trim();
+      if (!trimmedAUM || isNaN(Number(trimmedAUM)) || Number(trimmedAUM) < 0) {
         toast.error("Please enter a valid non-negative AUM value.");
         return;
       }
 
       const baseAum = asOfAum ?? selectedFund.total_aum;
-
 
       setPreviewLoading(true);
       try {
@@ -61,14 +60,11 @@ export function useYieldCalculation() {
         const result = await previewYieldDistribution({
           fundId: selectedFund.id,
           targetDate: aumDate,
-          newTotalAUM: String(newAUMValue),
+          newTotalAUM: trimmedAUM,
           baseAUM: baseAum != null ? String(baseAum) : undefined,
           purpose: yieldPurpose,
           distributionDate: distributionDate,
         } as any);
-        setYieldPreview(result);
-        setPreviewLoading(false);
-        setExistingDistributionDate(null);
         setYieldPreview(result);
         setPreviewLoading(false);
         setExistingDistributionDate(null);

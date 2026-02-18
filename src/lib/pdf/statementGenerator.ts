@@ -6,9 +6,9 @@ import { logWarn } from "@/lib/logger";
 import { getFundIconByAsset } from "@/types/domains/report";
 
 const COMPANY_LOGO =
-  "https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png";
+  "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
 const FOOTER_LOGO =
-  "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
+  "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
 
 export interface FundPerformanceData {
   fund_name: string;

@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui";
 import { Trash2, ExternalLink, Mail, AlertTriangle, Loader2 } from "lucide-react";
-import { IBSettingsSection } from "../shared/IBSettingsSection";
+import { IBScheduleSection } from "../shared/IBScheduleSection";
 import { FeeScheduleSection } from "../shared/FeeScheduleSection";
 import { ReportRecipientsEditor } from "../reports/ReportRecipientsEditor";
 import { useQuery } from "@tanstack/react-query";
@@ -92,7 +92,7 @@ export function InvestorSettingsTab({
       {/* Partnership & IB Settings Section */}
       <section className="space-y-4">
         <h3 className="text-lg font-semibold px-1">Partnership & IB Settings</h3>
-        <IBSettingsSection investorId={investorId} onUpdate={onDataChange} />
+        <IBScheduleSection investorId={investorId} />
       </section>
 
       {/* Report Emails Section */}

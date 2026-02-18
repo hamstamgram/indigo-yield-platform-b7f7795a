@@ -121,7 +121,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
       </div>
 
       <CardContent
-        className={`p-0 ${isFullscreen ? "h-[calc(100vh-80px)]" : "h-[calc(100vh-300px)]"} overflow-auto bg-gray-100`}
+        className={`p-0 ${isFullscreen ? "h-[calc(100vh-80px)]" : "h-[calc(100vh-300px)]"} overflow-auto bg-muted`}
       >
         <div className="flex justify-center items-start min-h-full p-6">
           <Document

@@ -124,7 +124,7 @@ export function YieldInputForm({
       try {
         const newAumDec = new Decimal(value);
         const yieldDec = newAumDec.minus(new Decimal(displayedAum));
-        setYieldAmount(yieldDec.isNegative() ? "" : yieldDec.toString());
+        setYieldAmount(yieldDec.isZero() ? "0" : yieldDec.toString());
       } catch {
         setYieldAmount("");
       }
@@ -431,10 +431,16 @@ export function YieldInputForm({
             showFormatted
           />
           {yieldAmount && (
-            <p className="text-xs text-muted-foreground">
-              Yield: +
+            <p
+              className={cn(
+                "text-xs",
+                parseFloat(yieldAmount) < 0 ? "text-red-500" : "text-muted-foreground"
+              )}
+            >
+              Yield: {parseFloat(yieldAmount) >= 0 ? "+" : ""}
               {selectedFund && formatValue(parseFloat(yieldAmount) || 0, selectedFund.asset)}{" "}
               {selectedFund?.asset}
+              {parseFloat(yieldAmount) < 0 && " (loss month - fees waived)"}
             </p>
           )}
         </div>

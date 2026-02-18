@@ -41,7 +41,7 @@ export default function Login() {
   // Display loading indicator while checking authentication
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <LoadingSpinner size="lg" className="text-indigo-600" />
       </div>
     );

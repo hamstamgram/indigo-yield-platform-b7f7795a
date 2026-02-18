@@ -296,7 +296,7 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
               <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
                 <tr>
                   <td valign="middle">
-                    <img src="https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg"
+                    <img src="https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png"
                       alt="Indigo Logo" height="24" class="mobile-logo" style="display:block;border:0;height:24px;width:auto;">
                   </td>
                   <td valign="middle" align="right">
@@ -347,19 +347,19 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
                 <tr>
                   <td style="padding: 0 10px;">
                     <a href="https://www.linkedin.com/company/indigofund" target="_blank">
-                      <img src="https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png"
+                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkedin.svg"
                         alt="LinkedIn" width="24" style="border:0;">
                     </a>
                   </td>
                   <td style="padding: 0 10px;">
                     <a href="https://www.instagram.com/indigo.fund" target="_blank">
-                      <img src="https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png"
+                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg"
                         alt="Instagram" width="24" style="border:0;">
                     </a>
                   </td>
                   <td style="padding: 0 10px;">
                     <a href="https://twitter.com/indigo_fund" target="_blank">
-                      <img src="https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png"
+                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg"
                         alt="X" width="24" style="border:0;">
                     </a>
                   </td>
