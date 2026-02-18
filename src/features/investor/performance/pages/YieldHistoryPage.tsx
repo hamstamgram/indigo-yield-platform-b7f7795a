@@ -351,9 +351,20 @@ function MonthSection({ group }: { group: MonthGroup }) {
                       <TableRow key={e.id}>
                         <TableCell>{format(new Date(e.event_date), "MMM d")}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {e.period_start && e.period_end
-                            ? `${format(new Date(e.period_start), "MMM d")} - ${format(new Date(e.period_end), "MMM d")}`
-                            : "--"}
+                          {(() => {
+                            const eventDate = new Date(e.event_date);
+                            const monthStart = new Date(
+                              eventDate.getFullYear(),
+                              eventDate.getMonth(),
+                              1
+                            );
+                            const monthEnd = new Date(
+                              eventDate.getFullYear(),
+                              eventDate.getMonth() + 1,
+                              0
+                            );
+                            return `${format(monthStart, "MMM d")} - ${format(monthEnd, "MMM d")}`;
+                          })()}
                         </TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground">
                           {e.investor_balance > 0 ? formatInvestorNumber(e.investor_balance) : "--"}

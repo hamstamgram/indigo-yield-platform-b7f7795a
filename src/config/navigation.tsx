@@ -10,8 +10,6 @@ import {
   TrendingUp,
   Settings,
   Briefcase,
-  DollarSign,
-  FolderOpen,
   Wallet,
   Coins,
   HeartPulse,
@@ -31,7 +29,6 @@ export type NavGroup = {
 export const investorNav: NavItem[] = [
   { title: "Overview", href: "/investor", icon: <BarChart3 className="h-5 w-5" /> },
   { title: "Portfolio", href: "/investor/portfolio", icon: <Wallet className="h-5 w-5" /> },
-  { title: "Performance", href: "/investor/performance", icon: <TrendingUp className="h-5 w-5" /> },
   { title: "Yield History", href: "/investor/yield-history", icon: <Coins className="h-5 w-5" /> },
   {
     title: "Transactions",
@@ -44,7 +41,6 @@ export const investorNav: NavItem[] = [
     icon: <ArrowLeftRight className="h-5 w-5" />,
   },
   { title: "Statements", href: "/investor/statements", icon: <FileText className="h-5 w-5" /> },
-  { title: "Documents", href: "/investor/documents", icon: <FolderOpen className="h-5 w-5" /> },
   { title: "Settings", href: "/investor/settings", icon: <Settings className="h-5 w-5" /> },
 ];
 

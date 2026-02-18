@@ -21,9 +21,12 @@ import {
   useStatementAssets,
   type MonthlyStatement,
 } from "@/hooks/data";
+import { useAuth } from "@/services/auth";
+import { format } from "date-fns";
 import { logError } from "@/lib/logger";
 
 const StatementsPage = () => {
+  const { user, profile } = useAuth();
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedAsset, setSelectedAsset] = useState<string>("all");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -50,20 +53,62 @@ const StatementsPage = () => {
       const monthName = getMonthName(statement.period_month);
       const periodLabel = `${monthName} ${statement.period_year}`;
 
+      // Build period boundaries
+      const periodStart = new Date(statement.period_year, statement.period_month - 1, 1);
+      const periodEnd = new Date(statement.period_year, statement.period_month, 0);
+
+      const mtdBeginBalance = parseFloat(statement.begin_balance) || 0;
+      const mtdAdditions = parseFloat(statement.additions) || 0;
+      const mtdRedemptions = parseFloat(statement.redemptions) || 0;
+      const mtdNetIncome = parseFloat(statement.net_income) || 0;
+      const mtdEndBalance = parseFloat(statement.end_balance) || 0;
+      const mtdRateOfReturn = parseFloat(statement.rate_of_return_mtd) || 0;
+
       // Lazy load PDF generator to keep bundle small
       const { generatePDF } = await import("@/lib/pdf/statementGenerator");
       const blob = await generatePDF({
-        investor: { name: "Investor Statement", id: "", accountNumber: "" },
-        period: { month: statement.period_month, year: statement.period_year, start: "", end: "" },
-        summary: { total_aum: 0, total_pnl: 0, total_fees: 0 },
-        positions: [
+        investor: {
+          name: profile?.first_name
+            ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
+            : user?.email || "Investor",
+          id: user?.id || "",
+          accountNumber: "",
+          email: user?.email,
+        },
+        period: {
+          month: statement.period_month,
+          year: statement.period_year,
+          start: format(periodStart, "yyyy-MM-dd"),
+          end: format(periodEnd, "yyyy-MM-dd"),
+        },
+        funds: [
           {
+            fund_name: statement.fund_name || `${statement.asset_code} YIELD FUND`,
             asset_code: statement.asset_code,
-            opening_balance: Number(statement.begin_balance || 0),
-            additions: Number(statement.additions || 0),
-            redemptions: Number(statement.redemptions || 0),
-            yield_earned: Number(statement.net_income || 0),
-            closing_balance: Number(statement.end_balance || 0),
+            mtd_beginning_balance: mtdBeginBalance,
+            mtd_additions: mtdAdditions,
+            mtd_redemptions: mtdRedemptions,
+            mtd_net_income: mtdNetIncome,
+            mtd_ending_balance: mtdEndBalance,
+            mtd_rate_of_return: mtdRateOfReturn,
+            qtd_beginning_balance: mtdBeginBalance,
+            qtd_additions: mtdAdditions,
+            qtd_redemptions: mtdRedemptions,
+            qtd_net_income: mtdNetIncome,
+            qtd_ending_balance: mtdEndBalance,
+            qtd_rate_of_return: mtdRateOfReturn,
+            ytd_beginning_balance: mtdBeginBalance,
+            ytd_additions: mtdAdditions,
+            ytd_redemptions: mtdRedemptions,
+            ytd_net_income: mtdNetIncome,
+            ytd_ending_balance: mtdEndBalance,
+            ytd_rate_of_return: mtdRateOfReturn,
+            itd_beginning_balance: mtdBeginBalance,
+            itd_additions: mtdAdditions,
+            itd_redemptions: mtdRedemptions,
+            itd_net_income: mtdNetIncome,
+            itd_ending_balance: mtdEndBalance,
+            itd_rate_of_return: mtdRateOfReturn,
           },
         ],
       });

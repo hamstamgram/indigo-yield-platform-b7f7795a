@@ -8,16 +8,24 @@ import { lazy } from "react";
 import { InvestorRoute } from "../../InvestorRoute";
 
 // New investor pages
-const InvestorOverviewPage = lazy(() => import("@/features/investor/overview/pages/InvestorOverviewPage"));
-const InvestorPortfolioPage = lazy(() => import("@/features/investor/portfolio/pages/InvestorPortfolioPage"));
-const InvestorPerformancePage = lazy(() => import("@/features/investor/performance/pages/InvestorPerformancePage"));
-const InvestorTransactionsPage = lazy(() => import("@/features/investor/transactions/pages/InvestorTransactionsPage"));
+const InvestorOverviewPage = lazy(
+  () => import("@/features/investor/overview/pages/InvestorOverviewPage")
+);
+const InvestorPortfolioPage = lazy(
+  () => import("@/features/investor/portfolio/pages/InvestorPortfolioPage")
+);
+const InvestorTransactionsPage = lazy(
+  () => import("@/features/investor/transactions/pages/InvestorTransactionsPage")
+);
 const StatementsPage = lazy(() => import("@/features/investor/statements/pages/StatementsPage"));
-const InvestorDocumentsPage = lazy(() => import("@/features/investor/documents/pages/InvestorDocumentsPage"));
-const InvestorSettingsPage = lazy(() => import("@/features/investor/settings/pages/InvestorSettingsPage"));
+const InvestorSettingsPage = lazy(
+  () => import("@/features/investor/settings/pages/InvestorSettingsPage")
+);
 const TransactionDetailsPage = lazy(() => import("@/pages/transactions/TransactionDetailsPage"));
 const FundDetailsPage = lazy(() => import("@/features/investor/funds/pages/FundDetailsPage"));
-const YieldHistoryPage = lazy(() => import("@/features/investor/performance/pages/YieldHistoryPage"));
+const YieldHistoryPage = lazy(
+  () => import("@/features/investor/performance/pages/YieldHistoryPage")
+);
 
 export function CoreInvestorRoutes() {
   return (
@@ -39,14 +47,7 @@ export function CoreInvestorRoutes() {
           </InvestorRoute>
         }
       />
-      <Route
-        path="/investor/performance"
-        element={
-          <InvestorRoute>
-            <InvestorPerformancePage />
-          </InvestorRoute>
-        }
-      />
+      <Route path="/investor/performance" element={<Navigate to="/investor" replace />} />
       <Route
         path="/investor/transactions"
         element={
@@ -63,14 +64,7 @@ export function CoreInvestorRoutes() {
           </InvestorRoute>
         }
       />
-      <Route
-        path="/investor/documents"
-        element={
-          <InvestorRoute>
-            <InvestorDocumentsPage />
-          </InvestorRoute>
-        }
-      />
+      <Route path="/investor/documents" element={<Navigate to="/investor" replace />} />
       <Route
         path="/investor/settings"
         element={

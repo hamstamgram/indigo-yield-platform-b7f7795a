@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -6,31 +7,53 @@ import {
   usePendingWithdrawalsCount,
   useLatestStatementSummary,
   useRealtimeSubscription,
+  useAvailableStatementPeriods,
 } from "@/hooks/data";
 import { useAuth } from "@/services/auth";
 import { useMemo } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Button, Skeleton } from "@/components/ui";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Clock,
-  TrendingUp,
-  Wallet,
-  History,
-  FileText,
-  Download,
-} from "lucide-react";
+import { ArrowRight, Clock, TrendingUp, History, FileText, Download, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { PageShell } from "@/components/layout/PageShell";
 import { formatInvestorNumber } from "@/utils/assets";
+import { PerformanceCard } from "@/features/investor/performance/components/PerformanceCard";
+import {
+  PeriodSelector,
+  PERIOD_LABELS,
+  type PerformancePeriod,
+} from "@/features/investor/performance/components/PeriodSelector";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type AssetStat = NonNullable<ReturnType<typeof usePerAssetStats>["data"]>["assets"][number];
+
+function getPerformanceData(asset: AssetStat, period: PerformancePeriod) {
+  const periodData = period === "mtd" ? asset.mtd : asset[period];
+  return {
+    beginningBalance: periodData?.beginningBalance || 0,
+    additions: periodData?.additions || 0,
+    redemptions: periodData?.redemptions || 0,
+    netIncome: periodData?.netIncome || 0,
+    endingBalance: periodData?.endingBalance || 0,
+    rateOfReturn: periodData?.rateOfReturn || 0,
+  };
+}
 
 export default function InvestorOverviewPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile } = useAuth();
+
+  const [period, setPeriod] = useState<PerformancePeriod>("mtd");
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
 
   const displayName = useMemo(() => {
     if (profile?.first_name) {
@@ -42,7 +65,8 @@ export default function InvestorOverviewPage() {
     return local.charAt(0) + "***@" + email.split("@")[1];
   }, [profile, user]);
 
-  const { data: assetStats, isLoading: isLoadingStats } = usePerAssetStats();
+  const { data: assetStats, isLoading: isLoadingStats } = usePerAssetStats(selectedPeriodId);
+  const { data: availablePeriods, isLoading: isLoadingPeriods } = useAvailableStatementPeriods();
   const { data: recentTransactions, isLoading: isLoadingTxs } = useRecentInvestorTransactions(5);
   const { data: pendingWithdrawals, isLoading: isLoadingWithdrawals } =
     usePendingWithdrawalsCount();
@@ -64,10 +88,12 @@ export default function InvestorOverviewPage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorRecentTransactions }),
   });
 
-  const isLoading = isLoadingStats || isLoadingTxs || isLoadingWithdrawals;
+  const isLoading = isLoadingStats || isLoadingTxs || isLoadingWithdrawals || isLoadingPeriods;
 
-  // Calculate totals across all assets (this is an approximation as assets are different currencies)
-  // For the dashboard, we will display per-asset breakdowns primarily.
+  const currentPeriodLabel =
+    availablePeriods?.find((p) => p.id === selectedPeriodId)?.label ||
+    availablePeriods?.[0]?.label ||
+    null;
 
   return (
     <PageShell>
@@ -105,98 +131,68 @@ export default function InvestorOverviewPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Asset Cards */}
+          {/* Left Column: Performance Cards */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-indigo-400" />
-                My Assets
-              </h2>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              {assetStats?.assets?.map((asset) => (
-                <div
-                  key={asset.assetSymbol}
-                  className="glass-card rounded-3xl p-6 border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent hover:border-indigo-500/30 transition-all group relative overflow-hidden cursor-pointer"
-                  onClick={() => navigate("/investor/portfolio")}
+            {/* Period Selectors */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {availablePeriods && availablePeriods.length > 0 && (
+                <Select
+                  value={selectedPeriodId || availablePeriods[0]?.id || ""}
+                  onValueChange={(v) => setSelectedPeriodId(v)}
                 >
-                  <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                  <div className="relative z-10 flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center p-2 shadow-inner">
-                        <CryptoIcon
-                          symbol={asset.assetSymbol}
-                          className="w-full h-full text-white"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-lg text-white truncate">
-                          {asset.assetSymbol} Fund
-                        </h3>
-                        <p className="text-xs text-slate-400 font-mono truncate">
-                          {asset.fundName}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-                      <ArrowUpRight className="h-4 w-4 text-slate-400 group-hover:text-white" />
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 space-y-4">
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-1">
-                        Total Balance
-                      </p>
-                      <p className="text-3xl font-mono font-bold text-white tracking-tight">
-                        {formatInvestorNumber(asset.mtd.endingBalance)}{" "}
-                        <span className="text-lg text-slate-500">{asset.assetSymbol}</span>
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-                      <div>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
-                          ITD Return
-                        </p>
-                        <p
-                          className={cn(
-                            "text-lg font-mono font-bold",
-                            asset.itd.rateOfReturn > 0
-                              ? "text-emerald-400"
-                              : asset.itd.rateOfReturn < 0
-                                ? "text-rose-400"
-                                : "text-slate-500"
-                          )}
-                        >
-                          {asset.itd.netIncome !== 0
-                            ? `${asset.itd.rateOfReturn >= 0 ? "+" : ""}${asset.itd.rateOfReturn.toFixed(2)}%`
-                            : "--"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">
-                          ITD Earned
-                        </p>
-                        <p className="text-lg font-mono font-bold text-indigo-300">
-                          {asset.itd.netIncome !== 0
-                            ? formatInvestorNumber(asset.itd.netIncome)
-                            : "--"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {(!assetStats?.assets || assetStats.assets.length === 0) && (
-                <div className="col-span-2 glass-panel p-8 text-center rounded-3xl border-dashed border-white/10">
-                  <p className="text-slate-400">No active positions found.</p>
-                </div>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePeriods.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
+              <PeriodSelector value={period} onChange={setPeriod} />
             </div>
+
+            {currentPeriodLabel && (
+              <p className="text-sm text-slate-400">
+                Showing {PERIOD_LABELS[period]} for {currentPeriodLabel}
+              </p>
+            )}
+
+            {/* Performance Cards Grid */}
+            {isLoadingStats ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : assetStats?.assets && assetStats.assets.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {assetStats.assets.map((asset) => (
+                  <PerformanceCard
+                    key={asset.fundName}
+                    fundName={asset.assetSymbol}
+                    period={period}
+                    data={getPerformanceData(asset, period)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="glass-panel p-8 text-center rounded-3xl border-dashed border-white/10">
+                <p className="text-slate-400">No active positions found.</p>
+              </div>
+            )}
+
+            {assetStats?.periodEndDate && (
+              <p className="text-xs text-muted-foreground text-center">
+                As of{" "}
+                {new Date(assetStats.periodEndDate).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            )}
           </div>
 
           {/* Right Column: Recent Activity & Quick Stats */}
