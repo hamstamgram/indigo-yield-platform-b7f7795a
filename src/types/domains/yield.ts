@@ -361,6 +361,7 @@ export interface V5YieldRPCResult {
   segment_count?: number;
   crystal_count?: number;
   segments?: V5SegmentSummary[];
+  crystal_markers?: V5SegmentSummary[];
   allocations?: V5AllocationItem[];
   conservation_check?: boolean;
   calculation_method?: string;

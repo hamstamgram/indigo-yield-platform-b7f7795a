@@ -32,6 +32,14 @@ export async function fetchIntegrityChecks(): Promise<IntegrityCheck[]> {
       .eq("is_voided", true),
   ]);
 
+  // Propagate query errors instead of hiding them as "ok"
+  if (fundAumMismatch.error) throw new Error(`fund_aum_mismatch: ${fundAumMismatch.error.message}`);
+  if (yieldConservation.error)
+    throw new Error(`yield_conservation: ${yieldConservation.error.message}`);
+  if (ibConsistency.error) throw new Error(`ib_consistency: ${ibConsistency.error.message}`);
+  if (positionLedgerMismatch.error)
+    throw new Error(`position_ledger: ${positionLedgerMismatch.error.message}`);
+
   return [
     {
       name: "Fund AUM Reconciliation",

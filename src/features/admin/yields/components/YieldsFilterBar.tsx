@@ -72,8 +72,8 @@ export function YieldsFilterBar({ filters, funds, onFilterChange, onReset }: Yie
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
-                <SelectItem value="reporting">🟢 Reporting</SelectItem>
-                <SelectItem value="transaction">🟠 Transaction</SelectItem>
+                <SelectItem value="reporting">Reporting</SelectItem>
+                <SelectItem value="transaction">Transaction</SelectItem>
               </SelectContent>
             </Select>
           </div>

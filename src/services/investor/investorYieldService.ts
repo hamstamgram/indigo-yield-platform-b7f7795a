@@ -88,10 +88,20 @@ export async function getInvestorVisibleYield(
     query = query.eq("fund_id", options.fundId);
   }
 
-  if (options?.year && options?.month) {
-    const start = new Date(options.year, options.month - 1, 1);
-    const end = new Date(options.year, options.month, 0);
-    query = query.gte("event_date", formatDateForDB(start)).lte("event_date", formatDateForDB(end));
+  if (options?.year) {
+    if (options?.month) {
+      const start = new Date(options.year, options.month - 1, 1);
+      const end = new Date(options.year, options.month, 0);
+      query = query
+        .gte("event_date", formatDateForDB(start))
+        .lte("event_date", formatDateForDB(end));
+    } else {
+      const yearStart = new Date(options.year, 0, 1);
+      const yearEnd = new Date(options.year, 11, 31);
+      query = query
+        .gte("event_date", formatDateForDB(yearStart))
+        .lte("event_date", formatDateForDB(yearEnd));
+    }
   }
 
   query = query.limit(options?.limit || 500);

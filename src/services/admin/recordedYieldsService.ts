@@ -170,7 +170,7 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
     const { data: distributions } = await supabase
       .from("yield_distributions")
       .select(
-        "id, fund_id, effective_date, gross_yield, net_yield, total_fees, total_ib, allocation_count"
+        "id, fund_id, effective_date, period_end, gross_yield, gross_yield_amount, net_yield, total_net_amount, total_fees, total_fee_amount, total_ib, total_ib_amount, allocation_count"
       )
       .in("fund_id", uniqueFundIds)
       .in("effective_date", uniqueDates)
@@ -183,10 +183,10 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
         const key = `${d.fund_id}:${d.effective_date}`;
         distMap.set(key, {
           id: d.id,
-          gross_yield: Number(d.gross_yield) || 0,
-          net_yield: Number(d.net_yield) || 0,
-          total_fees: Number(d.total_fees) || 0,
-          total_ib: Number(d.total_ib) || 0,
+          gross_yield: Number(d.gross_yield_amount ?? d.gross_yield) || 0,
+          net_yield: Number(d.total_net_amount ?? d.net_yield) || 0,
+          total_fees: Number(d.total_fee_amount ?? d.total_fees) || 0,
+          total_ib: Number(d.total_ib_amount ?? d.total_ib) || 0,
           allocation_count: d.allocation_count || 0,
         });
       }

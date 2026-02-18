@@ -166,7 +166,7 @@ export async function previewYieldDistribution(
     features: result.features || ["segmented_proportional"],
     conservationCheck: Boolean(result.conservation_check),
     segmentCount: result.segment_count,
-    segments: result.segments,
+    segments: result.segments || result.crystal_markers,
     openingAum: String(result.opening_aum || 0),
     recordedAum: String(result.recorded_aum || 0),
     crystalsInPeriod: result.crystal_count ?? 0,

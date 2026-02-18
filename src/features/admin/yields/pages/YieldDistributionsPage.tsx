@@ -736,15 +736,17 @@ function YieldDistributionsContent() {
                                                     Route to INDIGO FEES
                                                   </Button>
                                                 )}
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() => handleVoidOpen(distribution)}
-                                              >
-                                                <Trash2 className="h-4 w-4 mr-1" />
-                                                Void
-                                              </Button>
+                                              {!distribution.is_voided && (
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                  onClick={() => handleVoidOpen(distribution)}
+                                                >
+                                                  <Trash2 className="h-4 w-4 mr-1" />
+                                                  Void
+                                                </Button>
+                                              )}
                                             </div>
                                           </div>
                                         </CardTitle>
