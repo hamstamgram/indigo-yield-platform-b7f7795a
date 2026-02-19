@@ -6,7 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { logError } from "@/lib/logger";
 import { toast } from "sonner";
-import { fundService } from "@/services/admin";
+import { fundService, deleteFund as deleteFundService } from "@/services/admin";
 import { auditLogService } from "@/services/shared";
 import { getPositionsByFund } from "@/services/investor";
 import { useAuth } from "@/services/auth";
@@ -114,6 +114,45 @@ export function useRestoreFund() {
     onError: (error: Error) => {
       logError("useRestoreFund.onError", error);
       toast.error(error.message || "Failed to restore fund");
+    },
+  });
+}
+
+/**
+ * Delete a fund (hard delete with cascade cleanup)
+ * Requires: zero active investor positions + super_admin role
+ */
+export function useDeleteFund() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (fund: FundWithMetrics) => {
+      // Log audit BEFORE deletion (fund row will be gone after)
+      await auditLogService.logEvent({
+        actorUserId: user?.id || "",
+        action: "DELETE_FUND",
+        entity: "fund",
+        entityId: fund.id,
+        oldValues: {
+          name: fund.name,
+          code: fund.code,
+          asset: fund.asset,
+          status: fund.status,
+        },
+        newValues: null,
+      });
+
+      await deleteFundService(fund.id);
+      return fund;
+    },
+    onSuccess: (fund) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      toast.success(`Fund "${fund.name}" permanently deleted`);
+    },
+    onError: (error: Error) => {
+      logError("useDeleteFund.onError", error);
+      toast.error(error.message || "Failed to delete fund");
     },
   });
 }

@@ -360,6 +360,58 @@ export async function updateFundStatus(fundId: string, status: string): Promise<
   return updateFund(fundId, { status: status as Fund["status"] });
 }
 
+/**
+ * Delete a fund (hard delete from funds table)
+ * Requires: zero active investor positions
+ * Returns usage counts so caller can warn about historical data removal
+ */
+export async function deleteFund(
+  fundId: string
+): Promise<{ positions: number; transactions: number }> {
+  // Pre-check: count active positions and historical transactions
+  const usage = await checkFundUsage(fundId);
+
+  if (usage.positions > 0) {
+    throw new Error(
+      `Cannot delete fund with ${usage.positions} active investor position(s). Transfer or withdraw their positions first.`
+    );
+  }
+
+  // Delete related records that reference this fund (cascade)
+  // Order matters: delete children before parent
+
+  // Delete yield-related allocations via their distributions
+  const { data: distributions } = await supabase
+    .from("yield_distributions")
+    .select("id")
+    .eq("fund_id", fundId);
+
+  if (distributions && distributions.length > 0) {
+    const distIds = distributions.map((d) => d.id);
+
+    await supabase.from("yield_allocations").delete().in("distribution_id", distIds);
+    await supabase.from("fee_allocations").delete().in("distribution_id", distIds);
+    await supabase.from("ib_allocations").delete().in("distribution_id", distIds);
+    await supabase.from("yield_distributions").delete().eq("fund_id", fundId);
+  }
+
+  // Delete transactions referencing this fund
+  await supabase.from("transactions_v2").delete().eq("fund_id", fundId);
+
+  // Delete investor positions (should be 0 but clean up any stale rows)
+  await supabase.from("investor_positions").delete().eq("fund_id", fundId);
+
+  // Delete AUM snapshots
+  await supabase.from("fund_daily_aum").delete().eq("fund_id", fundId);
+
+  // Delete the fund itself
+  const { error } = await supabase.from("funds").delete().eq("id", fundId);
+
+  if (error) throw new Error(`Failed to delete fund: ${error.message}`);
+
+  return usage;
+}
+
 // Plain object singleton for fundService.method() pattern
 export const fundService = {
   getAllFunds: listFunds,
@@ -375,4 +427,6 @@ export const fundService = {
   codeExists,
   createFund: createFundSimple,
   deactivateFund,
+  deleteFund,
+  checkFundUsage,
 };

@@ -55,6 +55,7 @@ export {
   getFundByAsset,
   codeExists,
   deactivateFund,
+  deleteFund,
   updateFundStatus,
   createFundSimple,
   fundService,

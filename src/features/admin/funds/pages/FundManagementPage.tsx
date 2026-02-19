@@ -17,6 +17,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui";
 import {
   Plus,
@@ -29,6 +40,8 @@ import {
   TrendingUp,
   LayoutGrid,
   List as ListIcon,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { AdminGuard, CreateFundDialog, EditFundDialog } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -37,8 +50,11 @@ import {
   useFundsWithMetrics,
   useArchiveFund,
   useRestoreFund,
+  useDeleteFund,
   type FundWithMetrics,
 } from "@/features/admin/funds/hooks/useFundsWithMetrics";
+import { checkFundUsage } from "@/services/admin";
+import { useUserRole } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { formatAssetValue } from "@/utils/formatters";
 import { PageShell } from "@/components/layout/PageShell";
@@ -72,6 +88,8 @@ function FundManagementContent() {
   const { data: funds = [], isLoading: loading, refetch } = useFundsWithMetrics();
   const archiveMutation = useArchiveFund();
   const restoreMutation = useRestoreFund();
+  const deleteMutation = useDeleteFund();
+  const { isSuperAdmin } = useUserRole();
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingFund, setEditingFund] = useState<FundWithMetrics | null>(null);
@@ -84,9 +102,20 @@ function FundManagementContent() {
     error?: string;
   }>({ open: false, action: "archive", fund: null });
 
+  // Delete confirmation dialog state (separate - uses type-to-confirm pattern)
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    fund: FundWithMetrics | null;
+    confirmText: string;
+    usage: { positions: number; transactions: number } | null;
+    loadingUsage: boolean;
+  }>({ open: false, fund: null, confirmText: "", usage: null, loadingUsage: false });
+
   const actionLoading =
-    archiveMutation.isPending || restoreMutation.isPending
-      ? archiveMutation.variables?.id || restoreMutation.variables?.id
+    archiveMutation.isPending || restoreMutation.isPending || deleteMutation.isPending
+      ? archiveMutation.variables?.id ||
+        restoreMutation.variables?.id ||
+        deleteMutation.variables?.id
       : null;
 
   const handleArchive = async (fund: FundWithMetrics) => {
@@ -96,6 +125,15 @@ function FundManagementContent() {
         action: "archive",
         fund,
         error: `Cannot archive fund with ${fund.investor_count} active investor(s). Transfer or withdraw their positions first.`,
+      });
+      return;
+    }
+    if (!isSuperAdmin) {
+      setConfirmDialog({
+        open: true,
+        action: "archive",
+        fund,
+        error: "Super admin access required to archive funds.",
       });
       return;
     }
@@ -117,6 +155,55 @@ function FundManagementContent() {
       return;
     }
     setConfirmDialog({ open: true, action: "restore", fund });
+  };
+
+  const handleDelete = async (fund: FundWithMetrics) => {
+    if (fund.investor_count > 0) {
+      setConfirmDialog({
+        open: true,
+        action: "archive",
+        fund,
+        error: `Cannot delete fund with ${fund.investor_count} active investor(s). Transfer or withdraw their positions first.`,
+      });
+      return;
+    }
+
+    // Fetch usage data for the warning
+    setDeleteDialog({
+      open: true,
+      fund,
+      confirmText: "",
+      usage: null,
+      loadingUsage: true,
+    });
+
+    try {
+      const usage = await checkFundUsage(fund.id);
+      setDeleteDialog((prev) => ({ ...prev, usage, loadingUsage: false }));
+    } catch {
+      setDeleteDialog((prev) => ({
+        ...prev,
+        usage: { positions: 0, transactions: 0 },
+        loadingUsage: false,
+      }));
+    }
+  };
+
+  const confirmDelete = () => {
+    const { fund } = deleteDialog;
+    if (!fund || deleteDialog.confirmText !== "DELETE") return;
+
+    deleteMutation.mutate(fund, {
+      onSettled: () => {
+        setDeleteDialog({
+          open: false,
+          fund: null,
+          confirmText: "",
+          usage: null,
+          loadingUsage: false,
+        });
+      },
+    });
   };
 
   const confirmAction = async () => {
@@ -358,22 +445,36 @@ function FundManagementContent() {
                   </Button>
 
                   {fund.status === "active" ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex-1 hover:bg-rose-500/10 hover:text-rose-400 text-slate-400"
-                      onClick={() => handleArchive(fund)}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Archive className="mr-2 h-4 w-4" />
-                          Archive
-                        </>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="flex-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "w-full hover:bg-rose-500/10 hover:text-rose-400 text-slate-400",
+                              !isSuperAdmin && "opacity-50 cursor-not-allowed"
+                            )}
+                            onClick={() => handleArchive(fund)}
+                            disabled={isLoading || !isSuperAdmin}
+                          >
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </>
+                            )}
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {!isSuperAdmin && (
+                        <TooltipContent>
+                          Super admin access required to archive funds
+                        </TooltipContent>
                       )}
-                    </Button>
+                    </Tooltip>
                   ) : fund.status === "deprecated" ? (
                     <Button
                       variant="ghost"
@@ -392,6 +493,34 @@ function FundManagementContent() {
                       )}
                     </Button>
                   ) : null}
+
+                  {/* Delete button - super admin only, blocked for funds with investors */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "h-8 w-8 hover:bg-rose-500/10 hover:text-rose-400 text-slate-500",
+                            (!isSuperAdmin || fund.investor_count > 0) &&
+                              "opacity-40 cursor-not-allowed"
+                          )}
+                          onClick={() => handleDelete(fund)}
+                          disabled={isLoading || !isSuperAdmin || fund.investor_count > 0}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {fund.investor_count > 0
+                        ? `Cannot delete fund with ${fund.investor_count} active investor(s)`
+                        : !isSuperAdmin
+                          ? "Super admin access required to delete funds"
+                          : "Permanently delete fund"}
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             );
@@ -477,6 +606,170 @@ function FundManagementContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delete Fund Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onOpenChange={(open) =>
+          !open &&
+          !deleteMutation.isPending &&
+          setDeleteDialog({
+            open: false,
+            fund: null,
+            confirmText: "",
+            usage: null,
+            loadingUsage: false,
+          })
+        }
+      >
+        <DialogContent className="sm:max-w-[480px] glass-panel border-rose-500/20">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-400">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Fund Permanently
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              This action is irreversible. The fund and all associated data will be permanently
+              removed.
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteDialog.fund && (
+            <div className="space-y-4">
+              {/* Fund details */}
+              <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">
+                    Fund
+                  </span>
+                  <span className="text-sm font-bold text-white">{deleteDialog.fund.name}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">
+                    Asset
+                  </span>
+                  <span className="text-sm font-mono text-slate-300">
+                    {deleteDialog.fund.asset}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">
+                    AUM
+                  </span>
+                  <span className="text-sm font-mono text-slate-300">
+                    {formatAssetValue(deleteDialog.fund.total_aum, deleteDialog.fund.asset)}{" "}
+                    {deleteDialog.fund.asset}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">
+                    Investors
+                  </span>
+                  <span className="text-sm font-mono text-slate-300">
+                    {deleteDialog.fund.investor_count}
+                  </span>
+                </div>
+              </div>
+
+              {/* Historical data warning */}
+              {deleteDialog.loadingUsage ? (
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Checking associated data...
+                </div>
+              ) : deleteDialog.usage &&
+                (deleteDialog.usage.transactions > 0 || deleteDialog.usage.positions > 0) ? (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                  <p className="text-sm text-amber-400 font-medium">
+                    This fund has historical data that will also be deleted:
+                  </p>
+                  <ul className="text-xs text-amber-400/80 mt-1 space-y-0.5">
+                    {deleteDialog.usage.transactions > 0 && (
+                      <li>
+                        {deleteDialog.usage.transactions} transaction
+                        {deleteDialog.usage.transactions !== 1 ? "s" : ""}
+                      </li>
+                    )}
+                    {deleteDialog.usage.positions > 0 && (
+                      <li>
+                        {deleteDialog.usage.positions} investor position
+                        {deleteDialog.usage.positions !== 1 ? "s" : ""}
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              ) : null}
+
+              {/* Destructive warning */}
+              <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-3">
+                <p className="text-sm text-rose-400 font-medium">
+                  This will permanently delete this fund and all associated configuration,
+                  transactions, yield distributions, and AUM snapshots. This cannot be undone.
+                </p>
+              </div>
+
+              {/* Type DELETE to confirm */}
+              <div className="space-y-2">
+                <Label htmlFor="delete-fund-confirm" className="text-slate-300">
+                  Type <strong className="text-rose-400 font-mono">DELETE</strong> to confirm
+                </Label>
+                <Input
+                  id="delete-fund-confirm"
+                  placeholder="Type DELETE"
+                  value={deleteDialog.confirmText}
+                  onChange={(e) =>
+                    setDeleteDialog((prev) => ({
+                      ...prev,
+                      confirmText: e.target.value.toUpperCase(),
+                    }))
+                  }
+                  className="bg-black/40 border-white/10 text-white placeholder:text-slate-600 font-mono"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                setDeleteDialog({
+                  open: false,
+                  fund: null,
+                  confirmText: "",
+                  usage: null,
+                  loadingUsage: false,
+                })
+              }
+              disabled={deleteMutation.isPending}
+              className="text-slate-300 hover:bg-white/5 hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              disabled={
+                deleteMutation.isPending ||
+                deleteDialog.confirmText !== "DELETE" ||
+                deleteDialog.loadingUsage
+              }
+              className="bg-rose-600 hover:bg-rose-500 text-white border border-rose-400/20 shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]"
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Permanently
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }
