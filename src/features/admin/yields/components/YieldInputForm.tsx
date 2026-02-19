@@ -271,8 +271,6 @@ export function YieldInputForm({
                   disabled={(date) => date > new Date()}
                   initialFocus
                   className="p-3 pointer-events-auto"
-                  fromYear={2024}
-                  toYear={new Date().getFullYear()}
                 />
               </PopoverContent>
             </Popover>

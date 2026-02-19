@@ -322,7 +322,7 @@ export default function AdminManualTransaction() {
                     {txDate ? format(new Date(txDate), "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[280px] p-0" align="start" sideOffset={4}>
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={txDate ? new Date(txDate) : undefined}

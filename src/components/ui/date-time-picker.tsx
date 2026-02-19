@@ -112,7 +112,7 @@ export function DateTimePicker({
             {displayValue || <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 min-h-[380px] min-w-[280px]" align="start">
+        <PopoverContent className="w-auto p-0" align="start">
           <div className="p-3 space-y-3">
             <Calendar
               mode="single"
