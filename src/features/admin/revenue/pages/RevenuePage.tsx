@@ -41,7 +41,7 @@ export default function RevenuePage() {
           </TabsTrigger>
           <TabsTrigger value="ib" className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
-            IB Commissions
+            IB Management
           </TabsTrigger>
         </TabsList>
 

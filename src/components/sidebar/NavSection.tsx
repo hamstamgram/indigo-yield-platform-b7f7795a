@@ -104,7 +104,7 @@ const NavSection = ({
     <div className={cn("pb-1", className)}>
       {showTitle && title && (
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-sidebar-foreground uppercase tracking-wider px-2">
+          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2">
             {title}
           </h3>
         </div>

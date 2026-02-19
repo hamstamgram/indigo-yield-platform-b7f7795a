@@ -140,7 +140,7 @@ function HealthTab() {
             </Badge>
             {health && health[0]?.lastChecked && (
               <span className="text-sm text-muted-foreground">
-                Last checked: {health[0].lastChecked.toLocaleTimeString()}
+                Last checked: {format(health[0].lastChecked, "HH:mm:ss")}
               </span>
             )}
           </div>

@@ -36,6 +36,7 @@ import {
   Loader2,
   Download,
 } from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { logError, logWarn } from "@/lib/logger";
 import { auditLogService, type AuditLogFilters } from "@/services/shared";
@@ -333,7 +334,7 @@ const AuditLogViewer = ({ embedded = false }: { embedded?: boolean }) => {
                       onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
                     >
                       <TableCell className="font-mono whitespace-nowrap py-1.5">
-                        {new Date(log.created_at).toLocaleString()}
+                        {format(new Date(log.created_at), "MMM d, yyyy HH:mm")}
                       </TableCell>
 
                       <TableCell className="py-1.5">

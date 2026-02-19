@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Button,
@@ -55,14 +55,52 @@ export const InvestorFiltersBar: React.FC<InvestorFiltersBarProps> = ({
   onWithdrawalsChange,
   onClearFilters,
 }) => {
+  // Local state for immediate, responsive typing
+  const [localSearch, setLocalSearch] = useState(searchTerm);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync local state when the URL-derived searchTerm changes externally
+  // (e.g., browser back/forward, clear filters)
+  useEffect(() => {
+    setLocalSearch(searchTerm);
+  }, [searchTerm]);
+
+  // Debounced callback to update URL search param
+  const debouncedSearchChange = useCallback(
+    (value: string) => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      debounceRef.current = setTimeout(() => {
+        onSearchChange(value || null);
+      }, 300);
+    },
+    [onSearchChange]
+  );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalSearch(value);
+    debouncedSearchChange(value);
+  };
+
   return (
     <div className="px-6 py-3 border-b bg-muted/30 flex flex-wrap gap-2 items-center">
       <div className="relative flex-1 max-w-xs">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search name, email, or ID..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value || null)}
+          value={localSearch}
+          onChange={handleSearchInput}
           className="pl-8 h-9"
         />
       </div>

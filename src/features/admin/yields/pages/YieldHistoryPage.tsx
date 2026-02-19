@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import { AdminGuard } from "@/components/admin";
 import { useFunds, useUrlFilters } from "@/hooks";
+import { useTabFromUrl } from "@/hooks/ui/useTabFromUrl";
 import { canEditYields } from "@/services/admin";
 import { type AumPurpose, type YieldFilters } from "@/services/admin";
 import {
@@ -21,6 +22,7 @@ import {
   useUpdateYieldAum,
   type RecordedYieldRecord,
 } from "@/hooks";
+import { TrendingUp, BarChart3 } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { YieldDistributionsContent } from "./YieldDistributionsPage";
@@ -112,39 +114,35 @@ function RecordedYieldsTab() {
 }
 
 function YieldHistoryContent() {
+  const { activeTab, setActiveTab } = useTabFromUrl({ defaultTab: "recorded" });
+
   return (
     <PageShell maxWidth="wide">
       <div>
-        <h1 className="text-2xl font-display font-bold tracking-tight">Yield History</h1>
+        <h1 className="text-2xl font-bold">Yield History</h1>
         <p className="text-muted-foreground mt-1">
           View AUM checkpoints and historical yield distributions.
         </p>
       </div>
 
-      <Tabs defaultValue="recorded" className="w-full">
-        <TabsList className="bg-black/20 border border-white/10 p-1 rounded-xl">
-          <TabsTrigger
-            value="recorded"
-            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
-          >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="recorded" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
             Recorded Yields
           </TabsTrigger>
-          <TabsTrigger
-            value="distributions"
-            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
-          >
-            Yield Distributions
+          <TabsTrigger value="distributions" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Distributions
           </TabsTrigger>
         </TabsList>
 
-        <div className="mt-6">
-          <TabsContent value="recorded" className="mt-0 focus-visible:outline-none">
-            <RecordedYieldsTab />
-          </TabsContent>
-          <TabsContent value="distributions" className="mt-0 focus-visible:outline-none">
-            <YieldDistributionsContent embedded />
-          </TabsContent>
-        </div>
+        <TabsContent value="recorded">
+          <RecordedYieldsTab />
+        </TabsContent>
+        <TabsContent value="distributions">
+          <YieldDistributionsContent embedded />
+        </TabsContent>
       </Tabs>
     </PageShell>
   );

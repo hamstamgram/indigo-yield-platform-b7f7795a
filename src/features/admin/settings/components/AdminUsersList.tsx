@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import {
   Card,
   CardContent,
@@ -146,7 +147,7 @@ const AdminUsersList = () => {
                         {userItem.email}
                       </TableCell>
                       <TableCell className="py-1.5 whitespace-nowrap">
-                        {new Date(userItem.created_at).toLocaleDateString()}
+                        {format(new Date(userItem.created_at), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell className="py-1.5">
                         <span

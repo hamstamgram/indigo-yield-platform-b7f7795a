@@ -34,6 +34,7 @@ import {
 } from "@/components/ui";
 import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { format } from "date-fns";
 import { formatCrypto } from "@/utils/financial";
 import { useIBProfiles, useCreateIB, useSortableColumns, type EarningsByAsset } from "@/hooks";
 import { PageShell } from "@/components/layout/PageShell";
@@ -310,7 +311,7 @@ export default function IBManagementPage({ embedded = false }: { embedded?: bool
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap py-1.5">
-                      {new Date(ib.createdAt).toLocaleDateString()}
+                      {format(new Date(ib.createdAt), "MMM d, yyyy")}
                     </TableCell>
                   </TableRow>
                 ))}
