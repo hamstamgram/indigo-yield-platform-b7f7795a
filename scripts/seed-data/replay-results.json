@@ -1,0 +1,3378 @@
+[
+  {
+    "fundMonth": "BTC:2024-08",
+    "investor": "indigo fees",
+    "expected": 0.004808037249,
+    "actual": 0.054625225,
+    "diff": 0.049817187751,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-08",
+    "investor": "jose molla",
+    "expected": 3.495191963,
+    "actual": 7.38004299,
+    "diff": 3.884851027,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-08",
+    "investor": "kyle gulamerian",
+    "expected": 2,
+    "actual": -0.0329,
+    "diff": 2.0329,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-09",
+    "investor": "indigo fees",
+    "expected": 0.006315467852,
+    "actual": 0.0546233418,
+    "diff": 0.048307873948,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-09",
+    "investor": "jose molla",
+    "expected": 3.500593623,
+    "actual": 7.37867353,
+    "diff": 3.8780799070000005,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-09",
+    "investor": "kyle gulamerian",
+    "expected": 2.003090909,
+    "actual": -0.03367869,
+    "diff": 2.036769599,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-10",
+    "investor": "indigo fees",
+    "expected": 0.01084469552,
+    "actual": 0.0621823594,
+    "diff": 0.051337663879999995,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-10",
+    "investor": "jose molla",
+    "expected": 3.516794192,
+    "actual": 7.40582248,
+    "diff": 3.8890282880000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-10",
+    "investor": "kyle gulamerian",
+    "expected": 2.012361112,
+    "actual": -0.0182415,
+    "diff": 2.0306026119999996,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-10",
+    "investor": "matthias reiser",
+    "expected": 4.62,
+    "actual": -0.2055,
+    "diff": 4.8255,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-10",
+    "investor": "thomas puech",
+    "expected": 6.5193,
+    "actual": 8.6592666,
+    "diff": 2.1399666,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-10",
+    "investor": "danielle richetta",
+    "expected": 5.2,
+    "actual": -0.2263,
+    "diff": 5.4263,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-11",
+    "investor": "indigo fees",
+    "expected": 0.02257386473,
+    "actual": 0.0806917128,
+    "diff": 0.05811784806999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-11",
+    "investor": "jose molla",
+    "expected": 3.536014336,
+    "actual": 7.43631608,
+    "diff": 3.900301744,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-11",
+    "investor": "kyle gulamerian",
+    "expected": 2.023359159,
+    "actual": -0.0009025,
+    "diff": 2.024261659,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-11",
+    "investor": "matthias reiser",
+    "expected": 4.64673613,
+    "actual": -0.16339942,
+    "diff": 4.81013555,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-11",
+    "investor": "thomas puech",
+    "expected": 6.561223897,
+    "actual": 8.72527581,
+    "diff": 2.1640519129999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-11",
+    "investor": "danielle richetta",
+    "expected": 4.960092614,
+    "actual": -0.17891406,
+    "diff": 5.139006674,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-12",
+    "investor": "indigo fees",
+    "expected": 0.0334840951,
+    "actual": 0.0898565339,
+    "diff": 0.056372438799999994,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-12",
+    "investor": "jose molla",
+    "expected": 3.553975498,
+    "actual": 7.45148146,
+    "diff": 3.8975059620000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-12",
+    "investor": "kyle gulamerian",
+    "expected": 2.033636799,
+    "actual": 0.0077207,
+    "diff": 2.025916099,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-12",
+    "investor": "matthias reiser",
+    "expected": 4.671729196,
+    "actual": -0.14245103,
+    "diff": 4.814180226,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-12",
+    "investor": "thomas puech",
+    "expected": 6.600440407,
+    "actual": 8.7581536,
+    "diff": 2.157713193,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2024-12",
+    "investor": "danielle richetta",
+    "expected": 4.862771108,
+    "actual": -0.15654899,
+    "diff": 5.019320098,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-01",
+    "investor": "indigo fees",
+    "expected": 0.03638153617,
+    "actual": 0.0906502547,
+    "diff": 0.05426871853,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-01",
+    "investor": "jose molla",
+    "expected": 3.569424001,
+    "actual": 7.45564262,
+    "diff": 3.886218619,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-01",
+    "investor": "thomas puech",
+    "expected": 6.634194463,
+    "actual": 8.76718151,
+    "diff": 2.1329870470000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-02",
+    "investor": "indigo fees",
+    "expected": 0.0397318983,
+    "actual": 0.0945030425,
+    "diff": 0.054771144199999997,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-02",
+    "investor": "jose molla",
+    "expected": 3.587201406,
+    "actual": 7.4758155,
+    "diff": 3.8886140940000002,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-02",
+    "investor": "thomas puech",
+    "expected": 6.673066696,
+    "actual": 8.81095687,
+    "diff": 2.137890174,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-03",
+    "investor": "indigo fees",
+    "expected": 0.04197582882,
+    "actual": 0.0956311698,
+    "diff": 0.05365534098,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-03",
+    "investor": "jose molla",
+    "expected": 3.599042653,
+    "actual": 7.48168599,
+    "diff": 3.8826433369999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-03",
+    "investor": "thomas puech",
+    "expected": 6.698981518,
+    "actual": 8.82370845,
+    "diff": 2.1247269319999997,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-04",
+    "investor": "indigo fees",
+    "expected": 0.09801404576,
+    "actual": 0.0993433876,
+    "diff": 0.0013293418399999979,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-04",
+    "investor": "jose molla",
+    "expected": 3.631785954,
+    "actual": 7.50096906,
+    "diff": 3.869183106,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-04",
+    "investor": "kyle gulamerian",
+    "expected": 2.101,
+    "actual": 0.00781751,
+    "diff": 2.09318249,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-04",
+    "investor": "matthias reiser",
+    "expected": 4.8357,
+    "actual": -0.14228529,
+    "diff": 4.97798529,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-04",
+    "investor": "danielle richetta",
+    "expected": 5.0335,
+    "actual": -0.15635985,
+    "diff": 5.18985985,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-05",
+    "investor": "indigo fees",
+    "expected": 0.1079305454,
+    "actual": 0.1117276801,
+    "diff": 0.00379713470000001,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-05",
+    "investor": "jose molla",
+    "expected": 3.647513737,
+    "actual": 7.52060254,
+    "diff": 3.8730888029999995,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-05",
+    "investor": "kyle gulamerian",
+    "expected": 2.107824904,
+    "actual": 0.01919371,
+    "diff": 2.088631194,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-05",
+    "investor": "matthias reiser",
+    "expected": 4.857874348,
+    "actual": -0.11458921,
+    "diff": 4.972463558,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-05",
+    "investor": "danielle richetta",
+    "expected": 5.05658137,
+    "actual": -0.12752429,
+    "diff": 5.18410566,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-06",
+    "investor": "indigo fees",
+    "expected": 0.1205683109,
+    "actual": 0.1248770708,
+    "diff": 0.0043087599,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-06",
+    "investor": "jose molla",
+    "expected": 3.671341591,
+    "actual": 7.54527832,
+    "diff": 3.8739367290000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-06",
+    "investor": "matthias reiser",
+    "expected": 4.891478845,
+    "actual": -0.07976919,
+    "diff": 4.971248035,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-06",
+    "investor": "danielle richetta",
+    "expected": 4.961211252,
+    "actual": -0.0912717,
+    "diff": 5.052482952,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-06",
+    "investor": "kabbaj",
+    "expected": 2,
+    "actual": 6.6593,
+    "diff": 4.6593,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-06",
+    "investor": "indigo fees",
+    "expected": 0.005883075095,
+    "actual": 0.9398269322,
+    "diff": 0.933943857105,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-06",
+    "investor": "babak eftekhari",
+    "expected": 59.28353230038117,
+    "actual": 66.1629733055,
+    "diff": 6.879441005118835,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-06",
+    "investor": "indigo digital asset fund lp",
+    "expected": 175.1905846,
+    "actual": -2.9886231955,
+    "diff": 178.1792077955,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-06",
+    "investor": "nathanaël cohen",
+    "expected": 3.0466,
+    "actual": 47.9896054591,
+    "diff": 44.9430054591,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "indigo fees",
+    "expected": 0.1325739436,
+    "actual": 0.1316127849,
+    "diff": 0.0009611586999999921,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "jose molla",
+    "expected": 3.689030866,
+    "actual": 7.55547455,
+    "diff": 3.8664436839999996,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "matthias reiser",
+    "expected": 4.916435131,
+    "actual": -0.0653756,
+    "diff": 4.981810731,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "thomas puech",
+    "expected": 6.696639904,
+    "actual": 8.8656192,
+    "diff": 2.168979295999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "danielle richetta",
+    "expected": 4.726367092,
+    "actual": -0.07666704,
+    "diff": 4.8030341320000005,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "kabbaj",
+    "expected": 3.601256059,
+    "actual": 6.66451182,
+    "diff": 3.0632557610000006,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.1485472888,
+    "actual": 0.1484,
+    "diff": 0.0001472888000000061,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "nathanaël cohen",
+    "expected": 0.4464426603,
+    "actual": 0.446,
+    "diff": 0.00044266030000000844,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "blondish",
+    "expected": 4.103668902,
+    "actual": 4.0996,
+    "diff": 0.004068902000000207,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-07",
+    "investor": "oliver loisel",
+    "expected": 2.116738152,
+    "actual": 2.115364,
+    "diff": 0.0013741519999999063,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-07",
+    "investor": "indigo fees",
+    "expected": 1.167846002,
+    "actual": 1.2907005345,
+    "diff": 0.12285453249999989,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-07",
+    "investor": "babak eftekhari",
+    "expected": 60.14389191835805,
+    "actual": 67.5657712055,
+    "diff": 7.421879287141948,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-07",
+    "investor": "indigo digital asset fund lp",
+    "expected": 178.3723848,
+    "actual": 2.1962590945,
+    "diff": 176.1761257055,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-07",
+    "investor": "nathanaël cohen",
+    "expected": 31.92484865,
+    "actual": 48.0796735291,
+    "diff": 16.154824879099998,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-07",
+    "investor": "jose molla",
+    "expected": 62.87184308,
+    "actual": 113.6524577386,
+    "diff": 50.78061465860001,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-07",
+    "investor": "blondish",
+    "expected": 120.3391856,
+    "actual": 124.580159352,
+    "diff": 4.240973752000002,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-07",
+    "investor": "advantage blockchain",
+    "expected": 32,
+    "actual": 50,
+    "diff": 18,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "indigo fees",
+    "expected": 898.4752495,
+    "actual": -18581.651024642,
+    "diff": 19480.126274142,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "babak eftekhari",
+    "expected": 183981.0952,
+    "actual": 239884.45552379,
+    "diff": 55903.360323789995,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "julien grunebaum",
+    "expected": 109888.2345,
+    "actual": 109392,
+    "diff": 496.23450000000594,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "daniele francilia",
+    "expected": 110273.9765,
+    "actual": -5091.59,
+    "diff": 115365.5665,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "pierre bezençon",
+    "expected": 109828.9669,
+    "actual": 0,
+    "diff": 109828.9669,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "matthew beatty",
+    "expected": 256663.0419,
+    "actual": 334704,
+    "diff": 78040.95809999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "bo de kriek",
+    "expected": 275049.0697,
+    "actual": 273807,
+    "diff": 1242.0696999999927,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "dario deiana",
+    "expected": 200225.8179,
+    "actual": 199659.72,
+    "diff": 566.0978999999934,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "alain bensimon",
+    "expected": 137017.4819,
+    "actual": 136737,
+    "diff": 280.4819000000134,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "anne cecile noique",
+    "expected": 223143.7869,
+    "actual": 222687,
+    "diff": 456.7869000000064,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "terance chen",
+    "expected": 220197.7562,
+    "actual": 219747,
+    "diff": 450.75620000000345,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-07",
+    "investor": "lars ahlgreen",
+    "expected": 21.29719117,
+    "actual": 157.5943306,
+    "diff": 136.29713943000002,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "indigo fees",
+    "expected": 0.1407923835,
+    "actual": 0.1456737857,
+    "diff": 0.004881402199999996,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "jose molla",
+    "expected": 3.699013685,
+    "actual": 7.5725558,
+    "diff": 3.873542115,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "matthias reiser",
+    "expected": 4.930522303,
+    "actual": -0.0412588,
+    "diff": 4.971781103,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "thomas puech",
+    "expected": 6.717960826,
+    "actual": 8.90202939,
+    "diff": 2.1840685639999995,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "danielle richetta",
+    "expected": 4.62986105,
+    "actual": -0.05346999,
+    "diff": 4.68333104,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "kabbaj",
+    "expected": 4.52062791,
+    "actual": 6.68016965,
+    "diff": 2.15954174,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.1490202372,
+    "actual": 0.14920757,
+    "diff": 0.00018733280000002295,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "nathanaël cohen",
+    "expected": 0.4478640551,
+    "actual": 0.44842707,
+    "diff": 0.0005630148999999918,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "blondish",
+    "expected": 4.11673426,
+    "actual": 4.12190948,
+    "diff": 0.005175219999999925,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-08",
+    "investor": "oliver loisel",
+    "expected": 2.12280329,
+    "actual": 2.12572438,
+    "diff": 0.0029210900000000706,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "indigo fees",
+    "expected": 2227.59982,
+    "actual": -17097.3908238485,
+    "diff": 19324.990643848498,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "babak eftekhari",
+    "expected": 194910.0973,
+    "actual": 240910.87262666,
+    "diff": 46000.77532666002,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "julien grunebaum",
+    "expected": 110483.2018,
+    "actual": 110058.81136138,
+    "diff": 424.3904386200011,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "daniele francilia",
+    "expected": 110871.0323,
+    "actual": -4422.437923,
+    "diff": 115293.47022300001,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "pierre bezençon",
+    "expected": 110423.6133,
+    "actual": 0,
+    "diff": 110423.6133,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "matthew beatty",
+    "expected": 283990.8305,
+    "actual": 336261.45365365,
+    "diff": 52270.62315365003,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "bo de kriek",
+    "expected": 276538.2664,
+    "actual": 275476.02166911,
+    "diff": 1062.24473089003,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "dario deiana",
+    "expected": 201189.2975,
+    "actual": 200741.54089047,
+    "diff": 447.7566095299844,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "alain bensimon",
+    "expected": 137759.3349,
+    "actual": 137570.49591489,
+    "diff": 188.8389851099928,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "anne cecile noique",
+    "expected": 224351.9531,
+    "actual": 224044.41390259,
+    "diff": 307.5391974100203,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "terance chen",
+    "expected": 221389.9717,
+    "actual": 221086.49279866,
+    "diff": 303.4789013399859,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "indigo ventures",
+    "expected": 130710.1483,
+    "actual": -2709.59,
+    "diff": 133419.7383,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "indigo digital asset fund lp",
+    "expected": 111370,
+    "actual": -2471.65,
+    "diff": 113841.65,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-08",
+    "investor": "lars ahlgreen",
+    "expected": 44.65299265,
+    "actual": 184.32212944,
+    "diff": 139.66913678999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "indigo fees",
+    "expected": 0.1517716181,
+    "actual": 0.1507365781,
+    "diff": 0.0010350400000000148,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "jose molla",
+    "expected": 3.711479595,
+    "actual": 7.57829767,
+    "diff": 3.8668180750000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "matthias reiser",
+    "expected": 4.948116261,
+    "actual": -0.03314974,
+    "diff": 4.981266001,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "thomas puech",
+    "expected": 6.744597718,
+    "actual": 8.91427864,
+    "diff": 2.1696809219999995,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "danielle richetta",
+    "expected": 4.646382134,
+    "actual": -0.04585045,
+    "diff": 4.692232584,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "kabbaj",
+    "expected": 4.534966249,
+    "actual": 6.68675749,
+    "diff": 2.1517912409999997,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.1496111063,
+    "actual": 0.14947926,
+    "diff": 0.0001318462999999881,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "nathanaël cohen",
+    "expected": 0.4496398479,
+    "actual": 0.44924359,
+    "diff": 0.0003962578999999744,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "blondish",
+    "expected": 4.133057221,
+    "actual": 4.12941492,
+    "diff": 0.003642300999999293,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-09",
+    "investor": "oliver loisel",
+    "expected": 2.13037825,
+    "actual": 2.12920796,
+    "diff": 0.0011702900000001293,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "indigo fees",
+    "expected": 1.636065094,
+    "actual": 1.8051785757,
+    "diff": 0.16911348169999996,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "babak eftekhari",
+    "expected": 60.90612715,
+    "actual": 68.4798829455,
+    "diff": 7.5737557954999915,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "lars ahlgreen",
+    "expected": 0.0191341457,
+    "actual": 0.02285279,
+    "diff": 0.0037186443000000007,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "nathanaël cohen",
+    "expected": 35.79504869,
+    "actual": 48.6784412591,
+    "diff": 12.883392569099996,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "jose molla",
+    "expected": 63.71866893,
+    "actual": 114.6542601586,
+    "diff": 50.935591228599996,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "blondish",
+    "expected": 122.2475463,
+    "actual": 126.834474202,
+    "diff": 4.586927901999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "advantage blockchain",
+    "expected": 32.40555286,
+    "actual": 50.48177887,
+    "diff": 18.07622601,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "alec beckman",
+    "expected": 0.01018046293,
+    "actual": 0.01204447,
+    "diff": 0.0018640070699999997,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "paul johnson",
+    "expected": 24.1311058,
+    "actual": -0.1873,
+    "diff": 24.3184058,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "alex jacobs",
+    "expected": 0.00173855308,
+    "actual": 0,
+    "diff": 0.00173855308,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-09",
+    "investor": "tomer zur",
+    "expected": 63.17883199,
+    "actual": 190.5371,
+    "diff": 127.35826801000002,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-09",
+    "investor": "indigo fees",
+    "expected": 0.2941837734,
+    "actual": 0,
+    "diff": 0.2941837734,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-09",
+    "investor": "indigo digital asset fund lp",
+    "expected": 1263.650861,
+    "actual": -17.69810079,
+    "diff": 1281.34896179,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-09",
+    "investor": "paul johnson",
+    "expected": 236.0222682,
+    "actual": -1.85,
+    "diff": 237.8722682,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-09",
+    "investor": "alex jacobs",
+    "expected": 0.03268708593,
+    "actual": 0,
+    "diff": 0.03268708593,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "indigo fees",
+    "expected": 5106.615413,
+    "actual": -13423.260203131,
+    "diff": 18529.875616131,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "babak eftekhari",
+    "expected": 206910.3423,
+    "actual": 243514.58664179,
+    "diff": 36604.24434179001,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "julien grunebaum",
+    "expected": 111748.4224,
+    "actual": 111667.01486818,
+    "diff": 81.40753181999025,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "daniele francilia",
+    "expected": 112140.6942,
+    "actual": -2808.58912087,
+    "diff": 114949.28332087,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "pierre bezençon",
+    "expected": 111688.1515,
+    "actual": 0,
+    "diff": 111688.1515,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "matthew beatty",
+    "expected": 287243.0086,
+    "actual": 340396.14851747,
+    "diff": 53153.13991746999,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "bo de kriek",
+    "expected": 279705.1,
+    "actual": 279501.33775791,
+    "diff": 203.762242089957,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "dario deiana",
+    "expected": 203236.4804,
+    "actual": 203348.90040451,
+    "diff": 112.42000451000058,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "alain bensimon",
+    "expected": 139336.9136,
+    "actual": 139580.70619452,
+    "diff": 243.79259451999678,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "anne cecile noique",
+    "expected": 226921.1646,
+    "actual": 227318.20005074,
+    "diff": 397.03545074001886,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "terance chen",
+    "expected": 223925.2635,
+    "actual": 224317.05715445,
+    "diff": 391.7936544500117,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "indigo ventures",
+    "expected": 132373.9535,
+    "actual": -598.9360758,
+    "diff": 132972.8895758,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "indigo digital asset fund lp",
+    "expected": 112787.6251,
+    "actual": -663.46901893,
+    "diff": 113451.09411893,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-09",
+    "investor": "lars ahlgreen",
+    "expected": 95.26485494,
+    "actual": 252.40759694,
+    "diff": 157.142742,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "indigo fees",
+    "expected": 0.1614073168,
+    "actual": 0.1607535977,
+    "diff": 0.0006537191000000053,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "jose molla",
+    "expected": 3.784200926,
+    "actual": 7.58963851,
+    "diff": 3.8054375840000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "matthias reiser",
+    "expected": 4.963232705,
+    "actual": -0.01713195,
+    "diff": 4.980364655,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "thomas puech",
+    "expected": 6.767493402,
+    "actual": 8.93847889,
+    "diff": 2.1709854880000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "danielle richetta",
+    "expected": 4.660576784,
+    "actual": -0.03079962,
+    "diff": 4.691376404,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "kabbaj",
+    "expected": 4.5472803,
+    "actual": 6.69976804,
+    "diff": 2.1524877400000006,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.1501189867,
+    "actual": 0.15001602,
+    "diff": 0.00010296670000001229,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "nathanaël cohen",
+    "expected": 0.4511662268,
+    "actual": 0.45085676,
+    "diff": 0.00030946679999999116,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "blondish",
+    "expected": 4.147087586,
+    "actual": 4.14424305,
+    "diff": 0.0028445359999995645,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "oliver loisel",
+    "expected": 2.136886533,
+    "actual": 2.13608907,
+    "diff": 0.0007974630000000538,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "paul johnson",
+    "expected": 0.4405310364,
+    "actual": -0.0013,
+    "diff": 0.44183103640000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-10",
+    "investor": "alex jacobs",
+    "expected": 0.00001819805064,
+    "actual": 0,
+    "diff": 0.00001819805064,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "indigo fees",
+    "expected": 2.033947191,
+    "actual": 1.9010137027,
+    "diff": 0.13293348830000018,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "babak eftekhari",
+    "expected": 68.14426111,
+    "actual": 68.5869832455,
+    "diff": 0.4427221354999915,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "lars ahlgreen",
+    "expected": 0.0289739069,
+    "actual": 0.02557994,
+    "diff": 0.0033939669,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "nathanaël cohen",
+    "expected": 36.06373229,
+    "actual": 48.7561319991,
+    "diff": 12.692399709100002,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "jose molla",
+    "expected": 65.32757558,
+    "actual": 114.7717433986,
+    "diff": 49.44416781859999,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "blondish",
+    "expected": 123.1651568,
+    "actual": 127.099576452,
+    "diff": 3.9344196519999883,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "advantage blockchain",
+    "expected": 32.60003367,
+    "actual": 50.53822565,
+    "diff": 17.93819198,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "alec beckman",
+    "expected": 0.01511481512,
+    "actual": 0.0134818,
+    "diff": 0.0016330151199999993,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "paul johnson",
+    "expected": 12.21355061,
+    "actual": -0.14292576,
+    "diff": 12.356476370000001,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "alex jacobs",
+    "expected": 0.003207549988,
+    "actual": 0.00078307,
+    "diff": 0.002424479988,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-10",
+    "investor": "tomer zur",
+    "expected": 151.1144465,
+    "actual": 190.64675507,
+    "diff": 39.53230857,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-10",
+    "investor": "indigo fees",
+    "expected": 0.3287936309,
+    "actual": 0.2313778297,
+    "diff": 0.09741580120000001,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-10",
+    "investor": "indigo digital asset fund lp",
+    "expected": 1276.492433,
+    "actual": -8.41778146,
+    "diff": 1284.91021446,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-10",
+    "investor": "alex jacobs",
+    "expected": 0.03295273422,
+    "actual": 0.02570865,
+    "diff": 0.007244084220000002,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-10",
+    "investor": "jose molla",
+    "expected": 88.14582083,
+    "actual": 481.75,
+    "diff": 393.60417917,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "indigo fees",
+    "expected": 7564.56153,
+    "actual": -11859.21106735,
+    "diff": 19423.77259735,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "babak eftekhari",
+    "expected": 239034.1923,
+    "actual": 244649.45378917,
+    "diff": 5615.261489169992,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "julien grunebaum",
+    "expected": 112687.9515,
+    "actual": 112336.14591522,
+    "diff": 351.80558477999875,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "daniele francilia",
+    "expected": 113083.5213,
+    "actual": -2137.10921539,
+    "diff": 115220.63051538999,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "pierre bezençon",
+    "expected": 112627.1738,
+    "actual": 0,
+    "diff": 112627.1738,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "matthew beatty",
+    "expected": 289658.015,
+    "actual": 342116.48595719,
+    "diff": 52458.47095718997,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "bo de kriek",
+    "expected": 282056.7311,
+    "actual": 281176.16557528,
+    "diff": 880.5655247199466,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "dario deiana",
+    "expected": 204754.7695,
+    "actual": 204432.01792377,
+    "diff": 322.75157622998813,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "alain bensimon",
+    "expected": 140508.394,
+    "actual": 140417.10165286,
+    "diff": 91.29234713999904,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "anne cecile noique",
+    "expected": 228829.0128,
+    "actual": 228680.33608878,
+    "diff": 148.6767112200032,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "terance chen",
+    "expected": 225807.9236,
+    "actual": 225661.20974508,
+    "diff": 146.71385492000263,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "indigo ventures",
+    "expected": 5026.862895,
+    "actual": 280.65660617,
+    "diff": 4746.206288830001,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "indigo digital asset fund lp",
+    "expected": 113841.6509,
+    "actual": 90.07126561,
+    "diff": 113751.57963439,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "lars ahlgreen",
+    "expected": 137.944069,
+    "actual": 282.4598053,
+    "diff": 144.51573630000001,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "sacha oshry",
+    "expected": 100714.8172,
+    "actual": 100000,
+    "diff": 714.817200000005,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "halley86",
+    "expected": 100328.7759,
+    "actual": 99990,
+    "diff": 338.77589999999327,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-10",
+    "investor": "jose molla",
+    "expected": 97921.70248,
+    "actual": -213,
+    "diff": 98134.70248,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "indigo fees",
+    "expected": 0.1703047819,
+    "actual": 0.1695867268,
+    "diff": 0.0007180551000000035,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "jose molla",
+    "expected": 4.829350765,
+    "actual": 7.5995288,
+    "diff": 2.770178035,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "matthias reiser",
+    "expected": 4.976930246,
+    "actual": -0.00338905,
+    "diff": 4.980319296,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "thomas puech",
+    "expected": 6.788247741,
+    "actual": 8.9592496,
+    "diff": 2.1710018589999995,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "danielle richetta",
+    "expected": 4.389816528,
+    "actual": -0.01788634,
+    "diff": 4.407702867999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "kabbaj",
+    "expected": 4.558434325,
+    "actual": 6.71092681,
+    "diff": 2.152492485,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.1505793669,
+    "actual": 0.15047671,
+    "diff": 0.00010265689999999772,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "nathanaël cohen",
+    "expected": 0.4525498494,
+    "actual": 0.45224132,
+    "diff": 0.0003085293999999794,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "blondish",
+    "expected": 4.159805746,
+    "actual": 4.15696981,
+    "diff": 0.0028359360000003164,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "oliver loisel",
+    "expected": 2.142783918,
+    "actual": 2.14199291,
+    "diff": 0.000791008000000204,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "alex jacobs",
+    "expected": 0.00002235376307,
+    "actual": 0,
+    "diff": 0.00002235376307,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "sam johnson",
+    "expected": 5.501118457,
+    "actual": -0.0152,
+    "diff": 5.516318457,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "ryan van der wall",
+    "expected": 0.00005592283516,
+    "actual": 0,
+    "diff": 0.00005592283516,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "nath & thomas",
+    "expected": 1,
+    "actual": 1,
+    "diff": 0,
+    "pass": true
+  },
+  {
+    "fundMonth": "BTC:2025-11",
+    "investor": "vivie & liana",
+    "expected": 3.411,
+    "actual": -0.0111,
+    "diff": 3.4221,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "indigo fees",
+    "expected": 2.501496675,
+    "actual": 2.2887538242,
+    "diff": 0.21274285079999977,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "babak eftekhari",
+    "expected": 68.45664171,
+    "actual": 68.9327267755,
+    "diff": 0.4760850655000013,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "lars ahlgreen",
+    "expected": 0.0369299073,
+    "actual": 0.03438471,
+    "diff": 0.002545197300000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "nathanaël cohen",
+    "expected": 37.34424972,
+    "actual": 48.9819843491,
+    "diff": 11.637734629100002,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "jose molla",
+    "expected": 68.16431757,
+    "actual": 115.1195914686,
+    "diff": 46.95527389860001,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "blondish",
+    "expected": 128.6925042,
+    "actual": 127.870247022,
+    "diff": 0.822257178000001,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "advantage blockchain",
+    "expected": 32.74947572,
+    "actual": 50.7022492,
+    "diff": 17.952773479999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "alec beckman",
+    "expected": 0.01892669204,
+    "actual": 0.01766734,
+    "diff": 0.0012593520399999981,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "paul johnson",
+    "expected": 12.2173433,
+    "actual": -0.07824085,
+    "diff": 12.29558415,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "alex jacobs",
+    "expected": 0.003348388992,
+    "actual": 0.00192851,
+    "diff": 0.0014198789919999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "tomer zur",
+    "expected": 182.9521371,
+    "actual": 191.40527863,
+    "diff": 8.45314153000001,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "sam johnson",
+    "expected": 146.266634,
+    "actual": -1.23,
+    "diff": 147.496634,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-11",
+    "investor": "ryan van der wall",
+    "expected": 0.01333820569,
+    "actual": 0,
+    "diff": 0.01333820569,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-11",
+    "investor": "indigo fees",
+    "expected": 1.89170274,
+    "actual": 0.4502042597,
+    "diff": 1.4414984803,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-11",
+    "investor": "indigo digital asset fund lp",
+    "expected": 1285.65518,
+    "actual": 13.01527069,
+    "diff": 1272.63990931,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-11",
+    "investor": "alex jacobs",
+    "expected": 0.03314187469,
+    "actual": 0.02605378,
+    "diff": 0.007088094690000005,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-11",
+    "investor": "jose molla",
+    "expected": 88.68344008,
+    "actual": 483.00491305,
+    "diff": 394.32147297000006,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-11",
+    "investor": "sam johnson",
+    "expected": 3307.370264,
+    "actual": -37.1,
+    "diff": 3344.470264,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-11",
+    "investor": "ryan van der wall",
+    "expected": 0.3662706324,
+    "actual": 0,
+    "diff": 0.3662706324,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "indigo fees",
+    "expected": 11217.45414,
+    "actual": -8795.5150322036,
+    "diff": 20012.9691722036,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "babak eftekhari",
+    "expected": 240662.6579,
+    "actual": 246696.47548943,
+    "diff": 6033.817589430022,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "julien grunebaum",
+    "expected": 113551.9262,
+    "actual": 113393.57253301,
+    "diff": 158.35366699000588,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "daniele francilia",
+    "expected": 113950.5288,
+    "actual": -1075.97070075,
+    "diff": 115026.49950075,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "pierre bezençon",
+    "expected": 113490.6825,
+    "actual": 0,
+    "diff": 113490.6825,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "matthew beatty",
+    "expected": 345464.9331,
+    "actual": 344835.13219005,
+    "diff": 629.8009099500487,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "bo de kriek",
+    "expected": 284219.2505,
+    "actual": 283822.89303191,
+    "diff": 396.3574680900201,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "dario deiana",
+    "expected": 206149.7001,
+    "actual": 206142.53380859,
+    "diff": 7.166291409987025,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "alain bensimon",
+    "expected": 141585.667,
+    "actual": 141738.8559259,
+    "diff": 153.18892590000178,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "anne cecile noique",
+    "expected": 230583.4371,
+    "actual": 230832.91727603,
+    "diff": 249.4801760299888,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "terance chen",
+    "expected": 227539.1852,
+    "actual": 227785.37172199,
+    "diff": 246.1865219899919,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "indigo ventures",
+    "expected": 5069.701023,
+    "actual": 337.08994308,
+    "diff": 4732.61107992,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "lars ahlgreen",
+    "expected": 179.7097904,
+    "actual": 336.58958162,
+    "diff": 156.87979122,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "sacha oshry",
+    "expected": 101443.9676,
+    "actual": 100889.01100037,
+    "diff": 554.956599630008,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "halley86",
+    "expected": 101012.2846,
+    "actual": 100826.63256402,
+    "diff": 185.65203598000517,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "jose molla",
+    "expected": 326.2380011,
+    "actual": 655.51929681,
+    "diff": 329.28129571,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "monica levy chicheportiche",
+    "expected": 844623.1806,
+    "actual": 840168.03,
+    "diff": 4455.150599999935,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "nath & thomas",
+    "expected": 213259.2154,
+    "actual": -1522.83,
+    "diff": 214782.04539999997,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "valeria cruz",
+    "expected": 50086.55041,
+    "actual": 50000,
+    "diff": 86.55041000000347,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "ventures life style",
+    "expected": 100155.9334,
+    "actual": 100000,
+    "diff": 155.93339999999444,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-11",
+    "investor": "joel barbeau",
+    "expected": 7.796667655,
+    "actual": 0,
+    "diff": 7.796667655,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2025-11",
+    "investor": "indigo fees",
+    "expected": 56.8,
+    "actual": 0,
+    "diff": 56.8,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2025-11",
+    "investor": "sam johnson",
+    "expected": 229287,
+    "actual": -1897.42,
+    "diff": 231184.42,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2025-11",
+    "investor": "ryan van der wall",
+    "expected": 14.2,
+    "actual": 0,
+    "diff": 14.2,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "indigo fees",
+    "expected": 0.1814588691,
+    "actual": 0.1832144393,
+    "diff": 0.0017555702000000006,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "jose molla",
+    "expected": 4.840890953,
+    "actual": 7.61411099,
+    "diff": 2.7732200370000006,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "matthias reiser",
+    "expected": 4.988538013,
+    "actual": 0.01253832,
+    "diff": 4.975999693,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "thomas puech",
+    "expected": 7.464670699,
+    "actual": 8.98332924,
+    "diff": 1.5186585409999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "danielle richetta",
+    "expected": 4.400923965,
+    "actual": -0.00382446,
+    "diff": 4.404748424999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "kabbaj",
+    "expected": 4.568685911,
+    "actual": 6.72385533,
+    "diff": 2.155169419,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.1510027466,
+    "actual": 0.15101079,
+    "diff": 0.000008043400000018464,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "nathanaël cohen",
+    "expected": 0.4538222708,
+    "actual": 0.45384645,
+    "diff": 0.0000241792000000296,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "blondish",
+    "expected": 4.171501752,
+    "actual": 4.17172404,
+    "diff": 0.00022228799999979287,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "oliver loisel",
+    "expected": 2.148205747,
+    "actual": 2.14883518,
+    "diff": 0.000629432999999846,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "alex jacobs",
+    "expected": 0.00002240403505,
+    "actual": 0,
+    "diff": 0.00002240403505,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "sam johnson",
+    "expected": 7.785154097,
+    "actual": 0.00041681,
+    "diff": 7.7847372870000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "ryan van der wall",
+    "expected": 0.0007583043436,
+    "actual": 0.00078084,
+    "diff": 0.00002253565639999996,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "nath & thomas",
+    "expected": 1.002811671,
+    "actual": 1.00354927,
+    "diff": 0.0007375990000000332,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2025-12",
+    "investor": "vivie & liana",
+    "expected": 3.42059061,
+    "actual": 0.00100658,
+    "diff": 3.41958403,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "indigo fees",
+    "expected": 2.772961704,
+    "actual": 2.5985031577,
+    "diff": 0.1744585462999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "babak eftekhari",
+    "expected": 68.6069214,
+    "actual": 69.1214984355,
+    "diff": 0.5145770354999968,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "lars ahlgreen",
+    "expected": 0.04077088918,
+    "actual": 0.0392217,
+    "diff": 0.0015491891800000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "nathanaël cohen",
+    "expected": 37.44674474,
+    "actual": 49.1091065591,
+    "diff": 11.6623618191,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "jose molla",
+    "expected": 68.32331562,
+    "actual": 115.3168643286,
+    "diff": 46.9935487086,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "blondish",
+    "expected": 129.0457137,
+    "actual": 128.307961432,
+    "diff": 0.73775226799998,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "advantage blockchain",
+    "expected": 32.82136912,
+    "actual": 50.79180402,
+    "diff": 17.9704349,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "alec beckman",
+    "expected": 0.02076697255,
+    "actual": 0.01996669,
+    "diff": 0.0008002825499999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "alex jacobs",
+    "expected": 0.003355739555,
+    "actual": 0.00193379,
+    "diff": 0.001421949555,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "tomer zur",
+    "expected": 192.5128811,
+    "actual": 191.90440225,
+    "diff": 0.6084788499999831,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "sam johnson",
+    "expected": 213.1181183,
+    "actual": -0.8301803,
+    "diff": 213.9482986,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "ryan van der wall",
+    "expected": 0.03095417242,
+    "actual": 0.01999098,
+    "diff": 0.01096319242,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2025-12",
+    "investor": "brandon hood",
+    "expected": 31.41612659,
+    "actual": 31.37,
+    "diff": 0.04612659000000008,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-12",
+    "investor": "indigo fees",
+    "expected": 5.301287716,
+    "actual": 2.1402933374,
+    "diff": 3.1609943786,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-12",
+    "investor": "alex jacobs",
+    "expected": 0.03321913097,
+    "actual": 0.02611884,
+    "diff": 0.007100290970000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-12",
+    "investor": "jose molla",
+    "expected": 88.90309747,
+    "actual": 483.24166882,
+    "diff": 394.33857134999994,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-12",
+    "investor": "sam johnson",
+    "expected": 4851.96527,
+    "actual": -28.8594281,
+    "diff": 4880.824698099999,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2025-12",
+    "investor": "ryan van der wall",
+    "expected": 0.7971253959,
+    "actual": 0.41202859,
+    "diff": 0.3850968059,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "indigo fees",
+    "expected": 11766.73115,
+    "actual": -7778.6481535917,
+    "diff": 19545.3793035917,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "babak eftekhari",
+    "expected": 240881.4816,
+    "actual": 247111.78331362,
+    "diff": 6230.301713619992,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "julien grunebaum",
+    "expected": 113668.0797,
+    "actual": 113608.32992878,
+    "diff": 59.749771219998365,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "daniele francilia",
+    "expected": 114067.0901,
+    "actual": -860.45943962,
+    "diff": 114927.54953962,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "pierre bezençon",
+    "expected": 113606.7734,
+    "actual": 0,
+    "diff": 113606.7734,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "matthew beatty",
+    "expected": 345818.3131,
+    "actual": 345488.21942686,
+    "diff": 330.0936731400434,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "bo de kriek",
+    "expected": 284509.9816,
+    "actual": 284360.4284848,
+    "diff": 149.5531152000185,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "dario deiana",
+    "expected": 206337.1427,
+    "actual": 206489.5700077,
+    "diff": 152.42730770001072,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "alain bensimon",
+    "expected": 141730.4966,
+    "actual": 142007.29678104,
+    "diff": 276.80018103998736,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "anne cecile noique",
+    "expected": 230819.3035,
+    "actual": 231270.09440224,
+    "diff": 450.7909022399981,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "terance chen",
+    "expected": 227771.9377,
+    "actual": 228216.77706651,
+    "diff": 444.8393665099866,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "indigo ventures",
+    "expected": 5075.463084,
+    "actual": 348.56311178,
+    "diff": 4726.89997222,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "lars ahlgreen",
+    "expected": 185.3437827,
+    "actual": 347.68057821,
+    "diff": 162.33679551000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "sacha oshry",
+    "expected": 101541.9709,
+    "actual": 101069.4705926,
+    "diff": 472.50030739999784,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "halley86",
+    "expected": 101104.1305,
+    "actual": 100996.37187346,
+    "diff": 107.7586265400023,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "jose molla",
+    "expected": 326.5531741,
+    "actual": 656.69182039,
+    "diff": 330.13864629,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "monica levy chicheportiche",
+    "expected": 845391.158,
+    "actual": 841582.43349237,
+    "diff": 3808.724507630104,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "valeria cruz",
+    "expected": 50132.09184,
+    "actual": 50084.1738463,
+    "diff": 47.91799370000081,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "ventures life style",
+    "expected": 100247.0006,
+    "actual": 100168.34769259,
+    "diff": 78.65290740999626,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "joel barbeau",
+    "expected": 12.35711866,
+    "actual": 0,
+    "diff": 12.35711866,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2025-12",
+    "investor": "thomas puech",
+    "expected": 46750.8,
+    "actual": -622.97,
+    "diff": 47373.770000000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2025-12",
+    "investor": "indigo fees",
+    "expected": 194.811665,
+    "actual": 254.4735133698,
+    "diff": 59.6618483698,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2025-12",
+    "investor": "sam johnson",
+    "expected": 329575.5039,
+    "actual": -625.05243314,
+    "diff": 330200.55633314,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2025-12",
+    "investor": "ryan van der wall",
+    "expected": 48.68440387,
+    "actual": 63.61837834,
+    "diff": 14.933974470000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "indigo fees",
+    "expected": 0.1987583214,
+    "actual": 0.1863988822,
+    "diff": 0.012359439199999989,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "jose molla",
+    "expected": 4.851692053,
+    "actual": 7.61763067,
+    "diff": 2.7659386169999998,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "kyle gulamerian",
+    "expected": 3.9998,
+    "actual": 0.01943193,
+    "diff": 3.98036807,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "thomas puech",
+    "expected": 7.739965048,
+    "actual": 8.98970553,
+    "diff": 1.249740482,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "danielle richetta",
+    "expected": 4.291320767,
+    "actual": -0.00042977,
+    "diff": 4.291750537,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "kabbaj",
+    "expected": 6.739735833,
+    "actual": 6.72697531,
+    "diff": 0.012760522999999857,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.1513991635,
+    "actual": 0.15113977,
+    "diff": 0.0002593934999999825,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "nathanaël cohen",
+    "expected": 0.4550136586,
+    "actual": 0.45423408,
+    "diff": 0.0007795785999999971,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "blondish",
+    "expected": 4.182452903,
+    "actual": 4.17528713,
+    "diff": 0.007165772999999653,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "oliver loisel",
+    "expected": 2.153280988,
+    "actual": 2.15048698,
+    "diff": 0.002794007999999959,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "alex jacobs",
+    "expected": 0.00002245108135,
+    "actual": 0,
+    "diff": 0.00002245108135,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "sam johnson",
+    "expected": 7.785154097,
+    "actual": 0.0057366,
+    "diff": 7.779417497000001,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "ryan van der wall",
+    "expected": 0.0007598967091,
+    "actual": 0.0010475,
+    "diff": 0.00028760329090000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "nath & thomas",
+    "expected": 1.005444282,
+    "actual": 1.00440641,
+    "diff": 0.0010378719999999397,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "vivie & liana",
+    "expected": 3.42059061,
+    "actual": 0.00393027,
+    "diff": 3.41666034,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-01",
+    "investor": "nsvo holdings",
+    "expected": 0.6222246348,
+    "actual": 0.7993,
+    "diff": 0.1770753652,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "indigo fees",
+    "expected": 3.29541711,
+    "actual": 3.4713707158,
+    "diff": 0.1759536058000002,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "babak eftekhari",
+    "expected": 68.89412097,
+    "actual": 69.5611561655,
+    "diff": 0.6670351954999916,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "lars ahlgreen",
+    "expected": 0.04812842663,
+    "actual": 0.05052498,
+    "diff": 0.0023965533699999986,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "nathanaël cohen",
+    "expected": 49.50510554,
+    "actual": 49.4053820791,
+    "diff": 0.09972346090000173,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "jose molla",
+    "expected": 68.62722194,
+    "actual": 115.7764001686,
+    "diff": 47.14917822860001,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "blondish",
+    "expected": 129.7211329,
+    "actual": 129.328114132,
+    "diff": 0.39301876799999036,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "advantage blockchain",
+    "expected": 50.98265585,
+    "actual": 51.00038124,
+    "diff": 0.017725390000002506,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "alec beckman",
+    "expected": 0.0248894614,
+    "actual": 0.02533987,
+    "diff": 0.00045040860000000044,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "alex jacobs",
+    "expected": 0.003369787219,
+    "actual": 0.00194609,
+    "diff": 0.001423697219,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "tomer zur",
+    "expected": 193.3187709,
+    "actual": 193.12503917,
+    "diff": 0.1937317299999961,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "sam johnson",
+    "expected": 213.7265878,
+    "actual": 0.52400114,
+    "diff": 213.20258666,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "ryan van der wall",
+    "expected": 0.06154761137,
+    "actual": 0.08785899,
+    "diff": 0.02631137863,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "brandon hood",
+    "expected": 31.54763953,
+    "actual": 31.56953362,
+    "diff": 0.021894089999999977,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-01",
+    "investor": "nsvo holdings",
+    "expected": 25.03,
+    "actual": 25.03,
+    "diff": 0,
+    "pass": true
+  },
+  {
+    "fundMonth": "SOL:2026-01",
+    "investor": "indigo fees",
+    "expected": 9.641242854,
+    "actual": 9.8196389757,
+    "diff": 0.17839612170000052,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-01",
+    "investor": "alex jacobs",
+    "expected": 0.03336417509,
+    "actual": 0.02632189,
+    "diff": 0.007042285090000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-01",
+    "investor": "jose molla",
+    "expected": 89.31553453,
+    "actual": 483.98069344,
+    "diff": 394.66515891,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-01",
+    "investor": "sam johnson",
+    "expected": 4873.150322,
+    "actual": 8.8000777,
+    "diff": 4864.350244300001,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-01",
+    "investor": "ryan van der wall",
+    "expected": 1.859858446,
+    "actual": 2.29900777,
+    "diff": 0.43914932399999973,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "indigo fees",
+    "expected": 18100.13824,
+    "actual": 932.341762753,
+    "diff": 17167.796477247,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "babak eftekhari",
+    "expected": 243068.6235,
+    "actual": 250669.82963441,
+    "diff": 7601.206134410022,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "julien grunebaum",
+    "expected": 114829.5753,
+    "actual": 115448.59693975,
+    "diff": 619.0216397500044,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "daniele francilia",
+    "expected": 114714.0636,
+    "actual": 986.26748187,
+    "diff": 113727.79611812999,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "pierre bezençon",
+    "expected": 114767.6426,
+    "actual": 0,
+    "diff": 114767.6426,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "matthew beatty",
+    "expected": 349351.9916,
+    "actual": 351084.5570659,
+    "diff": 1732.5654658999993,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "bo de kriek",
+    "expected": 287417.1925,
+    "actual": 288966.59702977,
+    "diff": 1549.4045297700213,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "dario deiana",
+    "expected": 208210.6309,
+    "actual": 209462.71618873,
+    "diff": 1252.0852887300134,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "alain bensimon",
+    "expected": 143178.7427,
+    "actual": 144307.5800767,
+    "diff": 1128.8373766999866,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "anne cecile noique",
+    "expected": 233177.8865,
+    "actual": 235016.2873585,
+    "diff": 1838.400858500012,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "terance chen",
+    "expected": 230099.3818,
+    "actual": 231913.51133281,
+    "diff": 1814.1295328100096,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "indigo ventures",
+    "expected": 5107.449036,
+    "actual": 446.89792553,
+    "diff": 4660.55111047,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "lars ahlgreen",
+    "expected": 241.8592828,
+    "actual": 442.88934759,
+    "diff": 201.03006479,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "sacha oshry",
+    "expected": 102521.7418,
+    "actual": 102615.67558933,
+    "diff": 93.93378932999622,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "halley86",
+    "expected": 102022.13,
+    "actual": 102450.57112102,
+    "diff": 428.44112101999053,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "jose molla",
+    "expected": 329.7040615,
+    "actual": 666.73817928,
+    "diff": 337.03411778000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "monica levy chicheportiche",
+    "expected": 853067.0924,
+    "actual": 853699.98305223,
+    "diff": 632.8906522300094,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "sam johnson",
+    "expected": 5204288.817,
+    "actual": 6500000,
+    "diff": 1295711.1830000002,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "ryan van der wall",
+    "expected": 214.4648998,
+    "actual": 0,
+    "diff": 214.4648998,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "valeria cruz",
+    "expected": 50587.27834,
+    "actual": 50805.31230475,
+    "diff": 218.03396475000045,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "ventures life style",
+    "expected": 101157.2176,
+    "actual": 101610.62460949,
+    "diff": 453.4070094899944,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "joel barbeau",
+    "expected": 58.1084123,
+    "actual": 0,
+    "diff": 58.1084123,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-01",
+    "investor": "thomas puech",
+    "expected": 47281.78046,
+    "actual": 218.45847067,
+    "diff": 47063.321989330005,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2026-01",
+    "investor": "indigo fees",
+    "expected": 633.6485493,
+    "actual": 566.6477127106,
+    "diff": 67.00083658940002,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2026-01",
+    "investor": "sam johnson",
+    "expected": 330500.4206,
+    "actual": 928.32909756,
+    "diff": 329572.09150244,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2026-01",
+    "investor": "ryan van der wall",
+    "expected": 158.350864,
+    "actual": 141.66192817,
+    "diff": 16.68893582999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "indigo fees",
+    "expected": 0.2055786481,
+    "actual": 0.1940656501,
+    "diff": 0.011512998000000024,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "jose molla",
+    "expected": 7.626945165,
+    "actual": 7.62805194,
+    "diff": 0.0011067749999993381,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "thomas puech",
+    "expected": 9.020764952,
+    "actual": 9.00923328,
+    "diff": 0.01153167200000027,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "danielle richetta",
+    "expected": 4.299986701,
+    "actual": 0.00934894,
+    "diff": 4.290637761,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "kabbaj",
+    "expected": 6.751833518,
+    "actual": 6.74057484,
+    "diff": 0.011258677999999911,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "victoria pariente-cohen",
+    "expected": 0.151738881,
+    "actual": 0.15152171,
+    "diff": 0.00021717099999998823,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "nathanaël cohen",
+    "expected": 0.4560346423,
+    "actual": 0.45538195,
+    "diff": 0.0006526923000000351,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "blondish",
+    "expected": 4.191837712,
+    "actual": 4.18583829,
+    "diff": 0.005999421999999477,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "oliver loisel",
+    "expected": 2.157629345,
+    "actual": 2.15537793,
+    "diff": 0.0022514149999999233,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "alex jacobs",
+    "expected": 0.00002249138057,
+    "actual": 0,
+    "diff": 0.00002249138057,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "ryan van der wall",
+    "expected": 0.0007612607079,
+    "actual": 0.00105073,
+    "diff": 0.0002894692920999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "nath & thomas",
+    "expected": 1.007700351,
+    "actual": 1.0069446,
+    "diff": 0.0007557510000000267,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "nsvo holdings",
+    "expected": 0.8006530338,
+    "actual": 0.80055746,
+    "diff": 0.00009557379999991511,
+    "pass": false
+  },
+  {
+    "fundMonth": "BTC:2026-02",
+    "investor": "alok pavan batra",
+    "expected": 6,
+    "actual": 6,
+    "diff": 0,
+    "pass": true
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "indigo fees",
+    "expected": 3.72367927,
+    "actual": 3.8009135383,
+    "diff": 0.07723426830000024,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "babak eftekhari",
+    "expected": 69.17093979,
+    "actual": 69.7759156955,
+    "diff": 0.6049759054999981,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "lars ahlgreen",
+    "expected": 0.05524849849,
+    "actual": 0.05608896,
+    "diff": 0.0008404615100000012,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "nathanaël cohen",
+    "expected": 49.75380282,
+    "actual": 49.5960466191,
+    "diff": 0.1577562008999962,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "jose molla",
+    "expected": 116.240219,
+    "actual": 116.0009582286,
+    "diff": 0.2392607713999979,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "blondish",
+    "expected": 130.3728089,
+    "actual": 129.827215322,
+    "diff": 0.5455935779999947,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "advantage blockchain",
+    "expected": 51.18750582,
+    "actual": 51.15783718,
+    "diff": 0.029668639999997026,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "alec beckman",
+    "expected": 0.03011532004,
+    "actual": 0.02937406,
+    "diff": 0.0007412600400000004,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "alex jacobs",
+    "expected": 0.003383327134,
+    "actual": 0.0019521,
+    "diff": 0.001431227134,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "tomer zur",
+    "expected": 194.095532,
+    "actual": 193.72128346,
+    "diff": 0.3742485399999964,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "ryan van der wall",
+    "expected": 0.06179491167,
+    "actual": 0.08827894,
+    "diff": 0.02648402833,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "brandon hood",
+    "expected": 31.67439898,
+    "actual": 31.66699977,
+    "diff": 0.007399209999999101,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "nsvo holdings",
+    "expected": 25.13057136,
+    "actual": 25.10727633,
+    "diff": 0.023295029999999883,
+    "pass": false
+  },
+  {
+    "fundMonth": "ETH:2026-02",
+    "investor": "alok pavan batra",
+    "expected": 103.38,
+    "actual": 103.38,
+    "diff": 0,
+    "pass": true
+  },
+  {
+    "fundMonth": "SOL:2026-02",
+    "investor": "indigo fees",
+    "expected": 9.908271115,
+    "actual": 7.9907020047,
+    "diff": 1.9175691102999997,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-02",
+    "investor": "alex jacobs",
+    "expected": 0.03366853841,
+    "actual": 0.02121488,
+    "diff": 0.012453658409999999,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-02",
+    "investor": "jose molla",
+    "expected": 483.9512354,
+    "actual": 466.47787352,
+    "diff": 17.47336187999997,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-02",
+    "investor": "ryan van der wall",
+    "expected": 1.876824929,
+    "actual": 1.85295068,
+    "diff": 0.023874249000000125,
+    "pass": false
+  },
+  {
+    "fundMonth": "SOL:2026-02",
+    "investor": "alok pavan batra",
+    "expected": 826.54,
+    "actual": 826.54,
+    "diff": 0,
+    "pass": true
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "indigo fees",
+    "expected": 3750.380436,
+    "actual": 5877.673724557,
+    "diff": 2127.2932885570003,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "babak eftekhari",
+    "expected": 243855.8709,
+    "actual": 251420.93816697,
+    "diff": 7565.06726697,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "julien grunebaum",
+    "expected": 115248.0265,
+    "actual": 115837.7691415,
+    "diff": 589.7426414999936,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "pierre bezençon",
+    "expected": 115185.8681,
+    "actual": 0,
+    "diff": 115185.8681,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "matthew beatty",
+    "expected": 350625.0676,
+    "actual": 352268.04784618,
+    "diff": 1642.98024617997,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "bo de kriek",
+    "expected": 288464.5715,
+    "actual": 289940.69086703,
+    "diff": 1476.1193670299836,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "dario deiana",
+    "expected": 208884.9807,
+    "actual": 210090.35148736,
+    "diff": 1205.370787360007,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "alain bensimon",
+    "expected": 143700.5013,
+    "actual": 144794.03465611,
+    "diff": 1093.5333561099833,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "anne cecile noique",
+    "expected": 234027.6116,
+    "actual": 235808.51704707,
+    "diff": 1780.905447069992,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "terance chen",
+    "expected": 230937.8885,
+    "actual": 232695.28169827,
+    "diff": 1757.3931982700014,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "lars ahlgreen",
+    "expected": 262.3441888,
+    "actual": 463.32590616,
+    "diff": 200.98171736,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "sacha oshry",
+    "expected": 102874.5636,
+    "actual": 102942.37118318,
+    "diff": 67.8075831800088,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "halley86",
+    "expected": 102352.5579,
+    "actual": 102757.55460701,
+    "diff": 404.9967070099956,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "jose molla",
+    "expected": 330.8387162,
+    "actual": 668.86086107,
+    "diff": 338.02214487000003,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "monica levy chicheportiche",
+    "expected": 855829.9947,
+    "actual": 856258.01463682,
+    "diff": 428.0199368199101,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "sam johnson",
+    "expected": 6522813.005,
+    "actual": 6515581.31018385,
+    "diff": 7231.694816149771,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "ryan van der wall",
+    "expected": 1142.269779,
+    "actual": 779.06550919,
+    "diff": 363.20426981,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "valeria cruz",
+    "expected": 50751.11974,
+    "actual": 50957.54563745,
+    "diff": 206.42589744999714,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "ventures life style",
+    "expected": 101484.8442,
+    "actual": 101915.09127487,
+    "diff": 430.2470748699998,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "joel barbeau",
+    "expected": 74.69491672,
+    "actual": 0,
+    "diff": 74.69491672,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "thomas puech",
+    "expected": 47373.76757,
+    "actual": 396.71550772,
+    "diff": 46977.05206228,
+    "pass": false
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "tomer mazar",
+    "expected": 28567.67,
+    "actual": 28567.67,
+    "diff": 0,
+    "pass": true
+  },
+  {
+    "fundMonth": "USDT:2026-02",
+    "investor": "nathanaël cohen",
+    "expected": 93819.18,
+    "actual": 93819.18,
+    "diff": 0,
+    "pass": true
+  },
+  {
+    "fundMonth": "XRP:2026-02",
+    "investor": "indigo fees",
+    "expected": 636.1686959,
+    "actual": 276.2926865265,
+    "diff": 359.8760093735,
+    "pass": false
+  },
+  {
+    "fundMonth": "XRP:2026-02",
+    "investor": "ryan van der wall",
+    "expected": 158.8307151,
+    "actual": 69.07317163,
+    "diff": 89.75754346999999,
+    "pass": false
+  }
+]

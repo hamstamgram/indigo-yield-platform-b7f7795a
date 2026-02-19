@@ -1,0 +1,324 @@
+[
+  {
+    "fund": "BTC",
+    "month": "2024-07",
+    "pClosing": 0,
+    "totalGrossPct": 0,
+    "totalYield": 0
+  },
+  {
+    "fund": "BTC",
+    "month": "2024-08",
+    "pClosing": 5.52216821500194,
+    "totalGrossPct": 0.9209043469,
+    "totalYield": 0.032168215001940004
+  },
+  {
+    "fund": "BTC",
+    "month": "2024-09",
+    "pClosing": 5.520018181817179,
+    "totalGrossPct": 0.1818181818,
+    "totalYield": 0.01001818181718
+  },
+  {
+    "fund": "BTC",
+    "month": "2024-10",
+    "pClosing": 21.90946333938292,
+    "totalGrossPct": 0.5444646098,
+    "totalYield": 0.03016333938292
+  },
+  {
+    "fund": "BTC",
+    "month": "2024-11",
+    "pClosing": 21.861301022840998,
+    "totalGrossPct": 0.642383334,
+    "totalYield": 0.141301022841
+  },
+  {
+    "fund": "BTC",
+    "month": "2024-12",
+    "pClosing": 10.27834567386672,
+    "totalGrossPct": 0.5969432866,
+    "totalYield": 0.13044567386671999
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-01",
+    "pClosing": 10.29236643469312,
+    "totalGrossPct": 0.5113909638,
+    "totalYield": 0.05236643469312001
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-02",
+    "pClosing": 10.3603515625,
+    "totalGrossPct": 0.5859375,
+    "totalYield": 0.0603515625
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-03",
+    "pClosing": 10.38015533980964,
+    "totalGrossPct": 0.3883495146,
+    "totalYield": 0.040155339809640006
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-04",
+    "pClosing": 15.74032436762204,
+    "totalGrossPct": 1.0680871068,
+    "totalYield": 0.06522436762204
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-05",
+    "pClosing": 13.730154680074499,
+    "totalGrossPct": 0.5090691584,
+    "totalYield": 0.0802546800745
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-06",
+    "pClosing": 15.709121740827069,
+    "totalGrossPct": 0.767355087,
+    "totalYield": 0.1051217408270688
+  },
+  {
+    "fund": "ETH",
+    "month": "2025-06",
+    "pClosing": 237.7468395920433,
+    "totalGrossPct": 0.1089054997,
+    "totalYield": 0.22023959204331
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-07",
+    "pClosing": 30.591056384858284,
+    "totalGrossPct": 0.566161050125,
+    "totalYield": 0.10259238485828104
+  },
+  {
+    "fund": "ETH",
+    "month": "2025-07",
+    "pClosing": 310.39546145431365,
+    "totalGrossPct": 1.8056317393,
+    "totalYield": 5.3354614543136405
+  },
+  {
+    "fund": "USDT",
+    "month": "2025-07",
+    "pClosing": 1827653.118829748,
+    "totalGrossPct": 0.9876978131,
+    "totalYield": 7879.716529747815
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-08",
+    "pClosing": 31.557728875744004,
+    "totalGrossPct": 0.31825023023,
+    "totalYield": 0.0975288757440045
+  },
+  {
+    "fund": "USDT",
+    "month": "2025-08",
+    "pClosing": 2117301.6379201915,
+    "totalGrossPct": 0.6007548175199999,
+    "totalYield": 11835.637920191493
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-09",
+    "pClosing": 31.61519120810807,
+    "totalGrossPct": 0.39633839040999996,
+    "totalYield": 0.125191208108069
+  },
+  {
+    "fund": "ETH",
+    "month": "2025-09",
+    "pClosing": 406.71964483552347,
+    "totalGrossPct": 1.5776964564999998,
+    "totalYield": 5.146944835523479
+  },
+  {
+    "fund": "SOL",
+    "month": "2025-09",
+    "pClosing": 1502.1318992065,
+    "totalGrossPct": 1.0905799471,
+    "totalYield": 15.961899206499998
+  },
+  {
+    "fund": "USDT",
+    "month": "2025-09",
+    "pClosing": 2161677.722618659,
+    "totalGrossPct": 1.2680461363,
+    "totalYield": 27094.722618658994
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-10",
+    "pClosing": 32.23021677765985,
+    "totalGrossPct": 0.33922993578,
+    "totalYield": 0.108716777659852
+  },
+  {
+    "fund": "ETH",
+    "month": "2025-10",
+    "pClosing": 490.9158407325345,
+    "totalGrossPct": 0.74845175639,
+    "totalYield": 3.3531407325345075
+  },
+  {
+    "fund": "SOL",
+    "month": "2025-10",
+    "pClosing": 1365.086128379728,
+    "totalGrossPct": 1.0144700642,
+    "totalYield": 13.126128379728002
+  },
+  {
+    "fund": "USDT",
+    "month": "2025-10",
+    "pClosing": 2376610.6220473,
+    "totalGrossPct": 0.9310117494,
+    "totalYield": 20862.172047299595
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-11",
+    "pClosing": 42.5510941568361,
+    "totalGrossPct": 0.30635513923,
+    "totalYield": 0.09919415683610301
+  },
+  {
+    "fund": "ETH",
+    "month": "2025-11",
+    "pClosing": 667.2245932538515,
+    "totalGrossPct": 0.5720115499780001,
+    "totalYield": 3.279193253851533
+  },
+  {
+    "fund": "SOL",
+    "month": "2025-11",
+    "pClosing": 4688.043265139694,
+    "totalGrossPct": 0.7161186588000001,
+    "totalYield": 18.993265139694
+  },
+  {
+    "fund": "USDT",
+    "month": "2025-11",
+    "pClosing": 3445164.6307130964,
+    "totalGrossPct": 0.84919865782,
+    "totalYield": 26338.48071309648
+  },
+  {
+    "fund": "XRP",
+    "month": "2025-11",
+    "pClosing": 229358.68490734047,
+    "totalGrossPct": 0.192931637,
+    "totalYield": 355.68490734046
+  },
+  {
+    "fund": "BTC",
+    "month": "2025-12",
+    "pClosing": 40.63961968925239,
+    "totalGrossPct": 0.28091106273,
+    "totalYield": 0.122119689252394
+  },
+  {
+    "fund": "ETH",
+    "month": "2025-12",
+    "pClosing": 776.5215790073521,
+    "totalGrossPct": 0.27419354492000003,
+    "totalYield": 1.948579007352079
+  },
+  {
+    "fund": "SOL",
+    "month": "2025-12",
+    "pClosing": 4953.016436447387,
+    "totalGrossPct": 0.29119523734999997,
+    "totalYield": 12.6764364473865
+  },
+  {
+    "fund": "USDT",
+    "month": "2025-12",
+    "pClosing": 3285663.6496651983,
+    "totalGrossPct": 0.11365681740000001,
+    "totalYield": 3919.4496651981303
+  },
+  {
+    "fund": "XRP",
+    "month": "2025-12",
+    "pClosing": 330193.45945856976,
+    "totalGrossPct": 0.33739355270000004,
+    "totalYield": 862.4594585697411
+  },
+  {
+    "fund": "BTC",
+    "month": "2026-01",
+    "pClosing": 32.39217680217831,
+    "totalGrossPct": 0.2623474040554,
+    "totalYield": 0.08383020217830896
+  },
+  {
+    "fund": "ETH",
+    "month": "2026-01",
+    "pClosing": 623.8411174054717,
+    "totalGrossPct": 0.52276910737,
+    "totalYield": 3.7655574054716174
+  },
+  {
+    "fund": "SOL",
+    "month": "2026-01",
+    "pClosing": 127.9973620356568,
+    "totalGrossPct": 0.5457853244,
+    "totalYield": 27.147362035656002
+  },
+  {
+    "fund": "USDT",
+    "month": "2026-01",
+    "pClosing": 8424816.926213633,
+    "totalGrossPct": 1.1317733029100001,
+    "totalYield": 42373.556213632124
+  },
+  {
+    "fund": "XRP",
+    "month": "2026-01",
+    "pClosing": 1636.6387384406407,
+    "totalGrossPct": 0.3507984683,
+    "totalYield": 1161.058738440608
+  },
+  {
+    "fund": "BTC",
+    "month": "2026-02",
+    "pClosing": 38.37955348012574,
+    "totalGrossPct": 0.22432079561799997,
+    "totalYield": 0.07403348012574498
+  },
+  {
+    "fund": "ETH",
+    "month": "2026-02",
+    "pClosing": 776.9486360180456,
+    "totalGrossPct": 0.5018026759,
+    "totalYield": 3.1286360180456803
+  },
+  {
+    "fund": "SOL",
+    "month": "2026-02",
+    "pClosing": 1323.47311353474,
+    "totalGrossPct": 1.140307387,
+    "totalYield": 1.16311353474
+  },
+  {
+    "fund": "USDT",
+    "month": "2026-02",
+    "pClosing": 9811385.219138987,
+    "totalGrossPct": 0.404429047423,
+    "totalYield": 36050.13913898789
+  },
+  {
+    "fund": "XRP",
+    "month": "2026-02",
+    "pClosing": 798.01136363646,
+    "totalGrossPct": 0.3787878788,
+    "totalYield": 3.01136363646
+  }
+]

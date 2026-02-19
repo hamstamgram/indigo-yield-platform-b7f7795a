@@ -1,0 +1,1379 @@
+[
+  {
+    "month": "2024-07",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 0,
+    "closingAum": 3.468,
+    "flows": 0
+  },
+  {
+    "month": "2024-08",
+    "fund": "BTC",
+    "grossPct": 0.6343713956,
+    "netPct": 0.5074971165,
+    "openingAum": 3.49,
+    "closingAum": 3.49,
+    "flows": 0
+  },
+  {
+    "month": "2024-08",
+    "fund": "BTC",
+    "grossPct": 0.2865329513,
+    "netPct": 0.229226361,
+    "openingAum": 3.5,
+    "closingAum": 5.5,
+    "flows": 2
+  },
+  {
+    "month": "2024-09",
+    "fund": "BTC",
+    "grossPct": 0.1818181818,
+    "netPct": 0.1454545455,
+    "openingAum": 5.51,
+    "closingAum": 5.51,
+    "flows": 0
+  },
+  {
+    "month": "2024-10",
+    "fund": "BTC",
+    "grossPct": 0.5444646098,
+    "netPct": 0.4355716878,
+    "openingAum": 5.54,
+    "closingAum": 21.8793,
+    "flows": 16.3393
+  },
+  {
+    "month": "2024-11",
+    "fund": "BTC",
+    "grossPct": 0.505957686,
+    "netPct": 0.4047661488,
+    "openingAum": 21.99,
+    "closingAum": 21.99,
+    "flows": 0
+  },
+  {
+    "month": "2024-11",
+    "fund": "BTC",
+    "grossPct": 0.13642564799999998,
+    "netPct": 0.10914051840000001,
+    "openingAum": 22.02,
+    "closingAum": 21.75,
+    "flows": -0.27
+  },
+  {
+    "month": "2024-12",
+    "fund": "BTC",
+    "grossPct": 0.4137931034,
+    "netPct": 0.3310344828,
+    "openingAum": 21.84,
+    "closingAum": 21.84,
+    "flows": 0
+  },
+  {
+    "month": "2024-12",
+    "fund": "BTC",
+    "grossPct": 0.1831501832,
+    "netPct": 0.1465201465,
+    "openingAum": 21.88,
+    "closingAum": 21.756,
+    "flows": -0.124
+  },
+  {
+    "month": "2024-12",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 21.756,
+    "closingAum": 10.1879,
+    "flows": -11.5681
+  },
+  {
+    "month": "2025-01",
+    "fund": "BTC",
+    "grossPct": 0.5113909638,
+    "netPct": 0.409112771,
+    "openingAum": 10.24,
+    "closingAum": 10.24,
+    "flows": 0
+  },
+  {
+    "month": "2025-02",
+    "fund": "BTC",
+    "grossPct": 0.5859375,
+    "netPct": 0.46875,
+    "openingAum": 10.3,
+    "closingAum": 10.3,
+    "flows": 0
+  },
+  {
+    "month": "2025-03",
+    "fund": "BTC",
+    "grossPct": 0.3883495146,
+    "netPct": 0.3106796117,
+    "openingAum": 10.34,
+    "closingAum": 10.34,
+    "flows": 0
+  },
+  {
+    "month": "2025-04",
+    "fund": "BTC",
+    "grossPct": 0.3868471954,
+    "netPct": 0.30947775629999996,
+    "openingAum": 10.38,
+    "closingAum": 3.6551,
+    "flows": -6.7249
+  },
+  {
+    "month": "2025-04",
+    "fund": "BTC",
+    "grossPct": 0.6812399114,
+    "netPct": 0.5449919291,
+    "openingAum": 3.68,
+    "closingAum": 15.7,
+    "flows": 12.02
+  },
+  {
+    "month": "2025-05",
+    "fund": "BTC",
+    "grossPct": 0.38216560509999997,
+    "netPct": 0.3057324841,
+    "openingAum": 15.76,
+    "closingAum": 15.76,
+    "flows": 0
+  },
+  {
+    "month": "2025-05",
+    "fund": "BTC",
+    "grossPct": 0.1269035533,
+    "netPct": 0.1015228426,
+    "openingAum": 15.78,
+    "closingAum": 13.6699,
+    "flows": -2.1101
+  },
+  {
+    "month": "2025-06",
+    "fund": "BTC",
+    "grossPct": 0.46891345219999997,
+    "netPct": 0.3751307617,
+    "openingAum": 13.734,
+    "closingAum": 13.604,
+    "flows": -0.13
+  },
+  {
+    "month": "2025-06",
+    "fund": "BTC",
+    "grossPct": 0.2984416348,
+    "netPct": 0.2387533079,
+    "openingAum": 13.6446,
+    "closingAum": 15.6446,
+    "flows": 2
+  },
+  {
+    "month": "2025-07",
+    "fund": "BTC",
+    "grossPct": 0.08373496286,
+    "netPct": 0.06698797029,
+    "openingAum": 15.6577,
+    "closingAum": 15.6577,
+    "flows": 0
+  },
+  {
+    "month": "2025-07",
+    "fund": "BTC",
+    "grossPct": 0.3831980431,
+    "netPct": 0.3065584345,
+    "openingAum": 15.7177,
+    "closingAum": 28.0931,
+    "flows": 12.3754
+  },
+  {
+    "month": "2025-07",
+    "fund": "BTC",
+    "grossPct": 0.02705290623,
+    "netPct": 0.021642324980000002,
+    "openingAum": 28.1007,
+    "closingAum": 30.216064,
+    "flows": 2.115364
+  },
+  {
+    "month": "2025-07",
+    "fund": "BTC",
+    "grossPct": 0.005414338545,
+    "netPct": 0.004331470836000001,
+    "openingAum": 30.2177,
+    "closingAum": 29.9577,
+    "flows": -0.26
+  },
+  {
+    "month": "2025-07",
+    "fund": "BTC",
+    "grossPct": 0.06676079939,
+    "netPct": 0.05340863952,
+    "openingAum": 29.9777,
+    "closingAum": 30.5777,
+    "flows": 0.6
+  },
+  {
+    "month": "2025-08",
+    "fund": "BTC",
+    "grossPct": 0.2691503939,
+    "netPct": 0.2153203151,
+    "openingAum": 30.66,
+    "closingAum": 30.55,
+    "flows": -0.11
+  },
+  {
+    "month": "2025-08",
+    "fund": "BTC",
+    "grossPct": 0.04909983633,
+    "netPct": 0.03927986907,
+    "openingAum": 30.565,
+    "closingAum": 31.4752,
+    "flows": 0.9102
+  },
+  {
+    "month": "2025-09",
+    "fund": "BTC",
+    "grossPct": 0.04702114681,
+    "netPct": 0.03761691745,
+    "openingAum": 31.49,
+    "closingAum": 31.49,
+    "flows": 0
+  },
+  {
+    "month": "2025-09",
+    "fund": "BTC",
+    "grossPct": 0.3493172436,
+    "netPct": 0.2794537949,
+    "openingAum": 31.6,
+    "closingAum": 31.6,
+    "flows": 0
+  },
+  {
+    "month": "2025-10",
+    "fund": "BTC",
+    "grossPct": 0.06329113924,
+    "netPct": 0.05063291139,
+    "openingAum": 31.62,
+    "closingAum": 32.0595,
+    "flows": 0.4395
+  },
+  {
+    "month": "2025-10",
+    "fund": "BTC",
+    "grossPct": 0.2510956191,
+    "netPct": 0.20087649529999999,
+    "openingAum": 32.14,
+    "closingAum": 32.202,
+    "flows": 0.062
+  },
+  {
+    "month": "2025-10",
+    "fund": "BTC",
+    "grossPct": 0.02484317744,
+    "netPct": 0.01987454195,
+    "openingAum": 32.21,
+    "closingAum": 32.21,
+    "flows": 0
+  },
+  {
+    "month": "2025-11",
+    "fund": "BTC",
+    "grossPct": 0.06209251785,
+    "netPct": 0.04967401428,
+    "openingAum": 32.23,
+    "closingAum": 31.5062,
+    "flows": -0.7238
+  },
+  {
+    "month": "2025-11",
+    "fund": "BTC",
+    "grossPct": 0.1390202563,
+    "netPct": 0.1112162051,
+    "openingAum": 31.55,
+    "closingAum": 32.0367,
+    "flows": 0.4867
+  },
+  {
+    "month": "2025-11",
+    "fund": "BTC",
+    "grossPct": 0.07272908883,
+    "netPct": 0.05818327106,
+    "openingAum": 32.06,
+    "closingAum": 35.36,
+    "flows": 3.3
+  },
+  {
+    "month": "2025-11",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 35.36,
+    "closingAum": 36.908,
+    "flows": 1.548
+  },
+  {
+    "month": "2025-11",
+    "fund": "BTC",
+    "grossPct": 0.03251327625,
+    "netPct": 0.026010620999999998,
+    "openingAum": 36.92,
+    "closingAum": 41.331,
+    "flows": 4.411
+  },
+  {
+    "month": "2025-11",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 41.331,
+    "closingAum": 42.531,
+    "flows": 1.2
+  },
+  {
+    "month": "2025-12",
+    "fund": "BTC",
+    "grossPct": 0.1152100821,
+    "netPct": 0.09216806565,
+    "openingAum": 42.58,
+    "closingAum": 43.68,
+    "flows": 1.1
+  },
+  {
+    "month": "2025-12",
+    "fund": "BTC",
+    "grossPct": 0.1144688645,
+    "netPct": 0.09157509157999999,
+    "openingAum": 43.73,
+    "closingAum": 44.387,
+    "flows": 0.657
+  },
+  {
+    "month": "2025-12",
+    "fund": "BTC",
+    "grossPct": 0.02928785455,
+    "netPct": 0.02343028364,
+    "openingAum": 44.4,
+    "closingAum": 45.57,
+    "flows": 1.17
+  },
+  {
+    "month": "2025-12",
+    "fund": "BTC",
+    "grossPct": 0.02194426158,
+    "netPct": 0.01755540926,
+    "openingAum": 45.58,
+    "closingAum": 40.5905,
+    "flows": -4.9895
+  },
+  {
+    "month": "2026-01",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 40.5905,
+    "closingAum": 40.5905,
+    "flows": 0
+  },
+  {
+    "month": "2026-01",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 40.5905,
+    "closingAum": 32.8053,
+    "flows": -7.7852
+  },
+  {
+    "month": "2026-01",
+    "fund": "BTC",
+    "grossPct": 0.04480983256,
+    "netPct": 0.035847866049999996,
+    "openingAum": 32.82,
+    "closingAum": 31.5556,
+    "flows": -1.2644
+  },
+  {
+    "month": "2026-01",
+    "fund": "BTC",
+    "grossPct": 0.17239412340000002,
+    "netPct": 0.1379152987,
+    "openingAum": 31.61,
+    "closingAum": 32.3455766,
+    "flows": 0.7355766
+  },
+  {
+    "month": "2026-01",
+    "fund": "BTC",
+    "grossPct": 0.04459156867,
+    "netPct": 0.035673254929999995,
+    "openingAum": 32.36,
+    "closingAum": 36.2398,
+    "flows": 3.8798
+  },
+  {
+    "month": "2026-01",
+    "fund": "BTC",
+    "grossPct": 0.0005518794254,
+    "netPct": 0.0004415035403,
+    "openingAum": 36.24,
+    "closingAum": 32.25,
+    "flows": -3.99
+  },
+  {
+    "month": "2026-01",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 32.25,
+    "closingAum": 32.39207,
+    "flows": 0.14207
+  },
+  {
+    "month": "2026-02",
+    "fund": "BTC",
+    "grossPct": 0.024481300520000002,
+    "netPct": 0.01958504041,
+    "openingAum": 32.4,
+    "closingAum": 32.4,
+    "flows": 0
+  },
+  {
+    "month": "2026-02",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 32.4,
+    "closingAum": 33.00672,
+    "flows": 0.60672
+  },
+  {
+    "month": "2026-02",
+    "fund": "BTC",
+    "grossPct": 0.1917185349,
+    "netPct": 0.15337482789999998,
+    "openingAum": 33.07,
+    "closingAum": 33.2473,
+    "flows": 0.1773
+  },
+  {
+    "month": "2026-02",
+    "fund": "BTC",
+    "grossPct": 0.008120960198,
+    "netPct": 0.006496768159000001,
+    "openingAum": 33.25,
+    "closingAum": 42.016,
+    "flows": 8.766
+  },
+  {
+    "month": "2026-02",
+    "fund": "BTC",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 42.016,
+    "closingAum": 38.3715,
+    "flows": -3.6445
+  },
+  {
+    "month": "2025-05",
+    "fund": "ETH",
+    "grossPct": 100,
+    "netPct": 0,
+    "openingAum": 0,
+    "closingAum": 202.01,
+    "flows": 202.01
+  },
+  {
+    "month": "2025-06",
+    "fund": "ETH",
+    "grossPct": 0.1089054997,
+    "netPct": 0.08712439978,
+    "openingAum": 202.23,
+    "closingAum": 237.5266,
+    "flows": 35.29660000000001
+  },
+  {
+    "month": "2025-07",
+    "fund": "ETH",
+    "grossPct": 0.8055518835000001,
+    "netPct": 0.6444415068,
+    "openingAum": 239.44,
+    "closingAum": 241.44,
+    "flows": 2
+  },
+  {
+    "month": "2025-07",
+    "fund": "ETH",
+    "grossPct": 0.5384360504,
+    "netPct": 0.43074884029999994,
+    "openingAum": 242.74,
+    "closingAum": 452.73,
+    "flows": 209.99
+  },
+  {
+    "month": "2025-07",
+    "fund": "ETH",
+    "grossPct": 0.46164380540000005,
+    "netPct": 0.3693150443,
+    "openingAum": 454.82,
+    "closingAum": 486.82,
+    "flows": 32
+  },
+  {
+    "month": "2025-07",
+    "fund": "ETH",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 486.8176152,
+    "closingAum": 308.4476152,
+    "flows": -178.37
+  },
+  {
+    "month": "2025-09",
+    "fund": "ETH",
+    "grossPct": 0.8566721371999999,
+    "netPct": 0.6853377097,
+    "openingAum": 311.09,
+    "closingAum": 311.09,
+    "flows": 0
+  },
+  {
+    "month": "2025-09",
+    "fund": "ETH",
+    "grossPct": 0.1607251921,
+    "netPct": 0.1285801537,
+    "openingAum": 311.59,
+    "closingAum": 322.03,
+    "flows": 10.44
+  },
+  {
+    "month": "2025-09",
+    "fund": "ETH",
+    "grossPct": 0.1304226314,
+    "netPct": 0.1043381051,
+    "openingAum": 322.45,
+    "closingAum": 327.0827,
+    "flows": 4.6327
+  },
+  {
+    "month": "2025-09",
+    "fund": "ETH",
+    "grossPct": 0.0144611745,
+    "netPct": 0.0115689396,
+    "openingAum": 327.13,
+    "closingAum": 339.44,
+    "flows": 12.31
+  },
+  {
+    "month": "2025-09",
+    "fund": "ETH",
+    "grossPct": 0.2592505303,
+    "netPct": 0.2074004242,
+    "openingAum": 340.32,
+    "closingAum": 403.42,
+    "flows": 63.1
+  },
+  {
+    "month": "2025-09",
+    "fund": "ETH",
+    "grossPct": 0.156164791,
+    "netPct": 0.12493183279999999,
+    "openingAum": 404.05,
+    "closingAum": 404.05,
+    "flows": 0
+  },
+  {
+    "month": "2025-10",
+    "fund": "ETH",
+    "grossPct": 0.0494988244,
+    "netPct": 0.03959905952,
+    "openingAum": 404.25,
+    "closingAum": 392.25,
+    "flows": -12
+  },
+  {
+    "month": "2025-10",
+    "fund": "ETH",
+    "grossPct": 0.1657106437,
+    "netPct": 0.132568515,
+    "openingAum": 392.9,
+    "closingAum": 402.951,
+    "flows": 10.051
+  },
+  {
+    "month": "2025-10",
+    "fund": "ETH",
+    "grossPct": 0.11142794040000001,
+    "netPct": 0.0891423523,
+    "openingAum": 403.4,
+    "closingAum": 471.42,
+    "flows": 68.02
+  },
+  {
+    "month": "2025-10",
+    "fund": "ETH",
+    "grossPct": 0.02121250689,
+    "netPct": 0.01697000552,
+    "openingAum": 471.52,
+    "closingAum": 474.62,
+    "flows": 3.1
+  },
+  {
+    "month": "2025-10",
+    "fund": "ETH",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 474.62,
+    "closingAum": 481.1617,
+    "flows": 6.5417
+  },
+  {
+    "month": "2025-10",
+    "fund": "ETH",
+    "grossPct": 0.1513628371,
+    "netPct": 0.1210902697,
+    "openingAum": 481.89,
+    "closingAum": 489.49,
+    "flows": 7.6
+  },
+  {
+    "month": "2025-10",
+    "fund": "ETH",
+    "grossPct": 0.2492390039,
+    "netPct": 0.1993912031,
+    "openingAum": 490.71,
+    "closingAum": 490.71,
+    "flows": 0
+  },
+  {
+    "month": "2025-11",
+    "fund": "ETH",
+    "grossPct": 0.004075727008,
+    "netPct": 0.003260581606,
+    "openingAum": 490.73,
+    "closingAum": 499.134,
+    "flows": 8.404
+  },
+  {
+    "month": "2025-11",
+    "fund": "ETH",
+    "grossPct": 0.032456214159999996,
+    "netPct": 0.02596497133,
+    "openingAum": 499.296,
+    "closingAum": 506.2479,
+    "flows": 6.9519
+  },
+  {
+    "month": "2025-11",
+    "fund": "ETH",
+    "grossPct": 0.032019885910000004,
+    "netPct": 0.02561590873,
+    "openingAum": 506.41,
+    "closingAum": 501.8115,
+    "flows": -4.5985
+  },
+  {
+    "month": "2025-11",
+    "fund": "ETH",
+    "grossPct": 0.059484487700000005,
+    "netPct": 0.04758759016,
+    "openingAum": 502.11,
+    "closingAum": 512.334,
+    "flows": 10.224
+  },
+  {
+    "month": "2025-11",
+    "fund": "ETH",
+    "grossPct": 0.1104748074,
+    "netPct": 0.08837984596,
+    "openingAum": 512.9,
+    "closingAum": 597.134,
+    "flows": 84.234
+  },
+  {
+    "month": "2025-11",
+    "fund": "ETH",
+    "grossPct": 0.1249300827,
+    "netPct": 0.09994406616,
+    "openingAum": 597.88,
+    "closingAum": 632.88,
+    "flows": 35
+  },
+  {
+    "month": "2025-11",
+    "fund": "ETH",
+    "grossPct": 0.2085703451,
+    "netPct": 0.1668562761,
+    "openingAum": 634.2,
+    "closingAum": 667.2,
+    "flows": 33
+  },
+  {
+    "month": "2025-12",
+    "fund": "ETH",
+    "grossPct": 0.05395683453,
+    "netPct": 0.04316546763,
+    "openingAum": 667.56,
+    "closingAum": 676.703,
+    "flows": 9.143
+  },
+  {
+    "month": "2025-12",
+    "fund": "ETH",
+    "grossPct": 0.03650050317,
+    "netPct": 0.029200402539999996,
+    "openingAum": 676.95,
+    "closingAum": 708.32,
+    "flows": 31.37
+  },
+  {
+    "month": "2025-12",
+    "fund": "ETH",
+    "grossPct": 0.07200135531999999,
+    "netPct": 0.057601084260000004,
+    "openingAum": 708.83,
+    "closingAum": 742.83,
+    "flows": 34
+  },
+  {
+    "month": "2025-12",
+    "fund": "ETH",
+    "grossPct": 0.11173485190000002,
+    "netPct": 0.08938788148,
+    "openingAum": 743.66,
+    "closingAum": 776.16,
+    "flows": 32.5
+  },
+  {
+    "month": "2026-01",
+    "fund": "ETH",
+    "grossPct": 0.3568851783,
+    "netPct": 0.28550814269999997,
+    "openingAum": 778.93,
+    "closingAum": 778.93,
+    "flows": 0
+  },
+  {
+    "month": "2026-01",
+    "fund": "ETH",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 778.93,
+    "closingAum": 583.2,
+    "flows": -195.73
+  },
+  {
+    "month": "2026-01",
+    "fund": "ETH",
+    "grossPct": 0.02400548697,
+    "netPct": 0.019204389569999997,
+    "openingAum": 583.34,
+    "closingAum": 595.18556,
+    "flows": 11.84556
+  },
+  {
+    "month": "2026-01",
+    "fund": "ETH",
+    "grossPct": 0.1418784421,
+    "netPct": 0.1135027537,
+    "openingAum": 596.03,
+    "closingAum": 621.06,
+    "flows": 25.03
+  },
+  {
+    "month": "2026-02",
+    "fund": "ETH",
+    "grossPct": 0.3316909799,
+    "netPct": 0.265352784,
+    "openingAum": 623.12,
+    "closingAum": 623.12,
+    "flows": 0
+  },
+  {
+    "month": "2026-02",
+    "fund": "ETH",
+    "grossPct": 0.170111696,
+    "netPct": 0.1360893568,
+    "openingAum": 624.18,
+    "closingAum": 774.88,
+    "flows": 150.7
+  },
+  {
+    "month": "2025-06",
+    "fund": "USDT",
+    "grossPct": 100,
+    "netPct": 0,
+    "openingAum": 0,
+    "closingAum": 135726.75,
+    "flows": 135726.75
+  },
+  {
+    "month": "2025-07",
+    "fund": "USDT",
+    "grossPct": 0.3305555556,
+    "netPct": 0.26444444440000003,
+    "openingAum": 136175.4023,
+    "closingAum": 136175.4023,
+    "flows": 0
+  },
+  {
+    "month": "2025-07",
+    "fund": "USDT",
+    "grossPct": 0.1538440012,
+    "netPct": 0.1230752009,
+    "openingAum": 136384.9,
+    "closingAum": 994196.9,
+    "flows": 857812
+  },
+  {
+    "month": "2025-07",
+    "fund": "USDT",
+    "grossPct": 0.1491143253,
+    "netPct": 0.1192914603,
+    "openingAum": 995679.39,
+    "closingAum": 1242294.39,
+    "flows": 246615
+  },
+  {
+    "month": "2025-07",
+    "fund": "USDT",
+    "grossPct": 0.1262671725,
+    "netPct": 0.10101373799999999,
+    "openingAum": 1243863,
+    "closingAum": 1823034,
+    "flows": 579171
+  },
+  {
+    "month": "2025-07",
+    "fund": "USDT",
+    "grossPct": 0.2279167585,
+    "netPct": 0.1823334068,
+    "openingAum": 1827189,
+    "closingAum": 1827189,
+    "flows": 0
+  },
+  {
+    "month": "2025-08",
+    "fund": "USDT",
+    "grossPct": 0.055111978019999994,
+    "netPct": 0.04408958241,
+    "openingAum": 1828196,
+    "closingAum": 1968196,
+    "flows": 140000
+  },
+  {
+    "month": "2025-08",
+    "fund": "USDT",
+    "grossPct": 0.3820249609,
+    "netPct": 0.3056199687,
+    "openingAum": 1975715,
+    "closingAum": 2001615,
+    "flows": 25900
+  },
+  {
+    "month": "2025-08",
+    "fund": "USDT",
+    "grossPct": 0.1636178786,
+    "netPct": 0.1308943029,
+    "openingAum": 2004890,
+    "closingAum": 2116260,
+    "flows": 111370
+  },
+  {
+    "month": "2025-09",
+    "fund": "USDT",
+    "grossPct": 0.3932881593,
+    "netPct": 0.3146305274,
+    "openingAum": 2124583,
+    "closingAum": 2124583,
+    "flows": 0
+  },
+  {
+    "month": "2025-09",
+    "fund": "USDT",
+    "grossPct": 0.6628124201,
+    "netPct": 0.5302499361,
+    "openingAum": 2138665,
+    "closingAum": 2148665,
+    "flows": 10000
+  },
+  {
+    "month": "2025-09",
+    "fund": "USDT",
+    "grossPct": 0.2119455569,
+    "netPct": 0.1695564455,
+    "openingAum": 2153219,
+    "closingAum": 2153219,
+    "flows": 0
+  },
+  {
+    "month": "2025-10",
+    "fund": "USDT",
+    "grossPct": 0.0923733257,
+    "netPct": 0.07389866056,
+    "openingAum": 2155208,
+    "closingAum": 2155208,
+    "flows": 0
+  },
+  {
+    "month": "2025-10",
+    "fund": "USDT",
+    "grossPct": 0.1817921982,
+    "netPct": 0.1454337586,
+    "openingAum": 2159126,
+    "closingAum": 2179126,
+    "flows": 20000
+  },
+  {
+    "month": "2025-10",
+    "fund": "USDT",
+    "grossPct": 0.1205529189,
+    "netPct": 0.09644233514,
+    "openingAum": 2181753,
+    "closingAum": 2154158.45,
+    "flows": -27594.55
+  },
+  {
+    "month": "2025-10",
+    "fund": "USDT",
+    "grossPct": 0.1131091355,
+    "netPct": 0.09048730840000001,
+    "openingAum": 2156595,
+    "closingAum": 2256585,
+    "flows": 99990
+  },
+  {
+    "month": "2025-10",
+    "fund": "USDT",
+    "grossPct": 0.1501826876,
+    "netPct": 0.12014615,
+    "openingAum": 2259974,
+    "closingAum": 2368119,
+    "flows": 108145
+  },
+  {
+    "month": "2025-10",
+    "fund": "USDT",
+    "grossPct": 0.2730014835,
+    "netPct": 0.2184011868,
+    "openingAum": 2374584,
+    "closingAum": 2374584,
+    "flows": 0
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.02295138854,
+    "netPct": 0.01836111083,
+    "openingAum": 2375129,
+    "closingAum": 2261287.35,
+    "flows": -113841.65
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.02735830986,
+    "netPct": 0.02188664789,
+    "openingAum": 2261906,
+    "closingAum": 2297206,
+    "flows": 35300
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.1373842833,
+    "netPct": 0.1099074267,
+    "openingAum": 2300362,
+    "closingAum": 3140530.03,
+    "flows": 840168.03
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.017957796760000002,
+    "netPct": 0.01436623741,
+    "openingAum": 3141094,
+    "closingAum": 3091094,
+    "flows": -50000
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.1602345319,
+    "netPct": 0.1281876255,
+    "openingAum": 3096047,
+    "closingAum": 3395962.77,
+    "flows": 299915.77
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.1831065421,
+    "netPct": 0.1464852337,
+    "openingAum": 3402181,
+    "closingAum": 3354273,
+    "flows": -47908
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.08386317989,
+    "netPct": 0.06709054391000001,
+    "openingAum": 3357086,
+    "closingAum": 3407086,
+    "flows": 50000
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.02142593407,
+    "netPct": 0.01714074725,
+    "openingAum": 3407816,
+    "closingAum": 3337879,
+    "flows": -69937
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 3337879,
+    "closingAum": 3437879,
+    "flows": 100000
+  },
+  {
+    "month": "2025-11",
+    "fund": "USDT",
+    "grossPct": 0.1949166914,
+    "netPct": 0.1559333531,
+    "openingAum": 3444580,
+    "closingAum": 3444580,
+    "flows": 0
+  },
+  {
+    "month": "2025-12",
+    "fund": "USDT",
+    "grossPct": 0.11365681740000001,
+    "netPct": 0.0909254539,
+    "openingAum": 3448495,
+    "closingAum": 3281744.2,
+    "flows": -166750.8
+  },
+  {
+    "month": "2026-01",
+    "fund": "USDT",
+    "grossPct": 0.6302075585,
+    "netPct": 0.5041660468,
+    "openingAum": 3302426,
+    "closingAum": 3302426,
+    "flows": 0
+  },
+  {
+    "month": "2026-01",
+    "fund": "USDT",
+    "grossPct": 0.1487088583,
+    "netPct": 0.11896708660000001,
+    "openingAum": 3307337,
+    "closingAum": 3187354.37,
+    "flows": -119982.63
+  },
+  {
+    "month": "2026-01",
+    "fund": "USDT",
+    "grossPct": 0.2275752602,
+    "netPct": 0.1820602081,
+    "openingAum": 3194608,
+    "closingAum": 7394608,
+    "flows": 4200000
+  },
+  {
+    "month": "2026-01",
+    "fund": "USDT",
+    "grossPct": 0.1088495834,
+    "netPct": 0.0870796667,
+    "openingAum": 7402657,
+    "closingAum": 8002657,
+    "flows": 600000
+  },
+  {
+    "month": "2026-01",
+    "fund": "USDT",
+    "grossPct": 0.01643204251,
+    "netPct": 0.01314563401,
+    "openingAum": 8003972,
+    "closingAum": 8403972,
+    "flows": 400000
+  },
+  {
+    "month": "2026-02",
+    "fund": "USDT",
+    "grossPct": 0.1945508624,
+    "netPct": 0.15564068990000002,
+    "openingAum": 8420322,
+    "closingAum": 8420322,
+    "flows": 0
+  },
+  {
+    "month": "2026-02",
+    "fund": "USDT",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 8420322,
+    "closingAum": 9122948.23,
+    "flows": 702626.23
+  },
+  {
+    "month": "2026-02",
+    "fund": "USDT",
+    "grossPct": 0.110718265,
+    "netPct": 0.08857461203,
+    "openingAum": 9133049,
+    "closingAum": 9113049,
+    "flows": -20000
+  },
+  {
+    "month": "2026-02",
+    "fund": "USDT",
+    "grossPct": 0.006254767203,
+    "netPct": 0.005003813762000001,
+    "openingAum": 9113619,
+    "closingAum": 9663619,
+    "flows": 550000
+  },
+  {
+    "month": "2026-02",
+    "fund": "USDT",
+    "grossPct": 0.09290515282,
+    "netPct": 0.07432412226,
+    "openingAum": 9672597,
+    "closingAum": 9794983.85,
+    "flows": 122386.85
+  },
+  {
+    "month": "2025-09",
+    "fund": "SOL",
+    "grossPct": 100,
+    "netPct": 0,
+    "openingAum": 0,
+    "closingAum": 1250,
+    "flows": 1250
+  },
+  {
+    "month": "2025-09",
+    "fund": "SOL",
+    "grossPct": 0.16,
+    "netPct": 0.128,
+    "openingAum": 1252,
+    "closingAum": 1486.17,
+    "flows": 234.17
+  },
+  {
+    "month": "2025-09",
+    "fund": "SOL",
+    "grossPct": 0.9305799470999999,
+    "netPct": 0.7444639577000001,
+    "openingAum": 1500,
+    "closingAum": 1500,
+    "flows": 0
+  },
+  {
+    "month": "2025-10",
+    "fund": "SOL",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 1500,
+    "closingAum": 1263.98,
+    "flows": -236.02
+  },
+  {
+    "month": "2025-10",
+    "fund": "SOL",
+    "grossPct": 0.7927340622,
+    "netPct": 0.6341872498,
+    "openingAum": 1274,
+    "closingAum": 1361.98,
+    "flows": 87.98
+  },
+  {
+    "month": "2025-10",
+    "fund": "SOL",
+    "grossPct": 0.22173600200000002,
+    "netPct": 0.1773888016,
+    "openingAum": 1365,
+    "closingAum": 1365,
+    "flows": 0
+  },
+  {
+    "month": "2025-11",
+    "fund": "SOL",
+    "grossPct": 0.293040293,
+    "netPct": 0.23443223440000002,
+    "openingAum": 1369,
+    "closingAum": 3169.05,
+    "flows": 1800.05
+  },
+  {
+    "month": "2025-11",
+    "fund": "SOL",
+    "grossPct": 0.21930862560000003,
+    "netPct": 0.1754469005,
+    "openingAum": 3176,
+    "closingAum": 3926,
+    "flows": 750
+  },
+  {
+    "month": "2025-11",
+    "fund": "SOL",
+    "grossPct": 0.2037697402,
+    "netPct": 0.16301579219999998,
+    "openingAum": 3934,
+    "closingAum": 4684,
+    "flows": 750
+  },
+  {
+    "month": "2025-12",
+    "fund": "SOL",
+    "grossPct": 0.12809564469999998,
+    "netPct": 0.1024765158,
+    "openingAum": 4690,
+    "closingAum": 3404.34,
+    "flows": -1285.66
+  },
+  {
+    "month": "2025-12",
+    "fund": "SOL",
+    "grossPct": 0.01938701775,
+    "netPct": 0.015509614199999999,
+    "openingAum": 3405,
+    "closingAum": 4175,
+    "flows": 770
+  },
+  {
+    "month": "2025-12",
+    "fund": "SOL",
+    "grossPct": 0.1437125749,
+    "netPct": 0.1149700599,
+    "openingAum": 4181,
+    "closingAum": 4947,
+    "flows": 766
+  },
+  {
+    "month": "2026-01",
+    "fund": "SOL",
+    "grossPct": 0.5457853244,
+    "netPct": 0.4366282596,
+    "openingAum": 4974,
+    "closingAum": 4974,
+    "flows": 0
+  },
+  {
+    "month": "2026-01",
+    "fund": "SOL",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 4974,
+    "closingAum": 100.85,
+    "flows": -4873.15
+  },
+  {
+    "month": "2026-02",
+    "fund": "SOL",
+    "grossPct": 1.140307387,
+    "netPct": 0.9122459098,
+    "openingAum": 102,
+    "closingAum": 102,
+    "flows": 0
+  },
+  {
+    "month": "2026-02",
+    "fund": "SOL",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 102,
+    "closingAum": 1322.31,
+    "flows": 1220.31
+  },
+  {
+    "month": "2025-11",
+    "fund": "XRP",
+    "grossPct": 100,
+    "netPct": 0,
+    "openingAum": 0,
+    "closingAum": 135003,
+    "flows": 135003
+  },
+  {
+    "month": "2025-11",
+    "fund": "XRP",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 135003,
+    "closingAum": 184003,
+    "flows": 49000
+  },
+  {
+    "month": "2025-11",
+    "fund": "XRP",
+    "grossPct": 0.192931637,
+    "netPct": 0.1543453096,
+    "openingAum": 184358,
+    "closingAum": 229358,
+    "flows": 45000
+  },
+  {
+    "month": "2025-12",
+    "fund": "XRP",
+    "grossPct": 0.1626278569,
+    "netPct": 0.1301022855,
+    "openingAum": 229731,
+    "closingAum": 279231,
+    "flows": 49500
+  },
+  {
+    "month": "2025-12",
+    "fund": "XRP",
+    "grossPct": 0.1747656958,
+    "netPct": 0.1398125566,
+    "openingAum": 279719,
+    "closingAum": 329819,
+    "flows": 50100
+  },
+  {
+    "month": "2026-01",
+    "fund": "XRP",
+    "grossPct": 0.3507984683,
+    "netPct": 0.28063877460000003,
+    "openingAum": 330976,
+    "closingAum": 330976,
+    "flows": 0
+  },
+  {
+    "month": "2026-01",
+    "fund": "XRP",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 330976,
+    "closingAum": 475.58,
+    "flows": -330500.42
+  },
+  {
+    "month": "2026-01",
+    "fund": "XRP",
+    "grossPct": 0,
+    "netPct": 0,
+    "openingAum": 475.58,
+    "closingAum": 792,
+    "flows": 0
+  },
+  {
+    "month": "2026-02",
+    "fund": "XRP",
+    "grossPct": 0.3787878788,
+    "netPct": 0.303030303,
+    "openingAum": 795,
+    "closingAum": 795,
+    "flows": 0
+  }
+]

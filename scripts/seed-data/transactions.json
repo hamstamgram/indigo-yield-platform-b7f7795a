@@ -1,0 +1,1570 @@
+[
+  {
+    "date": "2024-06-12",
+    "investor": "Jose Molla",
+    "currency": "BTC",
+    "amount": 2.723,
+    "usdValue": 160575.0377,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-06-12",
+    "investor": "Jose Molla",
+    "currency": "ETH TAC",
+    "amount": 52.4,
+    "usdValue": 131701.636,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-07-08",
+    "investor": "Jose Molla",
+    "currency": "BTC",
+    "amount": 0.745,
+    "usdValue": 43932.5755,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-07-08",
+    "investor": "Jose Molla",
+    "currency": "ETH TAC",
+    "amount": 9.1,
+    "usdValue": 22871.849,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-08-21",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC",
+    "amount": 0.01,
+    "usdValue": 589.699,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-08-21",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC",
+    "amount": 1.99,
+    "usdValue": 117350.101,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-10-01",
+    "investor": "Matthias Reiser",
+    "currency": "BTC",
+    "amount": 4.62,
+    "usdValue": 292582.29,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-10-01",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 6.5193,
+    "usdValue": 412864.0094,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-10-01",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 5.2,
+    "usdValue": 329313.4,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-10-01",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH TAC",
+    "amount": 17,
+    "usdValue": 44252.02,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-10-24",
+    "investor": "Blondish",
+    "currency": "ETH TAC",
+    "amount": 120,
+    "usdValue": 301896,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-11-09",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 0.27,
+    "usdValue": -26041.2435,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2024-12-14",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 0.124,
+    "usdValue": -11585.2208,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2024-12-15",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 4.8628,
+    "usdValue": -454327.5138,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2024-12-15",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC",
+    "amount": 2.0336,
+    "usdValue": -189997.6211,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2024-12-15",
+    "investor": "Matthias Reiser",
+    "currency": "BTC",
+    "amount": 4.6717,
+    "usdValue": -436473.1936,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2024-12-15",
+    "investor": "Danielle Richetta",
+    "currency": "BTC BOOST",
+    "amount": 4.8628,
+    "usdValue": 454327.5138,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-12-15",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC BOOST",
+    "amount": 2.0336,
+    "usdValue": 189997.6211,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2024-12-15",
+    "investor": "Matthias Reiser",
+    "currency": "BTC BOOST",
+    "amount": 4.6717,
+    "usdValue": 436473.1936,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-03-01",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH TAC",
+    "amount": 4.608,
+    "usdValue": 10312.28928,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-03-31",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH TAC",
+    "amount": 5.226,
+    "usdValue": 9529.50648,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-01",
+    "investor": "Victoria Pariente-Cohen",
+    "currency": "BTC TAC",
+    "amount": 0.1492,
+    "usdValue": 12316.29737,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-01",
+    "investor": "Nathanaël Cohen",
+    "currency": "BTC TAC",
+    "amount": 0.4483,
+    "usdValue": 37006.67635,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-01",
+    "investor": "Blondish",
+    "currency": "BTC TAC",
+    "amount": 4.121,
+    "usdValue": 340184.0581,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-01",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 6.7249,
+    "usdValue": -555133.1649,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-04-01",
+    "investor": "Thomas Puech",
+    "currency": "BTC TAC",
+    "amount": 6.7249,
+    "usdValue": 555133.1649,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC",
+    "amount": 2.101,
+    "usdValue": 197929.5583,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "Matthias Reiser",
+    "currency": "BTC",
+    "amount": 4.8357,
+    "usdValue": 455558.289,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 5.0335,
+    "usdValue": 474192.4949,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC BOOST",
+    "amount": 2.101,
+    "usdValue": -197929.5583,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "Matthias Reiser",
+    "currency": "BTC BOOST",
+    "amount": 4.8357,
+    "usdValue": -455558.289,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "Danielle Richetta",
+    "currency": "BTC BOOST",
+    "amount": 5.0335,
+    "usdValue": -474192.4949,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "INDIGO Fees",
+    "currency": "BTC",
+    "amount": 0.0498,
+    "usdValue": 4691.524038,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-04-16",
+    "investor": "INDIGO Fees",
+    "currency": "BTC BOOST",
+    "amount": 0.0498,
+    "usdValue": -4691.524038,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-05-13",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC",
+    "amount": 2.1101,
+    "usdValue": -220796.8337,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-05-26",
+    "investor": "Babak Eftekhari",
+    "currency": "ETH",
+    "amount": 27.01,
+    "usdValue": 68310.7209,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-05-26",
+    "investor": "INDIGO DIGITAL ASSET FUND LP",
+    "currency": "ETH",
+    "amount": 175,
+    "usdValue": 442590.75,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-05-30",
+    "investor": "Babak Eftekhari",
+    "currency": "ETH",
+    "amount": 32.25,
+    "usdValue": 81563.1525,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-06-01",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH",
+    "amount": 3.0466,
+    "usdValue": 7705.125594,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-06-01",
+    "investor": "danielle Richetta",
+    "currency": "BTC",
+    "amount": 0.13,
+    "usdValue": -13602.9517,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-06-11",
+    "investor": "Kabbaj",
+    "currency": "BTC",
+    "amount": 2,
+    "usdValue": 214270.68,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-06-16",
+    "investor": "Babak Eftekhari",
+    "currency": "USDT",
+    "amount": 135726.75,
+    "usdValue": 135726.75,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-01",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH",
+    "amount": 2,
+    "usdValue": 4972.92,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Jose Molla",
+    "currency": "ETH TAC",
+    "amount": 62.6261,
+    "usdValue": -231510.5301,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH TAC",
+    "amount": 26.6797,
+    "usdValue": -98627.11379,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Blondish",
+    "currency": "ETH TAC",
+    "amount": 119.7862,
+    "usdValue": -442814.8434,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Indigo Fees",
+    "currency": "ETH TAC",
+    "amount": 0.898,
+    "usdValue": -3319.64558,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Jose Molla",
+    "currency": "ETH",
+    "amount": 62.6261,
+    "usdValue": 231510.5301,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH",
+    "amount": 26.6797,
+    "usdValue": 98627.11379,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Blondish",
+    "currency": "ETH",
+    "amount": 119.7862,
+    "usdValue": 442814.8434,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Indigo Fees",
+    "currency": "ETH",
+    "amount": 0.898,
+    "usdValue": 3319.64558,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Kabbaj",
+    "currency": "BTC",
+    "amount": 0.9914,
+    "usdValue": 114762.6795,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Victoria Pariente-Cohen",
+    "currency": "BTC",
+    "amount": 0.1484,
+    "usdValue": 17178.51688,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Nathanaël Cohen",
+    "currency": "BTC",
+    "amount": 0.446,
+    "usdValue": 51628.1572,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 6.69,
+    "usdValue": 774422.358,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Blondish",
+    "currency": "BTC",
+    "amount": 4.0996,
+    "usdValue": 474562.3167,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Victoria Pariente-Cohen",
+    "currency": "BTC TAC",
+    "amount": 0.1484,
+    "usdValue": -17178.51688,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Nathanaël Cohen",
+    "currency": "BTC TAC",
+    "amount": 0.446,
+    "usdValue": -51628.1572,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Thomas Puech",
+    "currency": "BTC TAC",
+    "amount": 6.69,
+    "usdValue": -774422.358,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-11",
+    "investor": "Blondish",
+    "currency": "BTC TAC",
+    "amount": 4.0996,
+    "usdValue": -474562.3167,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-14",
+    "investor": "Julien Grunebaum",
+    "currency": "USDT",
+    "amount": 109392,
+    "usdValue": 109392,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-14",
+    "investor": "Daniele Francilia",
+    "currency": "USDT",
+    "amount": 109776,
+    "usdValue": 109776,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-14",
+    "investor": "Pierre Bezencon",
+    "currency": "USDT",
+    "amount": 109333,
+    "usdValue": 109333,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-14",
+    "investor": "Matthew Beatty",
+    "currency": "USDT",
+    "amount": 255504,
+    "usdValue": 255504,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-14",
+    "investor": "Bo De Kriek",
+    "currency": "USDT",
+    "amount": 273807,
+    "usdValue": 273807,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-19",
+    "investor": "Dario Deiana",
+    "currency": "USDT",
+    "amount": 199659.72,
+    "usdValue": 199659.72,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-19",
+    "investor": "Babak Eftekhari",
+    "currency": "USDT",
+    "amount": 46955.28,
+    "usdValue": 46955.28,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-23",
+    "investor": "Alain Bensimon",
+    "currency": "USDT",
+    "amount": 136737,
+    "usdValue": 136737,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-23",
+    "investor": "Anne Cecile Noique",
+    "currency": "USDT",
+    "amount": 222687,
+    "usdValue": 222687,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-23",
+    "investor": "Terance Chen",
+    "currency": "USDT",
+    "amount": 219747,
+    "usdValue": 219747,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-24",
+    "investor": "Oliver Loisel",
+    "currency": "BTC",
+    "amount": 2.115364,
+    "usdValue": 244870.729,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-25",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 0.26,
+    "usdValue": -30097.132,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-30",
+    "investor": "Advantage Blockchain",
+    "currency": "ETH",
+    "amount": 32,
+    "usdValue": 118294.72,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-07-30",
+    "investor": "INDIGO DIGITAL ASSET FUND LP",
+    "currency": "ETH",
+    "amount": 178.37,
+    "usdValue": -659382.1627,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-07-31",
+    "investor": "Kabbaj",
+    "currency": "BTC",
+    "amount": 0.6,
+    "usdValue": 69454.92,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-08-04",
+    "investor": "INDIGO Ventures",
+    "currency": "USDT",
+    "amount": 130000,
+    "usdValue": 130000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-08-04",
+    "investor": "Babak Eftekhari",
+    "currency": "USDT",
+    "amount": 10000,
+    "usdValue": 10000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-08-14",
+    "investor": "Matthew Beatty",
+    "currency": "USDT",
+    "amount": 25900,
+    "usdValue": 25900,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-08-19",
+    "investor": "INDIGO DIGITAL ASSET FUND LP",
+    "currency": "USDT",
+    "amount": 111370,
+    "usdValue": 111370,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-08-20",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 0.11,
+    "usdValue": -11906.0381,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-08-25",
+    "investor": "Kabbaj",
+    "currency": "BTC",
+    "amount": 0.9102,
+    "usdValue": 98517.05344,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-02",
+    "investor": "INDIGO DIGITAL ASSET FUND LP",
+    "currency": "SOL",
+    "amount": 1250,
+    "usdValue": 260925,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-04",
+    "investor": "Paul Johnson",
+    "currency": "SOL",
+    "amount": 234.17,
+    "usdValue": 48880.6458,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-04",
+    "investor": "Paul Johnson",
+    "currency": "ETH",
+    "amount": 10.44,
+    "usdValue": 43283.8224,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-10",
+    "investor": "Paul Johnson",
+    "currency": "ETH",
+    "amount": 4.6327,
+    "usdValue": 19206.98889,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-12",
+    "investor": "Paul Johnson",
+    "currency": "ETH",
+    "amount": 8.96,
+    "usdValue": 37147.8016,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-12",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH",
+    "amount": 3.35,
+    "usdValue": 13888.966,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-24",
+    "investor": "Babak Eftekhari",
+    "currency": "USDT",
+    "amount": 10000,
+    "usdValue": 10000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-09-27",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 63.1,
+    "usdValue": 261610.076,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-03",
+    "investor": "Paul Johnson",
+    "currency": "BTC",
+    "amount": 0.4395,
+    "usdValue": 48149.93232,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-03",
+    "investor": "Paul Johnson",
+    "currency": "SOL",
+    "amount": 236.02,
+    "usdValue": -44185.3042,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-10-03",
+    "investor": "Paul Johnson",
+    "currency": "ETH",
+    "amount": 12,
+    "usdValue": -46164.96,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-10-06",
+    "investor": "INDIGO Ventures",
+    "currency": "USDT",
+    "amount": 100000,
+    "usdValue": -100000,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-10-06",
+    "investor": "Sacha Oshry",
+    "currency": "USDT",
+    "amount": 100000,
+    "usdValue": 100000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-08",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 10.051,
+    "usdValue": 38667.00108,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-09",
+    "investor": "Babak Eftekhari",
+    "currency": "USDT",
+    "amount": 20000,
+    "usdValue": 20000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-13",
+    "investor": "INDIGO Ventures",
+    "currency": "USDT",
+    "amount": 27594.55,
+    "usdValue": -27594.55,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-10-14",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 64.27,
+    "usdValue": 247251.8316,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-14",
+    "investor": "Babak Eftekhari",
+    "currency": "ETH",
+    "amount": 3.75,
+    "usdValue": 14426.55,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-15",
+    "investor": "HALLEY86",
+    "currency": "USDT",
+    "amount": 99990,
+    "usdValue": 99990,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-17",
+    "investor": "Babak Eftekhari",
+    "currency": "ETH",
+    "amount": 3.1,
+    "usdValue": 11925.948,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-20",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 6.5417,
+    "usdValue": 25166.44324,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-23",
+    "investor": "Jose Molla",
+    "currency": "ETH",
+    "amount": 1.2,
+    "usdValue": 4616.496,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-23",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 6.4,
+    "usdValue": 24621.312,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-23",
+    "investor": "Jose Molla",
+    "currency": "SOL",
+    "amount": 87.98,
+    "usdValue": 16470.7358,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-23",
+    "investor": "Jose Molla",
+    "currency": "BTC",
+    "amount": 0.062,
+    "usdValue": 6792.48192,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-23",
+    "investor": "Jose Molla",
+    "currency": "USDT",
+    "amount": 97695,
+    "usdValue": 97695,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-10-23",
+    "investor": "Babak Eftekhari",
+    "currency": "USDT",
+    "amount": 10450,
+    "usdValue": 10450,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-03",
+    "investor": "Indigo Fees",
+    "currency": "ETH",
+    "amount": 0.03593745021234585,
+    "usdValue": 107.5288042,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-03",
+    "investor": "Jose Molla",
+    "currency": "ETH",
+    "amount": 2.5063577386065177,
+    "usdValue": 7499.298053,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-03",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH",
+    "amount": 1.067745459138733,
+    "usdValue": 3194.811866,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-03",
+    "investor": "Blondish",
+    "currency": "ETH",
+    "amount": 4.793959352042402,
+    "usdValue": 14344.05372,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-03",
+    "investor": "INDIGO DIGITAL ASSET FUND LP",
+    "currency": "USDT",
+    "amount": 113841.65,
+    "usdValue": -113841.65,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-11-04",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 6.9519,
+    "usdValue": 20800.84951,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-04",
+    "investor": "Matthew Beatty",
+    "currency": "USDT",
+    "amount": 35300,
+    "usdValue": 35300,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-05",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 7.6215,
+    "usdValue": 22804.36637,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-05",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 0.283,
+    "usdValue": -25581.58973,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-11-05",
+    "investor": "Paul Johnson",
+    "currency": "BTC",
+    "amount": 0.4408,
+    "usdValue": -39845.81185,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-11-05",
+    "investor": "Paul Johnson",
+    "currency": "ETH",
+    "amount": 12.22,
+    "usdValue": -36563.5842,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-11-07",
+    "investor": "Monica Levy Chicheportiche",
+    "currency": "USDT",
+    "amount": 840168.03,
+    "usdValue": 840168.03,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-07",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 10.224,
+    "usdValue": 30591.33264,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-08",
+    "investor": "Jose Molla",
+    "currency": "USDT",
+    "amount": 50000,
+    "usdValue": -50000,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-11-08",
+    "investor": "Jose Molla",
+    "currency": "BTC",
+    "amount": 0.4867,
+    "usdValue": 43994.91068,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-13",
+    "investor": "Nath & Thomas",
+    "currency": "USDT",
+    "amount": 299915.77,
+    "usdValue": 299915.77,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-17",
+    "investor": "Sam Johnson",
+    "currency": "BTC",
+    "amount": 3.3,
+    "usdValue": 298301.223,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-17",
+    "investor": "Sam Johnson",
+    "currency": "ETH",
+    "amount": 78,
+    "usdValue": 233384.58,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-17",
+    "investor": "Sam Johnson",
+    "currency": "SOL",
+    "amount": 1800.05,
+    "usdValue": 240414.678,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-17",
+    "investor": "Sam Johnson",
+    "currency": "XRP",
+    "amount": 135003,
+    "usdValue": 291741.483,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-17",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 6.234,
+    "usdValue": 18652.81374,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-21",
+    "investor": "Jose Molla",
+    "currency": "USDT",
+    "amount": 47908,
+    "usdValue": -47908,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-11-25",
+    "investor": "Sam Johnson",
+    "currency": "BTC",
+    "amount": 1,
+    "usdValue": 90394.31,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-25",
+    "investor": "Sam Johnson",
+    "currency": "XRP",
+    "amount": 49000,
+    "usdValue": 105889,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-25",
+    "investor": "Sam Johnson",
+    "currency": "SOL",
+    "amount": 750,
+    "usdValue": 100170,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-25",
+    "investor": "Sam Johnson",
+    "currency": "ETH",
+    "amount": 35,
+    "usdValue": 104723.85,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-25",
+    "investor": "Jose Molla",
+    "currency": "BTC",
+    "amount": 0.548,
+    "usdValue": 49536.08188,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-25",
+    "investor": "Valeria Cruz",
+    "currency": "USDT",
+    "amount": 50000,
+    "usdValue": 50000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-26",
+    "investor": "Matthew Beatty",
+    "currency": "USDT",
+    "amount": 18000,
+    "usdValue": 18000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-26",
+    "investor": "Nath & Thomas",
+    "currency": "USDT",
+    "amount": 87937,
+    "usdValue": -87937,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-11-27",
+    "investor": "Ventures Life Style",
+    "currency": "USDT",
+    "amount": 100000,
+    "usdValue": 100000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-27",
+    "investor": "Nath & Thomas",
+    "currency": "BTC",
+    "amount": 1,
+    "usdValue": 90394.31,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-27",
+    "investor": "Vivie & Liana",
+    "currency": "BTC",
+    "amount": 3.411,
+    "usdValue": 308334.9914,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-30",
+    "investor": "Sam Johnson",
+    "currency": "BTC",
+    "amount": 1.2,
+    "usdValue": 108473.172,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-30",
+    "investor": "Sam Johnson",
+    "currency": "XRP",
+    "amount": 45000,
+    "usdValue": 97245,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-30",
+    "investor": "Sam Johnson",
+    "currency": "SOL",
+    "amount": 750,
+    "usdValue": 100170,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-11-30",
+    "investor": "Sam Johnson",
+    "currency": "ETH",
+    "amount": 33,
+    "usdValue": 98739.63,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-02",
+    "investor": "Tomer Zur",
+    "currency": "ETH",
+    "amount": 9.143,
+    "usdValue": 27127.64672,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-04",
+    "investor": "INDIGO DIGITAL ASSET FUND LP",
+    "currency": "SOL",
+    "amount": 1285.66,
+    "usdValue": -160038.9568,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-12-04",
+    "investor": "Brandon Hood",
+    "currency": "ETH",
+    "amount": 31.37,
+    "usdValue": 93076.0448,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-08",
+    "investor": "Nath & Thomas",
+    "currency": "USDT",
+    "amount": 213501.6,
+    "usdValue": -213501.6,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2025-12-08",
+    "investor": "Thomas Puech",
+    "currency": "USDT",
+    "amount": 46750.8,
+    "usdValue": 46750.8,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-08",
+    "investor": "Sam Johnson",
+    "currency": "XRP",
+    "amount": 49500,
+    "usdValue": 91080,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-08",
+    "investor": "Sam Johnson",
+    "currency": "SOL",
+    "amount": 770,
+    "usdValue": 95849.6,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-08",
+    "investor": "Sam Johnson",
+    "currency": "ETH",
+    "amount": 34,
+    "usdValue": 100879.36,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-08",
+    "investor": "Sam Johnson",
+    "currency": "BTC",
+    "amount": 1.1,
+    "usdValue": 96259.713,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-09",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 0.657,
+    "usdValue": 57493.30131,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-15",
+    "investor": "Sam Johnson",
+    "currency": "XRP",
+    "amount": 50100,
+    "usdValue": 92184,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-15",
+    "investor": "Sam Johnson",
+    "currency": "SOL",
+    "amount": 766,
+    "usdValue": 95351.68,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-15",
+    "investor": "Sam Johnson",
+    "currency": "ETH",
+    "amount": 32.5,
+    "usdValue": 96428.8,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-15",
+    "investor": "Sam Johnson",
+    "currency": "BTC",
+    "amount": 1.17,
+    "usdValue": 102385.3311,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2025-12-23",
+    "investor": "Matthias Reiser",
+    "currency": "BTC",
+    "amount": 4.9895,
+    "usdValue": -436625.3073,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-02",
+    "investor": "Sam Johnson",
+    "currency": "XRP",
+    "amount": 330500.42,
+    "usdValue": -572558.9276,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-02",
+    "investor": "Sam Johnson",
+    "currency": "SOL",
+    "amount": 4873.15,
+    "usdValue": -571912.884,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-02",
+    "investor": "Sam Johnson",
+    "currency": "ETH",
+    "amount": 213.73,
+    "usdValue": -577579.6774,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-02",
+    "investor": "Sam Johnson",
+    "currency": "BTC",
+    "amount": 7.7852,
+    "usdValue": -654958.4438,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-02",
+    "investor": "Advantage Blockchain",
+    "currency": "ETH",
+    "amount": 18,
+    "usdValue": 48642.84,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-05",
+    "investor": "Vivie & Liana",
+    "currency": "BTC",
+    "amount": 3.4221,
+    "usdValue": -287896.6874,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-05",
+    "investor": "Nathanaël Cohen",
+    "currency": "ETH",
+    "amount": 11.84556,
+    "usdValue": 32011.20443,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-05",
+    "investor": "Kabbaj",
+    "currency": "BTC",
+    "amount": 2.1577,
+    "usdValue": 181524.4097,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-08",
+    "investor": "INDIGO Ventures",
+    "currency": "USDT",
+    "amount": 5115.04,
+    "usdValue": -5115.04,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-08",
+    "investor": "Daniele Francilia",
+    "currency": "USDT",
+    "amount": 114867.59,
+    "usdValue": -114867.59,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-13",
+    "investor": "NSVO Holdings",
+    "currency": "BTC",
+    "amount": 0.622,
+    "usdValue": 52328.02652,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-13",
+    "investor": "NSVO Holdings",
+    "currency": "ETH",
+    "amount": 25.03,
+    "usdValue": 67640.5714,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-13",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 0.1135766,
+    "usdValue": 9555.047165,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-19",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC",
+    "amount": 3.9998,
+    "usdValue": 336497.8143,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-19",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 0.12,
+    "usdValue": -10095.4392,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-19",
+    "investor": "Sam Johnson",
+    "currency": "USDT",
+    "amount": 4200000,
+    "usdValue": 4200000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-23",
+    "investor": "Kyle Gulamerian",
+    "currency": "BTC",
+    "amount": 3.99,
+    "usdValue": -335673.3534,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-01-26",
+    "investor": "Sam Johnson",
+    "currency": "USDT",
+    "amount": 600000,
+    "usdValue": 600000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-28",
+    "investor": "Sam Johnson",
+    "currency": "USDT",
+    "amount": 400000,
+    "usdValue": 400000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-01-30",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 0.14207,
+    "usdValue": 11952.15873,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-02",
+    "investor": "Sam Johnson",
+    "currency": "USDT",
+    "amount": 750000,
+    "usdValue": 750000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-02",
+    "investor": "Thomas Puech",
+    "currency": "USDT",
+    "amount": 47373.77,
+    "usdValue": -47373.77,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-02-03",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 0.60672,
+    "usdValue": 47231.98103,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-06",
+    "investor": "INDIGO Fees",
+    "currency": "USDT",
+    "amount": 20000,
+    "usdValue": -20000,
+    "type": "WITHDRAWAL"
+  },
+  {
+    "date": "2026-02-06",
+    "investor": "NSVO Holdings",
+    "currency": "BTC",
+    "amount": 0.1773,
+    "usdValue": 13802.46281,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-08",
+    "investor": "Sam Johnson",
+    "currency": "USDT",
+    "amount": 550000,
+    "usdValue": 550000,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-12",
+    "investor": "Jose Molla",
+    "currency": "BTC",
+    "amount": 2.766,
+    "usdValue": 215327.7616,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-12",
+    "investor": "ALOK PAVAN BATRA",
+    "currency": "BTC",
+    "amount": 6,
+    "usdValue": 467088.42,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-12",
+    "investor": "Jose Molla",
+    "currency": "ETH",
+    "amount": 47.32,
+    "usdValue": 109759.6864,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-12",
+    "investor": "ALOK PAVAN BATRA",
+    "currency": "ETH",
+    "amount": 103.38,
+    "usdValue": 239791.9776,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-12",
+    "investor": "Jose Molla",
+    "currency": "SOL",
+    "amount": 393.77,
+    "usdValue": 40609.5001,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-12",
+    "investor": "ALOK PAVAN BATRA",
+    "currency": "SOL",
+    "amount": 826.54,
+    "usdValue": 85241.0702,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-13",
+    "investor": "Thomas Puech",
+    "currency": "BTC",
+    "amount": 0.6555,
+    "usdValue": 51029.40989,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-13",
+    "investor": "Nathanaël Cohen",
+    "currency": "USDT",
+    "amount": 93819.18,
+    "usdValue": 93819.18,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-13",
+    "investor": "Tomer Mazar",
+    "currency": "USDT",
+    "amount": 28567.67,
+    "usdValue": 28567.67,
+    "type": "DEPOSIT"
+  },
+  {
+    "date": "2026-02-13",
+    "investor": "Danielle Richetta",
+    "currency": "BTC",
+    "amount": 4.3,
+    "usdValue": -334746.701,
+    "type": "WITHDRAWAL"
+  }
+]

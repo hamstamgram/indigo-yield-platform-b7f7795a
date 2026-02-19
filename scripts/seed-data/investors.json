@@ -1,0 +1,461 @@
+[
+  {
+    "name": "Advantage Blockchain",
+    "accountType": "investor",
+    "feePct": 18,
+    "ibPct": 2,
+    "ibParent": "Alec Beckman",
+    "email": "advantage.blockchain@indigo.fund",
+    "fundsPresent": ["ETH"]
+  },
+  {
+    "name": "Alain Bensimon",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "alain.bensimon@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Alec Beckman",
+    "accountType": "ib",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "alec.beckman@indigo.fund",
+    "fundsPresent": ["ETH"]
+  },
+  {
+    "name": "Alex Jacobs",
+    "accountType": "ib",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "alex.jacobs@indigo.fund",
+    "fundsPresent": ["ETH", "SOL"]
+  },
+  {
+    "name": "Alex Jacobs",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "alex.jacobs@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "ALOK PAVAN BATRA",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "alok.batra@indigo.fund",
+    "fundsPresent": ["BTC", "ETH", "SOL"]
+  },
+  {
+    "name": "Anne Cecile Noique",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "anne.noique@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Babak Eftekhari",
+    "accountType": "investor",
+    "feePct": 18,
+    "ibPct": 2,
+    "ibParent": "Lars Ahlgreen",
+    "email": "babak.eftekhari@indigo.fund",
+    "fundsPresent": ["ETH", "USDT"]
+  },
+  {
+    "name": "Blondish",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "blondish@indigo.fund",
+    "fundsPresent": ["BTC", "ETH"]
+  },
+  {
+    "name": "Bo De kriek",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "bo.kriek@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Bo De Kriek",
+    "accountType": "investor",
+    "feePct": 30,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "bo.kriek@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Brandon Hood",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "brandon.hood@indigo.fund",
+    "fundsPresent": ["ETH"]
+  },
+  {
+    "name": "Daniele Francilia",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "daniele.francilia@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "danielle Richetta",
+    "accountType": "investor",
+    "feePct": 30,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "danielle.richetta@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "Danielle Richetta",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "danielle.richetta@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "Dario Deiana",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "dario.deiana@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "HALLEY86",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "halley@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "INDIGO DIGITAL ASSET FUND LP",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "lp@indigo.fund",
+    "fundsPresent": ["ETH", "USDT", "SOL"]
+  },
+  {
+    "name": "Indigo Fees",
+    "accountType": "fees_account",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "fees@indigo.fund",
+    "fundsPresent": ["BTC", "ETH", "USDT", "SOL", "XRP"]
+  },
+  {
+    "name": "INDIGO Fees",
+    "accountType": "investor",
+    "feePct": 30,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "fees@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "INDIGO Ventures",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "ventures@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Joel Barbeau",
+    "accountType": "ib",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "joel.barbeau@indigo.fund",
+    "fundsPresent": []
+  },
+  {
+    "name": "Joel Barbeau",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "joel.barbeau@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Jose Molla",
+    "accountType": "investor",
+    "feePct": 15,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "jose.molla@indigo.fund",
+    "fundsPresent": ["BTC", "ETH", "USDT", "SOL"]
+  },
+  {
+    "name": "Julien Grunebaum",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "julien.grunebaum@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Kabbaj",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "kabbaj@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "Kyle Gulamerian",
+    "accountType": "investor",
+    "feePct": 15,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "kyle.gulamerian@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "Lars Ahlgreen",
+    "accountType": "ib",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "lars.ahlgreen@indigo.fund",
+    "fundsPresent": ["ETH", "USDT"]
+  },
+  {
+    "name": "Matthew Beatty",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "matthew.beatty@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Matthias Reiser",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "matthias.reiser@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "Monica Levy Chicheportiche",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "monica.chicheportiche@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Nath & Thomas",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "nath.thomas@indigo.fund",
+    "fundsPresent": ["BTC", "USDT"]
+  },
+  {
+    "name": "Nathanaël Cohen",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "nathanal.cohen@indigo.fund",
+    "fundsPresent": ["BTC", "ETH", "USDT"]
+  },
+  {
+    "name": "Next IB",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "next.ib@indigo.fund",
+    "fundsPresent": ["XRP"]
+  },
+  {
+    "name": "NSVO Holdings",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "nsvo.holdings@indigo.fund",
+    "fundsPresent": ["BTC", "ETH"]
+  },
+  {
+    "name": "Oliver Loisel",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "oliver.loisel@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "Paul Johnson",
+    "accountType": "investor",
+    "feePct": 13.5,
+    "ibPct": 1.5,
+    "ibParent": "Alex Jacobs",
+    "email": "paul.johnson@indigo.fund",
+    "fundsPresent": ["BTC", "ETH", "SOL"]
+  },
+  {
+    "name": "Pierre Bezencon",
+    "accountType": "investor",
+    "feePct": 30,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "pierre.bezencon@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Pierre Bezençon",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "pierre.bezenon@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Ryan Van Der Wall",
+    "accountType": "ib",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "ryan.wall@indigo.fund",
+    "fundsPresent": ["BTC", "ETH", "USDT", "SOL", "XRP"]
+  },
+  {
+    "name": "Sacha Oshry",
+    "accountType": "investor",
+    "feePct": 15,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "sacha.oshry@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Sam Johnson",
+    "accountType": "investor",
+    "feePct": 16,
+    "ibPct": 4,
+    "ibParent": "Ryan Van Der Wall",
+    "email": "sam.johnson@indigo.fund",
+    "fundsPresent": ["BTC", "ETH", "USDT", "SOL", "XRP"]
+  },
+  {
+    "name": "Terance Chen",
+    "accountType": "investor",
+    "feePct": 10,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "terance.chen@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Thomas Puech",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "thomas.puech@indigo.fund",
+    "fundsPresent": ["BTC", "USDT"]
+  },
+  {
+    "name": "Tomer Mazar",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "tomer.mazar@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Tomer Zur",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "tomer.zur@indigo.fund",
+    "fundsPresent": ["ETH"]
+  },
+  {
+    "name": "Valeria Cruz",
+    "accountType": "investor",
+    "feePct": 20,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "valeria.cruz@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Ventures Life Style",
+    "accountType": "investor",
+    "feePct": 16,
+    "ibPct": 4,
+    "ibParent": "Joel Barbeau",
+    "email": "ventures.lifestyle@indigo.fund",
+    "fundsPresent": ["USDT"]
+  },
+  {
+    "name": "Victoria Pariente-Cohen",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "victoria.parientecohen@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "Vivie & Liana",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "vivie.liana@indigo.fund",
+    "fundsPresent": ["BTC"]
+  },
+  {
+    "name": "x",
+    "accountType": "investor",
+    "feePct": 0,
+    "ibPct": 0,
+    "ibParent": null,
+    "email": "x@indigo.fund",
+    "fundsPresent": ["SOL", "XRP"]
+  }
+]
