@@ -123,6 +123,8 @@ export {
   useSendReportEmail,
   useHistoricalReports,
   useDeleteInvestorReport,
+  useBulkDeleteReports,
+  useDeleteSingleReport,
 } from "./useReports";
 
 // Statements

@@ -10,6 +10,8 @@ export { DeleteWithdrawalDialog } from "./DeleteWithdrawalDialog";
 export { EditWithdrawalDialog } from "./EditWithdrawalDialog";
 export { RejectWithdrawalDialog } from "./RejectWithdrawalDialog";
 export { RouteToFeesDialog } from "./RouteToFeesDialog";
+export { BulkDeleteWithdrawalsDialog } from "./BulkDeleteWithdrawalsDialog";
+export { WithdrawalBulkActionToolbar } from "./WithdrawalBulkActionToolbar";
 
 // Components
 export { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";

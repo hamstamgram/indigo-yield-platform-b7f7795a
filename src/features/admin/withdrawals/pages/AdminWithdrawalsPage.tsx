@@ -9,6 +9,8 @@ import {
   EditWithdrawalDialog,
   DeleteWithdrawalDialog,
   RouteToFeesDialog,
+  BulkDeleteWithdrawalsDialog,
+  WithdrawalBulkActionToolbar,
 } from "@/components/admin";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/domains";
 import { ArrowDownToLine, Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
@@ -17,6 +19,9 @@ import { MetricStrip, type MetricItem } from "@/components/common/MetricStrip";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useWithdrawalsWithStats } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
+import { useWithdrawalSelection } from "@/features/admin/withdrawals/hooks/useWithdrawalSelection";
+import { useWithdrawalMutations } from "@/hooks/data";
+import { useSuperAdmin } from "@/components/admin";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import { PageHeader } from "@/components/layout";
@@ -59,6 +64,11 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [routeToFeesDialogOpen, setRouteToFeesDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+
+  // Super admin check for bulk operations
+  const { isSuperAdmin } = useSuperAdmin();
+  const { bulkDeleteMutation } = useWithdrawalMutations();
 
   // URL-persisted filters including page - using stable reference from outside component
   const {
@@ -97,6 +107,14 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
     pageSize: 20,
     totalPages: 0,
   };
+
+  // Selection for bulk operations
+  const selection = useWithdrawalSelection(safePaginatedData.data, safePaginatedData.page);
+
+  const selectedWithdrawals = useMemo(
+    () => safePaginatedData.data.filter((w) => selection.selectedIds.has(w.id)),
+    [safePaginatedData.data, selection.selectedIds]
+  );
 
   const setFilters = useCallback(
     (newFilters: WithdrawalFilters) => {
@@ -257,6 +275,14 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
         }
       />
 
+      {/* Bulk Action Toolbar */}
+      <WithdrawalBulkActionToolbar
+        summary={selection.summary}
+        isSuperAdmin={isSuperAdmin}
+        onDelete={() => setBulkDeleteDialogOpen(true)}
+        onClear={selection.clearSelection}
+      />
+
       <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-white/10">
           <span className="text-sm font-medium text-white">Withdrawal Requests</span>
@@ -275,6 +301,14 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
               totalCount: safePaginatedData.totalCount,
               totalPages: safePaginatedData.totalPages,
               onPageChange: setPage,
+            }}
+            selection={{
+              selectedIds: selection.selectedIds,
+              toggleOne: selection.toggleOne,
+              toggleAll: selection.toggleAll,
+              isSelected: selection.isSelected,
+              isAllSelected: selection.isAllSelected,
+              isIndeterminate: selection.isIndeterminate,
             }}
             onViewDetails={handleViewDetails}
             onApprove={handleTableApprove}
@@ -333,6 +367,30 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
           />
         </>
       )}
+
+      {/* Bulk Delete Dialog */}
+      <BulkDeleteWithdrawalsDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        withdrawals={selectedWithdrawals}
+        summary={selection.summary}
+        isPending={bulkDeleteMutation.isPending}
+        onConfirm={(reason, hardDelete) => {
+          bulkDeleteMutation.mutate(
+            {
+              withdrawalIds: Array.from(selection.selectedIds),
+              reason,
+              hardDelete,
+            },
+            {
+              onSuccess: () => {
+                setBulkDeleteDialogOpen(false);
+                selection.clearSelection();
+              },
+            }
+          );
+        }}
+      />
     </>
   );
 

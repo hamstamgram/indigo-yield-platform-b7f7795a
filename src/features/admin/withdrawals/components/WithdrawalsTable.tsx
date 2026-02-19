@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Checkbox,
 } from "@/components/ui";
 import { ResponsiveTable, ResponsiveTableColumn } from "@/components/ui/responsive-table";
 import { FinancialValue } from "@/components/common/FinancialValue";
@@ -54,6 +55,15 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
+interface SelectionProps {
+  selectedIds: Set<string>;
+  toggleOne: (id: string) => void;
+  toggleAll: () => void;
+  isSelected: (id: string) => boolean;
+  isAllSelected: boolean;
+  isIndeterminate: boolean;
+}
+
 interface WithdrawalsTableProps {
   withdrawals: Withdrawal[];
   isLoading: boolean;
@@ -62,6 +72,7 @@ interface WithdrawalsTableProps {
   onRefresh: () => void;
   funds?: Fund[];
   pagination?: PaginationProps;
+  selection?: SelectionProps;
   onViewDetails?: (withdrawal: Withdrawal) => void;
   // Action callbacks - dialogs are handled by parent component
   onApprove?: (withdrawal: Withdrawal) => void;
@@ -177,6 +188,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
   onRefresh,
   funds = [],
   pagination,
+  selection,
   onViewDetails,
   onApprove,
   onReject,
@@ -231,119 +243,162 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
   );
 
   // Define columns for ResponsiveTable
-  const columns: ResponsiveTableColumn<Withdrawal>[] = [
-    {
-      header: "Investor",
-      cell: (w) => (
-        <div className="flex flex-col max-w-[200px]">
-          <TruncatedText text={w.investor_name} className="font-medium" />
-          <TruncatedText text={w.investor_email} className="text-sm text-muted-foreground" />
-        </div>
-      ),
-    },
-    {
-      header: "Amount",
-      cell: (w) => (
-        <div className="flex items-center gap-2">
-          <CryptoIcon symbol={w.fund_class ?? "ASSET"} className="h-5 w-5" />
-          <FinancialValue value={w.requested_amount} asset={w.fund_class ?? "UNITS"} showAsset />
-        </div>
-      ),
-    },
-    {
-      header: "Type",
-      cell: (w) => <Badge variant="outline">{w.withdrawal_type}</Badge>,
-    },
-    {
-      header: "Status",
-      cell: (w) => {
-        const ageDays =
-          w.status === "pending" ? differenceInDays(new Date(), new Date(w.request_date)) : 0;
-        return (
-          <div className="flex items-center gap-1.5">
-            <Badge variant="outline" className={statusColors[w.status]}>
-              {w.status}
-            </Badge>
-            {ageDays > 7 && (
-              <span className="relative flex h-2.5 w-2.5" title={`Pending ${ageDays} days`}>
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-              </span>
-            )}
-            {ageDays >= 3 && ageDays <= 7 && (
-              <span title={`Pending ${ageDays} days`}>
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-              </span>
-            )}
+  const columns: ResponsiveTableColumn<Withdrawal>[] = useMemo(() => {
+    const cols: ResponsiveTableColumn<Withdrawal>[] = [];
+
+    // Checkbox column (only if selection is provided)
+    if (selection) {
+      cols.push({
+        header: (
+          <Checkbox
+            checked={
+              selection.isAllSelected ? true : selection.isIndeterminate ? "indeterminate" : false
+            }
+            onCheckedChange={selection.toggleAll}
+            aria-label="Select all"
+          />
+        ),
+        cell: (w) => {
+          const isSelectable = w.status !== "completed";
+          if (!isSelectable) return null;
+          return (
+            <Checkbox
+              checked={selection.isSelected(w.id)}
+              onCheckedChange={() => selection.toggleOne(w.id)}
+              aria-label={`Select withdrawal ${w.id}`}
+            />
+          );
+        },
+        className: "w-[40px] px-2",
+      });
+    }
+
+    cols.push(
+      {
+        header: "Investor",
+        cell: (w) => (
+          <div className="flex flex-col max-w-[200px]">
+            <TruncatedText text={w.investor_name} className="font-medium" />
+            <TruncatedText text={w.investor_email} className="text-sm text-muted-foreground" />
           </div>
-        );
+        ),
       },
-    },
-    {
-      header: "Request Date",
-      cell: (w) => {
-        const ageDays = differenceInDays(new Date(), new Date(w.request_date));
-        return (
-          <div>
-            <span>{format(new Date(w.request_date), "MMM dd, yyyy")}</span>
-            {w.status === "pending" && ageDays > 0 && (
-              <span
-                className={`block text-xs ${ageDays > 7 ? "text-red-500 font-medium" : ageDays >= 3 ? "text-amber-500" : "text-muted-foreground"}`}
+      {
+        header: "Amount",
+        cell: (w) => (
+          <div className="flex items-center gap-2">
+            <CryptoIcon symbol={w.fund_class ?? "ASSET"} className="h-5 w-5" />
+            <FinancialValue value={w.requested_amount} asset={w.fund_class ?? "UNITS"} showAsset />
+          </div>
+        ),
+      },
+      {
+        header: "Type",
+        cell: (w) => <Badge variant="outline">{w.withdrawal_type}</Badge>,
+      },
+      {
+        header: "Status",
+        cell: (w) => {
+          const ageDays =
+            w.status === "pending" ? differenceInDays(new Date(), new Date(w.request_date)) : 0;
+          return (
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className={statusColors[w.status]}>
+                {w.status}
+              </Badge>
+              {ageDays > 7 && (
+                <span className="relative flex h-2.5 w-2.5" title={`Pending ${ageDays} days`}>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                </span>
+              )}
+              {ageDays >= 3 && ageDays <= 7 && (
+                <span title={`Pending ${ageDays} days`}>
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        header: "Request Date",
+        cell: (w) => {
+          const ageDays = differenceInDays(new Date(), new Date(w.request_date));
+          return (
+            <div>
+              <span>{format(new Date(w.request_date), "MMM dd, yyyy")}</span>
+              {w.status === "pending" && ageDays > 0 && (
+                <span
+                  className={`block text-xs ${ageDays > 7 ? "text-red-500 font-medium" : ageDays >= 3 ? "text-amber-500" : "text-muted-foreground"}`}
+                >
+                  {ageDays}d ago
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        header: "Notes",
+        cell: (w) => <span className="max-w-[200px] truncate">{w.notes || "-"}</span>,
+      },
+      {
+        header: "Actions",
+        cell: (w) => (
+          <div className="flex items-center justify-end gap-1">
+            {w.status === "pending" && onApprove && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                onClick={() => onApprove(w)}
               >
-                {ageDays}d ago
-              </span>
+                <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                Approve
+              </Button>
             )}
+            {w.status === "pending" && onReject && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                onClick={() => onReject(w)}
+              >
+                <XCircle className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {renderActionsDropdown(w)}
           </div>
-        );
-      },
-    },
-    {
-      header: "Notes",
-      cell: (w) => <span className="max-w-[200px] truncate">{w.notes || "-"}</span>,
-    },
-    {
-      header: "Actions",
-      cell: (w) => (
-        <div className="flex items-center justify-end gap-1">
-          {w.status === "pending" && onApprove && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-green-400 hover:text-green-300 hover:bg-green-500/10"
-              onClick={() => onApprove(w)}
-            >
-              <CheckCircle className="h-3.5 w-3.5 mr-1" />
-              Approve
-            </Button>
-          )}
-          {w.status === "pending" && onReject && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-              onClick={() => onReject(w)}
-            >
-              <XCircle className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {renderActionsDropdown(w)}
-        </div>
-      ),
-      className: "text-right",
-    },
-  ];
+        ),
+        className: "text-right",
+      }
+    );
+
+    return cols;
+  }, [selection, onApprove, onReject, renderActionsDropdown]);
 
   // Mobile card renderer
   const mobileCardRenderer = (withdrawal: Withdrawal) => (
     <div className="p-4 space-y-3">
-      {/* Header: Investor name + Status */}
+      {/* Header: Investor name + Status + Checkbox */}
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <TruncatedText text={withdrawal.investor_name} className="font-medium text-sm" />
-          <TruncatedText
-            text={withdrawal.investor_email}
-            className="text-xs text-muted-foreground"
-          />
+        <div className="flex items-start gap-2 min-w-0 flex-1">
+          {selection && withdrawal.status !== "completed" && (
+            <Checkbox
+              checked={selection.isSelected(withdrawal.id)}
+              onCheckedChange={() => selection.toggleOne(withdrawal.id)}
+              aria-label={`Select withdrawal ${withdrawal.id}`}
+              className="mt-0.5"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <TruncatedText text={withdrawal.investor_name} className="font-medium text-sm" />
+            <TruncatedText
+              text={withdrawal.investor_email}
+              className="text-xs text-muted-foreground"
+            />
+          </div>
         </div>
         <Badge variant="outline" className={`${statusColors[withdrawal.status]} shrink-0`}>
           {withdrawal.status}

@@ -17,6 +17,7 @@ import {
   fetchHistoricalReports,
   deleteInvestorReport,
 } from "@/services/admin";
+import { supabase } from "@/integrations/supabase/client";
 import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
 
 /**
@@ -159,5 +160,95 @@ export function useHistoricalReports(filters?: {
   return useQuery({
     queryKey: ["historical-reports", filters],
     queryFn: () => fetchHistoricalReports(filters),
+  });
+}
+
+/**
+ * Hook to bulk delete generated statements by IDs
+ * Hard-deletes rows from generated_statements and related records
+ */
+export function useBulkDeleteReports() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      if (ids.length === 0) throw new Error("No report IDs provided");
+
+      // Delete delivery logs linked to these statements
+      const { error: deliveryError } = await supabase
+        .from("statement_email_delivery")
+        .delete()
+        .in("statement_id", ids);
+      if (deliveryError) throw deliveryError;
+
+      // Delete the generated statements
+      const { error } = await supabase.from("generated_statements").delete().in("id", ids);
+      if (error) throw error;
+
+      // Audit log
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      await supabase.from("audit_log").insert({
+        actor_user: user?.id ?? null,
+        action: "BULK_REPORTS_DELETED",
+        entity: "generated_statements",
+        entity_id: ids.join(","),
+        old_values: { count: ids.length, ids },
+      });
+    },
+    onSuccess: (_, ids) => {
+      toast.success(`${ids.length} report${ids.length !== 1 ? "s" : ""} deleted`);
+      queryClient.invalidateQueries({ queryKey: ["historical-reports"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorReports() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.statements });
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete reports", { description: error.message });
+    },
+  });
+}
+
+/**
+ * Hook to delete a single generated statement by ID
+ */
+export function useDeleteSingleReport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Delete delivery logs linked to this statement
+      const { error: deliveryError } = await supabase
+        .from("statement_email_delivery")
+        .delete()
+        .eq("statement_id", id);
+      if (deliveryError) throw deliveryError;
+
+      // Delete the generated statement
+      const { error } = await supabase.from("generated_statements").delete().eq("id", id);
+      if (error) throw error;
+
+      // Audit log
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      await supabase.from("audit_log").insert({
+        actor_user: user?.id ?? null,
+        action: "REPORT_DELETED",
+        entity: "generated_statements",
+        entity_id: id,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Report deleted");
+      queryClient.invalidateQueries({ queryKey: ["historical-reports"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorReports() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.statements });
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete report", { description: error.message });
+    },
   });
 }

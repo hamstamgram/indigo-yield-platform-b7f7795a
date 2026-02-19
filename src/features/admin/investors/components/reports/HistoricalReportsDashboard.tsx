@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -18,13 +18,19 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Checkbox,
 } from "@/components/ui";
-import { Database, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Database, Search, ChevronLeft, ChevronRight, Trash2, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useHistoricalReports } from "@/hooks/data";
+import { useHistoricalReports, useBulkDeleteReports, useDeleteSingleReport } from "@/hooks/data";
+import { useSuperAdmin } from "@/components/admin";
 import { format, subMonths } from "date-fns";
 import type { DeliveryStatus } from "@/services/admin/reportQueryService";
+import { useReportSelection } from "./hooks/useReportSelection";
+import type { HistoricalReport } from "./hooks/useReportSelection";
+import { ReportBulkActionToolbar } from "./components/ReportBulkActionToolbar";
+import { BulkDeleteReportsDialog } from "./components/BulkDeleteReportsDialog";
 
 function getStatusBadge(status: DeliveryStatus) {
   switch (status) {
@@ -48,6 +54,7 @@ const HistoricalReportsDashboard: React.FC<{ embedded?: boolean }> = ({ embedded
   const [monthFilter, setMonthFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const pageSize = 20;
 
   const { data, isLoading } = useHistoricalReports({
@@ -56,13 +63,29 @@ const HistoricalReportsDashboard: React.FC<{ embedded?: boolean }> = ({ embedded
     pageSize,
   });
 
+  const { isSuperAdmin } = useSuperAdmin();
+  const bulkDeleteMutation = useBulkDeleteReports();
+  const deleteSingleMutation = useDeleteSingleReport();
+
   const reports = data?.reports || [];
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / pageSize);
 
-  const filteredReports = searchTerm
-    ? reports.filter((r) => r.investor_name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : reports;
+  const filteredReports: HistoricalReport[] = useMemo(() => {
+    const base = searchTerm
+      ? reports.filter((r: HistoricalReport) =>
+          r.investor_name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : reports;
+    return base;
+  }, [reports, searchTerm]);
+
+  const selection = useReportSelection(filteredReports, page);
+
+  const selectedReports = useMemo(
+    () => filteredReports.filter((r) => selection.selectedIds.has(r.id)),
+    [filteredReports, selection.selectedIds]
+  );
 
   return (
     <div className={embedded ? "space-y-6" : "container mx-auto px-4 py-8 space-y-6"}>
@@ -122,6 +145,14 @@ const HistoricalReportsDashboard: React.FC<{ embedded?: boolean }> = ({ embedded
         </div>
       </div>
 
+      {/* Bulk Action Toolbar */}
+      <ReportBulkActionToolbar
+        summary={selection.summary}
+        isSuperAdmin={isSuperAdmin}
+        onDelete={() => setBulkDeleteDialogOpen(true)}
+        onClear={selection.clearSelection}
+      />
+
       {/* Table */}
       <Card>
         <CardContent className="pt-6">
@@ -137,15 +168,36 @@ const HistoricalReportsDashboard: React.FC<{ embedded?: boolean }> = ({ embedded
             <Table className="text-xs">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px] px-2">
+                    <Checkbox
+                      checked={
+                        selection.isAllSelected
+                          ? true
+                          : selection.isIndeterminate
+                            ? "indeterminate"
+                            : false
+                      }
+                      onCheckedChange={selection.toggleAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead className="whitespace-nowrap">Period</TableHead>
                   <TableHead className="whitespace-nowrap">Investor</TableHead>
                   <TableHead className="whitespace-nowrap">Assets</TableHead>
                   <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="w-[50px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReports.map((report) => (
                   <TableRow key={report.id}>
+                    <TableCell className="px-2 py-1.5">
+                      <Checkbox
+                        checked={selection.isSelected(report.id)}
+                        onCheckedChange={() => selection.toggleOne(report.id)}
+                        aria-label={`Select report ${report.id}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-mono py-1.5">{report.period_month}</TableCell>
                     <TableCell className="py-1.5 truncate max-w-[130px]">
                       <Link
@@ -165,13 +217,29 @@ const HistoricalReportsDashboard: React.FC<{ embedded?: boolean }> = ({ embedded
                     </TableCell>
                     <TableCell className="py-1.5">
                       <div className="flex flex-col gap-1">
-                        {getStatusBadge(report.delivery_status)}
+                        {getStatusBadge(report.delivery_status as DeliveryStatus)}
                         {report.sent_at && (
                           <span className="text-[10px] text-muted-foreground">
                             {format(new Date(report.sent_at), "MMM d")}
                           </span>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell className="py-1.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                        onClick={() => deleteSingleMutation.mutate(report.id)}
+                        disabled={deleteSingleMutation.isPending}
+                        aria-label="Delete report"
+                      >
+                        {deleteSingleMutation.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -207,6 +275,23 @@ const HistoricalReportsDashboard: React.FC<{ embedded?: boolean }> = ({ embedded
           )}
         </CardContent>
       </Card>
+
+      {/* Bulk Delete Dialog */}
+      <BulkDeleteReportsDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        reports={selectedReports}
+        summary={selection.summary}
+        isPending={bulkDeleteMutation.isPending}
+        onConfirm={() => {
+          bulkDeleteMutation.mutate(Array.from(selection.selectedIds), {
+            onSuccess: () => {
+              setBulkDeleteDialogOpen(false);
+              selection.clearSelection();
+            },
+          });
+        }}
+      />
     </div>
   );
 };
