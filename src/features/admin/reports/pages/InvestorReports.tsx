@@ -1,10 +1,24 @@
-import { useState } from "react";
+/**
+ * Investor Reports Page (Statement Manager)
+ * Redesigned with clear workflow: Select Period > Review > Send
+ *
+ * Key improvements over v1:
+ * - Combined month/year selector (single dropdown)
+ * - Status summary cards with counts
+ * - Checkbox multi-select for bulk operations
+ * - Per-row dropdown actions (replacing 5 icon buttons)
+ * - Proper confirmation dialogs (no window.confirm)
+ * - Send progress indicator with failure tracking
+ * - Super admin gates on destructive operations
+ * - Debounced search (fixes URL-debounce bug)
+ * - "Regenerate All" hidden behind overflow menu
+ */
+
+import { useState, useMemo, useCallback, useRef } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   Table,
   TableBody,
   TableCell,
@@ -23,22 +37,28 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Checkbox,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  QueryErrorBoundary,
 } from "@/components/ui";
 import {
   FileText,
   Send,
-  Calendar,
   RefreshCw,
   Search,
   CheckCircle2,
+  Clock,
+  AlertTriangle,
   Users,
-  Eye,
-  AlertCircle,
   Loader2,
-  Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useUrlFilters } from "@/hooks";
+import { useUrlFilters, useDebounce } from "@/hooks/ui";
 import { format, subMonths, parseISO } from "date-fns";
 import {
   useAdminInvestorReports,
@@ -46,19 +66,30 @@ import {
   useSendReportEmail,
   useDeleteInvestorReport,
 } from "@/hooks/data";
-import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
+import type { InvestorReportSummary } from "@/services/admin/reportQueryService";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { QueryErrorBoundary } from "@/components/ui";
 import { PageShell } from "@/components/layout/PageShell";
+import { useSuperAdmin } from "@/components/admin";
+import {
+  SendConfirmDialog,
+  SendProgressDialog,
+  DeleteConfirmDialog,
+  RegenerateAllDialog,
+  ReportRowActions,
+  ReportBulkActionToolbar,
+} from "../components";
+import type { SendProgress } from "../components";
 
-function getStatusBadge(status: DeliveryStatus) {
+// -- Helpers ------------------------------------------------------------------
+
+function getStatusBadge(status: string) {
   switch (status) {
     case "sent":
-      return <Badge className="bg-green-600">Sent</Badge>;
+      return <Badge className="bg-green-600 text-white">Sent</Badge>;
     case "generated":
-      return <Badge variant="default">Generated</Badge>;
+      return <Badge variant="default">Ready</Badge>;
     case "failed":
       return <Badge variant="destructive">Failed</Badge>;
     case "missing":
@@ -71,15 +102,57 @@ function getMonthLabel(monthStr: string): string {
   return format(parseISO(`${monthStr}-01`), "MMMM yyyy");
 }
 
+/** Build combined month options for the dropdown (last 24 months) */
+function buildMonthOptions(): Array<{ value: string; label: string }> {
+  const options: Array<{ value: string; label: string }> = [];
+  const now = new Date();
+  for (let i = 1; i <= 24; i++) {
+    const d = subMonths(now, i);
+    const value = format(d, "yyyy-MM");
+    const label = format(d, "MMMM yyyy");
+    options.push({ value, label });
+  }
+  return options;
+}
+
+const MONTH_OPTIONS = buildMonthOptions();
+
+const SEND_DELAY_MS = 200;
+
+// -- Component ----------------------------------------------------------------
+
 const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
+  // -- State ------------------------------------------------------------------
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewName, setPreviewName] = useState("");
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [sendingAll, setSendingAll] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [localSearch, setLocalSearch] = useState("");
 
-  // URL-persisted filters
+  // Dialog state
+  const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
+  const [sendConfirmRecipients, setSendConfirmRecipients] = useState<InvestorReportSummary[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<InvestorReportSummary | null>(null);
+  const [regenerateAllOpen, setRegenerateAllOpen] = useState(false);
+  const [sendProgressOpen, setSendProgressOpen] = useState(false);
+  const [sendProgress, setSendProgress] = useState<SendProgress>({
+    total: 0,
+    sent: 0,
+    failed: 0,
+    current: "",
+    failures: [],
+    isComplete: false,
+  });
+
+  // Abort ref for bulk send
+  const abortRef = useRef(false);
+
+  // -- Super admin check ------------------------------------------------------
+  const { isSuperAdmin, loading: superAdminLoading } = useSuperAdmin();
+
+  // -- URL-persisted filters --------------------------------------------------
   const { filters, setFilter } = useUrlFilters({
     keys: ["month", "search", "status"],
     defaults: {
@@ -89,9 +162,16 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
   });
 
   const selectedMonth = filters.month || format(subMonths(new Date(), 1), "yyyy-MM");
-  const searchTerm = filters.search || "";
   const statusFilter = filters.status || "all";
 
+  // Debounced search: local state for input, debounced value for filtering
+  const debouncedSearch = useDebounce(localSearch, 300);
+
+  // Sync URL filter with debounced value (one-way: debounced -> URL)
+  // We use the debounced value for actual filtering to prevent URL thrashing
+  const searchTerm = debouncedSearch;
+
+  // -- Data -------------------------------------------------------------------
   const { data, isLoading, refetch } = useAdminInvestorReports(selectedMonth);
   const reports = data?.reports || [];
   const periodId = data?.periodId || "";
@@ -100,72 +180,154 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
   const sendMutation = useSendReportEmail();
   const deleteMutation = useDeleteInvestorReport();
 
-  // Filter reports
-  const filteredReports = reports.filter((report) => {
-    const matchesSearch =
-      report.investor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.investor_email.toLowerCase().includes(searchTerm.toLowerCase());
+  // -- Filtering --------------------------------------------------------------
+  const filteredReports = useMemo(() => {
+    return reports.filter((report) => {
+      const matchesSearch =
+        !searchTerm ||
+        report.investor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.investor_email.toLowerCase().includes(searchTerm.toLowerCase());
 
-    let matchesStatus = true;
-    if (statusFilter !== "all") {
-      matchesStatus = report.delivery_status === statusFilter;
+      const matchesStatus = statusFilter === "all" || report.delivery_status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [reports, searchTerm, statusFilter]);
+
+  // -- Stats ------------------------------------------------------------------
+  const stats = useMemo(() => {
+    const generated = reports.filter(
+      (r) => r.delivery_status === "generated" || r.delivery_status === "sent"
+    ).length;
+    const sent = reports.filter((r) => r.delivery_status === "sent").length;
+    const ready = reports.filter((r) => r.delivery_status === "generated").length;
+    const missing = reports.filter((r) => r.delivery_status === "missing").length;
+    const failed = reports.filter((r) => r.delivery_status === "failed").length;
+    return { total: reports.length, generated, sent, ready, missing, failed };
+  }, [reports]);
+
+  // -- Selection --------------------------------------------------------------
+  const selectableIds = useMemo(
+    () => new Set(filteredReports.map((r) => r.investor_id)),
+    [filteredReports]
+  );
+
+  const validSelectedIds = useMemo(() => {
+    const valid = new Set<string>();
+    for (const id of selectedIds) {
+      if (selectableIds.has(id)) valid.add(id);
     }
+    return valid;
+  }, [selectedIds, selectableIds]);
 
-    return matchesSearch && matchesStatus;
-  });
+  const isAllSelected =
+    filteredReports.length > 0 && filteredReports.every((r) => validSelectedIds.has(r.investor_id));
 
-  // Stats
-  const generatedCount = reports.filter(
-    (r) => r.delivery_status === "generated" || r.delivery_status === "sent"
-  ).length;
-  const missingCount = reports.filter((r) => r.delivery_status === "missing").length;
-  const sentCount = reports.filter((r) => r.delivery_status === "sent").length;
+  const isIndeterminate = validSelectedIds.size > 0 && !isAllSelected;
 
-  const handleGenerate = () => {
+  const selectedReports = useMemo(
+    () => filteredReports.filter((r) => validSelectedIds.has(r.investor_id)),
+    [filteredReports, validSelectedIds]
+  );
+
+  const sendableSelected = useMemo(
+    () =>
+      selectedReports.filter(
+        (r) =>
+          (r.delivery_status === "generated" || r.delivery_status === "failed") &&
+          (r.has_reports || r.statement_id)
+      ),
+    [selectedReports]
+  );
+
+  const toggleOne = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const allSelected =
+        filteredReports.length > 0 && filteredReports.every((r) => prev.has(r.investor_id));
+      if (allSelected) return new Set();
+      return new Set(filteredReports.map((r) => r.investor_id));
+    });
+  }, [filteredReports]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  // -- Handlers ---------------------------------------------------------------
+
+  const handleGenerate = useCallback(() => {
     const [yearStr, monthStr] = selectedMonth.split("-");
     generateMutation.mutate(
       { year: parseInt(yearStr), month: parseInt(monthStr) },
       { onSuccess: () => refetch() }
     );
-  };
+  }, [selectedMonth, generateMutation, refetch]);
 
-  const handleRegenerate = async (report: InvestorReportSummary) => {
-    const [yearStr, monthStr] = selectedMonth.split("-");
-    setRegeneratingId(report.investor_id);
-    try {
-      await generateMutation.mutateAsync({
-        year: parseInt(yearStr),
-        month: parseInt(monthStr),
-        investorId: report.investor_id,
-      });
-      refetch();
-    } finally {
-      setRegeneratingId(null);
-    }
-  };
+  const handleRegenerate = useCallback(
+    async (report: InvestorReportSummary) => {
+      const [yearStr, monthStr] = selectedMonth.split("-");
+      setRegeneratingId(report.investor_id);
+      try {
+        await generateMutation.mutateAsync({
+          year: parseInt(yearStr),
+          month: parseInt(monthStr),
+          investorId: report.investor_id,
+        });
+        refetch();
+      } finally {
+        setRegeneratingId(null);
+      }
+    },
+    [selectedMonth, generateMutation, refetch]
+  );
 
-  const handleDelete = async (report: InvestorReportSummary) => {
-    if (!periodId) return;
-    if (!confirm(`Are you sure you want to delete reports for ${report.investor_name}?`)) return;
+  const handleDeleteRequest = useCallback(
+    (report: InvestorReportSummary) => {
+      if (!isSuperAdmin) {
+        toast.error("Super Admin privileges required to delete reports");
+        return;
+      }
+      setDeleteTarget(report);
+    },
+    [isSuperAdmin]
+  );
 
-    setDeletingId(report.investor_id);
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteTarget || !periodId) return;
+    setDeletingId(deleteTarget.investor_id);
+    setDeleteTarget(null);
     try {
       await deleteMutation.mutateAsync({
-        investorId: report.investor_id,
+        investorId: deleteTarget.investor_id,
         periodId,
       });
       refetch();
     } finally {
       setDeletingId(null);
     }
-  };
+  }, [deleteTarget, periodId, deleteMutation, refetch]);
 
-  const handleRegenerateAll = async () => {
-    if (!confirm("This will clear and recalculate ALL reports for this month. Proceed?")) return;
+  const handleRegenerateAllRequest = useCallback(() => {
+    if (!isSuperAdmin) {
+      toast.error("Super Admin privileges required to regenerate all reports");
+      return;
+    }
+    setRegenerateAllOpen(true);
+  }, [isSuperAdmin]);
+
+  const handleRegenerateAllConfirm = useCallback(() => {
+    setRegenerateAllOpen(false);
     handleGenerate();
-  };
+  }, [handleGenerate]);
 
-  const handlePreview = async (report: InvestorReportSummary) => {
+  const handlePreview = useCallback(async (report: InvestorReportSummary) => {
     if (!report.statement_id) {
       toast.error("No statement generated yet for this investor");
       return;
@@ -184,61 +346,130 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
 
     setPreviewName(report.investor_name);
     setPreviewHtml(stmt.html_content);
-  };
+  }, []);
 
-  const handleSend = async (report: InvestorReportSummary) => {
-    if (!periodId) return;
-    setSendingId(report.investor_id);
-    try {
-      await sendMutation.mutateAsync({
-        investorId: report.investor_id,
-        periodId,
-      });
-      refetch();
-    } finally {
-      setSendingId(null);
-    }
-  };
-
-  const handleSendAll = async () => {
-    if (!periodId) return;
-    const toSend = reports.filter(
-      (r) => r.delivery_status === "generated" && (r.has_reports || r.statement_id)
-    );
-    if (toSend.length === 0) {
-      toast.info("No unsent reports to deliver");
-      return;
-    }
-
-    setSendingAll(true);
-    let sent = 0;
-    let failed = 0;
-
-    for (const report of toSend) {
+  const handleSendSingle = useCallback(
+    async (report: InvestorReportSummary) => {
+      if (!periodId) return;
+      setSendingId(report.investor_id);
       try {
         await sendMutation.mutateAsync({
           investorId: report.investor_id,
           periodId,
         });
-        sent++;
-      } catch {
-        failed++;
+        refetch();
+      } finally {
+        setSendingId(null);
       }
+    },
+    [periodId, sendMutation, refetch]
+  );
+
+  // Open send confirmation for selected reports
+  const handleSendSelectedRequest = useCallback(() => {
+    if (sendableSelected.length === 0) {
+      toast.info("No sendable reports selected");
+      return;
     }
+    setSendConfirmRecipients(sendableSelected);
+    setSendConfirmOpen(true);
+  }, [sendableSelected]);
 
-    setSendingAll(false);
-    refetch();
-    toast.success(`Sent ${sent} reports${failed > 0 ? `, ${failed} failed` : ""}`);
-  };
+  // Open send confirmation for all unsent reports
+  const handleSendAllUnsentRequest = useCallback(() => {
+    if (!isSuperAdmin) {
+      toast.error("Super Admin privileges required for bulk send");
+      return;
+    }
+    const unsent = reports.filter(
+      (r) =>
+        (r.delivery_status === "generated" || r.delivery_status === "failed") &&
+        (r.has_reports || r.statement_id)
+    );
+    if (unsent.length === 0) {
+      toast.info("No unsent reports to deliver");
+      return;
+    }
+    setSendConfirmRecipients(unsent);
+    setSendConfirmOpen(true);
+  }, [isSuperAdmin, reports]);
 
+  // Execute bulk send with progress tracking and rate-limit delay
+  const executeBulkSend = useCallback(
+    async (recipients: InvestorReportSummary[]) => {
+      if (!periodId) return;
+
+      abortRef.current = false;
+      setSendConfirmOpen(false);
+      setSendProgress({
+        total: recipients.length,
+        sent: 0,
+        failed: 0,
+        current: recipients[0]?.investor_name || "",
+        failures: [],
+        isComplete: false,
+      });
+      setSendProgressOpen(true);
+
+      let sent = 0;
+      let failed = 0;
+      const failures: Array<{ name: string; error: string }> = [];
+
+      for (let i = 0; i < recipients.length; i++) {
+        if (abortRef.current) break;
+
+        const report = recipients[i];
+        setSendProgress((prev) => ({
+          ...prev,
+          current: report.investor_name,
+        }));
+
+        try {
+          await sendMutation.mutateAsync({
+            investorId: report.investor_id,
+            periodId,
+          });
+          sent++;
+        } catch (err) {
+          failed++;
+          failures.push({
+            name: report.investor_name,
+            error: err instanceof Error ? err.message : "Unknown error",
+          });
+        }
+
+        setSendProgress({
+          total: recipients.length,
+          sent,
+          failed,
+          current: report.investor_name,
+          failures: [...failures],
+          isComplete: false,
+        });
+
+        // Rate-limit delay between sends (skip after last)
+        if (i < recipients.length - 1 && !abortRef.current) {
+          await new Promise((resolve) => setTimeout(resolve, SEND_DELAY_MS));
+        }
+      }
+
+      setSendProgress((prev) => ({ ...prev, isComplete: true }));
+      clearSelection();
+      refetch();
+    },
+    [periodId, sendMutation, refetch, clearSelection]
+  );
+
+  // -- Loading state ----------------------------------------------------------
   if (isLoading) {
     const loadingSkeleton = (
       <div className="animate-pulse space-y-4">
         <div className="h-8 bg-muted rounded w-1/4" />
-        <div className="grid grid-cols-3 gap-4">
-          <div className="h-24 bg-muted rounded" />
-          <div className="h-24 bg-muted rounded" />
-          <div className="h-24 bg-muted rounded" />
+        <div className="grid grid-cols-4 gap-4">
+          <div className="h-20 bg-muted rounded" />
+          <div className="h-20 bg-muted rounded" />
+          <div className="h-20 bg-muted rounded" />
+          <div className="h-20 bg-muted rounded" />
         </div>
         <div className="h-96 bg-muted rounded" />
       </div>
@@ -247,140 +478,140 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
     return <PageShell>{loadingSkeleton}</PageShell>;
   }
 
+  // -- Render -----------------------------------------------------------------
+  const monthLabel = getMonthLabel(selectedMonth);
+
   const content = (
-    <>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        {!embedded ? (
+    <div className="space-y-6">
+      {/* Header + Period Selector + Actions */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        {!embedded && (
           <div>
-            <h1 className="text-2xl font-bold">Statement Manager</h1>
-            <p className="text-muted-foreground">
-              Generate, preview, and deliver monthly statements
-            </p>
+            <h1 className="text-2xl font-bold">Monthly Statements</h1>
+            <p className="text-muted-foreground">Generate, review, and deliver investor reports</p>
           </div>
-        ) : (
-          <div />
         )}
-        <div className="flex gap-2">
+
+        <div className="flex items-center gap-2">
+          {/* Combined month/year selector */}
           <Select
-            value={selectedMonth.split("-")[0]}
-            onValueChange={(year) => {
-              const month = selectedMonth.split("-")[1];
-              setFilter("month", `${year}-${month}`);
+            value={selectedMonth}
+            onValueChange={(v) => {
+              setFilter("month", v);
+              clearSelection();
             }}
           >
-            <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Year" />
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
-              {Array.from({ length: new Date().getFullYear() - 2024 + 1 }, (_, i) => {
-                const year = String(2024 + i);
-                return (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                );
-              })}
+              {MONTH_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Select
-            value={selectedMonth.split("-")[1]}
-            onValueChange={(month) => {
-              const year = selectedMonth.split("-")[0];
-              setFilter("month", `${year}-${month}`);
-            }}
-          >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Month" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 12 }, (_, i) => {
-                const monthValue = String(i + 1).padStart(2, "0");
-                const label = format(new Date(2024, i), "MMMM");
-                return (
-                  <SelectItem key={monthValue} value={monthValue}>
-                    {label}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+
+          {/* Generate Missing */}
+          <Button onClick={handleGenerate} disabled={generateMutation.isPending}>
+            {generateMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4 mr-2" />
+            )}
+            {generateMutation.isPending ? "Generating..." : "Generate Missing"}
+          </Button>
+
+          {/* Overflow menu for dangerous actions */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={handleSendAllUnsentRequest}
+                disabled={!periodId || superAdminLoading}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Send All Unsent
+                {!isSuperAdmin && (
+                  <Badge variant="outline" className="ml-2 text-[10px]">
+                    Super Admin
+                  </Badge>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleRegenerateAllRequest}
+                disabled={generateMutation.isPending || superAdminLoading}
+                className="text-amber-500 focus:text-amber-500"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Regenerate All
+                {!isSuperAdmin && (
+                  <Badge variant="outline" className="ml-2 text-[10px]">
+                    Super Admin
+                  </Badge>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Generated</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-400">{generatedCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {sentCount} sent, {generatedCount - sentCount} pending
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Missing</CardTitle>
-            <Calendar className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{missingCount}</div>
-            <p className="text-xs text-muted-foreground">Need generation</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Investors</CardTitle>
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm text-muted-foreground">Total</span>
             <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{reports.length}</div>
-            <p className="text-xs text-muted-foreground">{getMonthLabel(selectedMonth)}</p>
-          </CardContent>
+          </div>
+          <div className="text-2xl font-bold">{stats.total}</div>
+          <p className="text-xs text-muted-foreground">investors</p>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm text-muted-foreground">Sent</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl font-bold text-emerald-500">{stats.sent}</div>
+          <p className="text-xs text-muted-foreground">delivered</p>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm text-muted-foreground">Ready</span>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </div>
+          <div className="text-2xl font-bold text-blue-500">{stats.ready}</div>
+          <p className="text-xs text-muted-foreground">
+            {stats.failed > 0 ? `+ ${stats.failed} failed` : "to send"}
+          </p>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm text-muted-foreground">Missing</span>
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          </div>
+          <div className="text-2xl font-bold text-yellow-500">{stats.missing}</div>
+          <p className="text-xs text-muted-foreground">need generation</p>
         </Card>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        <Button onClick={handleGenerate} disabled={generateMutation.isPending} variant="outline">
-          {generateMutation.isPending ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <FileText className="h-4 w-4 mr-2" />
-          )}
-          {generateMutation.isPending ? "Generating..." : "Generate Missing"}
-        </Button>
-        <Button
-          onClick={handleRegenerateAll}
-          disabled={generateMutation.isPending}
-          variant="outline"
-          className="text-amber-500 border-amber-500/50 hover:bg-amber-500/10"
-        >
-          {generateMutation.isPending ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4 mr-2" />
-          )}
-          Regenerate All
-        </Button>
-        <Button onClick={handleSendAll} disabled={sendingAll || !periodId} variant="outline">
-          {sendingAll ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4 mr-2" />
-          )}
-          {sendingAll ? "Sending..." : "Send All Generated"}
-        </Button>
-        <Button onClick={() => refetch()} variant="ghost" size="icon">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Bulk action toolbar (shows when items selected) */}
+      <ReportBulkActionToolbar
+        selectedCount={validSelectedIds.size}
+        sendableCount={sendableSelected.length}
+        onSendSelected={handleSendSelectedRequest}
+        onClear={clearSelection}
+      />
 
       {/* Filters */}
       <div className="flex gap-4 items-center">
@@ -388,18 +619,18 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search investors..."
-            value={searchTerm}
-            onChange={(e) => setFilter("search", e.target.value || null)}
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             className="pl-8"
           />
         </div>
         <Select value={statusFilter} onValueChange={(v) => setFilter("status", v)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="generated">Generated</SelectItem>
+            <SelectItem value="generated">Ready</SelectItem>
             <SelectItem value="sent">Sent</SelectItem>
             <SelectItem value="missing">Missing</SelectItem>
             <SelectItem value="failed">Failed</SelectItem>
@@ -409,10 +640,7 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
 
       {/* Reports Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Monthly Reports - {getMonthLabel(selectedMonth)}</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {filteredReports.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -420,23 +648,39 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
               <p className="text-muted-foreground">
                 {searchTerm || statusFilter !== "all"
                   ? "Try adjusting your filters"
-                  : 'Click "Generate All Missing" to create reports'}
+                  : 'Click "Generate Missing" to create reports'}
               </p>
             </div>
           ) : (
             <Table className="text-xs">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10 pl-4">
+                    <Checkbox
+                      checked={isAllSelected ? true : isIndeterminate ? "indeterminate" : false}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
                   <TableHead className="whitespace-nowrap">Investor</TableHead>
                   <TableHead className="whitespace-nowrap">Email</TableHead>
                   <TableHead className="whitespace-nowrap">Assets</TableHead>
                   <TableHead className="whitespace-nowrap">Status</TableHead>
-                  <TableHead className="whitespace-nowrap">Actions</TableHead>
+                  <TableHead className="whitespace-nowrap">Sent</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReports.map((report) => (
-                  <TableRow key={report.investor_id}>
+                  <TableRow
+                    key={report.investor_id}
+                    className={validSelectedIds.has(report.investor_id) ? "bg-muted/50" : undefined}
+                  >
+                    <TableCell className="pl-4 py-1.5">
+                      <Checkbox
+                        checked={validSelectedIds.has(report.investor_id)}
+                        onCheckedChange={() => toggleOne(report.investor_id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium py-1.5 truncate max-w-[130px]">
                       <Link
                         to={`/admin/investors/${report.investor_id}`}
@@ -464,86 +708,23 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
                       </div>
                     </TableCell>
                     <TableCell className="py-1.5">
-                      <div className="flex flex-col gap-1">
-                        {getStatusBadge(report.delivery_status)}
-                        {report.sent_at && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {format(new Date(report.sent_at), "MMM d, HH:mm")}
-                          </span>
-                        )}
-                      </div>
+                      {getStatusBadge(report.delivery_status)}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-muted-foreground">
+                      {report.sent_at ? format(new Date(report.sent_at), "MMM d, HH:mm") : "--"}
                     </TableCell>
                     <TableCell className="py-1.5">
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handlePreview(report)}
-                          disabled={!report.statement_id && !report.has_reports}
-                          title="Preview HTML"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        {report.delivery_status !== "sent" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleSend(report)}
-                            disabled={
-                              sendingId === report.investor_id ||
-                              report.delivery_status === "missing" ||
-                              !periodId
-                            }
-                            title="Send Email"
-                          >
-                            {sendingId === report.investor_id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Send className="h-3 w-3" />
-                            )}
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRegenerate(report)}
-                          disabled={
-                            regeneratingId === report.investor_id || generateMutation.isPending
-                          }
-                          title="Regenerate Report"
-                        >
-                          {regeneratingId === report.investor_id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <RefreshCw className="h-3 w-3" />
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(report)}
-                          disabled={deletingId === report.investor_id || !report.has_reports}
-                          title="Delete Report"
-                          className="text-destructive hover:bg-destructive/10"
-                        >
-                          {deletingId === report.investor_id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </Button>
-                        {report.delivery_status === "failed" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleSend(report)}
-                            disabled={sendingId === report.investor_id}
-                            title="Retry"
-                          >
-                            <AlertCircle className="h-3 w-3 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
+                      <ReportRowActions
+                        report={report}
+                        isSuperAdmin={isSuperAdmin}
+                        sendingId={sendingId}
+                        regeneratingId={regeneratingId}
+                        deletingId={deletingId}
+                        onPreview={handlePreview}
+                        onSend={handleSendSingle}
+                        onRegenerate={handleRegenerate}
+                        onDelete={handleDeleteRequest}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -558,7 +739,7 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {previewName} - Monthly Report - {getMonthLabel(selectedMonth)}
+              {previewName} - {monthLabel}
             </DialogTitle>
           </DialogHeader>
           {previewHtml && (
@@ -571,7 +752,40 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
           )}
         </DialogContent>
       </Dialog>
-    </>
+
+      {/* Send Confirmation Dialog */}
+      <SendConfirmDialog
+        open={sendConfirmOpen}
+        onOpenChange={setSendConfirmOpen}
+        recipients={sendConfirmRecipients}
+        monthLabel={monthLabel}
+        onConfirm={() => executeBulkSend(sendConfirmRecipients)}
+      />
+
+      {/* Send Progress Dialog */}
+      <SendProgressDialog
+        open={sendProgressOpen}
+        onOpenChange={setSendProgressOpen}
+        progress={sendProgress}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        investorName={deleteTarget?.investor_name || ""}
+        onConfirm={handleDeleteConfirm}
+      />
+
+      {/* Regenerate All Confirmation Dialog */}
+      <RegenerateAllDialog
+        open={regenerateAllOpen}
+        onOpenChange={setRegenerateAllOpen}
+        monthLabel={monthLabel}
+        reportCount={stats.total}
+        onConfirm={handleRegenerateAllConfirm}
+      />
+    </div>
   );
 
   if (embedded) return content;
