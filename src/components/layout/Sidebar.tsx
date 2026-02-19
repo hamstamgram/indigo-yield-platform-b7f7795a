@@ -296,9 +296,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                   if (filteredItems.length === 0) return null;
 
                   return (
-                    <div key={group.title} className="mb-6 px-2">
+                    <div key={group.title} className="mb-3 px-2">
                       {group.title && (
-                        <h4 className="flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-sidebar-foreground/40 font-display">
+                        <h4 className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/35 font-display">
                           {group.icon && <group.icon className="h-3 w-3" />}
                           {group.title}
                         </h4>

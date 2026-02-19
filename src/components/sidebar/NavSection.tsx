@@ -101,7 +101,7 @@ const NavSection = ({
   };
 
   return (
-    <div className={cn("pb-4", className)}>
+    <div className={cn("pb-1", className)}>
       {showTitle && title && (
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-sidebar-foreground uppercase tracking-wider px-2">
@@ -110,7 +110,7 @@ const NavSection = ({
         </div>
       )}
 
-      <ul className="space-y-1" role="menu">
+      <ul className="space-y-0.5" role="menu">
         {items.map((item, index) => {
           const isItemActive = isActive(item.href);
           const isLoading = loadingItems.includes(item.href);
@@ -126,7 +126,7 @@ const NavSection = ({
                     handleNavigation(item.href);
                   }}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center space-x-3 mb-1 mt-2 cursor-pointer",
+                    "w-full text-left px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all duration-200 flex items-center space-x-2.5 mb-0.5 mt-1 cursor-pointer",
                     isItemActive
                       ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/20"
@@ -167,9 +167,9 @@ const NavSection = ({
                 onMouseLeave={cancelPrefetch}
                 disabled={isLoading}
                 className={cn(
-                  "w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1",
+                  "w-full text-left px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 flex items-center space-x-2.5 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1",
                   isItemActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg font-semibold ring-1 ring-sidebar-primary/50"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold ring-1 ring-sidebar-primary/50"
                     : "text-sidebar-foreground hover:bg-sidebar-accent/20 hover:text-sidebar-foreground",
                   isLoading && "opacity-60 cursor-wait"
                 )}
@@ -183,7 +183,7 @@ const NavSection = ({
                     isItemActive ? "text-sidebar-primary-foreground" : ""
                   )}
                 >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : item.icon}
+                  {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : item.icon}
                 </span>
                 <span className="flex-1 truncate">{item.title}</span>
                 {isItemActive && (
