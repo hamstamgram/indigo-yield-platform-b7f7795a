@@ -95,11 +95,11 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
         </div>
 
         {/* Daily Flows Grid */}
-        <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border">
+        <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border text-center sm:text-left">
           {/* Inflows */}
           <div>
             <p className="text-xs text-muted-foreground mb-1">Deposits</p>
-            <p className="text-sm font-semibold text-green-400">
+            <p className="text-sm font-semibold text-green-400 break-words">
               +{formatAUM(flows?.daily_inflows || 0, fund.asset)}
             </p>
           </div>
@@ -107,7 +107,7 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
           {/* Outflows */}
           <div>
             <p className="text-xs text-muted-foreground mb-1">Withdrawals</p>
-            <p className="text-sm font-semibold text-red-400">
+            <p className="text-sm font-semibold text-red-400 break-words">
               -{formatAUM(flows?.daily_outflows || 0, fund.asset)}
             </p>
           </div>
@@ -117,7 +117,7 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
             <p className="text-xs text-muted-foreground mb-1">Net Flow</p>
             <p
               className={cn(
-                "text-sm font-bold",
+                "text-sm font-bold break-words",
                 (flows?.net_flow_24h || 0) >= 0 ? "text-green-400" : "text-red-400"
               )}
             >

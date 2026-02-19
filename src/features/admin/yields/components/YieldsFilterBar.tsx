@@ -37,14 +37,14 @@ export function YieldsFilterBar({ filters, funds, onFilterChange, onReset }: Yie
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex flex-wrap gap-4 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs">Fund</Label>
             <Select
               value={filters.fundId || "all"}
               onValueChange={(v) => onFilterChange("fundId", v)}
             >
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Funds" />
               </SelectTrigger>
               <SelectContent>
@@ -67,7 +67,7 @@ export function YieldsFilterBar({ filters, funds, onFilterChange, onReset }: Yie
               value={filters.purpose || "all"}
               onValueChange={(v) => onFilterChange("purpose", v)}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="All" />
               </SelectTrigger>
               <SelectContent>
@@ -84,7 +84,7 @@ export function YieldsFilterBar({ filters, funds, onFilterChange, onReset }: Yie
               type="date"
               value={filters.dateFrom || ""}
               onChange={(e) => onFilterChange("dateFrom", e.target.value || null)}
-              className="w-40"
+              className="w-full"
             />
           </div>
 
@@ -94,14 +94,16 @@ export function YieldsFilterBar({ filters, funds, onFilterChange, onReset }: Yie
               type="date"
               value={filters.dateTo || ""}
               onChange={(e) => onFilterChange("dateTo", e.target.value || null)}
-              className="w-40"
+              className="w-full"
             />
           </div>
 
-          <Button variant="ghost" size="sm" onClick={onReset}>
-            <Filter className="h-4 w-4 mr-1" />
-            Reset
-          </Button>
+          <div className="space-y-1.5 flex items-end">
+            <Button variant="ghost" size="sm" onClick={onReset} className="w-full">
+              <Filter className="h-4 w-4 mr-1" />
+              Reset
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

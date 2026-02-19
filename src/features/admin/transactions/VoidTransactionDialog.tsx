@@ -189,7 +189,7 @@ export function VoidTransactionDialog({
                 <TrendingDown className="h-4 w-4" />
                 Impact Preview
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                 <div>Current Position:</div>
                 <div className="font-mono">
                   <FinancialValue value={impact.current_position ?? 0} displayDecimals={4} />
