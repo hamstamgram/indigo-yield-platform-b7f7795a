@@ -4,7 +4,7 @@
  */
 
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Label } from "@/components/ui";
+import { Card, CardContent, Button, Input, Label } from "@/components/ui";
 import { Calendar } from "lucide-react";
 
 interface FeeDateRangeFilterProps {
@@ -31,41 +31,39 @@ export function FeeDateRangeFilter({
   };
 
   return (
-    <Card className="lg:w-80 shrink-0">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <CardTitle className="text-sm font-medium">Date Range</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label className="text-xs">From</Label>
+    <Card className="w-full">
+      <CardContent className="py-3 px-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Date Range</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground shrink-0">From</Label>
             <Input
               type="date"
               value={dateFrom}
               onChange={(e) => onDateFromChange(e.target.value)}
-              className="h-8 text-sm"
+              className="h-8 text-sm w-36"
             />
           </div>
-          <div>
-            <Label className="text-xs">To</Label>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground shrink-0">To</Label>
             <Input
               type="date"
               value={dateTo}
               onChange={(e) => onDateToChange(e.target.value)}
-              className="h-8 text-sm"
+              className="h-8 text-sm w-36"
             />
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={setLastMonth}>
-            Last Month
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={setThisMonth}>
-            This Month
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="text-xs h-8" onClick={setLastMonth}>
+              Last Month
+            </Button>
+            <Button variant="outline" size="sm" className="text-xs h-8" onClick={setThisMonth}>
+              This Month
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
