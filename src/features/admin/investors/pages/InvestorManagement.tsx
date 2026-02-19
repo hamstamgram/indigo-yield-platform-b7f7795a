@@ -10,6 +10,7 @@ import {
   CardContent,
   Button,
   Badge,
+  Input,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -29,7 +30,12 @@ import {
   Copy,
   Check,
   RefreshCw,
+  Pencil,
+  X,
+  Save,
 } from "lucide-react";
+import { invokeFunction } from "@/lib/supabase/functions";
+import { logError } from "@/lib/logger";
 import { forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorTabs } from "@/components/admin";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
@@ -42,6 +48,10 @@ const InvestorManagement = () => {
   const [searchParams] = useSearchParams();
 
   const [linkCopied, setLinkCopied] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
   const { isSuperAdmin } = useSuperAdmin();
 
   // Use hooks for data fetching
@@ -69,6 +79,46 @@ const InvestorManagement = () => {
 
   const handleBack = () => {
     navigate(getBackUrl());
+  };
+
+  const handleStartEditName = () => {
+    if (!investor) return;
+    setEditFirstName(investor.firstName);
+    setEditLastName(investor.lastName);
+    setIsEditingName(true);
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setEditFirstName("");
+    setEditLastName("");
+  };
+
+  const handleSaveName = async () => {
+    if (!id || !editFirstName.trim() || !editLastName.trim()) {
+      toast.error("First name and last name are required");
+      return;
+    }
+    setIsSavingName(true);
+    try {
+      const { data, error } = await invokeFunction("admin-user-management", {
+        action: "updateInvestorProfile",
+        investorId: id,
+        firstName: editFirstName.trim(),
+        lastName: editLastName.trim(),
+      });
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Failed to update name");
+      }
+      toast.success("Name updated");
+      setIsEditingName(false);
+      refetchInvestor();
+    } catch (error) {
+      logError("InvestorManagement.saveName", error, { investorId: id });
+      toast.error(error instanceof Error ? error.message : "Failed to update name");
+    } finally {
+      setIsSavingName(false);
+    }
   };
 
   const handleCopyLink = async () => {
@@ -171,13 +221,70 @@ const InvestorManagement = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">{investor.name}</h1>
-              <Badge variant={investor.status === "active" ? "default" : "secondary"}>
-                {investor.status}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={editFirstName}
+                  onChange={(e) => setEditFirstName(e.target.value)}
+                  placeholder="First name"
+                  className="h-9 w-36"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveName();
+                    if (e.key === "Escape") handleCancelEditName();
+                  }}
+                />
+                <Input
+                  value={editLastName}
+                  onChange={(e) => setEditLastName(e.target.value)}
+                  placeholder="Last name"
+                  className="h-9 w-36"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveName();
+                    if (e.key === "Escape") handleCancelEditName();
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleSaveName}
+                  disabled={isSavingName}
+                >
+                  {isSavingName ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 text-green-500" />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleCancelEditName}
+                  disabled={isSavingName}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight">{investor.name}</h1>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={handleStartEditName}
+                  title="Edit name"
+                >
+                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
+                <Badge variant={investor.status === "active" ? "default" : "secondary"}>
+                  {investor.status}
+                </Badge>
+              </div>
+            )}
+            <div className="flex items-center gap-2 mt-1">
               <p className="text-muted-foreground">{investor.email}</p>
               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyLink}>
                 {linkCopied ? (

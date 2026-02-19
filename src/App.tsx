@@ -19,6 +19,7 @@ import { CookieConsent } from "./components/privacy/CookieConsent";
 import { AppRoutes } from "./routing/AppRoutes";
 import { useFocusManagement } from "@/hooks";
 import { RouteSuspense } from "./routing/RouteSuspense";
+import { useVersionCheck } from "@/hooks/useVersionCheck";
 
 // Create a QueryClient instance with optimized config
 const queryClient = new QueryClient(queryClientConfig);
@@ -29,6 +30,7 @@ setQueryClient(queryClient);
 // Main app content with focus management
 function AppContent() {
   useFocusManagement();
+  useVersionCheck();
   const navigate = useNavigate();
 
   // Handle Supabase recovery links that arrive with tokens in the URL hash

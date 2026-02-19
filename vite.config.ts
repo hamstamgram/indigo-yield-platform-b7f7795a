@@ -4,6 +4,8 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 
+const buildVersion = Date.now().toString();
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -36,6 +38,9 @@ export default defineConfig(({ mode }) => ({
         "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-ancestors 'none';",
     },
   },
+  define: {
+    __APP_VERSION__: JSON.stringify(buildVersion),
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
@@ -46,6 +51,16 @@ export default defineConfig(({ mode }) => ({
         gzipSize: true,
         brotliSize: true,
       }),
+    {
+      name: "version-file",
+      generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "version.txt",
+          source: buildVersion,
+        });
+      },
+    },
   ].filter(Boolean),
   resolve: {
     alias: {
