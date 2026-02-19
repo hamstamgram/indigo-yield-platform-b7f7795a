@@ -70,7 +70,7 @@ export function QuickYieldEntry() {
     }
 
     // Navigate to Monthly Data Entry with pre-selected fund
-    navigate(`/admin/yield?fund=${selectedFund}&aum=${newAUM}`);
+    navigate(`/admin/yield-history?fund=${selectedFund}&aum=${newAUM}`);
   };
 
   const formatCrypto = (value: string | number, decimals: number = 4) => {

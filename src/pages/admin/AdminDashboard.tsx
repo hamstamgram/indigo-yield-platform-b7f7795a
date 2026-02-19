@@ -127,7 +127,7 @@ function AdminDashboardContent() {
   };
 
   const handleAlertClick = () => {
-    navigate("/admin/integrity");
+    navigate("/admin/operations");
   };
 
   if (loading) {
