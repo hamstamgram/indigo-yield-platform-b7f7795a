@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { logWarn } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
@@ -12,18 +13,36 @@ interface AdminRouteProps {
 /**
  * AdminRoute - Hardened admin route guard
  * Double-checks admin status using both AuthContext and useUserRole hook
- * to prevent any race condition or inconsistent state issues
+ * to prevent any race condition or inconsistent state issues.
+ * Safety timeout: if loading hangs >3s without a user, redirect to login.
  */
 export function AdminRoute({ children }: AdminRouteProps) {
   const { user, loading: authLoading, isAdmin: authIsAdmin, profile } = useAuth();
   const { isAdmin: roleIsAdmin, isLoading: roleLoading } = useUserRole();
   const location = useLocation();
+  const [timedOut, setTimedOut] = useState(false);
 
   // Prefetch high-priority admin data after page load
   useAdminInitialPrefetch();
 
+  // Safety timeout: if auth doesn't resolve within 3s and there's no user, force redirect
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setTimedOut(true);
+    }, 3000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Wait for both auth context AND role check to complete
   const isLoading = authLoading || roleLoading || (user && !profile);
+
+  // If loading timed out and we still have no user, redirect immediately
+  if (isLoading && timedOut && !user) {
+    logWarn("AdminRoute.loadingTimeout", {
+      message: "Auth loading timed out after 3s with no user, redirecting to login",
+    });
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
   if (isLoading) {
     return <PageLoadingSpinner />;
