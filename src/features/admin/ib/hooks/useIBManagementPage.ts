@@ -118,7 +118,7 @@ export function useCreateIB(callbacks?: CreateIBCallbacks) {
 
   return useMutation({
     mutationFn: async (data: { email: string; firstName: string; lastName: string }) => {
-      return ibManagementService.createIBRole(data.email);
+      return ibManagementService.createIBRole(data.email, data.firstName, data.lastName);
     },
     onSuccess: () => {
       toast.success("IB Created", {

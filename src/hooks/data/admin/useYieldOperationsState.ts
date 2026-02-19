@@ -89,9 +89,8 @@ export function useYieldOperationsState() {
         distributionDate: lastDayOfMonth,
       }));
 
-      // Clear preview when month changes
+      // Clear preview when month changes (AUM input preserved)
       calculation.setYieldPreview(null);
-      calculation.setNewAUM("");
       calculation.setExistingDistributionDate(null);
       calculation.setExistingDistributionId(null);
     },
@@ -106,9 +105,8 @@ export function useYieldOperationsState() {
         yieldPurpose: purpose,
         distributionDate: purpose === "reporting" ? prev.aumDate : new Date(),
       }));
-      // Clear preview when purpose changes
+      // Clear preview when purpose changes (AUM input preserved)
       calculation.setYieldPreview(null);
-      calculation.setNewAUM("");
       calculation.setExistingDistributionDate(null);
       calculation.setExistingDistributionId(null);
     },
@@ -118,9 +116,8 @@ export function useYieldOperationsState() {
   const setAumDate = useCallback(
     (date: Date) => {
       period.setAumDate(date);
-      // Clear preview when date changes
+      // Clear preview when date changes (AUM input preserved)
       calculation.setYieldPreview(null);
-      calculation.setNewAUM("");
       calculation.setExistingDistributionDate(null);
       calculation.setExistingDistributionId(null);
     },

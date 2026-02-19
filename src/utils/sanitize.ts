@@ -6,6 +6,7 @@ import DOMPurify from "dompurify";
  */
 export function sanitizeHtml(dirty: string): string {
   return DOMPurify.sanitize(dirty, {
+    WHOLE_DOCUMENT: true,
     ALLOWED_TAGS: [
       "html",
       "head",

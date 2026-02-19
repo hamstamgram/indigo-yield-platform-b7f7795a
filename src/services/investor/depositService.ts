@@ -155,7 +155,7 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
     throw new Error(`Fund not found for asset symbol ${assetSymbol}`);
   }
 
-  const amount = parseFloat(formData.amount);
+  const amount = String(formData.amount);
   const txDate = formData.tx_date || getTodayString();
 
   const closingAum = formData.closing_aum;
@@ -178,10 +178,10 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
     p_fund_id: fund.id,
     p_investor_id: profileId,
     p_tx_type: "DEPOSIT",
-    p_amount: amount,
+    p_amount: String(amount) as unknown as number,
     p_tx_date: txDate,
     p_reference_id: triggerReference,
-    p_new_total_aum: parseFloat(closingAum),
+    p_new_total_aum: String(closingAum) as unknown as number,
     p_admin_id: user.id,
     p_notes: `Deposit - ${triggerReference}`,
     p_purpose: "transaction",
@@ -200,7 +200,7 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
 
   // Send deposit notification (non-blocking)
   depositNotifications
-    .onConfirmed(profileId, txId, amount, assetSymbol, fund?.name)
+    .onConfirmed(profileId, txId, Number(amount), assetSymbol, fund?.name)
     .catch((err) => logError("depositService.notification", err, { profileId }));
 
   return getDepositById(txId);
@@ -236,16 +236,16 @@ export async function verifyDeposit(id: string, adminId?: string): Promise<Depos
   }
 
   const existingWithProfile = existing as unknown as TransactionWithProfile;
-  return mapTransactionToDeposit(
-    { ...existing, notes: verifiedNote },
-    existingWithProfile.profile
-  );
+  return mapTransactionToDeposit({ ...existing, notes: verifiedNote }, existingWithProfile.profile);
 }
 
 /**
  * Reject a deposit - voids the transaction using the canonical void_transaction RPC
  */
-export async function rejectDeposit(id: string, reason: string = "Deposit rejected by admin"): Promise<Deposit> {
+export async function rejectDeposit(
+  id: string,
+  reason: string = "Deposit rejected by admin"
+): Promise<Deposit> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -332,9 +332,8 @@ export async function getDepositStats(filters?: DepositFilters): Promise<{
     verified: data?.length || 0,
     rejected: 0,
     total_amount:
-      data
-        ?.reduce((sum, d) => sum.plus(parseFinancial(d.amount)), parseFinancial(0))
-        .toString() || "0",
+      data?.reduce((sum, d) => sum.plus(parseFinancial(d.amount)), parseFinancial(0)).toString() ||
+      "0",
     by_asset: {} as Record<string, { count: number; amount: string }>,
   };
 
