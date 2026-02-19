@@ -33,6 +33,12 @@ const DashboardLayout = () => {
   const { isAdmin: roleIsAdmin, isLoading: roleLoading } = useUserRole();
 
   useEffect(() => {
+    // If auth has resolved and there's no user, redirect immediately
+    if (!authLoading && !user) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
     // Wait for both auth context AND role check to complete
     const isFullyLoaded = !authLoading && !roleLoading && profile !== null;
 
