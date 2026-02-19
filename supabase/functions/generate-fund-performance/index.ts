@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Decimal from "https://esm.sh/decimal.js@10.4.3";
 import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import {
@@ -7,10 +8,23 @@ import {
   extractAssetFromFundName,
 } from "../_shared/monthly-report-template-v2.ts";
 
+// Configure Decimal.js for financial precision
+Decimal.set({ precision: 28, rounding: Decimal.ROUND_HALF_UP });
+
 interface RequestBody {
   periodYear: number;
   periodMonth: number;
   investorId?: string;
+}
+
+/** Parse a value from the database into a Decimal. Handles string, number, null, undefined. */
+function toDecimal(value: unknown): Decimal {
+  if (value === null || value === undefined || value === "") return new Decimal(0);
+  try {
+    return new Decimal(String(value));
+  } catch {
+    return new Decimal(0);
+  }
 }
 
 /**
@@ -24,24 +38,24 @@ interface RequestBody {
  * - Divide by zero: rate_of_return = 0 when beginning_balance <= 0
  */
 function calculatePerformanceMetrics(
-  endingBalance: number,
-  beginningBalance: number,
-  additions: number,
-  redemptions: number
-): { netIncome: number; rateOfReturn: number } {
+  endingBalance: Decimal,
+  beginningBalance: Decimal,
+  additions: Decimal,
+  redemptions: Decimal
+): { netIncome: Decimal; rateOfReturn: Decimal } {
   // CORRECT formula per audit requirements:
-  const netIncome = endingBalance - beginningBalance - additions + redemptions;
+  const netIncome = endingBalance.minus(beginningBalance).minus(additions).plus(redemptions);
 
   // When no beginning balance, use additions as denominator (same approach as ITD)
-  if (beginningBalance <= 0) {
-    if (additions > 0) {
-      const rateOfReturn = (netIncome / additions) * 100;
+  if (beginningBalance.lte(0)) {
+    if (additions.gt(0)) {
+      const rateOfReturn = netIncome.div(additions).times(100);
       return { netIncome, rateOfReturn };
     }
-    return { netIncome, rateOfReturn: 0 };
+    return { netIncome, rateOfReturn: new Decimal(0) };
   }
 
-  const rateOfReturn = (netIncome / beginningBalance) * 100;
+  const rateOfReturn = netIncome.div(beginningBalance).times(100);
   return { netIncome, rateOfReturn };
 }
 
@@ -63,10 +77,9 @@ function getAssetDecimals(asset: string): number {
   }
 }
 
-/** Round to N decimal places (avoids floating-point drift) */
-function roundToDecimals(value: number, decimals: number): number {
-  const factor = Math.pow(10, decimals);
-  return Math.round(value * factor) / factor;
+/** Round a Decimal to N decimal places using ROUND_HALF_UP */
+function roundToDecimals(value: Decimal, decimals: number): number {
+  return value.toDecimalPlaces(decimals, Decimal.ROUND_HALF_UP).toNumber();
 }
 
 Deno.serve(async (req) => {
@@ -271,13 +284,13 @@ Deno.serve(async (req) => {
 
     if (snapshotsError) throw snapshotsError;
 
-    const snapshotBalances = new Map<string, number>();
+    const snapshotBalances = new Map<string, Decimal>();
     for (const snap of snapshots || []) {
       const asset = fundAssetById.get((snap as any).fund_id);
       if (!asset) continue;
       snapshotBalances.set(
         `${(snap as any).investor_id}:${asset}`,
-        Number((snap as any).current_value) || 0
+        toDecimal((snap as any).current_value)
       );
     }
 
@@ -298,7 +311,7 @@ Deno.serve(async (req) => {
     const priorMonth = periodMonth === 1 ? 12 : periodMonth - 1;
     const priorYear = periodMonth === 1 ? periodYear - 1 : periodYear;
 
-    const priorEndingBalances = new Map<string, number>();
+    const priorEndingBalances = new Map<string, Decimal>();
 
     const { data: priorPeriod } = await supabase
       .from("statement_periods")
@@ -315,8 +328,8 @@ Deno.serve(async (req) => {
         .eq("purpose", "reporting");
 
       for (const row of priorPerf || []) {
-        const bal = Number((row as any).mtd_ending_balance) || 0;
-        if (bal > 0) {
+        const bal = toDecimal((row as any).mtd_ending_balance);
+        if (bal.gt(0)) {
           priorEndingBalances.set(`${(row as any).investor_id}:${(row as any).fund_name}`, bal);
         }
       }
@@ -341,47 +354,47 @@ Deno.serve(async (req) => {
     const additionTypes = new Set(["DEPOSIT", "INTERNAL_CREDIT"]);
     const redemptionTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL"]);
 
-    const sumBalanceUpTo = (txs: any[], beforeDate: Date): number => {
+    const sumBalanceUpTo = (txs: any[], beforeDate: Date): Decimal => {
       return txs
         .filter((tx: any) => new Date(tx.tx_date) <= beforeDate)
-        .reduce((sum: number, tx: any) => {
-          const amount = Math.abs(Number(tx.amount));
-          if (inflowTypes.has(tx.type)) return sum + amount;
-          if (outflowTypes.has(tx.type)) return sum - amount;
+        .reduce((sum: Decimal, tx: any) => {
+          const amount = toDecimal(tx.amount).abs();
+          if (inflowTypes.has(tx.type)) return sum.plus(amount);
+          if (outflowTypes.has(tx.type)) return sum.minus(amount);
           return sum;
-        }, 0);
+        }, new Decimal(0));
     };
 
     // Strict "before" comparison for beginning balances: excludes transactions ON the date
-    const sumBalanceBefore = (txs: any[], beforeDate: Date): number => {
+    const sumBalanceBefore = (txs: any[], beforeDate: Date): Decimal => {
       return txs
         .filter((tx: any) => new Date(tx.tx_date) < beforeDate)
-        .reduce((sum: number, tx: any) => {
-          const amount = Math.abs(Number(tx.amount));
-          if (inflowTypes.has(tx.type)) return sum + amount;
-          if (outflowTypes.has(tx.type)) return sum - amount;
+        .reduce((sum: Decimal, tx: any) => {
+          const amount = toDecimal(tx.amount).abs();
+          if (inflowTypes.has(tx.type)) return sum.plus(amount);
+          if (outflowTypes.has(tx.type)) return sum.minus(amount);
           return sum;
-        }, 0);
+        }, new Decimal(0));
     };
 
-    const sumByType = (txs: any[], startDate: Date, endDate: Date, types: Set<string>): number => {
+    const sumByType = (txs: any[], startDate: Date, endDate: Date, types: Set<string>): Decimal => {
       return txs
         .filter((tx: any) => {
           const txDate = new Date(tx.tx_date);
           return txDate > startDate && txDate <= endDate && types.has(tx.type);
         })
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
+        .reduce((sum: Decimal, tx: any) => sum.plus(toDecimal(tx.amount).abs()), new Decimal(0));
     };
 
-    const sumBalanceThrough = (txs: any[], endDate: Date): number => {
+    const sumBalanceThrough = (txs: any[], endDate: Date): Decimal => {
       return txs
         .filter((tx: any) => new Date(tx.tx_date) <= endDate)
-        .reduce((sum: number, tx: any) => {
-          const amount = Math.abs(Number(tx.amount));
-          if (inflowTypes.has(tx.type)) return sum + amount;
-          if (outflowTypes.has(tx.type)) return sum - amount;
+        .reduce((sum: Decimal, tx: any) => {
+          const amount = toDecimal(tx.amount).abs();
+          if (inflowTypes.has(tx.type)) return sum.plus(amount);
+          if (outflowTypes.has(tx.type)) return sum.minus(amount);
           return sum;
-        }, 0);
+        }, new Decimal(0));
     };
 
     // Calculate metrics for each investor + asset combination
@@ -407,19 +420,18 @@ Deno.serve(async (req) => {
       }
 
       // Prefer snapshot balances at period end; fallback to transaction-derived balance
-      let endingBalance = snapshotBalances.get(key);
-      if (endingBalance === undefined) {
-        endingBalance = investorTxs.length > 0 ? sumBalanceThrough(investorTxs, mtdEnd) : 0;
-      }
+      const endingBalance: Decimal =
+        snapshotBalances.get(key) ??
+        (investorTxs.length > 0 ? sumBalanceThrough(investorTxs, mtdEnd) : new Decimal(0));
 
       // ============= MTD CALCULATIONS =============
       // Use strict "before" for beginning balance: transactions ON the first day of the month
       // are additions, not part of the beginning balance
       let mtdBeginning = sumBalanceBefore(investorTxs, mtdStart);
       // Fallback: if tx-derived beginning is 0, use prior period ending balance
-      if (mtdBeginning === 0) {
+      if (mtdBeginning.isZero()) {
         const priorBal = priorEndingBalances.get(key);
-        if (priorBal && priorBal > 0) {
+        if (priorBal && priorBal.gt(0)) {
           mtdBeginning = priorBal;
         }
       }
@@ -428,12 +440,12 @@ Deno.serve(async (req) => {
 
       // Guard: skip investors with zero activity AND zero balance
       // (This is the definitive fix for ghost reports like Sam Johnson)
-      const epsilon = 1e-10;
+      const epsilon = new Decimal("1e-10");
       if (
-        Math.abs(mtdBeginning) < epsilon &&
-        Math.abs(mtdAdditions) < epsilon &&
-        Math.abs(mtdRedemptions) < epsilon &&
-        Math.abs(endingBalance) < epsilon
+        mtdBeginning.abs().lt(epsilon) &&
+        mtdAdditions.abs().lt(epsilon) &&
+        mtdRedemptions.abs().lt(epsilon) &&
+        endingBalance.abs().lt(epsilon)
       ) {
         continue;
       }
@@ -472,7 +484,7 @@ Deno.serve(async (req) => {
 
       // ============= ITD CALCULATIONS =============
       // ITD beginning is always 0 (inception)
-      const itdBeginning = 0;
+      const itdBeginning = new Decimal(0);
       const itdAdditions = sumByType(investorTxs, new Date(0), mtdEnd, additionTypes);
       const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, redemptionTypes);
 
@@ -484,13 +496,15 @@ Deno.serve(async (req) => {
       );
 
       // Special case for ITD: use total principal as denominator since beginning is 0
-      const totalPrincipal = itdAdditions - itdRedemptions;
-      const itdRoR = totalPrincipal > 0 ? (itdMetrics.netIncome / totalPrincipal) * 100 : 0;
+      const totalPrincipal = itdAdditions.minus(itdRedemptions);
+      const itdRoR = totalPrincipal.gt(0)
+        ? itdMetrics.netIncome.div(totalPrincipal).times(100)
+        : new Decimal(0);
 
       // Use asset-specific decimal precision (BTC=8, ETH=4, stablecoins=2)
       const decimals = getAssetDecimals(fundAsset);
-      const round = (v: number) => roundToDecimals(v, decimals);
-      const rorRound = (v: number) => Math.round(v * 100) / 100; // RoR always 2dp
+      const round = (v: Decimal) => roundToDecimals(v, decimals);
+      const rorRound = (v: Decimal) => roundToDecimals(v, 2); // RoR always 2dp
 
       // Round component values first, then DERIVE net_income from rounded values
       // to guarantee: beginning + additions - redemptions + net_income = ending
@@ -498,25 +512,25 @@ Deno.serve(async (req) => {
       const mtdAddR = round(mtdAdditions);
       const mtdRedR = round(mtdRedemptions);
       const mtdEndR = round(endingBalance);
-      const mtdNetR = round(mtdEndR - mtdBeginR - mtdAddR + mtdRedR);
+      const mtdNetR = round(new Decimal(mtdEndR).minus(mtdBeginR).minus(mtdAddR).plus(mtdRedR));
 
       const qtdBeginR = round(qtdBeginning);
       const qtdAddR = round(qtdAdditions);
       const qtdRedR = round(qtdRedemptions);
       const qtdEndR = round(endingBalance);
-      const qtdNetR = round(qtdEndR - qtdBeginR - qtdAddR + qtdRedR);
+      const qtdNetR = round(new Decimal(qtdEndR).minus(qtdBeginR).minus(qtdAddR).plus(qtdRedR));
 
       const ytdBeginR = round(ytdBeginning);
       const ytdAddR = round(ytdAdditions);
       const ytdRedR = round(ytdRedemptions);
       const ytdEndR = round(endingBalance);
-      const ytdNetR = round(ytdEndR - ytdBeginR - ytdAddR + ytdRedR);
+      const ytdNetR = round(new Decimal(ytdEndR).minus(ytdBeginR).minus(ytdAddR).plus(ytdRedR));
 
       const itdBeginR = 0;
       const itdAddR = round(itdAdditions);
       const itdRedR = round(itdRedemptions);
       const itdEndR = round(endingBalance);
-      const itdNetR = round(itdEndR - itdBeginR - itdAddR + itdRedR);
+      const itdNetR = round(new Decimal(itdEndR).minus(itdBeginR).minus(itdAddR).plus(itdRedR));
 
       performanceRecords.push({
         period_id: periodId,

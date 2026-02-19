@@ -18,9 +18,7 @@ export default function RequireAdmin({ children, redirectTo = "/dashboard" }: Re
   useEffect(() => {
     if (loading) return; // Wait for auth to load
 
-    // SECURITY: Only allow preview mode via environment variable, never localStorage
-    // This prevents users from bypassing admin checks by manipulating localStorage
-    if (!session && !import.meta.env.VITE_PREVIEW_ADMIN) {
+    if (!session) {
       navigate("/login", { replace: true });
       return;
     }

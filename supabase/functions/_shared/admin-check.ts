@@ -9,13 +9,12 @@ export interface AdminCheckResult {
 
 /**
  * CANONICAL ADMIN CHECK - Use this across ALL edge functions
- * 
- * This function checks admin status using BOTH methods for consistency:
- * 1. Primary: user_roles table (preferred, role-based access control)
- * 2. Fallback: profiles.is_admin flag (legacy support)
- * 
+ *
+ * This function checks admin status using the user_roles table only.
+ * The profiles.is_admin fallback has been removed (P1-3 security fix).
+ *
  * IMPORTANT: Must be called with a service role client to bypass RLS.
- * 
+ *
  * @param supabase - Service role Supabase client
  * @param userId - The user ID to check
  * @returns AdminCheckResult with isAdmin status and user info
@@ -55,42 +54,19 @@ export async function checkAdminAccess(
       };
     }
 
-    // Step 2: Fallback to profiles.is_admin (legacy support)
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("is_admin, email")
-      .eq("id", userId)
-      .single();
-
-    if (profileError) {
-      console.error("Admin check - profile query error:", profileError.message);
-      return { 
-        isAdmin: false, 
-        userId,
-        error: profileError.message 
-      };
-    }
-
-    if (!profile) {
-      return { 
-        isAdmin: false, 
-        userId,
-        error: "Profile not found" 
-      };
-    }
-
+    // No fallback to profiles.is_admin -- user_roles is the sole authority
     return {
-      isAdmin: profile.is_admin === true,
-      email: profile.email,
+      isAdmin: false,
       userId,
+      error: "User does not have admin role in user_roles table",
     };
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Unknown error";
     console.error("Admin check exception:", err);
-    return { 
-      isAdmin: false, 
+    return {
+      isAdmin: false,
       userId,
-      error: errorMessage
+      error: errorMessage,
     };
   }
 }
@@ -103,14 +79,14 @@ export function createAdminDeniedResponse(
   details?: string
 ): Response {
   return new Response(
-    JSON.stringify({ 
+    JSON.stringify({
       error: "Admin access required",
       details: details || "You must be an administrator to perform this action",
-      code: "ADMIN_REQUIRED"
+      code: "ADMIN_REQUIRED",
     }),
-    { 
-      status: 403, 
-      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     }
   );
 }
