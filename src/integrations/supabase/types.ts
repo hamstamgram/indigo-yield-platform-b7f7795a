@@ -3780,6 +3780,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "yield_distributions_aum_record_id_fkey"
+            columns: ["aum_record_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_daily_aum_orphans"
+            referencedColumns: ["aum_id"]
+          },
+          {
             foreignKeyName: "yield_distributions_consolidated_into_id_fkey"
             columns: ["consolidated_into_id"]
             isOneToOne: false
@@ -3968,13 +3975,12 @@ export type Database = {
       }
       fund_aum_mismatch: {
         Row: {
+          asset: string | null
           aum_date: string | null
-          calculated_aum: number | null
           discrepancy: number | null
-          fund_code: string | null
           fund_id: string | null
           fund_name: string | null
-          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          position_sum: number | null
           recorded_aum: number | null
         }
         Relationships: []
@@ -4020,12 +4026,10 @@ export type Database = {
       investor_position_ledger_mismatch: {
         Row: {
           discrepancy: number | null
-          fund_code: string | null
           fund_id: string | null
           investor_id: string | null
-          investor_name: string | null
           ledger_balance: number | null
-          position_value: number | null
+          position_balance: number | null
         }
         Relationships: [
           {
@@ -4493,6 +4497,79 @@ export type Database = {
         }
         Relationships: []
       }
+      v_fund_daily_aum_orphans: {
+        Row: {
+          aum_date: string | null
+          aum_id: string | null
+          fund_id: string | null
+          issue_type: string | null
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          source: string | null
+          total_aum: number | null
+        }
+        Insert: {
+          aum_date?: string | null
+          aum_id?: string | null
+          fund_id?: string | null
+          issue_type?: never
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          source?: string | null
+          total_aum?: number | null
+        }
+        Update: {
+          aum_date?: string | null
+          aum_id?: string | null
+          fund_id?: string | null
+          issue_type?: never
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          source?: string | null
+          total_aum?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
       v_ib_allocation_orphans: {
         Row: {
           distribution_id: string | null
@@ -4540,6 +4617,110 @@ export type Database = {
           },
         ]
       }
+      v_investor_yield_events_orphans: {
+        Row: {
+          event_date: string | null
+          event_id: string | null
+          fund_id: string | null
+          investor_id: string | null
+          issue_type: string | null
+          net_yield_amount: number | null
+          reference_id: string | null
+          trigger_transaction_id: string | null
+        }
+        Insert: {
+          event_date?: string | null
+          event_id?: string | null
+          fund_id?: string | null
+          investor_id?: string | null
+          issue_type?: never
+          net_yield_amount?: number | null
+          reference_id?: string | null
+          trigger_transaction_id?: string | null
+        }
+        Update: {
+          event_date?: string | null
+          event_id?: string | null
+          fund_id?: string | null
+          investor_id?: string | null
+          issue_type?: never
+          net_yield_amount?: number | null
+          reference_id?: string | null
+          trigger_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_trigger_tx"
+            columns: ["trigger_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_trigger_tx"
+            columns: ["trigger_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_orphaned_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_trigger_tx"
+            columns: ["trigger_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_transaction_distribution_orphans"
+            referencedColumns: ["transaction_id"]
+          },
+        ]
+      }
       v_ledger_reconciliation: {
         Row: {
           asset: string | null
@@ -4547,8 +4728,8 @@ export type Database = {
           fund_id: string | null
           fund_name: string | null
           investor_id: string | null
-          ledger_sum: number | null
-          position_value: number | null
+          ledger_balance: number | null
+          position_balance: number | null
         }
         Relationships: [
           {
@@ -5009,24 +5190,94 @@ export type Database = {
         }
         Relationships: []
       }
+      v_yield_allocation_orphans: {
+        Row: {
+          allocation_id: string | null
+          distribution_id: string | null
+          fund_id: string | null
+          gross_amount: number | null
+          investor_id: string | null
+          issue_type: string | null
+          net_amount: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
       v_yield_conservation_violations: {
         Row: {
-          created_at: string | null
           distribution_id: string | null
-          fund_code: string | null
+          effective_date: string | null
           fund_id: string | null
-          has_violation: boolean | null
           header_dust: number | null
-          header_fee: number | null
+          header_fees: number | null
           header_gross: number | null
           header_ib: number | null
           header_net: number | null
-          header_variance: number | null
-          is_voided: boolean | null
-          period_end: string | null
-          period_start: string | null
-          purpose: Database["public"]["Enums"]["aum_purpose"] | null
-          status: string | null
+          variance: number | null
+        }
+        Insert: {
+          distribution_id?: string | null
+          effective_date?: string | null
+          fund_id?: string | null
+          header_dust?: never
+          header_fees?: never
+          header_gross?: never
+          header_ib?: never
+          header_net?: never
+          variance?: never
+        }
+        Update: {
+          distribution_id?: string | null
+          effective_date?: string | null
+          fund_id?: string | null
+          header_dust?: never
+          header_fees?: never
+          header_gross?: never
+          header_ib?: never
+          header_net?: never
+          variance?: never
         }
         Relationships: [
           {
@@ -5075,17 +5326,37 @@ export type Database = {
       }
       yield_distribution_conservation_check: {
         Row: {
-          calculated_fees: number | null
-          calculated_ib: number | null
-          conservation_error: number | null
           distribution_id: string | null
           dust: number | null
           effective_date: string | null
-          fund_code: string | null
+          fees: number | null
           fund_id: string | null
-          gross_yield: number | null
-          net_to_investors: number | null
-          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          gross: number | null
+          ib: number | null
+          net: number | null
+          residual: number | null
+        }
+        Insert: {
+          distribution_id?: string | null
+          dust?: never
+          effective_date?: string | null
+          fees?: never
+          fund_id?: string | null
+          gross?: never
+          ib?: never
+          net?: never
+          residual?: never
+        }
+        Update: {
+          distribution_id?: string | null
+          dust?: never
+          effective_date?: string | null
+          fees?: never
+          fund_id?: string | null
+          gross?: never
+          ib?: never
+          net?: never
+          residual?: never
         }
         Relationships: [
           {
@@ -5141,6 +5412,14 @@ export type Database = {
       _resolve_investor_ib_pct: {
         Args: { p_date: string; p_fund_id: string; p_investor_id: string }
         Returns: number
+      }
+      _v5_check_distribution_uniqueness: {
+        Args: {
+          p_fund_id: string
+          p_period_end: string
+          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Returns: undefined
       }
       acquire_delivery_batch: {
         Args: {
@@ -6032,25 +6311,15 @@ export type Database = {
         Args: { p_keep_profile_id: string; p_merge_profile_id: string }
         Returns: Json
       }
-      preview_segmented_yield_distribution_v5:
-        | {
-            Args: {
-              p_fund_id: string
-              p_period_end: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_recorded_aum: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_fund_id: string
-              p_period_end: string
-              p_purpose?: string
-              p_recorded_aum: number
-            }
-            Returns: Json
-          }
+      preview_segmented_yield_distribution_v5: {
+        Args: {
+          p_fund_id: string
+          p_period_end: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_recorded_aum: number
+        }
+        Returns: Json
+      }
       process_yield_distribution: {
         Args: {
           p_admin_id?: string
