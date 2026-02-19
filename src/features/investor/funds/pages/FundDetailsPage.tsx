@@ -156,7 +156,6 @@ export default function FundDetailsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xl font-bold text-white tracking-tight">Performance History</h2>
-          {/* <Button variant="ghost" size="sm" className="text-indigo-200/50 hover:text-white">View Full Report</Button> */}
         </div>
 
         <div className="glass-panel rounded-2xl border border-white/10 bg-black/40 overflow-hidden shadow-2xl">

@@ -36,11 +36,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
-import { useToast } from "@/hooks";
+import { toast } from "sonner";
 import {
   Settings,
   Bell,
-  Database,
   Globe,
   Save,
   RefreshCw,
@@ -71,15 +70,13 @@ import { usePersonalInfo } from "@/hooks/data/shared/useProfileSettings";
 // ============================================================================
 
 function AdminManagementTab() {
-  const { toast } = useToast();
   const { user } = useAuth();
   const { data: admins, isLoading: adminsLoading } = useAdminUsersWithRoles();
   const { data: invites, isLoading: invitesLoading } = useAdminInvitesList();
   const updateRole = useUpdateAdminRole();
   const revokeInvite = useRevokeAdminInvite({
-    onSuccess: () => toast({ title: "Invite revoked" }),
-    onError: (error) =>
-      toast({ title: "Error", description: error.message, variant: "destructive" }),
+    onSuccess: () => toast.success("Invite revoked"),
+    onError: (error) => toast.error(error.message || "Failed to revoke invite"),
   });
   const sendEmail = useSendAdminInviteEmail();
   const [inviteDialog, setInviteDialog] = useState(false);
@@ -88,18 +85,17 @@ function AdminManagementTab() {
 
   const createInvite = useCreateAdminInvite({
     onSuccess: (data) => {
-      toast({ title: "Invite created", description: `Sent to ${data.email}` });
+      toast.success("Invite created", { description: `Sent to ${data.email}` });
       setInviteDialog(false);
       setInviteEmail("");
     },
-    onError: (error) =>
-      toast({ title: "Error", description: error.message, variant: "destructive" }),
+    onError: (error) => toast.error(error.message || "Failed to create invite"),
   });
 
   const handleCopyLink = (inviteCode: string) => {
     const link = `${window.location.origin}/admin/invite?code=${inviteCode}`;
     navigator.clipboard.writeText(link);
-    toast({ title: "Link copied to clipboard" });
+    toast.success("Link copied to clipboard");
   };
 
   const isLoading = adminsLoading || invitesLoading;
@@ -369,21 +365,17 @@ function AdminAccountTab() {
 // ============================================================================
 
 function AdminSettingsContent() {
-  const { toast } = useToast();
   const { settings, setSettings, isLoading, isSaving, handleSave } = usePlatformSettingsForm();
 
   const handleSaveClick = async () => {
     try {
       await handleSave();
-      toast({
-        title: "Settings saved",
+      toast.success("Settings saved", {
         description: "Platform settings have been updated successfully.",
       });
     } catch (error) {
-      toast({
-        title: "Error saving settings",
+      toast.error("Error saving settings", {
         description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
       });
     }
   };
@@ -409,7 +401,7 @@ function AdminSettingsContent() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             General
@@ -418,10 +410,7 @@ function AdminSettingsContent() {
             <Bell className="h-4 w-4" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="limits" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Limits
-          </TabsTrigger>
+
           <TabsTrigger value="admins" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Admins
@@ -517,33 +506,6 @@ function AdminSettingsContent() {
                 />
                 <p className="text-sm text-muted-foreground">
                   Email address shown to users for support inquiries
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Transaction Limits */}
-        <TabsContent value="limits">
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaction Limits</CardTitle>
-              <CardDescription>Configure minimum transaction amounts</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="min_deposit">Minimum Deposit (per asset)</Label>
-                <Input
-                  id="min_deposit"
-                  type="number"
-                  value={settings.min_deposit}
-                  onChange={(e) =>
-                    setSettings({ ...settings, min_deposit: Number(e.target.value) })
-                  }
-                  min={0}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Minimum amount required for deposits (applies to each asset type)
                 </p>
               </div>
             </CardContent>

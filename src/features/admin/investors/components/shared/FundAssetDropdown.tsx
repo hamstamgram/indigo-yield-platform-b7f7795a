@@ -47,7 +47,7 @@ const FundAssetDropdown = ({ investorId, onFundAdded }: FundAssetDropdownProps) 
       }
 
       toast({
-        title: "✅ Fund Added",
+        title: "Fund Added",
         description: `Successfully added fund to investor's portfolio`,
         duration: 5000,
       });
@@ -59,7 +59,7 @@ const FundAssetDropdown = ({ investorId, onFundAdded }: FundAssetDropdownProps) 
       logError("FundAssetDropdown.handleAddFund", error, { investorId, fundId });
 
       toast({
-        title: "❌ Operation Failed",
+        title: "Operation Failed",
         description: error.message || "An unexpected error occurred while adding the fund",
         variant: "destructive",
         duration: 7000,

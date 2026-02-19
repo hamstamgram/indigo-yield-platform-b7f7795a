@@ -7,8 +7,7 @@ export interface PlatformSettings {
   allow_new_registrations: boolean;
   require_email_verification: boolean;
   enable_2fa: boolean;
-  min_deposit: number;
-  min_withdrawal: number;
+
   notification_email: string;
   support_email: string;
   platform_name: string;
@@ -19,8 +18,7 @@ export const defaultPlatformSettings: PlatformSettings = {
   allow_new_registrations: true,
   require_email_verification: true,
   enable_2fa: false,
-  min_deposit: 1000,
-  min_withdrawal: 100,
+
   notification_email: "notifications@indigo.fund",
   support_email: "support@indigo.fund",
   platform_name: "Indigo Yield Platform",

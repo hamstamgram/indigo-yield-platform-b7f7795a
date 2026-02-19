@@ -1,6 +1,6 @@
 import { useInvestorWithdrawals } from "@/hooks/data";
 import { Card, CardContent, CardHeader, Button, Input } from "@/components/ui";
-import { Search, Filter, Plus, ArrowLeftRight } from "lucide-react";
+import { Search, Plus, ArrowLeftRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -36,9 +36,6 @@ export default function WithdrawalHistoryPage() {
                 className="pl-10"
               />
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
