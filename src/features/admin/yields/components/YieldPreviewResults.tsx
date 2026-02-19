@@ -112,14 +112,6 @@ export function YieldPreviewResults({
               </Badge>
             )}
           </div>
-          {yieldPreview.conservationCheck !== undefined && (
-            <Badge
-              variant={yieldPreview.conservationCheck ? "outline" : "destructive"}
-              className="text-xs"
-            >
-              {yieldPreview.conservationCheck ? "Conservation OK" : "Conservation Error"}
-            </Badge>
-          )}
         </div>
       )}
 
@@ -207,9 +199,6 @@ export function YieldPreviewResults({
                 +{formatValue(toNum(yieldPreview.indigoFeesCredit), asset)} {asset}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Platform fees collected after IB commissions
-            </p>
           </CardContent>
         </Card>
       )}

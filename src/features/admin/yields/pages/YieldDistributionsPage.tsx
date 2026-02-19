@@ -58,7 +58,7 @@ import {
 } from "@/components/ui";
 import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { AlertTriangle, ArrowRightLeft, CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import { ArrowRightLeft, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
@@ -676,20 +676,6 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                     (sum, a) => sum + (a.gross_amount || 0),
                                     0
                                   );
-                                  const grossDiscrepancy = Math.abs(
-                                    totalGross - distribution.gross_yield
-                                  );
-                                  const hasDiscrepancy =
-                                    allocations.length > 0 && grossDiscrepancy > 0.01;
-                                  const sumGrossEvents = yieldEvents.reduce(
-                                    (sum, e) => sum + (e.gross_yield_amount || 0),
-                                    0
-                                  );
-                                  const eventDiscrepancy = Math.abs(
-                                    sumGrossEvents - distribution.gross_yield
-                                  );
-                                  const hasEventDiscrepancy =
-                                    yieldEvents.length > 0 && eventDiscrepancy > 0.01;
                                   return (
                                     <Card key={distribution.id}>
                                       <CardHeader className="pb-3">
@@ -775,50 +761,6 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                         </CardTitle>
                                       </CardHeader>
                                       <CardContent className="space-y-4">
-                                        {(hasDiscrepancy || hasEventDiscrepancy) && (
-                                          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-950/20 text-amber-400 text-sm border border-amber-800">
-                                            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                            <div>
-                                              <strong>Reconciliation Warning:</strong> Sum of gross{" "}
-                                              {allocations.length > 0 ? "allocations" : "events"} (
-                                              <FinancialValue
-                                                value={
-                                                  allocations.length > 0
-                                                    ? totalGross
-                                                    : sumGrossEvents
-                                                }
-                                                asset={fund?.asset}
-                                              />
-                                              ) does not match distribution gross yield (
-                                              <FinancialValue
-                                                value={distribution.gross_yield}
-                                                asset={fund?.asset}
-                                              />
-                                              ). Discrepancy:{" "}
-                                              <FinancialValue
-                                                value={
-                                                  allocations.length > 0
-                                                    ? grossDiscrepancy
-                                                    : eventDiscrepancy
-                                                }
-                                                asset={fund?.asset}
-                                              />
-                                            </div>
-                                          </div>
-                                        )}
-                                        {((allocations.length > 0 && !hasDiscrepancy) ||
-                                          (allocations.length === 0 &&
-                                            yieldEvents.length > 0 &&
-                                            !hasEventDiscrepancy)) && (
-                                          <div className="flex items-center gap-2 p-2 rounded-md bg-green-950/20 text-green-400 text-xs border border-green-800">
-                                            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
-                                            <span>
-                                              {allocations.length > 0
-                                                ? "Allocations reconcile with gross yield"
-                                                : "Crystallization events reconcile with gross yield"}
-                                            </span>
-                                          </div>
-                                        )}
                                         <div className="grid gap-4 xl:grid-cols-[280px_1fr]">
                                           <Card>
                                             <CardHeader className="pb-2">
