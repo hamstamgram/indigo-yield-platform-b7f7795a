@@ -203,7 +203,7 @@ export function QuickYieldEntry() {
             <Button
               variant="ghost"
               className="w-full text-xs"
-              onClick={() => navigate("/admin/yield")}
+              onClick={() => navigate("/admin/yield-history")}
             >
               Open Full Data Entry
               <ArrowRight className="h-3 w-3 ml-1" />

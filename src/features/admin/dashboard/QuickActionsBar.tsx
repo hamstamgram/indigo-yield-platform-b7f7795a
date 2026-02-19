@@ -4,7 +4,7 @@
  */
 
 import { useNavigate } from "react-router-dom";
-import { ArrowDownCircle, ArrowUpCircle, TrendingUp, FileText, Users, Zap } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, FileText, Users, Zap } from "lucide-react";
 import {
   Button,
   Card,
@@ -38,13 +38,6 @@ const QUICK_ACTIONS: QuickAction[] = [
     icon: <ArrowUpCircle className="h-4 w-4" />,
     href: "/admin/withdrawals",
     variant: "warning",
-  },
-  {
-    id: "yield",
-    label: "Apply Yield",
-    icon: <TrendingUp className="h-4 w-4" />,
-    href: "/admin/yield",
-    shortcut: SHORTCUTS.QUICK_YIELD,
   },
   {
     id: "reports",

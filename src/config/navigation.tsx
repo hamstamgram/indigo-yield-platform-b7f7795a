@@ -4,7 +4,6 @@ import {
   CreditCard,
   ArrowLeftRight,
   Users,
-  Calendar,
   Gauge,
   FileSpreadsheet,
   TrendingUp,
@@ -13,7 +12,6 @@ import {
   Wallet,
   Coins,
   HeartPulse,
-  Layers,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -97,25 +95,13 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Yield & Reporting",
+    title: "Reporting",
     icon: TrendingUp,
     items: [
       {
-        title: "Yield Operations",
-        href: "/admin/yield",
+        title: "Yield History",
+        href: "/admin/yield-history",
         icon: <TrendingUp className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Yield Distributions",
-        href: "/admin/yield-distributions",
-        icon: <Layers className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Recorded Yields",
-        href: "/admin/recorded-yields",
-        icon: <Calendar className="h-5 w-5" />,
         adminOnly: true,
       },
       {
@@ -124,18 +110,18 @@ export const adminNavGroups: NavGroup[] = [
         icon: <FileSpreadsheet className="h-5 w-5" />,
         adminOnly: true,
       },
-      {
-        title: "Fund Management",
-        href: "/admin/funds",
-        icon: <Briefcase className="h-5 w-5" />,
-        adminOnly: true,
-      },
     ],
   },
   {
     title: "System",
     icon: Settings,
     items: [
+      {
+        title: "Fund Management",
+        href: "/admin/funds",
+        icon: <Briefcase className="h-5 w-5" />,
+        adminOnly: true,
+      },
       {
         title: "Operations",
         href: "/admin/operations",

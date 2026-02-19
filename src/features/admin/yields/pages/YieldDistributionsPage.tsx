@@ -215,7 +215,7 @@ const distributionExportColumns: ExportColumn[] = [
   { key: "allocation_count", label: "Investors" },
 ];
 
-function YieldDistributionsContent() {
+export function YieldDistributionsContent({ embedded = false }: { embedded?: boolean } = {}) {
   const { data: fundsData = [] } = useFunds(true);
   const funds: Fund[] = fundsData.map((f) => ({
     id: f.id,
@@ -424,29 +424,52 @@ function YieldDistributionsContent() {
     return grouped;
   }, [distributions]);
 
-  return (
-    <PageShell maxWidth="wide">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-bold tracking-tight">Yield Distributions</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+  const content = (
+    <>
+      {!embedded && (
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-display font-bold tracking-tight">Yield Distributions</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Monthly distribution ledger with per-investor allocation breakdown.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <LastUpdated
+              timestamp={dataUpdatedAt}
+              onRefresh={() => refetch()}
+              isRefreshing={loading}
+            />
+            <ExportButton
+              data={exportData}
+              columns={distributionExportColumns}
+              filename="yield_distributions"
+              disabled={loading}
+            />
+          </div>
+        </div>
+      )}
+
+      {embedded && (
+        <div className="flex items-end justify-between mb-2">
+          <div className="text-sm text-muted-foreground">
             Monthly distribution ledger with per-investor allocation breakdown.
-          </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <LastUpdated
+              timestamp={dataUpdatedAt}
+              onRefresh={() => refetch()}
+              isRefreshing={loading}
+            />
+            <ExportButton
+              data={exportData}
+              columns={distributionExportColumns}
+              filename="yield_distributions"
+              disabled={loading}
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <LastUpdated
-            timestamp={dataUpdatedAt}
-            onRefresh={() => refetch()}
-            isRefreshing={loading}
-          />
-          <ExportButton
-            data={exportData}
-            columns={distributionExportColumns}
-            filename="yield_distributions"
-            disabled={loading}
-          />
-        </div>
-      </div>
+      )}
 
       <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
         <div className="flex flex-wrap gap-4 items-end">
@@ -1214,8 +1237,14 @@ function YieldDistributionsContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </PageShell>
+    </>
   );
+
+  if (embedded) {
+    return <div className="space-y-6">{content}</div>;
+  }
+
+  return <PageShell maxWidth="wide">{content}</PageShell>;
 }
 
 export default function YieldDistributionsPage() {

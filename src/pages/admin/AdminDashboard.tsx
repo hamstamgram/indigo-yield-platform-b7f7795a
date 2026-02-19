@@ -24,6 +24,11 @@ import {
   QueryErrorBoundary,
   Button,
   Badge,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { cn } from "@/lib/utils";
@@ -47,6 +52,20 @@ import { useNavigate } from "react-router-dom";
 
 import { AddTransactionDialog } from "@/features/admin/transactions/AddTransactionDialog";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+import { useYieldOperationsState } from "@/hooks/data/admin/useYieldOperationsState";
+import {
+  usePendingYieldEvents,
+  useInvestorCrystallizationEvents,
+} from "@/features/admin/yields/hooks/useYieldCrystallization";
+import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
+import { getMonth, getYear } from "date-fns";
+import { CryptoIcon } from "@/components/CryptoIcons";
+import {
+  OpenPeriodDialog,
+  YieldInputForm,
+  YieldPreviewResults,
+  YieldConfirmDialog,
+} from "@/features/admin/yields/components";
 
 function AdminDashboardContent() {
   const { stats, loading, refetch: refetchStats } = useAdminStats();
@@ -54,6 +73,44 @@ function AdminDashboardContent() {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [showApplyYieldPicker, setShowApplyYieldPicker] = useState(false);
+
+  // Yield operations state
+  const ops = useYieldOperationsState();
+
+  // Yield crystallization hooks
+  const reportingMonthDate = ops.reportingMonth ? new Date(ops.reportingMonth) : null;
+  const { data: pendingEvents } = usePendingYieldEvents(
+    ops.selectedFund?.id || null,
+    reportingMonthDate ? getYear(reportingMonthDate) : new Date().getFullYear(),
+    reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
+  );
+
+  const crystalEnabled =
+    (ops.yieldPreview?.crystalsInPeriod ?? 0) > 0 && ops.yieldPurpose === "reporting";
+  const { data: crystallizationMap } = useInvestorCrystallizationEvents(
+    ops.selectedFund?.id || null,
+    ops.yieldPreview?.periodStart || null,
+    ops.yieldPreview?.periodEnd || null,
+    crystalEnabled
+  );
+
+  const { data: reconciliation } = useAUMReconciliation(ops.selectedFund?.id || null);
+
+  const handleRecordYield = (fundId: string) => {
+    const fund = ops.funds.find((f) => f.id === fundId);
+    if (fund) {
+      ops.openYieldDialog(fund);
+    }
+  };
+
+  const handleOpenPeriod = (fundId: string) => {
+    const fund = ops.funds.find((f) => f.id === fundId);
+    if (fund) {
+      ops.setSelectedFund(fund);
+      ops.setShowOpenPeriodDialog(true);
+    }
+  };
 
   // Real-time alerts subscription and count
   useRealtimeAlerts();
@@ -126,6 +183,15 @@ function AdminDashboardContent() {
 
           <Button
             size="lg"
+            className="h-12 px-6 bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)] border border-emerald-400/20"
+            onClick={() => setShowApplyYieldPicker(true)}
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Apply Yield
+          </Button>
+
+          <Button
+            size="lg"
             className="h-12 px-6 bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/20"
             onClick={() => setShowAddTransaction(true)}
           >
@@ -144,6 +210,145 @@ function AdminDashboardContent() {
           refetchStats();
         }}
       />
+
+      {/* Yield Distribution Dialog */}
+      <Dialog open={ops.showYieldDialog} onOpenChange={ops.setShowYieldDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-panel border-white/10 p-0">
+          <DialogHeader className="p-6 bg-black/20 border-b border-white/5">
+            <DialogTitle className="flex items-center gap-3 text-2xl">
+              {ops.selectedFund && (
+                <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                  <CryptoIcon symbol={ops.selectedFund.asset} className="h-6 w-6 text-white" />
+                </div>
+              )}
+              <span className="text-white">Record Yield Event</span>
+            </DialogTitle>
+            <DialogDescription className="text-slate-400 text-base">
+              Enter the yield amount or new AUM to calculate distribution for{" "}
+              <span className="text-indigo-400 font-medium">{ops.selectedFund?.name}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 p-6">
+            <YieldInputForm
+              selectedFund={ops.selectedFund}
+              newAUM={ops.newAUM}
+              setNewAUM={ops.setNewAUM}
+              yieldPurpose={ops.yieldPurpose}
+              setYieldPurpose={ops.setYieldPurpose}
+              aumDate={ops.aumDate}
+              setAumDate={ops.setAumDate}
+              datePickerOpen={ops.datePickerOpen}
+              setDatePickerOpen={ops.setDatePickerOpen}
+              reportingMonth={ops.reportingMonth}
+              availableMonths={ops.getAvailableMonths()}
+              handleReportingMonthChange={ops.handleReportingMonthChange}
+              validateEffectiveDate={ops.validateEffectiveDate}
+              handlePreviewYield={ops.handlePreviewYield}
+              previewLoading={ops.previewLoading}
+              hasPreview={!!ops.yieldPreview}
+              formatValue={ops.formatValue}
+              reconciliation={reconciliation}
+              pendingEvents={pendingEvents}
+              asOfAum={ops.asOfAum}
+              asOfAumLoading={ops.asOfAumLoading}
+              existingDistributionDate={ops.existingDistributionDate}
+              aumTime={ops.aumTime}
+              setAumTime={ops.setAumTime}
+            />
+
+            {ops.yieldPreview && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <YieldPreviewResults
+                  yieldPreview={ops.yieldPreview}
+                  selectedFund={ops.selectedFund}
+                  formatValue={ops.formatValue}
+                  showSystemAccounts={ops.showSystemAccounts}
+                  setShowSystemAccounts={ops.setShowSystemAccounts}
+                  showOnlyChanged={ops.showOnlyChanged}
+                  setShowOnlyChanged={ops.setShowOnlyChanged}
+                  searchInvestor={ops.searchInvestor}
+                  setSearchInvestor={ops.setSearchInvestor}
+                  getFilteredDistributions={ops.getFilteredDistributions}
+                  onConfirmApply={ops.handleConfirmApply}
+                  applyLoading={ops.applyLoading}
+                  crystallizationMap={crystallizationMap}
+                  yieldPurpose={ops.yieldPurpose}
+                />
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Yield Confirmation Dialog */}
+      <YieldConfirmDialog
+        open={ops.showConfirmDialog}
+        onOpenChange={ops.setShowConfirmDialog}
+        selectedFund={ops.selectedFund}
+        yieldPurpose={ops.yieldPurpose}
+        aumDate={ops.aumDate}
+        yieldPreview={ops.yieldPreview}
+        confirmationText={ops.confirmationText}
+        setConfirmationText={ops.setConfirmationText}
+        acknowledgeDiscrepancy={ops.acknowledgeDiscrepancy}
+        setAcknowledgeDiscrepancy={ops.setAcknowledgeDiscrepancy}
+        reconciliation={reconciliation}
+        formatValue={ops.formatValue}
+        onApply={ops.handleApplyYield}
+        applyLoading={ops.applyLoading}
+        existingDistributionDate={ops.existingDistributionDate}
+      />
+
+      {/* Open Period Dialog */}
+      <OpenPeriodDialog
+        open={ops.showOpenPeriodDialog}
+        onOpenChange={ops.setShowOpenPeriodDialog}
+        fund={ops.selectedFund}
+        onSuccess={() => ops.refetchFunds()}
+      />
+
+      {/* Apply Yield - Fund Picker Dialog */}
+      <Dialog open={showApplyYieldPicker} onOpenChange={setShowApplyYieldPicker}>
+        <DialogContent className="max-w-lg glass-panel border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-white">Apply Yield</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Select a fund to record a yield distribution.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-2">
+            {ops.funds.map((fund) => (
+              <button
+                key={fund.id}
+                type="button"
+                className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-indigo-500/30 transition-all text-left"
+                disabled={fund.investor_count === 0}
+                onClick={() => {
+                  setShowApplyYieldPicker(false);
+                  ops.openYieldDialog(fund);
+                }}
+              >
+                <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                  <CryptoIcon symbol={fund.asset} className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-white">{fund.name}</div>
+                  <div className="text-xs text-slate-400 font-mono">{fund.code}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-mono text-white">
+                    {ops.formatValue(fund.total_aum, fund.asset)} {fund.asset}
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    {fund.investor_count} investor{fund.investor_count !== 1 ? "s" : ""}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Actions Bar - Floating Glass */}
       <div className="sticky top-4 z-30">
@@ -186,7 +391,7 @@ function AdminDashboardContent() {
       {/* Financial Snapshot - Full Width Glass */}
       <div className="glass-panel rounded-2xl border border-white/5 shadow-2xl overflow-hidden p-[1px] bg-gradient-to-br from-white/10 to-transparent">
         <div className="bg-black/40 rounded-[15px] overflow-hidden backdrop-blur-md">
-          <FinancialSnapshot />
+          <FinancialSnapshot onRecordYield={handleRecordYield} onOpenPeriod={handleOpenPeriod} />
         </div>
       </div>
 

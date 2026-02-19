@@ -21,9 +21,7 @@ export function GlobalShortcuts() {
       // Don't trigger in inputs
       const target = event.target as HTMLElement;
       const isInput =
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable;
+        target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
       if (isInput) return;
 
       if (gKeyPending && isAdmin) {
@@ -38,7 +36,7 @@ export function GlobalShortcuts() {
             destination = "/admin/investors";
             break;
           case "y":
-            destination = "/admin/yield";
+            destination = "/admin/yield-history";
             break;
           case "w":
             destination = "/admin/withdrawals";
@@ -95,7 +93,7 @@ export function GlobalShortcuts() {
       ...SHORTCUTS.QUICK_YIELD,
       handler: () => {
         if (isAdmin) {
-          navigate("/admin/yield");
+          navigate("/admin/yield-history");
         }
       },
       enabled: isAdmin,
@@ -135,10 +133,7 @@ export function GlobalShortcuts() {
 
   return (
     <>
-      <CommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-      />
+      <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
       <ActionBar onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
     </>
   );

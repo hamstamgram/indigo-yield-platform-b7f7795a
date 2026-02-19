@@ -18,7 +18,15 @@ import { toast } from "sonner";
 import { FundSnapshotCard } from "@/features/admin/dashboard/FundSnapshotCard";
 import { InvestorCompositionSheet } from "@/features/admin/dashboard/InvestorCompositionSheet";
 
-export const FinancialSnapshot: React.FC = () => {
+interface FinancialSnapshotProps {
+  onRecordYield?: (fundId: string) => void;
+  onOpenPeriod?: (fundId: string) => void;
+}
+
+export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
+  onRecordYield,
+  onOpenPeriod,
+}) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
 
@@ -189,6 +197,9 @@ export const FinancialSnapshot: React.FC = () => {
               isSelected={selectedFundId === fund.id}
               date={date}
               onClick={() => handleFundClick(fund.id)}
+              showYieldActions={!!onRecordYield}
+              onRecordYield={onRecordYield ? () => onRecordYield(fund.id) : undefined}
+              onOpenPeriod={onOpenPeriod ? () => onOpenPeriod(fund.id) : undefined}
             />
           ))}
         </div>

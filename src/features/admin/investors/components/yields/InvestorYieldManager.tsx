@@ -133,7 +133,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
           <FileText className="h-4 w-4 mr-2" />
           View Reports
         </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate("/admin/yield")}>
+        <Button variant="outline" size="sm" onClick={() => navigate("/admin/yield-history")}>
           <TrendingUp className="h-4 w-4 mr-2" />
           Bulk Yield Entry
         </Button>

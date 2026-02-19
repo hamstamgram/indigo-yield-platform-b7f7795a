@@ -31,7 +31,7 @@ const QuickLinks: React.FC = () => {
           </p>
           <div className="mt-auto">
             <Button className="w-full text-center" asChild>
-              <Link to="/admin/yield">Go to Yield Ops</Link>
+              <Link to="/admin/yield-history">Go to Yield Ops</Link>
             </Button>
           </div>
         </CardContent>
@@ -47,7 +47,7 @@ const QuickLinks: React.FC = () => {
           </p>
           <div className="mt-auto">
             <Button className="w-full text-center" asChild>
-              <Link to="/admin/yield">Manage Yields</Link>
+              <Link to="/admin/yield-history">Manage Yields</Link>
             </Button>
           </div>
         </CardContent>
