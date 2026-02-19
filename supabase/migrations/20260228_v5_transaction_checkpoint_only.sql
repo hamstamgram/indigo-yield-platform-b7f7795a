@@ -472,17 +472,9 @@ BEGIN
   v_lock_key := ('x' || substr(md5(p_fund_id::text || v_period_end::text), 1, 15))::bit(64)::bigint;
   PERFORM pg_advisory_xact_lock(v_lock_key);
 
-  -- Uniqueness check (exclude crystal markers)
-  IF EXISTS (
-    SELECT 1 FROM yield_distributions
-    WHERE fund_id = p_fund_id AND period_end = v_period_end
-      AND purpose = p_purpose AND is_voided = false
-      AND consolidated_into_id IS NULL
-      AND COALESCE(distribution_type, '') NOT IN ('deposit', 'withdrawal', 'transaction')
-  ) THEN
-    RAISE EXCEPTION 'Distribution already exists for fund % period ending % with purpose %',
-      p_fund_id, v_period_end, p_purpose;
-  END IF;
+  -- Uniqueness check: only reporting purpose is limited to one per period.
+  -- Transaction-purpose checkpoints are unlimited (they create no YIELD transactions).
+  PERFORM _v5_check_distribution_uniqueness(p_fund_id, v_period_end, p_purpose);
 
   SELECT id INTO v_fees_account_id FROM profiles
   WHERE account_type = 'fees_account'::account_type
