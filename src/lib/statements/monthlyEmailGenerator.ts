@@ -340,31 +340,17 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
           
           <tr><td style="height:20px;"></td></tr>
           
-          <!-- Social Links -->
+          <!-- Social Links (text-based for universal email client compatibility) -->
           <tr>
-            <td align="center">
-              <table role="presentation" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding: 0 10px;">
-                    <a href="https://www.linkedin.com/company/indigofund" target="_blank">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkedin.svg"
-                        alt="LinkedIn" width="24" style="border:0;">
-                    </a>
-                  </td>
-                  <td style="padding: 0 10px;">
-                    <a href="https://www.instagram.com/indigo.fund" target="_blank">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg"
-                        alt="Instagram" width="24" style="border:0;">
-                    </a>
-                  </td>
-                  <td style="padding: 0 10px;">
-                    <a href="https://twitter.com/indigo_fund" target="_blank">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg"
-                        alt="X" width="24" style="border:0;">
-                    </a>
-                  </td>
-                </tr>
-              </table>
+            <td align="center" style="font-size: 13px; font-family: 'Montserrat', Arial, sans-serif;">
+              <a href="https://www.linkedin.com/company/indigofund" target="_blank"
+                style="color: #0A66C2; text-decoration: none; font-weight: 600;">LinkedIn</a>
+              <span style="color: #64748b; padding: 0 8px;">|</span>
+              <a href="https://www.instagram.com/indigofund" target="_blank"
+                style="color: #E4405F; text-decoration: none; font-weight: 600;">Instagram</a>
+              <span style="color: #64748b; padding: 0 8px;">|</span>
+              <a href="https://twitter.com/indigofund" target="_blank"
+                style="color: #94a3b8; text-decoration: none; font-weight: 600;">X</a>
             </td>
           </tr>
           

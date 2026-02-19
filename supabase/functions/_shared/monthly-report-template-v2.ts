@@ -15,12 +15,15 @@ export const FUND_ICONS: Record<string, string> = {
   XAUT: `${CRYPTO_ICON_BASE}/gold.png`,
 };
 
-// Social icon URLs (using simple-icons via jsDelivr)
-const SOCIAL_ICON_BASE = "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons";
-export const SOCIAL_ICONS = {
-  linkedin: `${SOCIAL_ICON_BASE}/linkedin.svg`,
-  instagram: `${SOCIAL_ICON_BASE}/instagram.svg`,
-  twitter: `${SOCIAL_ICON_BASE}/x.svg`,
+// Social link configuration (text-based for universal email client compatibility)
+export const SOCIAL_LINKS = {
+  linkedin: {
+    url: "https://www.linkedin.com/company/indigofund",
+    label: "LinkedIn",
+    color: "#0A66C2",
+  },
+  instagram: { url: "https://www.instagram.com/indigofund", label: "Instagram", color: "#E4405F" },
+  twitter: { url: "https://twitter.com/indigofund", label: "X", color: "#000000" },
 };
 
 // Logo URL - served from the deployed application
@@ -348,34 +351,14 @@ ${fundBlocksHtml}
             </td>
           </tr>
 
-          <!-- Social Icons -->
+          <!-- Social Links (text-based for universal email compatibility) -->
           <tr>
-            <td style="padding: 0 24px 24px 24px; background-color: #ffffff;" bgcolor="#ffffff">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td align="center">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <td style="padding: 0 8px;">
-                          <a href="https://www.linkedin.com/company/indigofund" target="_blank">
-                            <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="display: block;">
-                          </a>
-                        </td>
-                        <td style="padding: 0 8px;">
-                          <a href="https://www.instagram.com/indigofund" target="_blank">
-                            <img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="display: block;">
-                          </a>
-                        </td>
-                        <td style="padding: 0 8px;">
-                           <a href="https://twitter.com/indigofund" target="_blank">
-                            <img src="${SOCIAL_ICONS.twitter}" alt="Twitter" width="24" height="24" style="display: block;">
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
+            <td style="padding: 0 24px 24px 24px; text-align: center; background-color: #ffffff;" bgcolor="#ffffff">
+              <a href="${SOCIAL_LINKS.linkedin.url}" target="_blank" style="color: ${SOCIAL_LINKS.linkedin.color}; text-decoration: none; font-size: 13px; font-weight: 600; padding: 0 12px;">${SOCIAL_LINKS.linkedin.label}</a>
+              <span style="color: #cbd5e1;">|</span>
+              <a href="${SOCIAL_LINKS.instagram.url}" target="_blank" style="color: ${SOCIAL_LINKS.instagram.color}; text-decoration: none; font-size: 13px; font-weight: 600; padding: 0 12px;">${SOCIAL_LINKS.instagram.label}</a>
+              <span style="color: #cbd5e1;">|</span>
+              <a href="${SOCIAL_LINKS.twitter.url}" target="_blank" style="color: ${SOCIAL_LINKS.twitter.color}; text-decoration: none; font-size: 13px; font-weight: 600; padding: 0 12px;">${SOCIAL_LINKS.twitter.label}</a>
             </td>
           </tr>
 
@@ -408,9 +391,8 @@ export function validateGeneratedHtml(html: string): { valid: boolean; errors: s
     "cdn.jsdelivr.net",
     "Indigo Fund. All rights reserved",
     "This document is not an offer",
-    "linkedin",
-    "instagram",
-    "twitter",
+    "LinkedIn",
+    "Instagram",
   ];
 
   for (const element of requiredElements) {

@@ -423,10 +423,22 @@ export function getFundIconByAsset(assetCode: string): string {
 export const LOGO_URL =
   "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
 
+// Social link configuration (text-based for universal email client compatibility)
+export const SOCIAL_LINKS = {
+  linkedin: {
+    url: "https://www.linkedin.com/company/indigofund",
+    label: "LinkedIn",
+    color: "#0A66C2",
+  },
+  instagram: { url: "https://www.instagram.com/indigofund", label: "Instagram", color: "#E4405F" },
+  twitter: { url: "https://twitter.com/indigofund", label: "X", color: "#000000" },
+};
+
+/** @deprecated Use SOCIAL_LINKS instead - SVG icons are blocked by email clients */
 export const SOCIAL_ICONS = {
-  linkedin: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkedin.svg",
-  instagram: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg",
-  twitter: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg",
+  linkedin: SOCIAL_LINKS.linkedin.url,
+  instagram: SOCIAL_LINKS.instagram.url,
+  twitter: SOCIAL_LINKS.twitter.url,
 };
 
 /**

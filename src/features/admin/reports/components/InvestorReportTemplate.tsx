@@ -4,7 +4,7 @@ import {
   InvestorFund,
   FUND_ICONS,
   LOGO_URL,
-  SOCIAL_ICONS,
+  SOCIAL_LINKS,
   getValueColor,
 } from "@/types/domains";
 
@@ -513,40 +513,48 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
                         <tr>
                           <td style={{ textAlign: "center", paddingBottom: "16px" }}>
                             <a
-                              href="https://www.linkedin.com/company/indigofund"
-                              style={{ display: "inline-block", marginRight: "12px" }}
+                              href={SOCIAL_LINKS.linkedin.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: SOCIAL_LINKS.linkedin.color,
+                                textDecoration: "none",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                padding: "0 12px",
+                              }}
                             >
-                              <img
-                                src={SOCIAL_ICONS.linkedin}
-                                alt="LinkedIn"
-                                width="24"
-                                height="24"
-                                style={{ border: 0 }}
-                              />
+                              {SOCIAL_LINKS.linkedin.label}
                             </a>
+                            <span style={{ color: "#cbd5e1" }}>|</span>
                             <a
-                              href="https://www.instagram.com/indigo.fund"
-                              style={{ display: "inline-block", marginRight: "12px" }}
+                              href={SOCIAL_LINKS.instagram.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: SOCIAL_LINKS.instagram.color,
+                                textDecoration: "none",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                padding: "0 12px",
+                              }}
                             >
-                              <img
-                                src={SOCIAL_ICONS.instagram}
-                                alt="Instagram"
-                                width="24"
-                                height="24"
-                                style={{ border: 0 }}
-                              />
+                              {SOCIAL_LINKS.instagram.label}
                             </a>
+                            <span style={{ color: "#cbd5e1" }}>|</span>
                             <a
-                              href="https://twitter.com/indigo_fund"
-                              style={{ display: "inline-block" }}
+                              href={SOCIAL_LINKS.twitter.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: SOCIAL_LINKS.twitter.color,
+                                textDecoration: "none",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                padding: "0 12px",
+                              }}
                             >
-                              <img
-                                src={SOCIAL_ICONS.twitter}
-                                alt="X"
-                                width="24"
-                                height="24"
-                                style={{ border: 0 }}
-                              />
+                              {SOCIAL_LINKS.twitter.label}
                             </a>
                           </td>
                         </tr>
@@ -760,28 +768,14 @@ ${fundBlocksHtml}
             </td>
           </tr>
 
-          <!-- Social Icons -->
+          <!-- Social Links (text-based for universal email compatibility) -->
           <tr>
             <td align="center" style="padding-bottom:16px;background-color:#ffffff;" bgcolor="#ffffff">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td style="padding:0 10px;">
-                    <a href="https://www.linkedin.com/company/indigofund" style="display:block;">
-                      <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="display:block;border:0;">
-                    </a>
-                  </td>
-                  <td style="padding:0 10px;">
-                    <a href="https://www.instagram.com/indigo.fund" style="display:block;">
-                      <img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="display:block;border:0;">
-                    </a>
-                  </td>
-                  <td style="padding:0 10px;">
-                    <a href="https://twitter.com/indigo_fund" style="display:block;">
-                      <img src="${SOCIAL_ICONS.twitter}" alt="X" width="24" height="24" style="display:block;border:0;">
-                    </a>
-                  </td>
-                </tr>
-              </table>
+              <a href="${SOCIAL_LINKS.linkedin.url}" target="_blank" style="color:${SOCIAL_LINKS.linkedin.color};text-decoration:none;font-size:13px;font-weight:600;padding:0 12px;">${SOCIAL_LINKS.linkedin.label}</a>
+              <span style="color:#cbd5e1;">|</span>
+              <a href="${SOCIAL_LINKS.instagram.url}" target="_blank" style="color:${SOCIAL_LINKS.instagram.color};text-decoration:none;font-size:13px;font-weight:600;padding:0 12px;">${SOCIAL_LINKS.instagram.label}</a>
+              <span style="color:#cbd5e1;">|</span>
+              <a href="${SOCIAL_LINKS.twitter.url}" target="_blank" style="color:${SOCIAL_LINKS.twitter.color};text-decoration:none;font-size:13px;font-weight:600;padding:0 12px;">${SOCIAL_LINKS.twitter.label}</a>
             </td>
           </tr>
 
