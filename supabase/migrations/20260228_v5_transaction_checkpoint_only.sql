@@ -146,6 +146,13 @@ BEGIN
   ) active_inv
   JOIN profiles p ON p.id = active_inv.investor_id;
 
+  -- Ensure fees_account is always in the temp tables (even with no prior txs)
+  INSERT INTO _v5p_bal (investor_id, balance, opening_balance, account_type, ib_parent_id, ib_rate, investor_name, investor_email)
+  SELECT p.id, 0, 0, 'fees_account', NULL, 0,
+         trim(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')), p.email
+  FROM profiles p WHERE p.id = v_fees_account_id
+  ON CONFLICT (investor_id) DO NOTHING;
+
   -- Initialize totals table
   INSERT INTO _v5p_tot (investor_id, ib_parent_id, ib_rate, investor_name, investor_email)
   SELECT investor_id, ib_parent_id, ib_rate, investor_name, investor_email FROM _v5p_bal;
@@ -540,6 +547,13 @@ BEGIN
     WHERE t.fund_id = p_fund_id AND t.is_voided = false
   ) active_inv
   JOIN profiles p ON p.id = active_inv.investor_id;
+
+  -- Ensure fees_account is always in the temp tables (even with no prior txs)
+  INSERT INTO _v5_bal (investor_id, balance, opening_balance, account_type, ib_parent_id, ib_rate, investor_name)
+  SELECT p.id, 0, 0, 'fees_account', NULL, 0,
+         trim(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, ''))
+  FROM profiles p WHERE p.id = v_fees_account_id
+  ON CONFLICT (investor_id) DO NOTHING;
 
   -- Initialize totals table
   INSERT INTO _v5_tot (investor_id, ib_parent_id, ib_rate, investor_name)
