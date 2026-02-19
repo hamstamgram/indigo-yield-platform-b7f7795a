@@ -147,11 +147,123 @@ export function useWithdrawalMutations() {
     },
   });
 
+  const bulkVoidMutation = useMutation({
+    mutationFn: async ({ withdrawalIds, reason }: { withdrawalIds: string[]; reason: string }) => {
+      if (withdrawalIds.length === 0) throw new Error("No withdrawal IDs provided");
+
+      const errors: string[] = [];
+      for (const id of withdrawalIds) {
+        try {
+          await withdrawalService.cancelWithdrawal(id, reason);
+        } catch (err) {
+          errors.push(`${id}: ${err instanceof Error ? err.message : "Unknown error"}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        const succeeded = withdrawalIds.length - errors.length;
+        if (succeeded === 0) {
+          throw new Error(`All void operations failed. First error: ${errors[0]}`);
+        }
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        await supabase.from("audit_log").insert({
+          actor_user: user?.id ?? null,
+          action: "BULK_WITHDRAWALS_VOIDED_PARTIAL",
+          entity: "withdrawal_requests",
+          entity_id: withdrawalIds.join(","),
+          old_values: { total: withdrawalIds.length, succeeded, failed: errors.length, reason },
+        });
+        throw new Error(`${succeeded} of ${withdrawalIds.length} voided. ${errors.length} failed.`);
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      await supabase.from("audit_log").insert({
+        actor_user: user?.id ?? null,
+        action: "BULK_WITHDRAWALS_VOIDED",
+        entity: "withdrawal_requests",
+        entity_id: withdrawalIds.join(","),
+        old_values: { count: withdrawalIds.length, ids: withdrawalIds, reason },
+      });
+    },
+    onSuccess: (_, params) => {
+      toast.success(
+        `${params.withdrawalIds.length} withdrawal${params.withdrawalIds.length !== 1 ? "s" : ""} voided`
+      );
+      invalidateAfterWithdrawal(queryClient);
+    },
+    onError: (error: Error) => {
+      toast.error("Bulk void failed", { description: error.message });
+      invalidateAfterWithdrawal(queryClient);
+    },
+  });
+
+  const bulkRestoreMutation = useMutation({
+    mutationFn: async ({ withdrawalIds, reason }: { withdrawalIds: string[]; reason: string }) => {
+      if (withdrawalIds.length === 0) throw new Error("No withdrawal IDs provided");
+
+      const errors: string[] = [];
+      for (const id of withdrawalIds) {
+        try {
+          await withdrawalService.restoreWithdrawal(id, reason);
+        } catch (err) {
+          errors.push(`${id}: ${err instanceof Error ? err.message : "Unknown error"}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        const succeeded = withdrawalIds.length - errors.length;
+        if (succeeded === 0) {
+          throw new Error(`All restore operations failed. First error: ${errors[0]}`);
+        }
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        await supabase.from("audit_log").insert({
+          actor_user: user?.id ?? null,
+          action: "BULK_WITHDRAWALS_RESTORED_PARTIAL",
+          entity: "withdrawal_requests",
+          entity_id: withdrawalIds.join(","),
+          old_values: { total: withdrawalIds.length, succeeded, failed: errors.length, reason },
+        });
+        throw new Error(
+          `${succeeded} of ${withdrawalIds.length} restored. ${errors.length} failed.`
+        );
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      await supabase.from("audit_log").insert({
+        actor_user: user?.id ?? null,
+        action: "BULK_WITHDRAWALS_RESTORED",
+        entity: "withdrawal_requests",
+        entity_id: withdrawalIds.join(","),
+        old_values: { count: withdrawalIds.length, ids: withdrawalIds, reason },
+      });
+    },
+    onSuccess: (_, params) => {
+      toast.success(
+        `${params.withdrawalIds.length} withdrawal${params.withdrawalIds.length !== 1 ? "s" : ""} restored`
+      );
+      invalidateAfterWithdrawal(queryClient);
+    },
+    onError: (error: Error) => {
+      toast.error("Bulk restore failed", { description: error.message });
+      invalidateAfterWithdrawal(queryClient);
+    },
+  });
+
   return {
     createMutation,
     updateMutation,
     deleteMutation,
     routeToFeesMutation,
     bulkDeleteMutation,
+    bulkVoidMutation,
+    bulkRestoreMutation,
   };
 }

@@ -1,16 +1,19 @@
 /**
  * Withdrawal Bulk Action Toolbar
  * Sticky bar above withdrawals table when rows are selected
+ * Supports: Void, Restore, Delete (super-admin only)
  */
 
 import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui";
-import { Trash2, X } from "lucide-react";
+import { Ban, Undo2, Trash2, X } from "lucide-react";
 import { formatAssetValue } from "@/utils/formatters";
 import type { WithdrawalSelectionSummary } from "../hooks/useWithdrawalSelection";
 
 interface WithdrawalBulkActionToolbarProps {
   summary: WithdrawalSelectionSummary;
   isSuperAdmin: boolean;
+  onVoid: () => void;
+  onRestore: () => void;
   onDelete: () => void;
   onClear: () => void;
 }
@@ -26,10 +29,15 @@ function formatAmountSummary(amountsByAsset: Record<string, string>): string {
 export function WithdrawalBulkActionToolbar({
   summary,
   isSuperAdmin,
+  onVoid,
+  onRestore,
   onDelete,
   onClear,
 }: WithdrawalBulkActionToolbarProps) {
   if (summary.count === 0) return null;
+
+  const showVoidButton = !summary.allCancelled;
+  const showRestoreButton = !summary.noneCancelled;
 
   return (
     <div className="sticky top-0 z-10 flex items-center justify-between gap-4 rounded-lg border bg-background/95 backdrop-blur px-4 py-2 shadow-sm">
@@ -46,13 +54,55 @@ export function WithdrawalBulkActionToolbar({
       </div>
 
       <div className="flex items-center gap-2">
+        {showVoidButton && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button variant="destructive" size="sm" onClick={onVoid} disabled={!isSuperAdmin}>
+                    <Ban className="h-4 w-4 mr-1.5" />
+                    Void Selected
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!isSuperAdmin && (
+                <TooltipContent>Super admin access required for bulk operations</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {showRestoreButton && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button variant="outline" size="sm" onClick={onRestore} disabled={!isSuperAdmin}>
+                    <Undo2 className="h-4 w-4 mr-1.5" />
+                    Restore Selected
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!isSuperAdmin && (
+                <TooltipContent>Super admin access required for bulk operations</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
-                <Button variant="destructive" size="sm" onClick={onDelete} disabled={!isSuperAdmin}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onDelete}
+                  disabled={!isSuperAdmin}
+                  className="text-destructive hover:text-destructive"
+                >
                   <Trash2 className="h-4 w-4 mr-1.5" />
-                  Delete Selected
+                  Delete
                 </Button>
               </span>
             </TooltipTrigger>

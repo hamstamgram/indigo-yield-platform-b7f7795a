@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import Decimal from "decimal.js";
 import { Button, QueryErrorBoundary } from "@/components/ui";
 import {
   WithdrawalsTable,
@@ -10,6 +11,8 @@ import {
   DeleteWithdrawalDialog,
   RouteToFeesDialog,
   BulkDeleteWithdrawalsDialog,
+  BulkVoidWithdrawalsDialog,
+  BulkRestoreWithdrawalsDialog,
   WithdrawalBulkActionToolbar,
 } from "@/components/admin";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/domains";
@@ -65,10 +68,12 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [routeToFeesDialogOpen, setRouteToFeesDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkVoidDialogOpen, setBulkVoidDialogOpen] = useState(false);
+  const [bulkRestoreDialogOpen, setBulkRestoreDialogOpen] = useState(false);
 
   // Super admin check for bulk operations
   const { isSuperAdmin } = useSuperAdmin();
-  const { bulkDeleteMutation } = useWithdrawalMutations();
+  const { bulkDeleteMutation, bulkVoidMutation, bulkRestoreMutation } = useWithdrawalMutations();
 
   // URL-persisted filters including page - using stable reference from outside component
   const {
@@ -111,10 +116,32 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
   // Selection for bulk operations
   const selection = useWithdrawalSelection(safePaginatedData.data, safePaginatedData.page);
 
-  const selectedWithdrawals = useMemo(
-    () => safePaginatedData.data.filter((w) => selection.selectedIds.has(w.id)),
-    [safePaginatedData.data, selection.selectedIds]
-  );
+  const selectedWithdrawals = useMemo(() => {
+    const fromSelection = safePaginatedData.data.filter((w) => selection.selectedIds.has(w.id));
+    if (fromSelection.length > 0) return fromSelection;
+    // For single-row actions from the dropdown menu
+    if (selectedWithdrawal) return [selectedWithdrawal];
+    return [];
+  }, [safePaginatedData.data, selection.selectedIds, selectedWithdrawal]);
+
+  // Summary that works for both bulk selection and single-row actions
+  const effectiveSummary = useMemo(() => {
+    if (selection.summary.count > 0) return selection.summary;
+    if (!selectedWithdrawal) return selection.summary;
+    // Build summary for single withdrawal
+    const w = selectedWithdrawal;
+    const asset = w.fund_class || w.asset || "UNITS";
+    const amount = new Decimal(w.requested_amount || "0").abs().toString();
+    const isCancelled = w.status === "cancelled" || w.status === "rejected";
+    return {
+      count: 1,
+      amountsByAsset: { [asset]: amount },
+      investorCount: 1,
+      allCancelled: isCancelled,
+      noneCancelled: !isCancelled,
+      hasCompleted: w.status === "completed",
+    };
+  }, [selection.summary, selectedWithdrawal]);
 
   const setFilters = useCallback(
     (newFilters: WithdrawalFilters) => {
@@ -200,6 +227,16 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
     setDeleteDialogOpen(true);
   };
 
+  const handleTableVoid = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setBulkVoidDialogOpen(true);
+  };
+
+  const handleTableRestore = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setBulkRestoreDialogOpen(true);
+  };
+
   const handleTableRouteToFees = (withdrawal: Withdrawal) => {
     setSelectedWithdrawal(withdrawal);
     setRouteToFeesDialogOpen(true);
@@ -279,6 +316,8 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
       <WithdrawalBulkActionToolbar
         summary={selection.summary}
         isSuperAdmin={isSuperAdmin}
+        onVoid={() => setBulkVoidDialogOpen(true)}
+        onRestore={() => setBulkRestoreDialogOpen(true)}
         onDelete={() => setBulkDeleteDialogOpen(true)}
         onClear={selection.clearSelection}
       />
@@ -302,19 +341,14 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
               totalPages: safePaginatedData.totalPages,
               onPageChange: setPage,
             }}
-            selection={{
-              selectedIds: selection.selectedIds,
-              toggleOne: selection.toggleOne,
-              toggleAll: selection.toggleAll,
-              isSelected: selection.isSelected,
-              isAllSelected: selection.isAllSelected,
-              isIndeterminate: selection.isIndeterminate,
-            }}
+            selection={selection}
             onViewDetails={handleViewDetails}
             onApprove={handleTableApprove}
             onReject={handleTableReject}
             onEdit={handleTableEdit}
             onDelete={handleTableDelete}
+            onVoid={handleTableVoid}
+            onRestore={handleTableRestore}
             onRouteToFees={handleTableRouteToFees}
           />
         </div>
@@ -367,6 +401,60 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
           />
         </>
       )}
+
+      {/* Bulk Void Dialog */}
+      <BulkVoidWithdrawalsDialog
+        open={bulkVoidDialogOpen}
+        onOpenChange={setBulkVoidDialogOpen}
+        withdrawals={selectedWithdrawals}
+        summary={effectiveSummary}
+        isPending={bulkVoidMutation.isPending}
+        onConfirm={(reason) => {
+          const ids =
+            selection.selectedIds.size > 0
+              ? Array.from(selection.selectedIds)
+              : selectedWithdrawal
+                ? [selectedWithdrawal.id]
+                : [];
+          bulkVoidMutation.mutate(
+            { withdrawalIds: ids, reason },
+            {
+              onSuccess: () => {
+                setBulkVoidDialogOpen(false);
+                selection.clearSelection();
+                setSelectedWithdrawal(null);
+              },
+            }
+          );
+        }}
+      />
+
+      {/* Bulk Restore Dialog */}
+      <BulkRestoreWithdrawalsDialog
+        open={bulkRestoreDialogOpen}
+        onOpenChange={setBulkRestoreDialogOpen}
+        withdrawals={selectedWithdrawals}
+        summary={effectiveSummary}
+        isPending={bulkRestoreMutation.isPending}
+        onConfirm={(reason) => {
+          const ids =
+            selection.selectedIds.size > 0
+              ? Array.from(selection.selectedIds)
+              : selectedWithdrawal
+                ? [selectedWithdrawal.id]
+                : [];
+          bulkRestoreMutation.mutate(
+            { withdrawalIds: ids, reason },
+            {
+              onSuccess: () => {
+                setBulkRestoreDialogOpen(false);
+                selection.clearSelection();
+                setSelectedWithdrawal(null);
+              },
+            }
+          );
+        }}
+      />
 
       {/* Bulk Delete Dialog */}
       <BulkDeleteWithdrawalsDialog

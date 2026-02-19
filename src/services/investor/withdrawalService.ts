@@ -453,6 +453,42 @@ export const withdrawalService = {
     if (error) throw error;
   },
 
+  /**
+   * Restore a cancelled/rejected withdrawal back to pending via RPC
+   */
+  async restoreWithdrawal(
+    withdrawalId: string,
+    reason: string,
+    adminNotes?: string
+  ): Promise<{ correlationId: string }> {
+    const corrId = generateCorrelationId("wdr_restore");
+    const log = createCorrelatedLogger(corrId);
+
+    log.info("Restoring withdrawal", { withdrawalId, reason });
+
+    const { error } = await rpc.call(
+      "restore_withdrawal_by_admin" as never,
+      {
+        p_request_id: withdrawalId,
+        p_reason: reason,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+      } as never
+    );
+
+    if (error) {
+      log.error("Error restoring withdrawal", error);
+      const errorMessage = error.message || "Failed to restore withdrawal";
+      throw new Error(
+        errorMessage.includes("Admin only") || errorMessage.includes("ensure_admin")
+          ? "You don't have admin privileges to restore withdrawals"
+          : errorMessage
+      );
+    }
+
+    log.info("Withdrawal restored successfully");
+    return { correlationId: corrId };
+  },
+
   // ============================================================
   // INVESTOR PORTAL METHODS (for investor-facing pages)
   // ============================================================
