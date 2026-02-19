@@ -13,3 +13,5 @@ export { SystemRoutes } from "./system";
 export { TransactionRoutes } from "./transactions";
 export { IBRoutes } from "./ib";
 export { FeesRoutes } from "./fees";
+export { LedgerRoutes } from "./ledger";
+export { RevenueRoutes } from "./revenue";

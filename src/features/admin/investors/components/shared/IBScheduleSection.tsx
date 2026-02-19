@@ -26,7 +26,10 @@ import {
 } from "@/components/ui";
 import { CalendarDays, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useIBSchedule, useDeleteIBScheduleEntry } from "@/features/investor/shared/hooks/useIBSchedule";
+import {
+  useIBSchedule,
+  useDeleteIBScheduleEntry,
+} from "@/features/investor/shared/hooks/useIBSchedule";
 import { AddIBScheduleDialog } from "./AddIBScheduleDialog";
 
 interface IBScheduleSectionProps {
@@ -161,7 +164,10 @@ export function IBScheduleSection({ investorId }: IBScheduleSectionProps) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

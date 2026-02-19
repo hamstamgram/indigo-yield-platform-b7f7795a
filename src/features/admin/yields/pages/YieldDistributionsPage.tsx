@@ -1163,7 +1163,10 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
           <AlertDialogFooter>
             <AlertDialogCancel disabled={routePending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleRouteToFeesConfirm}
+              onClick={(e) => {
+                e.preventDefault();
+                handleRouteToFeesConfirm();
+              }}
               disabled={routePending}
               className="bg-primary hover:bg-primary/90"
             >

@@ -110,7 +110,10 @@ export function RouteToFeesDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={routeToFeesMutation.isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
             disabled={routeToFeesMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >

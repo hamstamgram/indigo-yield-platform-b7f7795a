@@ -35,7 +35,7 @@ const feeExportColumns: ExportColumn[] = [
   { key: "fundName", label: "Fund" },
 ];
 
-function FeesOverviewContent() {
+function FeesOverviewContent({ embedded = false }: { embedded?: boolean }) {
   const { data, isLoading } = useFeesOverview();
   const { toast } = useToast();
 
@@ -75,14 +75,17 @@ function FeesOverviewContent() {
   }
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div className={embedded ? "space-y-6" : "container max-w-6xl mx-auto px-4 py-6 space-y-6"}>
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">INDIGO FEES</h1>
-          <p className="text-muted-foreground mt-1">
-            INDIGO fees account overview and transaction audit trail
-          </p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-3xl font-display font-bold tracking-tight">INDIGO FEES</h1>
+            <p className="text-muted-foreground mt-1">
+              INDIGO fees account overview and transaction audit trail
+            </p>
+          </div>
+        )}
+        {embedded && <div />}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -164,10 +167,10 @@ function FeesOverviewContent() {
   );
 }
 
-export default function FeesOverviewPage() {
+export default function FeesOverviewPage({ embedded = false }: { embedded?: boolean }) {
   return (
     <AdminGuard>
-      <FeesOverviewContent />
+      <FeesOverviewContent embedded={embedded} />
     </AdminGuard>
   );
 }

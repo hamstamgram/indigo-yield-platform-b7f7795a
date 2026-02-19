@@ -460,7 +460,10 @@ function FundManagementContent() {
             </AlertDialogCancel>
             {!confirmDialog.error && (
               <AlertDialogAction
-                onClick={confirmAction}
+                onClick={(e) => {
+                  e.preventDefault();
+                  confirmAction();
+                }}
                 className={cn(
                   confirmDialog.action === "archive"
                     ? "bg-rose-500 hover:bg-rose-600 border-rose-400/20"

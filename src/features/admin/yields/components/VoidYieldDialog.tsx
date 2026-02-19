@@ -234,7 +234,10 @@ export function VoidYieldDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleConfirm}
+            onClick={(e) => {
+              e.preventDefault();
+              handleConfirm();
+            }}
             disabled={!isValid || isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >

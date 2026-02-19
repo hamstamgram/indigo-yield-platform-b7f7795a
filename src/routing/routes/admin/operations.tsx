@@ -8,8 +8,10 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const YieldHistoryPage = lazy(() => import("@/features/admin/yields/pages/YieldHistoryPage"));
-const InvestorReports = lazy(() => import("@/features/admin/reports/pages/InvestorReports"));
 const FundManagementPage = lazy(() => import("@/features/admin/funds/pages/FundManagementPage"));
+const ReportsConsolidatedPage = lazy(
+  () => import("@/features/admin/reports/pages/ReportsConsolidatedPage")
+);
 
 export function OperationsRoutes() {
   return (
@@ -34,17 +36,17 @@ export function OperationsRoutes() {
         }
       />
 
-      {/* Reports */}
+      {/* Consolidated Reports page */}
       <Route
-        path="/admin/investor-reports"
+        path="/admin/reports"
         element={
           <AdminRoute>
-            <InvestorReports />
+            <ReportsConsolidatedPage />
           </AdminRoute>
         }
       />
 
-      {/* Redirects - all old yield routes point to yield-history */}
+      {/* Redirects - old yield routes */}
       <Route path="/admin/yield" element={<Navigate to="/admin/yield-history" replace />} />
       <Route
         path="/admin/yield-distributions"
@@ -67,12 +69,15 @@ export function OperationsRoutes() {
         path="/admin/yield-operations"
         element={<Navigate to="/admin/yield-history" replace />}
       />
-      <Route path="/admin/requests" element={<Navigate to="/admin/withdrawals" replace />} />
-      <Route path="/admin/statements" element={<Navigate to="/admin/investor-reports" replace />} />
+
+      {/* Redirects - old report/withdrawal routes */}
       <Route
-        path="/admin/email-tracking"
-        element={<Navigate to="/admin/investor-reports" replace />}
+        path="/admin/requests"
+        element={<Navigate to="/admin/ledger?tab=withdrawals" replace />}
       />
+      <Route path="/admin/investor-reports" element={<Navigate to="/admin/reports" replace />} />
+      <Route path="/admin/statements" element={<Navigate to="/admin/reports" replace />} />
+      <Route path="/admin/email-tracking" element={<Navigate to="/admin/reports" replace />} />
     </>
   );
 }

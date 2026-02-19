@@ -65,7 +65,7 @@ const ADMIN_PAGES: SearchResult[] = [
     title: "Withdrawals",
     subtitle: "Withdrawal requests",
     icon: <ArrowUpCircle className="h-4 w-4" />,
-    href: "/admin/withdrawals",
+    href: "/admin/ledger?tab=withdrawals",
   },
   {
     id: "reports",
@@ -73,7 +73,7 @@ const ADMIN_PAGES: SearchResult[] = [
     title: "Investor Reports",
     subtitle: "Generate & send reports",
     icon: <FileText className="h-4 w-4" />,
-    href: "/admin/investor-reports",
+    href: "/admin/reports",
   },
   {
     id: "monthly-data",
@@ -89,7 +89,7 @@ const ADMIN_PAGES: SearchResult[] = [
     title: "Transactions",
     subtitle: "All transactions",
     icon: <Wallet className="h-4 w-4" />,
-    href: "/admin/transactions",
+    href: "/admin/ledger",
   },
   {
     id: "email-tracking",

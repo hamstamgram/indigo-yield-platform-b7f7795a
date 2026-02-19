@@ -38,7 +38,7 @@ import { formatCrypto } from "@/utils/financial";
 import { useIBProfiles, useCreateIB, useSortableColumns, type EarningsByAsset } from "@/hooks";
 import { PageShell } from "@/components/layout/PageShell";
 
-export default function IBManagementPage() {
+export default function IBManagementPage({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newIBEmail, setNewIBEmail] = useState("");
@@ -85,15 +85,18 @@ export default function IBManagementPage() {
     });
   });
 
-  return (
-    <PageShell>
+  const inner = (
+    <>
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">IB Management</h1>
-          <p className="text-muted-foreground">
-            Manage Introducing Brokers and track their referral performance
-          </p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">IB Management</h1>
+            <p className="text-muted-foreground">
+              Manage Introducing Brokers and track their referral performance
+            </p>
+          </div>
+        )}
+        {embedded && <div />}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -316,6 +319,9 @@ export default function IBManagementPage() {
           )}
         </CardContent>
       </Card>
-    </PageShell>
+    </>
   );
+
+  if (embedded) return inner;
+  return <PageShell>{inner}</PageShell>;
 }

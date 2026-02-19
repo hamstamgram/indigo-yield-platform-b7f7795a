@@ -44,7 +44,7 @@ function getAssetFromFundName(fundName: string): string {
   return match ? match[1] : fundName;
 }
 
-const HistoricalReportsDashboard: React.FC = () => {
+const HistoricalReportsDashboard: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const [monthFilter, setMonthFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
@@ -65,11 +65,13 @@ const HistoricalReportsDashboard: React.FC = () => {
     : reports;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Report History</h1>
-        <p className="text-muted-foreground">All generated statements across all periods</p>
-      </div>
+    <div className={embedded ? "space-y-6" : "container mx-auto px-4 py-8 space-y-6"}>
+      {!embedded && (
+        <div>
+          <h1 className="text-3xl font-bold">Report History</h1>
+          <p className="text-muted-foreground">All generated statements across all periods</p>
+        </div>
+      )}
 
       {/* Summary */}
       <Card>

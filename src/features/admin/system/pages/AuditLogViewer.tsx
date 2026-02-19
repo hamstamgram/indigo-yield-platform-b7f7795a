@@ -50,7 +50,7 @@ const DEFAULT_STATS = {
   topActors: [],
 };
 
-const AuditLogViewer = () => {
+const AuditLogViewer = ({ embedded = false }: { embedded?: boolean }) => {
   const [exporting, setExporting] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -143,16 +143,20 @@ const AuditLogViewer = () => {
     );
   }
 
-  return (
-    <PageShell>
+  const content = (
+    <>
       {/* Header */}
       <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold">Audit Log</h1>
-          <p className="text-muted-foreground">
-            Complete audit trail of all system changes and administrative actions
-          </p>
-        </div>
+        {!embedded ? (
+          <div>
+            <h1 className="text-2xl font-bold">Audit Log</h1>
+            <p className="text-muted-foreground">
+              Complete audit trail of all system changes and administrative actions
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
         <Button onClick={handleExportCSV} disabled={exporting || totalCount === 0}>
           {exporting ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -437,8 +441,11 @@ const AuditLogViewer = () => {
           </div>
         </CardContent>
       </Card>
-    </PageShell>
+    </>
   );
+
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 };
 
 export default AuditLogViewer;

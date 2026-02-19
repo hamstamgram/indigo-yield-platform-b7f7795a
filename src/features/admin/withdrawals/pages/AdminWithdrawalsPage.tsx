@@ -46,7 +46,7 @@ const URL_FILTER_OPTIONS = {
   defaults: { status: "all", page: "1" },
 };
 
-function WithdrawalsPageContent() {
+function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -192,27 +192,44 @@ function WithdrawalsPageContent() {
     setSelectedWithdrawal(null);
   };
 
-  return (
-    <PageShell>
-      <PageHeader
-        title="Withdrawal Management"
-        subtitle="Review and process investor withdrawal requests"
-        icon={ArrowDownToLine}
-        actions={
-          <div className="flex items-center gap-2">
-            <ExportButton
-              data={safePaginatedData.data}
-              columns={withdrawalExportColumns}
-              filename="withdrawals"
-              disabled={safePaginatedData.data.length === 0}
-            />
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Withdrawal
-            </Button>
-          </div>
-        }
-      />
+  const content = (
+    <>
+      {!embedded && (
+        <PageHeader
+          title="Withdrawal Management"
+          subtitle="Review and process investor withdrawal requests"
+          icon={ArrowDownToLine}
+          actions={
+            <div className="flex items-center gap-2">
+              <ExportButton
+                data={safePaginatedData.data}
+                columns={withdrawalExportColumns}
+                filename="withdrawals"
+                disabled={safePaginatedData.data.length === 0}
+              />
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Withdrawal
+              </Button>
+            </div>
+          }
+        />
+      )}
+
+      {embedded && (
+        <div className="flex items-center justify-end gap-2">
+          <ExportButton
+            data={safePaginatedData.data}
+            columns={withdrawalExportColumns}
+            filename="withdrawals"
+            disabled={safePaginatedData.data.length === 0}
+          />
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Withdrawal
+          </Button>
+        </div>
+      )}
 
       <MetricStrip
         isLoading={isLoading}
@@ -316,14 +333,17 @@ function WithdrawalsPageContent() {
           />
         </>
       )}
-    </PageShell>
+    </>
   );
+
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 }
 
-export default function AdminWithdrawalsPage() {
+export default function AdminWithdrawalsPage({ embedded = false }: { embedded?: boolean }) {
   return (
     <QueryErrorBoundary>
-      <WithdrawalsPageContent />
+      <WithdrawalsPageContent embedded={embedded} />
     </QueryErrorBoundary>
   );
 }

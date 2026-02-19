@@ -56,12 +56,6 @@ export const adminNavGroups: NavGroup[] = [
         icon: <BarChart3 className="h-5 w-5" />,
         adminOnly: true,
       },
-      {
-        title: "INDIGO FEES",
-        href: "/admin/fees",
-        icon: <Coins className="h-5 w-5" />,
-        adminOnly: true,
-      },
     ],
   },
   {
@@ -75,21 +69,9 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "Transactions",
-        href: "/admin/transactions",
+        title: "Ledger",
+        href: "/admin/ledger",
         icon: <CreditCard className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Withdrawal Requests",
-        href: "/admin/withdrawals",
-        icon: <ArrowLeftRight className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "IB Management",
-        href: "/admin/ib-management",
-        icon: <Briefcase className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
@@ -106,7 +88,7 @@ export const adminNavGroups: NavGroup[] = [
       },
       {
         title: "Reports",
-        href: "/admin/investor-reports",
+        href: "/admin/reports",
         icon: <FileSpreadsheet className="h-5 w-5" />,
         adminOnly: true,
       },
@@ -123,15 +105,15 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "Operations",
-        href: "/admin/operations",
-        icon: <HeartPulse className="h-5 w-5" />,
+        title: "Revenue",
+        href: "/admin/revenue",
+        icon: <Coins className="h-5 w-5" />,
         adminOnly: true,
       },
       {
-        title: "Audit Trail",
-        href: "/admin/audit-logs",
-        icon: <FileText className="h-5 w-5" />,
+        title: "Operations",
+        href: "/admin/operations",
+        icon: <HeartPulse className="h-5 w-5" />,
         adminOnly: true,
       },
       {

@@ -39,16 +39,16 @@ export function GlobalShortcuts() {
             destination = "/admin/yield-history";
             break;
           case "w":
-            destination = "/admin/withdrawals";
+            destination = "/admin/ledger?tab=withdrawals";
             break;
           case "r":
-            destination = "/admin/investor-reports";
+            destination = "/admin/reports";
             break;
           case "s":
             destination = "/admin/settings";
             break;
           case "t":
-            destination = "/admin/transactions";
+            destination = "/admin/ledger";
             break;
           case "h":
             destination = "/admin/system-health";
@@ -102,7 +102,7 @@ export function GlobalShortcuts() {
       ...SHORTCUTS.QUICK_REPORT,
       handler: () => {
         if (isAdmin) {
-          navigate("/admin/investor-reports");
+          navigate("/admin/reports");
         }
       },
       enabled: isAdmin,
@@ -111,7 +111,7 @@ export function GlobalShortcuts() {
       ...SHORTCUTS.QUICK_DEPOSITS,
       handler: () => {
         if (isAdmin) {
-          navigate("/admin/transactions"); // Deposits consolidated into transactions
+          navigate("/admin/ledger"); // Deposits consolidated into ledger
         }
       },
       enabled: isAdmin,
@@ -120,7 +120,7 @@ export function GlobalShortcuts() {
       ...SHORTCUTS.QUICK_WITHDRAWALS,
       handler: () => {
         if (isAdmin) {
-          navigate("/admin/withdrawals");
+          navigate("/admin/ledger?tab=withdrawals");
         }
       },
       enabled: isAdmin,

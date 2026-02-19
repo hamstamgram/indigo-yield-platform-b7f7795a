@@ -24,7 +24,7 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
       description: "Awaiting verification",
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
-      href: "/admin/transactions", // Deposits consolidated into transactions
+      href: "/admin/ledger",
     },
     {
       title: "Pending Withdrawals",
@@ -33,7 +33,7 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
       description: "Awaiting approval",
       color: "text-orange-400",
       bgColor: "bg-orange-500/10",
-      href: "/admin/withdrawals",
+      href: "/admin/ledger?tab=withdrawals",
     },
     {
       title: "Pending Investments",

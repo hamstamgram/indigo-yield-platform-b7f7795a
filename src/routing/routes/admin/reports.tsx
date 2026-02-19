@@ -1,26 +1,16 @@
 /**
  * Admin Reports Routes
- * All reporting and analytics routes
+ * Historical reports redirect to consolidated Reports page
  */
 
-import { Route } from "react-router-dom";
-import { lazy } from "react";
-import { AdminRoute } from "../../AdminRoute";
-
-const HistoricalReportsDashboard = lazy(
-  () => import("@/features/admin/investors/components/reports/HistoricalReportsDashboard")
-);
+import { Route, Navigate } from "react-router-dom";
 
 export function ReportsRoutes() {
   return (
     <>
       <Route
         path="/admin/reports/historical"
-        element={
-          <AdminRoute>
-            <HistoricalReportsDashboard />
-          </AdminRoute>
-        }
+        element={<Navigate to="/admin/reports?tab=historical" replace />}
       />
     </>
   );

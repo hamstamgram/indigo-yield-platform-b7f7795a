@@ -164,7 +164,10 @@ export function DeleteWithdrawalDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
             disabled={!canDelete || deleteMutation.isPending || !isConfirmed || !reason.trim()}
             className="bg-destructive hover:bg-destructive/90"
           >

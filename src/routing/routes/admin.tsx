@@ -1,19 +1,6 @@
 /**
  * Admin Routes Module
  * All admin-protected routes organized by functional area
- *
- * Module Structure:
- * - Core: Dashboard, transactions (3 routes)
- * - Investors: Investor management and profiles (6 routes)
- * - Deposits: Deposit management (1 route)
- * - Withdrawals: Withdrawal requests (2 routes)
- * - Operations: Data entry, rates, reports, email tracking (6 routes)
- * - Reports: Historical reports (1 route)
- * - System: Settings, audit, users, health (5 routes)
- * - Transactions: Manual transaction entry (1 route)
- * - IB: Introducing Broker management (1 route)
- *
- * Total: ~26 admin routes
  */
 
 import {
@@ -27,6 +14,8 @@ import {
   TransactionRoutes,
   IBRoutes,
   FeesRoutes,
+  LedgerRoutes,
+  RevenueRoutes,
 } from "./admin/index";
 
 /**
@@ -39,10 +28,13 @@ export function AdminRoutes() {
       {CoreAdminRoutes()}
       {InvestorRoutes()}
       {DepositRoutes()}
-      {WithdrawalRoutes()}
+      {LedgerRoutes()}
+      {RevenueRoutes()}
       {OperationsRoutes()}
       {ReportsRoutes()}
       {SystemRoutes()}
+      {/* Legacy route modules (empty, redirects handled by consolidated routes) */}
+      {WithdrawalRoutes()}
       {TransactionRoutes()}
       {IBRoutes()}
       {FeesRoutes()}

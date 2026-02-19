@@ -14,6 +14,7 @@ export { useBreadcrumbs, type BreadcrumbItem } from "./useBreadcrumbs";
 
 // URL state
 export { useUrlFilters, type UseUrlFiltersOptions } from "./useUrlFilters";
+export { useTabFromUrl } from "./useTabFromUrl";
 
 // Table sorting
 export { useSortableColumns, type SortDirection, type SortConfig } from "./useSortableColumns";

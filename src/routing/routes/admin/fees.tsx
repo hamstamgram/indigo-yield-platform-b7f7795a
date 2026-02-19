@@ -1,25 +1,10 @@
 /**
- * INDIGO Fees Routes Module
- * Admin INDIGO Fees management and audit trail
+ * INDIGO Fees Routes
+ * Redirects to consolidated Revenue page
  */
 
-import { lazy } from "react";
-import { Route } from "react-router-dom";
-import { AdminRoute } from "../../AdminRoute";
-
-const FeesOverviewPage = lazy(() => import("@/features/admin/fees/pages/FeesOverviewPage"));
+import { Route, Navigate } from "react-router-dom";
 
 export function FeesRoutes() {
-  return (
-    <>
-      <Route
-        path="/admin/fees"
-        element={
-          <AdminRoute>
-            <FeesOverviewPage />
-          </AdminRoute>
-        }
-      />
-    </>
-  );
+  return <>{/* All fees routes now handled by RevenueRoutes */}</>;
 }

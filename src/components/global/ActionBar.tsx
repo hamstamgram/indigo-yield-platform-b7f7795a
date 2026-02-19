@@ -53,7 +53,7 @@ export function ActionBar({ onOpenCommandPalette }: ActionBarProps) {
                 <Button
                   variant={pendingCounts.withdrawals > 0 ? "warning" : "ghost"}
                   size="sm"
-                  onClick={() => navigate("/admin/withdrawals")}
+                  onClick={() => navigate("/admin/ledger?tab=withdrawals")}
                   className="gap-2"
                 >
                   <ArrowUpCircle className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function ActionBar({ onOpenCommandPalette }: ActionBarProps) {
                 <Button
                   variant={pendingCounts.reportsNeeded > 0 ? "outline" : "ghost"}
                   size="sm"
-                  onClick={() => navigate("/admin/investor-reports")}
+                  onClick={() => navigate("/admin/reports")}
                   className="gap-2"
                 >
                   <FileText className="h-4 w-4" />

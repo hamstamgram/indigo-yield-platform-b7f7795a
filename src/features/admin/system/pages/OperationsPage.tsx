@@ -6,7 +6,7 @@
  * - Crystallization: Fund crystallization status + gaps + batch actions
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Badge,
   Button,
@@ -44,6 +44,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { PageShell } from "@/components/layout/PageShell";
 import { useAuth } from "@/services/auth";
 import { useSortableColumns } from "@/hooks";
+import { useTabFromUrl } from "@/hooks/ui/useTabFromUrl";
 import {
   useSystemHealth,
   useDeliveryQueueMetrics,
@@ -70,6 +71,7 @@ import {
   Clock,
   Database,
   Eye,
+  FileText,
   HardDrive,
   HeartPulse,
   Inbox,
@@ -83,6 +85,8 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
+
+const AuditLogViewer = lazy(() => import("./AuditLogViewer"));
 
 // ============================================================================
 // Health Tab
@@ -1114,6 +1118,8 @@ function CrystallizationTab() {
 // ============================================================================
 
 export default function OperationsPage() {
+  const { activeTab, setActiveTab } = useTabFromUrl({ defaultTab: "health" });
+
   return (
     <PageShell>
       <div>
@@ -1122,11 +1128,11 @@ export default function OperationsPage() {
           Operations
         </h1>
         <p className="text-muted-foreground mt-1">
-          System health, data integrity, and yield crystallization
+          System health, data integrity, yield crystallization, and audit trail
         </p>
       </div>
 
-      <Tabs defaultValue="health" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="health" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
@@ -1140,6 +1146,10 @@ export default function OperationsPage() {
             <Zap className="h-4 w-4" />
             Crystallization
           </TabsTrigger>
+          <TabsTrigger value="audit" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Audit Trail
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="health">
@@ -1152,6 +1162,12 @@ export default function OperationsPage() {
 
         <TabsContent value="crystallization">
           <CrystallizationTab />
+        </TabsContent>
+
+        <TabsContent value="audit">
+          <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+            <AuditLogViewer embedded />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </PageShell>

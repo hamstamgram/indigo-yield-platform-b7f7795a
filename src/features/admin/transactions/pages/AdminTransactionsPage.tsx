@@ -81,7 +81,7 @@ const txExportColumns: ExportColumn[] = [
   { key: "notes", label: "Notes" },
 ];
 
-function TransactionHistoryContent() {
+function TransactionHistoryContent({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -276,13 +276,15 @@ function TransactionHistoryContent() {
     navigate(`/admin/investors/${investorId}`);
   };
 
-  return (
-    <PageShell>
-      <PageHeader
-        title="Transaction History"
-        subtitle="Complete chronological ledger of all investor transactions"
-        icon={CreditCard}
-      />
+  const inner = (
+    <>
+      {!embedded && (
+        <PageHeader
+          title="Transaction History"
+          subtitle="Complete chronological ledger of all investor transactions"
+          icon={CreditCard}
+        />
+      )}
 
       {/* Filters */}
       <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 space-y-4">
@@ -756,15 +758,18 @@ function TransactionHistoryContent() {
           );
         }}
       />
-    </PageShell>
+    </>
   );
+
+  if (embedded) return inner;
+  return <PageShell>{inner}</PageShell>;
 }
 
-export default function AdminTransactionsPage() {
+export default function AdminTransactionsPage({ embedded = false }: { embedded?: boolean }) {
   return (
     <AdminGuard>
       <QueryErrorBoundary>
-        <TransactionHistoryContent />
+        <TransactionHistoryContent embedded={embedded} />
       </QueryErrorBoundary>
     </AdminGuard>
   );

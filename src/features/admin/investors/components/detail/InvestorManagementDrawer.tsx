@@ -246,7 +246,10 @@ export function InvestorManagementDrawer({
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleForceDelete}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleForceDelete();
+                }}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -269,7 +272,10 @@ export function InvestorManagementDrawer({
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleSimpleDelete}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSimpleDelete();
+                }}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Delete

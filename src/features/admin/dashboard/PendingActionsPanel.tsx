@@ -23,9 +23,9 @@ export function PendingActionsPanel() {
 
   const handleItemClick = (item: PendingItem) => {
     if (item.type === "withdrawal") {
-      navigate("/admin/withdrawals");
+      navigate("/admin/ledger?tab=withdrawals");
     } else if (item.type === "report") {
-      navigate("/admin/investor-reports");
+      navigate("/admin/reports");
     }
   };
 
@@ -112,7 +112,7 @@ export function PendingActionsPanel() {
           <Button
             variant="ghost"
             className="w-full mt-2 text-xs"
-            onClick={() => navigate("/admin/withdrawals")}
+            onClick={() => navigate("/admin/ledger?tab=withdrawals")}
           >
             View All Pending Items
           </Button>

@@ -1,20 +1,10 @@
-import { lazy } from "react";
-import { Route } from "react-router-dom";
-import { AdminRoute } from "@/routing/AdminRoute";
+/**
+ * Admin Withdrawal Routes
+ * Redirects to consolidated Ledger page
+ */
 
-const AdminWithdrawalsPage = lazy(
-  () => import("@/features/admin/withdrawals/pages/AdminWithdrawalsPage")
-);
+import { Route, Navigate } from "react-router-dom";
 
 export function WithdrawalRoutes() {
-  return (
-    <Route
-      path="/admin/withdrawals"
-      element={
-        <AdminRoute>
-          <AdminWithdrawalsPage />
-        </AdminRoute>
-      }
-    />
-  );
+  return <>{/* All withdrawal routes now handled by LedgerRoutes */}</>;
 }

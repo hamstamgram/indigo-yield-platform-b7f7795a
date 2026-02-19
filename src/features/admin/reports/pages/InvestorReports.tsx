@@ -71,7 +71,7 @@ function getMonthLabel(monthStr: string): string {
   return format(parseISO(`${monthStr}-01`), "MMMM yyyy");
 }
 
-const InvestorReports = () => {
+const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewName, setPreviewName] = useState("");
   const [sendingId, setSendingId] = useState<string | null>(null);
@@ -232,29 +232,35 @@ const InvestorReports = () => {
   };
 
   if (isLoading) {
-    return (
-      <PageShell>
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/4" />
-          <div className="grid grid-cols-3 gap-4">
-            <div className="h-24 bg-muted rounded" />
-            <div className="h-24 bg-muted rounded" />
-            <div className="h-24 bg-muted rounded" />
-          </div>
-          <div className="h-96 bg-muted rounded" />
+    const loadingSkeleton = (
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 bg-muted rounded w-1/4" />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-muted rounded" />
+          <div className="h-24 bg-muted rounded" />
+          <div className="h-24 bg-muted rounded" />
         </div>
-      </PageShell>
+        <div className="h-96 bg-muted rounded" />
+      </div>
     );
+    if (embedded) return loadingSkeleton;
+    return <PageShell>{loadingSkeleton}</PageShell>;
   }
 
-  return (
-    <PageShell>
+  const content = (
+    <>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Statement Manager</h1>
-          <p className="text-muted-foreground">Generate, preview, and deliver monthly statements</p>
-        </div>
+        {!embedded ? (
+          <div>
+            <h1 className="text-2xl font-bold">Statement Manager</h1>
+            <p className="text-muted-foreground">
+              Generate, preview, and deliver monthly statements
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
         <div className="flex gap-2">
           <Select
             value={selectedMonth.split("-")[0]}
@@ -565,14 +571,17 @@ const InvestorReports = () => {
           )}
         </DialogContent>
       </Dialog>
-    </PageShell>
+    </>
   );
+
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 };
 
-function InvestorReportsWithErrorBoundary() {
+function InvestorReportsWithErrorBoundary({ embedded = false }: { embedded?: boolean }) {
   return (
     <QueryErrorBoundary>
-      <InvestorReports />
+      <InvestorReports embedded={embedded} />
     </QueryErrorBoundary>
   );
 }

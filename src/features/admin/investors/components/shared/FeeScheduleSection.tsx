@@ -25,7 +25,10 @@ import {
 } from "@/components/ui";
 import { CalendarDays, Plus, Trash2, Loader2, Save, Percent } from "lucide-react";
 import { toast } from "sonner";
-import { useFeeSchedule, useDeleteFeeScheduleEntry } from "@/features/investor/shared/hooks/useFeeSchedule";
+import {
+  useFeeSchedule,
+  useDeleteFeeScheduleEntry,
+} from "@/features/investor/shared/hooks/useFeeSchedule";
 import {
   useInvestorProfileSettings,
   useUpdatePerformanceFee,
@@ -241,7 +244,10 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
