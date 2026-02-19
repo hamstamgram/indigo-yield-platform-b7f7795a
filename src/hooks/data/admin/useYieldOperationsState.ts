@@ -3,7 +3,7 @@
  * Refactored to compose smaller, focused hooks for better maintainability.
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { useAuth } from "@/services/auth";
@@ -32,15 +32,24 @@ export function useYieldOperationsState() {
   const calculation = useYieldCalculation();
   const submission = useYieldSubmission();
 
-  // FIX: Always use "reporting" purpose for AUM reads
-  const AUM_READ_PURPOSE = "reporting" as const;
-
-  // Fetch as-of AUM when fund and date are selected
+  // Fetch as-of AUM: try reporting first, fall back to transaction for funds
+  // with no reporting history (e.g. new funds that have only had transaction yields)
+  const fundId = selection.selectedFund?.id ?? null;
   const {
-    data: asOfAum,
-    isLoading: asOfAumLoading,
-    error: asOfAumError,
-  } = useFundAumAsOf(selection.selectedFund?.id ?? null, period.asOfDateIso, AUM_READ_PURPOSE);
+    data: asOfAumReporting,
+    isLoading: asOfAumReportingLoading,
+    error: asOfAumReportingError,
+  } = useFundAumAsOf(fundId, period.asOfDateIso, "reporting");
+
+  const {
+    data: asOfAumTransaction,
+    isLoading: asOfAumTransactionLoading,
+    error: asOfAumTransactionError,
+  } = useFundAumAsOf(fundId, period.asOfDateIso, "transaction");
+
+  const asOfAum = asOfAumReporting ?? asOfAumTransaction;
+  const asOfAumLoading = asOfAumReportingLoading || asOfAumTransactionLoading;
+  const asOfAumError = asOfAumReportingError ?? asOfAumTransactionError;
 
   // Sync helpers
   const openYieldDialog = useCallback(
@@ -59,12 +68,12 @@ export function useYieldOperationsState() {
 
       period.setPeriod({
         ...period,
-        yieldPurpose: "transaction",
+        yieldPurpose: "reporting",
         aumDate: lastDayOfMonth,
         asOfDateIso: asOfDateIso,
         reportingMonth: currentMonthStart,
         aumTime: format(new Date(), "HH:mm"),
-        distributionDate: new Date(),
+        distributionDate: lastDayOfMonth,
       });
 
       calculation.setNewAUM("");
