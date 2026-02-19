@@ -59,11 +59,12 @@ export async function updateInvestorIBConfig(
     return { success: false, error: "An investor cannot be their own IB parent" };
   }
 
+  // DEPRECATED: profiles.ib_percentage - use ib_commission_schedule instead
+  // Only update ib_parent_id (and ib_commission_source for historical compatibility)
   const { error } = await supabase
     .from("profiles")
     .update({
       ib_parent_id: ibParentId,
-      ib_percentage: ibPercentage,
       ib_commission_source: ibCommissionSource,
     })
     .eq("id", investorId);

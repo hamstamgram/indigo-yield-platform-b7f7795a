@@ -29,12 +29,10 @@ import {
   DialogTitle,
   Alert,
   AlertDescription,
-  Switch,
 } from "@/components/ui";
 import {
   Loader2,
   Users,
-  Percent,
   Save,
   AlertCircle,
   UserPlus,
@@ -42,8 +40,6 @@ import {
   Crown,
   Trash2,
   Info,
-  Link2,
-  Link2Off,
 } from "lucide-react";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
@@ -111,19 +107,6 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   }
 
   const handleSave = async () => {
-    // Validation: IB parent choice handles its own assignment logic,
-    // but the schedule now handles all commission percentages.
-
-    // Validation: percentage range
-    if (ibPercentage < 0 || ibPercentage > 100) {
-      toast({
-        title: "Validation Error",
-        description: "IB commission must be between 0% and 100%",
-        variant: "destructive",
-      });
-      return;
-    }
-
     await updateIBConfigMutation.mutateAsync({
       investorId,
       ibParentId,
@@ -352,98 +335,55 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
             </Alert>
           )}
 
-          {/* IB Parent and Global Percentage Grid */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* IB Parent Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="ib-parent" className="text-sm font-medium">
-                IB Parent (Referrer)
-              </Label>
-              <div className="flex gap-2">
-                <Select
-                  value={ibParentId || "none"}
-                  onValueChange={(value) => setIbParentId(value === "none" ? null : value)}
-                  disabled={isReadOnly}
+          {/* IB Parent Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="ib-parent" className="text-sm font-medium">
+              IB Parent (Referrer)
+            </Label>
+            <div className="flex gap-2">
+              <Select
+                value={ibParentId || "none"}
+                onValueChange={(value) => setIbParentId(value === "none" ? null : value)}
+                disabled={isReadOnly}
+              >
+                <SelectTrigger id="ib-parent" className="w-full">
+                  <SelectValue placeholder="Select IB parent..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No IB Parent</SelectItem>
+                  {availableParents.map((parent) => (
+                    <SelectItem key={parent.id} value={parent.id}>
+                      {parent.name || parent.emailMasked || "—"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!isReadOnly && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    setShowCreateIBDialog(true);
+                    setSearchEmail("");
+                    setSearchResults([]);
+                    setIsCreatingNew(false);
+                  }}
+                  title="Find or create IB"
+                  className="shrink-0"
                 >
-                  <SelectTrigger id="ib-parent" className="w-full">
-                    <SelectValue placeholder="Select IB parent..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No IB Parent</SelectItem>
-                    {availableParents.map((parent) => (
-                      <SelectItem key={parent.id} value={parent.id}>
-                        {parent.name || parent.emailMasked || "—"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!isReadOnly && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      setShowCreateIBDialog(true);
-                      setSearchEmail("");
-                      setSearchResults([]);
-                      setIsCreatingNew(false);
-                    }}
-                    title="Find or create IB"
-                    className="shrink-0"
-                  >
-                    <UserPlus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                The investor who referred this account
-              </p>
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-
-            {/* Global IB Commission */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="ib-percentage" className="text-sm font-medium">
-                    Global IB Commission (%)
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="link-fees" className="text-xs text-muted-foreground">
-                      Link to Investor Fee
-                    </Label>
-                    <Switch
-                      id="link-fees"
-                      checked={ibCommissionSource === "investor_fee"}
-                      onCheckedChange={(checked) =>
-                        setIbCommissionSource(checked ? "investor_fee" : "manual")
-                      }
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-                <div className="relative">
-                  <Input
-                    id="ib-percentage"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={ibPercentage}
-                    onChange={(e) => setIbPercentage(parseFloat(e.target.value) || 0)}
-                    disabled={isReadOnly || ibCommissionSource === "investor_fee"}
-                    className="pr-8 font-mono"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                    %
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {ibCommissionSource === "investor_fee"
-                    ? "Automatically synced with investor's performance fee"
-                    : "Default commission percentage for all funds"}
-                </p>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground">The investor who referred this account</p>
           </div>
+
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              IB commission rates are managed per-fund via the schedule below.
+            </AlertDescription>
+          </Alert>
 
           {!isReadOnly && (
             <div className="flex justify-start">
