@@ -33,9 +33,6 @@ BEGIN
   DELETE FROM fund_daily_aum WHERE fund_id IN (
     SELECT id FROM funds WHERE code LIKE 'TEST-%'
   );
-  DELETE FROM fund_aum_events WHERE fund_id IN (
-    SELECT id FROM funds WHERE code LIKE 'TEST-%'
-  );
   DELETE FROM withdrawal_requests WHERE fund_id IN (
     SELECT id FROM funds WHERE code LIKE 'TEST-%'
   );

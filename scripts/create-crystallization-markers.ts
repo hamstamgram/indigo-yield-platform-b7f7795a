@@ -1,6 +1,6 @@
 /**
  * Generates a SQL migration file that creates crystallization marker records
- * (yield_distributions + fund_aum_events) at segment boundaries so the V5
+ * (yield_distributions) at segment boundaries so the V5
  * engine can properly split months into segments and allocate yield to
  * opening-balance holders only.
  *
@@ -207,7 +207,7 @@ function main() {
   sqlLines.push(`-- Date: ${new Date().toISOString().substring(0, 10)}`);
   sqlLines.push("--");
   sqlLines.push("-- These markers allow V5 to split months into segments at flow dates.");
-  sqlLines.push("-- Each marker = yield_distributions + fund_aum_events record pair.");
+  sqlLines.push("-- Each marker = yield_distributions record.");
   sqlLines.push("");
   sqlLines.push("-- Bypass the canonical RPC guard for yield_distributions inserts");
   sqlLines.push("SELECT set_config('indigo.canonical_rpc', 'true', true);");
@@ -229,17 +229,6 @@ function main() {
     sqlLines.push(`  0, 'transaction', 'applied',`);
     sqlLines.push(`  false, '${marker.refId}', '${periodStart}', '${periodEnd}',`);
     sqlLines.push(`  ${marker.closingAum}, false`);
-    sqlLines.push(`) ON CONFLICT DO NOTHING;`);
-    sqlLines.push("");
-
-    sqlLines.push(`INSERT INTO fund_aum_events (`);
-    sqlLines.push(`  fund_id, event_ts, event_date, purpose,`);
-    sqlLines.push(`  trigger_type, trigger_reference,`);
-    sqlLines.push(`  opening_aum, closing_aum, is_voided`);
-    sqlLines.push(`) VALUES (`);
-    sqlLines.push(`  ${fundLookup}, '${marker.date}T00:00:00Z', '${marker.date}', 'transaction',`);
-    sqlLines.push(`  'transaction', '${marker.refId}',`);
-    sqlLines.push(`  ${marker.closingAum}, ${marker.closingAum}, false`);
     sqlLines.push(`) ON CONFLICT DO NOTHING;`);
     sqlLines.push("");
   }

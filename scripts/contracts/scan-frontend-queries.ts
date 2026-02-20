@@ -30,11 +30,14 @@ interface Violation {
 }
 
 interface SchemaSnapshot {
-  tables: Record<string, {
-    name: string;
-    columns: Array<{ name: string; type: string }>;
-    primaryKey: string[];
-  }>;
+  tables: Record<
+    string,
+    {
+      name: string;
+      columns: Array<{ name: string; type: string }>;
+      primaryKey: string[];
+    }
+  >;
   enums: Record<string, { values: string[] }>;
   functions: Record<string, any>;
 }
@@ -49,12 +52,11 @@ const PROTECTED_TABLES = [
   "fee_allocations",
   "ib_allocations",
   "fund_daily_aum",
-  "fund_aum_events",
   "investor_positions",
   "investor_yield_events",
   "fund_yield_snapshots",
   "platform_fee_ledger",
-  "ib_commission_ledger"
+  "ib_commission_ledger",
 ];
 
 // Allowed RPC locations
@@ -62,7 +64,7 @@ const ALLOWED_RPC_FILES = [
   "src/lib/rpc.ts",
   "src/lib/db.ts",
   "src/services/supabase.ts",
-  "src/integrations/supabase/client.ts"
+  "src/integrations/supabase/client.ts",
 ];
 
 function loadSchemaSnapshot(): SchemaSnapshot | null {
@@ -134,13 +136,18 @@ function scanFile(filePath: string, schema: SchemaSnapshot | null) {
   });
 }
 
-function scanRpcCalls(line: string, lineNum: number, filePath: string, schema: SchemaSnapshot | null) {
+function scanRpcCalls(
+  line: string,
+  lineNum: number,
+  filePath: string,
+  schema: SchemaSnapshot | null
+) {
   // Match .rpc("function_name" or .rpc('function_name'
   const rpcMatch = line.match(/\.rpc\s*\(\s*["']([^"']+)["']/);
 
   if (rpcMatch) {
     const rpcName = rpcMatch[1];
-    const isAllowedFile = ALLOWED_RPC_FILES.some(allowed => filePath.includes(allowed));
+    const isAllowedFile = ALLOWED_RPC_FILES.some((allowed) => filePath.includes(allowed));
 
     // Check if RPC is being called from non-gateway file
     if (!isAllowedFile && !filePath.includes("scripts/") && !filePath.includes("test")) {
@@ -151,7 +158,7 @@ function scanRpcCalls(line: string, lineNum: number, filePath: string, schema: S
         line: lineNum,
         code: line.trim(),
         issue: `Direct .rpc("${rpcName}") call outside of gateway`,
-        suggestion: `Import and use the typed wrapper from src/lib/rpc.ts instead`
+        suggestion: `Import and use the typed wrapper from src/lib/rpc.ts instead`,
       });
     }
 
@@ -164,7 +171,7 @@ function scanRpcCalls(line: string, lineNum: number, filePath: string, schema: S
         line: lineNum,
         code: line.trim(),
         issue: `RPC "${rpcName}" not found in schema`,
-        suggestion: `Verify RPC exists in database or update rpcSignatures.ts`
+        suggestion: `Verify RPC exists in database or update rpcSignatures.ts`,
       });
     }
   }
@@ -172,11 +179,13 @@ function scanRpcCalls(line: string, lineNum: number, filePath: string, schema: S
 
 function scanProtectedMutations(line: string, lineNum: number, filePath: string) {
   // Skip if in scripts, migrations, or test files
-  if (filePath.includes("scripts/") ||
-      filePath.includes("migrations/") ||
-      filePath.includes(".test.") ||
-      filePath.includes(".spec.") ||
-      filePath.includes("seed")) {
+  if (
+    filePath.includes("scripts/") ||
+    filePath.includes("migrations/") ||
+    filePath.includes(".test.") ||
+    filePath.includes(".spec.") ||
+    filePath.includes("seed")
+  ) {
     return;
   }
 
@@ -195,13 +204,18 @@ function scanProtectedMutations(line: string, lineNum: number, filePath: string)
         line: lineNum,
         code: line.trim(),
         issue: `Direct mutation on protected table "${table}"`,
-        suggestion: `Use appropriate RPC function instead (e.g., apply_daily_yield_to_fund_v3)`
+        suggestion: `Use appropriate RPC function instead (e.g., apply_daily_yield_to_fund_v3)`,
       });
     }
   }
 }
 
-function scanSelectColumns(line: string, lineNum: number, filePath: string, schema: SchemaSnapshot) {
+function scanSelectColumns(
+  line: string,
+  lineNum: number,
+  filePath: string,
+  schema: SchemaSnapshot
+) {
   // Match .select("column1, column2, ...") or .select(`column1, column2`)
   const selectMatch = line.match(/\.select\s*\(\s*["'`]([^"'`]+)["'`]/);
 
@@ -230,8 +244,8 @@ function scanSelectColumns(line: string, lineNum: number, filePath: string, sche
     // Parse columns from select string
     const columns = selectStr
       .split(",")
-      .map(c => c.trim().split(":")[0].trim()) // Handle aliases like "col:alias"
-      .filter(c => c && !c.includes("!")); // Skip relation modifiers
+      .map((c) => c.trim().split(":")[0].trim()) // Handle aliases like "col:alias"
+      .filter((c) => c && !c.includes("!")); // Skip relation modifiers
 
     for (const col of columns) {
       // Skip if it's a relation reference (table.column or table!inner)
@@ -239,7 +253,7 @@ function scanSelectColumns(line: string, lineNum: number, filePath: string, sche
         continue;
       }
 
-      const exists = tableSchema.columns.some(c => c.name === col);
+      const exists = tableSchema.columns.some((c) => c.name === col);
       if (!exists) {
         violations.push({
           severity: "ERROR",
@@ -248,14 +262,19 @@ function scanSelectColumns(line: string, lineNum: number, filePath: string, sche
           line: lineNum,
           code: line.trim(),
           issue: `Column "${col}" not found in table "${tableName}"`,
-          suggestion: `Check schema for valid column names`
+          suggestion: `Check schema for valid column names`,
         });
       }
     }
   }
 }
 
-function scanTableReferences(line: string, lineNum: number, filePath: string, schema: SchemaSnapshot) {
+function scanTableReferences(
+  line: string,
+  lineNum: number,
+  filePath: string,
+  schema: SchemaSnapshot
+) {
   // Match .from("table_name")
   const fromMatch = line.match(/\.from\s*\(\s*["']([^"']+)["']/);
 
@@ -275,7 +294,7 @@ function scanTableReferences(line: string, lineNum: number, filePath: string, sc
         line: lineNum,
         code: line.trim(),
         issue: `Table "${tableName}" not found in schema`,
-        suggestion: `Verify table exists or update dbSchema.ts`
+        suggestion: `Verify table exists or update dbSchema.ts`,
       });
     }
   }
@@ -301,7 +320,7 @@ function scanEnumUsage(line: string, lineNum: number, filePath: string, schema: 
             line: lineNum,
             code: line.trim(),
             issue: `"${value}" is UI-only, not a valid tx_type for database operations`,
-            suggestion: `Use "DEPOSIT" instead for database operations`
+            suggestion: `Use "DEPOSIT" instead for database operations`,
           });
         }
       }
@@ -314,8 +333,8 @@ function printReport(): boolean {
   console.log("  FRONTEND QUERY SCAN REPORT");
   console.log("=".repeat(70));
 
-  const errors = violations.filter(v => v.severity === "ERROR");
-  const warnings = violations.filter(v => v.severity === "WARNING");
+  const errors = violations.filter((v) => v.severity === "ERROR");
+  const warnings = violations.filter((v) => v.severity === "WARNING");
 
   if (errors.length === 0 && warnings.length === 0) {
     console.log("\n  ALL QUERIES VALIDATED");
@@ -394,7 +413,7 @@ async function main() {
   console.log("\n  QUERY SCAN PASSED\n");
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error("Fatal error:", err);
   process.exit(1);
 });

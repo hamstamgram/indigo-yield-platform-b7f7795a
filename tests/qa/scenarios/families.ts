@@ -178,13 +178,14 @@ async function hasAuditLog(sb: SupabaseClient, entityId: string, action?: string
   return { exists: (count ?? 0) > 0, count: count ?? 0, error };
 }
 
-/** Check if fund_aum_events exist for a given trigger_reference */
-async function hasAumEvent(sb: SupabaseClient, fundId: string, triggerRef: string) {
+/** Check if fund_daily_aum exists for a given fund and date */
+async function hasDailyAum(sb: SupabaseClient, fundId: string, aumDate: string) {
   const { count, error } = await sb
-    .from("fund_aum_events")
+    .from("fund_daily_aum")
     .select("id", { count: "exact", head: true })
     .eq("fund_id", fundId)
-    .ilike("trigger_reference", `%${triggerRef}%`);
+    .eq("aum_date", aumDate)
+    .eq("is_voided", false);
   return { exists: (count ?? 0) > 0, count: count ?? 0, error };
 }
 
@@ -1035,20 +1036,20 @@ export const family5_VoidTransactionCascade: Scenario[] = [
       await doVoidTx(sb, tw.adminId, txId, "QA AUM event test");
       await delay(500);
 
-      // Check if there's a fund_aum_events record for the void
-      const { data: events } = await sb
-        .from("fund_aum_events")
-        .select("id, trigger_type, is_voided")
+      // Check that fund_daily_aum was recalculated after void
+      const { data: aumRecords } = await sb
+        .from("fund_daily_aum")
+        .select("id, aum_date, total_aum, is_voided")
         .eq("fund_id", tw.fundId)
-        .order("created_at", { ascending: false })
+        .order("aum_date", { ascending: false })
         .limit(5);
 
-      // We expect at least one AUM event for this fund
-      if (!events || events.length === 0) {
-        return fail(desc, "No AUM events found for fund", rpcs);
+      // We expect at least one AUM record for this fund
+      if (!aumRecords || aumRecords.length === 0) {
+        return fail(desc, "No fund_daily_aum records found for fund", rpcs);
       }
 
-      return pass(desc, `Found ${events.length} recent AUM event(s) for fund`, rpcs);
+      return pass(desc, `Found ${aumRecords.length} recent AUM record(s) for fund`, rpcs);
     } catch (err) {
       return fail(desc, `Exception: ${err}`, rpcs);
     }

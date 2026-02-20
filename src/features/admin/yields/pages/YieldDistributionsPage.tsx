@@ -13,6 +13,7 @@ import { useYieldDistributionsPage } from "@/features/admin/yields/hooks/useYiel
 import type {
   InvestorProfile,
   DistributionRow,
+  AllocationRow,
   FeeAllocationRow,
   YieldEventRow,
 } from "@/services/admin/yields/yieldDistributionsPageService";
@@ -198,6 +199,209 @@ function CrystallizationEventsTable({
         </TableBody>
       </Table>
     </>
+  );
+}
+
+function FundMonthSummary({
+  fundDistributions,
+  allocationsByDistribution,
+  investorMap,
+  fund,
+}: {
+  fundDistributions: DistributionRow[];
+  allocationsByDistribution: Record<string, AllocationRow[]>;
+  investorMap: Record<string, InvestorProfile>;
+  fund?: Fund;
+}) {
+  const nonVoided = fundDistributions.filter((d) => !d.is_voided);
+  if (nonVoided.length <= 1) return null;
+
+  const crystalDists = nonVoided.filter(isCrystallizationDist);
+  const regularDists = nonVoided.filter((d) => !isCrystallizationDist(d));
+
+  const totalGross = nonVoided.reduce((s, d) => s + d.gross_yield, 0);
+  const totalFees = nonVoided.reduce((s, d) => s + (d.total_fees || 0), 0);
+  const totalIb = nonVoided.reduce((s, d) => s + (d.total_ib || 0), 0);
+  const totalNet = nonVoided.reduce((s, d) => s + (d.net_yield || 0), 0);
+
+  const latestDist =
+    regularDists.length > 0
+      ? regularDists.reduce((latest, d) =>
+          new Date(d.effective_date) > new Date(latest.effective_date) ? d : latest
+        )
+      : null;
+
+  const latestAllocations = latestDist ? allocationsByDistribution[latestDist.id] || [] : [];
+  const latestTotalGross = latestAllocations.reduce((sum, a) => sum + (a.gross_amount || 0), 0);
+
+  return (
+    <div className="space-y-3">
+      {/* Monthly Total Summary */}
+      <Card className="border-primary/30 bg-primary/5">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            Monthly Total
+            <Badge variant="outline" className="text-xs">
+              {nonVoided.length} distribution{nonVoided.length === 1 ? "" : "s"}
+            </Badge>
+            {crystalDists.length > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-purple-900/30 text-purple-400 border-purple-800"
+              >
+                {crystalDists.length} crystal{crystalDists.length === 1 ? "" : "s"}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pb-3">
+          <div className="grid gap-x-6 gap-y-1 sm:grid-cols-5 text-sm">
+            <div>
+              <span className="text-muted-foreground">Gross</span>
+              <div className="font-semibold">
+                <FinancialValue value={totalGross} asset={fund?.asset} />
+              </div>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Fees</span>
+              <div className="font-medium">
+                <FinancialValue value={totalFees} asset={fund?.asset} />
+              </div>
+            </div>
+            <div>
+              <span className="text-muted-foreground">IB</span>
+              <div className="font-medium text-purple-400">
+                <FinancialValue value={totalIb} asset={fund?.asset} />
+              </div>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Net</span>
+              <div className="font-semibold">
+                <FinancialValue value={totalNet} asset={fund?.asset} />
+              </div>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Reporting AUM</span>
+              <div className="font-medium">
+                {latestDist ? (
+                  <FinancialValue value={latestDist.recorded_aum} asset={fund?.asset} />
+                ) : (
+                  "\u2014"
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Latest Yield Result (most recent non-crystal distribution) */}
+      {latestDist && latestAllocations.length > 0 && (
+        <Card className="border-green-800/30 bg-green-950/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              Latest Yield
+              <Badge
+                variant={latestDist.purpose === "reporting" ? "default" : "secondary"}
+                className={
+                  latestDist.purpose === "reporting"
+                    ? "bg-green-900/30 text-green-400"
+                    : "bg-orange-900/30 text-orange-400"
+                }
+              >
+                {latestDist.purpose === "reporting" ? "Reporting" : "Transaction"}
+              </Badge>
+              <span className="text-xs text-muted-foreground font-normal">
+                {format(new Date(latestDist.effective_date), "MMM d, yyyy HH:mm")}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-3">
+            <div className="grid gap-x-6 gap-y-1 sm:grid-cols-5 text-sm mb-3">
+              <div>
+                <span className="text-muted-foreground">Gross</span>
+                <div className="font-semibold">
+                  <FinancialValue value={latestDist.gross_yield} asset={fund?.asset} />
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Fees</span>
+                <div className="font-medium">
+                  <FinancialValue value={latestDist.total_fees || 0} asset={fund?.asset} />
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">IB</span>
+                <div className="font-medium text-purple-400">
+                  <FinancialValue value={latestDist.total_ib || 0} asset={fund?.asset} />
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Net</span>
+                <div className="font-semibold">
+                  <FinancialValue value={latestDist.net_yield || 0} asset={fund?.asset} />
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Investors</span>
+                <div className="font-medium">
+                  {latestDist.allocation_count ?? latestAllocations.length}
+                </div>
+              </div>
+            </div>
+            <Table className="text-xs">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[120px]">Investor</TableHead>
+                  <TableHead className="text-right">Share%</TableHead>
+                  <TableHead className="text-right">Gross</TableHead>
+                  <TableHead className="text-right">Fee%</TableHead>
+                  <TableHead className="text-right">Fee</TableHead>
+                  <TableHead className="text-right">IB</TableHead>
+                  <TableHead className="text-right">Net</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {latestAllocations.map((allocation) => {
+                  const investor = investorMap[allocation.investor_id];
+                  return (
+                    <TableRow key={allocation.id}>
+                      <TableCell className="py-1.5">
+                        <div className="font-medium truncate max-w-[140px]">
+                          {formatInvestorName(investor)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right py-1.5 tabular-nums">
+                        {formatPercentage(
+                          latestTotalGross !== 0
+                            ? ((allocation.gross_amount || 0) / latestTotalGross) * 100
+                            : 0,
+                          2
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right py-1.5 tabular-nums">
+                        <FinancialValue value={allocation.gross_amount} asset={fund?.asset} />
+                      </TableCell>
+                      <TableCell className="text-right py-1.5 tabular-nums">
+                        {formatPercentage(allocation.fee_pct || 0, 1)}
+                      </TableCell>
+                      <TableCell className="text-right py-1.5 tabular-nums">
+                        <FinancialValue value={allocation.fee_amount || 0} asset={fund?.asset} />
+                      </TableCell>
+                      <TableCell className="text-right py-1.5 tabular-nums text-purple-400">
+                        <FinancialValue value={allocation.ib_amount || 0} asset={fund?.asset} />
+                      </TableCell>
+                      <TableCell className="text-right py-1.5 font-semibold tabular-nums">
+                        <FinancialValue value={allocation.net_amount} asset={fund?.asset} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
@@ -603,67 +807,12 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent className="px-4 pb-4 space-y-4">
-                                {(() => {
-                                  const crystalDists =
-                                    fundDistributions.filter(isCrystallizationDist);
-                                  if (crystalDists.length === 0) return null;
-                                  const regularDists = fundDistributions.filter(
-                                    (d) => !isCrystallizationDist(d)
-                                  );
-                                  const crystalGross = crystalDists.reduce(
-                                    (s, d) => s + d.gross_yield,
-                                    0
-                                  );
-                                  const regularGross = regularDists.reduce(
-                                    (s, d) => s + d.gross_yield,
-                                    0
-                                  );
-                                  const totalGross = crystalGross + regularGross;
-                                  return (
-                                    <Card className="border-purple-800/30 bg-purple-950/10">
-                                      <CardContent className="py-3 px-4">
-                                        <div className="grid gap-x-6 gap-y-1 sm:grid-cols-4 text-sm">
-                                          <div>
-                                            <span className="text-muted-foreground">
-                                              Crystallized
-                                            </span>
-                                            <div className="font-medium">
-                                              {crystalDists.length} event
-                                              {crystalDists.length === 1 ? "" : "s"},{" "}
-                                              <FinancialValue
-                                                value={crystalGross}
-                                                asset={fund?.asset}
-                                              />{" "}
-                                              gross
-                                            </div>
-                                          </div>
-                                          <div>
-                                            <span className="text-muted-foreground">
-                                              Reporting / Yield
-                                            </span>
-                                            <div className="font-medium">
-                                              <FinancialValue
-                                                value={regularGross}
-                                                asset={fund?.asset}
-                                              />{" "}
-                                              gross
-                                            </div>
-                                          </div>
-                                          <div>
-                                            <span className="text-muted-foreground">Total</span>
-                                            <div className="font-medium">
-                                              <FinancialValue
-                                                value={totalGross}
-                                                asset={fund?.asset}
-                                              />{" "}
-                                              gross
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  );
-                                })()}
+                                <FundMonthSummary
+                                  fundDistributions={fundDistributions}
+                                  allocationsByDistribution={allocationsByDistribution}
+                                  investorMap={investorMap}
+                                  fund={fund}
+                                />
                                 {fundDistributions.map((distribution) => {
                                   const allocations =
                                     allocationsByDistribution[distribution.id] || [];

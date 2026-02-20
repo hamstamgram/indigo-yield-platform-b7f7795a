@@ -80,7 +80,7 @@ export async function previewDepositYield(
     throw new Error("Invalid AUM inputs: newTotalAum must be >= depositAmount");
   }
 
-  // Use live positions as opening AUM (replaces stale fund_aum_events checkpoint)
+  // Use live positions as opening AUM
   const liveAum = await getCurrentFundAum(fundId);
   const openingAumDec = toDecimal(liveAum);
 
@@ -213,7 +213,10 @@ export async function getCurrentFundAum(fundId: string): Promise<number> {
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
   return (positions || []).reduce(
-    (sum, p) => parseFinancial(sum).plus(parseFinancial(p.current_value || 0)).toNumber(),
+    (sum, p) =>
+      parseFinancial(sum)
+        .plus(parseFinancial(p.current_value || 0))
+        .toNumber(),
     0
   );
 }

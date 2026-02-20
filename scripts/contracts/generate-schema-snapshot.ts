@@ -24,8 +24,8 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY!;
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY!;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("Missing SUPABASE_URL or SUPABASE_KEY");
@@ -112,23 +112,31 @@ async function getEnums(): Promise<Record<string, EnumInfo>> {
         tx_type: {
           name: "tx_type",
           values: [
-            "DEPOSIT", "WITHDRAWAL", "INTEREST", "FEE", "ADJUSTMENT",
-            "FEE_CREDIT", "IB_CREDIT", "YIELD", "INTERNAL_WITHDRAWAL",
-            "INTERNAL_CREDIT", "IB_DEBIT"
-          ]
+            "DEPOSIT",
+            "WITHDRAWAL",
+            "INTEREST",
+            "FEE",
+            "ADJUSTMENT",
+            "FEE_CREDIT",
+            "IB_CREDIT",
+            "YIELD",
+            "INTERNAL_WITHDRAWAL",
+            "INTERNAL_CREDIT",
+            "IB_DEBIT",
+          ],
         },
         aum_purpose: {
           name: "aum_purpose",
-          values: ["reporting", "transaction"]
+          values: ["reporting", "transaction"],
         },
         approval_status: {
           name: "approval_status",
-          values: ["pending", "approved", "rejected", "expired"]
+          values: ["pending", "approved", "rejected", "expired"],
         },
         withdrawal_status: {
           name: "withdrawal_status",
-          values: ["pending", "approved", "processing", "completed", "rejected", "cancelled"]
-        }
+          values: ["pending", "approved", "processing", "completed", "rejected", "cancelled"],
+        },
       };
     }
 
@@ -142,7 +150,7 @@ async function getEnums(): Promise<Record<string, EnumInfo>> {
     for (const row of data) {
       enums[row.enum_name] = {
         name: row.enum_name,
-        values: row.enum_values
+        values: row.enum_values,
       };
     }
   }
@@ -161,12 +169,24 @@ async function getTables(): Promise<Record<string, TableInfo>> {
     console.log("Using known tables list...");
     // Fallback to known tables
     const knownTables = [
-      "profiles", "funds", "transactions_v2", "investor_positions",
-      "yield_distributions", "fund_daily_aum", "fund_aum_events",
-      "withdrawal_requests", "ib_relationships", "investor_fee_schedules",
-      "statement_periods", "fund_period_snapshots", "yield_allocations",
-      "fee_allocations", "ib_allocations", "platform_fee_ledger",
-      "ib_commission_ledger", "investor_yield_events", "fund_yield_snapshots"
+      "profiles",
+      "funds",
+      "transactions_v2",
+      "investor_positions",
+      "yield_distributions",
+      "fund_daily_aum",
+      "withdrawal_requests",
+      "ib_relationships",
+      "investor_fee_schedules",
+      "statement_periods",
+      "fund_period_snapshots",
+      "yield_allocations",
+      "fee_allocations",
+      "ib_allocations",
+      "platform_fee_ledger",
+      "ib_commission_ledger",
+      "investor_yield_events",
+      "fund_yield_snapshots",
     ];
 
     const tables: Record<string, TableInfo> = {};
@@ -195,20 +215,22 @@ async function getTableInfo(tableName: string): Promise<TableInfo> {
 
   // Get primary keys
   const { data: pkData } = await supabase.rpc("get_primary_key_columns" as any, {
-    p_table_name: tableName
+    p_table_name: tableName,
   });
 
   // Get foreign keys
   const { data: fkData } = await supabase.rpc("get_foreign_key_info" as any, {
-    p_table_name: tableName
+    p_table_name: tableName,
   });
 
   const primaryKeys: string[] = pkData ? pkData.map((p: any) => p.column_name) : [];
-  const foreignKeys: TableInfo["foreignKeys"] = fkData ? fkData.map((fk: any) => ({
-    column: fk.column_name,
-    referencesTable: fk.foreign_table_name,
-    referencesColumn: fk.foreign_column_name
-  })) : [];
+  const foreignKeys: TableInfo["foreignKeys"] = fkData
+    ? fkData.map((fk: any) => ({
+        column: fk.column_name,
+        referencesTable: fk.foreign_table_name,
+        referencesColumn: fk.foreign_column_name,
+      }))
+    : [];
 
   const columns: ColumnInfo[] = (colData || []).map((col: any) => ({
     name: col.column_name,
@@ -216,13 +238,13 @@ async function getTableInfo(tableName: string): Promise<TableInfo> {
     nullable: col.is_nullable === "YES",
     defaultValue: col.column_default,
     isPrimaryKey: primaryKeys.includes(col.column_name),
-    isForeignKey: foreignKeys.some(fk => fk.column === col.column_name),
-    foreignKeyRef: foreignKeys.find(fk => fk.column === col.column_name)
+    isForeignKey: foreignKeys.some((fk) => fk.column === col.column_name),
+    foreignKeyRef: foreignKeys.find((fk) => fk.column === col.column_name)
       ? {
-          table: foreignKeys.find(fk => fk.column === col.column_name)!.referencesTable,
-          column: foreignKeys.find(fk => fk.column === col.column_name)!.referencesColumn
+          table: foreignKeys.find((fk) => fk.column === col.column_name)!.referencesTable,
+          column: foreignKeys.find((fk) => fk.column === col.column_name)!.referencesColumn,
         }
-      : undefined
+      : undefined,
   }));
 
   return {
@@ -230,7 +252,7 @@ async function getTableInfo(tableName: string): Promise<TableInfo> {
     columns,
     primaryKey: primaryKeys,
     isCompositePK: primaryKeys.length > 1,
-    foreignKeys
+    foreignKeys,
   };
 }
 
@@ -251,7 +273,7 @@ async function getFunctions(): Promise<Record<string, FunctionInfo>> {
         returnType: row.return_type,
         arguments: parseArguments(row.argument_types, row.argument_names, row.argument_defaults),
         isSecurityDefiner: row.security_type === "DEFINER",
-        volatility: row.volatility
+        volatility: row.volatility,
       };
     }
   }
@@ -261,32 +283,38 @@ async function getFunctions(): Promise<Record<string, FunctionInfo>> {
 function parseArguments(types: string, names: string, defaults: string): FunctionArg[] {
   if (!types) return [];
 
-  const typeList = types.split(",").map(t => t.trim());
-  const nameList = names ? names.split(",").map(n => n.trim()) : [];
+  const typeList = types.split(",").map((t) => t.trim());
+  const nameList = names ? names.split(",").map((n) => n.trim()) : [];
 
   return typeList.map((type, i) => ({
     name: nameList[i] || `arg${i}`,
     type,
     hasDefault: false, // Would need more complex parsing
-    position: i
+    position: i,
   }));
 }
 
 function getKnownFunctions(): Record<string, FunctionInfo> {
   return {
-    "preview_daily_yield_to_fund_v3": {
+    preview_daily_yield_to_fund_v3: {
       name: "preview_daily_yield_to_fund_v3",
       returnType: "jsonb",
       arguments: [
         { name: "p_fund_id", type: "uuid", hasDefault: false, position: 0 },
         { name: "p_yield_date", type: "date", hasDefault: false, position: 1 },
         { name: "p_new_aum", type: "numeric", hasDefault: false, position: 2 },
-        { name: "p_purpose", type: "text", hasDefault: true, defaultValue: "reporting", position: 3 }
+        {
+          name: "p_purpose",
+          type: "text",
+          hasDefault: true,
+          defaultValue: "reporting",
+          position: 3,
+        },
       ],
       isSecurityDefiner: true,
-      volatility: "VOLATILE"
+      volatility: "VOLATILE",
     },
-    "apply_daily_yield_to_fund_v3": {
+    apply_daily_yield_to_fund_v3: {
       name: "apply_daily_yield_to_fund_v3",
       returnType: "jsonb",
       arguments: [
@@ -294,39 +322,45 @@ function getKnownFunctions(): Record<string, FunctionInfo> {
         { name: "p_yield_date", type: "date", hasDefault: false, position: 1 },
         { name: "p_gross_yield_pct", type: "numeric", hasDefault: false, position: 2 },
         { name: "p_created_by", type: "uuid", hasDefault: true, position: 3 },
-        { name: "p_purpose", type: "aum_purpose", hasDefault: true, defaultValue: "transaction", position: 4 }
+        {
+          name: "p_purpose",
+          type: "aum_purpose",
+          hasDefault: true,
+          defaultValue: "transaction",
+          position: 4,
+        },
       ],
       isSecurityDefiner: true,
-      volatility: "VOLATILE"
+      volatility: "VOLATILE",
     },
-    "get_investor_position_as_of": {
+    get_investor_position_as_of: {
       name: "get_investor_position_as_of",
       returnType: "TABLE",
       arguments: [
         { name: "p_fund_id", type: "uuid", hasDefault: false, position: 0 },
         { name: "p_investor_id", type: "uuid", hasDefault: false, position: 1 },
-        { name: "p_as_of_date", type: "date", hasDefault: false, position: 2 }
+        { name: "p_as_of_date", type: "date", hasDefault: false, position: 2 },
       ],
       isSecurityDefiner: true,
-      volatility: "VOLATILE"
+      volatility: "VOLATILE",
     },
-    "reconcile_investor_position": {
+    reconcile_investor_position: {
       name: "reconcile_investor_position",
       returnType: "jsonb",
       arguments: [
         { name: "p_fund_id", type: "uuid", hasDefault: false, position: 0 },
-        { name: "p_investor_id", type: "uuid", hasDefault: false, position: 1 }
+        { name: "p_investor_id", type: "uuid", hasDefault: false, position: 1 },
       ],
       isSecurityDefiner: true,
-      volatility: "VOLATILE"
+      volatility: "VOLATILE",
     },
-    "is_admin": {
+    is_admin: {
       name: "is_admin",
       returnType: "boolean",
       arguments: [],
       isSecurityDefiner: true,
-      volatility: "STABLE"
-    }
+      volatility: "STABLE",
+    },
   };
 }
 
@@ -344,13 +378,13 @@ async function getViews(): Promise<Record<string, ViewInfo>> {
     "v_transaction_distribution_orphans",
     "v_period_orphans",
     "v_crystallization_gaps",
-    "v_integrity_yield_balance"
+    "v_integrity_yield_balance",
   ];
 
   for (const viewName of integrityViews) {
     views[viewName] = {
       name: viewName,
-      columns: [] // Would need to query information_schema.columns
+      columns: [], // Would need to query information_schema.columns
     };
   }
 
@@ -385,7 +419,7 @@ async function generateSnapshot(): Promise<SchemaSnapshot> {
     "v_missing_withdrawal_transactions",
     "v_transaction_distribution_orphans",
     "v_period_orphans",
-    "v_crystallization_gaps"
+    "v_crystallization_gaps",
   ];
 
   return {
@@ -395,14 +429,14 @@ async function generateSnapshot(): Promise<SchemaSnapshot> {
     enums,
     functions,
     views,
-    integrityViews
+    integrityViews,
   };
 }
 
 async function main() {
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log("  SCHEMA SNAPSHOT GENERATOR");
-  console.log("=" .repeat(70));
+  console.log("=".repeat(70));
   console.log();
 
   try {
@@ -430,10 +464,9 @@ async function main() {
       console.log(`  ${name}: ${info.values.join(", ")}`);
     }
 
-    console.log("\n" + "=" .repeat(70));
+    console.log("\n" + "=".repeat(70));
     console.log("  SNAPSHOT COMPLETE");
-    console.log("=" .repeat(70));
-
+    console.log("=".repeat(70));
   } catch (error) {
     console.error("Error generating snapshot:", error);
     process.exit(1);

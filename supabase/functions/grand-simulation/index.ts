@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Database } from "../_shared/database.types.ts";
 import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
@@ -76,7 +77,7 @@ function refId(phase: string, detail: string): string {
 }
 
 async function getPositions(
-  supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createClient<Database>>,
   fundId: string
 ): Promise<Record<string, number>> {
   const { data, error } = await supabase
@@ -94,7 +95,7 @@ async function getPositions(
 }
 
 async function deposit(
-  supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createClient<Database>>,
   adminId: string,
   investorId: string,
   amount: number,
@@ -142,7 +143,7 @@ async function deposit(
 }
 
 async function applyYield(
-  supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createClient<Database>>,
   adminId: string,
   recordedAum: number,
   periodStart: string,
@@ -191,7 +192,7 @@ async function applyYield(
 }
 
 async function sumPositions(
-  supabase: ReturnType<typeof createClient>
+  supabase: ReturnType<typeof createClient<Database>>
 ): Promise<{ positions: Record<string, number>; total: number }> {
   const positions = await getPositions(supabase, FUND_ID);
   let total = 0;
@@ -271,7 +272,7 @@ Deno.serve(async (req: Request) => {
   const token = authHeader.replace("Bearer ", "");
 
   // Create user client to get user id, then service client for operations
-  const userClient = createClient(
+  const userClient = createClient<Database>(
     SUPABASE_URL,
     Deno.env.get("SUPABASE_ANON_KEY") ?? SUPABASE_SERVICE_ROLE_KEY,
     {
@@ -290,7 +291,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // Use service role for all DB operations, but pass the user's JWT so auth.uid() and is_admin() work
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
 

@@ -33,12 +33,7 @@ const __dirname = path.dirname(__filename);
 const COMPOSITE_PK_TABLES = ["investor_positions"];
 
 /** Protected tables - should use RPC, not direct mutations */
-const PROTECTED_TABLES = [
-  "transactions_v2",
-  "yield_distributions",
-  "fund_aum_events",
-  "fund_daily_aum",
-];
+const PROTECTED_TABLES = ["transactions_v2", "yield_distributions", "fund_daily_aum"];
 
 /** Columns that commonly appear in multiple tables (ambiguous in JOINs) */
 const AMBIGUOUS_COLUMNS = [

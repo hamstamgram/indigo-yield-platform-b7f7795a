@@ -1,0 +1,6 @@
+-- DEFINITIVE FIX: Position-based yield computation
+-- yield = recorded_aum - SUM(investor_positions.current_value)
+-- allocation = proportional to current position values
+-- Real YIELD transactions for BOTH purposes
+-- Applied to remote via MCP on 2026-02-20
+-- See walkthrough for full details

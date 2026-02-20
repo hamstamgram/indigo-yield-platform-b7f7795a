@@ -91,7 +91,6 @@ const PROTECTED_TABLES = [
   "transactions_v2",
   "yield_distributions",
   "fund_daily_aum",
-  "fund_aum_events",
   "yield_allocations",
   "fee_allocations",
   "ib_allocations",

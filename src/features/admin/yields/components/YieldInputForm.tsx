@@ -93,9 +93,11 @@ export function YieldInputForm({
 }: YieldInputFormProps) {
   const validationResult = validateEffectiveDate();
 
-  // Determine displayed AUM: prefer as-of AUM, fallback to current positions
-  const displayedAum = asOfAum ?? selectedFund?.total_aum ?? 0;
-  const isUsingHistoricalAum = asOfAum !== null && asOfAum !== undefined;
+  // Always use live positions as the canonical AUM display.
+  // The backend engine uses position-based math (yield = recorded_aum - sum(positions)),
+  // so the admin must see the current positions sum, not a stale fund_daily_aum snapshot.
+  const displayedAum = selectedFund?.total_aum ?? 0;
+  const isUsingHistoricalAum = false;
 
   const isReporting = yieldPurpose === "reporting";
 
