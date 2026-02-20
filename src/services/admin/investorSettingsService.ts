@@ -18,7 +18,6 @@ export interface InvestorProfileData {
   email: string;
   phone: string | null;
   status: string;
-  feePct: number;
   created_at: string | null;
 }
 
@@ -42,7 +41,7 @@ export async function getInvestorProfileForSettings(
 ): Promise<InvestorProfileData> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, email, phone, status, fee_pct, created_at")
+    .select("id, first_name, last_name, email, phone, status, created_at")
     .eq("id", investorId)
     .maybeSingle();
 
@@ -63,7 +62,6 @@ export async function getInvestorProfileForSettings(
     email: data.email || "",
     phone: data.phone,
     status: data.status || "active",
-    feePct: data.fee_pct || 20,
     created_at: data.created_at,
   };
 }
@@ -78,20 +76,8 @@ export async function deleteInvestorProfile(investorId: string): Promise<void> {
   await deleteInvestorUser(investorId);
 }
 
-/**
- * Update investor performance fee
- */
-export async function updatePerformanceFee(investorId: string, feePct: number): Promise<void> {
-  const { error } = await supabase
-    .from("profiles")
-    .update({ fee_pct: feePct })
-    .eq("id", investorId);
-
-  if (error) {
-    logError("updatePerformanceFee", error, { investorId, feePct });
-    throw error;
-  }
-}
+// Fee updates now go through investor_fee_schedule table
+// Use feeScheduleService to manage fee rates per investor/fund/period
 
 /**
  * Get report periods and performance data for an investor

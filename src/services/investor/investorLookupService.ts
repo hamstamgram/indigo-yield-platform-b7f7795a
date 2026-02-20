@@ -32,7 +32,6 @@ export interface InvestorLookup {
   displayName: string;
   status: InvestorProfileStatus;
   accountType: string;
-  feePct: number | null;
   phone: string | null;
   ibParentId: string | null;
   avatarUrl: string | null;
@@ -91,7 +90,6 @@ function transformToInvestorLookup(row: {
   last_name: string | null;
   status: string | null;
   account_type: string | null;
-  fee_pct: number | null;
   phone: string | null;
   ib_parent_id: string | null;
   avatar_url: string | null;
@@ -108,7 +106,6 @@ function transformToInvestorLookup(row: {
     displayName: buildDisplayName(row.first_name, row.last_name, row.email),
     status: (row.status as InvestorProfileStatus) || "pending",
     accountType: row.account_type || "individual",
-    feePct: row.fee_pct,
     phone: row.phone,
     ibParentId: row.ib_parent_id,
     avatarUrl: row.avatar_url,
@@ -154,7 +151,6 @@ export async function getInvestorById(id: string): Promise<InvestorLookup | null
       last_name,
       status,
       account_type,
-      fee_pct,
       phone,
       ib_parent_id,
       avatar_url,
@@ -203,7 +199,6 @@ export async function getInvestorsForList(
       last_name,
       status,
       account_type,
-      fee_pct,
       phone,
       ib_parent_id,
       avatar_url,

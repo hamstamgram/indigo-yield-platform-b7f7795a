@@ -35,7 +35,10 @@ export async function getInvestorFeeSchedule(investorId: string): Promise<FeeSch
   }));
 }
 
-export async function getInvestorFeeHistory(investorId: string, limit = 50): Promise<FeeHistoryRow[]> {
+export async function getInvestorFeeHistory(
+  investorId: string,
+  limit = 50
+): Promise<FeeHistoryRow[]> {
   const { data, error } = await supabase
     .from("fee_allocations")
     .select("id, purpose, period_end, fee_amount")
@@ -130,6 +133,65 @@ export async function getFeeScheduleWithFunds(investorId: string): Promise<
   return data || [];
 }
 
+/**
+ * Upsert global fee (fund_id=NULL) for an investor.
+ * This replaces the old profiles.fee_pct column.
+ */
+export async function upsertGlobalFee(investorId: string, feePct: number): Promise<void> {
+  if (isNaN(feePct) || feePct < 0 || feePct > 100) {
+    throw new Error("Invalid fee rate. Must be between 0% and 100%");
+  }
+
+  // Find existing global entry (fund_id IS NULL)
+  const { data: existing } = await supabase
+    .from("investor_fee_schedule")
+    .select("id")
+    .eq("investor_id", investorId)
+    .is("fund_id", null)
+    .order("effective_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    // Update existing global entry
+    const { error } = await supabase
+      .from("investor_fee_schedule")
+      .update({ fee_pct: feePct, updated_at: new Date().toISOString() })
+      .eq("id", existing.id);
+    if (error) throw error;
+  } else {
+    // Create new global entry
+    const result = await db.insert("investor_fee_schedule", {
+      investor_id: investorId,
+      fund_id: null,
+      fee_pct: feePct,
+      effective_date: "2024-01-01",
+    });
+    if (result.error) throw new Error(result.error.userMessage);
+  }
+}
+
+/**
+ * Get global fee (fund_id=NULL) for an investor.
+ * Returns null if no global fee is set.
+ */
+export async function getGlobalFee(investorId: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from("investor_fee_schedule")
+    .select("fee_pct")
+    .eq("investor_id", investorId)
+    .is("fund_id", null)
+    .order("effective_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    logError("feeScheduleService.getGlobalFee", error);
+    return null;
+  }
+  return data ? Number(data.fee_pct) : null;
+}
+
 // Plain object singleton for feeScheduleService.method() pattern
 export const feeScheduleService = {
   getInvestorFeeSchedule,
@@ -138,4 +200,6 @@ export const feeScheduleService = {
   addFeeEntry,
   deleteFeeEntry,
   getFeeScheduleWithFunds,
+  upsertGlobalFee,
+  getGlobalFee,
 };

@@ -8,11 +8,11 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   getInvestorProfileForSettings,
   deleteInvestorProfile,
-  updatePerformanceFee,
   getInvestorReportPeriods,
   type InvestorProfileData,
   type ReportPeriod,
 } from "@/services/admin/investorSettingsService";
+import { feeScheduleService } from "@/services/admin/feeScheduleService";
 
 /**
  * Hook to fetch investor profile for settings panel
@@ -41,17 +41,23 @@ export function useDeleteInvestorProfile() {
 }
 
 /**
- * Hook to update an investor's performance fee
+ * Hook to update an investor's global performance fee.
+ * Now writes to investor_fee_schedule (fund_id=NULL, global entry)
+ * instead of the removed profiles.fee_pct column.
  */
 export function useUpdatePerformanceFee() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ investorId, feePct }: { investorId: string; feePct: number }) =>
-      updatePerformanceFee(investorId, feePct),
+    mutationFn: async ({ investorId, feePct }: { investorId: string; feePct: number }) => {
+      await feeScheduleService.upsertGlobalFee(investorId, feePct);
+    },
     onSuccess: (_, { investorId }) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.investorProfileSettings(investorId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.feeSchedule(investorId),
       });
     },
   });

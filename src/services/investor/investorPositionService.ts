@@ -112,7 +112,9 @@ function mapPositionToExpert(pos: RawPositionRow): ExpertPosition {
     shares: parseFinancial(pos.shares || 0).toNumber(),
     cost_basis: parseFinancial(pos.cost_basis || 0).toNumber(),
     current_value: parseFinancial(pos.current_value || 0).toNumber(),
-    total_earnings: parseFinancial(pos.realized_pnl || 0).plus(parseFinancial(pos.unrealized_pnl || 0)).toNumber(),
+    total_earnings: parseFinancial(pos.realized_pnl || 0)
+      .plus(parseFinancial(pos.unrealized_pnl || 0))
+      .toNumber(),
     last_transaction_date: pos.last_transaction_date || null,
   };
 }
@@ -172,7 +174,13 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toNumber(),
     realizedPnl: parseFinancial(fp.realized_pnl || 0).toNumber(),
     lastTransactionDate: fp.last_transaction_date || fp.updated_at,
-    allocationPercentage: totalValue > 0 ? parseFinancial(fp.current_value || 0).div(totalValue).times(100).toNumber() : 0,
+    allocationPercentage:
+      totalValue > 0
+        ? parseFinancial(fp.current_value || 0)
+            .div(totalValue)
+            .times(100)
+            .toNumber()
+        : 0,
   }));
 }
 
@@ -233,7 +241,11 @@ export async function getActiveInvestorCount(): Promise<number> {
  * Get platform stats from a single RPC call
  * Prevents duplicate RPC calls when both AUM and investor count are needed
  */
-export async function getPlatformStats(): Promise<{ totalAum: number; investorCount: number; adminCount: number }> {
+export async function getPlatformStats(): Promise<{
+  totalAum: number;
+  investorCount: number;
+  adminCount: number;
+}> {
   const { data, error } = await supabase.rpc("get_platform_stats");
 
   if (error) {
@@ -297,7 +309,7 @@ export async function fetchInvestors(): Promise<
 > {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, first_name, last_name, created_at, fee_pct")
+    .select("id, email, first_name, last_name, created_at")
     .eq("is_admin", false)
     .limit(500);
 
@@ -309,7 +321,7 @@ export async function fetchInvestors(): Promise<
     first_name: profile.first_name || null,
     last_name: profile.last_name || null,
     created_at: profile.created_at || new Date().toISOString(),
-    fee_percentage: profile.fee_pct ?? 0,
+    fee_percentage: 0, // Fee rates are now in investor_fee_schedule
     portfolio_summary: {},
   }));
 }
@@ -494,7 +506,13 @@ export async function getPositionsByFund(
     unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toNumber(),
     realizedPnl: parseFinancial(fp.realized_pnl || 0).toNumber(),
     lastTransactionDate: fp.last_transaction_date || fp.updated_at,
-    allocationPercentage: totalValue > 0 ? parseFinancial(fp.current_value || 0).div(totalValue).times(100).toNumber() : 0,
+    allocationPercentage:
+      totalValue > 0
+        ? parseFinancial(fp.current_value || 0)
+            .div(totalValue)
+            .times(100)
+            .toNumber()
+        : 0,
     investorId: fp.investor_id,
   }));
 }

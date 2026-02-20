@@ -53,10 +53,13 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
     fundName: string;
   } | null>(null);
 
-  // Sync global fee state
+  // Sync global fee from schedule entries (fund_id=NULL entry)
   const [initialSync, setInitialSync] = useState(false);
-  if (profile && !initialSync) {
-    setGlobalFeePct(profile.feePct);
+  if (entries && !initialSync) {
+    const globalEntry = entries.find((e: any) => e.fund_id === null);
+    if (globalEntry) {
+      setGlobalFeePct(globalEntry.fee_pct);
+    }
     setInitialSync(true);
   }
 

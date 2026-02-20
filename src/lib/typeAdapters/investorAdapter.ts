@@ -35,7 +35,7 @@ export function toInvestorProfile(row: SupabaseProfile): InvestorProfile {
     last_name: row.last_name,
     phone: row.phone,
     is_admin: row.is_admin ?? false,
-    fee_percentage: row.fee_pct ?? 0,
+    fee_percentage: 0, // Fee rates now in investor_fee_schedule
     avatar_url: row.avatar_url,
     status: (row.status as InvestorProfileStatus) ?? "pending",
     created_at: row.created_at,
