@@ -273,13 +273,17 @@ async function getInvestorFundPerformanceByPeriod(
 }
 
 async function updateFeePercentage(investorId: string, feePercentage: number): Promise<void> {
-  const { error } = await supabase
-    .from("profiles")
-    .update({
+  // profiles.fee_pct was dropped; write to investor_fee_schedule instead
+  const today = new Date().toISOString().slice(0, 10);
+  const { error } = await supabase.from("investor_fee_schedule").upsert(
+    {
+      investor_id: investorId,
       fee_pct: feePercentage,
+      effective_date: today,
       updated_at: new Date().toISOString(),
-    })
-    .eq("id", investorId);
+    },
+    { onConflict: "investor_id,effective_date" }
+  );
 
   if (error) throw error;
 }

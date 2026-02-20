@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { supabase } from "@/integrations/supabase/client";
+// eslint-disable-next-line no-restricted-imports
+import { supabase } from "../../src/integrations/supabase/client";
 
 // Test data constants
 const TEST_FUND_ID = "test-fund-uuid";

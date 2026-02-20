@@ -180,16 +180,14 @@ export async function createInvestorWithWizard(
       feePct: fees.investor_fee_pct,
     });
 
-    // Step 3: Update profile with IB linkage and fee settings
+    // Step 3: Update profile with IB linkage (fee_pct and ib_percentage are now in schedule tables)
     const profileUpdate: Record<string, any> = {
       entity_type: identity.entity_type,
       status: identity.status,
-      fee_pct: fees.investor_fee_pct,
     };
 
     if (ibParentId) {
       profileUpdate.ib_parent_id = ibParentId;
-      profileUpdate.ib_percentage = fees.ib_commission_pct;
     }
 
     const { error: profileError } = await supabase
@@ -214,6 +212,19 @@ export async function createInvestorWithWizard(
 
     if (feeError) {
       logWarn("createInvestorWithWizard.feeSchedule", { investorId, error: feeError.message });
+    }
+
+    // Step 4b: Create IB commission schedule entry if IB is linked
+    if (ibParentId && fees.ib_commission_pct > 0) {
+      const { error: ibError } = await supabase.from("ib_commission_schedule").insert({
+        investor_id: investorId,
+        ib_percentage: fees.ib_commission_pct,
+        effective_date: getTodayString(),
+      });
+
+      if (ibError) {
+        logWarn("createInvestorWithWizard.ibSchedule", { investorId, error: ibError.message });
+      }
     }
 
     // Step 5: Save report recipient emails

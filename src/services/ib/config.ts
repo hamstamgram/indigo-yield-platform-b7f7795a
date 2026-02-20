@@ -23,7 +23,7 @@ export interface IBConfig {
 export async function getInvestorIBConfig(investorId: string): Promise<IBConfig | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, ib_parent_id, ib_percentage, ib_commission_source")
+    .select("id, ib_parent_id, ib_commission_source")
     .eq("id", investorId)
     .maybeSingle();
 
@@ -32,10 +32,20 @@ export async function getInvestorIBConfig(investorId: string): Promise<IBConfig 
     return null;
   }
 
+  // IB percentage now comes from ib_commission_schedule, not profiles
+  // Fetch from schedule table
+  const { data: schedule } = await supabase
+    .from("ib_commission_schedule")
+    .select("ib_percentage")
+    .eq("investor_id", investorId)
+    .order("effective_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return {
     investorId: data.id,
     ibParentId: data.ib_parent_id,
-    ibPercentage: data.ib_percentage || 0,
+    ibPercentage: schedule?.ib_percentage || 0,
     ibCommissionSource: (data.ib_commission_source as "manual" | "investor_fee") || "manual",
   };
 }
