@@ -80,7 +80,7 @@ export async function previewDepositYield(
     throw new Error("Invalid AUM inputs: newTotalAum must be >= depositAmount");
   }
 
-  // Use live positions as opening AUM
+  // Use live positions as opening AUM (replaces stale fund_aum_events checkpoint)
   const liveAum = await getCurrentFundAum(fundId);
   const openingAumDec = toDecimal(liveAum);
 
