@@ -93,9 +93,8 @@ export function YieldInputForm({
 }: YieldInputFormProps) {
   const validationResult = validateEffectiveDate();
 
-  // Determine displayed AUM: prefer as-of AUM, fallback to current positions
-  const displayedAum = asOfAum ?? selectedFund?.total_aum ?? 0;
-  const isUsingHistoricalAum = asOfAum !== null && asOfAum !== undefined;
+  // Display AUM: simpler approach as requested by user
+  const displayedAum = asOfAum ?? 0;
 
   const isReporting = yieldPurpose === "reporting";
 
@@ -105,10 +104,10 @@ export function YieldInputForm({
   const handleNewAUMChange = (value: string) => {
     setNewAUM(value);
     // Sync yield amount display
-    if (value && displayedAum > 0) {
+    if (value && asOfAum !== null) {
       try {
         const newAumDec = new Decimal(value);
-        const yieldDec = newAumDec.minus(new Decimal(displayedAum));
+        const yieldDec = newAumDec.minus(new Decimal(asOfAum));
         setYieldAmount(yieldDec.isZero() ? "0" : yieldDec.toString());
       } catch {
         setYieldAmount("");
@@ -294,9 +293,10 @@ export function YieldInputForm({
         {/* AUM Display */}
         <div className="space-y-2 mb-4">
           <Label className="text-muted-foreground">
-            {isUsingHistoricalAum
-              ? `AUM as of ${reportingMonth ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy") : "selected month"}`
-              : "Current AUM"}
+            AUM as of{" "}
+            {reportingMonth
+              ? format(new Date(reportingMonth + "T12:00:00"), "MMMM yyyy")
+              : "selected month"}
           </Label>
           {asOfAumLoading ? (
             <div className="flex items-center gap-2 text-2xl">
@@ -307,11 +307,6 @@ export function YieldInputForm({
             <div className="text-2xl font-mono font-semibold">
               {selectedFund && formatValue(displayedAum, selectedFund.asset)}{" "}
               <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
-              {!isUsingHistoricalAum && selectedFund && (
-                <span className="block text-xs text-amber-600 dark:text-amber-400 mt-1">
-                  (current positions - no historical data)
-                </span>
-              )}
             </div>
           )}
         </div>

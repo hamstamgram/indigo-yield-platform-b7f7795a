@@ -19,5 +19,8 @@ export { YieldInputForm } from "./YieldInputForm";
 export { YieldsFilterBar } from "./YieldsFilterBar";
 export { YieldsTable } from "./YieldsTable";
 
+// Flows
+export { GlobalYieldFlow } from "./GlobalYieldFlow";
+
 // Re-export void hook for convenience
 export { useVoidYieldDistribution } from "@/hooks/data/admin";

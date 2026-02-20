@@ -5595,7 +5595,11 @@ export type Database = {
         }[];
       };
       check_aum_reconciliation: {
-        Args: { p_fund_id: string; p_tolerance_pct?: number };
+        Args: {
+          p_fund_id: string;
+          p_tolerance_pct?: number;
+          p_as_of_date?: string;
+        };
         Returns: Json;
       };
       check_duplicate_ib_allocations: { Args: never; Returns: number };
@@ -5814,7 +5818,7 @@ export type Database = {
           as_of_date: string;
           aum_source: string;
           aum_value: number;
-          event_id: string;
+          aum_record_id: string | null;
           fund_code: string;
           fund_id: string;
           purpose: Database["public"]["Enums"]["aum_purpose"];
@@ -5868,6 +5872,23 @@ export type Database = {
           total_fees_collected: number;
           total_withdrawals: number;
           total_yield_distributed: number;
+        }[];
+      };
+      get_funds_aum_snapshot: {
+        Args: {
+          p_as_of_date: string;
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"];
+        };
+        Returns: {
+          as_of_date: string;
+          asset: string;
+          aum_source: string;
+          aum_value: number;
+          fund_code: string;
+          fund_id: string;
+          fund_name: string;
+          investor_count: number;
+          purpose: string;
         }[];
       };
       get_funds_with_aum: {

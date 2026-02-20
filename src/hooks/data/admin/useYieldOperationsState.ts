@@ -8,7 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { useAuth } from "@/services/auth";
 import { useActiveFundsWithAUM } from "@/hooks";
-import { useFundAumAsOf } from "@/features/admin/funds/hooks/useFundAumAsOf";
+import { useYieldAumAsOf } from "@/features/admin/yields/hooks/useYieldAumAsOf";
+import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { formatAUM } from "@/utils/formatters";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
 import type { YieldDistribution } from "@/services/admin";
@@ -32,24 +33,21 @@ export function useYieldOperationsState() {
   const calculation = useYieldCalculation();
   const submission = useYieldSubmission();
 
-  // Fetch as-of AUM: try reporting first, fall back to transaction for funds
-  // with no reporting history (e.g. new funds that have only had transaction yields)
+  // Fetch authoritative AUM and reconciliation status
   const fundId = selection.selectedFund?.id ?? null;
   const {
-    data: asOfAumReporting,
-    isLoading: asOfAumReportingLoading,
-    error: asOfAumReportingError,
-  } = useFundAumAsOf(fundId, period.asOfDateIso, "reporting");
+    data: aumResult,
+    isLoading: asOfAumLoading,
+    error: asOfAumError,
+  } = useYieldAumAsOf(fundId, period.asOfDateIso, period.yieldPurpose);
 
-  const {
-    data: asOfAumTransaction,
-    isLoading: asOfAumTransactionLoading,
-    error: asOfAumTransactionError,
-  } = useFundAumAsOf(fundId, period.asOfDateIso, "transaction");
+  const { data: reconResult, isLoading: reconLoading } = useAUMReconciliation(
+    fundId,
+    0.01,
+    period.asOfDateIso
+  );
 
-  const asOfAum = asOfAumReporting ?? asOfAumTransaction;
-  const asOfAumLoading = asOfAumReportingLoading || asOfAumTransactionLoading;
-  const asOfAumError = asOfAumReportingError ?? asOfAumTransactionError;
+  const asOfAum = aumResult?.aumValue ?? null;
 
   // Sync helpers
   const openYieldDialog = useCallback(
@@ -242,6 +240,8 @@ export function useYieldOperationsState() {
     asOfAum: asOfAum ?? null,
     asOfAumLoading,
     asOfAumError: asOfAumError ?? null,
+    reconResult,
+    reconLoading,
     getFilteredDistributions,
     formatValue: (value: number, asset: string) => formatAUM(value, asset),
     refetchFunds,

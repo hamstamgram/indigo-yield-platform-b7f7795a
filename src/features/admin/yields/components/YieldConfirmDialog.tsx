@@ -23,7 +23,10 @@ import { toNum } from "@/utils/numeric";
 
 interface ReconciliationData {
   has_warning: boolean;
+  positions_sum: number;
+  recorded_aum: number;
   discrepancy_pct: number;
+  tolerance_pct: number;
 }
 
 interface YieldConfirmDialogProps {

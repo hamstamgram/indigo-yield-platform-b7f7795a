@@ -447,9 +447,9 @@ export const QUERY_KEYS = {
     ["investor-positions", investorId] as const,
 
   // ============ AUM Reconciliation ============
-  aumReconciliation: (fundId?: string, tolerancePct?: number) =>
+  aumReconciliation: (fundId?: string, tolerancePct?: number, asOfDate?: string) =>
     fundId
-      ? (["aum-reconciliation", fundId, tolerancePct] as const)
+      ? (["aum-reconciliation", fundId, tolerancePct, asOfDate] as const)
       : (["aum-reconciliation"] as const),
 
   // ============ Yield Operations ============

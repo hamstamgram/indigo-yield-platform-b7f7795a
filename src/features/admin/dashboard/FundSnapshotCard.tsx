@@ -14,6 +14,7 @@ interface FlowData {
   daily_inflows: number;
   daily_outflows: number;
   net_flow_24h: number;
+  aum_source?: string;
 }
 
 interface FundSnapshotCardProps {
@@ -41,7 +42,7 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
   const dateStr = useMemo(() => (date ? format(date, "yyyy-MM-dd") : null), [date]);
   const isToday = dateStr === todayStr;
-  const displayAUM = isToday ? fund.latest_aum : (flows?.aum ?? fund.latest_aum);
+  const displayAUM = isToday ? fund.latest_aum : (flows?.aum ?? 0);
 
   return (
     <Card

@@ -48,3 +48,11 @@ export {
   type InvestorProfile,
   type YieldDistributionsPageData,
 } from "./yieldDistributionsPageService";
+
+// AUM Consistency & Reconciliation
+export {
+  yieldAumService,
+  type AumPurpose,
+  type AumAsOfResult,
+  type AumReconciliationResult,
+} from "./yieldAumService";

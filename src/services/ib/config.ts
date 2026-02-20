@@ -69,9 +69,8 @@ export async function updateInvestorIBConfig(
     return { success: false, error: "An investor cannot be their own IB parent" };
   }
 
-  // DEPRECATED: profiles.ib_percentage - use ib_commission_schedule instead
-  // Only update ib_parent_id (and ib_commission_source for historical compatibility)
-  const { error } = await supabase
+  // 1. Update ib_parent_id and commission source in profiles
+  const { error: profileError } = await supabase
     .from("profiles")
     .update({
       ib_parent_id: ibParentId,
@@ -79,9 +78,31 @@ export async function updateInvestorIBConfig(
     })
     .eq("id", investorId);
 
-  if (error) {
-    logError("ib.updateInvestorIBConfig", error, { investorId });
-    return { success: false, error: error.message };
+  if (profileError) {
+    logError("ib.updateInvestorIBConfig.profile", profileError, { investorId });
+    return { success: false, error: profileError.message };
+  }
+
+  // 2. Persist IB percentage to schedule table
+  const today = new Date().toISOString().slice(0, 10);
+  const { error: scheduleError } = await supabase.from("ib_commission_schedule").upsert(
+    {
+      investor_id: investorId,
+      ib_percentage: ibPercentage,
+      effective_date: today,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "investor_id,effective_date" }
+  );
+
+  if (scheduleError) {
+    logError("ib.updateInvestorIBConfig.schedule", scheduleError, { investorId });
+    // Still return success if profile was updated, or should we treat as failure?
+    // Given the new architecture, the schedule is critical, so we fail.
+    return {
+      success: false,
+      error: `Failed to update commission schedule: ${scheduleError.message}`,
+    };
   }
 
   return { success: true };

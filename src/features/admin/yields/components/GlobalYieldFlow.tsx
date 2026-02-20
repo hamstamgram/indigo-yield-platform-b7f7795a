@@ -4,7 +4,6 @@ import { YieldInputForm } from "@/features/admin/yields/components/YieldInputFor
 import { YieldPreviewResults } from "@/features/admin/yields/components/YieldPreviewResults";
 import { YieldConfirmDialog } from "@/features/admin/yields/components/YieldConfirmDialog";
 import { usePendingYieldEvents } from "@/features/admin/yields/hooks/useYieldCrystallization";
-import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { getMonth, getYear } from "date-fns";
 
 interface GlobalYieldFlowProps {
@@ -55,7 +54,7 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
     reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
   );
 
-  const { data: reconciliation } = useAUMReconciliation(ops.selectedFund?.id || null);
+  const reconciliation = ops.reconResult;
 
   if (!ops.selectedFund) {
     return (

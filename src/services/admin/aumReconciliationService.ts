@@ -27,11 +27,13 @@ export interface AUMReconciliationResult {
  */
 export async function checkAUMReconciliation(
   fundId: string,
-  tolerancePct: number = 0.01
+  tolerancePct: number = 0.01,
+  asOfDate: string = new Date().toISOString().split("T")[0]
 ): Promise<AUMReconciliationResult> {
   const { data, error } = await rpc.call("check_aum_reconciliation", {
     p_fund_id: fundId,
     p_tolerance_pct: tolerancePct,
+    p_as_of_date: asOfDate,
   });
 
   if (error) throw error;

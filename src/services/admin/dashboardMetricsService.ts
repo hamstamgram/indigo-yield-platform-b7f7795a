@@ -37,6 +37,7 @@ export interface FlowData {
   daily_outflows: number;
   net_flow_24h: number;
   aum: number;
+  aum_source: string;
 }
 
 /** RPC result from get_historical_nav */
@@ -174,10 +175,35 @@ export async function getFinancialMetrics(): Promise<FinancialMetrics> {
 
 /**
  * Fetch historical NAV data for a specific date
- * NOTE: get_historical_nav RPC was dropped - returns empty
+ * Uses get_funds_aum_snapshot for authoritative AUM
  */
-export async function getHistoricalFlowData(_targetDate: Date): Promise<Map<string, FlowData>> {
-  return new Map();
+export async function getHistoricalFlowData(targetDate: Date): Promise<Map<string, FlowData>> {
+  const dateStr = targetDate.toISOString().split("T")[0];
+
+  const { data, error } = await rpc.call("get_funds_aum_snapshot", {
+    p_as_of_date: dateStr,
+    p_purpose: "reporting",
+  });
+
+  if (error) {
+    console.error("Error fetching historical AUM snapshot:", error);
+    return new Map();
+  }
+
+  const flowMap = new Map<string, FlowData>();
+
+  for (const row of data || []) {
+    flowMap.set(row.fund_id, {
+      fund_id: row.fund_id,
+      daily_inflows: 0, // Placeholder as we prioritize AUM accuracy first
+      daily_outflows: 0,
+      net_flow_24h: 0,
+      aum: Number(row.aum_value || 0),
+      aum_source: row.aum_source,
+    });
+  }
+
+  return flowMap;
 }
 
 /**
