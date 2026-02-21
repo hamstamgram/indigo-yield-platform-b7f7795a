@@ -216,29 +216,9 @@ export async function fetchYieldDistributionsPageData(
       feeRows.forEach((r) => allInvestorIds.add(r.investor_id))
     );
 
-    // Fetch investor_yield_events as third fallback (crystallization distributions)
-    const crystalDistIds = distributionIds.filter(
-      (id) => !grouped[id]?.length && !feeGrouped[id]?.length
-    );
+    // NOTE: The third fallback (investor_yield_events) has been removed in V6.
+    // yield_allocations is now the sole authoritative per-investor breakdown.
     const yieldEventsGrouped: Record<string, YieldEventRow[]> = {};
-
-    if (crystalDistIds.length > 0) {
-      const crystalDists = rows.filter((r) => crystalDistIds.includes(r.id));
-      for (const dist of crystalDists) {
-        const { data: events } = await supabase
-          .from("investor_yield_events")
-          .select(
-            "id, investor_id, gross_yield_amount, fee_amount, fee_pct, net_yield_amount, investor_share_pct, investor_balance, trigger_type, period_start, period_end, fund_aum_before, fund_aum_after"
-          )
-          .eq("fund_id", dist.fund_id)
-          .eq("event_date", dist.effective_date)
-          .eq("is_voided", false);
-        if (events?.length) {
-          yieldEventsGrouped[dist.id] = events as YieldEventRow[];
-          events.forEach((e) => allInvestorIds.add(e.investor_id));
-        }
-      }
-    }
 
     if (allInvestorIds.size === 0) {
       return {

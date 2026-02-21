@@ -70,8 +70,6 @@ export function useYieldSubmission() {
             fundId: selectedFund.id,
             targetDate: aumDate,
             newTotalAUM: newAUM,
-            baseAUM: asOfAum != null ? String(asOfAum) : undefined,
-            snapshotTime: isTransaction ? aumTime : undefined,
             distributionDate: distributionDate,
           } as any,
           user.id,

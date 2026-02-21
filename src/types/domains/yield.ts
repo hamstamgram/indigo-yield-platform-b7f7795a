@@ -164,7 +164,7 @@ export interface YieldCalculationResult {
   totalLossOffset?: string;
   /** Dust/rounding amount - string for NUMERIC(28,10) precision */
   dustAmount?: string;
-  calculationMethod?: "pro_rata" | "adb_v3" | "adb_v4" | "segmented_v5";
+  calculationMethod?: "pro_rata" | "adb_v3" | "adb_v4" | "segmented_v5" | "unified_v6";
   features?: string[];
   conservationCheck?: boolean; // Whether gross = net + fees + ib + dust
   // Crystallization info (reporting purpose)

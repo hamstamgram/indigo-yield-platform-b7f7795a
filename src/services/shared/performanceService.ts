@@ -113,48 +113,22 @@ function computePeriodStats(
 
 /**
  * Fetch transactions for a position, optionally filtered by start date.
- * Note: RLS filters transactions_v2 to investor_visible only for non-admins.
- * YIELD transactions from transaction-purpose distributions are admin_only,
- * so we separately query investor_yield_events for yield data.
+ * V6 ARCHITECTURE: Pulls DEPOSIT, WITHDRAWAL, YIELD, and FEE rows from transactions_v2.
+ * The `investor_yield_events` table has been removed.
  */
 async function fetchFilteredTxs(userId: string, fundId: string, startDate?: string) {
-  // Fetch non-yield transactions from transactions_v2
   let txQuery = supabase
     .from("transactions_v2")
     .select("type, amount, tx_date")
     .eq("investor_id", userId)
     .eq("fund_id", fundId)
     .eq("is_voided", false)
-    .in("type", ["DEPOSIT", "WITHDRAWAL"]);
+    .in("type", ["DEPOSIT", "WITHDRAWAL", "YIELD", "FEE"]);
   if (startDate) {
     txQuery = txQuery.gte("tx_date", startDate);
   }
   const { data: txData } = await txQuery;
-
-  // Fetch yield amounts from investor_yield_events (visible to investors)
-  let yieldQuery = supabase
-    .from("investor_yield_events")
-    .select("net_yield_amount, event_date")
-    .eq("investor_id", userId)
-    .eq("fund_id", fundId)
-    .eq("visibility_scope", "investor_visible")
-    .eq("is_voided", false);
-  if (startDate) {
-    yieldQuery = yieldQuery.gte("event_date", startDate);
-  }
-  const { data: yieldData } = await yieldQuery;
-
-  // Combine: transactions + yield events as pseudo-transactions
-  const combined: Array<{ type: string; amount: string | number; tx_date: string | null }> = [
-    ...(txData || []),
-    ...(yieldData || []).map((y) => ({
-      type: "YIELD",
-      amount: y.net_yield_amount,
-      tx_date: y.event_date,
-    })),
-  ];
-
-  return combined;
+  return (txData || []) as Array<{ type: string; amount: string | number; tx_date: string | null }>;
 }
 
 /**
@@ -216,13 +190,13 @@ function groupReportsByAsset(
 }
 
 /**
- * Build performance history month-by-month from raw transactions + yield events.
+ * Build performance history month-by-month from raw transactions.
+ * V6 ARCHITECTURE: Yields sourced from YIELD/FEE rows in transactions_v2.
  * Used as fallback when investor_fund_performance table is empty.
  */
 async function buildPerformanceHistoryFromTxs(
   userId: string
 ): Promise<Record<string, PerformanceHistoryRecord[]>> {
-  // Get active positions to know which funds to compute for
   const positions = await getInvestorPositions(userId).catch(() => []);
   const activePositions = positions.filter((pos) => pos.currentValue > 0);
   if (activePositions.length === 0) return {};
@@ -230,47 +204,28 @@ async function buildPerformanceHistoryFromTxs(
   const result: Record<string, PerformanceHistoryRecord[]> = {};
 
   for (const pos of activePositions) {
-    // Get all DEPOSIT/WITHDRAWAL transactions for this fund
+    // Get all relevant transaction types for this fund
     const { data: txData } = await supabase
       .from("transactions_v2")
       .select("type, amount, tx_date")
       .eq("investor_id", userId)
       .eq("fund_id", pos.fundId)
       .eq("is_voided", false)
-      .in("type", ["DEPOSIT", "WITHDRAWAL"])
+      .in("type", ["DEPOSIT", "WITHDRAWAL", "YIELD", "FEE"])
       .order("tx_date", { ascending: true });
 
-    // Get all investor-visible yield events for this fund
-    const { data: yieldData } = await supabase
-      .from("investor_yield_events")
-      .select("net_yield_amount, event_date")
-      .eq("investor_id", userId)
-      .eq("fund_id", pos.fundId)
-      .eq("visibility_scope", "investor_visible")
-      .eq("is_voided", false)
-      .order("event_date", { ascending: true });
-
-    // Combine into unified list
     const allEvents: Array<{
       type: string;
       amount: string | number;
       date: string;
-    }> = [
-      ...(txData || []).map((tx) => ({
-        type: tx.type as string,
-        amount: tx.amount,
-        date: tx.tx_date as string,
-      })),
-      ...(yieldData || []).map((y) => ({
-        type: "YIELD",
-        amount: y.net_yield_amount,
-        date: y.event_date as string,
-      })),
-    ];
+    }> = (txData || []).map((tx) => ({
+      type: tx.type as string,
+      amount: tx.amount,
+      date: tx.tx_date as string,
+    }));
 
     if (allEvents.length === 0) continue;
 
-    // Sort by date ascending
     allEvents.sort((a, b) => a.date.localeCompare(b.date));
 
     // Group into months
@@ -284,7 +239,6 @@ async function buildPerformanceHistoryFromTxs(
     >();
 
     for (const evt of allEvents) {
-      // month key = YYYY-MM-01
       const monthKey = evt.date.slice(0, 7) + "-01";
       if (!monthMap.has(monthKey)) {
         monthMap.set(monthKey, {
@@ -299,12 +253,12 @@ async function buildPerformanceHistoryFromTxs(
         month.deposits = month.deposits.plus(amt.abs());
       } else if (evt.type === "WITHDRAWAL") {
         month.withdrawals = month.withdrawals.plus(amt.abs());
-      } else if (evt.type === "YIELD") {
+      } else if (evt.type === "YIELD" || evt.type === "FEE") {
+        // FEE is stored as negative in ledger, adds to net income correctly
         month.yields = month.yields.plus(amt);
       }
     }
 
-    // Compute running balances month by month
     const months = Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b));
     const reports: PerformanceHistoryRecord[] = [];
     let runningBalance = toDecimal(0);
@@ -330,9 +284,7 @@ async function buildPerformanceHistoryFromTxs(
       runningBalance = closingBalance;
     }
 
-    // Reverse to show newest first
     reports.reverse();
-
     if (!result[pos.asset]) result[pos.asset] = [];
     result[pos.asset].push(...reports);
   }

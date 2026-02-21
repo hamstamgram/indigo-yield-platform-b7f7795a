@@ -61,7 +61,6 @@ export function useYieldCalculation() {
           fundId: selectedFund.id,
           targetDate: aumDate,
           newTotalAUM: trimmedAUM,
-          baseAUM: baseAum != null ? String(baseAum) : undefined,
           purpose: yieldPurpose,
           distributionDate: distributionDate,
         } as any);

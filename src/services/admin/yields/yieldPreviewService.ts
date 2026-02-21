@@ -34,14 +34,8 @@ function isValidUUID(value: string): boolean {
 }
 
 /**
- * Preview yield distribution using V5 segmented proportional allocation.
- * This is a read-only operation that returns computed distributions with segment breakdown.
- *
- * The V5 method:
- * - Reads crystallization events to split the month into segments
- * - Allocates yield proportionally by balance within each segment
- * - Running balances track NET yield, fees, IB between segments
- * - Per-segment fee lookup via get_investor_fee_pct hierarchy
+ * Preview yield distribution using V6 Unified Flat Math.
+ * This is a read-only operation that returns computed distributions.
  */
 export async function previewYieldDistribution(
   input: YieldCalculationInput
@@ -67,7 +61,7 @@ export async function previewYieldDistribution(
     .maybeSingle();
   const fund = fundResult.data;
 
-  // Call V5 preview RPC (segmented proportional allocation)
+  // Call V5 preview RPC (now serving V6 unified flat math beneath the hood)
   // Use .toString() for financial precision - PostgreSQL NUMERIC handles string input correctly
   const { data, error } = await callRPC("preview_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
@@ -110,8 +104,6 @@ export async function previewYieldDistribution(
       referenceId: "",
       wouldSkip: false,
       hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
-      // V5-specific: per-investor segment breakdown
-      segmentDetails: d.segments || [],
     })
   );
 
@@ -157,18 +149,16 @@ export async function previewYieldDistribution(
     hasConflicts: false,
     totals,
     status: "preview",
-    // V5 segmented fields
+    // Base V6 unified fields
     periodStart: result.period_start,
     periodEnd: result.period_end,
     daysInPeriod: Number(result.days_in_period || 0),
     dustAmount: String(result.dust_amount || 0),
-    calculationMethod: "segmented_v5",
-    features: result.features || ["segmented_proportional"],
+    calculationMethod: "unified_v6",
+    features: result.features || ["unified_flat_proportional"],
     conservationCheck: Boolean(result.conservation_check),
-    segmentCount: result.segment_count,
-    segments: result.segments || result.crystal_markers,
     openingAum: String(result.opening_aum || 0),
     recordedAum: String(result.recorded_aum || 0),
-    crystalsInPeriod: result.crystal_count ?? 0,
+    crystalsInPeriod: 0,
   };
 }

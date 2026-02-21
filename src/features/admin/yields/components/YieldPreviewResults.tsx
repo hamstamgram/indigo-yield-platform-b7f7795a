@@ -60,20 +60,9 @@ export function YieldPreviewResults({
   applyLoading,
 }: YieldPreviewResultsProps) {
   const asset = selectedFund?.asset || "";
-  const isV5 = yieldPreview.calculationMethod === "segmented_v5";
-  const [expandedInvestors, setExpandedInvestors] = useState<Set<string>>(new Set());
-
-  const toggleExpand = (investorId: string) => {
-    setExpandedInvestors((prev) => {
-      const next = new Set(prev);
-      if (next.has(investorId)) {
-        next.delete(investorId);
-      } else {
-        next.add(investorId);
-      }
-      return next;
-    });
-  };
+  const isV5 =
+    yieldPreview.calculationMethod === "segmented_v5" ||
+    yieldPreview.calculationMethod === "unified_v6";
 
   return (
     <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
@@ -97,19 +86,6 @@ export function YieldPreviewResults({
                 {yieldPreview.periodStart} to {yieldPreview.periodEnd}
                 {yieldPreview.daysInPeriod ? ` (${yieldPreview.daysInPeriod} days)` : ""}
               </span>
-            )}
-            {(yieldPreview.segmentCount ?? 0) > 1 && (
-              <Badge
-                variant="outline"
-                className="text-xs bg-amber-950/20 text-amber-400 border-amber-700"
-              >
-                {yieldPreview.segmentCount} segments
-              </Badge>
-            )}
-            {(yieldPreview.crystalsInPeriod ?? 0) > 0 && (
-              <Badge variant="outline" className="text-xs">
-                {yieldPreview.crystalsInPeriod} crystal(s)
-              </Badge>
             )}
           </div>
         </div>
@@ -255,30 +231,17 @@ export function YieldPreviewResults({
           </TableHeader>
           <TableBody>
             {getFilteredDistributions(yieldPreview.distributions).map((inv) => {
-              const hasSegments = inv.segmentDetails && inv.segmentDetails.length > 1;
-              const isExpanded = expandedInvestors.has(inv.investorId);
-
               return (
                 <React.Fragment key={inv.investorId}>
                   {/* Main investor row */}
                   <TableRow
                     className={cn(
                       inv.wouldSkip && "opacity-50",
-                      checkSystemAccount(inv) && "bg-blue-950/20",
-                      hasSegments && "cursor-pointer hover:bg-muted/30"
+                      checkSystemAccount(inv) && "bg-blue-950/20"
                     )}
-                    onClick={hasSegments ? () => toggleExpand(inv.investorId) : undefined}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {hasSegments && (
-                          <ChevronRight
-                            className={cn(
-                              "h-3 w-3 transition-transform flex-shrink-0",
-                              isExpanded && "rotate-90"
-                            )}
-                          />
-                        )}
                         {checkSystemAccount(inv) && <Building2 className="h-3 w-3 text-blue-400" />}
                         <div>
                           <p className="font-medium text-sm truncate max-w-[120px]">
@@ -294,14 +257,6 @@ export function YieldPreviewResults({
                         {inv.wouldSkip && (
                           <Badge variant="outline" className="text-xs">
                             Skip
-                          </Badge>
-                        )}
-                        {hasSegments && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] py-0 h-4 border-muted-foreground/30 text-muted-foreground"
-                          >
-                            {inv.segmentDetails!.length} segs
                           </Badge>
                         )}
                       </div>
@@ -340,47 +295,6 @@ export function YieldPreviewResults({
                         : "\u2014"}
                     </TableCell>
                   </TableRow>
-
-                  {/* Per-segment sub-rows (expanded) */}
-                  {hasSegments &&
-                    isExpanded &&
-                    inv.segmentDetails!.map((seg) => (
-                      <TableRow
-                        key={`${inv.investorId}-seg-${seg.seg}`}
-                        className="bg-indigo-950/10 border-indigo-500/10"
-                      >
-                        <TableCell className="text-xs pl-8">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] py-0 h-4 border-indigo-500/30 text-indigo-400"
-                            >
-                              Seg {seg.seg}
-                            </Badge>
-                            {seg.start && seg.end && (
-                              <span className="text-muted-foreground font-mono">
-                                {seg.start} - {seg.end}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-indigo-300">
-                          +{formatValue(seg.gross, asset)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                          {seg.fee_pct}%
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-indigo-300/70">
-                          {seg.fee > 0 ? `-${formatValue(seg.fee, asset)}` : "\u2014"}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs font-semibold text-indigo-300">
-                          +{formatValue(seg.net, asset)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                          {seg.ib > 0 ? `-${formatValue(seg.ib, asset)}` : "\u2014"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
                 </React.Fragment>
               );
             })}

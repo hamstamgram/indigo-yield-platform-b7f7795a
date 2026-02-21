@@ -1,6 +1,7 @@
 /**
  * Yield Crystallization Service
- * Handles automatic yield crystallization on capital events
+ * V6 ARCHITECTURE: Crystallization is abolished. AUM-to-AUM flat math drives all yield.
+ * The `investor_yield_events` table has been dropped. All queries now sourced from `transactions_v2`.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -69,44 +70,40 @@ export async function finalizeMonthYield(
 }
 
 /**
- * Get yield events for a fund (admin view - all events)
+ * Get yield/fee ledger entries for a fund (admin view - from transactions_v2)
  */
 export async function getYieldEventsForFund(
   fundId: string,
   options?: {
     startDate?: Date;
     endDate?: Date;
-    visibilityScope?: "all" | "admin_only" | "investor_visible";
     includeVoided?: boolean;
   }
 ): Promise<YieldEvent[]> {
   let query = supabase
-    .from("investor_yield_events")
+    .from("transactions_v2")
     .select("*")
     .eq("fund_id", fundId)
-    .order("event_date", { ascending: false });
+    .in("type", ["YIELD", "FEE"])
+    .order("tx_date", { ascending: false });
 
   if (options?.startDate) {
-    query = query.gte("event_date", formatDateForDB(options.startDate));
+    query = query.gte("tx_date", formatDateForDB(options.startDate));
   }
   if (options?.endDate) {
-    query = query.lte("event_date", formatDateForDB(options.endDate));
-  }
-  if (options?.visibilityScope && options.visibilityScope !== "all") {
-    query = query.eq("visibility_scope", options.visibilityScope);
+    query = query.lte("tx_date", formatDateForDB(options.endDate));
   }
   if (!options?.includeVoided) {
     query = query.eq("is_voided", false);
   }
 
   const { data, error } = await query;
-
   if (error) throw error;
   return (data || []) as unknown as YieldEvent[];
 }
 
 /**
- * Get yield events for an investor (admin view - all events)
+ * Get yield/fee ledger entries for an investor (admin view - from transactions_v2)
  */
 export async function getYieldEventsForInvestor(
   investorId: string,
@@ -114,47 +111,41 @@ export async function getYieldEventsForInvestor(
     fundId?: string;
     startDate?: Date;
     endDate?: Date;
-    visibilityScope?: "all" | "admin_only" | "investor_visible";
     includeVoided?: boolean;
   }
 ): Promise<YieldEvent[]> {
   let query = supabase
-    .from("investor_yield_events")
+    .from("transactions_v2")
     .select("*")
     .eq("investor_id", investorId)
-    .order("event_date", { ascending: false });
+    .in("type", ["YIELD", "FEE"])
+    .order("tx_date", { ascending: false });
 
   if (!options?.includeVoided) {
     query = query.eq("is_voided", false);
   }
-
   if (options?.fundId) {
     query = query.eq("fund_id", options.fundId);
   }
   if (options?.startDate) {
-    query = query.gte("event_date", formatDateForDB(options.startDate));
+    query = query.gte("tx_date", formatDateForDB(options.startDate));
   }
   if (options?.endDate) {
-    query = query.lte("event_date", formatDateForDB(options.endDate));
-  }
-  if (options?.visibilityScope && options.visibilityScope !== "all") {
-    query = query.eq("visibility_scope", options.visibilityScope);
+    query = query.lte("tx_date", formatDateForDB(options.endDate));
   }
 
   const { data, error } = await query;
-
   if (error) throw error;
   return (data || []) as unknown as YieldEvent[];
 }
 
 /**
- * Get aggregated yield for a period
+ * Get aggregated yield/fee summary for a period, by investor (from transactions_v2)
  */
 export async function getAggregatedYieldForPeriod(
   fundId: string,
   periodStart: Date,
-  periodEnd: Date,
-  visibilityFilter?: "all" | "admin_only" | "investor_visible"
+  periodEnd: Date
 ): Promise<
   {
     investor_id: string;
@@ -167,23 +158,17 @@ export async function getAggregatedYieldForPeriod(
   const startStr = formatDateForDB(periodStart);
   const endStr = formatDateForDB(periodEnd);
 
-  let query = supabase
-    .from("investor_yield_events")
-    .select("investor_id, gross_yield_amount, fee_amount, net_yield_amount")
+  const { data, error } = await supabase
+    .from("transactions_v2")
+    .select("investor_id, type, amount")
     .eq("fund_id", fundId)
     .eq("is_voided", false)
-    .gte("event_date", startStr)
-    .lte("event_date", endStr);
-
-  if (visibilityFilter && visibilityFilter !== "all") {
-    query = query.eq("visibility_scope", visibilityFilter);
-  }
-
-  const { data, error } = await query;
+    .in("type", ["YIELD", "FEE"])
+    .gte("tx_date", startStr)
+    .lte("tx_date", endStr);
 
   if (error) throw error;
 
-  // Aggregate in JS since Supabase doesn't support GROUP BY in select
   const aggregated = new Map<
     string,
     {
@@ -196,24 +181,25 @@ export async function getAggregatedYieldForPeriod(
   >();
 
   for (const row of data || []) {
+    const amount = parseFinancial(row.amount).toNumber();
+    const isYield = row.type === "YIELD";
+    const isFee = row.type === "FEE";
     const existing = aggregated.get(row.investor_id);
     if (existing) {
-      existing.total_gross_yield = parseFinancial(existing.total_gross_yield)
-        .plus(parseFinancial(row.gross_yield_amount))
-        .toNumber();
-      existing.total_fees = parseFinancial(existing.total_fees)
-        .plus(parseFinancial(row.fee_amount))
-        .toNumber();
-      existing.total_net_yield = parseFinancial(existing.total_net_yield)
-        .plus(parseFinancial(row.net_yield_amount))
-        .toNumber();
+      if (isYield)
+        existing.total_gross_yield = parseFinancial(existing.total_gross_yield)
+          .plus(amount)
+          .toNumber();
+      if (isFee)
+        existing.total_fees = parseFinancial(existing.total_fees).plus(Math.abs(amount)).toNumber();
+      existing.total_net_yield = parseFinancial(existing.total_net_yield).plus(amount).toNumber();
       existing.crystallization_count += 1;
     } else {
       aggregated.set(row.investor_id, {
         investor_id: row.investor_id,
-        total_gross_yield: parseFinancial(row.gross_yield_amount).toNumber(),
-        total_fees: parseFinancial(row.fee_amount).toNumber(),
-        total_net_yield: parseFinancial(row.net_yield_amount).toNumber(),
+        total_gross_yield: isYield ? amount : 0,
+        total_fees: isFee ? Math.abs(amount) : 0,
+        total_net_yield: amount,
         crystallization_count: 1,
       });
     }
@@ -242,8 +228,9 @@ const TRIGGER_LABELS: Record<string, string> = {
 };
 
 /**
- * Get per-investor crystallization events for a fund in a date range.
- * Returns a Map<investorId, events[]> from investor_yield_events table.
+ * Get per-investor YIELD/FEE events for a fund in a date range (from transactions_v2).
+ * Returns a Map<investorId, events[]>.
+ * Replaces the former `getInvestorCrystallizationEvents` which used the dropped investor_yield_events.
  */
 export async function getInvestorCrystallizationEvents(
   fundId: string,
@@ -251,16 +238,14 @@ export async function getInvestorCrystallizationEvents(
   periodEnd: string
 ): Promise<Map<string, InvestorCrystallizationEvent[]>> {
   const { data, error } = await supabase
-    .from("investor_yield_events")
-    .select(
-      "investor_id, event_date, trigger_type, gross_yield_amount, fee_amount, net_yield_amount, ib_amount"
-    )
+    .from("transactions_v2")
+    .select("investor_id, tx_date, type, amount, notes")
     .eq("fund_id", fundId)
-    .gte("event_date", periodStart)
-    .lte("event_date", periodEnd)
+    .gte("tx_date", periodStart)
+    .lte("tx_date", periodEnd)
     .eq("is_voided", false)
-    .in("trigger_type", ["deposit", "withdrawal", "transaction"])
-    .order("event_date", { ascending: true });
+    .in("type", ["YIELD", "FEE"])
+    .order("tx_date", { ascending: true });
 
   if (error) {
     logError("getInvestorCrystallizationEvents", error, { fundId, periodStart, periodEnd });
@@ -270,14 +255,17 @@ export async function getInvestorCrystallizationEvents(
   const result = new Map<string, InvestorCrystallizationEvent[]>();
 
   for (const row of data || []) {
+    const amount = parseFinancial(row.amount).toNumber();
+    const isYield = row.type === "YIELD";
+    const isFee = row.type === "FEE";
     const event: InvestorCrystallizationEvent = {
       investorId: row.investor_id,
-      eventDate: row.event_date,
-      triggerType: TRIGGER_LABELS[row.trigger_type] || row.trigger_type,
-      grossYield: String(row.gross_yield_amount ?? 0),
-      feeAmount: String(row.fee_amount ?? 0),
-      ibAmount: String(row.ib_amount ?? 0),
-      netYield: String(row.net_yield_amount ?? 0),
+      eventDate: row.tx_date,
+      triggerType: row.type,
+      grossYield: isYield ? String(amount) : "0",
+      feeAmount: isFee ? String(Math.abs(amount)) : "0",
+      ibAmount: "0",
+      netYield: String(amount),
     };
 
     const existing = result.get(row.investor_id);
