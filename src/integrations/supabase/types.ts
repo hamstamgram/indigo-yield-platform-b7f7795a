@@ -5451,7 +5451,7 @@ export type Database = {
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
           p_reference_id: string
           p_tx_date: string
-          p_tx_type: Database["public"]["Enums"]["transaction_type"]
+          p_tx_type: Database["public"]["Enums"]["tx_type"]
         }
         Returns: Json
       }
