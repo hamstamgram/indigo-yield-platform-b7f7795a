@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import { startOfMonth, startOfYear, parseISO, isWithinInterval } from "date-fns";
+import { toNumber } from "@/utils/numeric";
 import type { FeeRecord } from "@/hooks/data";
 
 interface FeeRevenueKPIsProps {
@@ -22,7 +23,7 @@ interface AssetTotal {
 function computeAssetTotals(fees: FeeRecord[]): AssetTotal[] {
   const map = new Map<string, number>();
   for (const fee of fees) {
-    map.set(fee.asset, (map.get(fee.asset) || 0) + fee.amount);
+    map.set(fee.asset, (map.get(fee.asset) || 0) + toNumber(fee.amount));
   }
   return Array.from(map.entries())
     .map(([asset, amount]) => ({ asset, amount }))

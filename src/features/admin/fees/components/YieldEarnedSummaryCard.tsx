@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { TrendingUp, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
+import { toNumber } from "@/utils/numeric";
 import type { YieldEarned } from "@/hooks/data";
 
 interface YieldEarnedSummaryCardProps {
@@ -17,7 +18,7 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
   // Group by asset (multiple funds may share the same asset)
   const byAsset = yields.reduce<Record<string, { total: number; count: number }>>((acc, y) => {
     const existing = acc[y.asset] || { total: 0, count: 0 };
-    existing.total += y.totalYieldEarned;
+    existing.total += toNumber(y.totalYieldEarned);
     existing.count += y.transactionCount;
     acc[y.asset] = existing;
     return acc;

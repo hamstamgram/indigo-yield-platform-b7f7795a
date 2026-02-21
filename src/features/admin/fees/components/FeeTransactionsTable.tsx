@@ -27,6 +27,7 @@ import {
 import { AlertCircle } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
+import { toNumber } from "@/utils/numeric";
 import type { FeeRecord } from "@/hooks/data";
 import { useSortableColumns } from "@/hooks";
 
@@ -140,8 +141,8 @@ export function FeeTransactionsTable({
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      <span className={fee.amount > 0 ? "text-emerald-600" : ""}>
-                        {fee.amount > 0 ? "+" : ""}
+                      <span className={toNumber(fee.amount) > 0 ? "text-emerald-600" : ""}>
+                        {toNumber(fee.amount) > 0 ? "+" : ""}
                         {formatFeeAmount(fee.amount, fee.asset)}
                       </span>
                       <span className="text-xs text-muted-foreground ml-1">{fee.asset}</span>

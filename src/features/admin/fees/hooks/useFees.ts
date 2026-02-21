@@ -65,7 +65,7 @@ export function useFeeTransactions() {
  * Hook to fetch INDIGO FEES account balance
  */
 export function useIndigoFeesBalance() {
-  return useQuery<Record<string, number>, Error>({
+  return useQuery<Record<string, string>, Error>({
     queryKey: [...QUERY_KEYS.adminFeesOverview, "balance"],
     queryFn: getIndigoFeesBalance,
     staleTime: 5 * 60 * 1000,

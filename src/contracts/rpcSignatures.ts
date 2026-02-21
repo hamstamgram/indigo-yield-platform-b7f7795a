@@ -2022,8 +2022,8 @@ export const RPC_SIGNATURES = {
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_distribution_id"] as const,
-    optionalParams: ["p_reason", "p_void_crystals"] as const,
+    requiredParams: ["p_admin_id", "p_distribution_id", "p_reason"] as const,
+    optionalParams: ["p_void_crystals"] as const,
   },
 } as const;
 

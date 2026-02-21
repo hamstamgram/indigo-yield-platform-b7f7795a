@@ -18,7 +18,8 @@ export interface FeeRecord {
   fundId: string;
   fundName: string;
   asset: string;
-  amount: number;
+  /** Fee amount - string for NUMERIC(28,10) precision */
+  amount: string;
   type: string;
   txDate: string;
   purpose: string;
@@ -28,11 +29,17 @@ export interface FeeRecord {
 
 export interface FeeSummary {
   assetCode: string;
-  totalAmount: number;
+  /** Total amount - string for NUMERIC(28,10) precision */
+  totalAmount: string;
   transactionCount: number;
 }
 
-export interface FeeAllocation {
+/**
+ * Platform fee ledger entry (from platform_fee_ledger table)
+ * NOTE: Renamed from FeeAllocation to avoid conflict with canonical
+ * FeeAllocation type from @/types/domains/feeAllocation.ts
+ */
+export interface PlatformFeeLedgerEntry {
   id: string;
   distribution_id: string;
   fund_id: string;
@@ -40,9 +47,12 @@ export interface FeeAllocation {
   period_start: string;
   period_end: string;
   purpose: string;
-  base_net_income: number;
-  fee_percentage: number;
-  fee_amount: number;
+  /** Base net income - string for NUMERIC(28,10) precision */
+  base_net_income: string;
+  /** Fee percentage - string for decimal precision */
+  fee_percentage: string;
+  /** Fee amount - string for NUMERIC(28,10) precision */
+  fee_amount: string;
   created_at: string;
   investor_name?: string;
   investor_email?: string;
@@ -50,11 +60,15 @@ export interface FeeAllocation {
   fund_asset?: string;
 }
 
+/** @deprecated Use PlatformFeeLedgerEntry instead */
+export type FeeAllocation = PlatformFeeLedgerEntry;
+
 export interface YieldEarned {
   fundId: string;
   fundName: string;
   asset: string;
-  totalYieldEarned: number;
+  /** Total yield earned - string for NUMERIC(28,10) precision */
+  totalYieldEarned: string;
   transactionCount: number;
 }
 
@@ -68,8 +82,9 @@ export interface FeesOverviewData {
   fees: FeeRecord[];
   feeSummaries: FeeSummary[];
   funds: FundRef[];
-  indigoFeesBalance: Record<string, number>;
-  feeAllocations: FeeAllocation[];
+  /** Balance per asset - string values for NUMERIC precision */
+  indigoFeesBalance: Record<string, string>;
+  feeAllocations: PlatformFeeLedgerEntry[];
   yieldEarned: YieldEarned[];
 }
 
@@ -144,7 +159,7 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       fundId: tx.fund_id,
       fundName: fund?.name ?? "Unknown",
       asset: tx.asset ?? fund?.asset ?? "",
-      amount: Number(tx.amount),
+      amount: String(tx.amount),
       type: tx.type,
       txDate: tx.tx_date,
       purpose: tx.purpose || "",
@@ -158,24 +173,28 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
  * Calculate fee summaries by asset from fee records
  */
 export function calculateFeeSummaries(fees: FeeRecord[]): FeeSummary[] {
-  const summaryMap = new Map<string, FeeSummary>();
+  const summaryMap = new Map<string, { assetCode: string; total: ReturnType<typeof parseFinancial>; count: number }>();
   fees.forEach((fee) => {
     const existing = summaryMap.get(fee.asset) || {
       assetCode: fee.asset,
-      totalAmount: 0,
-      transactionCount: 0,
+      total: parseFinancial(0),
+      count: 0,
     };
-    existing.totalAmount += fee.amount;
-    existing.transactionCount += 1;
+    existing.total = existing.total.plus(parseFinancial(fee.amount));
+    existing.count += 1;
     summaryMap.set(fee.asset, existing);
   });
-  return Array.from(summaryMap.values());
+  return Array.from(summaryMap.values()).map(({ assetCode, total, count }) => ({
+    assetCode,
+    totalAmount: total.toFixed(10),
+    transactionCount: count,
+  }));
 }
 
 /**
  * Get INDIGO FEES account balances by asset
  */
-export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
+export async function getIndigoFeesBalance(): Promise<Record<string, string>> {
   // First get positions for INDIGO FEES account
   const { data: indigoPositions, error: posError } = await supabase
     .from("investor_positions")
@@ -201,22 +220,27 @@ export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
 
   const fundAssetMap = new Map((fundsData || []).map((f) => [f.id, f.asset]));
 
-  const balances: Record<string, number> = {};
+  const balances: Record<string, ReturnType<typeof parseFinancial>> = {};
   indigoPositions.forEach((p) => {
     const asset = fundAssetMap.get(p.fund_id);
     if (asset) {
-      const current = parseFinancial(balances[asset] || 0);
-      balances[asset] = current.plus(parseFinancial(p.current_value || 0)).toNumber();
+      const current = balances[asset] || parseFinancial(0);
+      balances[asset] = current.plus(parseFinancial(p.current_value || 0));
     }
   });
-  return balances;
+  
+  const result: Record<string, string> = {};
+  for (const [asset, value] of Object.entries(balances)) {
+    result[asset] = value.toFixed(10);
+  }
+  return result;
 }
 
 /**
  * Load fee allocations (audit trail) from platform_fee_ledger
  * This table contains the actual fee records created during yield distributions
  */
-export async function getFeeAllocations(): Promise<FeeAllocation[]> {
+export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
   // Query platform_fee_ledger which has the actual fee records
   const { data: ledgerData, error } = await supabase
     .from("platform_fee_ledger")
@@ -284,9 +308,9 @@ export async function getFeeAllocations(): Promise<FeeAllocation[]> {
       period_start: distribution?.period_start || a.effective_date,
       period_end: distribution?.period_end || a.effective_date,
       purpose: distribution?.purpose || "reporting",
-      base_net_income: Number(a.gross_yield_amount || 0),
-      fee_percentage: Number(a.fee_percentage || 0),
-      fee_amount: Number(a.fee_amount || 0),
+      base_net_income: String(a.gross_yield_amount || 0),
+      fee_percentage: String(a.fee_percentage || 0),
+      fee_amount: String(a.fee_amount || 0),
       created_at: a.created_at,
       investor_name:
         a.investor_name || profile
@@ -318,10 +342,10 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
     return [];
   }
 
-  const yieldByFund = new Map<string, { total: number; count: number }>();
+  const yieldByFund = new Map<string, { total: ReturnType<typeof parseFinancial>; count: number }>();
   yieldTxs.forEach((tx) => {
-    const existing = yieldByFund.get(tx.fund_id) || { total: 0, count: 0 };
-    existing.total = parseFinancial(existing.total).plus(parseFinancial(tx.amount || 0)).toNumber();
+    const existing = yieldByFund.get(tx.fund_id) || { total: parseFinancial(0), count: 0 };
+    existing.total = existing.total.plus(parseFinancial(tx.amount || 0));
     existing.count += 1;
     yieldByFund.set(tx.fund_id, existing);
   });
@@ -334,7 +358,7 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
         fundId,
         fundName: fund.name,
         asset: fund.asset,
-        totalYieldEarned: data.total,
+        totalYieldEarned: data.total.toFixed(10),
         transactionCount: data.count,
       });
     }
