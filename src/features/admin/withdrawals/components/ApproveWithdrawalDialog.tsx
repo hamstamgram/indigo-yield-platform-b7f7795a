@@ -297,7 +297,7 @@ export function ApproveWithdrawalDialog({
                   <li>The investor&apos;s position will be reduced immediately</li>
                   {isFullExit && (
                     <>
-                      <li>Accrued yield will be crystallized before processing</li>
+                      <li>Accrued yield should be distributed before processing</li>
                       <li>Dust will be routed to INDIGO Fees account</li>
                       <li>The investor&apos;s position will be deactivated</li>
                     </>

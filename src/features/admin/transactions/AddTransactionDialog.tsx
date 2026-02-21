@@ -150,9 +150,8 @@ export function AddTransactionDialog({
                   <strong>Transaction Locked: Yield Drop Required</strong>
                   <p className="text-sm mt-1">
                     It has been {Math.floor(yieldLock.gapHours / 24)} days since the last yield drop
-                    for this fund. Operating policy requires yield to be crystallized (distributed)
-                    at least every 72 hours before allowing new capital flows. Please run a yield
-                    drop first.
+                    for this fund. Operating policy requires yield to be distributed at least every
+                    72 hours before allowing new capital flows. Please run a yield drop first.
                   </p>
                 </AlertDescription>
               </Alert>
