@@ -2,7 +2,15 @@ import { useFormContext } from "react-hook-form";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button, Calendar, Label, Popover, PopoverContent, PopoverTrigger } from "@/components/ui";
+import {
+  Button,
+  Calendar,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Input,
+} from "@/components/ui";
 import { TransactionFormData } from "../hooks/useTransactionForm";
 
 export function TransactionDateInput() {
@@ -31,14 +39,27 @@ export function TransactionDateInput() {
             {txDate ? format(new Date(txDate), "PPP") : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={txDate ? new Date(txDate) : undefined}
-            onSelect={(date) => date && setValue("tx_date", format(date, "yyyy-MM-dd"))}
-            initialFocus
-            className="p-3 pointer-events-auto"
-          />
+        <PopoverContent className="w-auto p-3" align="start">
+          <div className="flex flex-col space-y-3">
+            <Input
+              type="date"
+              value={txDate || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val) {
+                  setValue("tx_date", val);
+                }
+              }}
+              className="w-full"
+            />
+            <Calendar
+              mode="single"
+              selected={txDate ? new Date(txDate) : undefined}
+              onSelect={(date) => date && setValue("tx_date", format(date, "yyyy-MM-dd"))}
+              initialFocus
+              className="p-0 pointer-events-auto"
+            />
+          </div>
         </PopoverContent>
       </Popover>
       {errors.tx_date && <p className="text-sm text-destructive">{errors.tx_date.message}</p>}

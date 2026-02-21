@@ -257,20 +257,36 @@ export function YieldInputForm({
                   {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={aumDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setAumDate(date);
-                      setDatePickerOpen(false);
-                    }
-                  }}
-                  disabled={(date) => date > new Date()}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
+              <PopoverContent className="w-auto p-3" align="start">
+                <div className="flex flex-col space-y-3">
+                  <Input
+                    type="date"
+                    value={aumDate ? format(aumDate, "yyyy-MM-dd") : ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) {
+                        const newDate = new Date(val + "T12:00:00");
+                        if (!isNaN(newDate.getTime())) {
+                          setAumDate(newDate);
+                        }
+                      }
+                    }}
+                    className="w-full"
+                  />
+                  <Calendar
+                    mode="single"
+                    selected={aumDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        setAumDate(date);
+                        setDatePickerOpen(false);
+                      }
+                    }}
+                    disabled={(date) => date > new Date()}
+                    initialFocus
+                    className="p-0 pointer-events-auto"
+                  />
+                </div>
               </PopoverContent>
             </Popover>
 

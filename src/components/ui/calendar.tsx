@@ -11,8 +11,8 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  captionLayout = "dropdown-buttons",
-  fromYear = 2024,
+  captionLayout,
+  fromYear,
   toYear,
   ...props
 }: CalendarProps) {
@@ -23,7 +23,7 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       captionLayout={captionLayout}
       fromYear={fromYear}
-      toYear={resolvedToYear}
+      toYear={toYear}
       fixedWeeks
       className={cn("p-3", className)}
       classNames={{
