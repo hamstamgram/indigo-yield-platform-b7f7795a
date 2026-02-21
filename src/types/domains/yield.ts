@@ -68,6 +68,11 @@ export interface YieldDistribution {
   hasIb?: boolean; // Whether investor has an IB parent
   // V5 segmented fields
   segmentDetails?: V5InvestorSegmentDetail[];
+  // Month-to-date aggregate fields
+  mtdGross?: string;
+  mtdFee?: string;
+  mtdIb?: string;
+  mtdNet?: string;
 }
 
 /**
@@ -335,6 +340,11 @@ export interface V5AllocationItem {
   ib_rate: number;
   ib: number;
   net: number;
+  // Month-to-date aggregates
+  mtd_gross?: number;
+  mtd_fee?: number;
+  mtd_ib?: number;
+  mtd_net?: number;
 }
 
 /** V5 RPC result shape */

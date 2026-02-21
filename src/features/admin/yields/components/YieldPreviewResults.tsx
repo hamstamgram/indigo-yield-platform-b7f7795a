@@ -262,37 +262,75 @@ export function YieldPreviewResults({
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
-                      <span
-                        className={cn(
-                          "font-bold",
-                          toNum(inv.grossYield) >= 0 ? "text-emerald-400" : "text-rose-400"
+                      <div>
+                        <span
+                          className={cn(
+                            toNum(inv.grossYield) >= 0 ? "text-emerald-500/80" : "text-rose-500/80"
+                          )}
+                        >
+                          {toNum(inv.grossYield) >= 0 ? "+" : ""}
+                          {formatValue(toNum(inv.grossYield), asset)}
+                        </span>
+                        {inv.mtdGross !== undefined && (
+                          <div
+                            className={cn(
+                              "font-bold mt-0.5",
+                              toNum(inv.mtdGross) >= 0 ? "text-emerald-400" : "text-rose-400"
+                            )}
+                          >
+                            {toNum(inv.mtdGross) >= 0 ? "+" : ""}
+                            {formatValue(toNum(inv.mtdGross), asset)} MTD
+                          </div>
                         )}
-                      >
-                        {toNum(inv.grossYield) >= 0 ? "+" : ""}
-                        {formatValue(toNum(inv.grossYield), asset)}
-                      </span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
                       {inv.feePercentage}%
                     </TableCell>
-                    <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                      {toNum(inv.feeAmount) > 0
-                        ? `-${formatValue(toNum(inv.feeAmount), asset)}`
-                        : "\u2014"}
-                    </TableCell>
-                    <TableCell
-                      className={cn(
-                        "text-right font-mono text-xs font-semibold",
-                        toNum(inv.netYield) >= 0 ? "" : "text-rose-400"
+                    <TableCell className="text-right font-mono text-xs">
+                      <div className="text-muted-foreground/80">
+                        {toNum(inv.feeAmount) > 0
+                          ? `-${formatValue(toNum(inv.feeAmount), asset)}`
+                          : "\u2014"}
+                      </div>
+                      {inv.mtdFee !== undefined && toNum(inv.mtdFee) > 0 && (
+                        <div className="font-bold text-muted-foreground mt-0.5">
+                          -{formatValue(toNum(inv.mtdFee), asset)} MTD
+                        </div>
                       )}
-                    >
-                      {toNum(inv.netYield) >= 0 ? "+" : ""}
-                      {formatValue(toNum(inv.netYield), asset)}
                     </TableCell>
-                    <TableCell className="text-right font-mono text-xs text-purple-600">
-                      {toNum(inv.ibAmount) > 0
-                        ? `-${formatValue(toNum(inv.ibAmount), asset)}`
-                        : "\u2014"}
+                    <TableCell className="text-right font-mono text-xs">
+                      <div
+                        className={cn(
+                          toNum(inv.netYield) >= 0 ? "text-foreground/80" : "text-rose-400/80"
+                        )}
+                      >
+                        {toNum(inv.netYield) >= 0 ? "+" : ""}
+                        {formatValue(toNum(inv.netYield), asset)}
+                      </div>
+                      {inv.mtdNet !== undefined && (
+                        <div
+                          className={cn(
+                            "font-bold mt-0.5",
+                            toNum(inv.mtdNet) >= 0 ? "text-foreground" : "text-rose-400"
+                          )}
+                        >
+                          {toNum(inv.mtdNet) >= 0 ? "+" : ""}
+                          {formatValue(toNum(inv.mtdNet), asset)} MTD
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs">
+                      <div className="text-purple-600/80">
+                        {toNum(inv.ibAmount) > 0
+                          ? `-${formatValue(toNum(inv.ibAmount), asset)}`
+                          : "\u2014"}
+                      </div>
+                      {inv.mtdIb !== undefined && toNum(inv.mtdIb) > 0 && (
+                        <div className="font-bold text-purple-600 mt-0.5">
+                          -{formatValue(toNum(inv.mtdIb), asset)} MTD
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 </React.Fragment>
