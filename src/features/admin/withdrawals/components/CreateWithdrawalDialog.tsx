@@ -13,6 +13,8 @@ import {
   Input,
   Label,
   Textarea,
+  Alert,
+  AlertDescription,
   Select,
   SelectContent,
   SelectItem,
@@ -29,7 +31,7 @@ import {
   CommandList,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { Loader2, Check, ChevronsUpDown, Shield } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown, Shield, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatAssetAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -41,6 +43,7 @@ import {
   useAvailableBalance,
   useWithdrawalMutations,
 } from "@/hooks/data";
+import { useFundYieldLock } from "@/hooks/data/shared/useFundYieldLock";
 
 const withdrawalSchema = z.object({
   amount: z
@@ -89,6 +92,10 @@ export function CreateWithdrawalDialog({
   const { data: availableBalanceData } = useAvailableBalance(
     selectedInvestorId || null,
     selectedFundId || null
+  );
+
+  const { data: yieldLock, isLoading: loadingYieldLock } = useFundYieldLock(
+    selectedFundId || undefined
   );
 
   // Mutation hook
@@ -239,6 +246,22 @@ export function CreateWithdrawalDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Yield Lock Warning */}
+          {yieldLock?.locked && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Withdrawal Locked: Yield Drop Required</strong>
+                <p className="text-sm mt-1">
+                  It has been {Math.floor(yieldLock.gapHours / 24)} days since the last yield drop
+                  for this fund. Operating policy requires yield to be crystallized (distributed) at
+                  least every 72 hours before allowing new capital flows. Please run a yield drop
+                  first.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Investor Selector */}
           <div className="space-y-2">
             <Label>Investor *</Label>
@@ -441,7 +464,9 @@ export function CreateWithdrawalDialog({
                 createMutation.isPending ||
                 isLoadingInvestors ||
                 isLoadingPositions ||
-                positions.length === 0
+                positions.length === 0 ||
+                yieldLock?.locked ||
+                loadingYieldLock
               }
             >
               {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

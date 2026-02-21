@@ -15,7 +15,7 @@ const RATE_LIMITED_RPCS: Record<
   string,
   { windowMs: number; maxRequests: number; actionType: string }
 > = {
-  apply_transaction_with_crystallization: {
+  apply_investor_transaction: {
     windowMs: 60000,
     maxRequests: 10,
     actionType: "transaction",
@@ -206,24 +206,19 @@ export async function deposit(params: {
   investorId: string;
   /** Amount as string for NUMERIC precision */
   amount: string;
-  /** Optional Closing AUM as string for NUMERIC precision. Pass null or omit to disable crystallization. */
-  closingAum?: string | null;
   txDate: string;
   adminId: string;
   referenceId: string;
   notes?: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_transaction_with_crystallization", {
+  return call("apply_investor_transaction", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "DEPOSIT",
     p_amount: parseFloat(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: params.closingAum
-      ? parseFloat(params.closingAum)
-      : (null as unknown as number),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,
@@ -235,24 +230,19 @@ export async function withdrawal(params: {
   investorId: string;
   /** Amount as string for NUMERIC precision */
   amount: string;
-  /** Optional New total AUM as string for NUMERIC precision. Pass null or omit to disable crystallization. */
-  newTotalAum?: string | null;
   txDate: string;
   adminId: string;
   referenceId: string;
   notes?: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_transaction_with_crystallization", {
+  return call("apply_investor_transaction", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "WITHDRAWAL",
     p_amount: parseFloat(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: params.newTotalAum
-      ? parseFloat(params.newTotalAum)
-      : (null as unknown as number),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,

@@ -125,8 +125,7 @@ export async function getDepositById(id: string): Promise<Deposit> {
 }
 
 /**
- * Create deposit using crystallize-before-flow accounting.
- * NOTE: This requires an authoritative new total AUM snapshot (p_new_total_aum).
+ * Create deposit using the pure transaction ledger.
  */
 export async function createDeposit(formData: DepositFormData): Promise<Deposit> {
   const profileId = formData.user_id;
@@ -169,16 +168,13 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
     throw new Error("Authentication required to create deposits");
   }
 
-  const rpcResult = await rpc.call("apply_transaction_with_crystallization", {
+  const rpcResult = await rpc.call("apply_investor_transaction", {
     p_fund_id: fund.id,
     p_investor_id: profileId,
     p_tx_type: "DEPOSIT",
     p_amount: String(amount) as unknown as number,
     p_tx_date: txDate,
     p_reference_id: triggerReference,
-    p_new_total_aum: closingAum
-      ? (String(closingAum) as unknown as number)
-      : (null as unknown as number),
     p_admin_id: user.id,
     p_notes: `Deposit - ${triggerReference}`,
     p_purpose: "transaction",

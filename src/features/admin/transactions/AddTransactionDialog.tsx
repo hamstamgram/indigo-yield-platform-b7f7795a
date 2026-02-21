@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 // Refactored imports
 import { useTransactionForm, TransactionFormData } from "./hooks/useTransactionForm";
 import { useTransactionSubmit } from "./hooks/useTransactionSubmit";
+import { useFundYieldLock } from "@/hooks/data/shared/useFundYieldLock";
 
 import { InvestorSelect } from "./components/InvestorSelect";
 import { TransactionTypeSelect } from "./components/TransactionTypeSelect";
@@ -71,6 +72,8 @@ export function AddTransactionDialog({
   const selectedFundId = watch("fund_id");
   const txDate = watch("tx_date");
   const amount = watch("amount");
+
+  const { data: yieldLock, isLoading: loadingYieldLock } = useFundYieldLock(selectedFundId);
 
   const { onSubmit, loading, pendingLargeDeposit, confirmLargeDeposit, cancelLargeDeposit } =
     useTransactionSubmit({
@@ -139,6 +142,22 @@ export function AddTransactionDialog({
 
         <FormProvider {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Yield Lock Warning */}
+            {yieldLock?.locked && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Transaction Locked: Yield Drop Required</strong>
+                  <p className="text-sm mt-1">
+                    It has been {Math.floor(yieldLock.gapHours / 24)} days since the last yield drop
+                    for this fund. Operating policy requires yield to be crystallized (distributed)
+                    at least every 72 hours before allowing new capital flows. Please run a yield
+                    drop first.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Transaction Type - Always visible */}
             <TransactionTypeSelect
               value={txnType}
@@ -251,7 +270,14 @@ export function AddTransactionDialog({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={loading || fundsLoading || isLoadingInvestors || !!pendingLargeDeposit}
+                  disabled={
+                    loading ||
+                    fundsLoading ||
+                    isLoadingInvestors ||
+                    !!pendingLargeDeposit ||
+                    yieldLock?.locked ||
+                    loadingYieldLock
+                  }
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Transaction

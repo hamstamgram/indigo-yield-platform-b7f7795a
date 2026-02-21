@@ -184,7 +184,7 @@ export async function createTransactionWithCrystallization(
     // Map FIRST_INVESTMENT to DEPOSIT for DB enum compliance
     const dbType = mapTypeForDb(params.type);
 
-    // For DEPOSIT/WITHDRAWAL, use crystallize-before-flow RPCs (no manual position writes).
+    // For DEPOSIT/WITHDRAWAL, use pure transaction RPC.
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
       // Generate unique trigger reference client-side (idempotency key)
       const triggerReferenceRaw =
@@ -192,7 +192,7 @@ export async function createTransactionWithCrystallization(
         `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${generateUUID()}`;
       const triggerReference = triggerReferenceRaw.replace(/^(DEP:|WDR:)/, "");
 
-      const result = await rpc.call("apply_transaction_with_crystallization", {
+      const result = await rpc.call("apply_investor_transaction", {
         p_fund_id: params.fund_id,
         p_investor_id: params.investor_id,
         p_tx_type: dbType,
@@ -205,7 +205,7 @@ export async function createTransactionWithCrystallization(
       });
 
       if (result.error) {
-        logError(`createTransactionWithCrystallization.${dbType}`, result.error, {
+        logError(`createTransaction.${dbType}`, result.error, {
           fundId: params.fund_id,
         });
         // Surface the user-friendly error message from gateway
@@ -268,7 +268,6 @@ export interface QuickTransactionParams {
   type: "DEPOSIT" | "WITHDRAWAL";
   amount: number;
   description?: string;
-  closingAum?: string;
   eventTs?: string;
 }
 
@@ -283,7 +282,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   // Generate unique trigger reference to prevent duplicates
   const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${generateUUID()}`;
 
-  const result = await rpc.call("apply_transaction_with_crystallization", {
+  const result = await rpc.call("apply_investor_transaction", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: params.type,

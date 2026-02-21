@@ -65,7 +65,7 @@ export const yieldAumService = {
         purpose: row.purpose as AumPurpose,
         aumValue: Number(row.aum_value || 0),
         aumSource: row.aum_source as "fund_daily_aum",
-        aumRecordId: row.aum_record_id,
+        aumRecordId: null, // Legacy field, safely returning null
       };
     } catch (err) {
       logError("yieldAumService.getFundAumAsOf", err, { fundId, asOfDate, purpose });

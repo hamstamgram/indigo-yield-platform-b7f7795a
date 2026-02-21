@@ -2319,11 +2319,9 @@ export type Database = {
           created_at: string;
           email: string;
           entity_type: string | null;
-          fee_pct: number;
           first_name: string | null;
           ib_commission_source: string;
           ib_parent_id: string | null;
-          ib_percentage: number | null;
           id: string;
           include_in_reporting: boolean;
           is_admin: boolean;
@@ -2346,11 +2344,9 @@ export type Database = {
           created_at?: string;
           email: string;
           entity_type?: string | null;
-          fee_pct?: number;
           first_name?: string | null;
           ib_commission_source?: string;
           ib_parent_id?: string | null;
-          ib_percentage?: number | null;
           id: string;
           include_in_reporting?: boolean;
           is_admin?: boolean;
@@ -2373,11 +2369,9 @@ export type Database = {
           created_at?: string;
           email?: string;
           entity_type?: string | null;
-          fee_pct?: number;
           first_name?: string | null;
           ib_commission_source?: string;
           ib_parent_id?: string | null;
-          ib_percentage?: number | null;
           id?: string;
           include_in_reporting?: boolean;
           is_admin?: boolean;
@@ -5332,11 +5326,19 @@ export type Database = {
     };
     Functions: {
       _resolve_investor_fee_pct: {
-        Args: { p_date: string; p_fund_id: string; p_investor_id: string };
+        Args: {
+          p_effective_date: string;
+          p_fund_id: string;
+          p_investor_id: string;
+        };
         Returns: number;
       };
       _resolve_investor_ib_pct: {
-        Args: { p_date: string; p_fund_id: string; p_investor_id: string };
+        Args: {
+          p_effective_date: string;
+          p_fund_id: string;
+          p_investor_id: string;
+        };
         Returns: number;
       };
       _v5_check_distribution_uniqueness: {
@@ -5430,6 +5432,20 @@ export type Database = {
           p_purpose?: string;
           p_tx_hash?: string;
           p_tx_subtype?: string;
+        };
+        Returns: Json;
+      };
+      apply_investor_transaction: {
+        Args: {
+          p_admin_id: string;
+          p_amount: number;
+          p_fund_id: string;
+          p_investor_id: string;
+          p_notes?: string;
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"];
+          p_reference_id: string;
+          p_tx_date: string;
+          p_tx_type: Database["public"]["Enums"]["transaction_type"];
         };
         Returns: Json;
       };
@@ -5596,9 +5612,9 @@ export type Database = {
       };
       check_aum_reconciliation: {
         Args: {
+          p_as_of_date?: string;
           p_fund_id: string;
           p_tolerance_pct?: number;
-          p_as_of_date?: string;
         };
         Returns: Json;
       };
@@ -5619,7 +5635,6 @@ export type Database = {
         Args: { p_dry_run?: boolean };
         Returns: Json;
       };
-      cleanup_duplicate_preflow_aum: { Args: never; Returns: Json };
       complete_withdrawal: {
         Args: {
           p_admin_notes?: string;
@@ -5719,16 +5734,6 @@ export type Database = {
         Returns: Json;
       };
       ensure_admin: { Args: never; Returns: undefined };
-      ensure_preflow_aum: {
-        Args: {
-          p_admin_id: string;
-          p_date: string;
-          p_fund_id: string;
-          p_purpose: Database["public"]["Enums"]["aum_purpose"];
-          p_total_aum: number;
-        };
-        Returns: Json;
-      };
       export_investor_data: { Args: { p_user_id: string }; Returns: Json };
       finalize_month_yield: {
         Args: {
@@ -5741,6 +5746,10 @@ export type Database = {
       };
       finalize_statement_period: {
         Args: { p_admin_id: string; p_period_id: string };
+        Returns: undefined;
+      };
+      fix_yield_distribution_investor_count: {
+        Args: { p_distribution_id: string };
         Returns: undefined;
       };
       force_delete_investor: {
@@ -5796,34 +5805,39 @@ export type Database = {
         Args: { p_fund_id: string };
         Returns: number;
       };
-      get_existing_preflow_aum: {
-        Args: {
-          p_event_date: string;
-          p_fund_id: string;
-          p_purpose: Database["public"]["Enums"]["aum_purpose"];
-        };
-        Returns: {
-          aum_event_id: string;
-          closing_aum: number;
-          event_ts: string;
-        }[];
-      };
-      get_fund_aum_as_of: {
-        Args: {
-          p_as_of_date: string;
-          p_fund_id: string;
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"];
-        };
-        Returns: {
-          as_of_date: string;
-          aum_source: string;
-          aum_value: number;
-          aum_record_id: string | null;
-          fund_code: string;
-          fund_id: string;
-          purpose: Database["public"]["Enums"]["aum_purpose"];
-        }[];
-      };
+      get_fund_aum_as_of:
+        | {
+            Args: {
+              p_as_of_date: string;
+              p_fund_id: string;
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"];
+            };
+            Returns: {
+              as_of_date: string;
+              aum_source: string;
+              aum_value: number;
+              event_id: string;
+              fund_code: string;
+              fund_id: string;
+              purpose: Database["public"]["Enums"]["aum_purpose"];
+            }[];
+          }
+        | {
+            Args: {
+              p_as_of_date: string;
+              p_fund_id: string;
+              p_purpose?: string;
+            };
+            Returns: {
+              as_of_date: string;
+              aum_record_id: string;
+              aum_source: string;
+              aum_value: number;
+              fund_code: string;
+              fund_id: string;
+              purpose: string;
+            }[];
+          };
       get_fund_base_asset: { Args: { p_fund_id: string }; Returns: string };
       get_fund_composition:
         | {
@@ -5855,6 +5869,7 @@ export type Database = {
           period_date: string;
         }[];
       };
+      get_fund_positions_sum: { Args: { p_fund_id: string }; Returns: number };
       get_fund_summary: {
         Args: never;
         Returns: {
@@ -6300,7 +6315,6 @@ export type Database = {
       qa_fees_account_id: { Args: never; Returns: string };
       qa_fund_id: { Args: { p_asset: string }; Returns: string };
       qa_investor_id: { Args: { p_key: string }; Returns: string };
-      qa_seed_world: { Args: { p_run_tag: string }; Returns: Json };
       queue_statement_deliveries: {
         Args: {
           p_channel?: string;
@@ -6714,7 +6728,7 @@ export type Database = {
       };
       void_investor_yield_events_for_distribution: {
         Args: {
-          p_admin_id: string;
+          p_admin_id?: string;
           p_distribution_id: string;
           p_reason?: string;
         };

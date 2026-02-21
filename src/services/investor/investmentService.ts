@@ -40,7 +40,7 @@ export const investmentService = {
       data.reference_number ||
       `investment:${data.fund_id}:${data.investor_id}:${txDate}:${generateUUID()}`;
 
-    const rpcResult = await rpc.call("apply_transaction_with_crystallization", {
+    const rpcResult = await rpc.call("apply_investor_transaction", {
       p_fund_id: data.fund_id,
       p_investor_id: data.investor_id,
       p_tx_type: type,
@@ -78,7 +78,7 @@ export const investmentService = {
     void id;
     void shares;
     throw new Error(
-      "Investment approval is not supported on the immutable ledger. Create deposits/withdrawals through the crystallize-before-flow RPCs at the time they become effective."
+      "Investment approval is not supported on the immutable ledger. Create deposits/withdrawals directly effectively."
     );
   },
 

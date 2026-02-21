@@ -46,7 +46,6 @@ import { useTransactionMutations } from "@/hooks/data";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import usePlatformError, { routeErrorAction } from "@/hooks/usePlatformError";
 import { PlatformErrorCode } from "@/types/errors/platformErrors";
-import { preflowAumService } from "@/services/admin";
 import { getCurrentUser } from "@/services/auth/authService";
 import { logError } from "@/lib/logger";
 
@@ -92,12 +91,6 @@ export function VoidAndReissueDialog({
 }: VoidAndReissueDialogProps) {
   const [confirmText, setConfirmText] = useState("");
   const [activeTab, setActiveTab] = useState<"changes" | "review">("changes");
-  const [existingPreflow, setExistingPreflow] = useState<{
-    closingAum: number;
-    eventTs?: string;
-    createdByName?: string;
-  } | null>(null);
-  const [checkingPreflow, setCheckingPreflow] = useState(false);
   const { voidAndReissueMutation } = useTransactionMutations();
   const { handleError, error: platformError, clearError } = usePlatformError();
 
@@ -130,37 +123,8 @@ export function VoidAndReissueDialog({
       setConfirmText("");
       setActiveTab("changes");
       clearError();
-      setExistingPreflow(null);
     }
   }, [transaction, reset, clearError]);
-
-  // Probe for existing preflow AUM for fund/date and auto-fill closing AUM if found
-  useEffect(() => {
-    const fundId = transaction?.fundId;
-    const txDate = watchedValues.tx_date;
-    if (!open || !fundId || !txDate) return;
-
-    setCheckingPreflow(true);
-    preflowAumService
-      .getExisting(fundId, txDate, "transaction")
-      .then((record) => {
-        if (record) {
-          setExistingPreflow({
-            closingAum: record.closingAum,
-            eventTs: record.eventTs,
-            createdByName: record.createdBy?.name || undefined,
-          });
-          setValue("closing_aum", String(record.closingAum), { shouldValidate: true });
-        } else {
-          setExistingPreflow(null);
-        }
-      })
-      .catch((err) => {
-        logError("VoidAndReissueDialog.preflowProbe", err, { fundId, txDate });
-        setExistingPreflow(null);
-      })
-      .finally(() => setCheckingPreflow(false));
-  }, [open, transaction?.fundId, watchedValues.tx_date, reset]);
 
   // Compute what changed
   const getChanges = () => {
@@ -211,29 +175,6 @@ export function VoidAndReissueDialog({
     if (closingAum !== null && (!isFinite(closingAum) || closingAum <= 0)) {
       toast.error("Closing AUM must be a positive number if provided");
       return;
-    }
-
-    // Ensure preflow exists for fund/date (idempotent). If one exists, it will be reused.
-    if (transaction.fundId) {
-      try {
-        const user = await getCurrentUser();
-
-        if (closingAum !== null) {
-          await preflowAumService.ensure(
-            transaction.fundId,
-            data.tx_date,
-            closingAum,
-            user.id,
-            "transaction"
-          );
-        }
-      } catch (err) {
-        logError("VoidAndReissueDialog.ensurePreflow", err, {
-          fundId: transaction.fundId,
-          txDate: data.tx_date,
-        });
-        throw err;
-      }
     }
 
     voidAndReissueMutation.mutate(
@@ -384,14 +325,7 @@ export function VoidAndReissueDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="closing_aum">
-                  Closing AUM Snapshot ({transaction.asset})
-                  {existingPreflow && (
-                    <span className="ml-2 text-xs text-emerald-400 font-medium">
-                      (Using existing preflow)
-                    </span>
-                  )}
-                </Label>
+                <Label htmlFor="closing_aum">Closing AUM Snapshot ({transaction.asset})</Label>
                 <Input
                   id="closing_aum"
                   type="number"
@@ -399,28 +333,11 @@ export function VoidAndReissueDialog({
                   min="0"
                   placeholder={`Enter closing AUM in ${transaction.asset}`}
                   {...register("closing_aum")}
-                  readOnly={Boolean(existingPreflow)}
-                  disabled={transaction.isSystemGenerated || checkingPreflow}
-                  className={existingPreflow ? "bg-muted" : undefined}
+                  disabled={transaction.isSystemGenerated}
                 />
-                {checkingPreflow ? (
-                  <p className="text-xs text-muted-foreground">
-                    Checking for existing preflow AUM…
-                  </p>
-                ) : existingPreflow ? (
-                  <p className="text-xs text-emerald-400">
-                    Using existing preflow AUM recorded at{" "}
-                    {existingPreflow.eventTs
-                      ? new Date(existingPreflow.eventTs).toLocaleString()
-                      : "(unknown time)"}
-                    {existingPreflow.createdByName ? ` by ${existingPreflow.createdByName}` : ""}.
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    No existing preflow AUM found for this fund/date. Enter the fund AUM immediately
-                    before the reissued transaction.
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  Enter the fund AUM immediately before the reissued transaction.
+                </p>
                 {errors.closing_aum && (
                   <p className="text-sm text-destructive">{errors.closing_aum.message}</p>
                 )}
