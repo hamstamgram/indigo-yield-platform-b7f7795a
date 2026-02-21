@@ -377,7 +377,7 @@ function generateDbEnums(enums: SchemaEnum[]): string {
     lines.push("");
     lines.push(`export const DB_${e.name.toUpperCase()} = {`);
     for (const v of e.values) {
-      lines.push(`  ${v}: "${v}",`);
+      lines.push(`  "${v}": "${v}",`);
     }
     lines.push(`} as const satisfies Record<string, ${typeName}>;`);
     lines.push("");
@@ -492,11 +492,11 @@ function generateDbSchema(tables: SchemaTable[]): string {
   // Generate table metadata
   lines.push("export const DB_TABLES = {");
   for (const t of tables) {
-    const pk = t.primary_key ? `["${t.primary_key.join('", "')}"]` : "null";
+    const pk = t.primary_key ? `["${t.primary_key.join('", "')}"] as const` : "null";
     const cols = t.columns.map((c) => `"${c.name}"`).join(", ");
     lines.push(`  ${t.name}: {`);
     lines.push(`    name: "${t.name}" as const,`);
-    lines.push(`    primaryKey: ${pk} as const,`);
+    lines.push(`    primaryKey: ${pk},`);
     lines.push(`    columns: [${cols}] as const,`);
     lines.push(`    rlsEnabled: ${t.rls_enabled},`);
     lines.push("  },");
