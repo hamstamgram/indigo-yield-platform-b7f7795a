@@ -238,8 +238,6 @@ function AdminDashboardContent() {
               setYieldPurpose={ops.setYieldPurpose}
               aumDate={ops.aumDate}
               setAumDate={ops.setAumDate}
-              datePickerOpen={ops.datePickerOpen}
-              setDatePickerOpen={ops.setDatePickerOpen}
               reportingMonth={ops.reportingMonth}
               availableMonths={ops.getAvailableMonths()}
               handleReportingMonthChange={ops.handleReportingMonthChange}

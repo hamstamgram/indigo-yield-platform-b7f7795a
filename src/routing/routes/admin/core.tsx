@@ -7,7 +7,7 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminDashboard = lazy(() => import("@/features/admin/dashboard/pages/AdminDashboard"));
 
 export function CoreAdminRoutes() {
   return (

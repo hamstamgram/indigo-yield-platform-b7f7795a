@@ -6,9 +6,13 @@ import { logWarn } from "@/lib/logger";
 import { getFundIconByAsset } from "@/types/domains/report";
 
 const COMPANY_LOGO =
-  "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
-const FOOTER_LOGO =
-  "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
+  "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
+const SOCIAL_LINKEDIN =
+  "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png";
+const SOCIAL_INSTAGRAM =
+  "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png";
+const SOCIAL_X =
+  "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png";
 
 export interface FundPerformanceData {
   fund_name: string;
@@ -158,7 +162,8 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
   try {
     const logoData = await loadImage(COMPANY_LOGO);
     if (logoData) {
-      doc.addImage(logoData, "PNG", margin + 4, yPos + 4, 12, 12);
+      // The new logo is a wide rectangular JPEG
+      doc.addImage(logoData, "JPEG", margin + 6, yPos + 6, 28, 8);
     }
   } catch (e) {
     logWarn("statementGenerator.generateModernPDF", { reason: "Failed to load logo for PDF" });
@@ -359,14 +364,29 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
     doc.setPage(i);
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Footer logo
+    // Social links (instead of footer logo)
     try {
-      const footerLogoData = await loadImage(FOOTER_LOGO);
-      if (footerLogoData) {
-        doc.addImage(footerLogoData, "JPEG", pageWidth / 2 - 15, pageHeight - 35, 30, 12);
-      }
+      const iconSize = 6;
+      const spacing = 4;
+      const totalWidth = iconSize * 3 + spacing * 2;
+      const startX = (pageWidth - totalWidth) / 2;
+      const iconY = pageHeight - 35;
+
+      const [inData, instData, xData] = await Promise.all([
+        loadImage(SOCIAL_LINKEDIN),
+        loadImage(SOCIAL_INSTAGRAM),
+        loadImage(SOCIAL_X),
+      ]);
+
+      if (inData) doc.addImage(inData, "PNG", startX, iconY, iconSize, iconSize);
+      if (instData)
+        doc.addImage(instData, "PNG", startX + iconSize + spacing, iconY, iconSize, iconSize);
+      if (xData)
+        doc.addImage(xData, "PNG", startX + (iconSize + spacing) * 2, iconY, iconSize, iconSize);
+
+      // We don't make them clickable in jsPDF directly for simplicity, but the icons will display correctly.
     } catch (e) {
-      // Continue without footer logo
+      // Continue without social icons
     }
 
     // Disclaimer

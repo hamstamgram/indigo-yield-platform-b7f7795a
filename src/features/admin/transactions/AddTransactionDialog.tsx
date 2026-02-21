@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 // Refactored imports
 import { useTransactionForm, TransactionFormData } from "./hooks/useTransactionForm";
 import { useTransactionSubmit } from "./hooks/useTransactionSubmit";
-import { useFundYieldLock } from "@/hooks/data/shared/useFundYieldLock";
+// Removed useFundYieldLock per Kelly Criterion/First Principles (No 72h lock)
 
 import { InvestorSelect } from "./components/InvestorSelect";
 import { TransactionTypeSelect } from "./components/TransactionTypeSelect";
@@ -72,8 +72,6 @@ export function AddTransactionDialog({
   const selectedFundId = watch("fund_id");
   const txDate = watch("tx_date");
   const amount = watch("amount");
-
-  const { data: yieldLock, isLoading: loadingYieldLock } = useFundYieldLock(selectedFundId);
 
   const { onSubmit, loading, pendingLargeDeposit, confirmLargeDeposit, cancelLargeDeposit } =
     useTransactionSubmit({
@@ -140,20 +138,6 @@ export function AddTransactionDialog({
 
         <FormProvider {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Yield Lock Warning */}
-            {yieldLock?.locked && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <p className="font-semibold">Yield Drop Required</p>
-                  <p className="text-sm mt-1">
-                    {Math.floor(yieldLock.gapHours / 24)} days since last drop. Run a yield drop
-                    before allowing new capital flows.
-                  </p>
-                </AlertDescription>
-              </Alert>
-            )}
-
             {/* Transaction Type - Always visible */}
             <TransactionTypeSelect
               value={txnType}
@@ -258,15 +242,15 @@ export function AddTransactionDialog({
                   type="submit"
                   disabled={
                     loading ||
-                    fundsLoading ||
                     isLoadingInvestors ||
-                    !!pendingLargeDeposit ||
-                    yieldLock?.locked ||
-                    loadingYieldLock
+                    fundsLoading ||
+                    !!investorError ||
+                    isCheckingBalance ||
+                    !!pendingLargeDeposit
                   }
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Transaction
+                  Add Transaction
                 </Button>
               </DialogFooter>
             </>

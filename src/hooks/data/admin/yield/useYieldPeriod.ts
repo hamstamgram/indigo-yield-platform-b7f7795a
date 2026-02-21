@@ -5,7 +5,7 @@ export type YieldPurpose = "reporting" | "transaction";
 
 export interface YieldPeriodState {
   yieldPurpose: YieldPurpose;
-  aumDate: Date;
+  aumDate: string;
   datePickerOpen: boolean;
   reportingMonth: string;
   asOfDateIso: string | null;
@@ -15,7 +15,7 @@ export interface YieldPeriodState {
 
 export const initialPeriodState: YieldPeriodState = {
   yieldPurpose: "transaction",
-  aumDate: new Date(),
+  aumDate: format(new Date(), "yyyy-MM-dd"),
   datePickerOpen: false,
   reportingMonth: "",
   asOfDateIso: null,
@@ -30,12 +30,11 @@ export function useYieldPeriod() {
     setPeriod((prev) => ({ ...prev, yieldPurpose: purpose }));
   }, []);
 
-  const setAumDate = useCallback((date: Date) => {
-    const newAsOfDateIso = format(date, "yyyy-MM-dd");
+  const setAumDate = useCallback((dateStr: string) => {
     setPeriod((prev) => ({
       ...prev,
-      aumDate: date,
-      asOfDateIso: newAsOfDateIso,
+      aumDate: dateStr,
+      asOfDateIso: dateStr,
     }));
   }, []);
 
@@ -72,12 +71,15 @@ export function useYieldPeriod() {
 
   const validateEffectiveDate = useCallback(
     (
-      aumDate: Date,
+      aumDateStr: string,
       yieldPurpose: YieldPurpose,
       reportingMonth: string
     ): { valid: boolean; error?: string } => {
       const today = new Date();
       today.setHours(23, 59, 59, 999);
+
+      const aumDate = new Date(aumDateStr + "T12:00:00");
+
       if (aumDate > today) {
         return { valid: false, error: "Yield cannot be distributed for future dates." };
       }

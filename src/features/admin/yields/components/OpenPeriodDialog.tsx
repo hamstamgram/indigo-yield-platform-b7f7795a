@@ -14,17 +14,13 @@ import {
   Button,
   Input,
   Label,
-  Calendar,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -52,8 +48,7 @@ interface OpenPeriodDialogProps {
 
 export function OpenPeriodDialog({ open, onOpenChange, fund, onSuccess }: OpenPeriodDialogProps) {
   const [baselineAum, setBaselineAum] = useState("");
-  const [baselineDate, setBaselineDate] = useState<Date>(new Date());
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [baselineDate, setBaselineDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [purpose, setPurpose] = useState<"reporting" | "transaction">("transaction");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -73,7 +68,7 @@ export function OpenPeriodDialog({ open, onOpenChange, fund, onSuccess }: OpenPe
     try {
       await fundDailyAumService.createBaselineAUM({
         fundId: fund.id,
-        date: format(baselineDate, "yyyy-MM-dd"),
+        date: baselineDate,
         totalAum: aumValue,
         purpose,
         createdBy: user.id,
@@ -153,34 +148,16 @@ export function OpenPeriodDialog({ open, onOpenChange, fund, onSuccess }: OpenPe
 
           {/* Date Picker */}
           <div className="space-y-2">
-            <Label>Effective Date</Label>
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !baselineDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {baselineDate ? format(baselineDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={baselineDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setBaselineDate(date);
-                      setDatePickerOpen(false);
-                    }
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="effective-date">Effective Date</Label>
+            <div className="relative">
+              <Input
+                id="effective-date"
+                type="date"
+                value={baselineDate}
+                onChange={(e) => setBaselineDate(e.target.value)}
+                className="w-full pl-3 pr-10"
+              />
+            </div>
           </div>
 
           {/* Purpose Selector */}

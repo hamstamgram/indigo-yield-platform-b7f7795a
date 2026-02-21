@@ -65,7 +65,7 @@ export function useYieldOperationsState() {
       period.setPeriod({
         ...period,
         yieldPurpose: "reporting",
-        aumDate: lastDayOfMonth,
+        aumDate: asOfDateIso,
         asOfDateIso: asOfDateIso,
         reportingMonth: currentMonthStart,
         aumTime: format(new Date(), "HH:mm"),
@@ -89,7 +89,7 @@ export function useYieldOperationsState() {
       period.setPeriod((prev) => ({
         ...prev,
         reportingMonth: monthStart,
-        aumDate: lastDayOfMonth,
+        aumDate: asOfDateIso,
         asOfDateIso: asOfDateIso,
         distributionDate: lastDayOfMonth,
       }));
@@ -109,7 +109,7 @@ export function useYieldOperationsState() {
         ...prev,
         yieldPurpose: purpose,
         // For both purposes, distributionDate should match the user-selected aumDate
-        distributionDate: prev.aumDate,
+        distributionDate: prev.aumDate ? new Date(prev.aumDate + "T12:00:00") : new Date(),
       }));
       // Clear preview when purpose changes (AUM input preserved)
       calculation.setYieldPreview(null);
@@ -120,12 +120,12 @@ export function useYieldOperationsState() {
   );
 
   const setAumDate = useCallback(
-    (date: Date) => {
-      period.setAumDate(date);
+    (dateStr: string) => {
+      period.setAumDate(dateStr);
       // Keep distributionDate in sync with aumDate for transaction purpose
       period.setPeriod((prev) => ({
         ...prev,
-        distributionDate: date,
+        distributionDate: dateStr ? new Date(dateStr + "T12:00:00") : new Date(),
       }));
       // Clear preview when date changes (AUM input preserved)
       calculation.setYieldPreview(null);
@@ -139,7 +139,7 @@ export function useYieldOperationsState() {
   const onPreview = useCallback(() => {
     calculation.handlePreviewYield({
       selectedFund: selection.selectedFund,
-      aumDate: period.aumDate,
+      aumDate: period.aumDate ? new Date(period.aumDate + "T12:00:00") : new Date(),
       yieldPurpose: period.yieldPurpose,
       distributionDate: period.distributionDate,
       asOfAum: asOfAum ?? null,
@@ -152,7 +152,7 @@ export function useYieldOperationsState() {
       user,
       yieldPreview: calculation.yieldPreview,
       yieldPurpose: period.yieldPurpose,
-      aumDate: period.aumDate,
+      aumDate: period.aumDate ? new Date(period.aumDate + "T12:00:00") : new Date(),
       newAUM: calculation.newAUM,
       asOfAum: asOfAum ?? null,
       aumTime: period.aumTime,

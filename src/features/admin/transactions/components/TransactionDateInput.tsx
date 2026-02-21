@@ -3,15 +3,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseDateFromDB } from "@/utils/dateUtils";
-import {
-  Button,
-  Calendar,
-  Label,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Input,
-} from "@/components/ui";
+import { Label, Input } from "@/components/ui";
 import { TransactionFormData } from "../hooks/useTransactionForm";
 
 export function TransactionDateInput() {
@@ -25,44 +17,21 @@ export function TransactionDateInput() {
 
   return (
     <div className="space-y-2">
-      <Label>Transaction Date *</Label>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !txDate && "text-muted-foreground",
-              errors.tx_date && "border-destructive"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {txDate ? format(parseDateFromDB(txDate), "PPP") : <span>Pick a date</span>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-3" align="start">
-          <div className="flex flex-col space-y-3">
-            <Input
-              type="date"
-              value={txDate || ""}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val) {
-                  setValue("tx_date", val);
-                }
-              }}
-              className="w-full"
-            />
-            <Calendar
-              mode="single"
-              selected={txDate ? parseDateFromDB(txDate) : undefined}
-              onSelect={(date) => date && setValue("tx_date", format(date, "yyyy-MM-dd"))}
-              initialFocus
-              className="p-0 pointer-events-auto"
-            />
-          </div>
-        </PopoverContent>
-      </Popover>
+      <Label htmlFor="tx-date">Transaction Date *</Label>
+      <div className="relative">
+        <Input
+          id="tx-date"
+          type="date"
+          value={txDate || ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val) {
+              setValue("tx_date", val);
+            }
+          }}
+          className={cn("w-full pl-3 pr-10", errors.tx_date && "border-destructive")}
+        />
+      </div>
       {errors.tx_date && <p className="text-sm text-destructive">{errors.tx_date.message}</p>}
     </div>
   );

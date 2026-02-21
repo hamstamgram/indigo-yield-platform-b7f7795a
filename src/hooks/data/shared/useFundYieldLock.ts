@@ -21,8 +21,9 @@ export function useFundYieldLock(fundId: string | undefined) {
       const gapMs = now.getTime() - lastDate.getTime();
       const gapHours = gapMs / (1000 * 60 * 60);
 
-      // Lock if gap is strictly greater than 72 hours
-      const locked = gapHours > 72;
+      // 72h transaction lock REMOVED per First Principles.
+      // Capital flows should not be artificially blocked by time passed since last yield.
+      const locked = false;
 
       return {
         locked,

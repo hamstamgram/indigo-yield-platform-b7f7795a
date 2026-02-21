@@ -8,10 +8,6 @@ import {
   Button,
   Input,
   Label,
-  Calendar,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Select,
   SelectContent,
   SelectItem,
@@ -19,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { NumericInput } from "@/components/common/NumericInput";
-import { ArrowRight, CalendarIcon, AlertTriangle, Info, Clock, Loader2 } from "lucide-react";
+import { ArrowRight, AlertTriangle, Info, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
@@ -43,10 +39,8 @@ interface YieldInputFormProps {
   setNewAUM: (value: string) => void;
   yieldPurpose: YieldPurpose;
   setYieldPurpose: (purpose: YieldPurpose) => void;
-  aumDate: Date;
-  setAumDate: (date: Date) => void;
-  datePickerOpen: boolean;
-  setDatePickerOpen: (open: boolean) => void;
+  aumDate: string; // Changed from Date to string
+  setAumDate: (date: string) => void; // Changed from Date to string
   reportingMonth: string;
   availableMonths: { value: string; label: string }[];
   handleReportingMonthChange: (month: string) => void;
@@ -73,8 +67,6 @@ export function YieldInputForm({
   setYieldPurpose,
   aumDate,
   setAumDate,
-  datePickerOpen,
-  setDatePickerOpen,
   reportingMonth,
   availableMonths,
   handleReportingMonthChange,
@@ -237,51 +229,19 @@ export function YieldInputForm({
         {!isReporting && (
           <div className="space-y-2 mb-4">
             <Label>Effective Date</Label>
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !aumDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-3" align="start">
-                <div className="flex flex-col space-y-3">
-                  <Input
-                    type="date"
-                    value={aumDate ? format(aumDate, "yyyy-MM-dd") : ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val) {
-                        const newDate = new Date(val + "T12:00:00");
-                        if (!isNaN(newDate.getTime())) {
-                          setAumDate(newDate);
-                        }
-                      }
-                    }}
-                    className="w-full"
-                  />
-                  <Calendar
-                    mode="single"
-                    selected={aumDate}
-                    onSelect={(date) => {
-                      if (date) {
-                        setAumDate(date);
-                        setDatePickerOpen(false);
-                      }
-                    }}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                    className="p-0 pointer-events-auto"
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
+            <div className="relative">
+              <Input
+                type="date"
+                value={aumDate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) {
+                    setAumDate(val);
+                  }
+                }}
+                className={cn("w-full pl-3 pr-10", !aumDate && "border-destructive")}
+              />
+            </div>
 
             {/* Time picker */}
             <div className="flex items-center gap-2 mt-2">

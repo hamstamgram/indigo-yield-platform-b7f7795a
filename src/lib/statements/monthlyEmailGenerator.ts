@@ -240,33 +240,17 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
   <!--[if mso]>
-  <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
-  <style>
-    td,th,div,p,a,h1,h2,h3,h4,h5,h6 {font-family: "Segoe UI", sans-serif !important; mso-line-height-rule: exactly;}
-  </style>
+    <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+    <style>td,th,div,p,a,h1,h2,h3,h4,h5,h6 {font-family: "Segoe UI", sans-serif !important; mso-line-height-rule: exactly;}</style>
   <![endif]-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-
   <style>
-    body, table, td, p, h1, h2 {
-      font-family: 'Montserrat', Arial, sans-serif;
-    }
-    
-    /* Print styles for PDF export */
-    @media print {
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      body {
-        background-color: #f1f5f9 !important;
-      }
-    }
-    
-    /* Responsive styles */
+    body, table, td, p, h1, h2 { font-family: 'Montserrat', Arial, sans-serif; }
     @media (max-width:600px) {
       .sm-w-full { width: 100% !important }
-      .mobile-logo { height: 22px !important; width: auto !important }
+      .mobile-logo { height: 36px !important; width: auto !important }
       .mobile-h1 { font-size: 18px !important }
       .mobile-table { font-size: 11px !important }
       .mobile-header { font-size: 10px !important; padding: 8px 6px !important }
@@ -278,26 +262,22 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
       .mobile-table { font-size: 10px !important }
       .mobile-header { font-size: 9px !important; padding: 6px 4px !important }
       .mobile-cell { font-size: 10px !important; padding: 6px 4px !important }
+      .mobile-footer-text { font-size: 9px !important; }
     }
   </style>
 </head>
-<body style="margin:0;padding:0;width:100%;background-color:#f1f5f9;" bgcolor="#f1f5f9">
-
-  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background-color:#f1f5f9;font-family:'Montserrat',Arial,sans-serif;" bgcolor="#f1f5f9">
+<body style="margin:0;padding:0;width:100%;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;background-color:#ffffff;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-family:'Montserrat',Arial,sans-serif;">
     <tr>
       <td align="center" style="padding:24px 12px;">
-
-        <!-- Centered Content Wrapper -->
         <table class="sm-w-full" role="presentation" cellpadding="0" cellspacing="0" style="width:600px;">
-
           <!-- Brand Header -->
           <tr>
-            <td style="background-color:#edf0fe; padding:20px 24px; border-radius: 10px 10px 0 0;" bgcolor="#edf0fe">
+            <td style="background-color:#edf0fe; padding:20px 24px; border-radius: 10px 10px 0 0;">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
                 <tr>
                   <td valign="middle">
-                    <img src="https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png"
-                      alt="Indigo Logo" height="24" class="mobile-logo" style="display:block;border:0;height:24px;width:auto;">
+                    <img src="https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg" alt="Indigo Logo" height="48" class="mobile-logo" style="display:block;border:0;height:48px;width:auto;">
                   </td>
                   <td valign="middle" align="right">
                     <h1 class="mobile-h1" style="margin:0;font-size:22px;line-height:1.2;color:#0f172a;font-weight:700;">Monthly Report</h1>
@@ -306,18 +286,16 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
               </table>
             </td>
           </tr>
-
           <!-- Investor Header -->
           <tr>
-            <td style="background-color:#f8fafc; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding:20px 24px;" bgcolor="#f8fafc">
+            <td style="background-color:#f8fafc; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding:20px 24px;">
               <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#334155;">Investor: ${data.investor_name}</p>
               <p style="margin:0;font-size:13px;line-height:1.5;color:#64748b;">Investor Statement for the Period Ended: <strong>${data.period_ended}</strong></p>
             </td>
           </tr>
-
-          <!-- Main Content Area -->
+          <!-- Main Content -->
           <tr>
-            <td style="padding:24px; background-color: #f8fafc; border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0; border-top: 0;" bgcolor="#f8fafc">
+            <td style="padding:24px; background-color: #f8fafc; border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0; border-top: 0;">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
 
                 ${fundSections}
@@ -325,49 +303,46 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
               </table>
             </td>
           </tr>
-
-          <!-- Footer Spacer -->
+          <!-- Footer -->
           <tr><td style="height:24px;"></td></tr>
-          
-          <!-- Disclaimer -->
           <tr>
             <td style="padding:0 24px;">
               <p class="mobile-footer-text" style="margin: 0; font-size:12px; color: #64748b; line-height: 1.6; text-align: center;">
-                This document is not an offer to sell or a solicitation of an offer to buy any securities.
+                This document is not an offer to sell or a solicitation of an offer to buy any securities. Any such offer or solicitation will be made only by means of a complete offering document and only in those jurisdictions where permitted by law.
               </p>
             </td>
           </tr>
-          
           <tr><td style="height:20px;"></td></tr>
-          
-          <!-- Social Links (text-based for universal email client compatibility) -->
           <tr>
-            <td align="center" style="font-size: 13px; font-family: 'Montserrat', Arial, sans-serif;">
-              <a href="https://www.linkedin.com/company/indigofund" target="_blank"
-                style="color: #0A66C2; text-decoration: none; font-weight: 600;">LinkedIn</a>
-              <span style="color: #64748b; padding: 0 8px;">|</span>
-              <a href="https://www.instagram.com/indigofund" target="_blank"
-                style="color: #E4405F; text-decoration: none; font-weight: 600;">Instagram</a>
-              <span style="color: #64748b; padding: 0 8px;">|</span>
-              <a href="https://twitter.com/indigofund" target="_blank"
-                style="color: #94a3b8; text-decoration: none; font-weight: 600;">X</a>
+            <td align="center">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 0 10px;">
+                    <a href="http://linkedin.com/company/indigofund" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png" alt="LinkedIn" width="24" style="border:0;">
+                    </a>
+                  </td>
+                  <td style="padding: 0 10px;">
+                    <a href="https://www.instagram.com/indigo.fund/?hl=en" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png" alt="Instagram" width="24" style="border:0;">
+                    </a>
+                  </td>
+                  <td style="padding: 0 10px;">
+                     <a href="https://x.com/indigofund_?lang=en" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png" alt="X" width="24" style="border:0;">
+                    </a>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
-          
           <tr><td style="height:20px;"></td></tr>
-          
-          <!-- Copyright -->
           <tr>
             <td align="center">
               <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size:12px; color: #94a3b8;">© ${new Date().getFullYear()} Indigo Fund. All rights reserved.</p>
-              <p class="mobile-footer-text" style="margin: 0; font-size:12px; color: #94a3b8;">
-                <a href="{{unsubscribe_url}}" target="_blank" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
-              </p>
             </td>
           </tr>
-
         </table>
-
       </td>
     </tr>
   </table>

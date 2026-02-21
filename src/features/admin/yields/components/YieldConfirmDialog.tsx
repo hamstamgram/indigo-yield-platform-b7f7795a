@@ -34,7 +34,7 @@ interface YieldConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   selectedFund: { name: string; asset: string } | null;
   yieldPurpose: "reporting" | "transaction";
-  aumDate: Date;
+  aumDate: string;
   distributionDate: Date;
   yieldPreview: YieldCalculationResult | null;
   formatValue: (value: number, asset: string) => string;
@@ -84,6 +84,13 @@ export function YieldConfirmDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Fund:</span>
                   <span className="font-medium">{selectedFund?.name}</span>
+                </div>
+                {/* Added AUM Date display */}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">AUM Date:</span>
+                  <span className="font-semibold">
+                    {aumDate ? format(new Date(aumDate + "T12:00:00"), "MMMM d, yyyy") : ""}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Purpose:</span>
