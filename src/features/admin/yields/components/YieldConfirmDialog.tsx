@@ -35,6 +35,7 @@ interface YieldConfirmDialogProps {
   selectedFund: { name: string; asset: string } | null;
   yieldPurpose: "reporting" | "transaction";
   aumDate: Date;
+  distributionDate: Date;
   yieldPreview: YieldCalculationResult | null;
   formatValue: (value: number, asset: string) => string;
   confirmationText: string;
@@ -53,6 +54,7 @@ export function YieldConfirmDialog({
   selectedFund,
   yieldPurpose,
   aumDate,
+  distributionDate,
   yieldPreview,
   formatValue,
   confirmationText,
@@ -98,7 +100,9 @@ export function YieldConfirmDialog({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Effective Date:</span>
-                  <span className="font-medium">{format(aumDate, "PPP")}</span>
+                  <span className="font-medium">
+                    {format(yieldPurpose === "transaction" ? distributionDate : aumDate, "PPP")}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Gross Yield:</span>

@@ -129,6 +129,7 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
         selectedFund={ops.selectedFund}
         yieldPurpose={ops.yieldPurpose}
         aumDate={ops.aumDate}
+        distributionDate={ops.distributionDate}
         yieldPreview={ops.yieldPreview}
         confirmationText={ops.confirmationText}
         setConfirmationText={ops.setConfirmationText}
