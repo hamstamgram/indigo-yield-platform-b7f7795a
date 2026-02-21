@@ -8,13 +8,11 @@ export * from "./yieldDistributionService";
 
 // Crystallization
 export {
-  crystallizeYieldBeforeFlow,
   finalizeMonthYield,
   getYieldEventsForFund,
   getYieldEventsForInvestor,
   getAggregatedYieldForPeriod,
   getPendingYieldEventsCount,
-  crystallizeMonthEnd,
   getInvestorCrystallizationEvents,
   type CrystallizationResult,
   type InvestorCrystallizationEvent,

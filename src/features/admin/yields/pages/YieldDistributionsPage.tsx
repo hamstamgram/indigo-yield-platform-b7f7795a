@@ -827,19 +827,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                 const sj = distribution.summary_json as {
                                                   version?: string;
                                                   opening_aum?: number;
-                                                  crystals_consolidated?: number;
-                                                  segments?: Array<{
-                                                    start: string;
-                                                    end: string;
-                                                    yield: number;
-                                                    closing_aum: number;
-                                                    seg_idx: number;
-                                                    skipped: boolean;
-                                                    investors: number;
-                                                  }>;
                                                 } | null;
                                                 if (!sj?.version) return null;
-                                                const seg = sj.segments?.[0];
+
                                                 return (
                                                   <>
                                                     <div className="border-t border-border my-2" />
@@ -862,18 +852,18 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                         />
                                                       </div>
                                                     )}
-                                                    {seg && (
+                                                    {distribution.recorded_aum != null && (
                                                       <div className="flex justify-between">
                                                         <span className="text-muted-foreground">
-                                                          Closing AUM
+                                                          Recorded AUM
                                                         </span>
                                                         <FinancialValue
-                                                          value={seg.closing_aum}
+                                                          value={distribution.recorded_aum}
                                                           asset={fund?.asset}
                                                         />
                                                       </div>
                                                     )}
-                                                    {seg &&
+                                                    {distribution.recorded_aum != null &&
                                                       sj.opening_aum != null &&
                                                       sj.opening_aum > 0 && (
                                                         <div className="flex justify-between">
@@ -882,7 +872,8 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </span>
                                                           <span>
                                                             {formatPercentage(
-                                                              ((seg.closing_aum - sj.opening_aum) /
+                                                              ((Number(distribution.recorded_aum) -
+                                                                sj.opening_aum) /
                                                                 sj.opening_aum) *
                                                                 100,
                                                               2
@@ -890,22 +881,6 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </span>
                                                         </div>
                                                       )}
-                                                    {(sj.segments?.length ?? 0) > 1 && (
-                                                      <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">
-                                                          Segments
-                                                        </span>
-                                                        <span>{sj.segments?.length}</span>
-                                                      </div>
-                                                    )}
-                                                    {(sj.crystals_consolidated ?? 0) > 0 && (
-                                                      <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">
-                                                          Crystals Consolidated
-                                                        </span>
-                                                        <span>{sj.crystals_consolidated}</span>
-                                                      </div>
-                                                    )}
                                                   </>
                                                 );
                                               })()}

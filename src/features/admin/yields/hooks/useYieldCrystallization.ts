@@ -6,7 +6,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  crystallizeYieldBeforeFlow,
   finalizeMonthYield,
   getYieldEventsForFund,
   getYieldEventsForInvestor,
@@ -199,68 +198,6 @@ export function useInvestorCrystallizationEvents(
     enabled: enabled && !!fundId && !!periodStart && !!periodEnd,
   });
   return { data: query.data, isLoading: query.isLoading };
-}
-
-/**
- * Hook to manually crystallize yield
- * Enhanced with type validation (2026-01-13)
- */
-export function useCrystallizeYield() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({
-      fundId,
-      triggerType,
-      eventTs,
-      closingAum,
-      triggerReference,
-    }: {
-      fundId: string;
-      triggerType: "deposit" | "withdrawal" | "month_end" | "manual";
-      eventTs: Date;
-      closingAum: string;
-      triggerReference?: string;
-    }) => {
-      // Input validation
-      if (!fundId || !fundId.match(/^[0-9a-f-]{36}$/i)) {
-        throw new Error("Invalid fund ID format");
-      }
-      if (!closingAum || isNaN(parseFloat(closingAum))) {
-        throw new Error("Invalid closing AUM value");
-      }
-
-      const rawResult = await crystallizeYieldBeforeFlow(
-        fundId,
-        triggerType,
-        eventTs,
-        closingAum,
-        triggerReference,
-        user?.id
-      );
-
-      // Validate response structure and success status
-      return validateCrystallizationResult(rawResult);
-    },
-    onSuccess: (result) => {
-      const grossYield = result.gross_yield ?? "0";
-      const txCount = result.yield_tx_count ?? 0;
-      if (txCount === 0) {
-        toast.info(`No yield to crystallize (gross_yield=${grossYield})`);
-      } else {
-        toast.success(`Yield crystallized (${txCount} YIELD transactions)`);
-      }
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundYieldEvents() });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorYieldEventsAdmin() });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingYieldEvents() });
-    },
-    onError: (error: Error) => {
-      logError("useCrystallizeYield", error);
-      toast.error(error.message || "Failed to crystallize yield");
-    },
-  });
 }
 
 /**

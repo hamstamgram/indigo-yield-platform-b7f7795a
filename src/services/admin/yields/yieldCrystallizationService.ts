@@ -45,38 +45,6 @@ export interface YieldEvent {
 // YieldSnapshot interface removed — fund_yield_snapshots table was dropped in P1-03
 
 /**
- * Crystallize yield before a capital flow (deposit/withdrawal)
- */
-export async function crystallizeYieldBeforeFlow(
-  fundId: string,
-  triggerType: "deposit" | "withdrawal" | "month_end" | "manual",
-  eventTs: Date,
-  closingAum: string,
-  triggerReference?: string,
-  adminId?: string
-): Promise<CrystallizationResult> {
-  // Parameter order matches database function signature:
-  // crystallize_yield_before_flow(p_fund_id, p_closing_aum, p_trigger_type,
-  //   p_trigger_reference, p_event_ts, p_admin_id, p_purpose)
-  const { data, error } = await callRPC("crystallize_yield_before_flow", {
-    p_fund_id: fundId, // 1. uuid
-    p_closing_aum: parseFinancial(closingAum).toString() as unknown as number, // 2. numeric - string for precision
-    p_trigger_type: triggerType, // 3. text
-    p_trigger_reference: triggerReference || null, // 4. text (nullable)
-    p_event_ts: eventTs.toISOString(), // 5. timestamptz
-    p_admin_id: adminId || null, // 6. uuid (nullable)
-    p_purpose: "transaction", // 7. aum_purpose enum
-  });
-
-  if (error) {
-    logError("crystallizeYieldBeforeFlow", error, { fundId, triggerType });
-    throw new Error(error.message);
-  }
-
-  return data as unknown as CrystallizationResult;
-}
-
-/**
  * Finalize month yield - make yield events visible to investors
  */
 export async function finalizeMonthYield(
@@ -354,29 +322,4 @@ export async function getPendingYieldEventsCount(
       .toNumber() || 0;
 
   return { count, totalYield };
-}
-
-/**
- * Crystallize month-end yield for a fund
- * Crystallizes yield for all positions at month end
- */
-export async function crystallizeMonthEnd(
-  fundId: string,
-  monthEndDate: Date,
-  closingAum: string,
-  adminId: string
-): Promise<CrystallizationResult> {
-  const { data, error } = await callRPC("crystallize_month_end", {
-    p_fund_id: fundId,
-    p_month_end_date: formatDateForDB(monthEndDate),
-    p_closing_aum: parseFinancial(closingAum).toString() as unknown as number,
-    p_admin_id: adminId,
-  });
-
-  if (error) {
-    logError("crystallizeMonthEnd", error, { fundId, monthEndDate: monthEndDate.toISOString() });
-    throw new Error(error.message);
-  }
-
-  return data as unknown as CrystallizationResult;
 }
