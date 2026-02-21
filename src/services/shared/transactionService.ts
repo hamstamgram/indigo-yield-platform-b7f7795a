@@ -186,9 +186,6 @@ export async function createTransactionWithCrystallization(
 
     // For DEPOSIT/WITHDRAWAL, use crystallize-before-flow RPCs (no manual position writes).
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
-      // closing_aum is now optional — when not provided, pass 0 (no crystallization)
-      const closingAumValue = params.closing_aum ? parseFloat(String(params.closing_aum)) : 0;
-
       // Generate unique trigger reference client-side (idempotency key)
       const triggerReferenceRaw =
         params.reference_id ||
@@ -202,7 +199,6 @@ export async function createTransactionWithCrystallization(
         p_amount: String(params.amount) as unknown as number,
         p_tx_date: params.tx_date,
         p_reference_id: triggerReference,
-        p_new_total_aum: closingAumValue,
         p_admin_id: user.id,
         p_notes: params.notes || `${dbType} - ${triggerReference}`,
         p_purpose: "transaction",
@@ -282,9 +278,6 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // closingAum is now optional — when not provided, pass 0 (no crystallization)
-  const closingAumValue = params.closingAum ? parseFloat(String(params.closingAum)) : 0;
-
   const today = getTodayString();
 
   // Generate unique trigger reference to prevent duplicates
@@ -297,7 +290,6 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
     p_amount: String(params.amount) as unknown as number,
     p_tx_date: today,
     p_reference_id: triggerReference,
-    p_new_total_aum: closingAumValue,
     p_admin_id: user.id,
     p_notes: params.description || `${params.type} - ${triggerReference}`,
     p_purpose: "transaction",

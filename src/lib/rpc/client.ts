@@ -206,8 +206,8 @@ export async function deposit(params: {
   investorId: string;
   /** Amount as string for NUMERIC precision */
   amount: string;
-  /** Closing AUM as string for NUMERIC precision */
-  closingAum: string;
+  /** Optional Closing AUM as string for NUMERIC precision. Pass null or omit to disable crystallization. */
+  closingAum?: string | null;
   txDate: string;
   adminId: string;
   referenceId: string;
@@ -221,7 +221,9 @@ export async function deposit(params: {
     p_amount: parseFloat(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: parseFloat(params.closingAum),
+    p_new_total_aum: params.closingAum
+      ? parseFloat(params.closingAum)
+      : (null as unknown as number),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,
@@ -233,8 +235,8 @@ export async function withdrawal(params: {
   investorId: string;
   /** Amount as string for NUMERIC precision */
   amount: string;
-  /** New total AUM as string for NUMERIC precision */
-  newTotalAum: string;
+  /** Optional New total AUM as string for NUMERIC precision. Pass null or omit to disable crystallization. */
+  newTotalAum?: string | null;
   txDate: string;
   adminId: string;
   referenceId: string;
@@ -248,7 +250,9 @@ export async function withdrawal(params: {
     p_amount: parseFloat(params.amount),
     p_tx_date: params.txDate,
     p_reference_id: params.referenceId,
-    p_new_total_aum: parseFloat(params.newTotalAum),
+    p_new_total_aum: params.newTotalAum
+      ? parseFloat(params.newTotalAum)
+      : (null as unknown as number),
     p_admin_id: params.adminId,
     p_notes: params.notes,
     p_purpose: params.purpose,

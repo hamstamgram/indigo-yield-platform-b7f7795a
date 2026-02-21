@@ -8,8 +8,7 @@ import { parseFinancial } from "@/utils/financial";
 
 export const investmentService = {
   /**
-   * Create investment using crystallize-before-flow accounting.
-   * NOTE: Requires an authoritative new total AUM snapshot (p_new_total_aum).
+   * Create investment using standard transaction logic.
    */
   async createInvestment(data: InvestmentFormData) {
     const {
@@ -23,13 +22,6 @@ export const investmentService = {
     // Map transaction type
     const type = data.transaction_type === "redemption" ? "WITHDRAWAL" : "DEPOSIT";
     const amountDec = parseFinancial(data.amount).abs();
-
-    const closingAum = data.closing_aum;
-    if (!closingAum) {
-      throw new Error(
-        "closing_aum is required to apply an investment (crystallize-before-flow). Provide the authoritative AUM snapshot for this event."
-      );
-    }
 
     // Get fund asset for transaction record
     const { data: fund } = await supabase
@@ -55,7 +47,6 @@ export const investmentService = {
       p_amount: amountDec.toString() as unknown as number,
       p_tx_date: txDate,
       p_reference_id: triggerReference,
-      p_new_total_aum: parseFinancial(closingAum).toString() as unknown as number,
       p_admin_id: user.id,
       p_notes: `${type === "DEPOSIT" ? "Investment" : "Redemption"} - ${triggerReference}`,
       p_purpose: "transaction",

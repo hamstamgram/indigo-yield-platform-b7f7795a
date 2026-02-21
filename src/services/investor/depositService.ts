@@ -159,11 +159,6 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
   const txDate = formData.tx_date || getTodayString();
 
   const closingAum = formData.closing_aum;
-  if (!closingAum) {
-    throw new Error(
-      "closing_aum is required to apply a deposit (crystallize-before-flow). Provide the authoritative AUM snapshot for this event."
-    );
-  }
 
   const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${generateUUID()}`;
 
@@ -181,7 +176,9 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
     p_amount: String(amount) as unknown as number,
     p_tx_date: txDate,
     p_reference_id: triggerReference,
-    p_new_total_aum: String(closingAum) as unknown as number,
+    p_new_total_aum: closingAum
+      ? (String(closingAum) as unknown as number)
+      : (null as unknown as number),
     p_admin_id: user.id,
     p_notes: `Deposit - ${triggerReference}`,
     p_purpose: "transaction",
