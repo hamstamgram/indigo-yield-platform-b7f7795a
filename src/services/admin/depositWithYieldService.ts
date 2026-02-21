@@ -158,7 +158,6 @@ export async function processDepositWithYield(
       p_amount: amountDec.toString() as unknown as number,
       p_tx_date: txDate,
       p_reference_id: triggerReference,
-      p_new_total_aum: closingAumBeforeDeposit.toString() as unknown as number,
       p_admin_id: user.id,
       p_notes: notes || `Deposit with yield crystallization - ${triggerReference}`,
       p_purpose: "transaction",

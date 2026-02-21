@@ -1,426 +1,403 @@
-# Indigo Platform: Testing, Consolidation, and IB Cleanup Plan
-
-> **Priority Order:** Testing → Service Consolidation → IB Cleanup
-> **Timeline:** No deadline ("when it's done")
-> **Executor:** Solo founder
-> **Process:** Verify locally, then push to git
+# CTO Implementation Plan: Yield Engine Stabilization & Restore
+**Date:** Feb 21, 2026
+**Author:** CTO
+**Status:** AWAITING APPROVAL
 
 ---
 
-## Workstream 1: Yield Engine Testing (CRITICAL)
+## 1. Executive Summary
 
-### Goal
-Add integration tests for the actual yield RPCs and database triggers - not just formula unit tests.
+The platform is in a broken state following Friday (Feb 20, 2026) changes that introduced three overlapping problems:
 
-### Setup: Local Supabase Instance
+**Problem 1 — Dead table reference.** Both `apply_segmented_yield_distribution_v5` and `preview_segmented_yield_distribution_v5` LEFT JOIN `fund_aum_events` for crystallization segment detection. That table was dropped on Friday. Every yield preview/apply call will throw a runtime error.
 
-```bash
-# Install Supabase CLI if not present
-brew install supabase/tap/supabase
+**Problem 2 — Unwanted auto-crystallization.** The current `apply_transaction_with_crystallization` (from `20260301_deep_fix_aum_unification.sql`) calls `crystallize_yield_before_flow` whenever `p_new_total_aum IS NOT NULL`. The confirmed architecture is: NO auto-crystallization. Admin manually records transaction-purpose yield before deposits/withdrawals.
 
-# Initialize local instance (run from project root)
-cd ~/indigo-yield-platform-v01
-supabase init  # if not already done
-supabase start
+**Problem 3 — Frontend breakage.** Several files were rewritten on Friday (swapping `useFundAumAsOf` for `useYieldAumAsOf`, adding `reconResult`, etc.) while leaving others partially restored, creating type mismatches and inconsistent state.
 
-# Apply migrations to local instance
-supabase db reset  # applies all migrations fresh
-```
-
-**Deliverable:** Local Supabase running with full schema, RPCs, and triggers.
+**The fix:** One forward SQL migration replacing the broken engine with flat position-proportional logic, plus surgical frontend edits to restore the Thursday night baseline while keeping the IB schedule consolidation and the new yield UI components (GlobalYieldFlow, YieldConfirmDialog, yieldAumService).
 
 ---
 
-### Phase 1A: SQL/RPC Integration Tests (10 scenarios)
+## 2. Baseline & Scope
 
-Create: `tests/integration/yield-engine/`
+### 2.1 Last Known Good State
+- **Git commit**: `a8d74935` (Thu Feb 19, 21:06 UTC) — verified working baseline
+- **Live Supabase DB**: ALL migrations through `20260301_deep_fix_aum_unification.sql` are applied
+- `fund_aum_events` table is **permanently dropped** — new engine must NOT reference it
+- `profiles.fee_pct` and `profiles.ib_percentage` columns are **dropped** — use schedule functions
 
-| # | Scenario | Test File | Key Assertions |
-|---|----------|-----------|----------------|
-| 1 | Mid-period deposit | `adb-mid-deposit.test.ts` | Investor depositing day 15/30 gets 50% ADB weight |
-| 2 | Mid-period withdrawal | `adb-mid-withdrawal.test.ts` | Withdrawing investor's ADB reflects partial period |
-| 3 | Crystallization timing | `crystallization-before-flow.test.ts` | Yield distributed before deposit doesn't credit new funds |
-| 4 | Multi-investor split | `multi-investor-adb.test.ts` | Sum of all investor yields = gross yield |
-| 5 | IB commission waterfall | `ib-commission-waterfall.test.ts` | IB gets % of gross, INDIGO gets remainder |
-| 6 | Zero-balance investor | `zero-balance-exclusion.test.ts` | Investor with 0 balance gets 0 yield |
-| 7 | Dust accumulation | `dust-to-fees.test.ts` | Rounding residuals credited to fees_account |
-| 8 | Void distribution cascade | `void-distribution.test.ts` | Voiding cascades to yield_allocations, fee_allocations, ib_allocations, transactions_v2 |
-| 9 | Large numbers precision | `numeric-precision.test.ts` | NUMERIC(28,10) preserved through full flow |
-| 10 | Fee override hierarchy | `fee-hierarchy.test.ts` | Custom fee > schedule > fund default |
+### 2.2 What We Are Restoring vs Keeping
 
-**Test Pattern (each file):**
+| Concern | Action |
+|---------|--------|
+| V5 yield engine (SQL) | REWRITE with flat position-proportional logic |
+| Auto-crystallization on deposit | REMOVE — admin manually records transaction yield |
+| `YieldDistributionsPage.tsx` | Already at a8d74935 (no diff found — verify) |
+| `useYieldOperationsState.ts` | Targeted edit (restore dual-AUM fallback, remove reconResult) |
+| `depositWithYieldService.ts` | Remove `p_new_total_aum` from RPC call |
+| `GlobalYieldFlow.tsx` | KEEP (new Friday component) |
+| `YieldConfirmDialog.tsx` | KEEP (new Friday component) |
+| `useYieldAumAsOf.ts` | KEEP (new Friday hook) |
+| `yieldAumService.ts` | KEEP (new Friday service) |
+| `YieldInputForm.tsx` | KEEP with Friday AUM reconciliation improvements |
+| `FundSnapshotCard.tsx` | KEEP HEAD (better fallback behavior) |
+| `dashboardMetricsService.ts` | KEEP HEAD (real historical AUM data) |
+| `aumReconciliationService.ts` | KEEP HEAD (verify pre-flight) |
+| `queryKeys.ts` | KEEP HEAD (required by kept hooks) |
+| IB/fee schedule consolidation (5278315c) | KEEP ALL (all 8 files) |
+| IB activation dates migration | KEEP (already in DB) |
 
-```typescript
-import { createClient } from '@supabase/supabase-js';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+---
 
-const supabase = createClient(
-  process.env.SUPABASE_LOCAL_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+## 3. Pre-Flight Checks
 
-describe('Yield Engine: [Scenario Name]', () => {
-  beforeAll(async () => {
-    // Seed test data: fund, investors, positions, AUM
-  });
+Run these **before applying any migration**. Re-authenticate Supabase MCP first, or use the SQL editor in the Supabase dashboard.
 
-  afterAll(async () => {
-    // Clean up test data
-  });
-
-  it('should [expected behavior]', async () => {
-    // Call RPC: apply_adb_yield_distribution_v3
-    // Assert: conservation identity holds
-    // Assert: investor positions updated correctly
-    // Assert: audit_log entries created
-  });
-});
-```
-
-**Conservation Identity (assert in every test):**
+### 3.1 Confirm fund_aum_events is dropped
 ```sql
--- Must always hold
-SELECT 
-  gross_yield_amount = (
-    total_net_amount + total_fee_amount + total_ib_amount + dust_amount
-  ) AS conservation_holds
-FROM yield_distributions
-WHERE id = :distribution_id;
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public' AND table_name = 'fund_aum_events';
+-- Expected: 0 rows
+```
+
+### 3.2 Confirm profiles columns are gone
+```sql
+SELECT column_name FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'profiles'
+  AND column_name IN ('fee_pct', 'ib_percentage');
+-- Expected: 0 rows
+```
+
+### 3.3 Confirm schedule functions exist
+```sql
+SELECT routine_name FROM information_schema.routines
+WHERE routine_schema = 'public'
+  AND routine_name IN ('get_investor_fee_pct', 'get_investor_ib_pct', '_resolve_investor_fee_pct');
+-- Expected: 3 rows
+```
+
+### 3.4 Check current V5 function signatures
+```sql
+SELECT p.proname, pg_get_function_arguments(p.oid) as args
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.proname IN (
+    'apply_segmented_yield_distribution_v5',
+    'preview_segmented_yield_distribution_v5',
+    'apply_transaction_with_crystallization',
+    'crystallize_yield_before_flow',
+    'get_fund_aum_as_of',
+    'check_aum_reconciliation'
+  )
+ORDER BY p.proname;
+```
+
+### 3.5 Confirm fund_daily_aum partial index format
+```sql
+SELECT indexname, indexdef FROM pg_indexes
+WHERE tablename = 'fund_daily_aum' AND indexdef ILIKE '%is_voided%';
+-- Document exact ON CONFLICT predicate — needed for migration
+```
+
+### 3.6 Check integrity views for existing violations
+```sql
+SELECT 'ledger_reconciliation' as check_name, COUNT(*) FROM v_ledger_reconciliation
+UNION ALL
+SELECT 'yield_conservation', COUNT(*)
+FROM yield_distribution_conservation_check
+WHERE gross_yield_amount IS NOT NULL;
+-- Expected: all 0. Document any existing violations before proceeding.
+```
+
+### 3.7 Capture current function definitions for rollback
+```sql
+SELECT p.proname, pg_get_functiondef(p.oid) as definition
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.proname IN (
+    'apply_segmented_yield_distribution_v5',
+    'preview_segmented_yield_distribution_v5',
+    'apply_transaction_with_crystallization'
+  );
+-- Save this output as rollback_v5_functions.sql before proceeding
+```
+
+### 3.8 Critical: Check _resolve_investor_fee_pct for dropped column reference
+```sql
+SELECT pg_get_functiondef(p.oid)
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public' AND p.proname = '_resolve_investor_fee_pct';
+-- Look for any SELECT fee_pct FROM profiles reference — if present, new migration must fix this
 ```
 
 ---
 
-### Phase 1B: E2E Flow Tests (7 scenarios)
+## 4. Phase 1: SQL Forward Migration
 
-Create: `tests/e2e/yield-flows/`
+**Migration file:** `supabase/migrations/20260302_flat_yield_engine_no_auto_crystal.sql`
 
-| # | Flow | Test File | User Journey |
-|---|------|-----------|--------------|
-| 1 | Apply yield distribution | `admin-apply-yield.spec.ts` | Admin: preview → apply → verify success toast |
-| 2 | Deposit with crystallization | `admin-deposit-crystallize.spec.ts` | Admin: new transaction → deposit → verify crystallization happened |
-| 3 | Withdrawal with crystallization | `admin-withdrawal-crystallize.spec.ts` | Admin: new transaction → withdrawal → verify crystallization |
-| 4 | Void yield distribution | `admin-void-yield.spec.ts` | Admin: find distribution → void → verify cascade |
-| 5 | Void transaction | `admin-void-transaction.spec.ts` | Admin: find transaction → void → verify position recalc |
-| 6 | Investor yield history | `investor-yield-history.spec.ts` | Investor: login → yield history → amounts match DB |
-| 7 | Investor statements | `investor-statements.spec.ts` | Investor: login → statements → numbers reconcile |
+### 4.1 Architecture: Flat Position-Proportional Engine
 
-**E2E Test Pattern:**
+The confirmed engine logic (validated against the SOL scenario):
 
-```typescript
-import { test, expect } from '@playwright/test';
-import { adminLogin, investorLogin } from '../fixtures/auth';
-import { seedYieldScenario, cleanupScenario } from '../fixtures/yield';
-
-test.describe('Admin: Apply Yield Distribution', () => {
-  test.beforeAll(async () => {
-    await seedYieldScenario('basic-multi-investor');
-  });
-
-  test.afterAll(async () => {
-    await cleanupScenario('basic-multi-investor');
-  });
-
-  test('should preview and apply yield distribution', async ({ page }) => {
-    await adminLogin(page);
-    await page.goto('/admin/yield');
-    
-    // Select fund, date range
-    // Click preview
-    // Verify preview shows correct breakdown
-    // Click apply
-    // Verify success
-    // Navigate to investor and verify yield credited
-  });
-});
 ```
+gross_yield  = p_recorded_aum - SUM(investor_positions.current_value WHERE is_active = true)
+share        = investor_position.current_value / SUM_all_active_positions
+gross_share  = gross_yield * share
+fee_amount   = gross_share * get_investor_fee_pct(investor_id, fund_id, tx_date) / 100
+ib_amount    = gross_share * get_investor_ib_pct(investor_id, fund_id, tx_date) / 100
+net_amount   = gross_share - fee_amount - ib_amount
+
+-- For negative yield months: fee=0, ib=0, net=gross_share (loss absorbed proportionally)
+-- Conservation: SUM(all_gross) = SUM(all_net) + SUM(all_fee) + SUM(all_ib) + dust
+```
+
+**Validation against SOL scenario:**
+- INDIGO LP: 1250/1250 = 100% of Sep 4 transaction yield → +2 SOL (gross=net, 0% fee) ✓
+- INDIGO LP: 1252/1486.17 = 84.25% of Sep 30 gross → +11.65 SOL ✓
+- Paul Johnson: 234.17/1486.17 = 15.75% → gross=2.177, fee=0.294 (13.5%), ib=0.033 (1.5%), net=1.85 ✓
+- Conservation: 11.65 + 1.85 + 0.294 + 0.033 = 13.827 ≈ 13.83 ✓
+
+### 4.2 Function 1: apply_transaction_with_crystallization
+
+**Change:** Remove the auto-crystallization branch. Keep `p_new_total_aum` as a parameter that RAISES an error if passed (intentional guard, not silent removal).
+
+Key behaviors:
+- Auth check via `is_admin()`
+- Guard: if `p_new_total_aum IS NOT NULL`, raise descriptive exception
+- Idempotency: check `reference_id` before inserting
+- Advisory lock on `hashtext(investor_id || fund_id)`
+- YIELD transactions get `visibility_scope = investor_visible` when `purpose = 'reporting'`, else `admin_only`
+- AUM sync: after insert, `SUM(current_value)` → upsert `fund_daily_aum` with `source = 'tx_sync'`
+- `fund_daily_aum` ON CONFLICT must use exact partial index predicate (from pre-flight 3.5)
+
+### 4.3 Function 2: apply_segmented_yield_distribution_v5 (Core Engine)
+
+**Full replacement.** Name preserved to avoid breaking TypeScript call sites. Removes ALL segment/crystallization/fund_aum_events logic.
+
+**Algorithm:**
+```
+1.  Auth + canonical_rpc config
+2.  Load fund; get fees_account_id
+3.  Period: period_start = date_trunc('month', p_period_end); period_end = p_period_end
+4.  Advisory lock on (fund_id || period_end)
+5.  Uniqueness: raise if non-voided reporting distribution exists for fund + period_end
+6.  v_tx_date = COALESCE(p_distribution_date, p_period_end)
+7.  Read live positions: v_opening_aum = SUM(current_value) WHERE fund_id AND is_active
+8.  gross_yield = p_recorded_aum - v_opening_aum
+9.  Create yield_distributions header (totals = 0; update at step 16)
+    calculation_method = 'flat_position_proportional_v6'
+10. FOR EACH active investor position in this fund:
+      share = ip.current_value / v_opening_aum
+      gross = ROUND(gross_yield * share, 10)
+      IF gross_yield < 0: fee=0; ib=0; net=gross  (loss month)
+      ELSE:
+        fee_pct = get_investor_fee_pct(investor_id, fund_id, v_tx_date)
+        ib_rate = get_investor_ib_pct(investor_id, fund_id, v_tx_date)
+        fee = ROUND(gross * fee_pct / 100, 10)
+        ib  = ROUND(gross * ib_rate / 100, 10)
+        net = gross - fee - ib
+      Accumulate totals
+11. Dust = gross_yield - SUM(per-investor gross) → routes to fees_account
+12. FOR EACH investor allocation:
+      - Call apply_transaction_with_crystallization: YIELD tx, amount=net, purpose=p_purpose
+      - Insert yield_allocations row (adb_share=share, net_amount=net, ...)
+      - Insert fee_allocations row if fee > 0
+      - If IB: call apply_transaction_with_crystallization: IB_CREDIT tx, amount=ib
+               Insert ib_commission_ledger row
+13. FEE_CREDIT tx to fees_account for SUM(all_fees)
+14. If purpose='reporting': auto-set ib_allocations.payout_status='paid'
+15. If dust > 0: YIELD tx to fees_account for dust amount
+16. Update yield_distributions header with final totals
+17. Upsert fund_daily_aum: source='yield_engine', purpose=p_purpose
+    ON CONFLICT (fund_id, aum_date, purpose) WHERE (is_voided = false)
+18. Audit log entry
+19. Conservation check; return jsonb result
+```
+
+### 4.4 Function 3: preview_segmented_yield_distribution_v5
+
+Same algorithm as apply_segmented but **read-only** — no INSERTs, no advisory locks, no audit log. Returns same jsonb shape that TypeScript `yieldPreviewService.ts` maps to `V5YieldRPCResult`.
+
+**Before writing this function:** read `src/types/domains/yield.ts` to confirm the field names in `V5AllocationItem` and `V5YieldRPCResult`. The return jsonb must match exactly.
+
+### 4.5 crystallize_yield_before_flow: No Changes
+
+Leave as-is. Add comment: `-- NOTE: No longer called automatically (Feb 21, 2026). Must be called explicitly by admin.`
 
 ---
 
-### Phase 1C: CI Integration
+## 5. Phase 2: Frontend Surgical Edits
 
-Update `.github/workflows/test.yml`:
+### 5.1 FIRST: Audit GlobalYieldFlow.tsx for reconResult
 
-```yaml
-jobs:
-  unit-tests:
-    # existing unit tests
-    
-  integration-tests:
-    runs-on: ubuntu-latest
-    services:
-      supabase:
-        # Use Supabase local or test project
-    steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-      - run: supabase start
-      - run: supabase db reset
-      - run: pnpm test:integration
-      
-  e2e-tests:
-    needs: [unit-tests, integration-tests]
-    # existing e2e setup
-```
+Before touching `useYieldOperationsState.ts`, read `GlobalYieldFlow.tsx` and check:
+- Does it destructure `reconResult` or `reconLoading` from the hook?
+- If yes: keep `useAUMReconciliation` in the hook return, but make it non-blocking
+- If no: safely remove `reconResult` from the hook's return object
 
----
+### 5.2 `src/hooks/data/admin/useYieldOperationsState.ts` — TARGETED EDIT
 
-### Deliverables - Workstream 1
+Restore the Thursday night dual-AUM fallback pattern:
+- Replace `useYieldAumAsOf` with `useFundAumAsOf` (from `@/features/admin/funds/hooks/useFundAumAsOf`)
+- Restore: fetch reporting-purpose AUM first; fall back to transaction-purpose AUM
+- Keep: `yieldPurpose` defaults to `'reporting'` when dialog opens
+- Keep: `distributionDate` defaults to last day of month
+- Remove: `reconResult`/`reconLoading` from return object (if GlobalYieldFlow audit confirms safe)
 
-- [ ] Local Supabase instance configured and documented
-- [ ] 10 SQL/RPC integration tests (all passing)
-- [ ] 7 E2E flow tests (all passing)
-- [ ] CI pipeline updated to run integration tests
-- [ ] All tests green before proceeding to Workstream 2
+### 5.3 `src/services/admin/depositWithYieldService.ts` — REMOVE PARAMETER
 
----
+Remove `p_new_total_aum` from the `callRPC("apply_transaction_with_crystallization", {...})` call. This prevents the new guard from raising an error on deposits.
 
-## Workstream 2: Service Layer Consolidation
-
-### Goal
-Reduce 90+ service files to ~25 domain services using conservative facade pattern.
-
-### Approach: Conservative (no breaking changes)
-
-1. Create domain facades that re-export from existing files
-2. Update new code to use facades
-3. Mark old imports as deprecated (JSDoc)
-4. DO NOT delete or move existing files yet
-
-### Target Domain Structure
-
-```
-services/
-  domains/
-    yield/
-      index.ts              # Facade: re-exports from files below
-      distribution.ts       # Consolidates: yieldDistributionService, yieldRecordsService
-      allocation.ts         # Consolidates: yieldAllocationService, feeAllocationService
-      preview.ts            # Consolidates: previewService parts
-    
-    transactions/
-      index.ts              # Facade
-      ledger.ts             # Consolidates: transactionService, transactionsV2Service
-      deposits.ts           # Consolidates: depositService parts
-      withdrawals.ts        # Consolidates: withdrawalService, approvalService
-    
-    investors/
-      index.ts              # Facade
-      profiles.ts           # Consolidates: profileService, investorProfileService
-      positions.ts          # Consolidates: investorPositionService, positionService
-      portfolio.ts          # Consolidates: portfolioService, investorPortfolioService
-    
-    funds/
-      index.ts              # Facade
-      management.ts         # Consolidates: fundService, fundManagementService
-      aum.ts                # Consolidates: aumService, fundAumService
-    
-    fees/
-      index.ts              # Facade
-      calculations.ts       # Consolidates: feeService, feeCalculationService
-      allocations.ts        # Consolidates: feeAllocationService
-    
-    ib/
-      index.ts              # Facade
-      commissions.ts        # Consolidates: ibService, ibCommissionService
-      allocations.ts        # Consolidates: ibAllocationService
-    
-    reports/
-      index.ts              # Facade
-      statements.ts         # Consolidates: statementService, reportService
-      generation.ts         # Consolidates: pdfGenerator, excelGenerator
-    
-    admin/
-      index.ts              # Facade
-      stats.ts              # Consolidates: adminStatsService, dashboardService
-      audit.ts              # Consolidates: auditLogService, integrityService
-    
-    auth/
-      index.ts              # Facade (mostly unchanged)
-    
-    notifications/
-      index.ts              # Facade (mostly unchanged)
-```
-
-### Facade Pattern Example
-
-```typescript
-// services/domains/yield/index.ts
-
-// Re-export from existing files (no breaking changes)
-export * from '../../admin/yieldDistributionService';
-export * from '../../admin/yieldRecordsService';
-export * from '../../admin/yieldAllocationService';
-
-// New consolidated functions (use these going forward)
-export { 
-  previewYieldDistribution,
-  applyYieldDistribution,
-  voidYieldDistribution,
-  getYieldHistory,
-} from './distribution';
-
-// Deprecation notice
-/** @deprecated Use `import { ... } from '@/services/domains/yield'` instead */
-export const MIGRATION_NOTICE = 'This module is being consolidated. Update imports.';
-```
-
-### Migration Steps
-
-1. **Audit:** Map all 90+ files to target domains
-2. **Create facades:** One domain at a time, starting with `yield/`
-3. **Update new code:** All new features use domain imports
-4. **Add deprecation comments:** Mark old direct imports
-5. **Track usage:** `grep` for old import paths, track in migration doc
-6. **Future cleanup:** (Out of scope) Delete old files when usage hits zero
-
----
-
-### Deliverables - Workstream 2
-
-- [ ] Domain facade structure created (`services/domains/`)
-- [ ] 10 domain facades with re-exports
-- [ ] Migration guide documenting old → new imports
-- [ ] No breaking changes to existing code
-- [ ] All tests still passing
-
----
-
-## Workstream 3: IB Portal Cleanup
-
-### Goal
-Remove dead IB portal code. Keep commission engine (it's working and earning).
-
-### What to REMOVE
-
-```
-src/pages/ib/                    # All IB portal pages (already redirecting)
-src/features/ib/                 # IB-specific components (if unused)
-src/components/ib/               # IB-specific UI (if unused)
-src/hooks/useIB*.ts              # IB portal hooks (verify unused first)
-```
-
-### What to KEEP
-
-```
-src/services/ib/                 # Commission calculation (KEEP - earning money)
-src/services/admin/ibUsersService.ts  # Admin IB management (KEEP)
-Database: ib_allocations         # IB commission records (KEEP)
-Database: ib_commission_ledger   # Commission ledger (KEEP)
-RPC: IB-related yield logic      # In apply_adb_yield_distribution_v3 (KEEP)
-profiles.ib_parent_id            # Investor-IB linkage (KEEP)
-profiles.ib_percentage           # Commission rate (KEEP)
-```
-
-### Cleanup Steps
-
-1. **Audit imports:** Find all references to IB portal code
-   ```bash
-   grep -r "from.*ib/" src/ --include="*.ts" --include="*.tsx"
-   grep -r "IBPortal\|IBDashboard\|useIB" src/
-   ```
-
-2. **Verify redirects work:** All `/ib/*` routes redirect to `/investor`
-
-3. **Remove dead code:**
-   - Delete unused IB portal pages
-   - Delete unused IB components
-   - Delete unused IB hooks
-   - Keep everything that touches commission calculation
-
-4. **Update route config:** Clean up IB route definitions (keep redirects for bookmarks)
-
-5. **Run tests:** Verify nothing broke
-
----
-
-### Deliverables - Workstream 3
-
-- [ ] IB portal pages deleted
-- [ ] IB-specific components deleted (if unused)
-- [ ] Commission engine untouched and tested
-- [ ] All IB routes still redirect properly
-- [ ] All tests passing
-- [ ] ~15% codebase reduction
-
----
-
-## Execution Order
-
-```
-Week 1-2: Workstream 1A (SQL/RPC tests)
-  - Set up local Supabase
-  - Implement 10 yield scenarios
-  - All integration tests green
-
-Week 3: Workstream 1B (E2E tests)
-  - Implement 7 flow tests
-  - Update CI pipeline
-  - All E2E tests green
-
-Week 4: Workstream 2 (Consolidation)
-  - Create domain facades
-  - Migration guide
-  - No breaking changes
-
-Week 5: Workstream 3 (IB Cleanup)
-  - Audit and remove dead code
-  - Verify commission engine
-  - Final test pass
-
-Week 5+: Push to git
-  - All tests green
-  - Manual smoke test
-  - Commit and push
-```
-
----
-
-## Verification Checklist (Before Push)
+### 5.4 `src/features/admin/yields/pages/YieldDistributionsPage.tsx` — VERIFY
 
 ```bash
-# Type check
-pnpm type-check
+git diff a8d74935 HEAD -- src/features/admin/yields/pages/YieldDistributionsPage.tsx
+```
+If empty diff: no action. If diff exists: revert to a8d74935 using `git show a8d74935:src/... > src/...`
 
-# Unit tests
-pnpm test:unit
+### 5.5 Files Confirmed to KEEP (no action)
+- `FundSnapshotCard.tsx` — better zero-fallback behavior
+- `aumReconciliationService.ts` — asOfDate support
+- `dashboardMetricsService.ts` — real historical AUM
+- `queryKeys.ts` — required by hooks
 
-# Integration tests  
-pnpm test:integration
+### 5.6 `src/contracts/rpcSignatures.ts` — VERIFY & UPDATE
 
-# E2E tests
-pnpm test:e2e
+Check `apply_transaction_with_crystallization` signature type. Change `p_new_total_aum` from required to optional (`p_new_total_aum?: number`). Update the signature description to reflect it now raises an error if passed.
 
-# Build
-pnpm build
+---
 
-# Manual smoke test
-# - Admin: create yield distribution
-# - Investor: view yield history
-# - IB commission: verify in admin
+## 6. Phase 3: Integration & Verification
+
+### 6.1 TypeScript Build
+```bash
+npx tsc --noEmit   # Must be 0 errors
+npm run build      # Must be clean
+```
+
+### 6.2 SOL Scenario DB Smoke Test
+```
+1. INDIGO LP deposits 1250 SOL (Sep 2) — no p_new_total_aum
+2. Admin records TRANSACTION yield: AUM=1252, Sep 4
+   → Verify: INDIGO LP +2 SOL, visibility=admin_only, fees=0
+3. Paul Johnson deposits 234.17 SOL (Sep 10) — no p_new_total_aum
+4. Admin records REPORTING yield: AUM=1500, Sep 30
+   → Verify: conservation residual < 0.00000001
+   → Verify: SUM(investor_positions) = 1500
+   → Verify: Paul Johnson net +1.85 SOL, investor_visible
+   → Verify: fees_account gets fee credit, Alex Jacobs gets IB credit
+```
+
+### 6.3 Integrity Views
+```sql
+SELECT COUNT(*) FROM v_ledger_reconciliation;          -- 0
+SELECT COUNT(*) FROM yield_distribution_conservation_check
+WHERE gross_yield_amount IS NOT NULL;                  -- 0
+SELECT * FROM run_invariant_checks();                  -- 16/16 pass
+```
+
+### 6.4 UI Smoke Test
+1. `/admin/yield` — dialog opens, Purpose=Reporting default, AUM display correct
+2. `/admin/yield-distributions` — distributions listed correctly with dates
+3. `/admin` dashboard — fund AUM cards render
+4. `/investor` — yield history shows ONLY reporting yields
+
+---
+
+## 7. Risk Registry
+
+| ID | Risk | Severity | Mitigation |
+|----|------|----------|-----------|
+| R1 | `GlobalYieldFlow` reads `reconResult` from hook — breaks after hook edit | HIGH | Audit GlobalYieldFlow BEFORE editing hook |
+| R2 | `_resolve_investor_fee_pct` still references dropped `profiles.fee_pct` | HIGH | Pre-flight 3.8 — fix in migration if found |
+| R3 | `fund_daily_aum` ON CONFLICT predicate mismatch | HIGH | Pre-flight 3.5 — use exact index format |
+| R4 | Preview RPC return shape doesn't match TS `V5AllocationItem` | MEDIUM | Read `src/types/domains/yield.ts` before writing preview |
+| R5 | Dust rounding produces conservation residual > tolerance | MEDIUM | NUMERIC(28,10) throughout; test with exact SOL values |
+| R6 | `rpcSignatures.ts` types `p_new_total_aum` as required | MEDIUM | Make optional before `tsc` |
+| R7 | Existing QA distributions violate integrity views with new engine | MEDIUM | Pre-flight 3.6 — void/reissue QA data if needed |
+| R8 | `check_aum_reconciliation` RPC signature mismatch | LOW | Pre-flight 3.4 reveals live DB signature |
+
+---
+
+## 8. Rollback Plan
+
+A full git revert to `a8d74935` DB state is impossible without data loss. All rollbacks are forward-fixes.
+
+### 8.1 If new distribution data is corrupted
+```sql
+UPDATE yield_distributions
+SET is_voided = true, voided_at = NOW(), void_reason = 'rollback_flat_engine'
+WHERE calculation_method = 'flat_position_proportional_v6' AND is_voided = false;
+
+-- Recompute positions for affected funds
+SELECT recompute_investor_position(ip.investor_id, ip.fund_id)
+FROM investor_positions ip WHERE ip.fund_id IN (
+  SELECT DISTINCT fund_id FROM yield_distributions
+  WHERE calculation_method = 'flat_position_proportional_v6'
+);
+```
+
+### 8.2 If migration fails mid-apply
+Run in a transaction block. Postgres rolls back automatically on error.
+
+### 8.3 Frontend rollback
+```bash
+git checkout HEAD <file>   # per-file revert
 ```
 
 ---
 
-## Risks and Mitigations
+## 9. Success Criteria
 
-| Risk | Mitigation |
-|------|------------|
-| Local Supabase drift from prod | Sync migrations regularly, test against prod clone monthly |
-| Flaky E2E tests | Use stable selectors, add retry logic, seed deterministic data |
-| Service consolidation breaks imports | Conservative approach - no deletions, only facades |
-| IB cleanup removes working code | Audit thoroughly, grep for all references before delete |
-| Solo execution = no review | Run verify-app agent before every push |
+### TypeScript
+- [ ] `npx tsc --noEmit` — 0 errors
+- [ ] `npm run build` — clean
+
+### Database Integrity
+- [ ] `v_ledger_reconciliation` — 0 rows
+- [ ] `yield_distribution_conservation_check` (non-null gross) — 0 rows
+- [ ] `run_invariant_checks()` — 16/16 pass
+
+### Yield Engine Correctness (SOL Scenario)
+- [ ] Transaction yield (Sep 4): INDIGO LP +2 SOL, `admin_only`
+- [ ] Reporting yield (Sep 30, AUM=1500): position sum = 1500.0000000000
+- [ ] Paul Johnson: net=1.85 SOL `investor_visible`, fee → fees_account, IB → Alex Jacobs
+- [ ] Conservation residual < 0.00000001
+- [ ] `yield_allocations` rows exist for reporting distribution
+
+### Frontend UI
+- [ ] Yield dialog opens with Purpose=Reporting as default
+- [ ] AUM reference shows correctly (reporting→transaction fallback for new funds)
+- [ ] `/admin/yield-distributions` loads and shows distributions with correct dates/periods
+- [ ] Investor portal shows ONLY reporting yields
+
+### No Regressions
+- [ ] Existing QA harness data intact
+- [ ] `void_yield_distribution` works
+- [ ] Deposit without `p_new_total_aum` creates clean DEPOSIT tx
+- [ ] `apply_transaction_with_crystallization(p_new_total_aum=<value>)` raises clear error
 
 ---
 
-## Success Criteria
+## Critical File Reference
 
-1. **Testing:** 10 integration + 7 E2E tests, all green, in CI
-2. **Consolidation:** Domain facades exist, no breaking changes
-3. **IB Cleanup:** Dead code removed, commission engine intact
-4. **Final:** All tests pass, pushed to git
+| File | Role |
+|------|------|
+| `supabase/migrations/20260228_fix_v5_opening_balance_allocation.sql` | Current V5 apply with broken fund_aum_events JOIN — superseded by new migration |
+| `supabase/migrations/20260301_deep_fix_aum_unification.sql` | Current apply_tx with auto-crystal — superseded |
+| `src/hooks/data/admin/useYieldOperationsState.ts` | Yield dialog state — targeted edit |
+| `src/services/admin/depositWithYieldService.ts` | Remove p_new_total_aum |
+| `src/features/admin/yields/components/GlobalYieldFlow.tsx` | Audit for reconResult usage FIRST |
+| `src/services/admin/yields/yieldApplyService.ts` | Verify param list matches new V5 signature |
+| `src/services/admin/yields/yieldPreviewService.ts` | Verify return shape mapping |
+| `src/types/domains/yield.ts` | V5AllocationItem type — must match preview jsonb |
+| `src/contracts/rpcSignatures.ts` | Make p_new_total_aum optional |
 
 ---
 
-*Plan created: 2026-02-11*
-*Last updated: 2026-02-11*
+**AWAITING APPROVAL — respond "yes" to begin implementation.**

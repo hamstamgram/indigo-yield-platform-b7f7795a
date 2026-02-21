@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { useAuth } from "@/services/auth";
 import { useActiveFundsWithAUM } from "@/hooks";
-import { useYieldAumAsOf } from "@/features/admin/yields/hooks/useYieldAumAsOf";
+import { useFundAumAsOf } from "@/features/admin/funds/hooks/useFundAumAsOf";
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { formatAUM } from "@/utils/formatters";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
@@ -35,11 +35,18 @@ export function useYieldOperationsState() {
 
   // Fetch authoritative AUM and reconciliation status
   const fundId = selection.selectedFund?.id ?? null;
+
   const {
-    data: aumResult,
-    isLoading: asOfAumLoading,
-    error: asOfAumError,
-  } = useYieldAumAsOf(fundId, period.asOfDateIso, period.yieldPurpose);
+    data: reportingAum,
+    isLoading: reportingLoading,
+    error: reportingError,
+  } = useFundAumAsOf(fundId, period.asOfDateIso, "reporting");
+
+  const {
+    data: txAum,
+    isLoading: txLoading,
+    error: txError,
+  } = useFundAumAsOf(fundId, period.asOfDateIso, "transaction");
 
   const { data: reconResult, isLoading: reconLoading } = useAUMReconciliation(
     fundId,
@@ -47,7 +54,10 @@ export function useYieldOperationsState() {
     period.asOfDateIso
   );
 
-  const asOfAum = aumResult?.aumValue ?? null;
+  const aumResult = reportingAum ?? txAum;
+  const asOfAum = aumResult ?? null;
+  const asOfAumLoading = reportingLoading || txLoading;
+  const asOfAumError = reportingError || txError;
 
   // Sync helpers
   const openYieldDialog = useCallback(
