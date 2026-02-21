@@ -17,7 +17,10 @@ import {
   fetchHistoricalReports,
   deleteInvestorReport,
 } from "@/services/admin";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  bulkDeleteGeneratedStatements,
+  deleteSingleGeneratedStatement,
+} from "@/services/admin/statementAdminService";
 import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
 
 /**
@@ -171,32 +174,7 @@ export function useBulkDeleteReports() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (ids: string[]) => {
-      if (ids.length === 0) throw new Error("No report IDs provided");
-
-      // Delete delivery logs linked to these statements
-      const { error: deliveryError } = await supabase
-        .from("statement_email_delivery")
-        .delete()
-        .in("statement_id", ids);
-      if (deliveryError) throw deliveryError;
-
-      // Delete the generated statements
-      const { error } = await supabase.from("generated_statements").delete().in("id", ids);
-      if (error) throw error;
-
-      // Audit log
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id ?? null,
-        action: "BULK_REPORTS_DELETED",
-        entity: "generated_statements",
-        entity_id: ids.join(","),
-        old_values: { count: ids.length, ids },
-      });
-    },
+    mutationFn: (ids: string[]) => bulkDeleteGeneratedStatements(ids),
     onSuccess: (_, ids) => {
       toast.success(`${ids.length} report${ids.length !== 1 ? "s" : ""} deleted`);
       queryClient.invalidateQueries({ queryKey: ["historical-reports"] });
@@ -217,29 +195,7 @@ export function useDeleteSingleReport() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      // Delete delivery logs linked to this statement
-      const { error: deliveryError } = await supabase
-        .from("statement_email_delivery")
-        .delete()
-        .eq("statement_id", id);
-      if (deliveryError) throw deliveryError;
-
-      // Delete the generated statement
-      const { error } = await supabase.from("generated_statements").delete().eq("id", id);
-      if (error) throw error;
-
-      // Audit log
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id ?? null,
-        action: "REPORT_DELETED",
-        entity: "generated_statements",
-        entity_id: id,
-      });
-    },
+    mutationFn: (id: string) => deleteSingleGeneratedStatement(id),
     onSuccess: () => {
       toast.success("Report deleted");
       queryClient.invalidateQueries({ queryKey: ["historical-reports"] });
