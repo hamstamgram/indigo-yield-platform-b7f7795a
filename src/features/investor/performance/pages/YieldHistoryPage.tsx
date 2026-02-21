@@ -238,13 +238,14 @@ export default function YieldHistoryPage() {
 function MonthSection({ group }: { group: MonthGroup }) {
   const [isOpen, setIsOpen] = useState(true);
 
-  // Group events by fund within month
+  // Group events by fund within month, separating month_end from aggregations
   const fundGroups = useMemo(() => {
     const map = new Map<
       string,
       {
         fund: { id: string; name: string; asset: string };
-        events: InvestorYieldEvent[];
+        monthEndEvent: InvestorYieldEvent | null;
+        transactionEvents: InvestorYieldEvent[];
         totals: { gross: number; fees: number; net: number };
       }
     >();
@@ -258,12 +259,19 @@ function MonthSection({ group }: { group: MonthGroup }) {
             name: fundData?.name || "Unknown",
             asset: fundData?.asset || "USD",
           },
-          events: [],
+          monthEndEvent: null,
+          transactionEvents: [],
           totals: { gross: 0, fees: 0, net: 0 },
         });
       }
       const fg = map.get(e.fund_id)!;
-      fg.events.push(e);
+
+      if (e.trigger_type === "month_end") {
+        fg.monthEndEvent = e;
+      } else {
+        fg.transactionEvents.push(e);
+      }
+
       fg.totals.gross = parseFinancial(fg.totals.gross)
         .plus(parseFinancial(e.gross_yield_amount))
         .toNumber();
@@ -347,12 +355,15 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {fg.events.map((e) => (
-                      <TableRow key={e.id}>
-                        <TableCell>{format(new Date(e.event_date), "MMM d")}</TableCell>
+                    {/* Row 1: The Month-End reporting yield (if it exists) */}
+                    {fg.monthEndEvent && (
+                      <TableRow key={fg.monthEndEvent.id}>
+                        <TableCell>
+                          {format(new Date(fg.monthEndEvent.event_date), "MMM d")}
+                        </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {(() => {
-                            const eventDate = new Date(e.event_date);
+                            const eventDate = new Date(fg.monthEndEvent.event_date);
                             const monthStart = new Date(
                               eventDate.getFullYear(),
                               eventDate.getMonth(),
@@ -363,26 +374,70 @@ function MonthSection({ group }: { group: MonthGroup }) {
                               eventDate.getMonth() + 1,
                               0
                             );
-                            return `${format(monthStart, "MMM d")} - ${format(monthEnd, "MMM d")}`;
+                            return `${format(monthStart, "MMM d")} - ${format(monthEnd, "MMM d")} (Month End)`;
                           })()}
                         </TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground">
-                          {e.investor_balance > 0 ? formatInvestorNumber(e.investor_balance) : "--"}
+                          {fg.monthEndEvent.investor_balance > 0
+                            ? formatInvestorNumber(fg.monthEndEvent.investor_balance)
+                            : "--"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground">
-                          {(e.fund_yield_pct ?? 0) !== 0 ? `${e.fund_yield_pct.toFixed(2)}%` : "--"}
+                          {(fg.monthEndEvent.fund_yield_pct ?? 0) !== 0
+                            ? `${fg.monthEndEvent.fund_yield_pct.toFixed(2)}%`
+                            : "--"}
                         </TableCell>
                         <TableCell
                           className={cn(
                             "text-right font-mono font-semibold",
-                            e.net_yield_amount >= 0 ? "text-emerald-400" : "text-rose-400"
+                            fg.monthEndEvent.net_yield_amount >= 0
+                              ? "text-emerald-400"
+                              : "text-rose-400"
                           )}
                         >
-                          {e.net_yield_amount >= 0 ? "+" : ""}
-                          {formatInvestorNumber(e.net_yield_amount)}
+                          {fg.monthEndEvent.net_yield_amount >= 0 ? "+" : ""}
+                          {formatInvestorNumber(fg.monthEndEvent.net_yield_amount)}
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )}
+
+                    {/* Row 2: The Aggregated Transaction yields (if any exist) */}
+                    {fg.transactionEvents.length > 0 &&
+                      (() => {
+                        // Aggregate the transaction events
+                        const aggNet = fg.transactionEvents.reduce(
+                          (sum, e) =>
+                            parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(),
+                          0
+                        );
+                        const lastDate = fg.transactionEvents
+                          .map((e) => new Date(e.event_date))
+                          .sort((a, b) => b.getTime() - a.getTime())[0];
+
+                        return (
+                          <TableRow key={`agg-${fg.fund.id}`}>
+                            <TableCell>{format(lastDate, "MMM d")}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              Mid-Month Transaction Yields (Aggregated)
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-muted-foreground">
+                              --
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-muted-foreground">
+                              --
+                            </TableCell>
+                            <TableCell
+                              className={cn(
+                                "text-right font-mono font-semibold",
+                                aggNet >= 0 ? "text-emerald-400" : "text-rose-400"
+                              )}
+                            >
+                              {aggNet >= 0 ? "+" : ""}
+                              {formatInvestorNumber(aggNet)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })()}
                   </TableBody>
                 </Table>
               </div>

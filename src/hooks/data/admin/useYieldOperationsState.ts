@@ -33,11 +33,12 @@ export function useYieldOperationsState() {
   const calculation = useYieldCalculation();
   const submission = useYieldSubmission();
 
-  // Fetch authoritative AUM and reconciliation status
+  // Fetch authoritative AUM from the live funds array (which refetches every 5s)
   const fundId = selection.selectedFund?.id ?? null;
+  const liveFund = funds.find((f) => f.id === fundId);
 
-  const asOfAum = selection.selectedFund?.total_aum ?? null;
-  const asOfAumLoading = false;
+  const asOfAum = liveFund?.total_aum ?? selection.selectedFund?.total_aum ?? null;
+  const asOfAumLoading = loading;
   const asOfAumError = null;
 
   const { data: reconResult, isLoading: reconLoading } = useAUMReconciliation(
