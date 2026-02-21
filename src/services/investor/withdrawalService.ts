@@ -252,7 +252,7 @@ export const withdrawalService = {
 
     const params: Record<string, unknown> = {
       p_request_id: withdrawalId,
-      p_processed_amount: parseFloat(processedAmount),
+      p_processed_amount: processedAmount as unknown as number,
       p_tx_hash: txHash ?? undefined,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
     };
@@ -261,7 +261,7 @@ export const withdrawalService = {
       params.p_is_full_exit = true;
     }
 
-    const { error } = await rpc.call("approve_and_complete_withdrawal" as never, params as never);
+    const { error } = await rpc.call("approve_and_complete_withdrawal", params as Record<string, unknown> as any);
 
     if (error) {
       log.error("Error completing withdrawal", error);
@@ -400,7 +400,7 @@ export const withdrawalService = {
     const { error } = await rpc.call("create_withdrawal_request", {
       p_investor_id: params.investorId,
       p_fund_id: params.fundId,
-      p_amount: typeof params.amount === "string" ? parseFloat(params.amount) : params.amount,
+      p_amount: (typeof params.amount === "string" ? params.amount : String(params.amount)) as unknown as number,
       p_type: params.withdrawalType,
       p_notes: params.notes ? `${params.notes} [${corrId}]` : `[${corrId}]`,
     });
@@ -428,10 +428,9 @@ export const withdrawalService = {
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
     const { error } = await rpc.call("update_withdrawal", {
       p_withdrawal_id: params.withdrawalId,
-      p_requested_amount:
-        typeof params.requestedAmount === "string"
-          ? parseFloat(params.requestedAmount)
-          : params.requestedAmount,
+      p_requested_amount: (typeof params.requestedAmount === "string"
+        ? params.requestedAmount
+        : String(params.requestedAmount)) as unknown as number,
       p_withdrawal_type: params.withdrawalType,
       p_notes: params.notes ?? undefined,
       p_reason: params.reason,
@@ -467,12 +466,12 @@ export const withdrawalService = {
     log.info("Restoring withdrawal", { withdrawalId, reason });
 
     const { error } = await rpc.call(
-      "restore_withdrawal_by_admin" as never,
+      "restore_withdrawal_by_admin" as any,
       {
         p_request_id: withdrawalId,
         p_reason: reason,
         p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-      } as never
+      } as any
     );
 
     if (error) {
@@ -559,7 +558,7 @@ export const withdrawalService = {
     const { data: requestId, error: rpcError } = await rpc.call("create_withdrawal_request", {
       p_investor_id: investorId,
       p_fund_id: params.fundId,
-      p_amount: parseFloat(params.amount),
+      p_amount: params.amount as unknown as number,
       p_type: "partial",
       p_notes: params.notes ? `${params.notes} [${idempotencyKey}]` : `[${idempotencyKey}]`,
     });

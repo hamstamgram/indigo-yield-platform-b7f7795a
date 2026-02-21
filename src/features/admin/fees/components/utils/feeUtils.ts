@@ -5,15 +5,18 @@
 
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
+import { toNumber } from "@/utils/numeric";
 
 /**
  * Format amount based on asset type
+ * Accepts string or number for NUMERIC precision compatibility
  */
-export function formatFeeAmount(amount: number, asset: string): string {
+export function formatFeeAmount(amount: string | number, asset: string): string {
+  const num = toNumber(amount);
   if (asset === "BTC") {
-    return amount.toLocaleString("en-US", { minimumFractionDigits: 6, maximumFractionDigits: 8 });
+    return num.toLocaleString("en-US", { minimumFractionDigits: 6, maximumFractionDigits: 8 });
   }
-  return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 }
 
 /**
@@ -28,7 +31,7 @@ export function exportFeesToCSV(
     fundName: string;
     asset: string;
     type: string;
-    amount: number;
+    amount: string | number;
     purpose?: string;
     visibilityScope?: string;
   }>
@@ -89,7 +92,7 @@ export function exportFeesToPDF(
     investorName: string;
     fundName: string;
     asset: string;
-    amount: number;
+    amount: string | number;
   }>
 ): void {
   try {

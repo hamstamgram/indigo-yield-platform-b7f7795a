@@ -9,7 +9,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 
 interface FeesBalanceCardProps {
-  balances: Record<string, number>;
+  balances: Record<string, string | number>;
 }
 
 export function FeesBalanceCard({ balances }: FeesBalanceCardProps) {
