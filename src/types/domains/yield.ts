@@ -172,7 +172,6 @@ export interface YieldCalculationResult {
   crystalGrossTotal?: string;
   // V5 segmented fields
   segmentCount?: number;
-  segments?: V5SegmentSummary[];
   openingAum?: string;
   recordedAum?: string;
 }
@@ -336,7 +335,6 @@ export interface V5AllocationItem {
   ib_rate: number;
   ib: number;
   net: number;
-  segments: V5InvestorSegmentDetail[];
 }
 
 /** V5 RPC result shape */
@@ -360,7 +358,6 @@ export interface V5YieldRPCResult {
   investor_count?: number;
   segment_count?: number;
   crystal_count?: number;
-  segments?: V5SegmentSummary[];
   crystal_markers?: V5SegmentSummary[];
   allocations?: V5AllocationItem[];
   conservation_check?: boolean;

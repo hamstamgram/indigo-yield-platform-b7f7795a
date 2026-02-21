@@ -42,8 +42,6 @@ export interface YieldDistributionRecord {
   distributionType: string;
   /** Opening AUM - string for NUMERIC(28,10) precision */
   openingAum: string | null;
-  /** Closing AUM - string for NUMERIC(28,10) precision */
-  closingAum: string | null;
   /** Previous AUM - string for NUMERIC(28,10) precision */
   previousAum: string | null;
   /** Recorded AUM - string for NUMERIC(28,10) precision */
@@ -117,7 +115,6 @@ export function transformYieldDistributionRecord(
     purpose: row.purpose,
     distributionType: row.distribution_type,
     openingAum: row.opening_aum != null ? String(row.opening_aum) : null,
-    closingAum: row.closing_aum != null ? String(row.closing_aum) : null,
     previousAum: row.previous_aum != null ? String(row.previous_aum) : null,
     recordedAum: String(row.recorded_aum),
     grossYield: String(row.gross_yield),
@@ -147,7 +144,8 @@ export function transformYieldDistributionRecord(
 export function toYieldDistributionInsert(
   record: Partial<YieldDistributionRecord>
 ): Partial<YieldDistributionInsert> {
-  const toNumOrUndefined = (v: string | null | undefined) => v != null ? parseFloat(v) : undefined;
+  const toNumOrUndefined = (v: string | null | undefined) =>
+    v != null ? parseFloat(v) : undefined;
   return {
     fund_id: record.fundId,
     effective_date: record.effectiveDate,
@@ -156,7 +154,6 @@ export function toYieldDistributionInsert(
     purpose: record.purpose,
     distribution_type: record.distributionType,
     opening_aum: toNumOrUndefined(record.openingAum),
-    closing_aum: toNumOrUndefined(record.closingAum),
     previous_aum: toNumOrUndefined(record.previousAum),
     recorded_aum: toNumOrUndefined(record.recordedAum),
     gross_yield: toNumOrUndefined(record.grossYield),

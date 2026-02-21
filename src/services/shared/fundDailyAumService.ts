@@ -3,10 +3,9 @@
  * Handles fund_daily_aum operations
  *
  * IMPORTANT: fund_daily_aum is a PROTECTED table.
- * All mutations MUST go through canonical RPCs:
+ * Connects to two main Supabase RPCs:
  * - set_fund_daily_aum (for manual/baseline AUM setting)
- * - crystallize_yield_before_flow (for pre-transaction snapshots)
- * - ensure_preflow_aum (for automated pre-flow checks)
+ * - register_yield_daily_aum (for routine EOD recording)
  *
  * Direct inserts/updates are BLOCKED by database triggers.
  */

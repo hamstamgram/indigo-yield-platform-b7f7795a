@@ -31,7 +31,6 @@ export interface DepositFormData {
    * Authoritative AUM snapshot used for crystallize-before-flow accounting.
    * Must be provided for any deposit that becomes effective.
    */
-  closing_aum?: string;
   /**
    * Timestamp for the effective flow event (defaults to now).
    */

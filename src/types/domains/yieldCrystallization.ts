@@ -72,7 +72,6 @@ export interface FundYieldSnapshot {
 
   // AUM values - strings for NUMERIC(28,10) precision
   opening_aum: string;
-  closing_aum: string;
 
   // Calculated yield - strings for NUMERIC(28,10) precision
   gross_yield_pct: string;
@@ -112,7 +111,6 @@ export interface CrystallizationResult {
   opening_aum?: string;
   /** Current / closing AUM - string for NUMERIC(28,10) precision */
   current_aum?: string;
-  closing_aum?: string;
   /** Fund yield percentage - string for decimal precision */
   fund_yield_pct?: string;
   /** Gross yield - string for NUMERIC(28,10) precision */

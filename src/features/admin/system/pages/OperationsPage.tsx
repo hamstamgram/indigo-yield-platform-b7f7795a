@@ -53,7 +53,6 @@ import {
   useAcknowledgeAlert,
   useCrystallizationDashboard,
   useCrystallizationGaps,
-  useBatchCrystallizeFund,
 } from "@/hooks/data";
 import { useInvariantChecks } from "@/hooks/data";
 import { getOverallStatus, type ServiceStatus } from "@/services/core/systemHealthService";
@@ -643,12 +642,6 @@ function IntegrityTab() {
 
 function CrystallizationTab() {
   const [selectedFundId, setSelectedFundId] = useState<string | undefined>(undefined);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    open: boolean;
-    fundId: string;
-    fundCode: string;
-    dryRun: boolean;
-  }>({ open: false, fundId: "", fundCode: "", dryRun: true });
 
   const {
     data: dashboardData,
@@ -660,7 +653,6 @@ function CrystallizationTab() {
     isLoading: gapsLoading,
     refetch: refetchGaps,
   } = useCrystallizationGaps(selectedFundId);
-  const batchCrystallize = useBatchCrystallizeFund();
 
   const {
     sortConfig: fundSortConfig,
@@ -677,18 +669,6 @@ function CrystallizationTab() {
   const handleRefresh = () => {
     refetchDashboard();
     refetchGaps();
-  };
-
-  const executeBatchCrystallize = () => {
-    batchCrystallize.mutate(
-      { fundId: confirmDialog.fundId, dryRun: confirmDialog.dryRun },
-      {
-        onSettled: () => {
-          setConfirmDialog({ open: false, fundId: "", fundCode: "", dryRun: true });
-          if (!confirmDialog.dryRun) handleRefresh();
-        },
-      }
-    );
   };
 
   const totalGaps =
@@ -827,7 +807,6 @@ function CrystallizationTab() {
                     </SortableTableHead>
                     <TableHead className="text-right">Gaps</TableHead>
                     <TableHead className="text-right">Staleness</TableHead>
-                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -870,42 +849,6 @@ function CrystallizationTab() {
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
-                        </TableCell>
-                        <TableCell className="py-1.5">
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                setConfirmDialog({
-                                  open: true,
-                                  fundId: fund.fund_id,
-                                  fundCode: fund.fund_code,
-                                  dryRun: true,
-                                })
-                              }
-                              disabled={batchCrystallize.isPending || fundGaps === 0}
-                              title="Preview batch crystallization"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                setConfirmDialog({
-                                  open: true,
-                                  fundId: fund.fund_id,
-                                  fundCode: fund.fund_code,
-                                  dryRun: false,
-                                })
-                              }
-                              disabled={batchCrystallize.isPending || fundGaps === 0}
-                              title="Execute batch crystallization"
-                            >
-                              <Play className="h-4 w-4" />
-                            </Button>
-                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -1057,58 +1000,6 @@ function CrystallizationTab() {
           )}
         </CardContent>
       </Card>
-
-      {/* Batch Crystallize Confirmation Dialog */}
-      <Dialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmDialog.dryRun ? "Preview" : "Confirm"} Batch Crystallization
-            </DialogTitle>
-            <DialogDescription>
-              {confirmDialog.dryRun ? (
-                <>
-                  Preview what would happen if you batch crystallize all gaps for{" "}
-                  <strong>{confirmDialog.fundCode}</strong>. No changes will be made.
-                </>
-              ) : (
-                <>
-                  This will crystallize all positions with gaps for{" "}
-                  <strong>{confirmDialog.fundCode}</strong>. This action will create yield events
-                  for all affected positions.
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setConfirmDialog({ open: false, fundId: "", fundCode: "", dryRun: true })
-              }
-            >
-              Cancel
-            </Button>
-            <Button
-              variant={confirmDialog.dryRun ? "outline" : "default"}
-              onClick={executeBatchCrystallize}
-              disabled={batchCrystallize.isPending}
-            >
-              {batchCrystallize.isPending ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : confirmDialog.dryRun ? (
-                <Eye className="h-4 w-4 mr-2" />
-              ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              {confirmDialog.dryRun ? "Preview" : "Execute"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

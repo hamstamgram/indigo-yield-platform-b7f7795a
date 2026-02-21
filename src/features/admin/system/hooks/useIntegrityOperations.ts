@@ -108,36 +108,6 @@ export function useCrystallizationGaps(fundId?: string, limit = 100) {
   });
 }
 
-/**
- * Batch crystallize fund mutation
- */
-export function useBatchCrystallizeFund() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ fundId, dryRun = true }: { fundId: string; dryRun?: boolean }) =>
-      integrityOperationsService.batchCrystallizeFund(fundId, dryRun),
-    onSuccess: (result) => {
-      if (result.dry_run) {
-        toast.info(
-          `Dry run: Would crystallize ${result.positions_crystallized} of ${result.positions_processed} positions`
-        );
-      } else {
-        toast.success(
-          `Crystallized ${result.positions_crystallized} of ${result.positions_processed} positions`
-        );
-        // Invalidate crystallization queries
-        queryClient.invalidateQueries({ queryKey: ["crystallization"] });
-        queryClient.invalidateQueries({ queryKey: ["integrity"] });
-      }
-    },
-    onError: (error: Error) => {
-      logError("useBatchCrystallizeFund", error);
-      toast.error(error.message || "Failed to batch crystallize fund");
-    },
-  });
-}
-
 // ============================================================================
 // Duplicates
 // ============================================================================

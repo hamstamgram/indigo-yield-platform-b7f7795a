@@ -161,7 +161,6 @@ export {
   type CrystallizationDashboardRow,
   type CrystallizationGap,
   type DuplicateProfile,
-  type BatchCrystallizeResult,
   type MergeDuplicatesResult,
 } from "./integrityOperationsService";
 export { requestsQueueService } from "./requestsQueueService";

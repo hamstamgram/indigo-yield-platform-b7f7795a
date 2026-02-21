@@ -177,7 +177,7 @@ export function useAggregatedYield(
       periodEnd?.toISOString(),
       visibilityFilter
     ),
-    queryFn: () => getAggregatedYieldForPeriod(fundId!, periodStart!, periodEnd!, visibilityFilter),
+    queryFn: () => getAggregatedYieldForPeriod(fundId!, periodStart!, periodEnd!),
     enabled: !!fundId && !!periodStart && !!periodEnd,
   });
 }

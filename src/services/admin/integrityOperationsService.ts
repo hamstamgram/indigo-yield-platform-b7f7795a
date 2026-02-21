@@ -91,15 +91,6 @@ export interface DuplicateProfile {
   total_value_affected: number;
 }
 
-export interface BatchCrystallizeResult {
-  success: boolean;
-  fund_id: string;
-  positions_processed: number;
-  positions_crystallized: number;
-  errors: string[];
-  dry_run: boolean;
-}
-
 export interface MergeDuplicatesResult {
   success: boolean;
   merged_profile_id: string;
@@ -371,27 +362,6 @@ export async function fetchLedgerReconciliation(): Promise<Record<string, unknow
 // ============================================================================
 
 /**
- * Batch crystallize a fund (with dry run support)
- */
-export async function batchCrystallizeFund(
-  fundId: string,
-  dryRun = true
-): Promise<BatchCrystallizeResult> {
-  const { data, error } = await callRPC("batch_crystallize_fund", {
-    p_fund_id: fundId,
-    p_effective_date: new Date().toISOString().split("T")[0],
-    p_force_override: !dryRun,
-  });
-
-  if (error) {
-    logError("batchCrystallizeFund", error, { fundId, dryRun });
-    throw new Error(error.message);
-  }
-
-  return data as unknown as BatchCrystallizeResult;
-}
-
-/**
  * Merge duplicate profiles
  */
 export async function mergeDuplicateProfiles(
@@ -426,6 +396,5 @@ export const integrityOperationsService = {
   // Action functions
   runIntegrityCheck,
   acknowledgeAlert,
-  batchCrystallizeFund,
   mergeDuplicateProfiles,
 };
