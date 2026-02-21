@@ -8,7 +8,6 @@ import {
 } from "@/types/domains";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface WithdrawalContext {
   investorId?: string;
@@ -100,38 +99,21 @@ export function useWithdrawalMutations() {
         if (succeeded === 0) {
           throw new Error(`All deletions failed. First error: ${errors[0]}`);
         }
-        // Partial success - log audit and report
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        await supabase.from("audit_log").insert({
-          actor_user: user?.id ?? null,
-          action: "BULK_WITHDRAWALS_DELETED_PARTIAL",
-          entity: "withdrawal_requests",
-          entity_id: withdrawalIds.join(","),
-          old_values: { total: withdrawalIds.length, succeeded, failed: errors.length },
-        });
+        await withdrawalService.logBulkAudit(
+          "BULK_WITHDRAWALS_DELETED_PARTIAL",
+          withdrawalIds,
+          { total: withdrawalIds.length, succeeded, failed: errors.length }
+        );
         throw new Error(
           `${succeeded} of ${withdrawalIds.length} deleted. ${errors.length} failed.`
         );
       }
 
-      // Full success audit
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id ?? null,
-        action: "BULK_WITHDRAWALS_DELETED",
-        entity: "withdrawal_requests",
-        entity_id: withdrawalIds.join(","),
-        old_values: {
-          count: withdrawalIds.length,
-          ids: withdrawalIds,
-          hard_delete: hardDelete,
-          reason,
-        },
-      });
+      await withdrawalService.logBulkAudit(
+        "BULK_WITHDRAWALS_DELETED",
+        withdrawalIds,
+        { count: withdrawalIds.length, ids: withdrawalIds, hard_delete: hardDelete, reason }
+      );
     },
     onSuccess: (_, params) => {
       const label = params.hardDelete ? "permanently deleted" : "cancelled";
@@ -165,29 +147,19 @@ export function useWithdrawalMutations() {
         if (succeeded === 0) {
           throw new Error(`All void operations failed. First error: ${errors[0]}`);
         }
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        await supabase.from("audit_log").insert({
-          actor_user: user?.id ?? null,
-          action: "BULK_WITHDRAWALS_VOIDED_PARTIAL",
-          entity: "withdrawal_requests",
-          entity_id: withdrawalIds.join(","),
-          old_values: { total: withdrawalIds.length, succeeded, failed: errors.length, reason },
-        });
+        await withdrawalService.logBulkAudit(
+          "BULK_WITHDRAWALS_VOIDED_PARTIAL",
+          withdrawalIds,
+          { total: withdrawalIds.length, succeeded, failed: errors.length, reason }
+        );
         throw new Error(`${succeeded} of ${withdrawalIds.length} voided. ${errors.length} failed.`);
       }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id ?? null,
-        action: "BULK_WITHDRAWALS_VOIDED",
-        entity: "withdrawal_requests",
-        entity_id: withdrawalIds.join(","),
-        old_values: { count: withdrawalIds.length, ids: withdrawalIds, reason },
-      });
+      await withdrawalService.logBulkAudit(
+        "BULK_WITHDRAWALS_VOIDED",
+        withdrawalIds,
+        { count: withdrawalIds.length, ids: withdrawalIds, reason }
+      );
     },
     onSuccess: (_, params) => {
       toast.success(
@@ -219,31 +191,21 @@ export function useWithdrawalMutations() {
         if (succeeded === 0) {
           throw new Error(`All restore operations failed. First error: ${errors[0]}`);
         }
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        await supabase.from("audit_log").insert({
-          actor_user: user?.id ?? null,
-          action: "BULK_WITHDRAWALS_RESTORED_PARTIAL",
-          entity: "withdrawal_requests",
-          entity_id: withdrawalIds.join(","),
-          old_values: { total: withdrawalIds.length, succeeded, failed: errors.length, reason },
-        });
+        await withdrawalService.logBulkAudit(
+          "BULK_WITHDRAWALS_RESTORED_PARTIAL",
+          withdrawalIds,
+          { total: withdrawalIds.length, succeeded, failed: errors.length, reason }
+        );
         throw new Error(
           `${succeeded} of ${withdrawalIds.length} restored. ${errors.length} failed.`
         );
       }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id ?? null,
-        action: "BULK_WITHDRAWALS_RESTORED",
-        entity: "withdrawal_requests",
-        entity_id: withdrawalIds.join(","),
-        old_values: { count: withdrawalIds.length, ids: withdrawalIds, reason },
-      });
+      await withdrawalService.logBulkAudit(
+        "BULK_WITHDRAWALS_RESTORED",
+        withdrawalIds,
+        { count: withdrawalIds.length, ids: withdrawalIds, reason }
+      );
     },
     onSuccess: (_, params) => {
       toast.success(

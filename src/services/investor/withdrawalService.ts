@@ -568,4 +568,25 @@ export const withdrawalService = {
 
     return requestId as string;
   },
+
+  /**
+   * Log a bulk withdrawal audit entry
+   * Centralizes audit logging so hooks don't call supabase directly
+   */
+  async logBulkAudit(
+    action: string,
+    withdrawalIds: string[],
+    details: Record<string, unknown>
+  ): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    await supabase.from("audit_log").insert([{
+      actor_user: user?.id ?? null,
+      action,
+      entity: "withdrawal_requests",
+      entity_id: withdrawalIds.join(","),
+      old_values: JSON.parse(JSON.stringify(details)),
+    }]);
+  },
 };

@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { AdminInvestorSummary } from "@/services/admin";
+
+/**
+ * Minimal shape for investor search filtering.
+ * Avoids coupling investor-domain hooks to admin services.
+ */
+export interface SearchableInvestor {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  [key: string]: unknown;
+}
 
 /**
  * A hook for searching and filtering investors
@@ -7,12 +17,12 @@ import { AdminInvestorSummary } from "@/services/admin";
  * @param initialSearchTerm Optional initial search term
  * @returns Search state and filtered investors
  */
-export const useInvestorSearch = (
-  investors: AdminInvestorSummary[],
+export const useInvestorSearch = <T extends SearchableInvestor>(
+  investors: T[],
   initialSearchTerm: string = ""
 ) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [filteredInvestors, setFilteredInvestors] = useState<AdminInvestorSummary[]>(investors);
+  const [filteredInvestors, setFilteredInvestors] = useState<T[]>(investors);
 
   // Handle search
   useEffect(() => {

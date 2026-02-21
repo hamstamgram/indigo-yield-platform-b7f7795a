@@ -17,6 +17,5 @@ export * from "./typeAdapters";
 // Error handling utilities
 export * from "./errors";
 
-// NOTE: Auth and Reports have moved to services layer
+// NOTE: Auth has moved to services layer
 // Use: import { useAuth } from "@/services/auth"
-// Use: import { ReportEngine } from "@/services/reports"
