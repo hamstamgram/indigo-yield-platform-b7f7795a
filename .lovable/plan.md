@@ -1,178 +1,193 @@
 
-# Comprehensive Architecture Audit Report
+# Frontend-Backend Function Flow & Column Mismatch Audit
 
-## Executive Summary
+## Critical Finding: Numeric Precision Violations
 
-The codebase is a large financial platform (investment/yield management) with ~115 routes, organized using a feature-first architecture with layered separation (Components > Hooks > Services). While the overall structure is solid, there are several areas of misalignment, dead code, domain boundary violations, and organizational inconsistencies that should be addressed.
-
----
-
-## Critical Issues (Fix First)
-
-### 1. Direct Supabase Calls in Hooks (Violates Service Layer Isolation)
-
-Two shared hook files bypass the service layer by making direct `supabase.from()` calls:
-
-- **`src/hooks/data/shared/useWithdrawalMutations.ts`** -- Makes 6 direct `supabase.from("audit_log").insert()` calls
-- **`src/hooks/data/shared/useReports.ts`** -- Makes direct `supabase.from("generated_statements").delete()` and `supabase.from("audit_log").insert()` calls
-
-**Recommendation:** Extract these into the respective domain services (`statementAdminService`, `withdrawalService`, or `auditLogService`). Hooks should only call service functions, never Supabase directly.
-
-### 2. Investor Feature Importing Admin Service Types (Cross-Domain Leak)
-
-- **`src/features/investor/shared/hooks/useInvestorSearch.ts`** imports `AdminInvestorSummary` from `@/services/admin`
-
-An investor-domain hook should never depend on admin services. This type should either be shared or the hook should use an investor-appropriate type.
-
-**Recommendation:** Move `AdminInvestorSummary` to a shared type (e.g., `@/types/domains/investor`) or create a leaner investor-specific type alias.
-
-### 3. Duplicate Withdrawal Services
-
-Two separate files handle withdrawal logic for the investor domain:
-- `src/services/investor/investorWithdrawalService.ts` -- investor-facing withdrawal requests
-- `src/services/investor/withdrawalService.ts` -- labeled "admin operations" but lives in the investor service folder
-
-**Recommendation:** Move `withdrawalService.ts` admin operations to `src/services/admin/` where it belongs, or merge overlapping logic.
+The codebase declares a standard that all NUMERIC(28,10) database fields must be handled as `string` to prevent JavaScript floating-point precision loss. However, **multiple services violate this standard**, creating silent data corruption risks in a financial platform.
 
 ---
 
-## High Priority (Structural Debt)
+## CRITICAL: Precision-Losing `number` Types for Financial Data
 
-### 4. Ghost Shim Layers (Three-Layer Re-export Chains)
+### 1. `investorDetailService.ts` -- InvestorPosition uses `number` for financials
 
-The hook export chain has 3 unnecessary layers:
+**File:** `src/services/admin/investorDetailService.ts` (lines 34-42)
 
-```text
-src/hooks/data/index.ts
-  -> src/hooks/data/investor/index.ts (shim)
-    -> src/features/investor/*/hooks/*.ts (actual code)
+The local `InvestorPosition` interface declares `current_value`, `cost_basis`, `unrealized_pnl` as `number`, and the mapping at line 166-174 does `p.current_value || 0` (coercing NUMERIC to JS number). The total is then computed with `reduce((sum, p) => sum + p.current_value, 0)` -- pure JS arithmetic on financial values.
 
-src/hooks/data/index.ts
-  -> src/hooks/data/admin/exports/*.ts (proxy files)
-    -> src/features/admin/*/hooks/*.ts (actual code)
-```
+**Fix:** Change interface fields to `string`, use `parseFinancial()` / `Decimal.js` for aggregation. Align with the canonical `InvestorPosition` from `@/types/domains/investor` which correctly uses strings.
 
-These shim barrels (`src/hooks/data/investor/index.ts`, `src/hooks/data/admin/exports/*.ts`) add no value -- they are pure pass-through re-exports.
+### 2. `feesService.ts` -- All financial interfaces use `number`
 
-**Recommendation:** Have `src/hooks/data/index.ts` export directly from `src/features/*/` or, better, have consumers import from `@/features/admin/...` and `@/features/investor/...` directly. Remove the shim layer.
+**File:** `src/services/admin/feesService.ts`
 
-### 5. Ghost Component Shim Layers
+- `FeeRecord.amount` (line 21): `number`
+- `FeeSummary.totalAmount` (line 30): `number`
+- `FeeAllocation.base_net_income/fee_percentage/fee_amount` (lines 43-45): `number`
+- `YieldEarned.totalYieldEarned` (line 57): `number`
+- `indigoFeesBalance` (line 71): `Record<string, number>`
 
-Same pattern in components:
-- `src/components/admin/index.ts` -- pure re-export from `@/features/admin/`
-- `src/components/investor/index.ts` -- pure re-export from `@/features/investor/`
-- `src/components/reports/index.ts` -- pure re-export from `@/features/admin/reports/`
+These are all NUMERIC columns from `transactions_v2`, `platform_fee_ledger`, and `investor_positions`. The mapping uses `Number(tx.amount)` and plain JS `+` for aggregation.
 
-**Recommendation:** Update all consumers to import from `@/features/` directly and delete these shim files.
+**Fix:** Change all financial fields to `string`, use `parseFinancial()` for computations. Note: The canonical `FeeAllocation` in `@/types/domains/feeAllocation.ts` correctly uses strings -- this service defines a **duplicate, weaker type** with the same name.
 
-### 6. Scattered Page Files Outside Feature Directories
+### 3. `recordedYieldsService.ts` -- YieldRecord uses `number` for AUM/yield fields
 
-Despite the feature-first architecture, pages remain scattered:
-- `src/pages/admin/AdminDashboard.tsx` -- should be in `src/features/admin/dashboard/`
-- `src/pages/investor/portfolio/` -- should be in `src/features/investor/portfolio/`
-- `src/pages/reports/` (2 files) -- should be in features
-- `src/pages/transactions/TransactionDetailsPage.tsx` -- should be in features
-- `src/pages/withdrawals/` (2 files) -- should be in features
+**File:** `src/services/admin/recordedYieldsService.ts`
 
-The `src/pages/` directory should only contain truly standalone/public pages (Login, NotFound, etc.).
+- `YieldRecord.total_aum` (line 19): `number`
+- `YieldRecord.nav_per_share/total_shares` (lines 20-21): `number | null`
+- `YieldRecord.gross_yield/net_yield/total_fees/total_ib` (lines 33-36): `number | null`
 
-**Recommendation:** Migrate domain-specific pages into their feature directories.
+These map to NUMERIC columns in `fund_daily_aum` and `yield_distributions`.
 
----
+**Fix:** Change to `string`, use `parseFinancial()` for display/calculations.
 
-## Medium Priority (Organizational Cleanup)
+### 4. `dashboardMetricsService.ts` -- All dashboard types use `number`
 
-### 7. Stale Documentation References Dead Code
+**File:** `src/services/admin/dashboardMetricsService.ts`
 
-`src/services/reports/README.md` references:
-- `ReportsApi` from `@/services/api/reportsApi` -- does not exist
-- `ReportEngine` from `@/lib/reports` -- does not exist
+- `AUMHistoryPoint.aum` (line 17): `number`
+- `FinancialMetrics.totalAum/totalDeposits/totalWithdrawals/netFlow` (lines 26-30): `number`
+- `FlowData.aum/daily_inflows/daily_outflows/net_flow_24h` (lines 34-38): `number`
+- `InvestorComposition.balance/ownership_pct` (lines 70-71): `number`
 
-**Recommendation:** Either delete this README or update it to match current implementation.
+The `getTransactionFlowMetrics()` correctly uses `parseFinancial()` internally but then calls `.toNumber()` to convert back, losing the precision it just preserved.
 
-### 8. `src/lib/documents/types.ts` -- Unused Type-Only Module
+**Fix:** Keep as `string` through the full pipeline, only call `.toNumber()` at the final UI rendering step if needed.
 
-Contains 255 lines of document vault types/utilities (`DocumentType`, `DOCUMENT_TYPE_CONFIG`, validation functions) but no evidence of actual usage in the codebase. The `src/lib/README.md` itself notes `documents/` can be removed.
+### 5. `yieldManagementService.ts` -- Mixed precision
 
-**Recommendation:** Verify usage; if unused, delete. If needed, move to `@/types/domains/document`.
+**File:** `src/services/admin/yields/yieldManagementService.ts`
 
-### 9. `src/services/reports/index.ts` -- Near-Empty Barrel
+- `UpdateYieldResult.old_aum/new_aum` (lines 21-22): `number`
+- `YieldDetails.total_aum` (line 73): `number`
+- `updateYieldAum()` takes `newTotalAum: number` parameter (line 163)
 
-Contains only `export * from "@/types/domains/report"`. This is a service barrel that exports only types -- misleading.
-
-**Recommendation:** Delete this barrel; consumers should import types from `@/types/domains/report` directly.
-
-### 10. Duplicate Service Patterns (Investor Yield)
-
-Two investor yield services:
-- `src/services/investor/investorYieldService.ts` -- investor-facing yield events
-- `src/services/investor/investorYieldHistoryService.ts` -- yield history and documents
-
-Both deal with investor yield data with overlapping concerns.
-
-**Recommendation:** Consolidate into a single `investorYieldService.ts`.
-
-### 11. `useIBSettings` Hook in Shared Folder
-
-`src/hooks/data/shared/useIBSettings.ts` (299 lines) contains IB-specific admin logic (role assignment, referral queries) but lives in the shared hooks folder.
-
-**Recommendation:** Move to `src/features/admin/ib/hooks/` since IB management is an admin concern.
-
-### 12. `src/services/profile/profileSettingsService.ts` -- Orphaned Singleton
-
-A standalone service file in its own folder. Profile settings services also exist in `src/services/shared/profileService.ts`.
-
-**Recommendation:** Consolidate into `src/services/shared/profileService.ts` or move into `src/features/investor/settings/`.
+**Fix:** Use `string` for AUM values; pass string to RPC (PostgreSQL handles string-to-NUMERIC correctly).
 
 ---
 
-## Low Priority (Optional Enhancements)
+## CRITICAL: RPC Parameter Precision Loss
 
-### 13. Shared Hooks Folder is Oversized
+### 6. `rpc/client.ts` -- `parseFloat()` destroys precision in canonical helpers
 
-`src/hooks/data/shared/` contains 34 files. Many are admin-specific (dashboard metrics, investor queries, investor mutations, yield data) masquerading as "shared."
+**File:** `src/lib/rpc/client.ts`
 
-**Recommendation:** Gradually migrate admin-only hooks into `src/features/admin/` and investor-only hooks into `src/features/investor/`, leaving truly shared hooks (auth flow, funds, profiles, realtime) in shared.
+The `deposit()`, `withdrawal()`, `applyYield()`, and `previewYield()` helpers all call `parseFloat(params.amount)` or `parseFloat(params.recordedAum)` (lines 219, 241, 263, 279) before passing to the RPC.
 
-### 14. `src/lib/export/` Could Move to Utils
+`parseFloat("0.00000001234567890123456789")` loses digits beyond ~17 significant digits. PostgreSQL NUMERIC(28,10) supports 28 digits.
 
-`src/lib/export/csv-export.ts` is a pure utility (no framework integration). Per the `lib/README.md` guidelines, pure utilities belong in `src/utils/`.
+**Fix:** Pass the string value directly to the RPC. PostgreSQL accepts string input for NUMERIC parameters. The `callRPC` wrapper in `yieldApplyService.ts` already does this correctly with `parsedAum.toString() as unknown as number`.
 
-**Recommendation:** Move to `src/utils/formatters/` or `src/utils/export.ts`.
+### 7. `withdrawalService.ts` -- `parseFloat()` on withdrawal amounts
 
-### 15. Redundant Service Domains at Top Level
+**File:** `src/services/investor/withdrawalService.ts`
 
-`src/services/` has 10 top-level folders. Some are very thin:
-- `src/services/operations/` -- 1 service file
-- `src/services/profile/` -- 1 file
-- `src/services/core/` -- 4 files
-- `src/services/notifications/` -- 3 small files
+- `approveAndComplete()` (line 255): `parseFloat(processedAmount)`
+- `createWithdrawal()` (line 403): `parseFloat(params.amount)`
+- `updateWithdrawal()` (line 433): `parseFloat(params.requestedAmount)`
 
-**Recommendation:** Consolidate `operations` into `admin`, `profile` into `shared`, and `notifications` into `shared` to reduce directory sprawl.
-
-### 16. `src/components/account/`, `src/components/profile/`, `src/components/withdrawal/`
-
-Legacy component directories that should be absorbed into feature directories (`features/investor/settings/`, `features/investor/portfolio/`).
+**Fix:** Pass string values directly; use the `as unknown as number` cast pattern already established elsewhere.
 
 ---
 
-## Summary: Prioritized Action Steps
+## HIGH: Duplicate/Conflicting Type Definitions
 
-| Priority | Action | Impact |
-|----------|--------|--------|
-| 1 | Move direct `supabase.from()` calls in hooks to services | Security, architecture compliance |
-| 2 | Fix investor-to-admin cross-domain import | Domain boundary integrity |
-| 3 | Resolve duplicate withdrawal services | Remove confusion |
-| 4 | Remove hook shim layers (3-hop re-exports) | Reduce indirection, faster refactoring |
-| 5 | Remove component shim layers | Same as above |
-| 6 | Move domain pages into feature directories | Feature-first consistency |
-| 7 | Delete/update stale README | Prevent developer confusion |
-| 8 | Remove `lib/documents/types.ts` if unused | Dead code removal |
-| 9 | Delete empty `services/reports/index.ts` barrel | Reduce confusion |
-| 10 | Consolidate investor yield services | Reduce duplication |
-| 11 | Move `useIBSettings` to admin features | Correct domain placement |
-| 12 | Consolidate profile services | Reduce fragmentation |
-| 13 | Thin out shared hooks folder | Better domain boundaries |
-| 14 | Move CSV export to utils | Follow lib vs utils guidelines |
-| 15 | Consolidate thin service directories | Reduce sprawl |
-| 16 | Absorb legacy component directories | Complete feature-first migration |
+### 8. `feesService.FeeAllocation` vs `@/types/domains/feeAllocation.FeeAllocation`
+
+Two completely different interfaces with the same name:
+- **Canonical** (`@/types/domains/feeAllocation.ts`): camelCase fields, `string` for NUMERIC, maps from `fee_allocations` table
+- **Service** (`feesService.ts`): snake_case fields, `number` for NUMERIC, maps from `platform_fee_ledger` table
+
+These represent different data sources but the same concept. Consumers importing "FeeAllocation" get different types depending on import path.
+
+**Fix:** Rename the service version to `PlatformFeeLedgerEntry` or align both to use the canonical type with a transform layer.
+
+### 9. `investorDetailService.InvestorPosition` vs `@/types/domains/investor.InvestorPosition`
+
+- **Canonical** (`@/types/domains/investor.ts`): `string` financials, full field set
+- **Service** (`investorDetailService.ts`): `number` financials, simplified subset with `fund_name/fund_code/asset`
+
+**Fix:** Use the canonical type and add a view-model wrapper for the joined fund fields.
+
+---
+
+## HIGH: `void_yield_distribution` Signature Mismatch
+
+### 10. Service passes `p_reason` but RPC contract marks it optional
+
+**File:** `src/services/admin/yields/yieldManagementService.ts` (line 133-138)
+
+The service passes `p_void_crystals` parameter which is correctly optional per the contract. However, the `FUNCTION_SIGNATURES.csv` shows the DB function signature as `(p_distribution_id uuid, p_admin_id uuid, p_reason text)` -- `p_reason` is a required positional param, but the `rpcSignatures.ts` marks it as optional. The `callRPC` call includes it, so no runtime error, but the contract metadata is incorrect.
+
+**Fix:** Move `p_reason` from `optionalParams` to `requiredParams` in `rpcSignatures.ts`.
+
+---
+
+## MEDIUM: `as never` Type Escape Hatches
+
+### 11. `withdrawalService.ts` uses `as never` casts
+
+**File:** `src/services/investor/withdrawalService.ts`
+
+- `approveAndComplete()` (line 264): `rpc.call("approve_and_complete_withdrawal" as never, params as never)`
+- `restoreWithdrawal()` (line 470): `rpc.call("restore_withdrawal_by_admin" as never, {...} as never)`
+
+These bypass all type checking. If the RPC function names or parameters change, no compile-time error will catch it.
+
+**Fix:** Add proper type definitions for these RPCs in the generated types, or use `callRPC` which has the correct typing.
+
+---
+
+## MEDIUM: `(supabase.rpc as any)` Bypass
+
+### 12. `adminTransactionHistoryService.ts` uses `(supabase.rpc as any)`
+
+**File:** `src/services/admin/adminTransactionHistoryService.ts`
+
+- `unvoidTransaction()` (line 340): `(supabase.rpc as any)("unvoid_transaction", ...)`
+- `voidTransactionsBulk()` (line 363): `(supabase.rpc as any)("void_transactions_bulk", ...)`
+- `unvoidTransactionsBulk()` (line 392): `(supabase.rpc as any)("unvoid_transactions_bulk", ...)`
+
+These bypass both type checking AND the RPC gateway (no rate limiting, no logging, no error normalization).
+
+**Fix:** Use `rpc.call()` or `callRPC()` instead. All three RPCs are registered in `rpcSignatures.ts` and should work with the typed gateway.
+
+---
+
+## MEDIUM: `withdrawalService.ts` Still in Investor Folder but Contains Admin Logic
+
+The file at `src/services/investor/withdrawalService.ts` (592 lines) contains admin operations like `approveAndComplete`, `rejectWithdrawal`, `cancelWithdrawal`, `routeToFees`, `restoreWithdrawal`, and `logBulkAudit`. This was flagged in the previous audit (item 3) but not yet moved.
+
+**Fix:** Move admin-only methods to `src/services/admin/withdrawalAdminService.ts`. Keep only investor-portal methods in the investor service.
+
+---
+
+## Summary: Prioritized Fix Steps
+
+| # | Severity | Issue | Files |
+|---|----------|-------|-------|
+| 1 | CRITICAL | `parseFloat()` precision loss in RPC client helpers | `src/lib/rpc/client.ts` |
+| 2 | CRITICAL | `number` types for financials in `investorDetailService` | `src/services/admin/investorDetailService.ts` |
+| 3 | CRITICAL | `number` types for financials in `feesService` | `src/services/admin/feesService.ts` |
+| 4 | CRITICAL | `number` types for financials in `recordedYieldsService` | `src/services/admin/recordedYieldsService.ts` |
+| 5 | CRITICAL | `number` types for financials in `dashboardMetricsService` | `src/services/admin/dashboardMetricsService.ts` |
+| 6 | CRITICAL | `parseFloat()` in withdrawal amount params | `src/services/investor/withdrawalService.ts` |
+| 7 | CRITICAL | `number` in `yieldManagementService` AUM fields | `src/services/admin/yields/yieldManagementService.ts` |
+| 8 | HIGH | Duplicate `FeeAllocation` type with conflicting shapes | `feesService.ts` vs `@/types/domains/feeAllocation.ts` |
+| 9 | HIGH | Duplicate `InvestorPosition` with conflicting shapes | `investorDetailService.ts` vs `@/types/domains/investor.ts` |
+| 10 | HIGH | `void_yield_distribution` signature metadata mismatch | `src/contracts/rpcSignatures.ts` |
+| 11 | MEDIUM | `as never` type escape hatches bypass type safety | `src/services/investor/withdrawalService.ts` |
+| 12 | MEDIUM | `(supabase.rpc as any)` bypasses RPC gateway | `src/services/admin/adminTransactionHistoryService.ts` |
+| 13 | MEDIUM | Admin logic in investor service folder | `src/services/investor/withdrawalService.ts` |
+
+### Implementation Order
+
+**Phase 1 -- Precision Fixes (items 1-7):** Convert all financial interfaces to `string`, replace `parseFloat()` with direct string passing for RPC, use `parseFinancial()` / `Decimal.js` for any calculations.
+
+**Phase 2 -- Type Deduplication (items 8-10):** Rename conflicting local types, align with canonical domain types, fix RPC contract metadata.
+
+**Phase 3 -- Gateway Compliance (items 11-12):** Replace `as never` / `as any` with proper typed `rpc.call()` or `callRPC()`.
+
+**Phase 4 -- Structural (item 13):** Split withdrawal service between admin and investor domains.
