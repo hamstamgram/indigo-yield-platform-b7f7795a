@@ -108,7 +108,8 @@ export function useYieldOperationsState() {
       period.setPeriod((prev) => ({
         ...prev,
         yieldPurpose: purpose,
-        distributionDate: purpose === "reporting" ? prev.aumDate : new Date(),
+        // For both purposes, distributionDate should match the user-selected aumDate
+        distributionDate: prev.aumDate,
       }));
       // Clear preview when purpose changes (AUM input preserved)
       calculation.setYieldPreview(null);
@@ -121,6 +122,11 @@ export function useYieldOperationsState() {
   const setAumDate = useCallback(
     (date: Date) => {
       period.setAumDate(date);
+      // Keep distributionDate in sync with aumDate for transaction purpose
+      period.setPeriod((prev) => ({
+        ...prev,
+        distributionDate: date,
+      }));
       // Clear preview when date changes (AUM input preserved)
       calculation.setYieldPreview(null);
       calculation.setExistingDistributionDate(null);
