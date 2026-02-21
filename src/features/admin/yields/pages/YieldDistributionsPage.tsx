@@ -92,9 +92,6 @@ function FeeAllocationsTable({
 }) {
   return (
     <>
-      <p className="text-xs text-muted-foreground mb-3">
-        Showing fee allocation data (yield_allocations not available for this distribution).
-      </p>
       <Table>
         <TableHeader className="sticky top-0 bg-card z-10">
           <TableRow>
@@ -148,9 +145,6 @@ function CrystallizationEventsTable({
 }) {
   return (
     <>
-      <p className="text-xs text-muted-foreground mb-3">
-        Crystallization yield events (per-investor breakdown from investor_yield_events).
-      </p>
       <Table>
         <TableHeader className="sticky top-0 bg-card z-10">
           <TableRow>
@@ -430,9 +424,6 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-display font-bold tracking-tight">Yield Distributions</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Monthly distribution ledger with per-investor allocation breakdown.
-            </p>
           </div>
           <div className="flex items-center gap-2">
             <LastUpdated
@@ -452,10 +443,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
 
       {embedded && (
         <div className="flex items-end justify-between mb-2">
-          <div className="text-sm text-muted-foreground">
-            Monthly distribution ledger with per-investor allocation breakdown.
-          </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             <LastUpdated
               timestamp={dataUpdatedAt}
               onRefresh={() => refetch()}
@@ -625,7 +613,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                         <div className="grid gap-x-6 gap-y-1 sm:grid-cols-4 text-sm">
                                           <div>
                                             <span className="text-muted-foreground">
-                                              Crystallized
+                                              Yield Events
                                             </span>
                                             <div className="font-medium">
                                               {crystalDists.length} event
@@ -693,15 +681,11 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                   )}
                                             </span>
                                             <Badge
-                                              variant={
-                                                distribution.purpose === "reporting"
-                                                  ? "default"
-                                                  : "secondary"
-                                              }
+                                              variant="outline"
                                               className={
                                                 distribution.purpose === "reporting"
-                                                  ? "bg-green-900/30 text-green-400"
-                                                  : "bg-orange-900/30 text-orange-400"
+                                                  ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 uppercase tracking-wider text-[10px] font-mono"
+                                                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase tracking-wider text-[10px] font-mono"
                                               }
                                             >
                                               {distribution.purpose === "reporting"
@@ -711,9 +695,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                             {isCrystallizationDist(distribution) && (
                                               <Badge
                                                 variant="outline"
-                                                className="bg-purple-900/30 text-purple-400 border-purple-800"
+                                                className="bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase tracking-wider text-[10px] font-mono"
                                               >
-                                                Crystallization ({distribution.distribution_type})
+                                                {distribution.distribution_type}
                                               </Badge>
                                             )}
                                             {distribution.is_voided && (

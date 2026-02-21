@@ -143,9 +143,6 @@ export default function InvestorSettingsPage() {
         </div>
         <div>
           <h1 className="text-2xl font-display font-bold text-white tracking-tight">Settings</h1>
-          <p className="text-indigo-200/60 font-light">
-            Manage your profile, security, and preferences
-          </p>
         </div>
       </div>
 
@@ -184,7 +181,6 @@ export default function InvestorSettingsPage() {
             <TabsContent value="appearance" className="mt-0 space-y-8">
               <div>
                 <h2 className="text-xl font-bold text-white mb-1">Appearance</h2>
-                <p className="text-indigo-200/50">Customize how the dashboard looks and feels.</p>
               </div>
 
               <Separator className="bg-white/10" />

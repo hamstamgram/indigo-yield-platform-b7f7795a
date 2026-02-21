@@ -152,11 +152,7 @@ const StatementsPage = () => {
 
   return (
     <PageShell maxWidth="narrow">
-      <PageHeader
-        title="Monthly Statements"
-        subtitle="Access your monthly investment statements"
-        icon={FileText}
-      />
+      <PageHeader title="Statements" icon={FileText} />
 
       <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
         <div className="flex flex-wrap gap-4 items-end">
@@ -307,22 +303,6 @@ const StatementsPage = () => {
           </div>
         </div>
       )}
-
-      <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
-        <p className="text-sm font-medium text-white mb-2">About Monthly Statements</p>
-        <div className="text-xs text-muted-foreground space-y-1.5">
-          <p>
-            Statements are generated on the first business day of each month for the previous
-            month's activity.
-          </p>
-          <p>
-            Each statement shows your beginning balance, additions, withdrawals, net income, and
-            ending balance.
-          </p>
-          <p>You can download PDF versions of your statements for your records.</p>
-          <p>If you have questions about a statement, please contact your administrator.</p>
-        </div>
-      </div>
     </PageShell>
   );
 };

@@ -128,9 +128,7 @@ export function YieldInputForm({
               No AUM History for {selectedFund.name}
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              This fund has no historical AUM records. Before distributing yield, you should record
-              AUM data by completing this form. The first yield distribution will establish the
-              baseline.
+              First yield distribution will establish baseline AUM.
             </p>
           </div>
         </div>
@@ -204,15 +202,13 @@ export function YieldInputForm({
             <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <div>
               {isReporting ? (
-                <>
-                  <strong>Visible to investors.</strong> Official month-end yield that appears on
-                  investor statements and dashboards.
-                </>
+                <span>
+                  <strong>Reporting Yield.</strong> Visible to investors for month-end statements.
+                </span>
               ) : (
-                <>
-                  <strong>Internal only.</strong> Operational yield for processing withdrawals or
-                  top-ups. Not visible to investors.
-                </>
+                <span>
+                  <strong>Transaction Yield.</strong> Internal operational yield applied mid-month.
+                </span>
               )}
             </div>
           </div>
@@ -234,9 +230,6 @@ export function YieldInputForm({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              Select the reporting month this yield applies to
-            </p>
           </div>
         )}
 
@@ -373,18 +366,17 @@ export function YieldInputForm({
         </div>
       )}
 
-      {/* Pending Crystallization Events Info */}
+      {/* Pending Yield Events Info */}
       {yieldPurpose === "reporting" && pendingEvents && pendingEvents.count > 0 && (
         <div className="flex items-start gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
           <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-medium text-amber-800 dark:text-amber-200">
-              {pendingEvents.count} pending yield event{pendingEvents.count !== 1 ? "s" : ""} from
-              mid-month flows
+              {pendingEvents.count} pending mid-month{" "}
+              {pendingEvents.count !== 1 ? "events" : "event"}
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              These events were crystallized from deposits/withdrawals during this period. They will
-              become visible to investors after you apply this month-end yield.
+              Derived from intra-month adjustments. Will be visible to investors once confirmed.
             </p>
           </div>
         </div>

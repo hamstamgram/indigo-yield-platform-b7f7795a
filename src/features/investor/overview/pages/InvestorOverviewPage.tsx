@@ -279,9 +279,13 @@ export default function InvestorOverviewPage() {
                       <div
                         className={cn(
                           "h-8 w-8 rounded-lg flex items-center justify-center border",
-                          tx.type === "DEPOSIT"
+                          String(tx.type) === "DEPOSIT" ||
+                            String(tx.type) === "YIELD" ||
+                            String(tx.type) === "FEE_CREDIT" ||
+                            String(tx.type) === "IB_CREDIT" ||
+                            String(tx.type) === "FIRST_INVESTMENT"
                             ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                            : tx.type === "WITHDRAWAL"
+                            : String(tx.type) === "WITHDRAWAL" || String(tx.type) === "FEE"
                               ? "bg-rose-500/10 border-rose-500/20 text-rose-400"
                               : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
                         )}
@@ -296,7 +300,7 @@ export default function InvestorOverviewPage() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-white capitalize">
-                          {tx.type.toLowerCase()}
+                          {tx.type.replace(/_/g, " ").toLowerCase()}
                         </p>
                         <p className="text-xs text-slate-500 font-medium">
                           {format(new Date(tx.tx_date), "MMM d, h:mm a")}

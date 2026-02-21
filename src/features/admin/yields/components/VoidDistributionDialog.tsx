@@ -230,7 +230,7 @@ export function VoidDistributionDialog({
               onCheckedChange={(checked) => setVoidCrystals(checked === true)}
             />
             <label htmlFor="void-crystals" className="text-sm leading-tight cursor-pointer">
-              Also void crystallization distributions created within this period (use when
+              Also void recorded yield distributions created within this period (use when
               re-distributing from scratch).
             </label>
           </div>

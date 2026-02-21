@@ -3,7 +3,7 @@
  * Consolidated system operations dashboard with 3 tabs:
  * - Health: Service status + delivery queue
  * - Integrity: 16-check invariant suite + run history + alerts
- * - Crystallization: Fund crystallization status + gaps + batch actions
+ * - Yield Events: Fund yield application status + gaps + batch actions
  */
 
 import { useEffect, useState, lazy, Suspense } from "react";
@@ -637,10 +637,10 @@ function IntegrityTab() {
 }
 
 // ============================================================================
-// Crystallization Tab
+// Yield Events Tab
 // ============================================================================
 
-function CrystallizationTab() {
+function YieldEventsTab() {
   const [selectedFundId, setSelectedFundId] = useState<string | undefined>(undefined);
 
   const {
@@ -743,7 +743,7 @@ function CrystallizationTab() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
-              Crystallized
+              Recorded Events
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -772,9 +772,9 @@ function CrystallizationTab() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Fund Crystallization Status
+            Fund Yield Event Status
           </CardTitle>
-          <CardDescription>Crystallization coverage per fund</CardDescription>
+          <CardDescription>Yield application coverage per fund</CardDescription>
         </CardHeader>
         <CardContent>
           {sortedFunds && sortedFunds.length > 0 ? (
@@ -803,7 +803,7 @@ function CrystallizationTab() {
                       onSort={fundRequestSort}
                       className="text-right"
                     >
-                      Crystallized
+                      Recorded Events
                     </SortableTableHead>
                     <TableHead className="text-right">Gaps</TableHead>
                     <TableHead className="text-right">Staleness</TableHead>
@@ -869,9 +869,9 @@ function CrystallizationTab() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Crystallization Gaps
+                Yield Event Gaps
               </CardTitle>
-              <CardDescription>Positions that need yield crystallization</CardDescription>
+              <CardDescription>Positions that need yield events applied</CardDescription>
             </div>
             <Select
               value={selectedFundId || "all"}
@@ -911,7 +911,7 @@ function CrystallizationTab() {
                     >
                       Fund
                     </SortableTableHead>
-                    <TableHead>Last Crystal</TableHead>
+                    <TableHead>Last Event</TableHead>
                     <SortableTableHead
                       column="days_behind"
                       currentSort={gapSortConfig}
@@ -994,7 +994,9 @@ function CrystallizationTab() {
           ) : (
             <div className="text-center py-8">
               <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-              <p className="text-sm font-medium text-emerald-400">All positions are crystallized</p>
+              <p className="text-sm font-medium text-emerald-400">
+                All positions have been recorded
+              </p>
               <p className="text-xs text-muted-foreground mt-1">No gaps found</p>
             </div>
           )}
@@ -1019,7 +1021,7 @@ export default function OperationsPage() {
           Operations
         </h1>
         <p className="text-muted-foreground mt-1">
-          System health, data integrity, yield crystallization, and audit trail
+          System health, data integrity, yield distribution, and audit trail
         </p>
       </div>
 
@@ -1035,7 +1037,7 @@ export default function OperationsPage() {
           </TabsTrigger>
           <TabsTrigger value="crystallization" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
-            Crystallization
+            Yield Events
           </TabsTrigger>
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -1052,7 +1054,7 @@ export default function OperationsPage() {
         </TabsContent>
 
         <TabsContent value="crystallization">
-          <CrystallizationTab />
+          <YieldEventsTab />
         </TabsContent>
 
         <TabsContent value="audit">

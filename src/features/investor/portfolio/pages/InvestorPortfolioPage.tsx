@@ -139,7 +139,6 @@ export default function InvestorPortfolioPage() {
           <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Portfolio
           </h1>
-          <p className="text-slate-400 mt-1 text-sm">Detailed breakdown of your asset positions</p>
         </div>
         <div className="flex gap-3">
           <Button

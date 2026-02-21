@@ -60,6 +60,7 @@ import { BulkActionToolbar } from "../components/BulkActionToolbar";
 import { BulkVoidDialog } from "../components/BulkVoidDialog";
 import { BulkUnvoidDialog } from "../components/BulkUnvoidDialog";
 import { UnvoidTransactionDialog } from "../components/UnvoidTransactionDialog";
+import { cn } from "@/lib/utils";
 
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 import { formatAssetValue } from "@/utils/formatters";
@@ -239,22 +240,23 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
     return `${sign}${formatted}`;
   };
 
-  const getTypeBadgeVariant = (
-    displayType: string
-  ): "default" | "destructive" | "secondary" | "outline" => {
-    switch (displayType) {
-      case "First Investment":
-        return "default";
-      case "Top-up":
-        return "secondary";
-      case "Withdrawal":
-      case "Withdrawal All":
-        return "destructive";
-      case "Fee":
-        return "outline";
-      default:
-        return "outline";
-    }
+  const getTypeBadgeClass = (displayType: string, type: string) => {
+    const isCredit =
+      type === "DEPOSIT" ||
+      type === "YIELD" ||
+      type === "FEE_CREDIT" ||
+      type === "IB_CREDIT" ||
+      type === "FIRST_INVESTMENT";
+    const isDebit = type === "WITHDRAWAL" || type === "FEE";
+
+    return cn(
+      "font-mono tracking-wider text-[10px] uppercase",
+      isCredit
+        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+        : isDebit
+          ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+          : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+    );
   };
 
   const handleAddTransactionSuccess = () => {
@@ -278,13 +280,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
 
   const inner = (
     <>
-      {!embedded && (
-        <PageHeader
-          title="Transaction History"
-          subtitle="Complete chronological ledger of all investor transactions"
-          icon={CreditCard}
-        />
-      )}
+      {!embedded && <PageHeader title="Transaction History" />}
 
       {/* Filters */}
       <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 space-y-4">
@@ -571,8 +567,8 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                           <TableCell className="py-1.5">
                             <div className="flex items-center gap-1 flex-wrap">
                               <Badge
-                                variant={getTypeBadgeVariant(tx.displayType)}
-                                className="text-[10px]"
+                                variant="outline"
+                                className={getTypeBadgeClass(tx.displayType, tx.type)}
                               >
                                 {tx.displayType}
                               </Badge>

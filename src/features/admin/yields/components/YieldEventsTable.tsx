@@ -1,6 +1,6 @@
 /**
  * YieldEventsTable - Display all investor yield events with visibility status
- * Shows crystallization events from deposits, withdrawals, and month-end
+ * Shows yield events derived from deposits, withdrawals, and month-end
  */
 
 import { useState, useMemo } from "react";
@@ -88,7 +88,10 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
     const pending = filteredEvents.filter((e) => e.visibility_scope === "admin_only").length;
     const visible = filteredEvents.filter((e) => e.visibility_scope === "investor_visible").length;
     const totalYield = filteredEvents.reduce(
-      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount || 0)).toNumber(),
+      (sum, e) =>
+        parseFinancial(sum)
+          .plus(parseFinancial(e.net_yield_amount || 0))
+          .toNumber(),
       0
     );
     return { pending, visible, total: filteredEvents.length, totalYield };
@@ -173,7 +176,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Yield Crystallization Events
+            Yield Events
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-amber-400 bg-amber-500/10">

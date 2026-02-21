@@ -135,9 +135,7 @@ export function AddTransactionDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto transition-all duration-300 sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
-          <DialogDescription>
-            Manually create a transaction for an investor. All fields are validated and logged.
-          </DialogDescription>
+          <DialogDescription className="sr-only">Record a new transaction</DialogDescription>
         </DialogHeader>
 
         <FormProvider {...form}>
@@ -147,11 +145,10 @@ export function AddTransactionDialog({
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Transaction Locked: Yield Drop Required</strong>
+                  <p className="font-semibold">Yield Drop Required</p>
                   <p className="text-sm mt-1">
-                    It has been {Math.floor(yieldLock.gapHours / 24)} days since the last yield drop
-                    for this fund. Operating policy requires yield to be distributed at least every
-                    72 hours before allowing new capital flows. Please run a yield drop first.
+                    {Math.floor(yieldLock.gapHours / 24)} days since last drop. Run a yield drop
+                    before allowing new capital flows.
                   </p>
                 </AlertDescription>
               </Alert>
@@ -208,24 +205,14 @@ export function AddTransactionDialog({
 
               {/* Balance indicator */}
               {selectedInvestorId && selectedFundId && (
-                <Alert variant={isFirstInvestment ? "default" : "default"} className="py-2">
-                  <Info className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    {isCheckingBalance ? (
-                      "Checking balance..."
-                    ) : isFirstInvestment ? (
-                      <span className="text-amber-600 dark:text-amber-400">
-                        <strong>No existing position</strong> — Use "First Investment" for deposits
-                      </span>
-                    ) : (
-                      <span>
-                        <strong>Current balance:</strong>{" "}
-                        {formatAUM(currentBalance ?? 0, selectedFund?.asset || "tokens")} — Use
-                        "Deposit" for top-ups
-                      </span>
-                    )}
-                  </AlertDescription>
-                </Alert>
+                <div className="flex items-center justify-between text-sm py-2 px-1 border-b border-border/10">
+                  <span className="text-muted-foreground">Available Balance</span>
+                  <span className="font-mono font-medium">
+                    {isCheckingBalance
+                      ? "..."
+                      : formatAUM(currentBalance ?? 0, selectedFund?.asset || "tokens")}
+                  </span>
+                </div>
               )}
 
               {/* Amount */}

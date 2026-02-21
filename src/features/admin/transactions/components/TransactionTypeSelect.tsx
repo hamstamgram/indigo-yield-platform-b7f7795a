@@ -41,7 +41,7 @@ export function TransactionTypeSelect({
             disabled={hasExistingPosition}
             className={cn(hasExistingPosition && "opacity-50")}
           >
-            First Investment {hasExistingPosition && "(position exists)"}
+            First Investment
           </SelectItem>
           {/* Deposit is always available */}
           <SelectItem value="DEPOSIT">Deposit / Top-up</SelectItem>
@@ -50,7 +50,7 @@ export function TransactionTypeSelect({
             disabled={isFirstInvestment}
             className={cn(isFirstInvestment && "opacity-50")}
           >
-            Withdrawal {isFirstInvestment && "(no position)"}
+            Withdrawal
           </SelectItem>
         </SelectContent>
       </Select>

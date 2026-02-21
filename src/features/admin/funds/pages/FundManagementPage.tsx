@@ -64,22 +64,26 @@ type FundStatus = "active" | "inactive" | "suspended" | "deprecated";
 const STATUS_CONFIG: Record<FundStatus, { label: string; className: string; glow: string }> = {
   active: {
     label: "Active",
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    className:
+      "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-mono tracking-wider text-[10px] uppercase",
     glow: "shadow-[0_0_15px_-3px_rgba(16,185,129,0.3)]",
   },
   inactive: {
     label: "Inactive",
-    className: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+    className:
+      "bg-slate-500/10 text-slate-400 border-slate-500/20 font-mono tracking-wider text-[10px] uppercase",
     glow: "",
   },
   suspended: {
     label: "Suspended",
-    className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    className:
+      "bg-amber-500/10 text-amber-500 border-amber-500/20 font-mono tracking-wider text-[10px] uppercase",
     glow: "shadow-[0_0_15px_-3px_rgba(245,158,11,0.2)]",
   },
   deprecated: {
     label: "Archived",
-    className: "bg-rose-900/10 text-rose-500 border-rose-500/20",
+    className:
+      "bg-rose-900/10 text-rose-500 border-rose-500/20 font-mono tracking-wider text-[10px] uppercase",
     glow: "",
   },
 };
@@ -358,7 +362,7 @@ function FundManagementContent() {
                     </div>
                     <div
                       className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border backdrop-blur-md",
+                        "px-2.5 py-1 rounded-full border backdrop-blur-md",
                         status.className,
                         status.glow
                       )}

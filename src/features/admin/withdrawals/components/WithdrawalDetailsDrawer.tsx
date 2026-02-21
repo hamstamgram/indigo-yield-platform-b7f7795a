@@ -28,12 +28,18 @@ interface WithdrawalDetailsDrawerProps {
 }
 
 const statusColors: Record<WithdrawalFullStatus, string> = {
-  pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
-  approved: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  processing: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  completed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  rejected: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-  cancelled: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+  pending:
+    "bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase tracking-wider text-[10px] font-mono",
+  approved:
+    "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase tracking-wider text-[10px] font-mono",
+  processing:
+    "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 uppercase tracking-wider text-[10px] font-mono",
+  completed:
+    "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase tracking-wider text-[10px] font-mono",
+  rejected:
+    "bg-rose-500/10 text-rose-400 border-rose-500/20 uppercase tracking-wider text-[10px] font-mono",
+  cancelled:
+    "bg-gray-500/10 text-gray-400 border-gray-500/20 uppercase tracking-wider text-[10px] font-mono",
 };
 
 export function WithdrawalDetailsDrawer({
@@ -153,7 +159,12 @@ export function WithdrawalDetailsDrawer({
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Type</h3>
-                    <Badge variant="outline">{withdrawal.withdrawal_type}</Badge>
+                    <Badge
+                      variant="outline"
+                      className="font-mono tracking-wider text-[10px] uppercase text-muted-foreground"
+                    >
+                      {withdrawal.withdrawal_type}
+                    </Badge>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Request Date</h3>

@@ -57,20 +57,19 @@ export default function InvestorTransactionsPage() {
         <Badge
           variant="outline"
           className={cn(
-            "capitalize font-mono tracking-wider",
+            "font-mono tracking-wider text-[10px] uppercase",
             item.type === "DEPOSIT" ||
               item.type === "YIELD" ||
               item.type === "FEE_CREDIT" ||
-              item.type === "IB_CREDIT"
+              item.type === "IB_CREDIT" ||
+              item.type === "FIRST_INVESTMENT"
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-              : item.type === "WITHDRAWAL"
+              : item.type === "WITHDRAWAL" || item.type === "FEE"
                 ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
                 : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
           )}
         >
-          {String(item.type || "transaction")
-            .replace(/_/g, " ")
-            .toLowerCase()}
+          {String(item.type || "transaction").replace(/_/g, " ")}
         </Badge>
       ),
     },
@@ -155,14 +154,7 @@ export default function InvestorTransactionsPage() {
         <div>
           <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
             Transactions
-            <span className="flex h-3 w-3 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
-            </span>
           </h1>
-          <p className="text-slate-400 mt-1 text-sm">
-            View and filter your complete transaction history
-          </p>
         </div>
         <div className="flex gap-3">
           <Button

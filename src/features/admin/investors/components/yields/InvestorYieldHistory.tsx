@@ -1,5 +1,5 @@
 /**
- * InvestorYieldHistory - Shows crystallization event history for a specific investor
+ * InvestorYieldHistory - Shows yield event history for a specific investor
  * Displays all yield events including pending (admin_only) and visible ones
  */
 
@@ -60,15 +60,27 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
     const pending = active.filter((e) => e.visibility_scope === "admin_only");
     const visible = active.filter((e) => e.visibility_scope === "investor_visible");
     const voidedCount = yieldEvents.filter((e) => e.is_voided).length;
-    const totalGross = active.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.gross_yield_amount)).toNumber(), 0);
-    const totalFees = active.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.fee_amount)).toNumber(), 0);
-    const totalNet = active.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(), 0);
+    const totalGross = active.reduce(
+      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.gross_yield_amount)).toNumber(),
+      0
+    );
+    const totalFees = active.reduce(
+      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.fee_amount)).toNumber(),
+      0
+    );
+    const totalNet = active.reduce(
+      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(),
+      0
+    );
 
     return {
       pendingCount: pending.length,
       visibleCount: visible.length,
       voidedCount,
-      pendingYield: pending.reduce((sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(), 0),
+      pendingYield: pending.reduce(
+        (sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(),
+        0
+      ),
       totalGross,
       totalFees,
       totalNet,
@@ -140,7 +152,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
-                Yield Crystallization History
+                Yield Event History
                 <ChevronDown
                   className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")}
                 />

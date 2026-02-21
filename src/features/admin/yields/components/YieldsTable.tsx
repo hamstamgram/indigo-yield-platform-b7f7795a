@@ -42,15 +42,15 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
     fund: true,
     date: true,
-    aum: true,
+    aum: false, // Hidden by default, prioritize Yield Deltas
     grossYield: true,
     netYield: true,
     fees: true,
     ib: true,
     investors: true,
     purpose: true,
-    monthEnd: true,
-    source: true,
+    monthEnd: false, // Less critical for daily operations
+    source: false, // Backend context, hide by default
     created: true,
     actions: true,
   });

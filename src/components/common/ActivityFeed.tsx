@@ -191,10 +191,17 @@ function ActivityItemRow({ activity }: { activity: ControlledActivityItem }) {
           )}
           {activity.metadata?.amount && (
             <Badge
-              variant={
-                activity.type === "deposit" || activity.type === "yield" ? "default" : "secondary"
-              }
-              className="font-mono text-[10px] px-1.5"
+              variant="outline"
+              className={cn(
+                "font-mono tracking-wider text-[10px] uppercase px-1.5",
+                activity.type === "deposit" ||
+                  activity.type === "yield" ||
+                  activity.metadata.amount.startsWith("+")
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : activity.type === "withdrawal" || activity.metadata.amount.startsWith("-")
+                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                    : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+              )}
             >
               {formatAmount(activity.metadata.amount, activity.metadata.asset)}
             </Badge>

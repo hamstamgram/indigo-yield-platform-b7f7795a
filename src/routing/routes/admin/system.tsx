@@ -13,7 +13,7 @@ const AdminSettingsPage = lazy(() => import("@/features/admin/settings/pages/Adm
 export function SystemRoutes() {
   return (
     <>
-      {/* Operations (Health + Integrity + Crystallization + Audit Trail) */}
+      {/* Operations (Health + Integrity + Yield Distributions + Audit Trail) */}
       <Route
         path="/admin/operations"
         element={

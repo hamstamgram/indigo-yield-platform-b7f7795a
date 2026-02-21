@@ -67,10 +67,7 @@ export function YieldPreviewResults({
   return (
     <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
       <div className="flex items-center gap-2 mb-4">
-        <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-          3
-        </div>
-        <h3 className="font-semibold">Confirm & Apply</h3>
+        <h3 className="font-semibold text-lg">Confirm & Apply</h3>
       </div>
 
       {/* V5 Method Badge */}
@@ -112,7 +109,6 @@ export function YieldPreviewResults({
               <p className="text-lg font-mono font-semibold">
                 {formatValue(toNum(yieldPreview.openingAum), asset)}
               </p>
-              <p className="text-xs text-muted-foreground">Start of period</p>
             </CardContent>
           </Card>
         )}
@@ -132,7 +128,7 @@ export function YieldPreviewResults({
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">Total Fees</p>
+            <p className="text-xs text-muted-foreground">System Input</p>
             <p className="text-lg font-mono font-semibold">
               {formatValue(toNum(yieldPreview.totalFees), asset)}
             </p>
