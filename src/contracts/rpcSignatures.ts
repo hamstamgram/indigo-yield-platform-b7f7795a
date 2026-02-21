@@ -27,13 +27,10 @@ export const RPC_FUNCTIONS = [
   "acquire_yield_lock",
   "add_fund_to_investor",
   "adjust_investor_position",
-  "apply_adb_yield_distribution_v3",
   "apply_daily_yield_with_validation",
-  "apply_deposit_with_crystallization",
   "apply_investor_transaction",
   "apply_segmented_yield_distribution_v5",
   "apply_transaction_with_crystallization",
-  "apply_withdrawal_with_crystallization",
   "approve_and_complete_withdrawal",
   "approve_withdrawal",
   "assert_integrity_or_raise",
@@ -310,19 +307,6 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_amount", "p_fund_id", "p_investor_id", "p_reason"] as const,
     optionalParams: ["p_admin_id", "p_tx_date"] as const,
   },
-  apply_adb_yield_distribution_v3: {
-    name: "apply_adb_yield_distribution_v3" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [
-      "p_fund_id",
-      "p_gross_yield_amount",
-      "p_period_end",
-      "p_period_start",
-    ] as const,
-    optionalParams: ["p_admin_id", "p_distribution_date", "p_purpose", "p_recorded_aum"] as const,
-  },
   apply_daily_yield_with_validation: {
     name: "apply_daily_yield_with_validation" as const,
     returnType: "Json",
@@ -330,21 +314,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_created_by", "p_fund_id", "p_gross_yield_pct", "p_yield_date"] as const,
     optionalParams: ["p_purpose", "p_skip_validation"] as const,
-  },
-  apply_deposit_with_crystallization: {
-    name: "apply_deposit_with_crystallization" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [
-      "p_admin_id",
-      "p_amount",
-      "p_closing_aum",
-      "p_effective_date",
-      "p_fund_id",
-      "p_investor_id",
-    ] as const,
-    optionalParams: ["p_notes", "p_purpose", "p_tx_hash", "p_tx_subtype"] as const,
   },
   apply_investor_transaction: {
     name: "apply_investor_transaction" as const,
@@ -383,28 +352,7 @@ export const RPC_SIGNATURES = {
       "p_tx_date",
       "p_tx_type",
     ] as const,
-    optionalParams: [
-      "p_admin_id",
-      "p_distribution_id",
-      "p_new_total_aum",
-      "p_notes",
-      "p_purpose",
-    ] as const,
-  },
-  apply_withdrawal_with_crystallization: {
-    name: "apply_withdrawal_with_crystallization" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [
-      "p_admin_id",
-      "p_amount",
-      "p_fund_id",
-      "p_investor_id",
-      "p_new_total_aum",
-      "p_tx_date",
-    ] as const,
-    optionalParams: ["p_notes", "p_purpose", "p_tx_hash", "p_tx_subtype"] as const,
+    optionalParams: ["p_admin_id", "p_distribution_id", "p_notes", "p_purpose"] as const,
   },
   approve_and_complete_withdrawal: {
     name: "approve_and_complete_withdrawal" as const,
@@ -2060,12 +2008,12 @@ export function getRPCSignature<T extends RPCFunctionName>(name: T) {
 // These are the ONLY RPCs that should be used for mutations
 
 export const CANONICAL_MUTATION_RPCS = {
-  /** Canonical RPC for deposits (with crystallization) */
-  DEPOSIT: "apply_deposit_with_crystallization",
-  /** Canonical RPC for withdrawals (with crystallization) */
-  WITHDRAWAL: "apply_withdrawal_with_crystallization",
+  /** Canonical RPC for deposits and withdrawals */
+  DEPOSIT: "apply_transaction_with_crystallization",
+  /** Canonical RPC for deposits and withdrawals */
+  WITHDRAWAL: "apply_transaction_with_crystallization",
   /** Canonical RPC for yield distribution */
-  YIELD: "apply_daily_yield_to_fund_v3",
+  YIELD: "apply_segmented_yield_distribution_v5",
   /** Canonical RPC for voiding transactions */
   VOID: "void_transaction",
 } as const;
