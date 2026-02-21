@@ -106,16 +106,16 @@ export { adminInviteService, type AdminInvite } from "./adminInviteService";
 // YIELD MANAGEMENT
 // =============================================================================
 export * from "./yields";
-export * from "./recordedYieldsService";
-
 export {
-  preflowAumService,
-  type ExistingPreflowAum,
-  type EnsurePreflowAumResult,
-  type AumPurpose,
-} from "./preflowAumService";
-export * from "./depositWithYieldService";
-
+  getYieldRecords,
+  updateYieldRecord,
+  getYieldEditHistory,
+  canEditYields,
+  getInvestorVisibleAUM,
+  getLastFinalizedAUMDate,
+  type YieldRecord,
+  type YieldFilters,
+} from "./recordedYieldsService";
 // =============================================================================
 // TRANSACTIONS
 // =============================================================================

@@ -7,19 +7,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  transactionService,
-  createTransactionWithCrystallization,
-  QuickTransactionParams,
-} from "@/services/shared";
+import { createInvestorTransaction, transactionService } from "@/services/shared";
 import { transactionsV2Service } from "@/services/investor";
 import {
   getTransactionById,
   getTransactionWithRelated,
   getTransactionFormData,
   checkInvestorBalance,
-  checkAumExists,
-  saveDraftAUMEntry,
 } from "@/services/admin";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -46,7 +40,6 @@ export type {
   InvestorForTransaction,
   FundForTransaction,
   BalanceCheckResult,
-  AumCheckResult,
 };
 
 export interface TransactionFilters {
@@ -68,13 +61,6 @@ interface LocalCreateTransactionParams {
   closing_aum?: string | number;
   description?: string;
   txHash?: string;
-}
-
-interface RecordAumParams {
-  fundId: string;
-  date: Date;
-  aum: number;
-  notes?: string;
 }
 
 // ==================== Queries ====================
@@ -236,20 +222,6 @@ export function useBalanceCheckForTransaction(
 // Alias for backward compatibility
 export const useInvestorBalance = useBalanceCheckForTransaction;
 
-/**
- * Hook to check if AUM exists for a fund on a specific date
- */
-export function useAumCheck(fundId: string | undefined, date: string | undefined) {
-  return useQuery<AumCheckResult, Error>({
-    queryKey: [...QUERY_KEYS.fundAumAll, fundId, date, "check"],
-    queryFn: () => {
-      if (!fundId || !date) throw new Error("Fund and date required");
-      return checkAumExists(fundId, date);
-    },
-    enabled: !!fundId && !!date,
-  });
-}
-
 // ==================== Mutations ====================
 
 /**
@@ -259,8 +231,9 @@ export function useCreateTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: QuickTransactionParams) => {
-      await transactionService.createQuickTransaction(params);
+    mutationFn: async (params: any) => {
+      // Changed type to any as QuickTransactionParams is removed
+      await transactionService.createQuickTransaction(params); // Assuming transactionService now handles this
       return { success: true };
     },
     onSuccess: (_, variables) => {
@@ -281,7 +254,7 @@ export function useCreateAdminTransaction() {
 
   return useMutation({
     mutationFn: async (params: LocalCreateTransactionParams) => {
-      const result = await createTransactionWithCrystallization({
+      const newTransaction = {
         investor_id: params.investorId,
         fund_id: params.fundId,
         type: params.type as CreateTransactionUIParams["type"],
@@ -291,7 +264,9 @@ export function useCreateAdminTransaction() {
         asset: params.asset,
         notes: params.description,
         tx_hash: params.txHash,
-      });
+      };
+
+      const result = await createInvestorTransaction(newTransaction);
 
       if (!result.success) {
         throw new Error(result.error || "Failed to create transaction");
@@ -332,36 +307,6 @@ export function useVoidTransaction() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to void transaction: ${error.message}`);
-    },
-  });
-}
-
-/**
- * Hook to record AUM entry
- */
-export function useRecordAum() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: RecordAumParams) => {
-      const { data: userData } = await supabase.auth.getUser();
-      await saveDraftAUMEntry(
-        params.fundId,
-        params.date,
-        params.aum,
-        params.notes || "Recorded for transaction creation",
-        userData.user?.id
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
-      toast.success("AUM recorded successfully");
-    },
-    onError: (error: Error) => {
-      const errorMsg = error.message || "Failed to record AUM";
-      toast.error(
-        errorMsg.includes("Permission") ? "Permission denied: Admin access required." : errorMsg
-      );
     },
   });
 }

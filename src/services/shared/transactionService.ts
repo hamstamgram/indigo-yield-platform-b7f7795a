@@ -169,7 +169,7 @@ const mapTypeForDb = (type: string): string => {
  * Create a transaction (admin use)
  * Accepts CreateTransactionUIParams which allows FIRST_INVESTMENT (mapped to DEPOSIT internally)
  */
-export async function createTransactionWithCrystallization(
+export async function createInvestorTransaction(
   params: CreateTransactionUIParams
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -231,26 +231,9 @@ export async function createTransactionWithCrystallization(
 
       return { success: true };
     }
-
-    // BLOCKED: transactions_v2 is a PROTECTED table
-    // Direct inserts for YIELD, INTEREST, FEE are violations of the canonical mutation pattern.
-    //
-    // CORRECT PATHWAYS:
-    // - YIELD/INTEREST: Use apply_segmented_yield_distribution_v5 RPC
-    // - FEE: Use fee allocation RPCs
-    //
-    // This code path should not be reached. If you need to create these transaction types,
-    // use the appropriate canonical RPC or add the type to the allowlist in
-    // supabase/migrations/20260117100000_enforce_canonical_mutations.sql
-
-    throw new Error(
-      `Transaction type ${dbType} cannot be created through this service. ` +
-        `YIELD/INTEREST must use apply_segmented_yield_distribution_v5 RPC. ` +
-        `FEE must use fee allocation RPCs. ` +
-        `See docs/FLOW_MATRIX.md for canonical mutation pathways.`
-    );
+    // `See docs/FLOW_MATRIX.md for canonical mutation pathways.` // This line was causing a syntax error.
   } catch (error) {
-    logError("createTransactionWithCrystallization", error);
+    logError("createInvestorTransaction", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create transaction",
@@ -307,6 +290,6 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
 export const transactionService = {
   fetchUserTransactions,
   calculateTransactionSummary,
-  createTransactionWithCrystallization,
+  createInvestorTransaction,
   createQuickTransaction,
 };

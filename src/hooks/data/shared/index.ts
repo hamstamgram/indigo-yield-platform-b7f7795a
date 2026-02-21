@@ -137,9 +137,7 @@ export {
   useTransactionFormData,
   useBalanceCheckForTransaction,
   useInvestorBalance as useInvestorBalanceCheck, // Backward compatibility
-  useAumCheck,
   useCreateAdminTransaction,
-  useRecordAum,
   useTransactions,
   useInvestorTransactions,
   useCreateTransaction,
@@ -150,7 +148,6 @@ export {
   type InvestorForTransaction,
   type FundForTransaction,
   type BalanceCheckResult,
-  type AumCheckResult,
   type TransactionWithFund,
   type TransactionFilters,
 } from "./useTransactionHooks";
@@ -178,7 +175,6 @@ export {
   useCanVoidYield,
   useUpdateYieldRecord,
   useVoidYieldRecord,
-  type YieldRecord,
   type YieldFilters,
   type YieldDetails,
 } from "./useYieldData";

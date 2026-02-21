@@ -52,7 +52,6 @@ import { logError } from "@/lib/logger";
 const reissueSchema = z.object({
   tx_date: z.string().min(1, "Transaction date is required"),
   amount: z.string().min(1, "Amount is required"),
-  closing_aum: z.string().optional(),
   notes: z.string().optional(),
   reason: z.string().min(10, "Reason must be at least 10 characters for audit trail"),
 });
@@ -116,7 +115,6 @@ export function VoidAndReissueDialog({
       reset({
         tx_date: transaction.txDate,
         amount: transaction.amount,
-        closing_aum: "",
         notes: transaction.notes || "",
         reason: "",
       });
@@ -171,9 +169,8 @@ export function VoidAndReissueDialog({
       return;
     }
 
-    const closingAum = data.closing_aum ? parseFloat(data.closing_aum) : null;
-    if (closingAum !== null && (!isFinite(closingAum) || closingAum <= 0)) {
-      toast.error("Closing AUM must be a positive number if provided");
+    if (!hasChanges) {
+      toast.info("No changes to apply");
       return;
     }
 
@@ -185,7 +182,6 @@ export function VoidAndReissueDialog({
           amount: data.amount, // Keep as string for NUMERIC precision
           notes: data.notes || null,
         },
-        closingAum: closingAum !== null ? String(closingAum) : undefined,
         reason: data.reason.trim(),
         investorId: transaction.investorId,
         fundId: transaction.fundId || undefined,
@@ -322,25 +318,6 @@ export function VoidAndReissueDialog({
                     <p className="text-sm text-destructive">{errors.amount.message}</p>
                   )}
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="closing_aum">Closing AUM Snapshot ({transaction.asset})</Label>
-                <Input
-                  id="closing_aum"
-                  type="number"
-                  step="0.00000001"
-                  min="0"
-                  placeholder={`Enter closing AUM in ${transaction.asset}`}
-                  {...register("closing_aum")}
-                  disabled={transaction.isSystemGenerated}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter the fund AUM immediately before the reissued transaction.
-                </p>
-                {errors.closing_aum && (
-                  <p className="text-sm text-destructive">{errors.closing_aum.message}</p>
-                )}
               </div>
 
               <div className="space-y-2">

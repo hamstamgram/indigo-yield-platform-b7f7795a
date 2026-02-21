@@ -267,7 +267,6 @@ async function voidAndReissueTransaction(
     p_new_amount: parseFinancial(params.newValues.amount).toNumber(),
     p_new_date: params.newValues.tx_date,
     p_new_notes: mergedNotes ?? undefined,
-    p_closing_aum: parseFinancial(params.closingAum).toNumber(),
     p_admin_id: user.id,
     p_reason: params.reason,
   });

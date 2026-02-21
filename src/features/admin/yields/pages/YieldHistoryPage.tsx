@@ -8,8 +8,7 @@ import { useState, useEffect } from "react";
 import { AdminGuard } from "@/components/admin";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useTabFromUrl } from "@/hooks/ui/useTabFromUrl";
-import { canEditYields } from "@/services/admin";
-import { type AumPurpose, type YieldFilters } from "@/services/admin";
+import { canEditYields, type AumPurpose, type YieldFilters } from "@/services/admin";
 import {
   YieldsFilterBar,
   YieldsTable,

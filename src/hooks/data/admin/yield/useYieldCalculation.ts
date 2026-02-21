@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useFundAumAsOf } from "@/features/admin/funds/hooks/useFundAumAsOf";
+
 import {
   previewYieldDistribution,
   checkExistingDistribution,
   type YieldCalculationResult,
-} from "@/services/admin";
+} from "@/services/admin/yields";
 import type { YieldPurpose } from "./useYieldPeriod";
 
 export function useYieldCalculation() {
@@ -39,7 +39,7 @@ export function useYieldCalculation() {
         return;
       }
 
-      const baseAum = asOfAum ?? selectedFund.total_aum;
+      const baseAum = selectedFund.total_aum;
 
       setPreviewLoading(true);
       try {

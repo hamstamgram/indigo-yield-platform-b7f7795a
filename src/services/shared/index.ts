@@ -19,7 +19,7 @@ export * from "./performanceService";
 export {
   fetchUserTransactions,
   calculateTransactionSummary,
-  createTransactionWithCrystallization,
+  createInvestorTransaction,
   createQuickTransaction,
   transactionService,
 } from "./transactionService";

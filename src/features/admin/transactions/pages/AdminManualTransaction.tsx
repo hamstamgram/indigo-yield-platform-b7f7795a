@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { createTransactionWithCrystallization } from "@/services/shared";
+import { createInvestorTransaction, createQuickTransaction } from "@/services/shared";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { Loader2, ArrowRightLeft, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -118,16 +118,17 @@ export default function AdminManualTransaction() {
         );
       }
 
-      const result = await createTransactionWithCrystallization({
+      const result = await createInvestorTransaction({
         investor_id: data.investorId,
         fund_id: data.fundId,
         type: data.type as CreateTransactionParams["type"],
+        asset: selectedFund.asset,
         amount: data.amount,
         tx_date: data.txDate,
-        asset: selectedFund.asset,
-        notes: data.description,
-        closing_aum: undefined, // No preflow AUM — yield handled via Record Yield
         event_ts: `${data.txDate}T00:00:00.000Z`,
+        reference_id: undefined,
+        tx_hash: undefined,
+        notes: data.description || undefined,
       });
 
       if (!result.success) {
