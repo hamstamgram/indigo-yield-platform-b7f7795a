@@ -26,6 +26,9 @@ DECLARE
     v_fund record;
     v_transaction_id uuid;
 BEGIN
+    -- Set canonical RPC flag to bypass table mutation guards
+    PERFORM set_config('indigo.canonical_rpc', 'true', true);
+
     -- 1. Validate inputs
     IF p_amount <= 0 THEN
         RAISE EXCEPTION 'Amount must be positive' USING ERRCODE = 'P0001';

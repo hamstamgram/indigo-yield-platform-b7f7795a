@@ -38,6 +38,9 @@ DECLARE
   v_asset text;
   v_purpose public.aum_purpose;
 BEGIN
+  -- Set canonical RPC flag to bypass table mutation guards
+  PERFORM set_config('indigo.canonical_rpc', 'true', true);
+
   -- 1. Fetch old transaction
   SELECT * INTO v_old_tx FROM transactions_v2 WHERE id = p_record_id;
   IF NOT FOUND THEN
@@ -85,7 +88,7 @@ BEGIN
   SELECT (apply_investor_transaction(
     p_fund_id := v_fund_id,
     p_investor_id := v_investor_id,
-    p_tx_type := v_tx_type,
+    p_tx_type := v_tx_type::tx_type,
     p_amount := v_amount,
     p_tx_date := v_tx_date,
     p_reference_id := v_reference_id || '_R', -- Append '_R' to indicate Reissue
@@ -95,16 +98,16 @@ BEGIN
   )->>'transaction_id')::uuid INTO v_new_tx_id;
 
   -- 5. Audit log
-  INSERT INTO audit_logs (
-    entity_name,
+  INSERT INTO public.audit_log (
+    entity,
     entity_id,
     action,
-    performed_by,
-    old_data,
-    new_data
+    actor_user,
+    old_values,
+    new_values
   ) VALUES (
     'transactions_v2',
-    v_new_tx_id,
+    v_new_tx_id::text,
     'REISSUE',
     p_admin_id,
     jsonb_build_object('voided_id', p_record_id, 'reason', p_reason),

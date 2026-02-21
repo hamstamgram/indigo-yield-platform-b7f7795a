@@ -65,7 +65,7 @@ export interface UseErrorHandlerResult {
  * const { handleError, handleRpcResponse, error } = usePlatformError();
  *
  * const submitDeposit = async () => {
- *   const response = await supabase.rpc('apply_transaction_with_crystallization', {...});
+ *   const response = await supabase.rpc('apply_investor_transaction', {...});
  *   const result = handleRpcResponse(response.data, {
  *     onUIAction: (action, error) => {
  *       if (action === 'OPEN_PREFLOW_AUM_MODAL') {

@@ -157,8 +157,6 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
   const amount = String(formData.amount);
   const txDate = formData.tx_date || getTodayString();
 
-  const closingAum = formData.closing_aum;
-
   const triggerReference = `deposit:${fund.id}:${profileId}:${txDate}:${generateUUID()}`;
 
   const {

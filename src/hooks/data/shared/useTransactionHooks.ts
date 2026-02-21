@@ -58,7 +58,6 @@ interface LocalCreateTransactionParams {
   amount: number;
   txDate: string;
   asset: string;
-  closing_aum?: string | number;
   description?: string;
   txHash?: string;
 }
@@ -260,7 +259,6 @@ export function useCreateAdminTransaction() {
         type: params.type as CreateTransactionUIParams["type"],
         amount: String(params.amount),
         tx_date: params.txDate,
-        closing_aum: params.closing_aum ? String(params.closing_aum) : undefined,
         asset: params.asset,
         notes: params.description,
         tx_hash: params.txHash,
