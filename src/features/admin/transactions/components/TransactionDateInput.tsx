@@ -2,6 +2,7 @@ import { useFormContext } from "react-hook-form";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { parseDateFromDB } from "@/utils/dateUtils";
 import {
   Button,
   Calendar,
@@ -36,7 +37,7 @@ export function TransactionDateInput() {
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {txDate ? format(new Date(txDate), "PPP") : <span>Pick a date</span>}
+            {txDate ? format(parseDateFromDB(txDate), "PPP") : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-3" align="start">
@@ -54,7 +55,7 @@ export function TransactionDateInput() {
             />
             <Calendar
               mode="single"
-              selected={txDate ? new Date(txDate) : undefined}
+              selected={txDate ? parseDateFromDB(txDate) : undefined}
               onSelect={(date) => date && setValue("tx_date", format(date, "yyyy-MM-dd"))}
               initialFocus
               className="p-0 pointer-events-auto"
