@@ -1,72 +1,67 @@
 
+
 # Phase 4: Split Withdrawal Service Between Admin and Investor Domains
 
-## What We're Doing
+## Overview
 
-The file `src/services/investor/withdrawalService.ts` (591 lines) currently contains both admin operations (approve, reject, cancel, restore, bulk audit, stats, etc.) and investor-portal methods (view own withdrawals, submit requests). This violates the feature-first architecture -- admin logic should not live in the investor service folder.
+Extract 14 admin-only methods from `src/services/investor/withdrawalService.ts` into a new `src/services/admin/withdrawalAdminService.ts`. The investor service keeps only 3 investor-portal methods. Then update 8 consumer files to import from the new admin service.
 
-We will split it into two focused services and update all consumers.
+## Step 1: Create `src/services/admin/withdrawalAdminService.ts`
 
----
+Extract these methods into a new `withdrawalAdminService` object:
 
-## The Split
+- `getWithdrawals` (lines 39-122)
+- `getWithdrawalById` (lines 127-169)
+- `getWithdrawalAuditLogs` (lines 176-178)
+- `getStats` (lines 184-233)
+- `approveAndComplete` (lines 241-282)
+- `rejectWithdrawal` (lines 287-316)
+- `cancelWithdrawal` (lines 321-350)
+- `fetchPositionsForWithdrawal` (lines 357-389)
+- `createWithdrawal` (lines 395-409)
+- `routeToFees` (lines 415-423)
+- `updateWithdrawal` (lines 428-439)
+- `deleteWithdrawal` (lines 445-453)
+- `restoreWithdrawal` (lines 458-489)
+- `logBulkAudit` (lines 575-590)
 
-### New file: `src/services/admin/withdrawalAdminService.ts`
+Also moves `DEFAULT_PAGE_SIZE` and `buildAuditMeta` helper. Copies all needed imports (`supabase`, `rpc`, domain types, `generateCorrelationId`, `verifyResourceAccess`, `sanitizeSearchInput`).
 
-Will contain all 14 admin-only methods extracted from the current file:
+## Step 2: Slim down `src/services/investor/withdrawalService.ts`
 
-- `getWithdrawals` (paginated list with filters)
-- `getWithdrawalById` (single withdrawal detail)
-- `getWithdrawalAuditLogs` (stub -- returns empty)
-- `getStats` (status counts and pending-by-asset)
-- `approveAndComplete` (approve + complete via RPC)
-- `rejectWithdrawal` (reject via RPC)
-- `cancelWithdrawal` (cancel via RPC)
-- `routeToFees` (route to INDIGO FEES via RPC)
-- `restoreWithdrawal` (restore to pending via RPC)
-- `createWithdrawal` (admin-initiated withdrawal)
-- `updateWithdrawal` (edit withdrawal)
-- `deleteWithdrawal` (delete/cancel withdrawal)
-- `fetchPositionsForWithdrawal` (positions for admin withdrawal form)
-- `logBulkAudit` (centralized audit logging)
+Keep only:
+- `getInvestorWithdrawals` (lines 499-521)
+- `getInvestorWithdrawalPositions` (lines 526-539)
+- `submitInvestorWithdrawal` (lines 545-569)
 
-### Slimmed file: `src/services/investor/withdrawalService.ts`
+Remove all admin methods, `buildAuditMeta`, `DEFAULT_PAGE_SIZE`, and unused imports.
 
-Will keep only the 3 investor-portal methods:
+## Step 3: Update 8 admin consumer files
 
-- `getInvestorWithdrawals` (investor's own withdrawal history)
-- `getInvestorWithdrawalPositions` (investor's positions for withdrawal form)
-- `submitInvestorWithdrawal` (investor submits withdrawal request)
+| File | Current Import | New Import |
+|------|---------------|------------|
+| `src/features/admin/withdrawals/hooks/useAdminWithdrawals.ts` | `withdrawalService` from `@/services/investor/withdrawalService` | `withdrawalAdminService` from `@/services/admin/withdrawalAdminService` |
+| `src/features/admin/withdrawals/components/ApproveWithdrawalDialog.tsx` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
+| `src/features/admin/withdrawals/components/RejectWithdrawalDialog.tsx` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
+| `src/features/admin/transactions/hooks/usePendingTransactionDetails.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
+| `src/features/admin/investors/hooks/useAdminInvestorWithdrawals.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
+| `src/hooks/data/shared/useWithdrawalMutations.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
+| `src/hooks/data/shared/useWithdrawalFormData.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
+| `src/utils/prefetch/adminPrefetch.ts` | `withdrawalService` from `@/services/investor/withdrawalService` | `withdrawalAdminService` from `@/services/admin/withdrawalAdminService` |
 
----
+## Step 4: Update barrel exports
 
-## Consumer Updates (7 files)
+- **`src/services/admin/index.ts`**: Add `export { withdrawalAdminService } from "./withdrawalAdminService"`
+- **`src/services/investor/index.ts`**: Update comment from "admin operations" to "investor portal operations". The `withdrawalService` export stays for the investor consumer (`useInvestorWithdrawals.ts`).
 
-Each file currently imports `withdrawalService` from `@/services/investor`. After the split, admin consumers will import `withdrawalAdminService` from `@/services/admin`.
+## Unchanged file
 
-1. **`src/features/admin/withdrawals/hooks/useAdminWithdrawals.ts`** -- Change import to `withdrawalAdminService` from `@/services/admin`
-2. **`src/features/admin/withdrawals/components/ApproveWithdrawalDialog.tsx`** -- Change to `withdrawalAdminService`
-3. **`src/features/admin/withdrawals/components/RejectWithdrawalDialog.tsx`** -- Change to `withdrawalAdminService`
-4. **`src/features/admin/transactions/hooks/usePendingTransactionDetails.ts`** -- Change to `withdrawalAdminService`
-5. **`src/features/admin/investors/hooks/useAdminInvestorWithdrawals.ts`** -- Change to `withdrawalAdminService`
-6. **`src/hooks/data/shared/useWithdrawalMutations.ts`** -- Change to `withdrawalAdminService`
-7. **`src/hooks/data/shared/useWithdrawalFormData.ts`** -- Change to `withdrawalAdminService`
-8. **`src/utils/prefetch/adminPrefetch.ts`** -- Change to `withdrawalAdminService`
+- `src/features/investor/shared/hooks/useInvestorWithdrawals.ts` -- keeps importing `withdrawalService` from `@/services/investor` (only uses `getInvestorWithdrawals`, `getInvestorWithdrawalPositions`, `submitInvestorWithdrawal`)
 
-The investor-side consumer (`src/features/investor/shared/hooks/useInvestorWithdrawals.ts`) keeps its current import unchanged.
+## Technical Notes
 
----
+- Zero behavioral changes -- every method body is copied verbatim
+- All method names stay the same on the new `withdrawalAdminService` object
+- Each consumer file only needs an import path change and a variable rename (`withdrawalService` to `withdrawalAdminService`)
+- The `useCorrelatedMutation.ts` reference is a code comment (not a real import), no change needed
 
-## Barrel Updates
-
-- **`src/services/admin/index.ts`** -- Add `export { withdrawalAdminService } from "./withdrawalAdminService"`
-- **`src/services/investor/index.ts`** -- Remove the line `export { withdrawalService } from "./withdrawalService"` (the old combined export). The slimmed `withdrawalService` stays exported for investor consumers.
-
----
-
-## Technical Details
-
-- All shared imports (`supabase`, `rpc`, types from `@/types/domains`, `generateCorrelationId`, `verifyResourceAccess`, `sanitizeSearchInput`) will be duplicated into both files as needed.
-- The `buildAuditMeta` helper and `DEFAULT_PAGE_SIZE` constant move to the admin service (only used there).
-- No behavioral changes -- purely a file reorganization. Every method body stays identical.
-- The `investorDataService.ts` facade references to `withdrawalService` are for the old `investorWithdrawalService` (different file), not affected by this split.
