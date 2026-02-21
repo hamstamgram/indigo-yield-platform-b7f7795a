@@ -1,67 +1,87 @@
 
+# Audit: Why Transactions, Yields, and Voids Are Failing
 
-# Phase 4: Split Withdrawal Service Between Admin and Investor Domains
+## Root Cause Found
 
-## Overview
+After tracing every code path from UI to database and checking the Postgres error logs, the primary blocker has been identified.
 
-Extract 14 admin-only methods from `src/services/investor/withdrawalService.ts` into a new `src/services/admin/withdrawalAdminService.ts`. The investor service keeps only 3 investor-portal methods. Then update 8 consumer files to import from the new admin service.
+### The Error (from database logs)
 
-## Step 1: Create `src/services/admin/withdrawalAdminService.ts`
+```
+ERROR: operator does not exist: tx_type = transaction_type
+HINT: No operator matches the given name and argument types.
+```
 
-Extract these methods into a new `withdrawalAdminService` object:
+This error fires every time you try to create a transaction.
 
-- `getWithdrawals` (lines 39-122)
-- `getWithdrawalById` (lines 127-169)
-- `getWithdrawalAuditLogs` (lines 176-178)
-- `getStats` (lines 184-233)
-- `approveAndComplete` (lines 241-282)
-- `rejectWithdrawal` (lines 287-316)
-- `cancelWithdrawal` (lines 321-350)
-- `fetchPositionsForWithdrawal` (lines 357-389)
-- `createWithdrawal` (lines 395-409)
-- `routeToFees` (lines 415-423)
-- `updateWithdrawal` (lines 428-439)
-- `deleteWithdrawal` (lines 445-453)
-- `restoreWithdrawal` (lines 458-489)
-- `logBulkAudit` (lines 575-590)
+---
 
-Also moves `DEFAULT_PAGE_SIZE` and `buildAuditMeta` helper. Copies all needed imports (`supabase`, `rpc`, domain types, `generateCorrelationId`, `verifyResourceAccess`, `sanitizeSearchInput`).
+## Bug 1 (CRITICAL): Enum Type Mismatch in `apply_investor_transaction`
 
-## Step 2: Slim down `src/services/investor/withdrawalService.ts`
+The database has **two different enum types** for transaction categories:
 
-Keep only:
-- `getInvestorWithdrawals` (lines 499-521)
-- `getInvestorWithdrawalPositions` (lines 526-539)
-- `submitInvestorWithdrawal` (lines 545-569)
+- `tx_type` -- used by the `transactions_v2.type` column (DEPOSIT, WITHDRAWAL, INTEREST, FEE, ADJUSTMENT, FEE_CREDIT, IB_CREDIT, YIELD, etc.)
+- `transaction_type` -- a separate, older enum (DEPOSIT, WITHDRAWAL, INTEREST, FEE, DUST_ALLOCATION)
 
-Remove all admin methods, `buildAuditMeta`, `DEFAULT_PAGE_SIZE`, and unused imports.
+The `apply_investor_transaction` function declares its parameter as `transaction_type`:
+```
+p_tx_type transaction_type
+```
 
-## Step 3: Update 8 admin consumer files
+But inside the function, it compares and assigns this value to the `transactions_v2.type` column, which is `tx_type`. PostgreSQL cannot compare two different enum types without an explicit cast, so it throws the error above.
 
-| File | Current Import | New Import |
-|------|---------------|------------|
-| `src/features/admin/withdrawals/hooks/useAdminWithdrawals.ts` | `withdrawalService` from `@/services/investor/withdrawalService` | `withdrawalAdminService` from `@/services/admin/withdrawalAdminService` |
-| `src/features/admin/withdrawals/components/ApproveWithdrawalDialog.tsx` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
-| `src/features/admin/withdrawals/components/RejectWithdrawalDialog.tsx` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
-| `src/features/admin/transactions/hooks/usePendingTransactionDetails.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
-| `src/features/admin/investors/hooks/useAdminInvestorWithdrawals.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
-| `src/hooks/data/shared/useWithdrawalMutations.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
-| `src/hooks/data/shared/useWithdrawalFormData.ts` | `withdrawalService` from `@/services/investor` | `withdrawalAdminService` from `@/services/admin` |
-| `src/utils/prefetch/adminPrefetch.ts` | `withdrawalService` from `@/services/investor/withdrawalService` | `withdrawalAdminService` from `@/services/admin/withdrawalAdminService` |
+**Fix:** Recreate the function with `p_tx_type tx_type` instead of `p_tx_type transaction_type`. This aligns the parameter with the column it writes to.
 
-## Step 4: Update barrel exports
+## Bug 2 (CRITICAL): Wrong Table Name in `apply_investor_transaction`
 
-- **`src/services/admin/index.ts`**: Add `export { withdrawalAdminService } from "./withdrawalAdminService"`
-- **`src/services/investor/index.ts`**: Update comment from "admin operations" to "investor portal operations". The `withdrawalService` export stays for the investor consumer (`useInvestorWithdrawals.ts`).
+Inside the same function, the audit logging step inserts into `audit_logs` (plural), but the actual table is named `audit_log` (singular). Even if Bug 1 were fixed, this would cause the function to fail after inserting the transaction.
 
-## Unchanged file
+**Fix:** Change `INSERT INTO audit_logs` to `INSERT INTO public.audit_log` in the function body.
 
-- `src/features/investor/shared/hooks/useInvestorWithdrawals.ts` -- keeps importing `withdrawalService` from `@/services/investor` (only uses `getInvestorWithdrawals`, `getInvestorWithdrawalPositions`, `submitInvestorWithdrawal`)
+## Bug 3 (MODERATE): Generated Types Out of Sync
 
-## Technical Notes
+The Supabase generated types file (`src/integrations/supabase/types.ts`) declares:
+```typescript
+p_tx_type: Database["public"]["Enums"]["transaction_type"]
+```
 
-- Zero behavioral changes -- every method body is copied verbatim
-- All method names stay the same on the new `withdrawalAdminService` object
-- Each consumer file only needs an import path change and a variable rename (`withdrawalService` to `withdrawalAdminService`)
-- The `useCorrelatedMutation.ts` reference is a code comment (not a real import), no change needed
+After fixing the DB function to use `tx_type`, the generated types need to be regenerated so the frontend sends the correct enum type.
 
+---
+
+## Impact Analysis
+
+| Action | Blocked? | Reason |
+|--------|----------|--------|
+| Create Transaction | YES | Bug 1 + 2 in `apply_investor_transaction` |
+| Record Yield | Likely NO | `apply_segmented_yield_distribution_v5` does not use `transaction_type` enum |
+| Void Transaction | NO | `void_transaction` uses UUID lookups only, no enum comparison |
+| Void Yield | NO | `void_yield_distribution` uses UUID lookups only |
+
+If yield recording is also failing, it may be a different issue (UI-side or RLS). Once the transaction fix is deployed, we should re-test yields separately.
+
+---
+
+## Implementation Steps
+
+### Step 1: Fix the database function (SQL migration)
+
+Create a migration that drops and recreates `apply_investor_transaction` with:
+- `p_tx_type tx_type` (instead of `transaction_type`)
+- `INSERT INTO public.audit_log` (instead of `audit_logs`)
+- Keep all other logic identical
+
+### Step 2: Regenerate Supabase types
+
+After the migration runs, regenerate the types file so `p_tx_type` is typed as `Database["public"]["Enums"]["tx_type"]` instead of `transaction_type`.
+
+### Step 3: Verify the frontend enum validation
+
+The frontend `TxTypeSchema` already validates against `tx_type` values (DEPOSIT, WITHDRAWAL, etc.), so the `mapTypeForDb("FIRST_INVESTMENT")` correctly returns `"DEPOSIT"` which is valid in both enums. No frontend changes needed.
+
+### Step 4: Test all three flows
+
+After deployment, verify:
+1. Create a test DEPOSIT transaction
+2. Record a yield distribution
+3. Void the test transaction
