@@ -6189,17 +6189,29 @@ export type Database = {
         }
         Returns: Json
       }
-      apply_segmented_yield_distribution_v5: {
-        Args: {
-          p_created_by: string
-          p_distribution_date?: string
-          p_fund_id: string
-          p_period_end: string
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_recorded_aum: number
-        }
-        Returns: string
-      }
+      apply_segmented_yield_distribution_v5:
+        | {
+            Args: {
+              p_created_by: string
+              p_distribution_date?: string
+              p_fund_id: string
+              p_period_end: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_recorded_aum: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_created_by?: string
+              p_distribution_date: string
+              p_fund_id: string
+              p_period_end: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_recorded_aum: number
+            }
+            Returns: string
+          }
       approve_and_complete_withdrawal: {
         Args: {
           p_admin_notes?: string
