@@ -56,8 +56,7 @@ export async function finalizeMonthYield(
 ): Promise<FinalizationResult> {
   const { data, error } = await callRPC("finalize_month_yield", {
     p_fund_id: fundId,
-    p_period_year: year,
-    p_period_month: month,
+    p_month: `${year}-${String(month).padStart(2, '0')}`,
     p_admin_id: adminId,
   });
 
@@ -292,21 +291,24 @@ export async function getPendingYieldEventsCount(
   const periodStart = new Date(year, month - 1, 1);
   const periodEnd = new Date(year, month, 0);
 
+  // Query yield_allocations joined with yield_distributions for date filtering
+  // yield_allocations has: net_amount, is_voided, fund_id, distribution_id
+  // yield_distributions has: period_start, period_end, visibility_scope
   const { data, error } = await supabase
-    .from("investor_yield_events")
-    .select("net_yield_amount")
+    .from("yield_allocations")
+    .select("net_amount, distribution_id, yield_distributions!inner(visibility_scope)")
     .eq("fund_id", fundId)
-    .eq("visibility_scope", "admin_only")
     .eq("is_voided", false)
-    .gte("event_date", formatDateForDB(periodStart))
-    .lte("event_date", formatDateForDB(periodEnd));
+    .eq("yield_distributions.visibility_scope", "admin_only")
+    .gte("yield_distributions.period_start", formatDateForDB(periodStart))
+    .lte("yield_distributions.period_end", formatDateForDB(periodEnd));
 
   if (error) throw error;
 
   const count = data?.length || 0;
   const totalYield =
     data
-      ?.reduce((sum, row) => sum.plus(parseFinancial(row.net_yield_amount)), parseFinancial(0))
+      ?.reduce((sum, row) => sum.plus(parseFinancial((row as any).net_amount)), parseFinancial(0))
       .toNumber() || 0;
 
   return { count, totalYield };

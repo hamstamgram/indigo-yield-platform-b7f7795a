@@ -369,8 +369,8 @@ export async function mergeDuplicateProfiles(
   mergeProfileId: string
 ): Promise<MergeDuplicatesResult> {
   const { data, error } = await callRPC("merge_duplicate_profiles", {
-    p_keep_profile_id: keepProfileId,
-    p_merge_profile_id: mergeProfileId,
+    p_keep_id: keepProfileId,
+    p_merge_id: mergeProfileId,
   });
 
   if (error) {
