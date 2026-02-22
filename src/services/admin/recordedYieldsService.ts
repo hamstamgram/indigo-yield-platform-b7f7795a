@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export type AumPurpose = "reporting" | "transaction";
 
@@ -183,10 +184,10 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
         const key = `${d.fund_id}:${d.effective_date}`;
         distMap.set(key, {
           id: d.id,
-          gross_yield: parseFloat(String(d.gross_yield_amount ?? d.gross_yield ?? 0)) || 0,
-          net_yield: parseFloat(String(d.total_net_amount ?? d.net_yield ?? 0)) || 0,
-          total_fees: parseFloat(String(d.total_fee_amount ?? d.total_fees ?? 0)) || 0,
-          total_ib: parseFloat(String(d.total_ib_amount ?? d.total_ib ?? 0)) || 0,
+          gross_yield: parseFinancial(d.gross_yield_amount ?? d.gross_yield).toNumber(),
+          net_yield: parseFinancial(d.total_net_amount ?? d.net_yield).toNumber(),
+          total_fees: parseFinancial(d.total_fee_amount ?? d.total_fees).toNumber(),
+          total_ib: parseFinancial(d.total_ib_amount ?? d.total_ib).toNumber(),
           allocation_count: d.allocation_count || 0,
         });
       }
