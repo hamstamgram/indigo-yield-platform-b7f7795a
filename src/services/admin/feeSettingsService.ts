@@ -23,7 +23,7 @@ export const feeSettingsService = {
       }
 
       const val = data ? (data as any).value : null;
-      return val ? parseFloat(val) : 0.2; // Fallback to 20% if not found
+      return val != null ? Number(val) : 0.2; // Fallback to 20% if not found
     } catch (error) {
       logError("feeSettingsService.getGlobalPlatformFee", error);
       return 0.2; // Fallback to 20% on error
