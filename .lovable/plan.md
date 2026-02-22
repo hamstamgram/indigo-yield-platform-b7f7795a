@@ -1,43 +1,36 @@
 
-# Fix: Apply Yield RPC Missing Transaction Creation + Data Cleanup
+
+# Fix: Drop Duplicate Function Overloads Before Recreating
 
 ## Problem
-The previous migration to fix `apply_segmented_yield_distribution_v5` was never applied to the database. The function still lacks transaction creation logic, so:
-- 10 phantom yield_distributions exist (all non-voided, identical: opening_aum=1250, recorded_aum=1252, gross_yield=2)
-- 0 YIELD transactions exist in `transactions_v2`
-- Investor position remains at 1250 (unchanged)
-- AUM remains at 1250 (unchanged)
-- All yield_allocations have `transaction_id = NULL`
+The migration failed because there are **two overloads** of `apply_segmented_yield_distribution_v5` with different parameter orders:
 
-## Fix (single SQL migration)
+1. `(p_fund_id uuid, p_period_end date, p_recorded_aum numeric, p_created_by uuid, p_purpose aum_purpose, p_distribution_date date)`
+2. `(p_fund_id uuid, p_recorded_aum numeric, p_distribution_date date, p_period_end date, p_purpose aum_purpose, p_created_by uuid)`
 
-### Step 1: Void all 10 phantom distributions and their allocations
-Mark all non-voided yield_distributions and yield_allocations for fund `7574bc81` as voided since they have no backing transactions.
+`CREATE OR REPLACE FUNCTION` only replaces a function with the **exact same signature**. Since our new function has a different parameter order than one or both existing overloads, PostgreSQL raises a conflict.
 
-### Step 2: Rewrite `apply_segmented_yield_distribution_v5`
-Add transaction creation after the yield_allocations insert (Step 5). The function will:
+## Fix
 
-1. Fetch fund `asset` and `fund_class` at the start
-2. After inserting yield_allocations, loop through allocations where `net_amount > 0`:
-   - Insert a `YIELD` transaction (source=`yield_distribution`, visibility=`investor_visible`)
-   - Insert a `FEE_CREDIT` transaction for the fees account if total fees > 0 (visibility=`admin_only`)
-   - Insert `IB_CREDIT` transactions for each IB parent with credit > 0 (visibility=`admin_only`)
-3. Back-link `transaction_id`, `fee_credit_transaction_id`, `ib_credit_transaction_id` on yield_allocations
-4. Update `closing_aum` on the distribution header
-5. Call `upsert_fund_aum_after_yield` for reporting-purpose AUM records
+A single SQL migration that:
 
-The `reference_id` pattern `yield_v5_{distribution_id}_{investor_id}` matches what `void_yield_distribution` expects, and the unique partial index on `reference_id` prevents duplicates on retry.
+1. Drops both existing overloads explicitly using their full signatures
+2. Re-creates the fixed function (with transaction creation logic) using the canonical signature
 
-Transaction triggers handle the rest automatically:
-- `fn_ledger_drives_position` / `trg_recompute_position_on_tx` updates investor positions
-- `sync_aum_on_transaction` updates fund_daily_aum
-- `enforce_transaction_via_rpc` allows source=`yield_distribution`
+```sql
+DROP FUNCTION IF EXISTS public.apply_segmented_yield_distribution_v5(uuid, date, numeric, uuid, aum_purpose, date);
+DROP FUNCTION IF EXISTS public.apply_segmented_yield_distribution_v5(uuid, numeric, date, date, aum_purpose, uuid);
+```
 
-### No frontend changes needed
-The `yieldApplyService.ts` fix from the previous edit correctly handles the UUID return and fetches the distribution row.
+Then the full `CREATE OR REPLACE FUNCTION` from the previous migration (with YIELD/FEE_CREDIT/IB_CREDIT transaction inserts, back-linking, closing_aum update, and upsert_fund_aum_after_yield call).
 
-## Technical: Key enum values confirmed
-- `type`: YIELD, FEE_CREDIT, IB_CREDIT
-- `source`: yield_distribution
-- `visibility_scope`: investor_visible, admin_only
-- `purpose`: reporting, transaction (aum_purpose enum)
+The data cleanup (voiding 10 phantom distributions) will also be included since the previous migration was never applied.
+
+## Technical Details
+
+**File**: New SQL migration
+
+The canonical parameter order will be:
+`(p_fund_id uuid, p_period_end date, p_recorded_aum numeric, p_created_by uuid, p_purpose aum_purpose DEFAULT 'reporting', p_distribution_date date DEFAULT NULL)`
+
+This matches what the frontend `callRPC` in `yieldApplyService.ts` sends.
