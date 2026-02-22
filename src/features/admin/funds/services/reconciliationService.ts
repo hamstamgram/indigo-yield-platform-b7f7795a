@@ -95,10 +95,9 @@ export async function getVoidYieldImpact(distributionId: string): Promise<VoidYi
  * Force delete an investor and all related data
  * Only callable by super admins
  */
-export async function forceDeleteInvestor(investorId: string, adminId: string): Promise<boolean> {
+export async function forceDeleteInvestor(investorId: string): Promise<boolean> {
   const { data, error } = await rpc.call("force_delete_investor", {
     p_investor_id: investorId,
-    p_admin_id: adminId,
   });
 
   if (error) throw error;
