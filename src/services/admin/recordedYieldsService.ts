@@ -183,10 +183,10 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
         const key = `${d.fund_id}:${d.effective_date}`;
         distMap.set(key, {
           id: d.id,
-          gross_yield: Number(d.gross_yield_amount ?? d.gross_yield) || 0,
-          net_yield: Number(d.total_net_amount ?? d.net_yield) || 0,
-          total_fees: Number(d.total_fee_amount ?? d.total_fees) || 0,
-          total_ib: Number(d.total_ib_amount ?? d.total_ib) || 0,
+          gross_yield: parseFloat(String(d.gross_yield_amount ?? d.gross_yield ?? 0)) || 0,
+          net_yield: parseFloat(String(d.total_net_amount ?? d.net_yield ?? 0)) || 0,
+          total_fees: parseFloat(String(d.total_fee_amount ?? d.total_fees ?? 0)) || 0,
+          total_ib: parseFloat(String(d.total_ib_amount ?? d.total_ib ?? 0)) || 0,
           allocation_count: d.allocation_count || 0,
         });
       }
@@ -261,9 +261,10 @@ export async function updateYieldRecord(
 
 /**
  * Get yield edit history for a specific record
- * NOTE: yield_edit_audit table was dropped - returns empty
+ * @deprecated yield_edit_audit table was dropped — this is dead code.
  */
 export async function getYieldEditHistory(_recordId: string): Promise<any[]> {
+  console.warn("getYieldEditHistory is deprecated — yield_edit_audit table was dropped");
   return [];
 }
 

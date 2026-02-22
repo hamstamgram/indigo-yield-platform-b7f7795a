@@ -21,7 +21,9 @@ const StatementsPage = lazy(() => import("@/features/investor/statements/pages/S
 const InvestorSettingsPage = lazy(
   () => import("@/features/investor/settings/pages/InvestorSettingsPage")
 );
-const TransactionDetailsPage = lazy(() => import("@/pages/transactions/TransactionDetailsPage"));
+const TransactionDetailsPage = lazy(
+  () => import("@/features/investor/transactions/pages/TransactionDetailsPage")
+);
 const FundDetailsPage = lazy(() => import("@/features/investor/funds/pages/FundDetailsPage"));
 const YieldHistoryPage = lazy(
   () => import("@/features/investor/performance/pages/YieldHistoryPage")

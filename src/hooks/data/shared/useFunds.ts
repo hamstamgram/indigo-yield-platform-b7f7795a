@@ -6,7 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
-import { fundService } from "@/services/admin";
+import { fundService } from "@/features/admin/funds/services/fundService";
 import { auditLogService } from "@/services/shared";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { Fund, FundStatus } from "@/types/domains/fund";
@@ -16,7 +16,7 @@ import { logError } from "@/lib/logger";
 // This hook does NOT re-export these types to avoid duplication
 
 // Import CreateFundInput from fundService (canonical source for this type)
-import type { CreateFundInput } from "@/services/admin/fundService";
+import type { CreateFundInput } from "@/features/admin/funds/services/fundService";
 export type { CreateFundInput };
 
 const LOCAL_QUERY_KEYS = {
@@ -134,19 +134,14 @@ export function useUpdateFund() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({
-      fundId,
-      updates,
-    }: {
-      fundId: string;
-      updates: FundUpdateInput;
-    }) => {
+    mutationFn: async ({ fundId, updates }: { fundId: string; updates: FundUpdateInput }) => {
       // Convert numeric fields to strings for domain type
       const domainUpdates: Partial<Fund> = {
         ...updates,
         mgmt_fee_bps: updates.mgmt_fee_bps !== undefined ? String(updates.mgmt_fee_bps) : undefined,
         perf_fee_bps: updates.perf_fee_bps !== undefined ? String(updates.perf_fee_bps) : undefined,
-        min_investment: updates.min_investment !== undefined ? String(updates.min_investment) : undefined,
+        min_investment:
+          updates.min_investment !== undefined ? String(updates.min_investment) : undefined,
       };
       const data = await fundService.updateFund(fundId, domainUpdates);
 

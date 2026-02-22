@@ -140,7 +140,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                     <div className="font-medium">
                       {txType === "WITHDRAWAL" ? "-" : ""}
                       {formatAssetAmount(
-                        Number(transaction.amount),
+                        parseFloat(String(transaction.amount)),
                         transaction.fund?.code || "USD"
                       )}
                     </div>

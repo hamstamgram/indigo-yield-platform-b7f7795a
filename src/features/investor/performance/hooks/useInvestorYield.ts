@@ -11,7 +11,7 @@ import {
   InvestorYieldEvent,
   InvestorYieldSummary,
   CumulativeYieldResult,
-} from "@/services/investor/investorYieldService";
+} from "@/features/investor/yields/services/investorYieldService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**

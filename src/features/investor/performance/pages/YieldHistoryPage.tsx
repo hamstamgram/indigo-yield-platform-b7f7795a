@@ -38,7 +38,7 @@ import { formatInvestorNumber } from "@/utils/assets";
 import type {
   InvestorYieldEvent,
   CumulativeYieldByFund,
-} from "@/services/investor/investorYieldService";
+} from "@/features/investor/yields/services/investorYieldService";
 
 type MonthGroup = {
   year: number;

@@ -51,8 +51,14 @@ export function FinancialValue({
     return <span className={cn("text-muted-foreground", className)}>—</span>;
   }
 
-  // Use Decimal.js for precision
-  const decimalValue = new Decimal(value);
+  // Use Decimal.js for precision — guard against NaN, "", Infinity, or non-numeric strings
+  let decimalValue: Decimal;
+  try {
+    decimalValue = new Decimal(value);
+  } catch {
+    // Invalid input (NaN, "", "abc", Infinity) — render dash instead of crashing
+    return <span className={cn("text-muted-foreground", className)}>—</span>;
+  }
 
   // Determine display decimals: explicit > asset-specific > default 8
   const decimals = displayDecimals ?? ASSET_DECIMALS[asset?.toUpperCase()] ?? 8;

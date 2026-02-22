@@ -56,9 +56,9 @@ export function useAvailableBalance(investorId: string | null, fundId: string | 
         throw withdrawalError;
       }
 
-      const positionValue = Number(position?.current_value ?? 0);
+      const positionValue = parseFloat(String(position?.current_value ?? 0));
       const totalPending = (pendingWithdrawals || []).reduce(
-        (sum, w) => sum + Number(w.requested_amount ?? 0),
+        (sum, w) => sum + parseFloat(String(w.requested_amount ?? 0)),
         0
       );
 

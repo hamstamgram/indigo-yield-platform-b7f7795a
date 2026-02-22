@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchAdminStats, AdminStats } from "@/services/admin/adminStatsService";
+import { fetchAdminStats, AdminStats } from "@/features/admin/dashboard/services/adminStatsService";
 import { logError } from "@/lib/logger";
 
 // Re-export the type for consumers

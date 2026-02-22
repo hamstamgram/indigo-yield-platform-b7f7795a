@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   checkAUMReconciliation,
   AUMReconciliationResult,
-} from "@/services/admin/aumReconciliationService";
+} from "@/features/admin/funds/services/aumReconciliationService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**

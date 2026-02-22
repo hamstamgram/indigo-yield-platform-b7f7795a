@@ -36,7 +36,10 @@ export async function getAllInvites(): Promise<AdminInvite[]> {
  * Create a new admin invite
  * NOTE: admin_invites table was dropped
  */
-export async function createInvite(_email: string, _role: string): Promise<{ email: string; inviteCode: string }> {
+export async function createInvite(
+  _email: string,
+  _role: string
+): Promise<{ email: string; inviteCode: string }> {
   throw new Error("Admin invites feature has been removed");
 }
 

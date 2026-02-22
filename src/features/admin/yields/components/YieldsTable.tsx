@@ -1,11 +1,11 @@
 /**
  * Yields Table
- * Main yields table using ResponsiveTable
+ * Main yields table using ResponsiveTable with expandable rows for distributions
  */
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
-import { Check, X, Loader2, Columns } from "lucide-react";
+import { Check, X, Loader2, Columns, Users } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -21,27 +21,53 @@ import {
   DropdownMenuTrigger,
   SortableTableHead,
   Input,
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
 } from "@/components/ui";
 import { TrendingUp } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { YieldActionsColumn } from "./YieldActionsColumn";
-import type { RecordedYieldRecord } from "@/hooks";
 import { useSortableColumns } from "@/hooks/ui/useSortableColumns";
+import type {
+  DistributionRow,
+  AllocationRow,
+  InvestorProfile,
+} from "@/services/admin/yields/yieldDistributionsPageService";
 
-interface YieldsTableProps {
-  yields: RecordedYieldRecord[];
-  isLoading: boolean;
-  canEdit: boolean;
-  onEdit: (record: RecordedYieldRecord) => void;
-  onVoid: (record: RecordedYieldRecord) => void;
+interface Fund {
+  id: string;
+  name: string;
+  asset: string;
 }
 
-export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: YieldsTableProps) {
+interface YieldsTableProps {
+  distributions: DistributionRow[];
+  allocationsMap: Record<string, AllocationRow[]>;
+  investorMap: Record<string, InvestorProfile>;
+  funds: Fund[];
+  isLoading: boolean;
+  canEdit: boolean;
+  onVoid: (record: DistributionRow) => void;
+}
+
+export function YieldsTable({
+  distributions,
+  allocationsMap,
+  investorMap,
+  funds,
+  isLoading,
+  canEdit,
+  onVoid,
+}: YieldsTableProps) {
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
     fund: true,
-    date: true,
+    effectiveDate: true,
     aum: false, // Hidden by default, prioritize Yield Deltas
     grossYield: true,
     netYield: true,
@@ -49,95 +75,86 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
     ib: true,
     investors: true,
     purpose: true,
-    monthEnd: false, // Less critical for daily operations
-    source: false, // Backend context, hide by default
     created: true,
     actions: true,
   });
+
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({
     fund: "",
-    date: "",
+    effectiveDate: "",
     aum: "",
     purpose: "",
-    monthEnd: "",
-    source: "",
     created: "",
   });
 
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
   // Sort state
-  const { sortConfig, requestSort, sortedData } = useSortableColumns(yields, {
-    column: "aum_date", // Default sort by date
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(distributions, {
+    column: "effective_date", // Default sort by date
     direction: "desc",
   });
 
+  const getFund = (fundId: string) => funds.find((f) => f.id === fundId);
+
   const filteredData = useMemo(() => {
-    // Step 1: Always filter out ghost/sync records (position_sync sources)
-    const baseData = sortedData.filter((record) => {
-      if (
-        record.source?.includes("trigger:position_sync") ||
-        record.source?.includes("tx_position_sync") ||
-        record.source?.includes("position_sync")
-      ) {
-        return false;
-      }
-      return true;
-    });
-
-    // Step 2: Apply column filters if any are active
+    // Step 1: Apply column filters if any are active
     const activeFilters = Object.entries(columnFilters).filter(([, value]) => value.trim() !== "");
-    if (activeFilters.length === 0) return baseData;
+    if (activeFilters.length === 0) return sortedData;
 
-    return baseData.filter((record) => {
-      const effectiveDate = record.as_of_date || record.aum_date;
+    return sortedData.filter((record) => {
+      const fund = getFund(record.fund_id);
       const columnValues: Record<string, string> = {
-        fund: `${record.fund_name ?? ""} ${record.fund_asset ?? ""}`.trim(),
-        date: format(new Date(effectiveDate), "MMM d, yyyy HH:mm"),
-        aum: `${record.total_aum}`,
+        fund: `${fund?.name ?? ""} ${fund?.asset ?? ""}`.trim(),
+        effectiveDate: record.effective_date
+          ? format(new Date(record.effective_date), "MMM d, yyyy")
+          : "",
+        aum: `${record.recorded_aum}`,
         purpose: record.purpose ?? "",
-        monthEnd: record.is_month_end ? "yes" : "no",
-        source: record.source ?? "",
-        created: `${format(new Date(record.created_at), "MMM d, yyyy HH:mm")} ${
-          record.created_by_name ?? ""
-        }`.trim(),
+        created: format(new Date(record.created_at), "MMM d, yyyy HH:mm"),
       };
 
       return activeFilters.every(([key, value]) =>
         (columnValues[key] || "").toLowerCase().includes(value.toLowerCase())
       );
     });
-  }, [columnFilters, sortedData]);
+  }, [columnFilters, sortedData, funds]);
 
   const allColumns = [
     {
       id: "fund",
       header: (
-        <SortableTableHead column="fund_name" currentSort={sortConfig} onSort={requestSort}>
+        <SortableTableHead column="fund_id" currentSort={sortConfig} onSort={requestSort}>
           Fund
         </SortableTableHead>
       ),
-      cell: (record: RecordedYieldRecord) => (
-        <div className="flex items-center gap-2">
-          <CryptoIcon symbol={record.fund_asset || ""} className="h-5 w-5" />
-          <div>
-            <p className="font-medium">{record.fund_name}</p>
-            <p className="text-xs text-muted-foreground">{record.fund_asset}</p>
+      cell: (record: DistributionRow) => {
+        const fund = getFund(record.fund_id);
+        return (
+          <div className="flex items-center gap-2">
+            <CryptoIcon symbol={fund?.asset || ""} className="h-5 w-5" />
+            <div>
+              <p className="font-medium">{fund?.name || "Unknown Fund"}</p>
+              <p className="text-xs text-muted-foreground">{fund?.asset}</p>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
-      id: "date",
+      id: "effectiveDate",
       header: (
-        <SortableTableHead column="aum_date" currentSort={sortConfig} onSort={requestSort}>
+        <SortableTableHead column="effective_date" currentSort={sortConfig} onSort={requestSort}>
           Effective Date
         </SortableTableHead>
       ),
-      cell: (record: RecordedYieldRecord) => {
+      cell: (record: DistributionRow) => {
         const isVoided = record.is_voided;
-        const effectiveDate = record.as_of_date || record.aum_date;
         return (
-          <div className="flex items-center gap-2">
-            {format(new Date(effectiveDate), "MMM d, yyyy HH:mm")}
+          <div className="flex flex-col items-start gap-1">
+            <span>
+              {record.effective_date ? format(new Date(record.effective_date), "MMM d, yyyy") : "-"}
+            </span>
             {isVoided && (
               <Badge variant="destructive" className="text-xs">
                 Voided
@@ -151,7 +168,7 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
       id: "aum",
       header: (
         <SortableTableHead
-          column="total_aum"
+          column="recorded_aum"
           currentSort={sortConfig}
           onSort={requestSort}
           className="justify-end w-full"
@@ -160,8 +177,8 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
         </SortableTableHead>
       ),
       className: "text-right",
-      cell: (record: RecordedYieldRecord) => (
-        <FinancialValue value={record.total_aum} asset={record.fund_asset} />
+      cell: (record: DistributionRow) => (
+        <FinancialValue value={record.recorded_aum} asset={getFund(record.fund_id)?.asset} />
       ),
     },
     {
@@ -177,9 +194,9 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
         </SortableTableHead>
       ),
       className: "text-right",
-      cell: (record: RecordedYieldRecord) =>
+      cell: (record: DistributionRow) =>
         record.gross_yield != null ? (
-          <FinancialValue value={record.gross_yield} asset={record.fund_asset} />
+          <FinancialValue value={record.gross_yield} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
         ),
@@ -197,9 +214,9 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
         </SortableTableHead>
       ),
       className: "text-right",
-      cell: (record: RecordedYieldRecord) =>
+      cell: (record: DistributionRow) =>
         record.net_yield != null ? (
-          <FinancialValue value={record.net_yield} asset={record.fund_asset} />
+          <FinancialValue value={record.net_yield} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
         ),
@@ -217,9 +234,9 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
         </SortableTableHead>
       ),
       className: "text-right",
-      cell: (record: RecordedYieldRecord) =>
+      cell: (record: DistributionRow) =>
         record.total_fees != null ? (
-          <FinancialValue value={record.total_fees} asset={record.fund_asset} />
+          <FinancialValue value={record.total_fees} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
         ),
@@ -237,9 +254,9 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
         </SortableTableHead>
       ),
       className: "text-right",
-      cell: (record: RecordedYieldRecord) =>
+      cell: (record: DistributionRow) =>
         record.total_ib != null ? (
-          <FinancialValue value={record.total_ib} asset={record.fund_asset} />
+          <FinancialValue value={record.total_ib} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
         ),
@@ -248,12 +265,16 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
       id: "investors",
       header: "Investors",
       className: "text-center",
-      cell: (record: RecordedYieldRecord) =>
-        record.allocation_count != null ? (
-          <span>{record.allocation_count}</span>
+      cell: (record: DistributionRow) => {
+        const hasAllocations = (allocationsMap[record.id]?.length || 0) > 0;
+        return record.allocation_count != null ? (
+          <Badge variant={hasAllocations ? "default" : "secondary"} className="font-mono">
+            {record.allocation_count}
+          </Badge>
         ) : (
           <span className="text-muted-foreground">-</span>
-        ),
+        );
+      },
     },
     {
       id: "purpose",
@@ -262,7 +283,7 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
           Purpose
         </SortableTableHead>
       ),
-      cell: (record: RecordedYieldRecord) => (
+      cell: (record: DistributionRow) => (
         <Badge
           variant={record.purpose === "reporting" ? "default" : "secondary"}
           className={
@@ -276,37 +297,15 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
       ),
     },
     {
-      id: "monthEnd",
-      header: "Month End",
-      cell: (record: RecordedYieldRecord) =>
-        record.is_month_end ? (
-          <Check className="h-4 w-4 text-emerald-400" />
-        ) : (
-          <X className="h-4 w-4 text-muted-foreground" />
-        ),
-    },
-    {
-      id: "source",
-      header: "Source",
-      cell: (record: RecordedYieldRecord) => (
-        <span className="text-sm text-muted-foreground max-w-[150px] truncate block">
-          {record.source || "-"}
-        </span>
-      ),
-    },
-    {
       id: "created",
       header: (
         <SortableTableHead column="created_at" currentSort={sortConfig} onSort={requestSort}>
-          Created
+          Created At
         </SortableTableHead>
       ),
-      cell: (record: RecordedYieldRecord) => (
+      cell: (record: DistributionRow) => (
         <div className="text-sm">
           <p>{format(new Date(record.created_at), "MMM d, yyyy")}</p>
-          {record.created_by_name && (
-            <p className="text-xs text-muted-foreground">{record.created_by_name}</p>
-          )}
         </div>
       ),
     },
@@ -314,20 +313,97 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
       id: "actions",
       header: "Actions",
       className: "text-right",
-      cell: (record: RecordedYieldRecord) => (
+      cell: (record: DistributionRow) => (
         <YieldActionsColumn
           record={record}
           canEdit={canEdit}
-          onEdit={onEdit}
           onVoid={onVoid}
-          onViewHistory={() => {}}
-          isVoided={record.is_voided}
+          isExpanded={expandedRows.has(record.id)}
+          onViewHistory={() => {
+            setExpandedRows((prev) => {
+              const next = new Set(prev);
+              if (next.has(record.id)) next.delete(record.id);
+              else next.add(record.id);
+              return next;
+            });
+          }}
+          isVoided={record.is_voided ?? false}
         />
       ),
     },
   ];
 
   const visibleColumnsList = allColumns.filter((col) => visibleColumns[col.id]);
+
+  const renderExpandedRow = (record: DistributionRow) => {
+    const allocations = allocationsMap[record.id] || [];
+    const fund = getFund(record.fund_id);
+    const asset = fund?.asset;
+
+    if (allocations.length === 0) {
+      return (
+        <div className="p-4 text-center text-muted-foreground text-sm italic bg-muted/20">
+          No detailed allocations found for this distribution.
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-4 bg-muted/10">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="h-4 w-4 text-primary" />
+          <h4 className="font-semibold text-sm">Investor Allocations</h4>
+        </div>
+        <div className="border rounded-md overflow-hidden bg-background">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead>Investor</TableHead>
+                <TableHead className="text-right">Gross Amount</TableHead>
+                <TableHead className="text-right">Fees</TableHead>
+                <TableHead className="text-right">IB Comm.</TableHead>
+                <TableHead className="text-right">Net Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allocations.map((alloc) => {
+                const profile = investorMap[alloc.investor_id];
+                const name = profile
+                  ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
+                  : "Unknown Investor";
+
+                return (
+                  <TableRow key={alloc.id} className="text-sm">
+                    <TableCell className="font-medium text-muted-foreground">{name}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      <FinancialValue value={alloc.gross_amount} asset={asset} />
+                    </TableCell>
+                    <TableCell className="text-right text-orange-500/80">
+                      {alloc.fee_amount != null ? (
+                        <FinancialValue value={alloc.fee_amount} asset={asset} />
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right text-orange-500/80">
+                      {alloc.ib_amount != null ? (
+                        <FinancialValue value={alloc.ib_amount} asset={asset} />
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-green-500/90">
+                      <FinancialValue value={alloc.net_amount} asset={asset} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Card>
@@ -336,10 +412,10 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
           <div>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Yield Records
+              Yield Distributions
             </CardTitle>
             <CardDescription>
-              {filteredData.length} record{filteredData.length !== 1 ? "s" : ""} found
+              {filteredData.length} distribution{filteredData.length !== 1 ? "s" : ""} found
             </CardDescription>
           </div>
           <DropdownMenu>
@@ -375,11 +451,11 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
           </div>
         ) : filteredData.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No yield records found. Adjust filters or record yields first.
+            No yield distributions found. Adjust filters or record yields first.
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <Input
                 placeholder="Filter fund"
                 value={columnFilters.fund}
@@ -389,9 +465,9 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
               />
               <Input
                 placeholder="Filter effective date"
-                value={columnFilters.date}
+                value={columnFilters.effectiveDate}
                 onChange={(event) =>
-                  setColumnFilters((prev) => ({ ...prev, date: event.target.value }))
+                  setColumnFilters((prev) => ({ ...prev, effectiveDate: event.target.value }))
                 }
               />
               <Input
@@ -408,61 +484,45 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
                   setColumnFilters((prev) => ({ ...prev, purpose: event.target.value }))
                 }
               />
-              <Input
-                placeholder="Filter month end (yes/no)"
-                value={columnFilters.monthEnd}
-                onChange={(event) =>
-                  setColumnFilters((prev) => ({ ...prev, monthEnd: event.target.value }))
-                }
-              />
-              <Input
-                placeholder="Filter source"
-                value={columnFilters.source}
-                onChange={(event) =>
-                  setColumnFilters((prev) => ({ ...prev, source: event.target.value }))
-                }
-              />
-              <Input
-                placeholder="Filter created"
-                value={columnFilters.created}
-                onChange={(event) =>
-                  setColumnFilters((prev) => ({ ...prev, created: event.target.value }))
-                }
-              />
               <Button
                 variant="outline"
                 onClick={() =>
                   setColumnFilters({
                     fund: "",
-                    date: "",
+                    effectiveDate: "",
                     aum: "",
                     purpose: "",
-                    monthEnd: "",
-                    source: "",
                     created: "",
                   })
                 }
-                className="sm:col-span-2 lg:col-span-1"
+                className="w-full"
               >
                 Clear column filters
               </Button>
             </div>
-            <ResponsiveTable<RecordedYieldRecord>
+
+            <ResponsiveTable<DistributionRow>
               data={filteredData}
               keyExtractor={(r) => r.id}
-              emptyMessage="No yield records found"
+              emptyMessage="No distributions found"
               columns={visibleColumnsList}
+              expandedRows={expandedRows}
+              expandedRowRenderer={renderExpandedRow}
               mobileCardRenderer={(record) => {
-                const effectiveDate = record.as_of_date || record.aum_date;
+                const fund = getFund(record.fund_id);
+                const isExpanded = expandedRows.has(record.id);
+
                 return (
                   <Card className={`p-4 ${record.is_voided ? "opacity-50" : ""}`}>
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-2">
-                        <CryptoIcon symbol={record.fund_asset || ""} className="h-6 w-6" />
+                        <CryptoIcon symbol={fund?.asset || ""} className="h-6 w-6" />
                         <div>
-                          <p className="font-medium">{record.fund_name}</p>
+                          <p className="font-medium">{fund?.name || "Unknown Fund"}</p>
                           <p className="text-xs text-muted-foreground">
-                            {format(new Date(effectiveDate), "MMM d, yyyy HH:mm")}
+                            {record.effective_date
+                              ? format(new Date(record.effective_date), "MMM d, yyyy")
+                              : "-"}
                           </p>
                         </div>
                       </div>
@@ -487,18 +547,14 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
 
                     <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                       <div>
-                        <span className="text-muted-foreground text-xs">AUM</span>
+                        <span className="text-muted-foreground text-xs">Total AUM</span>
                         <div className="font-medium">
-                          <FinancialValue value={record.total_aum} asset={record.fund_asset} />
+                          <FinancialValue value={record.recorded_aum} asset={fund?.asset} />
                         </div>
                       </div>
                       <div className="text-right">
-                        {record.is_month_end && (
-                          <Badge variant="outline" className="text-xs">
-                            <Check className="h-3 w-3 mr-1" />
-                            Month End
-                          </Badge>
-                        )}
+                        <span className="text-muted-foreground text-xs">Investors</span>
+                        <div className="font-medium">{record.allocation_count || "-"}</div>
                       </div>
                     </div>
                     {record.gross_yield != null && (
@@ -506,16 +562,13 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
                         <div>
                           <span className="text-muted-foreground text-xs">Gross Yield</span>
                           <div className="font-medium">
-                            <FinancialValue value={record.gross_yield} asset={record.fund_asset} />
+                            <FinancialValue value={record.gross_yield} asset={fund?.asset} />
                           </div>
                         </div>
                         <div>
                           <span className="text-muted-foreground text-xs">Net Yield</span>
                           <div className="font-medium">
-                            <FinancialValue
-                              value={record.net_yield || 0}
-                              asset={record.fund_asset}
-                            />
+                            <FinancialValue value={record.net_yield || 0} asset={fund?.asset} />
                           </div>
                         </div>
                       </div>
@@ -523,16 +576,22 @@ export function YieldsTable({ yields, isLoading, canEdit, onEdit, onVoid }: Yiel
 
                     <div className="flex justify-between items-center pt-2 border-t">
                       <div className="text-xs text-muted-foreground">
-                        {record.created_by_name && <span>{record.created_by_name} - </span>}
                         {format(new Date(record.created_at), "MMM d, yyyy")}
                       </div>
                       <YieldActionsColumn
                         record={record}
                         canEdit={canEdit}
-                        onEdit={onEdit}
                         onVoid={onVoid}
-                        onViewHistory={() => {}}
-                        isVoided={record.is_voided}
+                        isExpanded={isExpanded}
+                        onViewHistory={() => {
+                          setExpandedRows((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(record.id)) next.delete(record.id);
+                            else next.add(record.id);
+                            return next;
+                          });
+                        }}
+                        isVoided={record.is_voided ?? false}
                       />
                     </div>
                   </Card>

@@ -29,5 +29,8 @@ export {
 export * from "@/features/admin/investors/hooks/useAdminInvestorWithdrawals";
 
 // Re-export types from services
-export type { InvestorStatus, CleanupResult } from "@/services/admin/investorLifecycleService";
-export type { PerformanceUpdateData as AdminPerformanceUpdateData } from "@/services/admin/investorPerformanceService";
+export type {
+  InvestorStatus,
+  CleanupResult,
+} from "@/features/admin/investors/services/investorLifecycleService";
+export type { PerformanceUpdateData as AdminPerformanceUpdateData } from "@/features/admin/investors/services/investorPerformanceService";

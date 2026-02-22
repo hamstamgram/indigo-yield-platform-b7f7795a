@@ -128,7 +128,7 @@ export async function computeStatement(
     transactions?.forEach((transaction) => {
       const assetCode = transaction.asset;
       if (!assetsMap[assetCode]) {
-        const fund = fundMap.get(assetCode);
+        const fund = fundMap.get(assetCode) as any;
         assetsMap[assetCode] = {
           asset_id: fund ? fund.id : 0,
           asset_code: assetCode,

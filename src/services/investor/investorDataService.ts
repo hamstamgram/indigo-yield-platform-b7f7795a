@@ -1,6 +1,6 @@
 /**
  * Investor Data Service (Main Entry Point)
- * 
+ *
  * This file re-exports from focused sub-services for backwards compatibility.
  * New code should import directly from the specific sub-service files:
  * - investorPositionService.ts - Position queries and investor listings
@@ -16,23 +16,21 @@ export type {
   ExpertInvestor,
   InvestorSelectorItem,
   InvestorPositionDetail,
-} from "./investorPositionService";
+} from "@/features/investor/portfolio/services/investorPositionService";
 
 export type {
   InvestorSummary,
   PortfolioPerformance,
   InvestorPortfolio,
-} from "./investorPortfolioSummaryService";
+} from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
 
-export type {
-  WithdrawalRequest,
-} from "./investorWithdrawalService";
+export type { WithdrawalRequest } from "@/features/investor/withdrawals/services/investorWithdrawalService";
 
 export type {
   YieldHistoryEntry,
   InvestorDocument,
   PendingTransaction,
-} from "./investorYieldHistoryService";
+} from "@/features/investor/yields/services/investorYieldHistoryService";
 
 // Re-export functions from sub-services
 export {
@@ -49,20 +47,20 @@ export {
   updatePositionValue,
   checkAdminStatus,
   expertInvestorService,
-} from "./investorPositionService";
+} from "@/features/investor/portfolio/services/investorPositionService";
 
 export {
   getInvestorSummary,
   getInvestorPortfolio,
   getAllInvestorsWithSummary,
-} from "./investorPortfolioSummaryService";
+} from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
 
 export {
   getWithdrawalRequests,
   createWithdrawalRequest,
   cancelWithdrawalRequest,
   getAvailableFunds,
-} from "./investorWithdrawalService";
+} from "@/features/investor/withdrawals/services/investorWithdrawalService";
 
 export {
   getYieldHistory,
@@ -70,16 +68,16 @@ export {
   getInvestorDocuments,
   downloadDocument,
   getPendingTransactions,
-} from "./investorYieldHistoryService";
+} from "@/features/investor/yields/services/investorYieldHistoryService";
 
 // ============================================
 // Plain object facade (replaces legacy class)
 // ============================================
 
-import * as positionService from "./investorPositionService";
-import * as portfolioService from "./investorPortfolioSummaryService";
-import * as withdrawalService from "./investorWithdrawalService";
-import * as yieldHistoryService from "./investorYieldHistoryService";
+import * as positionService from "@/features/investor/portfolio/services/investorPositionService";
+import * as portfolioService from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
+import * as withdrawalService from "@/features/investor/withdrawals/services/investorWithdrawalService";
+import * as yieldHistoryService from "@/features/investor/yields/services/investorYieldHistoryService";
 
 export const investorDataService = {
   getInvestorPositions: positionService.getInvestorPositions,

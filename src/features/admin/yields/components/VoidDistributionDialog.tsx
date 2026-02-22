@@ -25,7 +25,7 @@ import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   getVoidYieldImpact,
   type VoidYieldImpactResult,
-} from "@/services/admin/reconciliationService";
+} from "@/features/admin/funds/services/reconciliationService";
 
 interface DistributionSummary {
   id: string;

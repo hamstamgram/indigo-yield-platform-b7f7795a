@@ -5,10 +5,10 @@
 
 import { QueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { fetchAdminStats } from "@/services/admin/adminStatsService";
-import { withdrawalService } from "@/services/investor/withdrawalService";
+import { fetchAdminStats } from "@/features/admin/dashboard/services/adminStatsService";
+import { withdrawalService } from "@/features/investor/withdrawals/services/withdrawalService";
 import { transactionService } from "@/services/shared/transactionService";
-import * as fundService from "@/services/admin/fundService";
+import * as fundService from "@/features/admin/funds/services/fundService";
 
 type PrefetchFn = (queryClient: QueryClient) => Promise<void>;
 

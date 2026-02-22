@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { getTodayString } from "@/utils/dateUtils";
 
 export type YieldPurpose = "reporting" | "transaction";
 
@@ -15,7 +16,7 @@ export interface YieldPeriodState {
 
 export const initialPeriodState: YieldPeriodState = {
   yieldPurpose: "transaction",
-  aumDate: format(new Date(), "yyyy-MM-dd"),
+  aumDate: getTodayString(),
   datePickerOpen: false,
   reportingMonth: "",
   asOfDateIso: null,

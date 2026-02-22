@@ -153,10 +153,11 @@ export async function upsertGlobalFee(investorId: string, feePct: number): Promi
     .maybeSingle();
 
   if (existing) {
-    // Update existing global entry
+    // Update existing global entry — ALWAYS clear end_date per First Principles
+    // If end_date is left populated, the fee silently expires and falls to fund default
     const { error } = await supabase
       .from("investor_fee_schedule")
-      .update({ fee_pct: feePct, updated_at: new Date().toISOString() })
+      .update({ fee_pct: feePct, end_date: null, updated_at: new Date().toISOString() })
       .eq("id", existing.id);
     if (error) throw error;
   } else {

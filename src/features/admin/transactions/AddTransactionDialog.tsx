@@ -219,7 +219,8 @@ export function AddTransactionDialog({
                     <p className="text-sm text-amber-700 dark:text-amber-300">
                       You are depositing{" "}
                       <strong>
-                        {Number(pendingLargeDeposit.amount).toLocaleString()} {selectedFund?.asset}
+                        {parseFloat(String(pendingLargeDeposit.amount)).toLocaleString()}{" "}
+                        {selectedFund?.asset}
                       </strong>
                     </p>
                     <div className="flex gap-2">
@@ -245,7 +246,7 @@ export function AddTransactionDialog({
                     isLoadingInvestors ||
                     fundsLoading ||
                     !!investorError ||
-                    isCheckingBalance ||
+                    (!!selectedInvestorId && !!selectedFundId && isCheckingBalance) ||
                     !!pendingLargeDeposit
                   }
                 >

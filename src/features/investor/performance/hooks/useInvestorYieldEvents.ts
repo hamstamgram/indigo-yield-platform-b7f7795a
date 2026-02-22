@@ -9,7 +9,7 @@ import {
   getInvestorVisibleYield,
   getInvestorYieldSummaryByFund,
   getInvestorCumulativeYield,
-} from "@/services/investor/investorYieldService";
+} from "@/features/investor/yields/services/investorYieldService";
 
 /**
  * Hook to get visible yield events for an investor

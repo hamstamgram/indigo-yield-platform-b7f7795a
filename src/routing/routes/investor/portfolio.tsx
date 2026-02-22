@@ -8,8 +8,12 @@ import { lazy } from "react";
 import { InvestorRoute } from "../../InvestorRoute";
 
 // Portfolio pages
-const WithdrawalsPage = lazy(() => import("@/pages/withdrawals/WithdrawalHistoryPage"));
-const NewWithdrawalPage = lazy(() => import("@/pages/withdrawals/NewWithdrawalPage"));
+const WithdrawalsPage = lazy(
+  () => import("@/features/investor/withdrawals/pages/WithdrawalHistoryPage")
+);
+const NewWithdrawalPage = lazy(
+  () => import("@/features/investor/withdrawals/pages/NewWithdrawalPage")
+);
 const PortfolioAnalyticsPage = lazy(
   () => import("@/features/investor/portfolio/pages/PortfolioAnalyticsPage")
 );

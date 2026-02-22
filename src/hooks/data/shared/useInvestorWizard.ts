@@ -5,8 +5,11 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createInvestorWithWizard } from "@/services/admin";
-import type { WizardResult, WizardProgressCallback } from "@/services/admin/investorWizardService";
+import { createInvestorWithWizard } from "@/features/admin/investors/services/investorWizardService";
+import type {
+  WizardResult,
+  WizardProgressCallback,
+} from "@/features/admin/investors/services/investorWizardService";
 import { WizardFormData } from "@/features/admin/investors/components/wizard/types";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { logError } from "@/lib/logger";
@@ -51,4 +54,7 @@ export function useCreateInvestorWizard() {
 }
 
 // Re-export types for convenience
-export type { WizardResult, WizardProgressCallback } from "@/services/admin/investorWizardService";
+export type {
+  WizardResult,
+  WizardProgressCallback,
+} from "@/features/admin/investors/services/investorWizardService";

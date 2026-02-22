@@ -44,7 +44,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
 import { logError } from "@/lib/logger";
 import type { PerformanceWithPeriod } from "@/types/domains/yield";
-import { getInvestorPositions } from "@/services/investor/investorPositionService";
+import { getInvestorPositions } from "@/features/investor/portfolio/services/investorPositionService";
 import { parseFinancial, toDecimal } from "@/utils/financial";
 
 /**
@@ -469,7 +469,7 @@ export const performanceService = {
     const perAssetStats = latestRows
       .filter((r: PerfRow) => positionMap.has(r.fund_name))
       .map((r: PerfRow) => {
-        const pos = positionMap.get(r.fund_name)!;
+        const pos = positionMap.get(r.fund_name) as any;
         const liveBalance = pos.currentValue;
 
         return {

@@ -14,7 +14,7 @@ import {
   retryDelivery,
   getDeliveryDiagnostics,
   getDeliveryExclusionBreakdown,
-} from "@/services/admin";
+} from "@/features/admin/dashboard/services/dashboardMetricsService";
 import type {
   FinancialMetrics,
   FlowData,
@@ -22,9 +22,9 @@ import type {
   DeliveryRecord,
   DeliveryDiagnostics,
   ExclusionBreakdown,
-} from "@/services/admin/dashboardMetricsService";
+} from "@/features/admin/dashboard/services/dashboardMetricsService";
 // getFundInvestorComposition imported directly due to naming conflict
-import { getFundInvestorComposition } from "@/services/admin/dashboardMetricsService";
+import { getFundInvestorComposition } from "@/features/admin/dashboard/services/dashboardMetricsService";
 
 // ============================================================================
 // Performance Dashboard Hooks

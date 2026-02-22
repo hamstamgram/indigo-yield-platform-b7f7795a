@@ -121,9 +121,7 @@ export async function getInvestorPortfolio(investorId?: string): Promise<Investo
   const totalPnL = summary.totalEarned;
 
   const denominator = totalValue - totalPnL;
-  const safePercentage = totalValue > 0 && denominator !== 0
-    ? (totalPnL / denominator) * 100
-    : 0;
+  const safePercentage = totalValue > 0 && denominator !== 0 ? (totalPnL / denominator) * 100 : 0;
 
   const performanceMetrics: PortfolioPerformance = {
     mtd_return: 0,

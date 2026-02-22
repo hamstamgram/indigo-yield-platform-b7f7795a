@@ -15,7 +15,7 @@ export interface AumAsOfResult {
   asOfDate: string;
   purpose: AumPurpose;
   aumValue: number;
-  aumSource: "fund_daily_aum" | "no_data";
+  aumSource: "fund_daily_aum" | "positions_live" | "no_data";
   aumRecordId: string | null;
 }
 
@@ -56,7 +56,7 @@ export const yieldAumService = {
       if (error) throw error;
 
       const row = data?.[0];
-      if (!row || row.aum_source === "no_data") return null;
+      if (!row || row.aum_source === "no_data" || row.aum_source === "no_fund") return null;
 
       return {
         fundId: row.fund_id,
@@ -64,8 +64,8 @@ export const yieldAumService = {
         asOfDate: row.as_of_date,
         purpose: row.purpose as AumPurpose,
         aumValue: Number(row.aum_value || 0),
-        aumSource: row.aum_source as "fund_daily_aum",
-        aumRecordId: null, // Legacy field, safely returning null
+        aumSource: row.aum_source as "fund_daily_aum" | "positions_live",
+        aumRecordId: (row as any).aum_record_id || null,
       };
     } catch (err) {
       logError("yieldAumService.getFundAumAsOf", err, { fundId, asOfDate, purpose });

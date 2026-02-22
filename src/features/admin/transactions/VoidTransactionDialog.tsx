@@ -21,7 +21,7 @@ import {
 import { AlertTriangle, Loader2, Info, TrendingDown, Database } from "lucide-react";
 import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data";
-import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
+import { transactionsV2Service } from "@/features/investor/transactions/services/transactionsV2Service";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { logError } from "@/lib/logger";
 

@@ -4,35 +4,33 @@
  */
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, History, Eye } from "lucide-react";
+import { MoreHorizontal, Trash2, Users, Eye } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   Button,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui";
-import type { YieldRecord } from "@/services/admin";
 
 interface YieldActionsColumnProps {
-  record: YieldRecord;
+  record: any;
   canEdit: boolean;
-  onEdit: (record: YieldRecord) => void;
-  onVoid: (record: YieldRecord) => void;
-  onViewHistory: (record: YieldRecord) => void;
+  onVoid: (record: any) => void;
+  onViewHistory: (record: any) => void;
+  isExpanded: boolean;
   isVoided?: boolean;
 }
 
 export function YieldActionsColumn({
   record,
   canEdit,
-  onEdit,
   onVoid,
   onViewHistory,
+  isExpanded,
   isVoided = false,
 }: YieldActionsColumnProps) {
   const [open, setOpen] = useState(false);
@@ -55,11 +53,16 @@ export function YieldActionsColumn({
       {/* Quick action buttons */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={() => onViewHistory(record)}>
-            <History className="h-4 w-4" />
+          <Button
+            variant={isExpanded ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => onViewHistory(record)}
+            className={isExpanded ? "bg-muted text-primary" : ""}
+          >
+            <Users className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>View history</TooltipContent>
+        <TooltipContent>{isExpanded ? "Hide Investors" : "View Investors"}</TooltipContent>
       </Tooltip>
 
       {canEdit && (
@@ -73,22 +76,12 @@ export function YieldActionsColumn({
             <DropdownMenuItem
               onClick={() => {
                 setOpen(false);
-                onEdit(record);
-              }}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit AUM
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                setOpen(false);
                 onVoid(record);
               }}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Void Record
+              Void Distribution
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -51,7 +51,12 @@ import { logError } from "@/lib/logger";
 
 const reissueSchema = z.object({
   tx_date: z.string().min(1, "Transaction date is required"),
-  amount: z.string().min(1, "Amount is required"),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Amount must be a positive number",
+    }),
   notes: z.string().optional(),
   reason: z.string().min(10, "Reason must be at least 10 characters for audit trail"),
 });
@@ -161,11 +166,6 @@ export function VoidAndReissueDialog({
 
     if (confirmText !== "REISSUE") {
       toast.error("Please type REISSUE to confirm");
-      return;
-    }
-
-    if (!hasChanges) {
-      toast.info("No changes to apply");
       return;
     }
 

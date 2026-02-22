@@ -49,7 +49,7 @@ import {
 import { Checkbox } from "@/components/ui";
 import { AdminGuard, useSuperAdmin } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
 import { AddTransactionDialog, VoidTransactionDialog } from "@/components/admin";
 import { useSortableColumns } from "@/hooks";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
@@ -536,10 +536,10 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                             ) : null}
                           </TableCell>
                           <TableCell className="whitespace-nowrap py-1.5">
-                            {format(new Date(tx.txDate), "MMM d, yyyy")}
+                            {format(parseISO(tx.txDate), "MMM d, yyyy")}
                             {tx.createdAt && (
                               <span className="block text-muted-foreground">
-                                {format(new Date(tx.createdAt), "HH:mm")}
+                                {format(parseISO(tx.createdAt), "HH:mm")}
                               </span>
                             )}
                           </TableCell>

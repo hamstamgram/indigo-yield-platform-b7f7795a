@@ -68,7 +68,8 @@ export async function cleanupInactiveInvestors(): Promise<CleanupResult> {
   // Get profiles with zero balance and inactive for 90+ days
   const { data: inactiveProfiles, error: fetchError } = await supabase
     .from("profiles")
-    .select(`
+    .select(
+      `
       id,
       first_name,
       last_name,
@@ -77,7 +78,8 @@ export async function cleanupInactiveInvestors(): Promise<CleanupResult> {
       investor_positions!left (
         current_value
       )
-    `)
+    `
+    )
     .eq("status", "inactive")
     .eq("is_admin", false)
     .lt("updated_at", ninetyDaysAgo);

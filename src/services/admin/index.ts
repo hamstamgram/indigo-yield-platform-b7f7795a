@@ -14,7 +14,7 @@ export {
   getPendingWithdrawalCount,
   getRecentActivityCount,
   type AdminStats,
-} from "./adminStatsService";
+} from "@/features/admin/dashboard/services/adminStatsService";
 
 export {
   getAUMHistory,
@@ -32,9 +32,13 @@ export {
   type DeliveryRecord,
   type DeliveryDiagnostics,
   type ExclusionBreakdown,
-} from "./dashboardMetricsService";
+} from "@/features/admin/dashboard/services/dashboardMetricsService";
 
-export { fetchFundsWithAUM, fetchRecentActivities, fetchPendingItems } from "./dashboardService";
+export {
+  fetchFundsWithAUM,
+  fetchRecentActivities,
+  fetchPendingItems,
+} from "@/features/admin/dashboard/services/dashboardService";
 
 export { actionBarService, type PendingCounts } from "./actionBarService";
 
@@ -62,7 +66,7 @@ export {
   type DailyNav,
   type FundKPI,
   type CreateFundInput,
-} from "./fundService";
+} from "@/features/admin/funds/services/fundService";
 
 // =============================================================================
 // INVESTOR MANAGEMENT
@@ -72,20 +76,20 @@ export {
   type AdminInvestorSummary,
   type DashboardStats,
 } from "./adminService";
-export * from "./investorSettingsService";
-export * from "./investorWizardService";
-export * from "./investorLifecycleService";
+export * from "@/features/admin/investors/services/investorSettingsService";
+export * from "@/features/admin/investors/services/investorWizardService";
+export * from "@/features/admin/investors/services/investorLifecycleService";
 export {
   updateFundPerformance,
   type PerformanceUpdateData as AdminPerformanceUpdateData,
-} from "./investorPerformanceService";
+} from "@/features/admin/investors/services/investorPerformanceService";
 export {
   investorDetailService,
   type InvestorDetailData,
   type OpsIndicators,
   type InvestorPositionsData,
   type InvestorPosition as AdminInvestorPosition,
-} from "./investorDetailService";
+} from "@/features/admin/investors/services/investorDetailService";
 
 // =============================================================================
 // USER MANAGEMENT
@@ -94,13 +98,16 @@ export {
   deleteInvestorUser,
   forceDeleteInvestorUser,
   createOrFindInvestorUser,
-} from "./userService";
+} from "@/features/admin/investors/services/userService";
 export {
   adminUsersService,
   type AdminUserProfile,
   type AdminInviteParams,
 } from "./adminUsersService";
-export { adminInviteService, type AdminInvite } from "./adminInviteService";
+export {
+  adminInviteService,
+  type AdminInvite,
+} from "@/features/admin/investors/services/adminInviteService";
 
 // =============================================================================
 // YIELD MANAGEMENT

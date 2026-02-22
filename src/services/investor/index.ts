@@ -17,11 +17,8 @@ export {
 } from "./investorLookupService";
 
 // Unified investor data service (canonical source - facade pattern)
-export { 
-  investorDataService, 
-} from "./investorDataService";
+export { investorDataService } from "./investorDataService";
 
-// Position service exports
 export {
   fetchInvestorPositions,
   fetchInvestorsForSelector,
@@ -37,14 +34,14 @@ export {
   getPlatformStats,
   getPositionsByFund,
   expertInvestorService,
-} from "./investorPositionService";
+} from "@/features/investor/portfolio/services/investorPositionService";
 
 // Portfolio summary service exports
 export {
   getInvestorSummary,
   getInvestorPortfolio,
   getAllInvestorsWithSummary,
-} from "./investorPortfolioSummaryService";
+} from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
 
 // Withdrawal service exports
 export {
@@ -52,7 +49,7 @@ export {
   createWithdrawalRequest,
   cancelWithdrawalRequest,
   getAvailableFunds,
-} from "./investorWithdrawalService";
+} from "@/features/investor/withdrawals/services/investorWithdrawalService";
 
 // Yield history service exports
 export {
@@ -60,7 +57,7 @@ export {
   getInvestorDocuments,
   downloadDocument,
   getPendingTransactions,
-} from "./investorYieldHistoryService";
+} from "@/features/investor/yields/services/investorYieldHistoryService";
 
 // Types from sub-services
 export type {
@@ -69,41 +66,45 @@ export type {
   ExpertPosition,
   ExpertInvestor,
   InvestorSelectorItem,
-} from "./investorPositionService";
+} from "@/features/investor/portfolio/services/investorPositionService";
 
 export type {
   InvestorSummary,
   PortfolioPerformance,
   InvestorPortfolio,
-} from "./investorPortfolioSummaryService";
+} from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
 
-export type {
-  WithdrawalRequest,
-} from "./investorWithdrawalService";
+export type { WithdrawalRequest } from "@/features/investor/withdrawals/services/investorWithdrawalService";
 
 export type {
   YieldHistoryEntry,
   InvestorDocument,
   PendingTransaction,
-} from "./investorYieldHistoryService";
+} from "@/features/investor/yields/services/investorYieldHistoryService";
 
 // Deposit service
 export { depositService } from "./depositService";
 export type { DepositService } from "./depositService";
 
 // Withdrawal service (admin operations)
-export { withdrawalService } from "./withdrawalService";
+export { withdrawalService } from "@/features/investor/withdrawals/services/withdrawalService";
 
 // Investment service
 export { investmentService } from "./investmentService";
 
 // Transactions V2 service (named after transactions_v2 table)
-export { transactionsV2Service } from "./transactionsV2Service";
-export type { TransactionRecord, TransactionFilters as TransactionRecordFilters } from "./transactionsV2Service";
+export { transactionsV2Service } from "@/features/investor/transactions/services/transactionsV2Service";
+export type {
+  TransactionRecord,
+  TransactionFilters as TransactionRecordFilters,
+} from "@/features/investor/transactions/services/transactionsV2Service";
 
 // Investor Portfolio service (for investor-facing pages)
-export { investorPortfolioService } from "./investorPortfolioService";
-export type { PortfolioPosition, WithdrawalFormPosition } from "./investorPortfolioService";
+export { investorPortfolioService } from "@/features/investor/portfolio/services/investorPortfolioService";
+export type {
+  PortfolioPosition,
+  WithdrawalFormPosition,
+} from "@/features/investor/portfolio/services/investorPortfolioService";
 
 // Investor Portal service types (for investor portal pages)
 export type {

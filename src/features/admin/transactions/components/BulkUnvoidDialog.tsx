@@ -18,7 +18,7 @@ import {
   AlertDescription,
 } from "@/components/ui";
 import { Undo2, Loader2, Info, ChevronDown, ChevronRight } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { formatAssetValue } from "@/utils/formatters";
 import type { TransactionViewModel } from "@/types/domains/transaction";
 import type { SelectionSummary } from "../hooks/useTransactionSelection";
@@ -127,7 +127,7 @@ export function BulkUnvoidDialog({
                   <tbody>
                     {transactions.map((tx) => (
                       <tr key={tx.id} className="border-t">
-                        <td className="px-3 py-1">{format(new Date(tx.txDate), "MMM d, yyyy")}</td>
+                        <td className="px-3 py-1">{format(parseISO(tx.txDate), "MMM d, yyyy")}</td>
                         <td className="px-3 py-1 max-w-[120px] truncate">{tx.investorName}</td>
                         <td className="px-3 py-1">{tx.displayType}</td>
                         <td className="px-3 py-1 text-right font-mono">

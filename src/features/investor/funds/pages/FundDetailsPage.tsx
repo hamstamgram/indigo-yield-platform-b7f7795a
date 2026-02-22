@@ -5,7 +5,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useInvestorPerformance, useAssetMeta, usePerAssetStats } from "@/hooks";
 import { useAuth } from "@/services/auth";
 import { useQuery } from "@tanstack/react-query";
-import { getInvestorPositions } from "@/services/investor/investorPositionService";
+import { getInvestorPositions } from "@/features/investor/portfolio/services/investorPositionService";
 import { Loader2, TrendingUp, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toNum } from "@/utils/numeric";

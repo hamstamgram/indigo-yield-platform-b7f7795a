@@ -325,7 +325,7 @@ export default function InvestorOverviewPage() {
                         tx.type === "IB_CREDIT"
                           ? "+"
                           : ""}
-                        {formatInvestorNumber(Number(tx.amount) || 0)}
+                        {formatInvestorNumber(parseFloat(String(tx.amount)) || 0)}
                       </p>
                       <div className="flex items-center gap-1 justify-end">
                         <CryptoIcon symbol={tx.asset} className="h-3 w-3 shrink-0" />

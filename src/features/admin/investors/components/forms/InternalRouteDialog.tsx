@@ -24,7 +24,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { format } from "date-fns";
+import { getTodayString } from "@/utils/dateUtils";
 import { useInvestorPositionsForRoute, useInternalRouteMutation } from "@/hooks/data/admin";
 import { FinancialValue } from "@/components/common/FinancialValue";
 
@@ -43,7 +43,7 @@ export function InternalRouteDialog({
 }: InternalRouteDialogProps) {
   const [fundId, setFundId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  const [effectiveDate, setEffectiveDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [effectiveDate, setEffectiveDate] = useState<string>(getTodayString());
   const [reason, setReason] = useState<string>("");
   const [confirmText, setConfirmText] = useState<string>("");
   const [result, setResult] = useState<{

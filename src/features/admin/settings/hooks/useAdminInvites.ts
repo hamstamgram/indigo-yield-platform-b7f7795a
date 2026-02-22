@@ -5,12 +5,12 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
-import { adminInviteService } from "@/services/admin/adminInviteService";
+import { adminInviteService } from "@/features/admin/investors/services/adminInviteService";
 import { logError } from "@/lib/logger";
 
 // Re-export type from service for consistency
-import type { AdminInvite } from "@/services/admin/adminInviteService";
-export type { AdminInvite } from "@/services/admin/adminInviteService";
+import type { AdminInvite } from "@/features/admin/investors/services/adminInviteService";
+export type { AdminInvite } from "@/features/admin/investors/services/adminInviteService";
 
 const QUERY_KEYS = {
   invites: ["admin-invites"] as const,

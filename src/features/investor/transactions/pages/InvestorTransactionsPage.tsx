@@ -104,7 +104,7 @@ export default function InvestorTransactionsPage() {
         </SortableTableHead>
       ),
       cell: (item: Record<string, unknown>) => {
-        const amount = Number(item.amount);
+        const amount = parseFloat(String(item.amount));
         return (
           <span
             className={cn(

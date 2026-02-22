@@ -11,7 +11,7 @@ import {
   getInvestorReportPeriods,
   type InvestorProfileData,
   type ReportPeriod,
-} from "@/services/admin/investorSettingsService";
+} from "@/features/admin/investors/services/investorSettingsService";
 import { feeScheduleService } from "@/services/admin/feeScheduleService";
 
 /**

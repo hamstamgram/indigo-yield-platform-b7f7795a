@@ -274,12 +274,14 @@ async function getInvestorFundPerformanceByPeriod(
 
 async function updateFeePercentage(investorId: string, feePercentage: number): Promise<void> {
   // profiles.fee_pct was dropped; write to investor_fee_schedule instead
+  // First Principles: ALWAYS clear end_date to prevent silent expiration
   const today = new Date().toISOString().slice(0, 10);
   const { error } = await supabase.from("investor_fee_schedule").upsert(
     {
       investor_id: investorId,
       fee_pct: feePercentage,
       effective_date: today,
+      end_date: null,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "investor_id,effective_date" }

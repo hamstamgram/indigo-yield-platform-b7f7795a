@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { getActiveFunds } from "@/services/admin/fundService";
+import { getActiveFunds } from "@/features/admin/funds/services/fundService";
 import {
   getFeesOverviewData,
   getFeeTransactions,

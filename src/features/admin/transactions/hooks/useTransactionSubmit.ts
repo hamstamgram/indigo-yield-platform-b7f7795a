@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { createInvestorTransaction } from "@/services/shared";
@@ -33,9 +33,17 @@ export function useTransactionSubmit({
   const [pendingLargeDeposit, setPendingLargeDeposit] = useState<TransactionFormData | null>(null);
   const [largeDepositConfirmed, setLargeDepositConfirmed] = useState(false);
 
+  // First Principles: use ref to avoid stale closure — ensures onSubmit
+  // always sees the latest selectedInvestorId regardless of React re-renders
+  const investorIdRef = useRef(selectedInvestorId);
+  useEffect(() => {
+    investorIdRef.current = selectedInvestorId;
+  }, [selectedInvestorId]);
+
   const onSubmit = async (data: TransactionFormData) => {
-    // Validate investor selection
-    if (!selectedInvestorId) {
+    // Validate investor selection — use ref for latest value
+    const currentInvestorId = investorIdRef.current;
+    if (!currentInvestorId) {
       setInvestorError("Please select an investor");
       return;
     }
@@ -43,7 +51,7 @@ export function useTransactionSubmit({
 
     // Block manual deposits to INDIGO FEES account
     if (
-      selectedInvestorId === INDIGO_FEES_ACCOUNT_ID &&
+      currentInvestorId === INDIGO_FEES_ACCOUNT_ID &&
       (data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT")
     ) {
       toast.error(
@@ -81,7 +89,7 @@ export function useTransactionSubmit({
       // Transactions are pure capital flows — no preflow AUM / crystallization
 
       const result = await createInvestorTransaction({
-        investor_id: selectedInvestorId,
+        investor_id: currentInvestorId,
         fund_id: data.fund_id,
         type: data.txn_type as CreateTransactionParams["type"],
         asset: data.asset,
@@ -98,7 +106,7 @@ export function useTransactionSubmit({
       }
 
       // Invalidate all relevant queries
-      await invalidateAfterTransaction(queryClient, selectedInvestorId, data.fund_id);
+      await invalidateAfterTransaction(queryClient, currentInvestorId, data.fund_id);
 
       toast.success("Transaction created successfully");
       resetForm();

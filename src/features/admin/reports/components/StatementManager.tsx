@@ -75,7 +75,7 @@ export const StatementManager: React.FC = () => {
 
         const yieldMap = new Map();
         monthlyPerformance?.forEach((r: any) =>
-          yieldMap.set(r.fund_name, Number(r.mtd_net_income || 0))
+          yieldMap.set(r.fund_name, parseFloat(String(r.mtd_net_income || 0)))
         );
 
         const assetMap = new Map();
@@ -86,7 +86,7 @@ export const StatementManager: React.FC = () => {
           const rec = assetMap.get(asset);
 
           const txDate = new Date(tx.tx_date);
-          const amount = Number(tx.amount);
+          const amount = parseFloat(String(tx.amount));
 
           if (txDate < startDate) {
             rec.open += amount;

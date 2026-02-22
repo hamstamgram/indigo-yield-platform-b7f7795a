@@ -5,7 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { getActiveFunds } from "./fundService";
+import { getActiveFunds } from "@/features/admin/funds/services/fundService";
 import { parseFinancial } from "@/utils/financial";
 
 // ==================== Types ====================
@@ -173,7 +173,10 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
  * Calculate fee summaries by asset from fee records
  */
 export function calculateFeeSummaries(fees: FeeRecord[]): FeeSummary[] {
-  const summaryMap = new Map<string, { assetCode: string; total: ReturnType<typeof parseFinancial>; count: number }>();
+  const summaryMap = new Map<
+    string,
+    { assetCode: string; total: ReturnType<typeof parseFinancial>; count: number }
+  >();
   fees.forEach((fee) => {
     const existing = summaryMap.get(fee.asset) || {
       assetCode: fee.asset,
@@ -228,7 +231,7 @@ export async function getIndigoFeesBalance(): Promise<Record<string, string>> {
       balances[asset] = current.plus(parseFinancial(p.current_value || 0));
     }
   });
-  
+
   const result: Record<string, string> = {};
   for (const [asset, value] of Object.entries(balances)) {
     result[asset] = value.toFixed(10);
@@ -342,7 +345,10 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
     return [];
   }
 
-  const yieldByFund = new Map<string, { total: ReturnType<typeof parseFinancial>; count: number }>();
+  const yieldByFund = new Map<
+    string,
+    { total: ReturnType<typeof parseFinancial>; count: number }
+  >();
   yieldTxs.forEach((tx) => {
     const existing = yieldByFund.get(tx.fund_id) || { total: parseFinancial(0), count: 0 };
     existing.total = existing.total.plus(parseFinancial(tx.amount || 0));

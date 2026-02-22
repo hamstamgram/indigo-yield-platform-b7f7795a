@@ -261,7 +261,10 @@ export const withdrawalService = {
       params.p_is_full_exit = true;
     }
 
-    const { error } = await rpc.call("approve_and_complete_withdrawal", params as Record<string, unknown> as any);
+    const { error } = await rpc.call(
+      "approve_and_complete_withdrawal",
+      params as Record<string, unknown> as any
+    );
 
     if (error) {
       log.error("Error completing withdrawal", error);
@@ -400,7 +403,9 @@ export const withdrawalService = {
     const { error } = await rpc.call("create_withdrawal_request", {
       p_investor_id: params.investorId,
       p_fund_id: params.fundId,
-      p_amount: (typeof params.amount === "string" ? params.amount : String(params.amount)) as unknown as number,
+      p_amount: (typeof params.amount === "string"
+        ? params.amount
+        : String(params.amount)) as unknown as number,
       p_type: params.withdrawalType,
       p_notes: params.notes ? `${params.notes} [${corrId}]` : `[${corrId}]`,
     });
@@ -580,12 +585,14 @@ export const withdrawalService = {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    await supabase.from("audit_log").insert([{
-      actor_user: user?.id ?? null,
-      action,
-      entity: "withdrawal_requests",
-      entity_id: withdrawalIds.join(","),
-      old_values: JSON.parse(JSON.stringify(details)),
-    }]);
+    await supabase.from("audit_log").insert([
+      {
+        actor_user: user?.id ?? null,
+        action,
+        entity: "withdrawal_requests",
+        entity_id: withdrawalIds.join(","),
+        old_values: JSON.parse(JSON.stringify(details)),
+      },
+    ]);
   },
 };
