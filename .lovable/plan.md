@@ -1,69 +1,99 @@
 
 
-# Fix: Apply Yield "Invalid response from server"
+# Root Cause: AUM Not Changing After Yield
 
-## Root Cause
+## The Critical Bug
 
-The PostgreSQL function `apply_segmented_yield_distribution_v5` returns a **UUID** (the `distribution_id`), not a JSON object. The frontend code casts the result to `V5YieldRPCResult` (expecting `{ success: true, gross_yield: ..., ... }`), but since `data` is actually a UUID string, `result.success` is `undefined`, which triggers the error on line 78:
+The `apply_segmented_yield_distribution_v5` database function is **missing the transaction creation step entirely**. It creates:
+- yield_distributions header (done)
+- yield_allocations per investor (done)
+- fee_allocations (done)
+- ib_allocations (done)
 
+But it **never inserts into `transactions_v2`**. This is the single root cause of all symptoms:
+
+1. **AUM doesn't change** -- because AUM is updated by the `sync_aum_on_transaction` trigger, which fires on `transactions_v2` inserts
+2. **Investor positions don't change** -- because positions are updated by `fn_ledger_drives_position` trigger on `transactions_v2` inserts
+3. **10 duplicate distributions exist** -- because with no idempotency guard (reference_id uniqueness), the function silently creates duplicates on retry
+
+The `void_yield_distribution` function confirms transactions SHOULD exist -- it searches for patterns like `yield_v5_<dist_id>_<investor_id>` in `reference_id`.
+
+## Data State
+
+For fund `7574bc81` (IND-SOL):
+- 10 non-voided yield_distributions exist (all identical: opening_aum=1250, recorded_aum=1252, gross_yield=2)
+- 0 non-voided YIELD transactions exist
+- Investor position still shows current_value=1250 (unchanged)
+- fund_daily_aum still shows 1250 (unchanged)
+
+## Fix: Two-Part
+
+### Part 1: Fix the RPC function (SQL migration)
+
+Add transaction creation logic to `apply_segmented_yield_distribution_v5`, inserting after Step 5 (yield_allocations) and before the RETURN:
+
+For each allocation from `calculate_yield_allocations` where `net > 0`:
+```sql
+-- YIELD transaction for investor
+INSERT INTO transactions_v2 (
+  fund_id, investor_id, tx_date, value_date, asset, fund_class,
+  amount, type, source, distribution_id, reference_id,
+  is_system_generated, purpose, visibility_scope, created_by
+) VALUES (
+  p_fund_id, investor_id, p_distribution_date, p_distribution_date,
+  fund_asset, fund_class,
+  net_amount, 'YIELD', 'yield_distribution', v_distribution_id,
+  'yield_v5_' || v_distribution_id || '_' || investor_id,
+  true, p_purpose, 'investor_visible', p_created_by
+);
 ```
-throw new Error(result?.error || "Apply failed: Invalid response from server");
-```
 
-The **preview** RPC works fine because `preview_segmented_yield_distribution_v5` returns `Json`.
+For fees account (FEE_CREDIT) and IB parents (IB_CREDIT), similar inserts with appropriate types and `admin_only` visibility.
 
-## Fix
+The function also needs:
+- Fetch the fund's `asset` and `fund_class` at the start
+- Back-link the transaction IDs to `yield_allocations` (transaction_id, fee_credit_transaction_id, ib_credit_transaction_id columns)
+- Call `upsert_fund_aum_after_yield` at the end for reporting-purpose AUM
 
-Rewrite `src/services/admin/yields/yieldApplyService.ts` lines 75-79 to:
+### Part 2: Void the 10 duplicate distributions (data cleanup)
 
-1. Accept the UUID return value as the `distribution_id`
-2. Query the `yield_distributions` table to fetch the actual result data (which was already inserted by the RPC)
-3. Build the `YieldCalculationResult` from the queried row instead of from the RPC response
+Before deploying the fix, void all 10 existing broken distributions since they have no transactions and represent phantom records. This uses the existing `void_yield_distribution` RPC.
+
+### Part 3: Frontend -- no changes needed
+
+The frontend `yieldApplyService.ts` fix from the last edit is correct. Transactions will now be created by the RPC, positions will update via triggers, and AUM will update via `sync_aum_on_transaction`.
+
+## Technical Details: Complete RPC Rewrite
+
+The `apply_segmented_yield_distribution_v5` function will be replaced with the following logic flow:
 
 ```text
-Before (broken):
-  const result = data as unknown as V5YieldRPCResult;
-  if (!result || !result.success) {
-    throw new Error(result?.error || "Apply failed: Invalid response from server");
-  }
-
-After (fixed):
-  const distributionId = data as unknown as string;
-  if (!distributionId) {
-    throw new Error("Apply failed: no distribution ID returned");
-  }
-
-  // Fetch the distribution row the RPC just created
-  const { data: dist, error: fetchErr } = await supabase
-    .from("yield_distributions")
-    .select("*")
-    .eq("id", distributionId)
-    .single();
-
-  if (fetchErr || !dist) {
-    throw new Error("Apply succeeded but failed to fetch distribution details");
-  }
+1. Set canonical mutation guard
+2. Establish context (period_start, fees_account_id, fund asset/class)
+3. Calculate totals via calculate_yield_allocations
+4. Insert distribution header
+5. Insert yield_allocations
+6. NEW: Insert YIELD transactions for each investor (net > 0)
+7. NEW: Insert FEE_CREDIT transaction for fees account (if total_fees > 0)
+8. NEW: Insert IB_CREDIT transactions for each IB parent (if ib_credit > 0)
+9. NEW: Back-link transaction IDs to yield_allocations
+10. Legacy sync: fee_allocations, ib_allocations
+11. NEW: Upsert reporting AUM if purpose = 'reporting'
+12. Clear canonical flag
+13. Return distribution_id
 ```
 
-Then replace all `result.xxx` references (lines 104-166) with `dist.xxx` field names from the `yield_distributions` table:
-- `result.opening_aum` becomes `dist.opening_aum`
-- `result.gross_yield` becomes `dist.gross_yield`
-- `result.net_yield` becomes `dist.net_yield`
-- `result.total_fees` becomes `dist.total_fees`
-- `result.total_ib` becomes `dist.total_ib`
-- `result.investor_count` becomes `dist.investor_count`
-- `result.recorded_aum` becomes `dist.recorded_aum`
-- `result.period_start` becomes `dist.period_start`
-- `result.period_end` becomes `dist.period_end`
-- `result.dust_amount` becomes `dist.dust_amount`
-- `result.fund_code` / `result.fund_asset` -- not in the distribution table, will use fund query (already fetched as `fundInfo`)
-- `result.conservation_check` / `result.segment_count` / `result.crystals_consolidated` / `result.features` -- not stored in distribution table, use sensible defaults
+Transaction triggers handle position and AUM updates automatically:
+- `fn_ledger_drives_position` updates `investor_positions.current_value`
+- `sync_aum_on_transaction` updates `fund_daily_aum`
+- `trg_recompute_position_on_tx` calls `recompute_investor_position`
 
-## Technical Details
+## Files Changed
 
-**File**: `src/services/admin/yields/yieldApplyService.ts`
+| File | Change |
+|------|--------|
+| New SQL migration | Replace `apply_segmented_yield_distribution_v5` with transaction-creating version |
+| Data cleanup SQL | Void 10 phantom yield_distributions for fund 7574bc81 |
 
-The full rewrite of lines 75-167 replaces the broken `V5YieldRPCResult` cast with a query to `yield_distributions` using the returned UUID, and maps all fields from the queried row. The `V5YieldRPCResult` import can be removed since it's no longer used in this file.
-
-**No database changes needed.** The RPC and table are correct; only the frontend interpretation was wrong.
+No frontend changes needed.
 
