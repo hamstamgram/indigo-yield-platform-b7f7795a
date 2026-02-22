@@ -144,8 +144,8 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
   );
 
   // Get yield distribution data for reporting records (join by fund_id + effective_date)
-  const reportingRecords = records.filter(
-    (r) => r.purpose === "reporting" && r.source === "yield_distribution_v5"
+  const yieldSourcedRecords = records.filter(
+    (r) => r.source?.startsWith("yield_distribution") ?? false
   );
   const distMap = new Map<
     string,
@@ -159,13 +159,13 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
     }
   >();
 
-  if (reportingRecords.length > 0) {
-    const reportingFundDates = reportingRecords.map((r) => ({
+  if (yieldSourcedRecords.length > 0) {
+    const yieldFundDates = yieldSourcedRecords.map((r) => ({
       fund_id: r.fund_id,
       date: r.aum_date,
     }));
-    const uniqueFundIds = [...new Set(reportingFundDates.map((rd) => rd.fund_id))];
-    const uniqueDates = [...new Set(reportingFundDates.map((rd) => rd.date))];
+    const uniqueFundIds = [...new Set(yieldFundDates.map((rd) => rd.fund_id))] as string[];
+    const uniqueDates = [...new Set(yieldFundDates.map((rd) => rd.date))] as string[];
 
     const { data: distributions } = await supabase
       .from("yield_distributions")
@@ -174,7 +174,7 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
       )
       .in("fund_id", uniqueFundIds)
       .in("effective_date", uniqueDates)
-      .eq("purpose", "reporting")
+      .in("purpose", ["reporting", "transaction"])
       .eq("is_voided", false)
       .limit(1000);
 
