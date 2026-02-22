@@ -1,36 +1,93 @@
 
 
-# Fix: Drop Duplicate Function Overloads Before Recreating
+# Audit Result: AUM Update After Yield Distribution
 
-## Problem
-The migration failed because there are **two overloads** of `apply_segmented_yield_distribution_v5` with different parameter orders:
+## Critical Bug Found in Step 10
 
-1. `(p_fund_id uuid, p_period_end date, p_recorded_aum numeric, p_created_by uuid, p_purpose aum_purpose, p_distribution_date date)`
-2. `(p_fund_id uuid, p_recorded_aum numeric, p_distribution_date date, p_period_end date, p_purpose aum_purpose, p_created_by uuid)`
+The `apply_segmented_yield_distribution_v5` function has a **fatal bug** in step 10 that will crash at runtime, preventing AUM from ever being updated after yield distribution.
 
-`CREATE OR REPLACE FUNCTION` only replaces a function with the **exact same signature**. Since our new function has a different parameter order than one or both existing overloads, PostgreSQL raises a conflict.
-
-## Fix
-
-A single SQL migration that:
-
-1. Drops both existing overloads explicitly using their full signatures
-2. Re-creates the fixed function (with transaction creation logic) using the canonical signature
+### The Broken Call (line 204-206)
 
 ```sql
-DROP FUNCTION IF EXISTS public.apply_segmented_yield_distribution_v5(uuid, date, numeric, uuid, aum_purpose, date);
-DROP FUNCTION IF EXISTS public.apply_segmented_yield_distribution_v5(uuid, numeric, date, date, aum_purpose, uuid);
+PERFORM upsert_fund_aum_after_yield(
+    p_fund_id, p_period_end, v_closing_aum, p_created_by, true
+);
 ```
 
-Then the full `CREATE OR REPLACE FUNCTION` from the previous migration (with YIELD/FEE_CREDIT/IB_CREDIT transaction inserts, back-linking, closing_aum update, and upsert_fund_aum_after_yield call).
+### The Function Signature
 
-The data cleanup (voiding 10 phantom distributions) will also be included since the previous migration was never applied.
+```text
+upsert_fund_aum_after_yield(
+    p_fund_id    uuid,
+    p_aum_date   date,
+    p_yield_amount numeric,    -- expects incremental yield, not absolute AUM
+    p_purpose    aum_purpose,  -- receives p_created_by (uuid) -- TYPE MISMATCH
+    p_actor_id   uuid          -- receives true (boolean) -- TYPE MISMATCH
+)
+```
 
-## Technical Details
+### Three Bugs in One Call
 
-**File**: New SQL migration
+| Argument | Expected | Passed | Problem |
+|----------|----------|--------|---------|
+| 3rd: `p_yield_amount` | Incremental yield amount | `v_closing_aum` (total absolute AUM) | Wrong value -- would double-count |
+| 4th: `p_purpose` | `aum_purpose` enum | `p_created_by` (uuid) | Type mismatch -- runtime crash |
+| 5th: `p_actor_id` | `uuid` | `true` (boolean) | Type mismatch -- runtime crash |
 
-The canonical parameter order will be:
-`(p_fund_id uuid, p_period_end date, p_recorded_aum numeric, p_created_by uuid, p_purpose aum_purpose DEFAULT 'reporting', p_distribution_date date DEFAULT NULL)`
+PostgreSQL cannot cast boolean to uuid, so this call **always throws an exception**, which aborts the entire transaction. No yield distribution can succeed.
 
-This matches what the frontend `callRPC` in `yieldApplyService.ts` sends.
+### Why `sync_aum_on_transaction` Doesn't Help
+
+The `sync_aum_on_transaction` trigger on `transactions_v2` explicitly **skips** reporting-purpose transactions:
+
+```sql
+IF NEW.purpose = 'reporting'::aum_purpose THEN
+    RETURN NEW;
+END IF;
+```
+
+This is by design -- the trigger defers to the distribution function for AUM updates. But the distribution function's AUM update call is broken, so neither path works.
+
+### The Correct AUM Path
+
+Since `v_closing_aum` (computed at step 9) already reflects the post-yield positions (updated by `fn_ledger_drives_position` trigger on each YIELD transaction insert), we should directly upsert `fund_daily_aum` with this absolute value instead of using the incremental `upsert_fund_aum_after_yield` function.
+
+## Fix (SQL migration)
+
+Replace step 10 in `apply_segmented_yield_distribution_v5` with a direct upsert:
+
+```sql
+-- 10. Upsert reporting AUM
+IF p_purpose = 'reporting' THEN
+    UPDATE fund_daily_aum
+    SET total_aum = v_closing_aum, updated_at = now(),
+        updated_by = p_created_by, source = 'yield_distribution_v5'
+    WHERE fund_id = p_fund_id AND aum_date = p_period_end
+      AND purpose = 'reporting' AND is_voided = false;
+
+    IF NOT FOUND THEN
+        INSERT INTO fund_daily_aum (
+            fund_id, aum_date, total_aum, purpose, source,
+            created_by, is_voided, is_month_end
+        ) VALUES (
+            p_fund_id, p_period_end, v_closing_aum, 'reporting',
+            'yield_distribution_v5', p_created_by, false, true
+        );
+    END IF;
+END IF;
+```
+
+This approach:
+- Uses the absolute `v_closing_aum` (already correct from step 9)
+- Avoids the incremental `upsert_fund_aum_after_yield` function entirely
+- Sets `is_month_end = true` so investors can see it per RLS policy
+- Sets `source = 'yield_distribution_v5'` which triggers the `sync_reporting_aum_to_transaction` trigger to auto-create the transaction-purpose copy
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| New SQL migration | `CREATE OR REPLACE FUNCTION apply_segmented_yield_distribution_v5` -- fix step 10 only (replace `PERFORM upsert_fund_aum_after_yield(...)` with direct upsert) |
+
+No other files need changes.
+
