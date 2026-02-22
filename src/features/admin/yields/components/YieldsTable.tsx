@@ -363,6 +363,7 @@ export function YieldsTable({
                 <TableHead className="text-right">Fees</TableHead>
                 <TableHead className="text-right">IB Comm.</TableHead>
                 <TableHead className="text-right">Net Amount</TableHead>
+                <TableHead className="text-right">Position After</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -394,6 +395,18 @@ export function YieldsTable({
                     </TableCell>
                     <TableCell className="text-right font-medium text-green-500/90">
                       <FinancialValue value={alloc.net_amount} asset={asset} />
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground font-mono text-xs">
+                      {alloc.position_value_at_calc != null ? (
+                        <FinancialValue
+                          value={
+                            Number(alloc.position_value_at_calc) + Number(alloc.net_amount || 0)
+                          }
+                          asset={asset}
+                        />
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
                   </TableRow>
                 );
