@@ -1,100 +1,81 @@
 
 
-# Audit Report: AUM Cards, Investor Count, and Yield AUM Accuracy
+# Fix: Build Errors Breaking Admin Routing + Type Mismatches
 
-## Issue 1: AUM Cards Don't Update Quickly After a Deposit
+## Problem
 
-### Root Cause
+The app has 8 build errors caused by mismatches between the code and the auto-generated Supabase types (`types.ts`). These errors prevent the app from compiling correctly, which can cause the admin user to land on a broken page or get redirected to investor routes instead of admin routes.
 
-There are **two separate AUM data sources** using different query keys and different RPCs:
+The admin auth logic itself is correct -- adriel@indigo.fund has both `admin` and `super_admin` roles in the database, and the auth context properly queries `user_roles`. The issue is that **build failures break the app before the routing logic can execute**.
 
-| Component | Hook | RPC | Query Key |
-|-----------|------|-----|-----------|
-| Header AUM bar | `useFundAUM` | `get_funds_with_aum` | `fund-aum-unified` |
-| Yield operations page | `useActiveFundsWithAUM` | `get_active_funds_summary` | `active-funds-with-aum` |
+## Root Cause: 4 Type Mismatches
 
-After a deposit triggers `invalidateAfterTransaction()`, the cache invalidation graph includes `fundAumUnified` (header bar) but does **NOT** include `activeFundsWithAUM` (yield page). So the yield page only updates when its 5-second staleTime naturally expires.
+### 1. `force_delete_investor` RPC -- extra parameter
 
-For the header bar specifically: `useFundAUM` has a Realtime subscription on `investor_positions` changes, plus `refetchInterval: 15000` (15 seconds), and `staleTime: 5000`. The Realtime subscription should trigger an immediate refetch when `investor_positions` changes (via the `recompute_investor_position` trigger that fires after `apply_investor_transaction`). However, there is a potential timing gap: the Realtime subscription fires `invalidateQueries` which only marks the cache stale -- if the component isn't actively mounted or visible, the refetch may be delayed.
+- **Generated type**: `Args: { p_investor_id: string }` (1 parameter)
+- **Code sends**: `{ p_investor_id, p_admin_id }` (2 parameters)
+- **File**: `src/features/admin/funds/services/reconciliationService.ts` line 101
+- **Fix**: Remove `p_admin_id` from the call (the DB function doesn't accept it; admin identity comes from `auth.uid()`)
 
-### Fix
+### 2. `merge_duplicate_profiles` RPC -- wrong parameter names
 
-1. Add `QUERY_KEYS.activeFundsWithAUM` to the `transaction` entry in the `INVALIDATION_GRAPH` in `src/utils/cacheInvalidation.ts`
-2. After mutation success in `useTransactionHooks.ts`, call `refetchQueries` (not just `invalidateQueries`) for the AUM keys to force an immediate network request
+- **Generated type**: `Args: { p_keep_id: string; p_merge_id: string }`
+- **Code sends**: `{ p_keep_profile_id, p_merge_profile_id }`
+- **File**: `src/services/admin/integrityOperationsService.ts` line 371-373
+- **Fix**: Rename parameters to `p_keep_id` and `p_merge_id`
 
----
+### 3. `finalize_month_yield` RPC -- wrong parameter names and types
 
-## Issue 2: Apply Yield Shows Wrong Investor Count
+- **Generated type**: `Args: { p_admin_id?: string; p_fund_id: string; p_month: string }`
+- **Code sends**: `{ p_fund_id, p_period_year, p_period_month, p_admin_id }` (extra `p_period_year`, wrong name `p_period_month` vs `p_month`)
+- **File**: `src/services/admin/yields/yieldCrystallizationService.ts` lines 57-62
+- **Fix**: Combine year and month into a single `p_month` string (e.g., `"2026-02"`) and remove `p_period_year`
 
-### Root Cause
+### 4. `investor_yield_events` table -- does not exist in types
 
-Two different RPCs count investors differently:
+- **Generated type**: Table not found (may have been renamed or removed)
+- **Code queries**: `supabase.from("investor_yield_events")` 
+- **File**: `src/services/admin/yields/yieldCrystallizationService.ts` line 296
+- **Fix**: Check what the correct table name is. The table might be `yield_distributions` or similar. If the table genuinely doesn't exist, replace with the correct table query or remove the function.
 
-- **`get_active_funds_summary`** (used in the yield fund selector): Correctly counts only `account_type = 'investor'` -- SOL shows 2 investors, XRP shows 1 investor
-- **`get_funds_with_aum`** (used in header AUM bar): Counts ALL account types with `current_value > 0`, including IB agents and the INDIGO Fees system account -- SOL shows 4, XRP shows 3
+## Implementation Steps
 
-The **yield preview RPC** (`preview_segmented_yield_distribution_v5`) returns `investor_count` as `jsonb_array_length(v_allocations_out)` which counts ALL participants in the allocation array, including:
-- The INDIGO Fees account (always included for fee credits)
-- IB agents (included for IB credit display)
-- Actual investors
+### Step 1: Fix `reconciliationService.ts` (line 101)
 
-Current data shows:
-- **SOL fund**: 2 real investors + 1 IB agent + 1 fees account = 4 shown in preview
-- **XRP fund**: 1 real investor + 1 IB agent + 1 fees account = 3 shown in preview
-
-So when the user clicks "Apply Yield to 4 Investors" for SOL, 2 of those are system/IB accounts, not real investors.
-
-### Fix
-
-1. In `get_funds_with_aum` RPC: Filter `investor_count` to only `account_type = 'investor'` (matching the pattern already used by `get_active_funds_summary`)
-2. In `preview_segmented_yield_distribution_v5` RPC: Add a separate `investor_count` field that counts only `account_type = 'investor'` participants, while keeping `participant_count` for the total allocation array length
-3. Update the "Apply Yield to N Investors" button text in `YieldPreviewResults.tsx` to use the investor-only count
-
----
-
-## Issue 3: AUM Not Shown Accurately for SOL and XRP in Yield Form
-
-### Root Cause
-
-The yield input form (`YieldInputForm.tsx`) displays AUM via:
-
+Remove `p_admin_id` from the `force_delete_investor` call:
 ```typescript
-// In useYieldOperationsState.ts line 41
-const asOfAum = liveFund?.total_aum ?? selection.selectedFund?.total_aum ?? null;
+const { data, error } = await rpc.call("force_delete_investor", {
+  p_investor_id: investorId,
+});
 ```
 
-This pulls `total_aum` from `useActiveFundsWithAUM` which calls `get_active_funds_summary`. The RPC correctly sums ALL positions with `current_value > 0` for AUM calculation.
+### Step 2: Fix `integrityOperationsService.ts` (lines 371-373)
 
-Actual database values:
-- **SOL**: 1,500.0000 SOL total (2 investors: 1263.33 + 236.29, plus IB: 0.037, fees: 0.337)
-- **XRP**: 229,731.09 XRP total (1 investor: 229,585.31, plus IB: 29.13, fees: 116.65)
+Use correct parameter names:
+```typescript
+const { data, error } = await callRPC("merge_duplicate_profiles", {
+  p_keep_id: keepProfileId,
+  p_merge_id: mergeProfileId,
+});
+```
 
-The `parseFinancial(f.total_aum).toNumber()` conversion in `yieldHistoryService.ts` line 256 converts the database NUMERIC to a JavaScript number. For these values (max ~229K with 10 decimal places), `toNumber()` should be safe since they're well within JavaScript's safe integer range when considering the decimal places.
+### Step 3: Fix `yieldCrystallizationService.ts` (lines 57-62)
 
-**Potential issue**: The `formatValue` function used in the yield form is `formatAUM(value, asset)` which uses `Intl.NumberFormat`. For SOL/XRP, `getAUMDecimals` returns `{ min: 2, max: 6 }`. If the actual value has more than 6 decimal places, trailing precision is silently dropped in the display. However, for AUM display (showing totals like 1,500 SOL), this shouldn't cause visible inaccuracy.
+Format the month parameter correctly:
+```typescript
+const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+const { data, error } = await callRPC("finalize_month_yield", {
+  p_fund_id: fundId,
+  p_month: monthStr,
+  p_admin_id: adminId,
+});
+```
 
-The more likely problem is a **stale cache issue**: when the user opens the yield dialog, `asOfAum` comes from `liveFund?.total_aum` which may be stale if `activeFundsWithAUM` hasn't been refetched recently (5s staleTime). If a deposit was just processed, the old AUM value may still be displayed.
+### Step 4: Fix `yieldCrystallizationService.ts` (lines 295-302)
 
-### Fix
+Check the database for the correct table name for yield events. If the table is named differently (e.g., `yield_distributions` or a view), update the query. If no equivalent exists, the `getPendingYieldEventsCount` function needs to be rewritten against the correct schema.
 
-1. When opening the yield dialog, force a refetch of `activeFundsWithAUM` before displaying AUM
-2. Add `activeFundsWithAUM` to the transaction invalidation graph (same fix as Issue 1)
+## Outcome
 
----
+All 8 build errors will be resolved. The app will compile correctly, and the admin routing logic (which is already correct) will execute properly, directing adriel@indigo.fund to `/admin` as expected.
 
-## Summary of Required Changes
-
-| # | Severity | Fix | Files |
-|---|----------|-----|-------|
-| 1 | HIGH | Add `activeFundsWithAUM` to transaction invalidation graph | `src/utils/cacheInvalidation.ts` |
-| 2 | HIGH | Fix `get_funds_with_aum` to count only `account_type='investor'` | SQL migration |
-| 3 | HIGH | Add `investor_count` (investor-only) to yield preview RPC | SQL migration |
-| 4 | MEDIUM | Update yield preview button to show investor-only count | `src/features/admin/yields/components/YieldPreviewResults.tsx` |
-| 5 | MEDIUM | Force refetch of fund AUM when opening yield dialog | `src/hooks/data/admin/useYieldOperationsState.ts` |
-| 6 | LOW | Use `refetchQueries` instead of `invalidateQueries` for critical AUM keys after mutations | `src/hooks/data/shared/useTransactionHooks.ts` |
-
-### Implementation Order
-
-**Phase 1 -- Cache & Invalidation (items 1, 5, 6):** Ensure AUM data refreshes immediately after deposits across all consumers.
-
-**Phase 2 -- Investor Count Accuracy (items 2, 3, 4):** Fix both RPCs to distinguish between "all participants" and "real investors", then update the UI to display the correct count.
