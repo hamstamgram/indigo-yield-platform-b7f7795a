@@ -1,81 +1,45 @@
 
 
-# Fix: Build Errors Breaking Admin Routing + Type Mismatches
+# Fix: Build Errors Blocking Admin Routing
 
 ## Problem
 
-The app has 8 build errors caused by mismatches between the code and the auto-generated Supabase types (`types.ts`). These errors prevent the app from compiling correctly, which can cause the admin user to land on a broken page or get redirected to investor routes instead of admin routes.
+4 build errors prevent the app from compiling. When the app fails to build properly, the admin routing logic never executes, so adriel@indigo.fund gets dumped onto the investor portal (or a broken page). The admin auth is fine in the database -- the build just needs to succeed.
 
-The admin auth logic itself is correct -- adriel@indigo.fund has both `admin` and `super_admin` roles in the database, and the auth context properly queries `user_roles`. The issue is that **build failures break the app before the routing logic can execute**.
+## Fixes
 
-## Root Cause: 4 Type Mismatches
+### Fix 1: `reconciliationService.ts` line 101 -- Remove extra `p_admin_id`
 
-### 1. `force_delete_investor` RPC -- extra parameter
+The DB function `force_delete_investor` only accepts `p_investor_id`. Remove the `p_admin_id` parameter (admin identity is resolved server-side via `auth.uid()`).
 
-- **Generated type**: `Args: { p_investor_id: string }` (1 parameter)
-- **Code sends**: `{ p_investor_id, p_admin_id }` (2 parameters)
-- **File**: `src/features/admin/funds/services/reconciliationService.ts` line 101
-- **Fix**: Remove `p_admin_id` from the call (the DB function doesn't accept it; admin identity comes from `auth.uid()`)
+Also update the function signature to drop the unused `adminId` parameter.
 
-### 2. `merge_duplicate_profiles` RPC -- wrong parameter names
+### Fix 2: `integrityOperationsService.ts` lines 371-373 -- Rename parameters
 
-- **Generated type**: `Args: { p_keep_id: string; p_merge_id: string }`
-- **Code sends**: `{ p_keep_profile_id, p_merge_profile_id }`
-- **File**: `src/services/admin/integrityOperationsService.ts` line 371-373
-- **Fix**: Rename parameters to `p_keep_id` and `p_merge_id`
+Change `p_keep_profile_id` to `p_keep_id` and `p_merge_profile_id` to `p_merge_id` to match the DB function signature.
 
-### 3. `finalize_month_yield` RPC -- wrong parameter names and types
+### Fix 3: `yieldCrystallizationService.ts` lines 57-62 -- Fix `finalize_month_yield` call
 
-- **Generated type**: `Args: { p_admin_id?: string; p_fund_id: string; p_month: string }`
-- **Code sends**: `{ p_fund_id, p_period_year, p_period_month, p_admin_id }` (extra `p_period_year`, wrong name `p_period_month` vs `p_month`)
-- **File**: `src/services/admin/yields/yieldCrystallizationService.ts` lines 57-62
-- **Fix**: Combine year and month into a single `p_month` string (e.g., `"2026-02"`) and remove `p_period_year`
-
-### 4. `investor_yield_events` table -- does not exist in types
-
-- **Generated type**: Table not found (may have been renamed or removed)
-- **Code queries**: `supabase.from("investor_yield_events")` 
-- **File**: `src/services/admin/yields/yieldCrystallizationService.ts` line 296
-- **Fix**: Check what the correct table name is. The table might be `yield_distributions` or similar. If the table genuinely doesn't exist, replace with the correct table query or remove the function.
-
-## Implementation Steps
-
-### Step 1: Fix `reconciliationService.ts` (line 101)
-
-Remove `p_admin_id` from the `force_delete_investor` call:
-```typescript
-const { data, error } = await rpc.call("force_delete_investor", {
-  p_investor_id: investorId,
-});
+The DB function expects `{ p_fund_id, p_month, p_admin_id }` where `p_month` is a string. Replace `p_period_year` and `p_period_month` with a single `p_month` formatted as `"YYYY-MM"`:
+```
+p_month: `${year}-${String(month).padStart(2, '0')}`
 ```
 
-### Step 2: Fix `integrityOperationsService.ts` (lines 371-373)
+### Fix 4: `yieldCrystallizationService.ts` lines 295-302 -- Replace non-existent table
 
-Use correct parameter names:
-```typescript
-const { data, error } = await callRPC("merge_duplicate_profiles", {
-  p_keep_id: keepProfileId,
-  p_merge_id: mergeProfileId,
-});
-```
+`investor_yield_events` does not exist. The equivalent data lives in `yield_allocations` (which has `net_amount`, `is_voided`, `fund_id`, `distribution_id`). Rewrite `getPendingYieldEventsCount` to query `yield_allocations` joined with `yield_distributions` for the date filter, using `net_amount` instead of `net_yield_amount`.
 
-### Step 3: Fix `yieldCrystallizationService.ts` (lines 57-62)
+### Technical Details
 
-Format the month parameter correctly:
-```typescript
-const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-const { data, error } = await callRPC("finalize_month_yield", {
-  p_fund_id: fundId,
-  p_month: monthStr,
-  p_admin_id: adminId,
-});
-```
+**File: `src/features/admin/funds/services/reconciliationService.ts`**
+- Line 98: Change signature to `forceDeleteInvestor(investorId: string)`
+- Line 99-102: Remove `p_admin_id` from the RPC call
 
-### Step 4: Fix `yieldCrystallizationService.ts` (lines 295-302)
+**File: `src/services/admin/integrityOperationsService.ts`**
+- Line 372: `p_keep_profile_id` becomes `p_keep_id`
+- Line 373: `p_merge_profile_id` becomes `p_merge_id`
 
-Check the database for the correct table name for yield events. If the table is named differently (e.g., `yield_distributions` or a view), update the query. If no equivalent exists, the `getPendingYieldEventsCount` function needs to be rewritten against the correct schema.
-
-## Outcome
-
-All 8 build errors will be resolved. The app will compile correctly, and the admin routing logic (which is already correct) will execute properly, directing adriel@indigo.fund to `/admin` as expected.
+**File: `src/services/admin/yields/yieldCrystallizationService.ts`**
+- Lines 57-62: Replace `p_period_year` and `p_period_month` with `p_month: \`${year}-${String(month).padStart(2, '0')}\``
+- Lines 295-302: Rewrite query to use `yield_allocations` table with `net_amount` column, filtering by `fund_id`, `is_voided = false`, and joining `yield_distributions` for date range
 
