@@ -6230,18 +6230,18 @@ export type Database = {
         Returns: {
           account_type: string
           current_value: number
-          fee_amount: number
+          fee: number
           fee_credit: number
           fee_pct: number
-          gross_amount: number
-          ib_amount: number
+          gross: number
+          ib: number
           ib_credit: number
           ib_parent_id: string
           ib_rate: number
           investor_email: string
           investor_id: string
           investor_name: string
-          net_amount: number
+          net: number
           share: number
         }[]
       }
