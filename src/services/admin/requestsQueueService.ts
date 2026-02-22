@@ -36,14 +36,14 @@ export const requestsQueueService = {
    * Approve and complete a withdrawal request in one atomic operation via RPC
    */
   async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
-    const { error } = await rpc.call(
-      "approve_and_complete_withdrawal" as never,
-      {
-        p_request_id: params.requestId,
-        p_processed_amount: params.amount ? parseFinancial(params.amount).toString() : undefined,
-        p_admin_notes: params.notes,
-      } as never
-    );
+    // Precision-preserving cast: pass string to preserve NUMERIC(28,10) precision
+    const { error } = await rpc.call("approve_and_complete_withdrawal", {
+      p_request_id: params.requestId,
+      p_processed_amount: params.amount
+        ? (parseFinancial(params.amount).toString() as unknown as number)
+        : undefined,
+      p_admin_notes: params.notes,
+    });
 
     if (error) throw error;
   },

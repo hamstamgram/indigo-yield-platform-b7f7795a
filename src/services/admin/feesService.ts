@@ -316,9 +316,9 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
       fee_amount: String(a.fee_amount || 0),
       created_at: a.created_at,
       investor_name:
-        a.investor_name || profile
+        a.investor_name || (profile
           ? `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email
-          : "Unknown",
+          : "Unknown"),
       investor_email: profile?.email || "",
       fund_name: fund?.name || "Unknown",
       fund_asset: a.asset || fund?.asset || "",
