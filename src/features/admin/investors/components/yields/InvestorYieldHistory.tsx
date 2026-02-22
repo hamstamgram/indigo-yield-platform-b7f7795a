@@ -57,8 +57,8 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
   // Calculate summary stats (exclude voided from totals)
   const stats = useMemo(() => {
     const active = yieldEvents.filter((e) => !e.is_voided);
-    const pending = active.filter((e) => e.visibility_scope === "admin_only");
-    const visible = active.filter((e) => e.visibility_scope === "investor_visible");
+    const pending: typeof active = [];
+    const visible = active;
     const voidedCount = yieldEvents.filter((e) => e.is_voided).length;
     const totalGross = active.reduce(
       (sum, e) => parseFinancial(sum).plus(parseFinancial(e.gross_yield_amount)).toNumber(),
@@ -263,10 +263,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                       <TableRow
                         key={event.id}
                         className={cn(
-                          event.is_voided && "opacity-60",
-                          !event.is_voided &&
-                            event.visibility_scope === "admin_only" &&
-                            "bg-amber-500/10"
+                          event.is_voided && "opacity-60"
                         )}
                       >
                         <TableCell className="font-mono whitespace-nowrap py-1.5">
@@ -327,14 +324,6 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             >
                               <Ban className="h-3 w-3 mr-1" />
                               Voided
-                            </Badge>
-                          ) : event.visibility_scope === "admin_only" ? (
-                            <Badge
-                              variant="outline"
-                              className="bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            >
-                              <Clock className="h-3 w-3 mr-1" />
-                              Pending
                             </Badge>
                           ) : (
                             <Badge

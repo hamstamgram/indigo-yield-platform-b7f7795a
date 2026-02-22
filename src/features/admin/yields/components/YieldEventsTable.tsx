@@ -65,9 +65,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
     let filtered = yieldEvents;
 
     // Apply visibility filter if not already done by hook
-    if (visibilityFilter !== "all") {
-      filtered = filtered.filter((e) => e.visibility_scope === visibilityFilter);
-    }
+    // Visibility filtering removed -- V6 has no visibility_scope
 
     // Apply search filter
     if (searchQuery) {
@@ -85,8 +83,8 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
 
   // Calculate summary stats
   const stats = useMemo(() => {
-    const pending = filteredEvents.filter((e) => e.visibility_scope === "admin_only").length;
-    const visible = filteredEvents.filter((e) => e.visibility_scope === "investor_visible").length;
+    const pending = 0;
+    const visible = filteredEvents.length;
     const totalYield = filteredEvents.reduce(
       (sum, e) =>
         parseFinancial(sum)
@@ -314,7 +312,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                 {sortedData.slice(0, 100).map((event) => (
                   <TableRow
                     key={event.id}
-                    className={cn(event.visibility_scope === "admin_only" && "bg-amber-500/10")}
+                    className={cn(false && "bg-amber-500/10")}
                   >
                     <TableCell className="font-mono whitespace-nowrap py-1.5">
                       {format(new Date(event.event_date), "MMM d, yyyy")}
@@ -342,7 +340,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                       <FormattedNumber value={event.net_yield_amount} type="number" colorize />
                     </TableCell>
                     <TableCell className="py-1.5">
-                      {getVisibilityBadge(event.visibility_scope)}
+                      {getVisibilityBadge("investor_visible")}
                     </TableCell>
                   </TableRow>
                 ))}
