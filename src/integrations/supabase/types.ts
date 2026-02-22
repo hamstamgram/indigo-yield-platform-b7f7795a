@@ -6191,7 +6191,7 @@ export type Database = {
       }
       apply_segmented_yield_distribution_v5: {
         Args: {
-          p_created_by: string
+          p_created_by?: string
           p_distribution_date?: string
           p_fund_id: string
           p_period_end: string
@@ -7302,27 +7302,17 @@ export type Database = {
           status: string
         }[]
       }
-      void_and_reissue_transaction:
-        | {
-            Args: {
-              p_admin_id: string
-              p_new_amount?: number
-              p_new_date?: string
-              p_new_notes?: string
-              p_original_tx_id: string
-              p_reason: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_new_values: Json
-              p_reason: string
-              p_record_id: string
-            }
-            Returns: Json
-          }
+      void_and_reissue_transaction: {
+        Args: {
+          p_admin_id: string
+          p_new_amount?: number
+          p_new_date?: string
+          p_new_notes?: string
+          p_original_tx_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       void_fund_daily_aum: {
         Args: { p_admin_id: string; p_reason: string; p_record_id: string }
         Returns: Json

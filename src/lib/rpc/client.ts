@@ -33,7 +33,7 @@ const RATE_LIMITED_RPCS: Record<
   void_yield_distribution: { windowMs: 60000, maxRequests: 5, actionType: "void" },
   edit_transaction: { windowMs: 60000, maxRequests: 20, actionType: "transaction" },
   set_fund_daily_aum: { windowMs: 60000, maxRequests: 30, actionType: "aum" },
-  batch_crystallize_fund: { windowMs: 60000, maxRequests: 10, actionType: "crystallization" },
+  
 };
 
 async function checkRateLimit(functionName: string, actorId?: string): Promise<boolean> {
