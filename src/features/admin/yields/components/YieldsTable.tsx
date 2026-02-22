@@ -277,6 +277,25 @@ export function YieldsTable({
         ),
     },
     {
+      id: "credits",
+      header: <div className="text-right w-full">Total Credits</div>,
+      className: "text-right text-blue-500/70",
+      cell: (record: DistributionRow) => {
+        const totalCredits = (record.total_fee_credit || 0) + (record.total_ib_credit || 0);
+        return totalCredits > 0 ? (
+          <div className="flex flex-col items-end">
+            <FinancialValue value={totalCredits} asset={getFund(record.fund_id)?.asset} />
+            <div className="flex gap-1 text-[8px] opacity-60">
+              {record.total_fee_credit ? <span>F:{record.total_fee_credit.toFixed(2)}</span> : null}
+              {record.total_ib_credit ? <span>I:{record.total_ib_credit.toFixed(2)}</span> : null}
+            </div>
+          </div>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        );
+      },
+    },
+    {
       id: "investors",
       header: "Investors",
       className: "text-center",

@@ -261,7 +261,7 @@ export async function applyYield(params: {
     p_fund_id: params.fundId,
     p_period_end: params.periodEnd,
     p_recorded_aum: params.recordedAum as unknown as number,
-    p_admin_id: params.adminId,
+    p_created_by: params.adminId,
     p_purpose: params.purpose,
   });
 }

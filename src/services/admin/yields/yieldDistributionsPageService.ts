@@ -28,6 +28,8 @@ export type DistributionRow = {
   net_yield: number | null;
   recorded_aum: number;
   allocation_count: number | null;
+  total_fee_credit: number | null;
+  total_ib_credit: number | null;
   created_at: string;
   is_voided: boolean | null;
   summary_json: unknown | null;
@@ -112,6 +114,8 @@ export async function fetchYieldDistributionsPageData(
         net_yield,
         recorded_aum,
         allocation_count,
+        total_fee_credit,
+        total_ib_credit,
         created_at,
         is_voided,
         summary_json

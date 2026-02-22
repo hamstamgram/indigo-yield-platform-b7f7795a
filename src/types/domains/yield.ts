@@ -340,6 +340,8 @@ export interface V5AllocationItem {
   ib_rate: number;
   ib: number;
   net: number;
+  fee_credit: number;
+  ib_credit: number;
   // Month-to-date aggregates
   mtd_gross?: number;
   mtd_fee?: number;
@@ -364,6 +366,8 @@ export interface V5YieldRPCResult {
   net_yield?: number;
   total_fees?: number;
   total_ib?: number;
+  total_fee_credit?: number;
+  total_ib_credit?: number;
   dust_amount?: number;
   investor_count?: number;
   segment_count?: number;
