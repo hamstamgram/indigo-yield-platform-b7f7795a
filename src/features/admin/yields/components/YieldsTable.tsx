@@ -28,8 +28,10 @@ import {
   TableHead,
   TableBody,
   TableCell,
+  TableFooter,
 } from "@/components/ui";
 import { TrendingUp } from "lucide-react";
+import { cn as classNameUtils } from "@/lib/utils";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { YieldActionsColumn } from "./YieldActionsColumn";
@@ -69,7 +71,7 @@ export function YieldsTable({
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
     fund: true,
     effectiveDate: true,
-    aum: false, // Hidden by default, prioritize Yield Deltas
+    aum: true, // Show Position After by default
     grossYield: true,
     netYield: true,
     fees: true,
@@ -97,6 +99,15 @@ export function YieldsTable({
   });
 
   const getFund = (fundId: string) => funds.find((f) => f.id === fundId);
+
+  const handleToggleRow = (recordId: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(recordId)) next.delete(recordId);
+      else next.add(recordId);
+      return next;
+    });
+  };
 
   const filteredData = useMemo(() => {
     // Step 1: Apply column filters if any are active
@@ -166,23 +177,6 @@ export function YieldsTable({
       },
     },
     {
-      id: "aum",
-      header: (
-        <SortableTableHead
-          column="recorded_aum"
-          currentSort={sortConfig}
-          onSort={requestSort}
-          className="justify-end w-full"
-        >
-          AUM
-        </SortableTableHead>
-      ),
-      className: "text-right",
-      cell: (record: DistributionRow) => (
-        <FinancialValue value={record.recorded_aum} asset={getFund(record.fund_id)?.asset} />
-      ),
-    },
-    {
       id: "grossYield",
       header: (
         <SortableTableHead
@@ -214,13 +208,33 @@ export function YieldsTable({
           Net Yield
         </SortableTableHead>
       ),
-      className: "text-right",
+      className: "text-right text-green-500/90",
       cell: (record: DistributionRow) =>
         record.net_yield != null ? (
           <FinancialValue value={record.net_yield} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
         ),
+    },
+    {
+      id: "aum",
+      header: (
+        <SortableTableHead
+          column="recorded_aum"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-end w-full"
+        >
+          Position After
+        </SortableTableHead>
+      ),
+      className: "text-right font-mono text-xs",
+      cell: (record: DistributionRow) => (
+        <div className="flex flex-col items-end">
+          <FinancialValue value={record.recorded_aum} asset={getFund(record.fund_id)?.asset} />
+          <span className="text-[9px] text-muted-foreground/60 uppercase">Closing Balance</span>
+        </div>
+      ),
     },
     {
       id: "fees",
@@ -234,7 +248,7 @@ export function YieldsTable({
           Fees
         </SortableTableHead>
       ),
-      className: "text-right",
+      className: "text-right text-orange-500/60",
       cell: (record: DistributionRow) =>
         record.total_fees != null ? (
           <FinancialValue value={record.total_fees} asset={getFund(record.fund_id)?.asset} />
@@ -254,7 +268,7 @@ export function YieldsTable({
           IB
         </SortableTableHead>
       ),
-      className: "text-right",
+      className: "text-right text-orange-500/60",
       cell: (record: DistributionRow) =>
         record.total_ib != null ? (
           <FinancialValue value={record.total_ib} asset={getFund(record.fund_id)?.asset} />
@@ -320,14 +334,7 @@ export function YieldsTable({
           canEdit={canEdit}
           onVoid={onVoid}
           isExpanded={expandedRows.has(record.id)}
-          onViewHistory={() => {
-            setExpandedRows((prev) => {
-              const next = new Set(prev);
-              if (next.has(record.id)) next.delete(record.id);
-              else next.add(record.id);
-              return next;
-            });
-          }}
+          onViewHistory={() => handleToggleRow(record.id)}
           isVoided={record.is_voided ?? false}
         />
       ),
@@ -416,16 +423,21 @@ export function YieldsTable({
                     <TableCell className="text-right font-medium text-green-500/90">
                       <FinancialValue value={alloc.net_amount} asset={asset} />
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground font-mono text-xs">
+                    <TableCell className="text-right text-muted-foreground font-mono">
                       {alloc.position_value_at_calc != null ? (
-                        <FinancialValue
-                          value={new Decimal(alloc.position_value_at_calc || 0)
-                            .plus(new Decimal(alloc.net_amount || 0))
-                            .plus(new Decimal(alloc.fee_credit || 0))
-                            .plus(new Decimal(alloc.ib_credit || 0))
-                            .toNumber()}
-                          asset={asset}
-                        />
+                        <div className="flex flex-col items-end">
+                          <FinancialValue
+                            value={new Decimal(alloc.position_value_at_calc || 0)
+                              .plus(new Decimal(alloc.net_amount || 0))
+                              .plus(new Decimal(alloc.fee_credit || 0))
+                              .plus(new Decimal(alloc.ib_credit || 0))
+                              .toNumber()}
+                            asset={asset}
+                          />
+                          <span className="text-[9px] text-muted-foreground/60 uppercase">
+                            Closing State
+                          </span>
+                        </div>
                       ) : (
                         "-"
                       )}
@@ -434,6 +446,17 @@ export function YieldsTable({
                 );
               })}
             </TableBody>
+            <TableFooter className="bg-muted/5 border-t">
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="py-2 text-[10px] text-muted-foreground text-center"
+                >
+                  <strong>First Principles Check:</strong> Position After = Opening Balance + Net
+                  Yield + Reinvested Credits.
+                </TableCell>
+              </TableRow>
+            </TableFooter>
           </Table>
         </div>
       </div>
@@ -543,23 +566,19 @@ export function YieldsTable({
               columns={visibleColumnsList}
               expandedRows={expandedRows}
               expandedRowRenderer={renderExpandedRow}
-              onRowClick={(record) => {
-                setExpandedRows((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(record.id)) {
-                    next.delete(record.id);
-                  } else {
-                    next.add(record.id);
-                  }
-                  return next;
-                });
-              }}
+              onRowClick={(record) => handleToggleRow(record.id)}
               mobileCardRenderer={(record) => {
                 const fund = getFund(record.fund_id);
                 const isExpanded = expandedRows.has(record.id);
 
                 return (
-                  <Card className={`p-4 ${record.is_voided ? "opacity-50" : ""}`}>
+                  <Card
+                    className={classNameUtils(
+                      "p-4 transition-all active:scale-[0.98]",
+                      record.is_voided ? "opacity-50" : "cursor-pointer hover:shadow-md"
+                    )}
+                    onClick={() => handleToggleRow(record.id)}
+                  >
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-2">
                         <CryptoIcon symbol={fund?.asset || ""} className="h-6 w-6" />
@@ -629,14 +648,7 @@ export function YieldsTable({
                         canEdit={canEdit}
                         onVoid={onVoid}
                         isExpanded={isExpanded}
-                        onViewHistory={() => {
-                          setExpandedRows((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(record.id)) next.delete(record.id);
-                            else next.add(record.id);
-                            return next;
-                          });
-                        }}
+                        onViewHistory={() => handleToggleRow(record.id)}
                         isVoided={record.is_voided ?? false}
                       />
                     </div>

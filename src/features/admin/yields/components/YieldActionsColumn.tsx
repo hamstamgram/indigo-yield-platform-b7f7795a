@@ -56,7 +56,10 @@ export function YieldActionsColumn({
           <Button
             variant={isExpanded ? "secondary" : "ghost"}
             size="icon"
-            onClick={() => onViewHistory(record)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewHistory(record);
+            }}
             className={isExpanded ? "bg-muted text-primary" : ""}
           >
             <Users className="h-4 w-4" />
@@ -67,14 +70,15 @@ export function YieldActionsColumn({
 
       {canEdit && (
         <DropdownMenu open={open} onOpenChange={setOpen}>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
             <Button variant="ghost" size="icon">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setOpen(false);
                 onVoid(record);
               }}
