@@ -1,99 +1,43 @@
 
+# Fix: Apply Yield RPC Missing Transaction Creation + Data Cleanup
 
-# Root Cause: AUM Not Changing After Yield
+## Problem
+The previous migration to fix `apply_segmented_yield_distribution_v5` was never applied to the database. The function still lacks transaction creation logic, so:
+- 10 phantom yield_distributions exist (all non-voided, identical: opening_aum=1250, recorded_aum=1252, gross_yield=2)
+- 0 YIELD transactions exist in `transactions_v2`
+- Investor position remains at 1250 (unchanged)
+- AUM remains at 1250 (unchanged)
+- All yield_allocations have `transaction_id = NULL`
 
-## The Critical Bug
+## Fix (single SQL migration)
 
-The `apply_segmented_yield_distribution_v5` database function is **missing the transaction creation step entirely**. It creates:
-- yield_distributions header (done)
-- yield_allocations per investor (done)
-- fee_allocations (done)
-- ib_allocations (done)
+### Step 1: Void all 10 phantom distributions and their allocations
+Mark all non-voided yield_distributions and yield_allocations for fund `7574bc81` as voided since they have no backing transactions.
 
-But it **never inserts into `transactions_v2`**. This is the single root cause of all symptoms:
+### Step 2: Rewrite `apply_segmented_yield_distribution_v5`
+Add transaction creation after the yield_allocations insert (Step 5). The function will:
 
-1. **AUM doesn't change** -- because AUM is updated by the `sync_aum_on_transaction` trigger, which fires on `transactions_v2` inserts
-2. **Investor positions don't change** -- because positions are updated by `fn_ledger_drives_position` trigger on `transactions_v2` inserts
-3. **10 duplicate distributions exist** -- because with no idempotency guard (reference_id uniqueness), the function silently creates duplicates on retry
+1. Fetch fund `asset` and `fund_class` at the start
+2. After inserting yield_allocations, loop through allocations where `net_amount > 0`:
+   - Insert a `YIELD` transaction (source=`yield_distribution`, visibility=`investor_visible`)
+   - Insert a `FEE_CREDIT` transaction for the fees account if total fees > 0 (visibility=`admin_only`)
+   - Insert `IB_CREDIT` transactions for each IB parent with credit > 0 (visibility=`admin_only`)
+3. Back-link `transaction_id`, `fee_credit_transaction_id`, `ib_credit_transaction_id` on yield_allocations
+4. Update `closing_aum` on the distribution header
+5. Call `upsert_fund_aum_after_yield` for reporting-purpose AUM records
 
-The `void_yield_distribution` function confirms transactions SHOULD exist -- it searches for patterns like `yield_v5_<dist_id>_<investor_id>` in `reference_id`.
+The `reference_id` pattern `yield_v5_{distribution_id}_{investor_id}` matches what `void_yield_distribution` expects, and the unique partial index on `reference_id` prevents duplicates on retry.
 
-## Data State
+Transaction triggers handle the rest automatically:
+- `fn_ledger_drives_position` / `trg_recompute_position_on_tx` updates investor positions
+- `sync_aum_on_transaction` updates fund_daily_aum
+- `enforce_transaction_via_rpc` allows source=`yield_distribution`
 
-For fund `7574bc81` (IND-SOL):
-- 10 non-voided yield_distributions exist (all identical: opening_aum=1250, recorded_aum=1252, gross_yield=2)
-- 0 non-voided YIELD transactions exist
-- Investor position still shows current_value=1250 (unchanged)
-- fund_daily_aum still shows 1250 (unchanged)
+### No frontend changes needed
+The `yieldApplyService.ts` fix from the previous edit correctly handles the UUID return and fetches the distribution row.
 
-## Fix: Two-Part
-
-### Part 1: Fix the RPC function (SQL migration)
-
-Add transaction creation logic to `apply_segmented_yield_distribution_v5`, inserting after Step 5 (yield_allocations) and before the RETURN:
-
-For each allocation from `calculate_yield_allocations` where `net > 0`:
-```sql
--- YIELD transaction for investor
-INSERT INTO transactions_v2 (
-  fund_id, investor_id, tx_date, value_date, asset, fund_class,
-  amount, type, source, distribution_id, reference_id,
-  is_system_generated, purpose, visibility_scope, created_by
-) VALUES (
-  p_fund_id, investor_id, p_distribution_date, p_distribution_date,
-  fund_asset, fund_class,
-  net_amount, 'YIELD', 'yield_distribution', v_distribution_id,
-  'yield_v5_' || v_distribution_id || '_' || investor_id,
-  true, p_purpose, 'investor_visible', p_created_by
-);
-```
-
-For fees account (FEE_CREDIT) and IB parents (IB_CREDIT), similar inserts with appropriate types and `admin_only` visibility.
-
-The function also needs:
-- Fetch the fund's `asset` and `fund_class` at the start
-- Back-link the transaction IDs to `yield_allocations` (transaction_id, fee_credit_transaction_id, ib_credit_transaction_id columns)
-- Call `upsert_fund_aum_after_yield` at the end for reporting-purpose AUM
-
-### Part 2: Void the 10 duplicate distributions (data cleanup)
-
-Before deploying the fix, void all 10 existing broken distributions since they have no transactions and represent phantom records. This uses the existing `void_yield_distribution` RPC.
-
-### Part 3: Frontend -- no changes needed
-
-The frontend `yieldApplyService.ts` fix from the last edit is correct. Transactions will now be created by the RPC, positions will update via triggers, and AUM will update via `sync_aum_on_transaction`.
-
-## Technical Details: Complete RPC Rewrite
-
-The `apply_segmented_yield_distribution_v5` function will be replaced with the following logic flow:
-
-```text
-1. Set canonical mutation guard
-2. Establish context (period_start, fees_account_id, fund asset/class)
-3. Calculate totals via calculate_yield_allocations
-4. Insert distribution header
-5. Insert yield_allocations
-6. NEW: Insert YIELD transactions for each investor (net > 0)
-7. NEW: Insert FEE_CREDIT transaction for fees account (if total_fees > 0)
-8. NEW: Insert IB_CREDIT transactions for each IB parent (if ib_credit > 0)
-9. NEW: Back-link transaction IDs to yield_allocations
-10. Legacy sync: fee_allocations, ib_allocations
-11. NEW: Upsert reporting AUM if purpose = 'reporting'
-12. Clear canonical flag
-13. Return distribution_id
-```
-
-Transaction triggers handle position and AUM updates automatically:
-- `fn_ledger_drives_position` updates `investor_positions.current_value`
-- `sync_aum_on_transaction` updates `fund_daily_aum`
-- `trg_recompute_position_on_tx` calls `recompute_investor_position`
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| New SQL migration | Replace `apply_segmented_yield_distribution_v5` with transaction-creating version |
-| Data cleanup SQL | Void 10 phantom yield_distributions for fund 7574bc81 |
-
-No frontend changes needed.
-
+## Technical: Key enum values confirmed
+- `type`: YIELD, FEE_CREDIT, IB_CREDIT
+- `source`: yield_distribution
+- `visibility_scope`: investor_visible, admin_only
+- `purpose`: reporting, transaction (aum_purpose enum)
