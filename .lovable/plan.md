@@ -1,93 +1,139 @@
 
+# Comprehensive Database Function Audit
 
-# Audit Result: AUM Update After Yield Distribution
+## Critical Bugs Found
 
-## Critical Bug Found in Step 10
+### BUG 1: `void_fund_daily_aum` calls `void_yield_distribution` with 3 args -- needs 4
 
-The `apply_segmented_yield_distribution_v5` function has a **fatal bug** in step 10 that will crash at runtime, preventing AUM from ever being updated after yield distribution.
+The function on line 337 calls:
+```sql
+PERFORM void_yield_distribution(v_dist_id, p_admin_id, 'Cascade...');
+```
+But `void_yield_distribution` requires **4 parameters**: `(p_distribution_id, p_admin_id, p_reason, p_void_crystals boolean)`. The missing `p_void_crystals` argument will cause a **runtime crash** whenever voiding an AUM record that has linked yield distributions.
 
-### The Broken Call (line 204-206)
+**Severity**: HIGH -- cascade void from AUM page will fail
+**Fix**: Add `false` as the 4th argument (safe default -- don't cascade crystal voids)
+
+---
+
+### BUG 2: `void_and_reissue_transaction` (4-param overload) skips cascade voiding
+
+Two overloads exist:
+- **6-param** (used by frontend): `(p_original_tx_id, p_admin_id, p_reason, p_new_amount, p_new_date, p_new_notes)` -- correctly calls `void_transaction()` for cascade
+- **4-param** (legacy): `(p_record_id, p_new_values, p_admin_id, p_reason)` -- does a raw `UPDATE SET is_voided=true` WITHOUT calling `void_transaction()`, so cascade voiding of AUM, fee_allocations, ib_ledger, platform_fee_ledger, and yield_allocations is **silently skipped**
+
+Also, the 4-param version is missing `SET search_path TO 'public'` (minor security defect for a SECURITY DEFINER function).
+
+**Severity**: HIGH -- data integrity risk if 4-param overload is ever called
+**Fix**: Drop the 4-param overload entirely (frontend only uses 6-param version)
+
+---
+
+### BUG 3: `apply_segmented_yield_distribution_v5` calls `calculate_yield_allocations` up to 6 times
+
+The expensive allocation calculation is called repeatedly:
+1. Step 3: Calculate totals
+2. Step 5: Insert yield_allocations
+3. Step 6a: Loop for YIELD transactions
+4. Step 6c: Loop for IB_CREDIT transactions
+5. Step 7: Insert fee_allocations
+6. Step 8: Insert ib_allocations
+
+Each call re-executes the full CTE chain (joins, aggregations, fee/IB lookups). This is a major performance issue -- should materialize into a temp table once.
+
+**Severity**: MEDIUM -- performance (6x slower than necessary), but also a correctness risk if position data changes mid-execution (though advisory locks mitigate this)
+**Fix**: Materialize `calculate_yield_allocations` into a temp table at step 3, then reference it in all subsequent steps
+
+---
+
+### BUG 4: `upsert_fund_aum_after_yield` AUM calculation inconsistency
+
+In the ELSE branch (no existing AUM record), it excludes `fees_account` from the position sum:
+```sql
+WHERE COALESCE(p.account_type::text, '') <> 'fees_account'
+```
+But `recalculate_fund_aum_for_date` includes ALL accounts:
+```sql
+WHERE ip.fund_id = p_fund_id AND ip.current_value > 0
+```
+This means AUM values differ depending on which code path is taken.
+
+**Severity**: LOW -- `apply_segmented_yield_distribution_v5` now bypasses this function (fixed in previous migration), but the function is still callable and will produce wrong AUM values.
+**Fix**: Align the filter to include all accounts (matching `recalculate_fund_aum_for_date`)
+
+---
+
+## Overloaded Functions (7 pairs)
+
+| Function | Overloads | Verdict |
+|----------|-----------|---------|
+| `void_and_reissue_transaction` | 4-param (legacy, broken) + 6-param (correct) | DROP the 4-param overload |
+| `get_fund_composition` | 1-param (current) + 2-param (historical by date) | KEEP both -- legitimate |
+| `is_admin` | 0-param (JWT check) + 1-param (user_id check) | KEEP both -- used everywhere |
+| `is_super_admin` | 0-param + 1-param | KEEP both |
+| `log_audit_event` | trigger + callable | KEEP both |
+| `require_super_admin` | 0-param (returns uuid) + 2-param (returns void) | KEEP both -- different use cases |
+| `run_integrity_pack` | 0-param (simple) + 2-param (scoped) | KEEP both |
+
+---
+
+## Ghost Functions (Exist in Contracts/Docs but NOT in Database)
+
+These are referenced in `src/contracts/rpcSignatures.ts` and documentation but do **not exist** in the database:
+
+| Function | Status |
+|----------|--------|
+| `apply_adb_yield_distribution_v3` | Does not exist |
+| `preview_adb_yield_distribution_v3` | Does not exist |
+| `apply_daily_yield_to_fund_v3` | Does not exist |
+| `crystallize_yield_before_flow` | Does not exist |
+| `batch_crystallize_fund` | Does not exist |
+| `apply_deposit_with_crystallization` | Does not exist |
+| `apply_withdrawal_with_crystallization` | Does not exist |
+| `admin_create_transaction` | Does not exist |
+| `admin_create_transactions_batch` | Does not exist |
+| `apply_transaction_with_crystallization` | Does not exist |
+
+These are not called from any service code (confirmed via search), so they are dead contract entries. No runtime impact, but they clutter the contract and could mislead future development.
+
+**Fix**: Remove these entries from `src/contracts/rpcSignatures.ts`
+
+---
+
+## Implementation Plan
+
+### Migration 1: Fix runtime bugs (SQL)
+
+1. Fix `void_fund_daily_aum` -- add missing `p_void_crystals := false` argument
+2. Drop the broken 4-param `void_and_reissue_transaction` overload
+3. Fix `upsert_fund_aum_after_yield` -- remove `fees_account` exclusion filter
+4. Optimize `apply_segmented_yield_distribution_v5` -- materialize `calculate_yield_allocations` into a temp table, reference it in all 6 locations
+
+### Code Change 1: Clean up ghost contracts
+
+Remove the 10 non-existent function entries from `src/contracts/rpcSignatures.ts` and any rate-limit entries in `src/lib/rpc/client.ts` that reference them.
+
+### Sequencing
+
+1. SQL migration first (fixes runtime crashes)
+2. Contract cleanup second (cosmetic, no runtime impact)
+
+### Technical: SQL for Bug 1 fix
 
 ```sql
-PERFORM upsert_fund_aum_after_yield(
-    p_fund_id, p_period_end, v_closing_aum, p_created_by, true
-);
+-- In void_fund_daily_aum, change:
+PERFORM void_yield_distribution(v_dist_id, p_admin_id, 'Cascade...' || p_reason);
+-- To:
+PERFORM void_yield_distribution(v_dist_id, p_admin_id, 'Cascade...' || p_reason, false);
 ```
 
-### The Function Signature
-
-```text
-upsert_fund_aum_after_yield(
-    p_fund_id    uuid,
-    p_aum_date   date,
-    p_yield_amount numeric,    -- expects incremental yield, not absolute AUM
-    p_purpose    aum_purpose,  -- receives p_created_by (uuid) -- TYPE MISMATCH
-    p_actor_id   uuid          -- receives true (boolean) -- TYPE MISMATCH
-)
-```
-
-### Three Bugs in One Call
-
-| Argument | Expected | Passed | Problem |
-|----------|----------|--------|---------|
-| 3rd: `p_yield_amount` | Incremental yield amount | `v_closing_aum` (total absolute AUM) | Wrong value -- would double-count |
-| 4th: `p_purpose` | `aum_purpose` enum | `p_created_by` (uuid) | Type mismatch -- runtime crash |
-| 5th: `p_actor_id` | `uuid` | `true` (boolean) | Type mismatch -- runtime crash |
-
-PostgreSQL cannot cast boolean to uuid, so this call **always throws an exception**, which aborts the entire transaction. No yield distribution can succeed.
-
-### Why `sync_aum_on_transaction` Doesn't Help
-
-The `sync_aum_on_transaction` trigger on `transactions_v2` explicitly **skips** reporting-purpose transactions:
+### Technical: SQL for Bug 3 fix (performance)
 
 ```sql
-IF NEW.purpose = 'reporting'::aum_purpose THEN
-    RETURN NEW;
-END IF;
+-- At top of apply_segmented_yield_distribution_v5, after step 2:
+CREATE TEMP TABLE _yield_alloc ON COMMIT DROP AS
+  SELECT * FROM calculate_yield_allocations(p_fund_id, p_recorded_aum, p_period_end);
+
+-- Then replace all subsequent calculate_yield_allocations(...) calls with:
+-- SELECT ... FROM _yield_alloc ...
 ```
-
-This is by design -- the trigger defers to the distribution function for AUM updates. But the distribution function's AUM update call is broken, so neither path works.
-
-### The Correct AUM Path
-
-Since `v_closing_aum` (computed at step 9) already reflects the post-yield positions (updated by `fn_ledger_drives_position` trigger on each YIELD transaction insert), we should directly upsert `fund_daily_aum` with this absolute value instead of using the incremental `upsert_fund_aum_after_yield` function.
-
-## Fix (SQL migration)
-
-Replace step 10 in `apply_segmented_yield_distribution_v5` with a direct upsert:
-
-```sql
--- 10. Upsert reporting AUM
-IF p_purpose = 'reporting' THEN
-    UPDATE fund_daily_aum
-    SET total_aum = v_closing_aum, updated_at = now(),
-        updated_by = p_created_by, source = 'yield_distribution_v5'
-    WHERE fund_id = p_fund_id AND aum_date = p_period_end
-      AND purpose = 'reporting' AND is_voided = false;
-
-    IF NOT FOUND THEN
-        INSERT INTO fund_daily_aum (
-            fund_id, aum_date, total_aum, purpose, source,
-            created_by, is_voided, is_month_end
-        ) VALUES (
-            p_fund_id, p_period_end, v_closing_aum, 'reporting',
-            'yield_distribution_v5', p_created_by, false, true
-        );
-    END IF;
-END IF;
-```
-
-This approach:
-- Uses the absolute `v_closing_aum` (already correct from step 9)
-- Avoids the incremental `upsert_fund_aum_after_yield` function entirely
-- Sets `is_month_end = true` so investors can see it per RLS policy
-- Sets `source = 'yield_distribution_v5'` which triggers the `sync_reporting_aum_to_transaction` trigger to auto-create the transaction-purpose copy
-
-### Files Changed
-
-| File | Change |
-|------|--------|
-| New SQL migration | `CREATE OR REPLACE FUNCTION apply_segmented_yield_distribution_v5` -- fix step 10 only (replace `PERFORM upsert_fund_aum_after_yield(...)` with direct upsert) |
-
-No other files need changes.
-
