@@ -1,45 +1,54 @@
 
 
-# Fix: Build Errors Blocking Admin Routing
+# Fix: `column "gross" does not exist` -- Yield Preview and Apply Both Broken
 
-## Problem
+## Root Cause
 
-4 build errors prevent the app from compiling. When the app fails to build properly, the admin routing logic never executes, so adriel@indigo.fund gets dumped onto the investor portal (or a broken page). The admin auth is fine in the database -- the build just needs to succeed.
+The `calculate_yield_allocations()` helper function returns columns named:
+- `gross_amount`, `fee_amount`, `ib_amount`, `net_amount`
 
-## Fixes
+But both `preview_segmented_yield_distribution_v5` and `apply_segmented_yield_distribution_v5` reference:
+- `v_alloc.gross`, `v_alloc.fee`, `v_alloc.ib`, `v_alloc.net`
 
-### Fix 1: `reconciliationService.ts` line 101 -- Remove extra `p_admin_id`
+This column name mismatch causes the PostgreSQL error `column "gross" does not exist` whenever either function is called. **Both yield preview AND yield apply are completely broken.**
 
-The DB function `force_delete_investor` only accepts `p_investor_id`. Remove the `p_admin_id` parameter (admin identity is resolved server-side via `auth.uid()`).
+## Evidence
 
-Also update the function signature to drop the unused `adminId` parameter.
-
-### Fix 2: `integrityOperationsService.ts` lines 371-373 -- Rename parameters
-
-Change `p_keep_profile_id` to `p_keep_id` and `p_merge_profile_id` to `p_merge_id` to match the DB function signature.
-
-### Fix 3: `yieldCrystallizationService.ts` lines 57-62 -- Fix `finalize_month_yield` call
-
-The DB function expects `{ p_fund_id, p_month, p_admin_id }` where `p_month` is a string. Replace `p_period_year` and `p_period_month` with a single `p_month` formatted as `"YYYY-MM"`:
+Database logs from the last 24 hours show:
 ```
-p_month: `${year}-${String(month).padStart(2, '0')}`
+ERROR: column "gross" does not exist
 ```
+Triggered when clicking "Preview Yield" in the UI.
 
-### Fix 4: `yieldCrystallizationService.ts` lines 295-302 -- Replace non-existent table
+## Fix: Single SQL Migration
 
-`investor_yield_events` does not exist. The equivalent data lives in `yield_allocations` (which has `net_amount`, `is_voided`, `fund_id`, `distribution_id`). Rewrite `getPendingYieldEventsCount` to query `yield_allocations` joined with `yield_distributions` for the date filter, using `net_amount` instead of `net_yield_amount`.
+Recreate `calculate_yield_allocations()` with renamed output columns to match what both callers expect:
 
-### Technical Details
+| Current Output Column | New Output Column |
+|----------------------|-------------------|
+| `gross_amount` | `gross` |
+| `fee_amount` | `fee` |
+| `ib_amount` | `ib` |
+| `net_amount` | `net` |
 
-**File: `src/features/admin/funds/services/reconciliationService.ts`**
-- Line 98: Change signature to `forceDeleteInvestor(investorId: string)`
-- Line 99-102: Remove `p_admin_id` from the RPC call
+All other columns (`investor_id`, `investor_name`, `investor_email`, `account_type`, `ib_parent_id`, `current_value`, `share`, `fee_pct`, `ib_rate`, `fee_credit`, `ib_credit`) remain unchanged since they already match.
 
-**File: `src/services/admin/integrityOperationsService.ts`**
-- Line 372: `p_keep_profile_id` becomes `p_keep_id`
-- Line 373: `p_merge_profile_id` becomes `p_merge_id`
+The internal SQL logic stays identical -- only the RETURNS TABLE column names change in the function signature and the final SELECT aliases.
 
-**File: `src/services/admin/yields/yieldCrystallizationService.ts`**
-- Lines 57-62: Replace `p_period_year` and `p_period_month` with `p_month: \`${year}-${String(month).padStart(2, '0')}\``
-- Lines 295-302: Rewrite query to use `yield_allocations` table with `net_amount` column, filtering by `fund_id`, `is_voided = false`, and joining `yield_distributions` for date range
+## Why Fix the Helper (Not the Callers)
+
+- 2 callers reference `gross/fee/ib/net` (preview + apply)
+- 1 helper defines `gross_amount/fee_amount/ib_amount/net_amount`
+- Fixing 1 function is safer than fixing 2
+- The short names (`gross`, `fee`, `ib`, `net`) match the JSON keys already emitted by both callers, keeping everything consistent end-to-end
+
+## What This Unblocks
+
+- Yield preview (currently broken -- the button does nothing / shows error)
+- Yield apply (currently broken -- would fail with the same column error)
+- All downstream features dependent on yield distribution
+
+## No Frontend Changes Needed
+
+The frontend already maps the JSON keys correctly (`d.gross`, `d.fee`, `d.ib`, `d.net` in `yieldPreviewService.ts`). The JSON output from the RPC already uses these short names. Only the internal SQL column references are broken.
 
