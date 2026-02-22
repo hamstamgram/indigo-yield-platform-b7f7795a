@@ -47,6 +47,7 @@ const INVALIDATION_GRAPH = {
     QUERY_KEYS.investorPositions(),
     QUERY_KEYS.fundAumAll,
     QUERY_KEYS.fundAumUnified,
+    QUERY_KEYS.activeFundsWithAUM,
     QUERY_KEYS.dashboardStats,
     QUERY_KEYS.integrityDashboard,
     QUERY_KEYS.investorLedger(),
@@ -203,6 +204,10 @@ export function invalidateAfterTransaction(
   // Additional position key patterns for thorough invalidation
   // Position invalidation - use investorPositions (canonical)
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
+
+  // Force immediate refetch of critical AUM data (not just invalidate)
+  queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumUnified });
+  queryClient.refetchQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
 
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
