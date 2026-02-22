@@ -5,9 +5,10 @@
 
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { startOfMonth, endOfMonth, format } from "date-fns";
+import { startOfMonth, endOfMonth, format, parseISO } from "date-fns";
 import { useAuth } from "@/services/auth";
 import { useActiveFundsWithAUM } from "@/hooks";
+import { getTodayUTC } from "@/utils/dateUtils";
 
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { formatAUM } from "@/utils/formatters";
@@ -50,8 +51,9 @@ export function useYieldOperationsState() {
   // Sync helpers
   const openYieldDialog = useCallback(
     (fund: Fund) => {
-      const currentMonthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
-      const lastDayOfMonth = endOfMonth(new Date());
+      const todayUTC = getTodayUTC();
+      const currentMonthStart = format(startOfMonth(parseISO(todayUTC)), "yyyy-MM-dd");
+      const lastDayOfMonth = endOfMonth(parseISO(todayUTC));
       const asOfDateIso = format(lastDayOfMonth, "yyyy-MM-dd");
 
       selection.setSelection({
@@ -68,7 +70,7 @@ export function useYieldOperationsState() {
         aumDate: asOfDateIso,
         asOfDateIso: asOfDateIso,
         reportingMonth: currentMonthStart,
-        aumTime: format(new Date(), "HH:mm"),
+        aumTime: "12:00",
         distributionDate: lastDayOfMonth,
       });
 

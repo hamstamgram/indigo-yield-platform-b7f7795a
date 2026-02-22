@@ -22,7 +22,8 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useCreateFund } from "@/hooks/data";
-import { format } from "date-fns";
+import { getTodayUTC } from "@/utils/dateUtils";
+import { parseISO } from "date-fns";
 import { FundLogoUpload } from "./FundLogoUpload";
 
 const fundSchema = z.object({
@@ -74,7 +75,7 @@ export function CreateFundDialog({
       code: "",
       name: "",
       asset: "",
-      inception_date: format(new Date(), "yyyy-MM-dd"),
+      inception_date: getTodayUTC(),
     },
   });
 
@@ -102,9 +103,10 @@ export function CreateFundDialog({
     }
 
     // Validate inception date not in future
-    const inceptionDate = new Date(data.inception_date);
-    if (inceptionDate > new Date()) {
-      toast.error("Inception date cannot be in the future");
+    const inceptionDate = parseISO(data.inception_date);
+    const today = parseISO(getTodayUTC());
+    if (inceptionDate > today) {
+      toast.error("Inception date cannot be in the future (UTC)");
       return;
     }
 

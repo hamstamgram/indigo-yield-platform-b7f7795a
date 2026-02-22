@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
-import { getTodayString } from "@/utils/dateUtils";
+import { getTodayString, getTodayUTC } from "@/utils/dateUtils";
 
 export type YieldPurpose = "reporting" | "transaction";
 
@@ -16,11 +16,11 @@ export interface YieldPeriodState {
 
 export const initialPeriodState: YieldPeriodState = {
   yieldPurpose: "transaction",
-  aumDate: getTodayString(),
+  aumDate: getTodayUTC(),
   datePickerOpen: false,
   reportingMonth: "",
   asOfDateIso: null,
-  aumTime: format(new Date(), "HH:mm"),
+  aumTime: "12:00",
   distributionDate: new Date(),
 };
 

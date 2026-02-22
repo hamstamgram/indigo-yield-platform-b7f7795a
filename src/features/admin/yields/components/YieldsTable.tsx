@@ -4,6 +4,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { Decimal } from "decimal.js";
 import { format } from "date-fns";
 import { Check, X, Loader2, Columns, Users } from "lucide-react";
 import {
@@ -360,9 +361,10 @@ export function YieldsTable({
               <TableRow>
                 <TableHead>Investor</TableHead>
                 <TableHead className="text-right">Gross Amount</TableHead>
-                <TableHead className="text-right">Fees</TableHead>
+                <TableHead className="text-right">Fees Paid</TableHead>
                 <TableHead className="text-right">IB Comm.</TableHead>
-                <TableHead className="text-right">Net Amount</TableHead>
+                <TableHead className="text-right">Credits Earned</TableHead>
+                <TableHead className="text-right">Net Yield</TableHead>
                 <TableHead className="text-right">Position After</TableHead>
               </TableRow>
             </TableHeader>
@@ -380,15 +382,33 @@ export function YieldsTable({
                       <FinancialValue value={alloc.gross_amount} asset={asset} />
                     </TableCell>
                     <TableCell className="text-right text-orange-500/80">
-                      {alloc.fee_amount != null ? (
-                        <FinancialValue value={alloc.fee_amount} asset={asset} />
+                      {alloc.fee_amount != null && alloc.fee_amount > 0 ? (
+                        <FinancialValue value={-alloc.fee_amount} asset={asset} />
                       ) : (
                         "-"
                       )}
                     </TableCell>
                     <TableCell className="text-right text-orange-500/80">
-                      {alloc.ib_amount != null ? (
-                        <FinancialValue value={alloc.ib_amount} asset={asset} />
+                      {alloc.ib_amount != null && alloc.ib_amount > 0 ? (
+                        <FinancialValue value={-alloc.ib_amount} asset={asset} />
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right text-green-500/80">
+                      {(alloc.fee_credit || 0) > 0 || (alloc.ib_credit || 0) > 0 ? (
+                        <div className="flex flex-col items-end">
+                          {alloc.fee_credit && alloc.fee_credit > 0 && (
+                            <div className="text-[10px] text-blue-400">
+                              Fee Credit: +<FinancialValue value={alloc.fee_credit} asset={asset} />
+                            </div>
+                          )}
+                          {alloc.ib_credit && alloc.ib_credit > 0 && (
+                            <div className="text-[10px] text-purple-400">
+                              IB Credit: +<FinancialValue value={alloc.ib_credit} asset={asset} />
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         "-"
                       )}
@@ -399,9 +419,11 @@ export function YieldsTable({
                     <TableCell className="text-right text-muted-foreground font-mono text-xs">
                       {alloc.position_value_at_calc != null ? (
                         <FinancialValue
-                          value={
-                            Number(alloc.position_value_at_calc) + Number(alloc.net_amount || 0)
-                          }
+                          value={new Decimal(alloc.position_value_at_calc || 0)
+                            .plus(new Decimal(alloc.net_amount || 0))
+                            .plus(new Decimal(alloc.fee_credit || 0))
+                            .plus(new Decimal(alloc.ib_credit || 0))
+                            .toNumber()}
                           asset={asset}
                         />
                       ) : (
@@ -521,6 +543,17 @@ export function YieldsTable({
               columns={visibleColumnsList}
               expandedRows={expandedRows}
               expandedRowRenderer={renderExpandedRow}
+              onRowClick={(record) => {
+                setExpandedRows((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(record.id)) {
+                    next.delete(record.id);
+                  } else {
+                    next.add(record.id);
+                  }
+                  return next;
+                });
+              }}
               mobileCardRenderer={(record) => {
                 const fund = getFund(record.fund_id);
                 const isExpanded = expandedRows.has(record.id);

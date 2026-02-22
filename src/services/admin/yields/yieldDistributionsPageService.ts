@@ -46,6 +46,8 @@ export type AllocationRow = {
   fee_pct: number | null;
   ib_pct: number | null;
   position_value_at_calc: number | null;
+  fee_credit: number | null;
+  ib_credit: number | null;
 };
 
 export type FeeAllocationRow = {
@@ -172,7 +174,9 @@ export async function fetchYieldDistributionsPageData(
         ownership_pct,
         fee_pct,
         ib_pct,
-        position_value_at_calc
+        position_value_at_calc,
+        fee_credit,
+        ib_credit
       `
       )
       .in("distribution_id", distributionIds)

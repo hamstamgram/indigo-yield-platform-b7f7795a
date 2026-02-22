@@ -163,7 +163,18 @@ export function WithdrawalRequestForm({
 
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="amount">Amount</Label>
+              {availableBalance && (
+                <button
+                  type="button"
+                  onClick={() => setValue("amount", parseFloat(availableBalance.amount))}
+                  className="text-xs text-primary hover:underline font-medium"
+                >
+                  Withdraw All
+                </button>
+              )}
+            </div>
             <Input
               id="amount"
               type="number"

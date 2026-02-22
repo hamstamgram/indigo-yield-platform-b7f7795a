@@ -19,6 +19,7 @@ interface ResponsiveTableProps<T> {
   className?: string;
   expandedRows?: Set<string | number>;
   expandedRowRenderer?: (item: T) => ReactNode;
+  onRowClick?: (item: T) => void;
 }
 
 export function ResponsiveTable<T>({
@@ -30,6 +31,7 @@ export function ResponsiveTable<T>({
   className,
   expandedRows,
   expandedRowRenderer,
+  onRowClick,
 }: ResponsiveTableProps<T>) {
   if (!data || data.length === 0) {
     return (
@@ -60,7 +62,10 @@ export function ResponsiveTable<T>({
 
               return (
                 <React.Fragment key={key}>
-                  <TableRow>
+                  <TableRow
+                    className={cn(onRowClick && "cursor-pointer hover:bg-muted/50")}
+                    onClick={() => onRowClick?.(item)}
+                  >
                     {columns.map((col, index) => (
                       <TableCell key={index} className={col.className}>
                         {col.cell

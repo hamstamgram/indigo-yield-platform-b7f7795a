@@ -25,6 +25,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { getTodayUTC } from "@/utils/dateUtils";
 import { fundDailyAumService } from "@/services/shared/fundDailyAumService";
 import { useAuth } from "@/services/auth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -48,7 +49,7 @@ interface OpenPeriodDialogProps {
 
 export function OpenPeriodDialog({ open, onOpenChange, fund, onSuccess }: OpenPeriodDialogProps) {
   const [baselineAum, setBaselineAum] = useState("");
-  const [baselineDate, setBaselineDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [baselineDate, setBaselineDate] = useState<string>(getTodayUTC());
   const [purpose, setPurpose] = useState<"reporting" | "transaction">("transaction");
   const [isSubmitting, setIsSubmitting] = useState(false);
 

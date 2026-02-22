@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from "react";
 import { format } from "date-fns";
+import { getTodayUTC } from "@/utils/dateUtils";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -39,7 +40,7 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
   showYieldActions = false,
 }) {
   const navigate = useNavigate();
-  const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+  const todayStr = useMemo(() => getTodayUTC(), []);
   const dateStr = useMemo(() => (date ? format(date, "yyyy-MM-dd") : null), [date]);
   const isToday = dateStr === todayStr;
   const displayAUM = isToday ? fund.latest_aum : (flows?.aum ?? 0);

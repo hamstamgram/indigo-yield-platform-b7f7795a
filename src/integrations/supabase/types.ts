@@ -3408,6 +3408,8 @@ export type Database = {
           id: string;
           investor_id: string;
           is_voided: boolean | null;
+          fee_credit: number | null;
+          ib_credit: number | null;
           net_amount: number;
           ownership_pct: number | null;
           position_value_at_calc: number | null;
@@ -3428,6 +3430,8 @@ export type Database = {
           id?: string;
           investor_id: string;
           is_voided?: boolean | null;
+          fee_credit?: number | null;
+          ib_credit?: number | null;
           net_amount: number;
           ownership_pct?: number | null;
           position_value_at_calc?: number | null;
@@ -3448,6 +3452,8 @@ export type Database = {
           id?: string;
           investor_id?: string;
           is_voided?: boolean | null;
+          fee_credit?: number | null;
+          ib_credit?: number | null;
           net_amount?: number;
           ownership_pct?: number | null;
           position_value_at_calc?: number | null;
