@@ -49,8 +49,6 @@ export interface YieldEvent {
   period_end: string;
   days_in_period: number;
 
-  // Visibility control
-  visibility_scope: YieldVisibilityScope;
   made_visible_at: string | null;
   made_visible_by: string | null;
 

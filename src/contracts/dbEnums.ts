@@ -836,6 +836,7 @@ export const TX_TYPE_VALUES = [
   "INTERNAL_CREDIT",
   "IB_DEBIT",
   "DUST_SWEEP",
+  "IB",
 ] as const;
 
 export const TxTypeSchema = z.enum(TX_TYPE_VALUES, {
@@ -867,6 +868,7 @@ export const DB_TX_TYPE = {
   INTERNAL_CREDIT: "INTERNAL_CREDIT",
   IB_DEBIT: "IB_DEBIT",
   DUST_SWEEP: "DUST_SWEEP",
+  IB: "IB",
 } as const satisfies Record<string, TxType>;
 
 export function isValidTxType(value: string): value is TxType {
