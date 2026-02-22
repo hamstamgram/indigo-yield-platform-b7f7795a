@@ -23,6 +23,7 @@ import type {
   YieldDistribution,
   YieldTotals,
   YieldCalculationResult,
+  V5YieldRPCResult,
 } from "@/types/domains/yield";
 
 /**
@@ -78,15 +79,30 @@ export async function applyYieldDistribution(
   }
 
   // Fetch the distribution row the RPC just created
-  const { data: dist, error: fetchErr } = await supabase
+  const { data: distData, error: distError } = await supabase
     .from("yield_distributions")
     .select("*")
     .eq("id", distributionId)
     .single();
 
-  if (fetchErr || !dist) {
+  if (distError || !distData) {
     throw new Error("Apply succeeded but failed to fetch distribution details");
   }
+
+  const result: Partial<V5YieldRPCResult> = {
+    success: true,
+    opening_aum: Number(distData.opening_aum || 0),
+    recorded_aum: Number(distData.recorded_aum || 0),
+    gross_yield: Number(distData.gross_yield || 0),
+    net_yield: Number(distData.net_yield || 0),
+    total_fees: Number(distData.total_fees || 0),
+    total_ib: Number(distData.total_ib || 0),
+    total_fee_credit: Number(distData.total_fee_credit || 0),
+    total_ib_credit: Number(distData.total_ib_credit || 0),
+    investor_count: distData.investor_count,
+    period_start: distData.period_start,
+    period_end: distData.period_end,
+  };
 
   // Finalize yield visibility
   try {
@@ -111,8 +127,8 @@ export async function applyYieldDistribution(
     .eq("is_voided", false);
 
   if (affectedInvestors?.length && fundInfo) {
-    const openingAumDec = parseFinancial(dist.opening_aum);
-    const grossYieldDec = parseFinancial(dist.gross_yield);
+    const openingAumDec = parseFinancial(distData.opening_aum);
+    const grossYieldDec = parseFinancial(distData.gross_yield);
     const notificationDistributions = affectedInvestors.map((inv) => ({
       userId: inv.investor_id,
       distributionId: `yield:${fundId}:${formatDateForDB(periodEndDate)}:${inv.investor_id}`,
@@ -133,11 +149,11 @@ export async function applyYieldDistribution(
 
   const yieldDistributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
-    gross: String(dist.gross_yield ?? 0),
-    fees: String(dist.total_fees ?? 0),
-    ibFees: String(dist.total_ib ?? 0),
-    net: String(dist.net_yield ?? 0),
-    indigoCredit: String(dist.total_fees ?? 0),
+    gross: String(distData.gross_yield ?? 0),
+    fees: String(distData.total_fees ?? 0),
+    ibFees: String(distData.total_ib ?? 0),
+    net: String(distData.net_yield ?? 0),
+    indigoCredit: String(distData.total_fees ?? 0),
   };
 
   return {
@@ -147,14 +163,14 @@ export async function applyYieldDistribution(
     fundAsset: fundInfo?.asset || "",
     yieldDate: targetDate,
     purpose,
-    currentAUM: String(dist.opening_aum || 0),
-    newAUM: String(dist.recorded_aum || parsedAum.toString()),
+    currentAUM: String(distData.opening_aum || 0),
+    newAUM: String(distData.recorded_aum || parsedAum.toString()),
     grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
     yieldPercentage: "0",
-    investorCount: Number(dist.investor_count ?? 0),
+    investorCount: Number(distData.investor_count ?? 0),
     distributions: yieldDistributions,
     ibCredits: [],
     indigoFeesCredit: totals.indigoCredit,
@@ -163,16 +179,16 @@ export async function applyYieldDistribution(
     totals,
     status: "applied",
     // V5 segmented fields
-    periodStart: dist.period_start,
-    periodEnd: dist.period_end,
+    periodStart: distData.period_start,
+    periodEnd: distData.period_end,
     daysInPeriod: 0,
-    dustAmount: String(dist.dust_amount ?? 0),
+    dustAmount: String(distData.dust_amount ?? 0),
     calculationMethod: "segmented_v5",
     features: ["segmented_proportional"],
     conservationCheck: true,
     segmentCount: undefined,
-    openingAum: String(dist.opening_aum || 0),
-    recordedAum: String(dist.recorded_aum || 0),
+    openingAum: String(distData.opening_aum || 0),
+    recordedAum: String(distData.recorded_aum || 0),
     crystalsInPeriod: 0,
   };
 }

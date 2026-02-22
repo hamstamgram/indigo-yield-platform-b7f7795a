@@ -292,6 +292,7 @@ export const SUBTYPE_DISPLAY_MAP: Record<string, string> = {
   adjustment: "Adjustment",
   fee_credit: "Fee Credit",
   ib_credit: "IB Credit",
+  ib_commission: "IB Commission",
 };
 
 /**
@@ -308,6 +309,7 @@ export function formatTransactionType(type: TransactionType | string): string {
     FIRST_INVESTMENT: "First Investment",
     FEE_CREDIT: "Fee Credit",
     IB_CREDIT: "IB Credit",
+    IB: "IB Commission",
   };
   return (
     typeMap[type] ||
@@ -338,6 +340,7 @@ export function getTransactionDisplayType(
     FEE_CREDIT: "Fee Credit",
     IB_CREDIT: "IB Credit",
     ADJUSTMENT: "Adjustment",
+    IB: "IB Commission",
   };
 
   return fallbackMap[type] || formatTransactionType(type);
@@ -359,7 +362,7 @@ export function getTransactionNetAmount(tx: Transaction): string {
   ) {
     return amount;
   }
-  if (type === "WITHDRAWAL" || type === "FEE") {
+  if (type === "WITHDRAWAL" || type === "FEE" || type === "IB") {
     // Return negative by prepending minus if not already negative
     return amount.startsWith("-") ? amount : `-${amount}`;
   }

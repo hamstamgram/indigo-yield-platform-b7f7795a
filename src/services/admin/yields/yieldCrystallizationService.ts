@@ -300,7 +300,10 @@ export async function getPendingYieldEventsCount(
     .gte("period_start", formatDateForDB(periodStart))
     .lte("period_end", formatDateForDB(periodEnd));
 
-  if (error) throw error;
+  if (error) {
+    logError("getPendingYieldEventsCount", error, { fundId, year, month });
+    throw error;
+  }
 
   const count = data?.length || 0;
   const totalYield =

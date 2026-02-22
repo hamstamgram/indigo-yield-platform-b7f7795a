@@ -111,7 +111,7 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       is_voided
     `
     )
-    .in("type", ["FEE_CREDIT"])
+    .in("type", ["FEE_CREDIT", "IB_CREDIT"])
     .eq("is_voided", false)
     .order("created_at", { ascending: false })
     .limit(1000);
