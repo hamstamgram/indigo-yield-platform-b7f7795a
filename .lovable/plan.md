@@ -1,70 +1,69 @@
 
-# Audit Report: Active Bugs in Used Functions
 
-After systematically reviewing all active service files, database logs, RLS policies, and RPC call sites, here are the remaining bugs -- strictly limited to actively used code paths.
+# Fix: Apply Yield "Invalid response from server"
 
----
+## Root Cause
 
-## BUG-1: `deleteNotification` will always fail silently (HIGH)
+The PostgreSQL function `apply_segmented_yield_distribution_v5` returns a **UUID** (the `distribution_id`), not a JSON object. The frontend code casts the result to `V5YieldRPCResult` (expecting `{ success: true, gross_yield: ..., ... }`), but since `data` is actually a UUID string, `result.success` is `undefined`, which triggers the error on line 78:
 
-**File**: `src/services/shared/notificationService.ts` line 47
-**Problem**: The `notifications` table has a DELETE policy: `notifications_delete_policy` with `USING (false)`. This means ALL deletes are blocked by RLS. The `deleteNotification` function calls `.delete()` which will silently return zero affected rows (Supabase doesn't throw on 0-row RLS-blocked deletes).
+```
+throw new Error(result?.error || "Apply failed: Invalid response from server");
+```
 
-**Active callers**: `useDeleteNotification` hook, `useNotifications.archiveNotification`, notification list UI.
+The **preview** RPC works fine because `preview_segmented_yield_distribution_v5` returns `Json`.
 
-**Impact**: Users click "delete" or "archive" on a notification and nothing happens. The UI optimistically removes it but on next fetch it reappears.
+## Fix
 
-**Fix**: Either:
-- Change the DELETE policy to `USING (user_id = auth.uid())` to allow users to delete their own, OR
-- Replace `deleteNotification` with a "soft delete" approach (e.g., set a `dismissed_at` timestamp) since the policy intentionally blocks hard deletes for audit reasons.
+Rewrite `src/services/admin/yields/yieldApplyService.ts` lines 75-79 to:
 
----
+1. Accept the UUID return value as the `distribution_id`
+2. Query the `yield_distributions` table to fetch the actual result data (which was already inserted by the RPC)
+3. Build the `YieldCalculationResult` from the queried row instead of from the RPC response
 
-## BUG-2: `parseFloat` used for financial amounts in `recordedYieldsService.ts` (MEDIUM)
+```text
+Before (broken):
+  const result = data as unknown as V5YieldRPCResult;
+  if (!result || !result.success) {
+    throw new Error(result?.error || "Apply failed: Invalid response from server");
+  }
 
-**File**: `src/services/admin/recordedYieldsService.ts` lines 186-189
-**Problem**: Uses `parseFloat()` to convert yield distribution amounts (`gross_yield`, `net_yield`, `total_fees`, `total_ib`). Per platform standards, `parseFloat()` is prohibited for financial values because JavaScript floats lose precision beyond 17 significant digits. The database stores these as `NUMERIC(28,10)`.
+After (fixed):
+  const distributionId = data as unknown as string;
+  if (!distributionId) {
+    throw new Error("Apply failed: no distribution ID returned");
+  }
 
-**Impact**: Yield totals displayed on the Recorded Yields page could show incorrect values for large amounts (e.g., a fund with >100M in yield). Display-only -- does not corrupt data.
+  // Fetch the distribution row the RPC just created
+  const { data: dist, error: fetchErr } = await supabase
+    .from("yield_distributions")
+    .select("*")
+    .eq("id", distributionId)
+    .single();
 
-**Fix**: Replace `parseFloat(String(...))` with `parseFinancial(...)` from `@/utils/financial` (already imported by the module). Return string type for `gross_yield`, `net_yield`, `total_fees`, `total_ib` in the `YieldRecord` interface.
+  if (fetchErr || !dist) {
+    throw new Error("Apply succeeded but failed to fetch distribution details");
+  }
+```
 
----
+Then replace all `result.xxx` references (lines 104-166) with `dist.xxx` field names from the `yield_distributions` table:
+- `result.opening_aum` becomes `dist.opening_aum`
+- `result.gross_yield` becomes `dist.gross_yield`
+- `result.net_yield` becomes `dist.net_yield`
+- `result.total_fees` becomes `dist.total_fees`
+- `result.total_ib` becomes `dist.total_ib`
+- `result.investor_count` becomes `dist.investor_count`
+- `result.recorded_aum` becomes `dist.recorded_aum`
+- `result.period_start` becomes `dist.period_start`
+- `result.period_end` becomes `dist.period_end`
+- `result.dust_amount` becomes `dist.dust_amount`
+- `result.fund_code` / `result.fund_asset` -- not in the distribution table, will use fund query (already fetched as `fundInfo`)
+- `result.conservation_check` / `result.segment_count` / `result.crystals_consolidated` / `result.features` -- not stored in distribution table, use sensible defaults
 
-## BUG-3: `parseFloat` in `depositService.ts` notification (LOW)
+## Technical Details
 
-**File**: `src/services/investor/depositService.ts` line 194
-**Problem**: `parseFloat(String(amount))` used to pass deposit amount to notification. This is for display in a notification toast only, so impact is cosmetic.
+**File**: `src/services/admin/yields/yieldApplyService.ts`
 
-**Fix**: Replace with `parseFinancial(amount).toNumber()` for consistency, though this is non-critical since it's notification display only.
+The full rewrite of lines 75-167 replaces the broken `V5YieldRPCResult` cast with a query to `yield_distributions` using the returned UUID, and maps all fields from the queried row. The `V5YieldRPCResult` import can be removed since it's no longer used in this file.
 
----
+**No database changes needed.** The RPC and table are correct; only the frontend interpretation was wrong.
 
-## BUG-4: `parseFloat` in `feeSettingsService.ts` for global fee percentage (LOW)
-
-**File**: `src/services/admin/feeSettingsService.ts` line 26
-**Problem**: `parseFloat(val)` used for the global platform fee percentage. This is a small number (0.20 = 20%) so precision loss is unlikely, but it violates the standard.
-
-**Fix**: Replace with `parseFinancial(val).toNumber()`.
-
----
-
-## Summary
-
-| # | Severity | File | Issue |
-|---|----------|------|-------|
-| 1 | HIGH | `notificationService.ts` | `deleteNotification` always blocked by RLS `false` policy |
-| 2 | MEDIUM | `recordedYieldsService.ts` | `parseFloat` on financial amounts loses precision |
-| 3 | LOW | `depositService.ts` | `parseFloat` on notification amount |
-| 4 | LOW | `feeSettingsService.ts` | `parseFloat` on fee percentage |
-
-### Note on previously fixed issues
-- The `visibility_scope` column DOES exist on `transactions_v2` (confirmed via DB query) -- so references to it in `investorPortalService.ts` and `adminTransactionHistoryService.ts` are correct.
-- The `notifications` UPDATE policy was successfully added in the prior fix.
-- The `feesService.ts` operator precedence fix was successfully applied.
-- The `as any` casts in `adminTransactionHistoryService.ts` (unvoid/bulk) are for RPCs pending type generation -- these are documented known bypasses, not bugs.
-
-### Recommended fix order
-1. BUG-1 (notification delete) -- functional breakage visible to users
-2. BUG-2 (parseFloat in yields) -- precision risk on financial display
-3. BUGs 3-4 -- standard compliance, low risk
