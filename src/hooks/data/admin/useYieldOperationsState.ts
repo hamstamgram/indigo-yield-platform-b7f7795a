@@ -56,6 +56,9 @@ export function useYieldOperationsState() {
       const lastDayOfMonth = endOfMonth(parseISO(todayUTC));
       const asOfDateIso = format(lastDayOfMonth, "yyyy-MM-dd");
 
+      // Force refetch of fund AUM data before displaying
+      refetchFunds();
+
       selection.setSelection({
         ...selection,
         selectedFund: fund,
@@ -79,7 +82,7 @@ export function useYieldOperationsState() {
       calculation.setExistingDistributionDate(null);
       calculation.setExistingDistributionId(null);
     },
-    [selection, period, calculation]
+    [selection, period, calculation, refetchFunds]
   );
 
   const handleReportingMonthChange = useCallback(
