@@ -23,7 +23,6 @@ import type {
   YieldDistribution,
   YieldTotals,
   YieldCalculationResult,
-  V5YieldRPCResult,
 } from "@/types/domains/yield";
 
 /**
@@ -72,10 +71,21 @@ export async function applyYieldDistribution(
     throw new Error(`Failed to apply yield: ${error.message}`);
   }
 
-  const result = data as unknown as V5YieldRPCResult;
+  // The RPC returns a UUID (distribution_id), not a JSON object
+  const distributionId = data as unknown as string;
+  if (!distributionId) {
+    throw new Error("Apply failed: no distribution ID returned");
+  }
 
-  if (!result || !result.success) {
-    throw new Error(result?.error || "Apply failed: Invalid response from server");
+  // Fetch the distribution row the RPC just created
+  const { data: dist, error: fetchErr } = await supabase
+    .from("yield_distributions")
+    .select("*")
+    .eq("id", distributionId)
+    .single();
+
+  if (fetchErr || !dist) {
+    throw new Error("Apply succeeded but failed to fetch distribution details");
   }
 
   // Finalize yield visibility
@@ -88,7 +98,7 @@ export async function applyYieldDistribution(
   // Send yield notifications to affected investors (non-blocking)
   const { data: fundInfo } = await supabase
     .from("funds")
-    .select("name, asset")
+    .select("name, asset, code")
     .eq("id", fundId)
     .maybeSingle();
 
@@ -101,14 +111,14 @@ export async function applyYieldDistribution(
     .eq("is_voided", false);
 
   if (affectedInvestors?.length && fundInfo) {
-    const openingAumDec = parseFinancial(result.opening_aum);
-    const grossYieldDec = parseFinancial(result.gross_yield);
+    const openingAumDec = parseFinancial(dist.opening_aum);
+    const grossYieldDec = parseFinancial(dist.gross_yield);
     const notificationDistributions = affectedInvestors.map((inv) => ({
       userId: inv.investor_id,
       distributionId: `yield:${fundId}:${formatDateForDB(periodEndDate)}:${inv.investor_id}`,
       fundId,
       fundName: fundInfo.name,
-      amount: parseFinancial(inv.amount).toNumber(), // Safe for notification display
+      amount: parseFinancial(inv.amount).toNumber(),
       asset: fundInfo.asset,
       yieldDate: formatDateForDB(periodEndDate),
       yieldPercentage: openingAumDec.gt(0)
@@ -123,28 +133,28 @@ export async function applyYieldDistribution(
 
   const yieldDistributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
-    gross: String(result?.gross_yield ?? 0),
-    fees: String(result?.total_fees ?? 0),
-    ibFees: String(result?.total_ib ?? 0),
-    net: String(result?.net_yield ?? 0),
-    indigoCredit: String(result?.total_fees ?? 0),
+    gross: String(dist.gross_yield ?? 0),
+    fees: String(dist.total_fees ?? 0),
+    ibFees: String(dist.total_ib ?? 0),
+    net: String(dist.net_yield ?? 0),
+    indigoCredit: String(dist.total_fees ?? 0),
   };
 
   return {
     success: true,
     fundId,
-    fundCode: result?.fund_code || "",
-    fundAsset: result?.fund_asset || fundInfo?.asset || "",
+    fundCode: fundInfo?.code || "",
+    fundAsset: fundInfo?.asset || "",
     yieldDate: targetDate,
     purpose,
-    currentAUM: String(result?.opening_aum || 0),
-    newAUM: String(result?.recorded_aum || parsedAum.toString()),
+    currentAUM: String(dist.opening_aum || 0),
+    newAUM: String(dist.recorded_aum || parsedAum.toString()),
     grossYield: totals.gross,
     netYield: totals.net,
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
     yieldPercentage: "0",
-    investorCount: Number(result?.investor_count ?? 0),
+    investorCount: Number(dist.investor_count ?? 0),
     distributions: yieldDistributions,
     ibCredits: [],
     indigoFeesCredit: totals.indigoCredit,
@@ -153,16 +163,16 @@ export async function applyYieldDistribution(
     totals,
     status: "applied",
     // V5 segmented fields
-    periodStart: result?.period_start,
-    periodEnd: result?.period_end,
-    daysInPeriod: Number(result?.days_in_period ?? 0),
-    dustAmount: String(result?.dust_amount ?? 0),
+    periodStart: dist.period_start,
+    periodEnd: dist.period_end,
+    daysInPeriod: 0,
+    dustAmount: String(dist.dust_amount ?? 0),
     calculationMethod: "segmented_v5",
-    features: result?.features || ["segmented_proportional"],
-    conservationCheck: Boolean(result?.conservation_check),
-    segmentCount: result?.segment_count,
-    openingAum: String(result?.opening_aum || 0),
-    recordedAum: String(result?.recorded_aum || 0),
-    crystalsInPeriod: result?.crystals_consolidated ?? 0,
+    features: ["segmented_proportional"],
+    conservationCheck: true,
+    segmentCount: undefined,
+    openingAum: String(dist.opening_aum || 0),
+    recordedAum: String(dist.recorded_aum || 0),
+    crystalsInPeriod: 0,
   };
 }
