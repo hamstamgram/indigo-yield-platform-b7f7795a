@@ -1,139 +1,120 @@
 
-# Comprehensive Database Function Audit
 
-## Critical Bugs Found
+# Surgical Alignment and State Reconciliation
 
-### BUG 1: `void_fund_daily_aum` calls `void_yield_distribution` with 3 args -- needs 4
+## Overview
 
-The function on line 337 calls:
-```sql
-PERFORM void_yield_distribution(v_dist_id, p_admin_id, 'Cascade...');
-```
-But `void_yield_distribution` requires **4 parameters**: `(p_distribution_id, p_admin_id, p_reason, p_void_crystals boolean)`. The missing `p_void_crystals` argument will cause a **runtime crash** whenever voiding an AUM record that has linked yield distributions.
-
-**Severity**: HIGH -- cascade void from AUM page will fail
-**Fix**: Add `false` as the 4th argument (safe default -- don't cascade crystal voids)
+Five targeted updates addressing: a build error, fund lifecycle, investor deletion safety, deterministic sorting, dust transaction visibility on Revenue page, and nomenclature alignment.
 
 ---
 
-### BUG 2: `void_and_reissue_transaction` (4-param overload) skips cascade voiding
+## 0. Build Error Fix (Blocker)
 
-Two overloads exist:
-- **6-param** (used by frontend): `(p_original_tx_id, p_admin_id, p_reason, p_new_amount, p_new_date, p_new_notes)` -- correctly calls `void_transaction()` for cascade
-- **4-param** (legacy): `(p_record_id, p_new_values, p_admin_id, p_reason)` -- does a raw `UPDATE SET is_voided=true` WITHOUT calling `void_transaction()`, so cascade voiding of AUM, fee_allocations, ib_ledger, platform_fee_ledger, and yield_allocations is **silently skipped**
+**Root cause:** The `DUST` value was added to the `tx_type` Postgres enum (visible in `supabase/types.ts`) but `TX_TYPE_VALUES` in `src/contracts/dbEnums.ts` line 826 is missing `"DUST"`. The compile-time symmetry check on line 1235 correctly flags the mismatch.
 
-Also, the 4-param version is missing `SET search_path TO 'public'` (minor security defect for a SECURITY DEFINER function).
+**Fix:** Add `"DUST"` to `TX_TYPE_VALUES` array and add `DUST: "DUST"` to the `DB_TX_TYPE` object.
 
-**Severity**: HIGH -- data integrity risk if 4-param overload is ever called
-**Fix**: Drop the 4-param overload entirely (frontend only uses 6-param version)
-
----
-
-### BUG 3: `apply_segmented_yield_distribution_v5` calls `calculate_yield_allocations` up to 6 times
-
-The expensive allocation calculation is called repeatedly:
-1. Step 3: Calculate totals
-2. Step 5: Insert yield_allocations
-3. Step 6a: Loop for YIELD transactions
-4. Step 6c: Loop for IB_CREDIT transactions
-5. Step 7: Insert fee_allocations
-6. Step 8: Insert ib_allocations
-
-Each call re-executes the full CTE chain (joins, aggregations, fee/IB lookups). This is a major performance issue -- should materialize into a temp table once.
-
-**Severity**: MEDIUM -- performance (6x slower than necessary), but also a correctness risk if position data changes mid-execution (though advisory locks mitigate this)
-**Fix**: Materialize `calculate_yield_allocations` into a temp table at step 3, then reference it in all subsequent steps
+| File | Change |
+|------|--------|
+| `src/contracts/dbEnums.ts` line 838 | Add `"DUST"` after `"DUST_SWEEP"` in `TX_TYPE_VALUES` |
+| `src/contracts/dbEnums.ts` line 871 | Add `DUST: "DUST"` after `DUST_SWEEP` in `DB_TX_TYPE` |
 
 ---
 
-### BUG 4: `upsert_fund_aum_after_yield` AUM calculation inconsistency
+## 1. Fund Lifecycle: Soft Delete / Hard Delete
 
-In the ELSE branch (no existing AUM record), it excludes `fees_account` from the position sum:
-```sql
-WHERE COALESCE(p.account_type::text, '') <> 'fees_account'
-```
-But `recalculate_fund_aum_for_date` includes ALL accounts:
-```sql
-WHERE ip.fund_id = p_fund_id AND ip.current_value > 0
-```
-This means AUM values differ depending on which code path is taken.
+**Discovery -- FK constraints on `funds` (14 tables):**
 
-**Severity**: LOW -- `apply_segmented_yield_distribution_v5` now bypasses this function (fixed in previous migration), but the function is still callable and will produce wrong AUM values.
-**Fix**: Align the filter to include all accounts (matching `recalculate_fund_aum_for_date`)
+| Constraint | Table | On Delete |
+|------------|-------|-----------|
+| fk_transactions_v2_fund | transactions_v2 | RESTRICT |
+| fk_investor_positions_fund | investor_positions | RESTRICT |
+| fk_fee_allocations_fund_v2 | fee_allocations | RESTRICT |
+| fk_yield_distributions_fund_new | yield_distributions | RESTRICT |
+| yield_allocations_fund_id_fkey | yield_allocations | (default = RESTRICT) |
+| ib_allocations_fund_id_fkey | ib_allocations | (default = RESTRICT) |
+| ib_commission_ledger_fund_id_fkey | ib_commission_ledger | (default = RESTRICT) |
+| platform_fee_ledger_fund_id_fkey | platform_fee_ledger | (default = RESTRICT) |
+| investor_daily_balance_fund_id_fkey | investor_daily_balance | (default = RESTRICT) |
+| investor_position_snapshots_fund_id_fkey | investor_position_snapshots | (default = RESTRICT) |
+| withdrawal_requests_fund_id_fkey | withdrawal_requests | CASCADE |
+| ib_commission_schedule_fund_id_fkey | ib_commission_schedule | CASCADE |
+| investor_fee_schedule_fund_id_fkey | investor_fee_schedule | CASCADE |
+| admin_integrity_runs | admin_integrity_runs | (default = RESTRICT) |
 
----
+**Current state:** `deleteFund` in `fundService.ts` already exists and does manual cascade cleanup. The `deactivateFund` sets `status = 'deprecated'`. The `funds` table already has a `status` enum with `deprecated` value -- this IS the soft delete.
 
-## Overloaded Functions (7 pairs)
-
-| Function | Overloads | Verdict |
-|----------|-----------|---------|
-| `void_and_reissue_transaction` | 4-param (legacy, broken) + 6-param (correct) | DROP the 4-param overload |
-| `get_fund_composition` | 1-param (current) + 2-param (historical by date) | KEEP both -- legitimate |
-| `is_admin` | 0-param (JWT check) + 1-param (user_id check) | KEEP both -- used everywhere |
-| `is_super_admin` | 0-param + 1-param | KEEP both |
-| `log_audit_event` | trigger + callable | KEEP both |
-| `require_super_admin` | 0-param (returns uuid) + 2-param (returns void) | KEEP both -- different use cases |
-| `run_integrity_pack` | 0-param (simple) + 2-param (scoped) | KEEP both |
+**No code changes needed here.** The existing `deleteFund` (hard delete with cascade) and `deactivateFund` (soft delete to `deprecated`) already cover both paths. The `useDeleteFund` hook and `EditFundDialog` already wire these to the UI.
 
 ---
 
-## Ghost Functions (Exist in Contracts/Docs but NOT in Database)
+## 2. Investor Deletion: Safety Gate
 
-These are referenced in `src/contracts/rpcSignatures.ts` and documentation but do **not exist** in the database:
+**Discovery -- FK RESTRICT constraints on `profiles`:**
+- `fee_allocations.investor_id` -- ON DELETE RESTRICT
+- `investor_positions.investor_id` -- ON DELETE RESTRICT
+- `transactions_v2.investor_id` -- ON DELETE RESTRICT (x2)
 
-| Function | Status |
-|----------|--------|
-| `apply_adb_yield_distribution_v3` | Does not exist |
-| `preview_adb_yield_distribution_v3` | Does not exist |
-| `apply_daily_yield_to_fund_v3` | Does not exist |
-| `crystallize_yield_before_flow` | Does not exist |
-| `batch_crystallize_fund` | Does not exist |
-| `apply_deposit_with_crystallization` | Does not exist |
-| `apply_withdrawal_with_crystallization` | Does not exist |
-| `admin_create_transaction` | Does not exist |
-| `admin_create_transactions_batch` | Does not exist |
-| `apply_transaction_with_crystallization` | Does not exist |
+**Current state:** `force_delete_investor` RPC exists and does manual cascade DELETE of all related records before deleting the profile. It requires `super_admin`. The `useDeleteInvestor` hook calls `deleteInvestorUser` which calls this RPC.
 
-These are not called from any service code (confirmed via search), so they are dead contract entries. No runtime impact, but they clutter the contract and could mislead future development.
+**Gap:** The frontend `useDeleteInvestor` does NOT pre-check for active balances. It calls the RPC directly and lets the RPC do a hard-delete regardless of position state.
 
-**Fix**: Remove these entries from `src/contracts/rpcSignatures.ts`
+**Fix:** Add a pre-flight check in the `useDeleteInvestor` mutation that queries `investor_positions` for non-zero `current_value` before calling the RPC. If active positions exist, throw a user-friendly error.
+
+| File | Change |
+|------|--------|
+| `src/hooks/data/shared/useInvestorMutations.ts` | Add pre-flight query for active positions before calling `deleteInvestorUser`. If `current_value > 0` exists, throw error: "Cannot delete investor with active balance of X in fund Y. Withdraw or transfer first." |
 
 ---
 
-## Implementation Plan
+## 3. Deterministic Multi-Key Sorting
 
-### Migration 1: Fix runtime bugs (SQL)
+**Current state:** `useSortableColumns` in `src/hooks/ui/useSortableColumns.ts` sorts by a single key. When values are identical, row order is non-deterministic.
 
-1. Fix `void_fund_daily_aum` -- add missing `p_void_crystals := false` argument
-2. Drop the broken 4-param `void_and_reissue_transaction` overload
-3. Fix `upsert_fund_aum_after_yield` -- remove `fees_account` exclusion filter
-4. Optimize `apply_segmented_yield_distribution_v5` -- materialize `calculate_yield_allocations` into a temp table, reference it in all 6 locations
+**Fix:** Add a tiebreaker sort. When the primary comparison returns 0, fall back to a secondary key. The hook already receives generic `T[]` data, so we add an optional `tiebreaker` parameter (defaults to `"created_at"` or `"id"`).
 
-### Code Change 1: Clean up ghost contracts
+| File | Change |
+|------|--------|
+| `src/hooks/ui/useSortableColumns.ts` | Add optional `tiebreakerKey` parameter to `useSortableColumns`. When primary comparison returns 0, compare by tiebreaker field descending (newest first). Default: `"created_at"` |
 
-Remove the 10 non-existent function entries from `src/contracts/rpcSignatures.ts` and any rate-limit entries in `src/lib/rpc/client.ts` that reference them.
+---
 
-### Sequencing
+## 4. Dust Transactions on Revenue Page
 
-1. SQL migration first (fixes runtime crashes)
-2. Contract cleanup second (cosmetic, no runtime impact)
+**Current state:** The last diff already updated `feesService.ts` to include `DUST` and `DUST_SWEEP` in the query filters, and `FeeTransactionsTable.tsx` to render a badge for `DUST`/`DUST_SWEEP` types. This part is done.
 
-### Technical: SQL for Bug 1 fix
+**Remaining gap:** The `route_withdrawal_to_fees` RPC creates transactions with type `INTERNAL_WITHDRAWAL`/`INTERNAL_CREDIT`, NOT `DUST` or `DUST_SWEEP`. The dust-sweep logic from full withdrawals also needs to be traced.
 
-```sql
--- In void_fund_daily_aum, change:
-PERFORM void_yield_distribution(v_dist_id, p_admin_id, 'Cascade...' || p_reason);
--- To:
-PERFORM void_yield_distribution(v_dist_id, p_admin_id, 'Cascade...' || p_reason, false);
-```
+After checking the full withdrawal dust logic: the `complete_withdrawal` RPC handles full-exit dust by routing residual amounts to the INDIGO Fees account. These transactions are typed as `INTERNAL_CREDIT` with notes mentioning "dust". The Revenue page filter already includes `investor_id.eq.${INDIGO_FEES_ACCOUNT_ID}` which catches ALL transactions credited to the fees account regardless of type. So dust transactions are already visible on the Revenue page.
 
-### Technical: SQL for Bug 3 fix (performance)
+**No additional code changes needed for dust visibility.**
 
-```sql
--- At top of apply_segmented_yield_distribution_v5, after step 2:
-CREATE TEMP TABLE _yield_alloc ON COMMIT DROP AS
-  SELECT * FROM calculate_yield_allocations(p_fund_id, p_recorded_aum, p_period_end);
+---
 
--- Then replace all subsequent calculate_yield_allocations(...) calls with:
--- SELECT ... FROM _yield_alloc ...
-```
+## 5. Nomenclature: FEE_CREDIT Label
+
+**Current state:** The `FeeTransactionsTable.tsx` badge for `FEE_CREDIT` shows "Management Fee". The user wants this renamed to its standardized name.
+
+The `fee_kind` enum has `mgmt` and `perf`. The `FEE_CREDIT` transaction type represents the platform's share of yield (performance fee credit to the INDIGO Fees account). Calling it "Management Fee" is misleading since there are no management fees (CFO policy: mgmt_fee_bps frozen at 0).
+
+**Fix:** Rename the label from "Management Fee" to "Performance Fee" in the badge.
+
+| File | Change |
+|------|--------|
+| `src/features/admin/fees/components/FeeTransactionsTable.tsx` line 51 | Change `"Management Fee"` to `"Performance Fee"` |
+
+---
+
+## Summary of All Changes
+
+| # | File | Change | Risk |
+|---|------|--------|------|
+| 0 | `src/contracts/dbEnums.ts` | Add `"DUST"` to `TX_TYPE_VALUES` and `DB_TX_TYPE` | None -- aligns contract with DB |
+| 2 | `src/hooks/data/shared/useInvestorMutations.ts` | Add pre-flight balance check before deletion | Low -- adds safety gate |
+| 3 | `src/hooks/ui/useSortableColumns.ts` | Add tiebreaker sort key | Low -- backward compatible |
+| 5 | `src/features/admin/fees/components/FeeTransactionsTable.tsx` | Rename "Management Fee" to "Performance Fee" | None -- label only |
+
+**No SQL migrations required.** No database function changes. No enum alterations.
+
+Items 1 (fund lifecycle) and 4 (dust visibility) require no changes -- the existing code already handles them correctly.
+
