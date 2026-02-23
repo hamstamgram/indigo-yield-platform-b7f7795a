@@ -48,7 +48,7 @@ const getTypeBadge = (type: string) => {
   switch (type) {
     case "FEE_CREDIT":
       return (
-        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Management Fee</Badge>
+        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Performance Fee</Badge>
       );
     case "IB_CREDIT":
       return <Badge className="bg-blue-100 text-blue-800 border-blue-200">IB Commission</Badge>;
