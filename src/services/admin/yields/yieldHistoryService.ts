@@ -164,10 +164,10 @@ export async function getActiveFundsWithAUM(): Promise<
   }
 
   return (data || []).map((f: any) => ({
-    id: f.fund_id,
-    code: f.fund_code,
-    name: f.fund_name,
-    asset: f.fund_asset,
+    id: f.id,
+    code: f.code,
+    name: f.name,
+    asset: f.asset,
     total_aum: parseFinancial(f.total_aum).toNumber(),
     investor_count: Number(f.investor_count),
     aum_record_count: Number(f.aum_record_count),
