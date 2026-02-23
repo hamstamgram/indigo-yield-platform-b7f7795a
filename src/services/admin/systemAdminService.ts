@@ -374,7 +374,7 @@ async function queryIntegrityViews() {
     supabase.from("v_ledger_reconciliation").select("*", { count: "exact" }).limit(1000),
 
     // Fund AUM mismatch: reported vs calculated AUM
-    supabase.from("fund_aum_mismatch").select("*", { count: "exact" }).limit(1000),
+    supabase.from("fund_aum_mismatch" as any).select("*", { count: "exact" }).limit(1000),
 
     // Orphaned transactions: transactions without profiles (view not in generated types)
     queryView("v_orphaned_transactions").select("*", { count: "exact" }).limit(1000),
