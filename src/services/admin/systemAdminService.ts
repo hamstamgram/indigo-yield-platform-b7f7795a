@@ -394,7 +394,7 @@ async function queryIntegrityViews() {
       count: ledgerReconciliation.count ?? 0,
       data: ledgerReconciliation.data,
     },
-    fundAumMismatch: { count: fundAumMismatch.count ?? 0, data: fundAumMismatch.data },
+    fundAumMismatch: { count: fundAumMismatch.error ? 0 : (fundAumMismatch.count ?? 0), data: fundAumMismatch.error ? [] : fundAumMismatch.data },
     orphanedTransactions: {
       count: orphanedTransactions.count ?? 0,
       data: orphanedTransactions.data,
