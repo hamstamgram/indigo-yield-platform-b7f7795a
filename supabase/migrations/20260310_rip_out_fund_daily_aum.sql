@@ -32,8 +32,8 @@ BEGIN
             t.fund_id,
             SUM(
                 CASE 
-                    WHEN t.type IN ('DEPOSIT', 'ADMIN_ADJUSTMENT_ADD') THEN -t.amount
-                    WHEN t.type IN ('WITHDRAWAL', 'ADMIN_ADJUSTMENT_SUB') THEN t.amount
+                    WHEN t.type IN ('DEPOSIT') THEN -t.amount
+                    WHEN t.type IN ('WITHDRAWAL') THEN t.amount
                     WHEN t.type IN ('YIELD_CRYSTALLIZATION', 'FEE_DEDUCTION', 'IB_COMMISSION') THEN -t.amount
                     ELSE 0 
                 END

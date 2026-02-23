@@ -52,9 +52,8 @@ export type { Notification } from "./notificationService";
 export { profileService } from "./profileService";
 export type { ProfileSummary, TransactionInvestor } from "./profileService";
 
-// Fund daily AUM
-export { fundDailyAumService } from "./fundDailyAumService";
-export type { FundDailyAumRecord } from "./fundDailyAumService";
+// Fund daily AUM (Deprecated - Architecture Shift)
+// Service deleted: fundDailyAumService
 
 // Note: transactionsV2Service should be imported from @/services/investor
 

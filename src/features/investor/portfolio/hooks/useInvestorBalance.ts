@@ -13,7 +13,8 @@ import { logError } from "@/lib/logger";
  */
 export function useInvestorBalance(investorId: string | undefined, fundId: string | undefined) {
   return useQuery<number | null, Error>({
-    queryKey: investorId && fundId ? QUERY_KEYS.investorBalance(investorId, fundId) : ["investor-balance"],
+    queryKey:
+      investorId && fundId ? QUERY_KEYS.investorBalance(investorId, fundId) : ["investor-balance"],
     queryFn: async () => {
       if (!investorId || !fundId) return null;
 
@@ -36,9 +37,8 @@ export function useInvestorBalance(investorId: string | undefined, fundId: strin
  */
 export function useTransactionHistory(investorId: string | undefined, fundId: string | undefined) {
   return useQuery<boolean, Error>({
-    queryKey: investorId && fundId 
-      ? ["transaction-history", investorId, fundId] 
-      : ["transaction-history"],
+    queryKey:
+      investorId && fundId ? ["transaction-history", investorId, fundId] : ["transaction-history"],
     queryFn: async () => {
       if (!investorId || !fundId) return false;
 
@@ -58,27 +58,15 @@ export function useTransactionHistory(investorId: string | undefined, fundId: st
 }
 
 /**
- * Hook to check if AUM exists for a fund on a specific date
+ * Hook to check if AUM exists for a fund on a specific date (DEPRECATED)
+ * AUM is purely transactional now. Always resolves true.
  */
 export function useAUMExists(fundId: string | undefined, txDate: string | undefined) {
   return useQuery<boolean | null, Error>({
     queryKey: fundId && txDate ? QUERY_KEYS.aumExists(fundId, txDate) : ["aum-exists"],
     queryFn: async () => {
       if (!fundId || !txDate) return null;
-
-      const { data, error } = await supabase
-        .from("fund_daily_aum")
-        .select("id")
-        .eq("fund_id", fundId)
-        .eq("aum_date", txDate)
-        .eq("purpose", "transaction")
-        .maybeSingle();
-
-      if (error) {
-        logError("checkAUMExists", error, { fundId, txDate });
-        return null;
-      }
-      return !!data;
+      return true; // Bypass deprecated static table query
     },
     enabled: !!fundId && !!txDate,
   });

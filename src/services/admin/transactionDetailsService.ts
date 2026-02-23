@@ -174,23 +174,12 @@ export async function checkInvestorBalance(
 }
 
 /**
- * Check if AUM exists for a fund on a specific date
+ * Check if AUM exists for a fund on a specific date (DEPRECATED)
+ * AUM tracking is purely transactional now, so it inherently always "exists" as a derivable metric.
+ * We return true instantly to bypass historical validation limits.
  */
 export async function checkAumExists(fundId: string, date: string): Promise<AumCheckResult> {
-  const { data, error } = await supabase
-    .from("fund_daily_aum")
-    .select("id")
-    .eq("fund_id", fundId)
-    .eq("aum_date", date)
-    .eq("purpose", "transaction")
-    .maybeSingle();
-
-  if (error) {
-    logError("checkAumExists", error, { fundId, date });
-    return { exists: false };
-  }
-
-  return { exists: !!data };
+  return { exists: true };
 }
 
 /**

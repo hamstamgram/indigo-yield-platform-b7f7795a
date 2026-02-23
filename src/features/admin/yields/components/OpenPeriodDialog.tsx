@@ -26,7 +26,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { getTodayUTC } from "@/utils/dateUtils";
-import { fundDailyAumService } from "@/services/shared/fundDailyAumService";
 import { useAuth } from "@/services/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
@@ -57,40 +56,11 @@ export function OpenPeriodDialog({ open, onOpenChange, fund, onSuccess }: OpenPe
   const queryClient = useQueryClient();
 
   const handleSubmit = async () => {
-    if (!fund || !baselineAum || !user) return;
-
-    const aumValue = parseFloat(baselineAum);
-    if (isNaN(aumValue) || aumValue <= 0) {
-      toast.error("Please enter a valid positive AUM value.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await fundDailyAumService.createBaselineAUM({
-        fundId: fund.id,
-        date: baselineDate,
-        totalAum: aumValue,
-        purpose,
-        createdBy: user.id,
-      });
-
-      toast.success(`Baseline AUM created for ${fund.name}`);
-
-      // Invalidate relevant queries
-      YIELD_RELATED_KEYS.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
-
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create baseline AUM");
-    } finally {
-      setIsSubmitting(false);
-    }
+    toast.info(
+      "AUM Periods are now automatically synchronized with the live transaction ledger. Manual baselines are no longer required."
+    );
+    onOpenChange(false);
+    onSuccess?.();
   };
 
   const formatValue = (value: number, asset: string) => {

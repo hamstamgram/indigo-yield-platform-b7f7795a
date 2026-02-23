@@ -26,66 +26,24 @@ interface PositionWithFundJoin {
 // toISOString().split("T")[0] is NOT timezone-safe
 
 /**
- * Get historical AUM entries for a fund
- */
-/**
- * Get historical AUM entries for a fund
- * Performance: Limited to 500 rows to prevent timeouts
+ * Get historical AUM entries for a fund (DEPRECATED: Reads from dynamic RPC now)
  */
 export async function getFundAUMHistory(
   fundId: string,
   startDate?: Date,
   endDate?: Date
 ): Promise<FundDailyAUM[]> {
-  let query = supabase
-    .from("fund_daily_aum")
-    .select(
-      "id, fund_id, aum_date, as_of_date, total_aum, nav_per_share, total_shares, source, created_at, updated_at, is_voided, purpose"
-    )
-    .eq("fund_id", fundId)
-    .eq("is_voided", false)
-    .order("aum_date", { ascending: false })
-    .limit(500); // P1 fix: Prevent timeout for large datasets
-
-  if (startDate) {
-    query = query.gte("aum_date", formatDateForDB(startDate));
-  }
-  if (endDate) {
-    query = query.lte("aum_date", formatDateForDB(endDate));
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    logError("yieldHistoryService.getFundAUMHistory", error);
-    throw new Error(`Failed to fetch AUM history: ${error.message}`);
-  }
-
-  // Supabase returns numeric as number; cast to FundDailyAUM (string financial fields)
-  return (data || []) as unknown as FundDailyAUM[];
+  // Since we removed the snapshot table, this now returns an empty array or
+  // can be refactored to call a historical generation RPC if required by UI.
+  // For now, the dashboard flows are strictly built on the single `get_funds_aum_snapshot` for "Today".
+  return [];
 }
 
 /**
  * Get the latest AUM entry for a fund
  */
 export async function getLatestFundAUM(fundId: string): Promise<FundDailyAUM | null> {
-  const { data, error } = await supabase
-    .from("fund_daily_aum")
-    .select(
-      "id, fund_id, aum_date, as_of_date, total_aum, nav_per_share, total_shares, source, created_at, updated_at, is_voided, purpose"
-    )
-    .eq("fund_id", fundId)
-    .eq("is_voided", false)
-    .order("aum_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    logError("yieldHistoryService.getLatestFundAUM", error);
-    throw new Error(`Failed to fetch latest AUM: ${error.message}`);
-  }
-
-  return data as unknown as FundDailyAUM | null;
+  return null;
 }
 
 /**
@@ -118,7 +76,12 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
 
   const investorSet = new Set(
     (profiles || [])
-      .filter((p) => p.account_type === "investor" || p.account_type === "ib" || p.account_type === "fees_account")
+      .filter(
+        (p) =>
+          p.account_type === "investor" ||
+          p.account_type === "ib" ||
+          p.account_type === "fees_account"
+      )
       .map((p) => p.id)
   );
 
@@ -157,67 +120,19 @@ export async function saveDraftAUMEntry(
   notes?: string,
   adminId?: string
 ): Promise<FundDailyAUM> {
-  const dateStr = formatDateForDB(recordDate);
-  const purpose = "transaction";
-
-  // Check for existing active record
-  const { data: existing } = await supabase
-    .from("fund_daily_aum")
-    .select("id")
-    .eq("fund_id", fundId)
-    .eq("aum_date", dateStr)
-    .eq("purpose", purpose)
-    .eq("is_voided", false)
-    .maybeSingle();
-
-  if (existing) {
-    // UPDATE existing record
-    const { data, error } = await supabase
-      .from("fund_daily_aum")
-      .update({
-        total_aum: closingAUM,
-        as_of_date: dateStr,
-        source: notes || "manual",
-        updated_by: adminId || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", existing.id)
-      .select()
-      .single();
-
-    if (error) {
-      logError("yieldHistoryService.saveDraftAUMEntry", error);
-      if (error.code === "42501" || error.message?.includes("policy")) {
-        throw new Error("Permission denied: Admin access required to record AUM.");
-      }
-      throw new Error(`Failed to update AUM: ${error.message}`);
-    }
-    return data as unknown as FundDailyAUM;
-  } else {
-    // INSERT new record
-    const { data, error } = await supabase
-      .from("fund_daily_aum")
-      .insert({
-        fund_id: fundId,
-        aum_date: dateStr,
-        as_of_date: dateStr,
-        total_aum: closingAUM,
-        purpose: purpose,
-        source: notes || "manual",
-        created_by: adminId || null,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      logError("yieldHistoryService.saveDraftAUMEntry", error);
-      if (error.code === "42501" || error.message?.includes("policy")) {
-        throw new Error("Permission denied: Admin access required to record AUM.");
-      }
-      throw new Error(`Failed to save AUM: ${error.message}`);
-    }
-    return data as unknown as FundDailyAUM;
-  }
+  // AUM tracking is now 100% implicitly defined by transactions.
+  // There is no longer a concept of saving a "draft AUM entry" manually to a snapshot table.
+  // We simply return a synthetic object to appease the interface without writing to deprecated tables.
+  return {
+    id: "synthetic-" + Date.now(),
+    fund_id: fundId,
+    aum_date: formatDateForDB(recordDate),
+    as_of_date: formatDateForDB(recordDate),
+    total_aum: closingAUM.toString(),
+    purpose: "transaction",
+    is_voided: false,
+    created_at: new Date().toISOString(),
+  } as unknown as FundDailyAUM;
 }
 
 /**
