@@ -1,91 +1,163 @@
 
-# SOL Fund September 2025: Ghost Report Audit & Repair
+# Comprehensive Platform Audit Report
 
-## Diagnosis Summary
+## Critical Findings
 
-### Task 1: Ghost Reports (Family Kabbaj & Vivie)
+### BUG 1: `fund_aum_mismatch` View Does Not Exist (Runtime Crash)
 
-**Root Cause Found:** Stale `investor_fund_performance` records from a previous (now voided) yield distribution run.
+**Severity:** Critical -- breaks the Integrity Dashboard and System Health page at runtime.
 
-Evidence:
-- Family Kabbaj (`f917cd8b`) and Vivie & Liana (`981dd85c`) have records in `investor_fund_performance` for Sept 2025 SOL showing `mtd_additions: 55/50`, `mtd_ending_balance: 56.46/51.66`
-- But they have **zero transactions** in `transactions_v2` (any asset, any date)
-- Their `investor_positions` show `is_active: false`, `current_value: 0`
-- There are no `yield_allocations` for them in the current (non-voided) distributions
+The view `fund_aum_mismatch` is referenced in two files but **does not exist** in the database. The database has no view matching `%aum%` at all.
 
-The `generate-fund-performance` edge function has guards (lines 408-451) that prevent creating NEW ghost records. However, it uses **UPSERT** (line 578), which only updates or inserts records for investors in the current computation set. It **never deletes** records for investors who were in a PRIOR run but no longer qualify. When their yield distributions were voided, these orphaned performance records were left behind.
+- `src/services/admin/integrityService.ts` line 21: `supabase.from("fund_aum_mismatch" as any)` -- when this query executes, it returns an error. Line 36 then **throws**, crashing the entire `fetchIntegrityChecks()` function and preventing ALL 6 integrity checks from displaying.
+- `src/services/admin/systemAdminService.ts` line 377: same query -- crashes the system health diagnostic page.
 
-### Task 2: Missing IB Report (Alex Jacobs)
+**Fix:** Replace `"fund_aum_mismatch"` with an existing equivalent view. The closest match is `position_transaction_reconciliation` (which compares position values against transaction sums). Alternatively, create the missing view via SQL migration. The simpler fix is to swap the reference to an existing view or gracefully handle the error instead of throwing.
 
-**By Design, Not a Bug:** The `generate-fund-performance` function (line 213) filters: `!p.account_type || p.account_type === 'investor'`. This intentionally excludes `account_type = 'ib'` and `fees_account` from report generation. IBs receive commission credits to their positions but do not receive investor performance statements.
+**Recommended approach:** Change the error handling in `integrityService.ts` so that the `fundAumMismatch` query failure does NOT crash the entire function. Instead, treat a query error as a "warning" status with count 0. In `systemAdminService.ts`, do the same -- return count 0 if the query fails.
 
-Alex Jacobs's IB credit of 0.0327 SOL is correctly recorded in `yield_allocations` and his `investor_positions.current_value = 0.0327`. The ledger is correct; the reporting exclusion is intentional.
+| File | Line | Change |
+|------|------|--------|
+| `src/services/admin/integrityService.ts` | 36 | Remove the `throw` for `fundAumMismatch.error`; instead set status to "warning" with a message |
+| `src/services/admin/systemAdminService.ts` | 377 | Wrap the `fund_aum_mismatch` query result check to gracefully return `{ count: 0, data: [] }` on error |
 
-### Task 3: Control Group (LP vs Kabbaj)
+---
 
-| Field | Indigo LP (success) | Family Kabbaj (ghost) |
-|-------|--------------------|-----------------------|
-| transactions_v2 records | Has DEPOSIT + YIELD entries | Zero transactions |
-| investor_positions.is_active | false (withdrawn) | false |
-| yield_allocations (non-voided) | 2 records (checkpoint + reporting) | 0 records |
-| investor_fund_performance | Valid (from edge function run) | Stale orphan from voided run |
+### BUG 2: Indigo LP Cost Basis Mismatch (Data Anomaly)
 
-The discriminator: LP has ledger transactions backing its performance record. Kabbaj has none.
+**Severity:** Medium -- data integrity issue, detected by `v_cost_basis_mismatch`.
 
-## Task 4: Structural Healing
+The `v_cost_basis_mismatch` view reports a variance for **Indigo LP** in the SOL fund:
 
-### Fix 1: SQL Cleanup (Stale Data)
+| Field | Position Value | Computed from Ledger |
+|-------|---------------|---------------------|
+| cost_basis | 0.00 | -13.65 |
+| current_value | 0.0017218800 | 0.0008609400 |
+| shares | 1263.6508609400 | 0.0008609400 |
 
-Delete the two orphaned `investor_fund_performance` records for Family Kabbaj and Vivie & Liana for Sept 2025 SOL.
+Ledger transactions (all non-voided):
+- YIELD +2.00 (Sept 4)
+- YIELD +11.65 (Sept 30)
+- DEPOSIT +1250.00 (Feb 23)
+- WITHDRAWAL -1263.65 (Feb 23)
+- DUST +0.00086 (Feb 23)
 
+Ledger sum = 0.00086. Position shows current_value = 0.00172 (exactly 2x the dust amount). This suggests `recompute_investor_position` was called but double-counted the DUST transaction, OR the position was not recomputed after the full withdrawal sequence.
+
+**Fix:** This is a data-only issue. Run `recompute_investor_position` for this investor+fund pair to resync the position from the ledger. No code change needed -- the canonical writer should produce the correct result.
+
+**Manual SQL action:**
+```sql
+SELECT recompute_investor_position(
+  'd91f3eb7-bd47-4c42-ab4f-c4f20fb41b13',
+  '7574bc81-aab3-4175-9e7f-803aa6f9eb8f'
+);
+```
+
+---
+
+### BUG 3: Orphaned Positions for Deleted Profile
+
+**Severity:** Low -- cosmetic data residue, no financial impact.
+
+Investor `20396ec2-c919-46ef-b3a3-8005a8a34bd3` has 2 `investor_positions` records (both `current_value = 0`, `is_active = false`) but NO matching `profiles` row. The `v_orphaned_positions` view correctly detects these as `INVESTOR_MISSING`.
+
+Their yield_allocations (2 records) are all voided. No transactions exist.
+
+**Fix:** Clean up via SQL:
+```sql
+DELETE FROM investor_positions 
+WHERE investor_id = '20396ec2-c919-46ef-b3a3-8005a8a34bd3';
+```
+
+---
+
+### BUG 4: Ghost Performance Records Still Exist (Kabbaj & Vivie)
+
+**Severity:** Medium -- causes "Empty Preview" reports in the Statements UI.
+
+The SQL cleanup from the previous plan has NOT been executed yet. Family Kabbaj and Vivie & Liana still have stale `investor_fund_performance` records for September 2025 SOL.
+
+**Fix:** Execute the previously provided cleanup SQL:
 ```sql
 DELETE FROM investor_fund_performance
-WHERE period_id = 'a0fcc3fd-0912-4338-8829-3e1cb6b0589a'  -- Sept 2025
+WHERE period_id = 'a0fcc3fd-0912-4338-8829-3e1cb6b0589a'
   AND fund_name = 'SOL'
   AND investor_id IN (
-    'f917cd8b-2d12-428c-ae3c-210b7ee3ae75',  -- Family Kabbaj
-    '981dd85c-35c8-4254-a3e9-27c2af302815'   -- Vivie & Liana
+    'f917cd8b-2d12-428c-ae3c-210b7ee3ae75',
+    '981dd85c-35c8-4254-a3e9-27c2af302815'
   );
 ```
 
-### Fix 2: Edge Function Prevention (generate-fund-performance)
+---
 
-Add a cleanup step after computing `performanceRecords` (after line 569, before the upsert at line 576). This deletes stale records for investors who are no longer in the computed set for a given period + fund_name combination.
+### ISSUE 5: Redundant RLS SELECT Policies (Performance)
 
-```typescript
-// After line 569: performanceRecords are computed
+**Severity:** Low -- no functional bug, but causes unnecessary policy evaluation overhead.
 
-// Build set of (investor_id, fund_name) tuples that were generated
-const generatedKeys = new Set(
-  performanceRecords.map(r => `${r.investor_id}:${r.fund_name}`)
-);
+Two tables have redundant overlapping SELECT policies:
 
-// Find existing records for this period to identify stale ones
-const { data: existingRecords } = await supabase
-  .from("investor_fund_performance")
-  .select("id, investor_id, fund_name")
-  .eq("period_id", periodId)
-  .eq("purpose", "reporting");
+**`notifications` (3 SELECT policies, all PERMISSIVE):**
+- `notifications_select`: `user_id = auth.uid() OR is_admin()`
+- `Admins can view all notifications`: `user_id = auth.uid() OR check_is_admin(auth.uid())`
+- `Notifications own access`: `user_id = auth.uid()`
 
-const staleIds = (existingRecords || [])
-  .filter(r => !generatedKeys.has(`${r.investor_id}:${r.fund_name}`))
-  .map(r => r.id);
+The first policy already covers all cases. The other two are redundant.
 
-if (staleIds.length > 0) {
-  await supabase
-    .from("investor_fund_performance")
-    .delete()
-    .in("id", staleIds);
-  console.log(`Cleaned up ${staleIds.length} stale performance records`);
-}
+**`investor_emails` (3 SELECT policies, all PERMISSIVE):**
+- `Admins can view investor emails`: `is_admin()`
+- `investor_emails_select_own`: `investor_id = auth.uid()`
+- `investor_emails_select_own_or_admin`: `investor_id = auth.uid() OR is_admin_safe()`
+
+The third policy subsumes the first two.
+
+**Fix (SQL migration):** Drop the redundant policies. Since PERMISSIVE policies are OR'd together, the redundancy is harmless but wastes query planner cycles.
+
+```sql
+-- notifications: keep only notifications_select
+DROP POLICY "Admins can view all notifications" ON notifications;
+DROP POLICY "Notifications own access" ON notifications;
+
+-- investor_emails: keep only investor_emails_select_own_or_admin
+DROP POLICY "Admins can view investor emails" ON investor_emails;
+DROP POLICY "investor_emails_select_own" ON investor_emails;
 ```
 
-When running for a single investor (`investorId` param), skip the cleanup to avoid deleting other investors' records.
+---
 
-### Files Changed
+## Verified Clean (No Issues Found)
 
-| File | Change |
-|------|--------|
-| `supabase/functions/generate-fund-performance/index.ts` | Add stale record cleanup after line 569, before upsert |
+| Check | Result |
+|-------|--------|
+| Position-Ledger Reconciliation (`investor_position_ledger_mismatch`) | 0 mismatches |
+| Yield Conservation (`yield_distribution_conservation_check`) | 0 violations |
+| IB Allocation Consistency (`ib_allocation_consistency`) | 0 issues |
+| Position-Transaction Reconciliation (`position_transaction_reconciliation`) | 0 discrepancies > 0.001 |
+| Fee allocation orphans (voided tx with non-voided fee_alloc) | 0 |
+| Duplicate positions (same investor+fund) | 0 |
+| Stuck withdrawal requests | 0 |
+| Orphaned notifications (null user_id) | 0 |
+| Orphaned investor_fund_performance (deleted profiles) | 0 |
 
-No other files need changes. The yield preview UI already has zero-amount filtering via the system accounts toggle.
+---
+
+## Summary of Required Actions
+
+### Code Changes (2 files)
+
+| # | File | Change | Risk |
+|---|------|--------|------|
+| 1 | `src/services/admin/integrityService.ts` | Gracefully handle `fund_aum_mismatch` query error instead of throwing (view doesn't exist) | None -- prevents crash |
+| 2 | `src/services/admin/systemAdminService.ts` | Same graceful handling for the `fund_aum_mismatch` query | None -- prevents crash |
+
+### Manual SQL Cleanup (run in SQL Editor)
+
+| # | Action | SQL |
+|---|--------|-----|
+| 1 | Recompute Indigo LP SOL position | `SELECT recompute_investor_position('d91f3eb7-...', '7574bc81-...');` |
+| 2 | Delete orphaned positions | `DELETE FROM investor_positions WHERE investor_id = '20396ec2-...';` |
+| 3 | Delete ghost performance records (Kabbaj/Vivie) | Previously provided DELETE statement |
+
+### Optional SQL Migration (RLS cleanup)
+
+Drop 4 redundant SELECT policies on `notifications` and `investor_emails` tables. Low priority -- no functional impact.
