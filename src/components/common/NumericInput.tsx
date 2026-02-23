@@ -12,6 +12,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Input, type InputProps } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getAssetStep, getAssetPrecision } from "@/types/asset";
+import Decimal from "decimal.js";
 
 export interface NumericInputProps extends Omit<InputProps, "value" | "onChange" | "type"> {
   /** Asset symbol for precision (e.g., "BTC", "USDT") */
@@ -100,21 +101,21 @@ export function NumericInput({
       return;
     }
 
-    let numValue = parseFloat(parsed);
+    // Use Decimal.js for precision-safe rounding (no IEEE 754 float loss)
+    let decValue = new Decimal(parsed);
 
     // Apply min/max constraints
-    if (min !== undefined && numValue < min) {
-      numValue = min;
+    if (min !== undefined && decValue.lt(min)) {
+      decValue = new Decimal(min);
     }
-    if (max !== undefined && numValue > max) {
-      numValue = max;
+    if (max !== undefined && decValue.gt(max)) {
+      decValue = new Decimal(max);
     }
 
-    // Round to precision
-    const factor = Math.pow(10, precision);
-    numValue = Math.round(numValue * factor) / factor;
+    // Round to precision using Decimal.js (not Math.round)
+    decValue = decValue.toDecimalPlaces(precision, Decimal.ROUND_HALF_UP);
 
-    const finalValue = numValue.toString();
+    const finalValue = decValue.toString();
     onChange(finalValue);
     setDisplayValue(showFormatted ? formatWithCommas(finalValue, precision) : finalValue);
   }, [displayValue, onChange, min, max, precision, showFormatted]);
