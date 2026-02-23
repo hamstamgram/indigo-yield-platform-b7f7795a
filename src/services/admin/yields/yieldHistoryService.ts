@@ -163,15 +163,33 @@ export async function getActiveFundsWithAUM(): Promise<
     throw new Error(`Failed to fetch active funds summary: ${error.message}`);
   }
 
-  return (data || []).map((f: any) => ({
-    id: f.id,
-    code: f.code,
-    name: f.name,
-    asset: f.asset,
-    total_aum: parseFinancial(f.total_aum).toNumber(),
-    investor_count: Number(f.investor_count),
-    aum_record_count: Number(f.aum_record_count),
-  }));
+  console.log(`[yieldHistoryService] getActiveFundsWithAUM raw data:`, data?.slice(0, 2));
+
+  return (data || []).map((f: any) => {
+    // RIGOROUS MAPPING: Check both v5 (fund_id) and v6 (id) styles
+    // The RPC returns {id, code, name, asset, total_aum, investor_count}
+    const id = f.id || f.fund_id;
+    const code = f.code || f.fund_code;
+    const name = f.name || f.fund_name;
+    const asset = f.asset || f.fund_asset;
+
+    if (!id) {
+      console.warn(
+        `[yieldHistoryService] Missing ID for fund ${code || name || "unknown"}. Raw:`,
+        f
+      );
+    }
+
+    return {
+      id,
+      code,
+      name,
+      asset,
+      total_aum: parseFinancial(f.total_aum || 0).toNumber(),
+      investor_count: Number(f.investor_count || 0),
+      aum_record_count: Number(f.aum_record_count || 0),
+    };
+  });
 }
 
 /**
