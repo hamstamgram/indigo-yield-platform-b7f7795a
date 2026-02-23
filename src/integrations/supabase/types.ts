@@ -7454,7 +7454,8 @@ export type Database = {
         | "INTERNAL_CREDIT"
         | "IB_DEBIT"
         | "DUST_SWEEP"
-        | "IB";
+        | "IB"
+        | "DUST";
       visibility_scope: "investor_visible" | "admin_only";
       withdrawal_action:
         | "create"
@@ -7729,6 +7730,7 @@ export const Constants = {
         "IB_DEBIT",
         "DUST_SWEEP",
         "IB",
+        "DUST",
       ],
       visibility_scope: ["investor_visible", "admin_only"],
       withdrawal_action: [

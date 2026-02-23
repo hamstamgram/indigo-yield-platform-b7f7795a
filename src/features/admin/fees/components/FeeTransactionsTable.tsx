@@ -44,6 +44,24 @@ interface FeeTransactionsTableProps {
   onFundChange: (fundId: string) => void;
 }
 
+const getTypeBadge = (type: string) => {
+  switch (type) {
+    case "FEE_CREDIT":
+      return (
+        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Management Fee</Badge>
+      );
+    case "IB_CREDIT":
+      return <Badge className="bg-blue-100 text-blue-800 border-blue-200">IB Commission</Badge>;
+    case "YIELD":
+      return <Badge className="bg-purple-100 text-purple-800 border-purple-200">Yield Share</Badge>;
+    case "DUST":
+    case "DUST_SWEEP":
+      return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Dust Sweep</Badge>;
+    default:
+      return <Badge variant="outline">{type}</Badge>;
+  }
+};
+
 export function FeeTransactionsTable({
   fees,
   totalCount,
@@ -105,6 +123,7 @@ export function FeeTransactionsTable({
                 >
                   Amount
                 </SortableTableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Purpose</TableHead>
                 <TableHead>Notes</TableHead>
               </TableRow>
@@ -112,7 +131,7 @@ export function FeeTransactionsTable({
             <TableBody>
               {sortedData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     <div className="space-y-2">
                       <AlertCircle className="h-8 w-8 mx-auto opacity-50" />
                       <p>No fee credit transactions found</p>
@@ -148,6 +167,7 @@ export function FeeTransactionsTable({
                       </span>
                       <span className="text-xs text-muted-foreground ml-1">{fee.asset}</span>
                     </TableCell>
+                    <TableCell>{getTypeBadge(fee.type)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
                         {fee.purpose || "---"}
