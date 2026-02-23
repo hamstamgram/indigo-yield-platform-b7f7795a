@@ -17,9 +17,15 @@ interface FundLogoUploadProps {
   currentLogoUrl?: string | null;
   onUpload: (url: string | null) => void;
   disabled?: boolean;
+  size?: "sm" | "md";
 }
 
-export function FundLogoUpload({ currentLogoUrl, onUpload, disabled }: FundLogoUploadProps) {
+export function FundLogoUpload({
+  currentLogoUrl,
+  onUpload,
+  disabled,
+  size = "md",
+}: FundLogoUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentLogoUrl || null);
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -126,43 +132,55 @@ export function FundLogoUpload({ currentLogoUrl, onUpload, disabled }: FundLogoU
         />
 
         {uploading ? (
-          <div className="flex flex-col items-center gap-2 py-4">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Uploading...</span>
+          <div className={cn("flex flex-col items-center gap-2", size === "sm" ? "py-1" : "py-4")}>
+            <Loader2
+              className={cn(
+                "animate-spin text-muted-foreground",
+                size === "sm" ? "h-5 w-5" : "h-8 w-8"
+              )}
+            />
+            {size !== "sm" && <span className="text-sm text-muted-foreground">Uploading...</span>}
           </div>
         ) : previewUrl ? (
           <div className="relative group">
             <img
               src={previewUrl}
               alt="Fund logo preview"
-              className="h-20 w-20 rounded-lg object-cover"
+              className={cn("rounded-lg object-cover", size === "sm" ? "h-12 w-12" : "h-20 w-20")}
             />
             <Button
               type="button"
               variant="destructive"
               size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+              className={cn(
+                "absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity",
+                size === "sm" && "h-5 w-5 -top-1 -right-1"
+              )}
               onClick={(e) => {
                 e.stopPropagation();
                 handleRemove();
               }}
               disabled={disabled}
             >
-              <X className="h-3 w-3" />
+              <X className={cn(size === "sm" ? "h-2 w-2" : "h-3 w-3")} />
             </Button>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2 py-4">
-            <div className="rounded-full bg-muted p-3">
-              <ImageIcon className="h-6 w-6 text-muted-foreground" />
+          <div className={cn("flex flex-col items-center gap-2", size === "sm" ? "py-1" : "py-4")}>
+            <div className={cn("rounded-full bg-muted", size === "sm" ? "p-1.5" : "p-3")}>
+              <ImageIcon
+                className={cn("text-muted-foreground", size === "sm" ? "h-4 w-4" : "h-6 w-6")}
+              />
             </div>
-            <div className="text-center">
-              <p className="text-sm font-medium">
-                <Upload className="inline h-4 w-4 mr-1" />
-                Upload logo
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">PNG, JPG, or WebP (max 2MB)</p>
-            </div>
+            {size !== "sm" && (
+              <div className="text-center">
+                <p className="text-sm font-medium">
+                  <Upload className="inline h-4 w-4 mr-1" />
+                  Upload logo
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">PNG, JPG, or WebP (max 2MB)</p>
+              </div>
+            )}
           </div>
         )}
       </div>

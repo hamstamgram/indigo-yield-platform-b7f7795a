@@ -136,6 +136,39 @@ export async function voidYieldDistribution(
 }
 
 /**
+ * Unvoid a yield distribution (cascade restore with audit trail)
+ */
+export async function unvoidYieldDistribution(
+  distributionId: string,
+  reason: string
+): Promise<{ success: boolean; unvoided_transactions?: number; error?: string }> {
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  const { data, error } = await callRPC("unvoid_yield_distribution", {
+    p_distribution_id: distributionId,
+    p_admin_id: user.id,
+    p_reason: reason,
+  });
+
+  if (error) {
+    logError("yieldManagement.unvoidDistribution", error, { distributionId });
+    throw new Error(error.message || "Failed to unvoid yield distribution");
+  }
+
+  return data as unknown as {
+    success: boolean;
+    unvoided_transactions?: number;
+    error?: string;
+  };
+}
+
+/**
  * Update a yield record's AUM with audit trail
  */
 /**

@@ -58,9 +58,14 @@ import {
 } from "@/components/ui";
 import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { ArrowRightLeft, Loader2, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks";
+import { ArrowRightLeft, Loader2, Trash2, Undo2 } from "lucide-react";
+import { useToast, useUserRole } from "@/hooks";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useYieldDistributionSelection } from "../hooks/useYieldDistributionSelection";
+import { YieldBulkActionToolbar } from "../components/YieldBulkActionToolbar";
+import { BulkRestoreDistributionsDialog } from "../components/BulkRestoreDistributionsDialog";
+import { unvoidYieldDistribution } from "@/services/admin/yields/yieldManagementService";
 
 interface Fund {
   id: string;
@@ -232,6 +237,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
   const selectedPurpose = urlFilters.purpose || "all";
   const [showVoided, setShowVoided] = useState(false);
 
+  // Super admin check for bulk operations
+  const { isSuperAdmin } = useUserRole();
+
   const {
     data,
     isLoading: loading,
@@ -249,6 +257,14 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
   const feeAllocationsByDistribution = data?.feeAllocationsByDistribution ?? {};
   const yieldEventsByDistribution = data?.yieldEventsByDistribution ?? {};
   const investorMap = data?.investorMap ?? {};
+
+  // Selection for bulk operations
+  const selection = useYieldDistributionSelection(distributions, showVoided);
+
+  const selectedDistributions = useMemo(
+    () => distributions.filter((d) => selection.selectedIds.has(d.id)),
+    [distributions, selection.selectedIds]
+  );
 
   const fundMap = useMemo(() => new Map(funds.map((fund) => [fund.id, fund])), [funds]);
 
@@ -294,6 +310,11 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
   } | null>(null);
   const [routePending, setRoutePending] = useState(false);
 
+  // Restore dialog state
+  const [restoreTarget, setRestoreTarget] = useState<DistributionRow | null>(null);
+  const [bulkRestoreDialogOpen, setBulkRestoreDialogOpen] = useState(false);
+  const [restorePending, setRestorePending] = useState(false);
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -335,6 +356,58 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
       }
     },
     [queryClient, toast]
+  );
+
+  const handleRestoreConfirm = useCallback(
+    async (distributionId: string, reason: string) => {
+      setRestorePending(true);
+      try {
+        await unvoidYieldDistribution(distributionId, reason);
+        toast({ title: "Distribution restored successfully" });
+        setRestoreTarget(null);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+      } catch (err) {
+        toast({
+          title: "Failed to restore distribution",
+          description: err instanceof Error ? err.message : "Unknown error",
+          variant: "destructive",
+        });
+      } finally {
+        setRestorePending(false);
+      }
+    },
+    [queryClient, toast]
+  );
+
+  const handleBulkRestoreConfirm = useCallback(
+    async (reason: string) => {
+      setRestorePending(true);
+      const ids = Array.from(selection.selectedIds);
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const id of ids) {
+        try {
+          await unvoidYieldDistribution(id, reason);
+          successCount++;
+        } catch (err) {
+          errorCount++;
+          console.error(`Failed to restore distribution ${id}`, err);
+        }
+      }
+
+      toast({
+        title: "Bulk restore complete",
+        description: `Successfully restored ${successCount} distribution(s)${errorCount > 0 ? `. ${errorCount} failed.` : "."}`,
+        variant: errorCount > 0 ? "destructive" : "default",
+      });
+
+      setBulkRestoreDialogOpen(false);
+      selection.clearSelection();
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+      setRestorePending(false);
+    },
+    [selection, queryClient, toast]
   );
 
   const handleRouteToFeesOpen = useCallback(
@@ -538,6 +611,19 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         </div>
       </div>
 
+      <YieldBulkActionToolbar
+        summary={selection.summary}
+        isSuperAdmin={isSuperAdmin}
+        onVoid={() => {
+          toast({
+            title: "Bulk void not yet implemented",
+            description: "Please void distributions individually.",
+          });
+        }}
+        onRestore={() => setBulkRestoreDialogOpen(true)}
+        onClear={selection.clearSelection}
+      />
+
       <Accordion type="multiple" className="w-full space-y-3">
         {Object.entries(groupedDistributions).map(([year, months]) => (
           <AccordionItem key={year} value={`year-${year}`} className="border rounded-md">
@@ -669,6 +755,14 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                       <CardHeader className="pb-3">
                                         <CardTitle className="text-base">
                                           <div className="flex flex-wrap items-center gap-3">
+                                            <Checkbox
+                                              checked={selection.isSelected(distribution.id)}
+                                              onCheckedChange={() =>
+                                                selection.toggleOne(distribution.id)
+                                              }
+                                              aria-label={`Select distribution ${distribution.id}`}
+                                              className="border-white/20"
+                                            />
                                             <span>
                                               {distribution.period_end
                                                 ? format(
@@ -738,6 +832,17 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                 >
                                                   <Trash2 className="h-4 w-4 mr-1" />
                                                   Void
+                                                </Button>
+                                              )}
+                                              {distribution.is_voided && (
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="text-emerald-400 hover:text-emerald-400 hover:bg-emerald-400/10"
+                                                  onClick={() => setRestoreTarget(distribution)}
+                                                >
+                                                  <Undo2 className="h-4 w-4 mr-1" />
+                                                  Restore
                                                 </Button>
                                               )}
                                             </div>

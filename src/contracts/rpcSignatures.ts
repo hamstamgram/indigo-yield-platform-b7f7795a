@@ -233,6 +233,7 @@ export const RPC_FUNCTIONS = [
   "void_transaction",
   "void_transactions_bulk",
   "void_yield_distribution",
+  "unvoid_yield_distribution",
 ] as const;
 
 // =============================================================================
@@ -1998,6 +1999,14 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_admin_id", "p_distribution_id"] as const,
     optionalParams: ["p_reason", "p_void_crystals"] as const,
+  },
+  unvoid_yield_distribution: {
+    name: "unvoid_yield_distribution" as const,
+    returnType: "Json;",
+    returnsSet: false,
+    securityDefiner: false,
+    requiredParams: ["p_admin_id", "p_distribution_id", "p_reason"] as const,
+    optionalParams: [] as const,
   },
 } as const;
 
