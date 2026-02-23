@@ -1,7 +1,9 @@
 import React, { ReactNode } from "react";
 import { Card, CardContent } from "./card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
+import { SortableTableHead } from "./sortable-table-head";
 import { cn } from "@/lib/utils";
+import type { SortConfig } from "@/hooks";
 
 export interface ResponsiveTableColumn<T> {
   header: string | ReactNode;
@@ -20,6 +22,8 @@ interface ResponsiveTableProps<T> {
   expandedRows?: Set<string | number>;
   expandedRowRenderer?: (item: T) => ReactNode;
   onRowClick?: (item: T) => void;
+  currentSort?: SortConfig;
+  onSort?: (column: string) => void;
 }
 
 export function ResponsiveTable<T>({
@@ -32,6 +36,8 @@ export function ResponsiveTable<T>({
   expandedRows,
   expandedRowRenderer,
   onRowClick,
+  currentSort,
+  onSort,
 }: ResponsiveTableProps<T>) {
   if (!data || data.length === 0) {
     return (
@@ -48,11 +54,30 @@ export function ResponsiveTable<T>({
         <Table>
           <TableHeader>
             <TableRow>
-              {columns.map((col, index) => (
-                <TableHead key={index} className={col.className}>
-                  {col.header}
-                </TableHead>
-              ))}
+              {columns.map((col, index) => {
+                const isSortable = !!onSort && !!col.accessorKey;
+                const columnKey = String(col.accessorKey || "");
+
+                if (isSortable && currentSort) {
+                  return (
+                    <SortableTableHead
+                      key={index}
+                      column={columnKey}
+                      currentSort={currentSort}
+                      onSort={onSort}
+                      className={col.className}
+                    >
+                      {col.header}
+                    </SortableTableHead>
+                  );
+                }
+
+                return (
+                  <TableHead key={index} className={col.className}>
+                    {col.header}
+                  </TableHead>
+                );
+              })}
             </TableRow>
           </TableHeader>
           <TableBody>

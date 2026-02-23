@@ -253,7 +253,14 @@ export default function IBManagementPage({ embedded = false }: { embedded?: bool
                   >
                     Referrals
                   </SortableTableHead>
-                  <TableHead className="text-center whitespace-nowrap">Funds</TableHead>
+                  <SortableTableHead
+                    column="activeAssets"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="text-center whitespace-nowrap"
+                  >
+                    Funds
+                  </SortableTableHead>
                   <TableHead className="text-right whitespace-nowrap">Earnings</TableHead>
                   <SortableTableHead
                     column="createdAt"

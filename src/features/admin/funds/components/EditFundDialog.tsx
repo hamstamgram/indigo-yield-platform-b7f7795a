@@ -28,7 +28,7 @@ import { Loader2, AlertTriangle, RotateCcw as ResetIcon, Percent } from "lucide-
 import { logError } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
-import { updateFund, checkFundUsage, feeSettingsService } from "@/services/admin";
+import { updateFund, checkFundUsage, feeSettingsService, deleteFund } from "@/services/admin";
 import { auditLogService } from "@/services/shared";
 import type { Fund } from "@/types/domains/fund";
 
@@ -73,6 +73,8 @@ export function EditFundDialog({
     transactions: number;
   } | null>(null);
   const [isResettingFee, setIsResettingFee] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState("");
   const { user } = useAuth();
 
   const {
@@ -128,6 +130,27 @@ export function EditFundDialog({
       toast.error("Failed to fetch global fee settings");
     } finally {
       setIsResettingFee(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!fund) return;
+    if (confirmDelete !== "DELETE") {
+      toast.error("Please type 'DELETE' to confirm");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteFund(fund.id);
+      toast.success(`Fund "${fund.name}" deleted successfully`);
+      onSuccess();
+      onOpenChange(false);
+    } catch (error: any) {
+      logError("EditFundDialog.deleteFund", error, { fundId: fund.id });
+      toast.error(error.message || "Failed to delete fund");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -365,14 +388,44 @@ export function EditFundDialog({
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
-            </Button>
+          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between items-center gap-4">
+            <div className="flex-1 w-full">
+              {watch("status") === "deprecated" && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Type DELETE"
+                    value={confirmDelete}
+                    onChange={(e) => setConfirmDelete(e.target.value.toUpperCase())}
+                    className="max-w-[120px] h-8 text-xs border-destructive/30 focus-visible:ring-destructive"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={isDeleting || confirmDelete !== "DELETE"}
+                    className="h-8 text-xs px-3"
+                  >
+                    {isDeleting ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                    Delete
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={loading || isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading || isDeleting}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Changes
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

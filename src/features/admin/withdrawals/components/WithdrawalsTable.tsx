@@ -23,6 +23,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  SortableTableHead,
 } from "@/components/ui";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { useSortableColumns } from "@/hooks";
@@ -334,11 +335,46 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                       />
                     </TableHead>
                   )}
-                  <TableHead className="whitespace-nowrap">Investor</TableHead>
-                  <TableHead className="whitespace-nowrap">Amount</TableHead>
-                  <TableHead className="whitespace-nowrap">Type</TableHead>
-                  <TableHead className="whitespace-nowrap">Status</TableHead>
-                  <TableHead className="whitespace-nowrap">Request Date</TableHead>
+                  <SortableTableHead
+                    column="investor_name"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Investor
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="requested_amount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Amount
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="withdrawal_type"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Type
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="status"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Status
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="request_date"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Request Date
+                  </SortableTableHead>
                   <TableHead className="whitespace-nowrap">Notes</TableHead>
                   <TableHead className="w-[50px]">Actions</TableHead>
                 </TableRow>

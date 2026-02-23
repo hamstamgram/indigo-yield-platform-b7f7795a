@@ -65,9 +65,14 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
         >
           Investor
         </SortableTableHead>
-        <span className="text-center text-muted-foreground/70 uppercase tracking-wider text-[10px] font-medium">
+        <SortableTableHead
+          column="fundsHeldCount"
+          currentSort={sortConfig}
+          onSort={onSort}
+          className="text-center text-muted-foreground/70 uppercase tracking-wider text-[10px] bg-transparent border-none p-0 h-auto"
+        >
           Status
-        </span>
+        </SortableTableHead>
         <SortableTableHead
           column="fundsHeldCount"
           currentSort={sortConfig}

@@ -304,7 +304,14 @@ const AuditLogViewer = ({ embedded = false }: { embedded?: boolean }) => {
                   >
                     Timestamp
                   </SortableTableHead>
-                  <TableHead className="whitespace-nowrap">Actor</TableHead>
+                  <SortableTableHead
+                    column="actor_name"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Actor
+                  </SortableTableHead>
                   <SortableTableHead
                     column="action"
                     currentSort={sortConfig}
@@ -321,7 +328,14 @@ const AuditLogViewer = ({ embedded = false }: { embedded?: boolean }) => {
                   >
                     Entity
                   </SortableTableHead>
-                  <TableHead className="whitespace-nowrap">Entity ID</TableHead>
+                  <SortableTableHead
+                    column="entity_id"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Entity ID
+                  </SortableTableHead>
                   <TableHead className="whitespace-nowrap">Details</TableHead>
                 </TableRow>
               </TableHeader>

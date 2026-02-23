@@ -278,7 +278,16 @@ export function YieldsTable({
     },
     {
       id: "credits",
-      header: <div className="text-right w-full">Total Credits</div>,
+      header: (
+        <SortableTableHead
+          column="total_fee_credit"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-end w-full"
+        >
+          Total Credits
+        </SortableTableHead>
+      ),
       className: "text-right text-blue-500/70",
       cell: (record: DistributionRow) => {
         const totalCredits = (record.total_fee_credit || 0) + (record.total_ib_credit || 0);
@@ -297,7 +306,16 @@ export function YieldsTable({
     },
     {
       id: "investors",
-      header: "Investors",
+      header: (
+        <SortableTableHead
+          column="allocation_count"
+          currentSort={sortConfig}
+          onSort={requestSort}
+          className="justify-center w-full"
+        >
+          Investors
+        </SortableTableHead>
+      ),
       className: "text-center",
       cell: (record: DistributionRow) => {
         const hasAllocations = (allocationsMap[record.id]?.length || 0) > 0;
