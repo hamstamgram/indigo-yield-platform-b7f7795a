@@ -220,8 +220,7 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
     `
     )
     .eq("fund_id", fundId)
-    .gt("current_value", 0)
-    .limit(100);
+    .gt("current_value", 0);
 
   if (error) throw error;
 

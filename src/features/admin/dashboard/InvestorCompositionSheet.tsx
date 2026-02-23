@@ -116,26 +116,11 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
           </div>
           {fund && (
             <div className="mt-4 space-y-3">
-              {/* Total Fund AUM */}
+              {/* Unified Live Fund AUM */}
               <div className="p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold text-foreground">
-                  {formatAUM(fund.latest_aum, fund.asset)}{" "}
-                  <span className="text-sm text-muted-foreground font-normal">{fund.asset}</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-xs text-muted-foreground">Total Fund AUM</p>
-                  <Badge variant="outline" className="text-xs gap-1">
-                    <Radio className="h-2 w-2 text-green-500 animate-pulse" />
-                    Live
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Investor Total with Explanation */}
-              <div className="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-lg font-semibold text-foreground">
+                    <div className="text-2xl font-bold text-foreground">
                       {formatAUM(investorTotal, fund.asset)}{" "}
                       <span className="text-sm text-muted-foreground font-normal">
                         {fund.asset}
@@ -143,18 +128,14 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <p className="text-xs text-muted-foreground">
-                        All Holdings ({compositionData.length} accounts)
+                        Live Fund AUM ({compositionData.length} active holdings)
                       </p>
+                      <Badge variant="outline" className="text-xs gap-1">
+                        <Radio className="h-2 w-2 text-green-500 animate-pulse" />
+                        Live
+                      </Badge>
                     </div>
                   </div>
-                  {fund.latest_aum > 0 && (
-                    <div className="text-right">
-                      <div className="text-sm font-mono font-medium text-indigo-400">
-                        {((investorTotal / fund.latest_aum) * 100).toFixed(1)}%
-                      </div>
-                      <p className="text-xs text-muted-foreground">of Fund AUM</p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
