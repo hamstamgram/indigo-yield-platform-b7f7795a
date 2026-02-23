@@ -26,6 +26,7 @@ import {
   FeeTransactionsTable,
   exportFeesToPDF,
 } from "@/components/admin/fees";
+import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 
 const feeExportColumns: ExportColumn[] = [
   { key: "txDate", label: "Date" },
@@ -50,9 +51,9 @@ function FeesOverviewContent({ embedded = false }: { embedded?: boolean }) {
   // Extract data with defaults
   const allDataFees = data?.fees || [];
 
-  // Filter out IB_CREDIT - the user only wants to see fees Indigo receives
+  // Filter out non-platform fees - the user only wants to see fees Indigo receives
   const fees = useMemo(() => {
-    return allDataFees.filter((f) => f.type !== "IB_CREDIT");
+    return allDataFees.filter((f) => f.investorId === INDIGO_FEES_ACCOUNT_ID);
   }, [allDataFees]);
 
   const funds = data?.funds || [];
