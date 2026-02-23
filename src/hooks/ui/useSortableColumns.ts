@@ -9,7 +9,8 @@ export interface SortConfig {
 
 export function useSortableColumns<T>(
   data: T[],
-  defaultSort?: SortConfig
+  defaultSort?: SortConfig,
+  tiebreakerKey: string = "created_at"
 ) {
   const [sortConfig, setSortConfig] = useState<SortConfig>(
     defaultSort || { column: '', direction: null }
@@ -64,9 +65,21 @@ export function useSortableColumns<T>(
       
       if (aString < bString) return sortConfig.direction === 'asc' ? -1 : 1;
       if (aString > bString) return sortConfig.direction === 'asc' ? 1 : -1;
+
+      // Tiebreaker: sort by secondary key descending (newest first)
+      const aTie = getNestedValue(a, tiebreakerKey);
+      const bTie = getNestedValue(b, tiebreakerKey);
+      if (aTie != null && bTie != null) {
+        if (typeof aTie === 'string' && typeof bTie === 'string') {
+          return bTie.localeCompare(aTie);
+        }
+        if (typeof aTie === 'number' && typeof bTie === 'number') {
+          return bTie - aTie;
+        }
+      }
       return 0;
     });
-  }, [data, sortConfig]);
+  }, [data, sortConfig, tiebreakerKey]);
 
   return {
     sortConfig,

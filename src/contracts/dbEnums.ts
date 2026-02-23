@@ -836,6 +836,7 @@ export const TX_TYPE_VALUES = [
   "INTERNAL_CREDIT",
   "IB_DEBIT",
   "DUST_SWEEP",
+  "DUST",
   "IB",
 ] as const;
 
@@ -868,6 +869,7 @@ export const DB_TX_TYPE = {
   INTERNAL_CREDIT: "INTERNAL_CREDIT",
   IB_DEBIT: "IB_DEBIT",
   DUST_SWEEP: "DUST_SWEEP",
+  DUST: "DUST",
   IB: "IB",
 } as const satisfies Record<string, TxType>;
 
