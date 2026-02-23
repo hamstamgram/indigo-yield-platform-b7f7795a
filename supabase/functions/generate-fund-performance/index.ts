@@ -570,6 +570,36 @@ Deno.serve(async (req) => {
 
     console.log(`Generated ${performanceRecords.length} performance records`);
 
+    // Step 4b: Clean up stale records from prior runs (skip for single-investor mode)
+    if (!investorId) {
+      const generatedKeys = new Set(
+        performanceRecords.map((r: any) => `${r.investor_id}:${r.fund_name}`)
+      );
+
+      const { data: existingRecords } = await supabase
+        .from("investor_fund_performance")
+        .select("id, investor_id, fund_name")
+        .eq("period_id", periodId)
+        .eq("purpose", "reporting");
+
+      const staleIds = (existingRecords || [])
+        .filter((r: any) => !generatedKeys.has(`${r.investor_id}:${r.fund_name}`))
+        .map((r: any) => r.id);
+
+      if (staleIds.length > 0) {
+        const { error: cleanupError } = await supabase
+          .from("investor_fund_performance")
+          .delete()
+          .in("id", staleIds);
+
+        if (cleanupError) {
+          console.error("Stale record cleanup error:", cleanupError);
+        } else {
+          console.log(`Cleaned up ${staleIds.length} stale performance records`);
+        }
+      }
+    }
+
     // Step 5: Upsert into investor_fund_performance using ON CONFLICT
     // This is atomic and safe for concurrent calls
     if (performanceRecords.length > 0) {
