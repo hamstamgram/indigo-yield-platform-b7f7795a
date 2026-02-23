@@ -153,7 +153,7 @@ const AssetSection = memo(function AssetSection({
       },
       {
         header: "Rate of Return",
-        accessor: (report) => `${report.rate.toFixed(2)}%`,
+        accessor: (report) => `${report.rate.toFixed(3)}%`,
         className: "text-right font-mono font-medium",
       },
       {

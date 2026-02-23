@@ -117,7 +117,7 @@ export default function InvestorPortfolioPage() {
           )}
         >
           {item.itdReturn > 0 ? "+" : ""}
-          {item.itdReturn.toFixed(2)}%
+          {item.itdReturn.toFixed(3)}%
         </span>
       ),
     },
@@ -158,7 +158,7 @@ export default function InvestorPortfolioPage() {
                 String(item.tokenAmount),
                 String(item.mtdChange),
                 String(item.itdEarned),
-                String(item.itdReturn.toFixed(2)),
+                String(item.itdReturn.toFixed(3)),
               ]);
               const csv = [headers, ...rows]
                 .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))

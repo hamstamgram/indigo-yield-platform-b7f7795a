@@ -165,24 +165,36 @@ export async function getFinancialMetrics(): Promise<FinancialMetrics> {
 export async function getHistoricalFlowData(targetDate: Date): Promise<Map<string, FlowData>> {
   const dateStr = targetDate.toISOString().split("T")[0];
 
-  const { data, error } = await rpc.call("get_funds_aum_snapshot", {
+  // Fetch authoritative AUM snapshot
+  const { data: aumEntries, error: aumError } = await rpc.call("get_funds_aum_snapshot", {
     p_as_of_date: dateStr,
     p_purpose: "reporting",
   });
 
-  if (error) {
-    console.error("Error fetching historical AUM snapshot:", error);
+  if (aumError) {
+    console.error("Error fetching historical AUM snapshot:", aumError);
     return new Map();
   }
 
-  const flowMap = new Map<string, FlowData>();
+  // Fetch accurate daily flows
+  const { data: flowStats, error: flowError } = await rpc.call("get_funds_daily_flows", {
+    p_date: dateStr,
+  });
 
-  for (const row of data || []) {
+  if (flowError) {
+    console.error("Error fetching daily flows:", flowError);
+  }
+
+  const flowMap = new Map<string, FlowData>();
+  const flows = (flowStats || {}) as Record<string, any>;
+
+  for (const row of aumEntries || []) {
+    const fundFlow = flows[row.fund_id] || {};
     flowMap.set(row.fund_id, {
       fund_id: row.fund_id,
-      daily_inflows: 0, // Placeholder as we prioritize AUM accuracy first
-      daily_outflows: 0,
-      net_flow_24h: 0,
+      daily_inflows: Number(fundFlow.daily_inflows || 0),
+      daily_outflows: Number(fundFlow.daily_outflows || 0),
+      net_flow_24h: Number(fundFlow.net_flow_24h || 0),
       aum: Number(row.aum_value || 0),
       aum_source: row.aum_source,
     });

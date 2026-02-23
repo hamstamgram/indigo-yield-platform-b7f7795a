@@ -60,7 +60,7 @@ export async function getCurrentFundAUM(fundId: string): Promise<{
     .select("investor_id, current_value, updated_at")
     .eq("fund_id", fundId)
     .gt("current_value", 0)
-    .limit(500);
+    .limit(5000);
 
   if (error) {
     logError("yieldHistoryService.getCurrentFundAUM", error);

@@ -58,7 +58,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         0
       ) || 0;
 
-    const interest24h = totalAum * 0.0001;
+    // TODO: Implement authoritative 24h yield calculation RPC
+    const interest24h = totalAum * 0.0001; // Current placeholder for UI
 
     return {
       totalAum,

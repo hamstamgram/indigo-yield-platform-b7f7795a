@@ -139,7 +139,7 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       .from("profiles")
       .select("id, email, first_name, last_name")
       .in("id", investorIds.length > 0 ? investorIds : [""])
-      .limit(500),
+      .limit(2000),
     supabase
       .from("funds")
       .select("id, name, asset")
@@ -270,7 +270,7 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
     )
     .eq("is_voided", false)
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(5000);
 
   if (error) throw error;
 
@@ -291,13 +291,13 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
       .from("profiles")
       .select("id, email, first_name, last_name")
       .in("id", investorIds)
-      .limit(500),
+      .limit(2000),
     supabase.from("funds").select("id, name, asset").in("id", fundIds).limit(100),
     supabase
       .from("yield_distributions")
       .select("id, period_start, period_end, purpose")
       .in("id", ledgerData.map((l) => l.yield_distribution_id).filter(Boolean))
-      .limit(500),
+      .limit(2000),
   ]);
 
   const profileMap = new Map((profileResult.data || []).map((p) => [p.id, p]));
@@ -343,7 +343,7 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
     .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "DEPOSIT", "DUST", "DUST_SWEEP"])
     .eq("is_voided", false)
-    .limit(500);
+    .limit(5000);
 
   if (error) throw error;
 

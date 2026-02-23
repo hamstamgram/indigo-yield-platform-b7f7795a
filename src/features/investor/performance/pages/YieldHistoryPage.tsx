@@ -384,7 +384,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
                         </TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground">
                           {(fg.monthEndEvent.fund_yield_pct ?? 0) !== 0
-                            ? `${fg.monthEndEvent.fund_yield_pct.toFixed(2)}%`
+                            ? `${fg.monthEndEvent.fund_yield_pct.toFixed(3)}%`
                             : "--"}
                         </TableCell>
                         <TableCell

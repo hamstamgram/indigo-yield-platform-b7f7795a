@@ -22,6 +22,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Badge,
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle, RotateCcw as ResetIcon, Percent } from "lucide-react";
@@ -392,44 +393,70 @@ export function EditFundDialog({
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between items-center gap-4">
-            <div className="flex-1 w-full">
-              {watch("status") === "deprecated" && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Type DELETE"
-                    value={confirmDelete}
-                    onChange={(e) => setConfirmDelete(e.target.value.toUpperCase())}
-                    className="max-w-[120px] h-8 text-xs border-destructive/30 focus-visible:ring-destructive"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDelete}
-                    disabled={isDeleting || confirmDelete !== "DELETE"}
-                    className="h-8 text-xs px-3"
-                  >
-                    {isDeleting ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                    Delete
-                  </Button>
+          {/* Danger Zone */}
+          <div className="space-y-4 pt-6 mt-4 border-t border-rose-500/20">
+            <h4 className="text-sm font-medium text-rose-400 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Danger Zone
+            </h4>
+            <div className="rounded-xl bg-rose-500/5 border border-rose-500/10 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-white">Delete Fund</p>
+                  <p className="text-xs text-slate-400">
+                    {watch("status") === "active"
+                      ? "Fund must be Archived before it can be deleted."
+                      : "Permanentely purge this fund and all associated records."}
+                  </p>
                 </div>
-              )}
+
+                {watch("status") === "deprecated" ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Type DELETE"
+                      value={confirmDelete}
+                      onChange={(e) => setConfirmDelete(e.target.value.toUpperCase())}
+                      className="max-w-[120px] h-8 text-xs bg-black/40 border-rose-500/30 text-rose-200 focus-visible:ring-rose-500"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDelete}
+                      disabled={isDeleting || confirmDelete !== "DELETE"}
+                      className="h-8 text-xs px-4 bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_15px_-5px_rgba(244,63,94,0.4)]"
+                    >
+                      {isDeleting ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                      Purge Fund
+                    </Button>
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="text-slate-500 border-slate-700 h-6">
+                    Active Funds Cannot Be Purged
+                  </Badge>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={loading || isDeleting}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading || isDeleting}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
-              </Button>
-            </div>
+          </div>
+
+          <DialogFooter className="pt-6 border-t border-white/5">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={loading || isDeleting}
+              className="border-white/10 hover:bg-white/5 text-slate-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading || isDeleting}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.4)]"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Changes
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

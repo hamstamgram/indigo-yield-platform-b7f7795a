@@ -175,7 +175,7 @@ export async function getAdminUsers(): Promise<AdminProfile[]> {
     .from("user_roles")
     .select("user_id")
     .eq("role", "admin")
-    .limit(500);
+    .limit(2000);
 
   if (rolesError) throw rolesError;
 
@@ -191,7 +191,7 @@ export async function getAdminUsers(): Promise<AdminProfile[]> {
     .select("id, email, first_name, last_name, created_at, status")
     .in("id", adminIds)
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(2000);
 
   if (error) throw error;
   return data || [];
@@ -208,7 +208,7 @@ export async function getAdminUsersWithRoles(): Promise<AdminUser[]> {
     .select("id, email, first_name, last_name, created_at")
     .eq("is_admin", true)
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(2000);
 
   if (profilesError) throw profilesError;
   if (!profiles || profiles.length === 0) return [];
@@ -220,7 +220,7 @@ export async function getAdminUsersWithRoles(): Promise<AdminUser[]> {
     .select("user_id, role")
     .in("user_id", adminIds)
     .eq("role", "super_admin")
-    .limit(500);
+    .limit(2000);
 
   if (rolesError) throw rolesError;
 
@@ -374,7 +374,10 @@ async function queryIntegrityViews() {
     supabase.from("v_ledger_reconciliation").select("*", { count: "exact" }).limit(1000),
 
     // Fund AUM mismatch: reported vs calculated AUM
-    supabase.from("fund_aum_mismatch" as any).select("*", { count: "exact" }).limit(1000),
+    supabase
+      .from("fund_aum_mismatch" as any)
+      .select("*", { count: "exact" })
+      .limit(1000),
 
     // Orphaned transactions: transactions without profiles (view not in generated types)
     queryView("v_orphaned_transactions").select("*", { count: "exact" }).limit(1000),
@@ -394,7 +397,10 @@ async function queryIntegrityViews() {
       count: ledgerReconciliation.count ?? 0,
       data: ledgerReconciliation.data,
     },
-    fundAumMismatch: { count: fundAumMismatch.error ? 0 : (fundAumMismatch.count ?? 0), data: fundAumMismatch.error ? [] : fundAumMismatch.data },
+    fundAumMismatch: {
+      count: fundAumMismatch.error ? 0 : (fundAumMismatch.count ?? 0),
+      data: fundAumMismatch.error ? [] : fundAumMismatch.data,
+    },
     orphanedTransactions: {
       count: orphanedTransactions.count ?? 0,
       data: orphanedTransactions.data,

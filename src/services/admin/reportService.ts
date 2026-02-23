@@ -13,6 +13,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { InvestorRef } from "@/types/domains/investor";
 import { formatDateForDB, getMonthEndDate } from "@/utils/dateUtils";
+import { profileService } from "@/services/shared/profileService";
 
 /**
  * Historical data summary statistics
@@ -114,22 +115,20 @@ export const reportService = {
   /**
    * Get active investors for report generation
    */
-  async getActiveInvestors(): Promise<InvestorRef[]> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email")
-      .eq("status", "active")
-      .eq("is_admin", false)
-      .order("first_name")
-      .limit(500);
+  async getActiveInvestors(
+    limit = 100,
+    offset = 0
+  ): Promise<{ data: InvestorRef[]; total: number }> {
+    const { data: result, total } = await profileService.getActiveInvestors(limit, offset);
 
-    if (error) throw error;
-
-    return (data || []).map((p) => ({
-      id: p.id,
-      name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-      email: p.email,
-    }));
+    return {
+      data: result.map((p) => ({
+        id: p.id,
+        name: p.name,
+        email: p.email,
+      })),
+      total,
+    };
   },
 
   /**
@@ -171,8 +170,7 @@ export const reportService = {
   async getHistoricalDataSummary(): Promise<HistoricalDataSummary> {
     const { data: summary } = await supabase
       .from("investor_fund_performance")
-      .select("fund_name, investor_id, period:statement_periods(period_end_date)")
-      .limit(500);
+      .select("fund_name, investor_id, period:statement_periods(period_end_date)");
 
     if (!summary || summary.length === 0) {
       return {
@@ -227,7 +225,7 @@ export const reportService = {
       .lte("tx_date", formatDateForDB(dateRange.end))
       .order("tx_date", { ascending: false })
       .order("id", { ascending: false })
-      .limit(500);
+      .limit(2000);
 
     if (error) throw error;
     return data || [];
@@ -284,7 +282,7 @@ export const reportService = {
         .select("id")
         .eq("status", "active")
         .eq("is_admin", false)
-        .limit(500);
+        .limit(2000);
 
       investors = investorData?.map((i) => i.id) || [];
     }
@@ -319,7 +317,7 @@ export const reportService = {
     const { data: periods } = await supabase
       .from("statement_periods")
       .select("id, year, month")
-      .limit(500);
+      .limit(2000);
     const { data: authData } = await supabase.auth.getUser();
     const currentUserId = authData.user?.id;
 

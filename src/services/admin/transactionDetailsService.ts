@@ -119,7 +119,7 @@ export async function getInvestorsForTransaction(): Promise<InvestorForTransacti
     .eq("status", "active")
     .eq("is_admin", false)
     .order("first_name")
-    .limit(500);
+    .limit(5000);
 
   if (error) throw error;
 

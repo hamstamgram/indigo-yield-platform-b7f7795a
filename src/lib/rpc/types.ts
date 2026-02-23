@@ -11,6 +11,36 @@ import { RPC_FUNCTIONS } from "@/contracts/rpcSignatures";
 // =============================================================================
 
 export type RPCFunctions = Database["public"]["Functions"] & {
+  get_funds_daily_flows: {
+    Args: { p_date: string };
+    Returns: unknown;
+  };
+  get_paged_audit_logs: {
+    Args: {
+      p_limit?: number;
+      p_offset?: number;
+      p_entity?: string;
+      p_action?: string;
+      p_actor_id?: string;
+    };
+    Returns: any[];
+  };
+  get_paged_notifications: {
+    Args: {
+      p_user_id: string;
+      p_limit?: number;
+      p_offset?: number;
+    };
+    Returns: any[];
+  };
+  get_paged_investor_summaries: {
+    Args: {
+      p_limit?: number;
+      p_offset?: number;
+      p_status?: string;
+    };
+    Returns: any[];
+  };
   get_admin_stats: {
     Args: Record<string, never>;
     Returns: unknown;

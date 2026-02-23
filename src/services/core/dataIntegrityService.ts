@@ -324,7 +324,7 @@ export const dataIntegrityService = {
             .eq("fund_id", position.fund_id)
             .eq("is_voided", false)
             .eq("type", "DEPOSIT")
-            .limit(500);
+            .limit(2000);
 
           const { data: withdrawals } = await supabase
             .from("transactions_v2")
@@ -333,7 +333,7 @@ export const dataIntegrityService = {
             .eq("fund_id", position.fund_id)
             .eq("is_voided", false)
             .eq("type", "WITHDRAWAL")
-            .limit(500);
+            .limit(2000);
 
           const totalDeposits =
             deposits

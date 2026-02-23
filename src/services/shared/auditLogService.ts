@@ -95,7 +95,7 @@ async function enrichWithActorInfo(entries: any[]): Promise<AuditLogEntry[]> {
     .from("profiles")
     .select("id, first_name, last_name, email")
     .in("id", uniqueActorIds)
-    .limit(500);
+    .limit(2000);
 
   const profileMap = new Map(
     (profiles || []).map((p) => [
@@ -125,30 +125,24 @@ async function fetchAuditLogs(filters: AuditLogFilters = {}): Promise<{
   count: number;
 }> {
   try {
-    let query = supabase
-      .from("audit_log")
-      .select("*", { count: "exact" })
-      .order("created_at", { ascending: false });
-
-    if (filters.entity) query = query.eq("entity", filters.entity);
-    if (filters.action) query = query.eq("action", filters.action);
-    if (filters.actorUserId) query = query.eq("actor_user", filters.actorUserId);
-    if (filters.startDate) query = query.gte("created_at", filters.startDate);
-    if (filters.endDate) query = query.lte("created_at", filters.endDate);
-
-    const limit = filters.limit || 50;
-    const offset = filters.offset || 0;
-    query = query.range(offset, offset + limit - 1);
-
-    const { data, error, count } = await query;
+    const { data, error } = await supabase.rpc("get_paged_audit_logs", {
+      p_limit: filters.limit || 50,
+      p_offset: filters.offset || 0,
+      p_entity: filters.entity || null,
+      p_action: filters.action || null,
+      p_actor_id: filters.actorUserId || null,
+    });
 
     if (error) throw error;
 
-    const enrichedData = await enrichWithActorInfo(data || []);
+    // The RPC returns total_count in each row via window function
+    const total_data = data as any[];
+    const totalCount = total_data?.[0]?.total_count || 0;
+    const enrichedData = await enrichWithActorInfo(total_data || []);
 
     return {
       data: enrichedData,
-      count: count || 0,
+      count: Number(totalCount),
     };
   } catch (error) {
     logError("auditLogService.fetchAuditLogs", error);

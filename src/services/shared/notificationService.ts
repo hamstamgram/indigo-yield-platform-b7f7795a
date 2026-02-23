@@ -7,19 +7,27 @@ import { supabase } from "@/integrations/supabase/client";
 import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { toNotifications, type Notification } from "@/lib/typeAdapters";
 
-async function getMyNotifications(): Promise<Notification[]> {
+async function getMyNotifications(
+  limit = 50,
+  offset = 0
+): Promise<{ data: Notification[]; count: number }> {
   const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return [];
+  if (!userData.user) return { data: [], count: 0 };
 
-  const { data, error } = await supabase
-    .from("notifications")
-    .select("id, user_id, type, title, body, priority, read_at, data_jsonb, created_at")
-    .eq("user_id", userData.user.id)
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const { data, error } = await supabase.rpc("get_paged_notifications", {
+    p_user_id: userData.user.id,
+    p_limit: limit,
+    p_offset: offset,
+  });
 
   if (error) throw error;
-  return toNotifications(data || []);
+
+  const total_data = data as any[];
+  const totalCount = total_data?.[0]?.total_count || 0;
+  return {
+    data: toNotifications(total_data || []),
+    count: Number(totalCount),
+  };
 }
 
 async function getNotificationsForUser(userId: string, limit = 50): Promise<Notification[]> {
@@ -84,7 +92,10 @@ async function createDefaultSettings(_userId: string): Promise<NotificationSetti
   throw new Error("notification_settings table has been removed");
 }
 
-async function updateSettings(_userId: string, _updates: Partial<NotificationSettings>): Promise<void> {
+async function updateSettings(
+  _userId: string,
+  _updates: Partial<NotificationSettings>
+): Promise<void> {
   // notification_settings table was dropped - no-op
 }
 

@@ -86,7 +86,7 @@ export async function getActiveInvestorPositions(): Promise<
     .from("investor_positions")
     .select("investor_id, fund_id")
     .gt("current_value", 0)
-    .limit(500);
+    .limit(5000);
 
   if (error) {
     logError("fundView.getActiveInvestorPositions", error);
@@ -258,7 +258,7 @@ export async function getFundPerformanceSummary(fundId: string) {
       .from("investor_positions")
       .select("current_value, cost_basis, unrealized_pnl, realized_pnl")
       .eq("fund_id", fundId)
-      .limit(500);
+      .limit(5000);
 
     if (error) throw error;
 

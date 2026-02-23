@@ -278,7 +278,7 @@ const StatementsPage = () => {
                 <div className="mt-3 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-emerald-400" />
                   <span className="text-sm font-mono font-medium text-emerald-400">
-                    Return: {(parseFloat(statement.rate_of_return_mtd) || 0).toFixed(2)}% MTD
+                    Return: {(parseFloat(statement.rate_of_return_mtd) || 0).toFixed(3)}% MTD
                   </span>
                 </div>
               )}

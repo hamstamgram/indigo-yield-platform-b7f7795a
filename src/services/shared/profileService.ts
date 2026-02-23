@@ -64,7 +64,7 @@ async function getAllProfiles(): Promise<RawProfile[]> {
     .from("profiles")
     .select("id, email, first_name, last_name")
     .order("last_name")
-    .limit(500);
+    .limit(2000);
 
   if (error) throw error;
   return data || [];
@@ -165,24 +165,32 @@ async function getInvestorProfileWithFund(investorId: string) {
   };
 }
 
-async function getActiveInvestors(): Promise<ProfileSummary[]> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, first_name, last_name")
-    .eq("status", "active")
-    .eq("is_admin", false)
-    .order("last_name")
-    .limit(500);
+async function getActiveInvestors(
+  limit = 100,
+  offset = 0
+): Promise<{ data: ProfileSummary[]; total: number }> {
+  const { data, error } = await supabase.rpc("get_paged_investor_summaries", {
+    p_limit: limit,
+    p_offset: offset,
+    p_status: "active",
+  });
 
   if (error) throw error;
 
-  return (data || []).map((p) => ({
+  const total_data = data as any[];
+  const totalCount = total_data?.[0]?.total_count || 0;
+  const profiles = (total_data || []).map((p: any) => ({
     id: p.id,
     email: p.email,
     firstName: p.first_name,
     lastName: p.last_name,
     name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
   }));
+
+  return {
+    data: profiles,
+    total: Number(totalCount),
+  };
 }
 
 async function getMyProfile(): Promise<ProfileSummary | null> {
@@ -251,7 +259,7 @@ async function getInvestorFundPerformance(investorId: string): Promise<any[]> {
     .select("*")
     .eq("investor_id", investorId)
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(2000);
 
   if (error) throw error;
   return data || [];

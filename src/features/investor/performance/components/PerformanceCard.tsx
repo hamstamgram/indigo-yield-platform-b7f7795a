@@ -49,7 +49,7 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
             <TrendIcon className="h-4 w-4" />
             <span className="font-semibold">
               {isPositive ? "+" : ""}
-              {rateOfReturn.toFixed(2)}%
+              {rateOfReturn.toFixed(3)}%
             </span>
           </div>
         </div>

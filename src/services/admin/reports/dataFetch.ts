@@ -58,7 +58,7 @@ export async function fetchInvestorPerformanceReports(
 
   const { data, error } = await query
     .order("period(period_end_date)", { ascending: false })
-    .limit(500);
+    .limit(2000);
 
   if (error) {
     logError("fetchInvestorPerformanceReports", error);
@@ -189,7 +189,7 @@ export async function fetchLatestPerformance(
     )
     .eq("investor_id", investorId)
     .eq("fund_name", assetCode)
-    .limit(500);
+    .limit(2000);
 
   if (perfError) {
     logError("fetchLatestPerformance", perfError, { investorId, assetCode });
@@ -253,7 +253,7 @@ export async function fetchActiveInvestorsForStatements(): Promise<
     .eq("status", "active")
     .eq("is_admin", false)
     .order("first_name")
-    .limit(500);
+    .limit(2000);
 
   if (error) throw error;
 

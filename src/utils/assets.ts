@@ -70,7 +70,7 @@ export function formatAssetAmount(
   }
 
   const formattedValue = numAmount.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
+    minimumFractionDigits: maxDecimals !== undefined ? maxDecimals : 2,
     maximumFractionDigits: displayDecimals,
   });
 

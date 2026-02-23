@@ -210,7 +210,7 @@ export async function getInvestorVisibleAUM(
     .eq("is_month_end", true)
     .eq("is_voided", false)
     .order("effective_date", { ascending: false })
-    .limit(500);
+    .limit(5000);
 
   if (fundId) {
     query = query.eq("fund_id", fundId);
