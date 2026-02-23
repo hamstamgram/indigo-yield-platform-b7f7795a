@@ -8,7 +8,6 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const YieldHistoryPage = lazy(() => import("@/features/admin/yields/pages/YieldHistoryPage"));
-const FundManagementPage = lazy(() => import("@/features/admin/funds/pages/FundManagementPage"));
 const ReportsConsolidatedPage = lazy(
   () => import("@/features/admin/reports/pages/ReportsConsolidatedPage")
 );
@@ -26,15 +25,8 @@ export function OperationsRoutes() {
         }
       />
 
-      {/* Fund Management */}
-      <Route
-        path="/admin/funds"
-        element={
-          <AdminRoute>
-            <FundManagementPage />
-          </AdminRoute>
-        }
-      />
+      {/* Redirects - deprecated route: Consolidated to Command Center */}
+      <Route path="/admin/funds" element={<Navigate to="/admin/dashboard" replace />} />
 
       {/* Consolidated Reports page */}
       <Route

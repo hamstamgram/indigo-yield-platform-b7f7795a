@@ -105,12 +105,6 @@ export const adminNavGroups: NavGroup[] = [
     icon: Settings,
     items: [
       {
-        title: "Fund Management",
-        href: "/admin/funds",
-        icon: <Briefcase className="h-4 w-4" />,
-        adminOnly: true,
-      },
-      {
         title: "Operations",
         href: "/admin/operations",
         icon: <HeartPulse className="h-4 w-4" />,

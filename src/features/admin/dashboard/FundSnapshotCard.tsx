@@ -26,6 +26,7 @@ interface FundSnapshotCardProps {
   onClick: () => void;
   onRecordYield?: () => void;
   onOpenPeriod?: () => void;
+  onEdit?: () => void;
   showYieldActions?: boolean;
 }
 
@@ -37,6 +38,7 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
   onClick,
   onRecordYield,
   onOpenPeriod,
+  onEdit,
   showYieldActions = false,
 }) {
   const navigate = useNavigate();
@@ -64,17 +66,19 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
         </div>
         <div className="flex items-center gap-2">
           {isSelected && <Badge className="bg-primary">Selected</Badge>}
-          <button
-            type="button"
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            title="Fund Management"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate("/admin/funds");
-            }}
-          >
-            <Settings className="h-4 w-4" />
-          </button>
+          {onEdit && (
+            <button
+              type="button"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Fund Settings"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </CardHeader>
       <CardContent>

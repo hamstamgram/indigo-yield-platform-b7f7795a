@@ -17,6 +17,10 @@ import { useHistoricalFlowData, useFundComposition } from "@/hooks/data";
 import { toast } from "sonner";
 import { FundSnapshotCard } from "@/features/admin/dashboard/FundSnapshotCard";
 import { InvestorCompositionSheet } from "@/features/admin/dashboard/InvestorCompositionSheet";
+import { CreateFundDialog } from "@/features/admin/funds/components/CreateFundDialog";
+import { EditFundDialog } from "@/features/admin/funds/components/EditFundDialog";
+import { Plus } from "lucide-react";
+import type { Fund } from "@/types/domains/fund";
 
 interface FinancialSnapshotProps {
   onRecordYield?: (fundId: string) => void;
@@ -29,6 +33,10 @@ export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
 }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
+
+  // Fund Management UI state
+  const [showCreateFund, setShowCreateFund] = useState(false);
+  const [editingFund, setEditingFund] = useState<Fund | null>(null);
 
   // Use unified AUM hook - single source of truth
   const { funds, isLoading: loadingAUM, isError, error, refetch, lastUpdated } = useFundAUM();
@@ -128,6 +136,14 @@ export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
               />
             </PopoverContent>
           </Popover>
+
+          <Button
+            onClick={() => setShowCreateFund(true)}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/20"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Fund
+          </Button>
         </div>
       </div>
 
@@ -179,9 +195,10 @@ export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
           <CardContent className="flex flex-col items-center justify-center py-12">
             <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No Active Funds</h3>
-            <p className="text-muted-foreground text-center max-w-md">
+            <p className="text-muted-foreground text-center max-w-md mb-6">
               There are no active funds configured yet. Create a fund to start tracking AUM.
             </p>
+            <Button onClick={() => setShowCreateFund(true)}>Create Fund</Button>
           </CardContent>
         </Card>
       )}
@@ -197,6 +214,7 @@ export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
               isSelected={selectedFundId === fund.id}
               date={date}
               onClick={() => handleFundClick(fund.id)}
+              onEdit={() => setEditingFund(fund as unknown as Fund)}
               showYieldActions={!!onRecordYield}
               onRecordYield={onRecordYield ? () => onRecordYield(fund.id) : undefined}
               onOpenPeriod={onOpenPeriod ? () => onOpenPeriod(fund.id) : undefined}
@@ -212,6 +230,28 @@ export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
         fund={selectedFund}
         compositionData={compositionData}
         isLoading={loadingComp}
+      />
+
+      {/* Fund Management Dialogs */}
+      <CreateFundDialog
+        open={showCreateFund}
+        onOpenChange={setShowCreateFund}
+        onSuccess={() => {
+          refetch();
+          setShowCreateFund(false);
+        }}
+        existingAssets={funds.filter((f) => f.status === "active").map((f) => f.asset)}
+      />
+
+      <EditFundDialog
+        open={!!editingFund}
+        onOpenChange={(open) => !open && setEditingFund(null)}
+        fund={editingFund}
+        onSuccess={() => {
+          refetch();
+          setEditingFund(null);
+        }}
+        existingTickers={funds.filter((f) => f.status === "active").map((f) => f.asset)}
       />
     </div>
   );
