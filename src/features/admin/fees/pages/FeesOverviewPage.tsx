@@ -48,7 +48,13 @@ function FeesOverviewContent({ embedded = false }: { embedded?: boolean }) {
   const [dateTo, setDateTo] = useState<string>(() => format(endOfMonth(new Date()), "yyyy-MM-dd"));
 
   // Extract data with defaults
-  const fees = data?.fees || [];
+  const allDataFees = data?.fees || [];
+
+  // Filter out IB_CREDIT - the user only wants to see fees Indigo receives
+  const fees = useMemo(() => {
+    return allDataFees.filter((f) => f.type !== "IB_CREDIT");
+  }, [allDataFees]);
+
   const funds = data?.funds || [];
   const indigoFeesBalance = data?.indigoFeesBalance || {};
   const yieldEarned = data?.yieldEarned || [];
