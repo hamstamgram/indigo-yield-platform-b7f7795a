@@ -47,22 +47,20 @@ async function checkAUMConservation(): Promise<InvariantResult> {
   const severity = "critical";
 
   try {
-    // Get latest AUM per fund from fund_daily_aum
-    const { data: aumData, error: aumError } = await supabase
-      .from("fund_daily_aum")
-      .select("fund_id, total_aum")
-      .eq("is_voided", false)
-      .order("as_of_date", { ascending: false });
-
-    if (aumError) throw aumError;
-
-    // Get latest AUM per fund (first occurrence per fund_id)
-    const latestAUM = new Map<string, Decimal>();
-    aumData?.forEach((row) => {
-      if (!latestAUM.has(row.fund_id)) {
-        latestAUM.set(row.fund_id, new Decimal(row.total_aum || 0));
+    // In V6, fund_daily_aum is deprecated. We derive AUM dynamically.
+    // We'll compare the sum of positions with the get_funds_aum_snapshot RPC
+    const { data: snapshotData, error: snapshotError } = await supabase.rpc(
+      "get_funds_aum_snapshot",
+      {
+        p_as_of_date: new Date().toISOString().split("T")[0],
       }
-    });
+    );
+
+    if (snapshotError) throw snapshotError;
+
+    const snapshotMap = new Map(
+      (snapshotData as any[]).map((s) => [s.fund_id, new Decimal(s.aum_value || 0)])
+    );
 
     // Get SUM of investor positions per fund
     const { data: posData, error: posError } = await supabase
@@ -79,16 +77,16 @@ async function checkAUMConservation(): Promise<InvariantResult> {
 
     // Compare
     const mismatches: string[] = [];
-    const allFunds = new Set([...latestAUM.keys(), ...positionSums.keys()]);
+    const allFundIds = new Set([...snapshotMap.keys(), ...positionSums.keys()]);
 
-    for (const fundId of allFunds) {
-      const aumVal = latestAUM.get(fundId) || new Decimal(0);
+    for (const fundId of allFundIds) {
+      const snapshotVal = snapshotMap.get(fundId) || new Decimal(0);
       const posVal = positionSums.get(fundId) || new Decimal(0);
-      const diff = aumVal.minus(posVal).abs();
+      const diff = snapshotVal.minus(posVal).abs();
 
       if (diff.greaterThan(DUST_TOLERANCE)) {
         mismatches.push(
-          `Fund ${fundId}: AUM=${aumVal.toFixed(8)}, Positions=${posVal.toFixed(8)}, Diff=${diff.toFixed(8)}`
+          `Fund ${fundId}: Snapshot=${snapshotVal.toFixed(8)}, Positions=${posVal.toFixed(8)}, Diff=${diff.toFixed(8)}`
         );
       }
     }
@@ -97,7 +95,7 @@ async function checkAUMConservation(): Promise<InvariantResult> {
       return {
         name,
         passed: false,
-        details: `AUM mismatch in ${mismatches.length} fund(s):\n${mismatches.join("\n")}`,
+        details: `AUM/Position mismatch in ${mismatches.length} fund(s):\n${mismatches.join("\n")}`,
         severity,
       };
     }
@@ -105,14 +103,14 @@ async function checkAUMConservation(): Promise<InvariantResult> {
     return {
       name,
       passed: true,
-      details: `All ${allFunds.size} funds match (AUM = SUM(positions))`,
+      details: `All ${allFundIds.size} funds match (Dynamic Snapshot = SUM(positions))`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -206,11 +204,11 @@ async function checkPositionLedgerMatch(): Promise<InvariantResult> {
       details: `All ${allKeys.size} positions match ledger`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -283,11 +281,11 @@ async function checkCostBasisIntegrity(): Promise<InvariantResult> {
       details: `All ${positions?.length || 0} positions have correct cost_basis`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -345,11 +343,11 @@ async function checkYieldConservation(): Promise<InvariantResult> {
       details: `All ${yields?.length || 0} yield distributions conserve gross_yield`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -437,11 +435,11 @@ async function checkNoOrphans(): Promise<InvariantResult> {
       details: "All transactions have valid investor_id and fund_id",
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -520,11 +518,11 @@ async function checkNoInvalidEnums(): Promise<InvariantResult> {
       details: `All enum values are valid (${txns?.length || 0} txns, ${yields?.length || 0} yields checked)`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -571,11 +569,11 @@ async function checkNoNegativeBalances(): Promise<InvariantResult> {
       details: "All positions have non-negative current_value",
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -633,11 +631,11 @@ async function checkVoidedMetadata(): Promise<InvariantResult> {
       details: `All voided records have complete metadata (${voidedTxns?.length || 0} txns, ${voidedYields?.length || 0} yields)`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -680,11 +678,11 @@ async function checkUniqueReferenceIDs(): Promise<InvariantResult> {
       details: `All ${uniqueRefs.size} reference_ids are unique`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -760,11 +758,11 @@ async function checkCrystallizationGaps(): Promise<InvariantResult> {
       details: `All ${positions?.length || 0} active positions are up-to-date`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -837,11 +835,11 @@ async function checkWithdrawalStateMachine(): Promise<InvariantResult> {
       details: `All ${completedWDs?.length || 0} withdrawals have valid state machine history`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }
@@ -883,11 +881,11 @@ async function checkIntegrityPack(): Promise<InvariantResult> {
       details: `Integrity pack passed (${checkCount} checks)`,
       severity,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       name,
       passed: false,
-      details: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      details: `Error: ${error.message || JSON.stringify(error)}`,
       severity,
     };
   }

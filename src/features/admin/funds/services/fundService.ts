@@ -401,9 +401,6 @@ export async function deleteFund(
   // Delete investor positions (should be 0 but clean up any stale rows)
   await supabase.from("investor_positions").delete().eq("fund_id", fundId);
 
-  // Delete AUM snapshots
-  await supabase.from("fund_daily_aum").delete().eq("fund_id", fundId);
-
   // Delete the fund itself
   const { error } = await supabase.from("funds").delete().eq("id", fundId);
 

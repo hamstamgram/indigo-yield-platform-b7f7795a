@@ -56,12 +56,14 @@ export async function fetchFundsForTransactionForm(): Promise<TransactionFormFun
  * Check if AUM exists for a fund on a specific date
  */
 export async function checkAumExists(fundId: string, date: string): Promise<boolean> {
+  // In V6, AUM checkpoints are managed via yield_distributions
   const { data, error } = await supabase
-    .from("fund_daily_aum")
+    .from("yield_distributions")
     .select("id")
     .eq("fund_id", fundId)
-    .eq("aum_date", date)
+    .eq("effective_date", date)
     .eq("purpose", "transaction")
+    .eq("is_voided", false)
     .maybeSingle();
 
   if (error) {

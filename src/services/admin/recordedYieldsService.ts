@@ -64,32 +64,33 @@ export interface UpdateYieldRecordInput {
  * Performance: Limited to 1000 rows to prevent timeouts on large datasets
  */
 export async function getYieldRecords(filters: YieldFilters = {}): Promise<YieldRecord[]> {
+  // In V6, fund_daily_aum is deprecated. We use yield_distributions for historical checkpoints.
   let query = supabase
-    .from("fund_daily_aum")
+    .from("yield_distributions")
     .select(
       `
       id,
       fund_id,
-      aum_date,
-      as_of_date,
-      total_aum,
-      nav_per_share,
-      total_shares,
+      aum_date:effective_date,
+      total_aum:recorded_aum,
       is_month_end,
       purpose,
-      source,
       created_at,
       created_by,
-      updated_at,
       is_voided,
       voided_at,
-      void_reason
+      void_reason,
+      gross_yield:gross_yield_amount,
+      net_yield:total_net_amount,
+      total_fees:total_fee_amount,
+      total_ib:total_ib_amount,
+      allocation_count
     `
     )
     .eq("is_voided", false)
-    .order("aum_date", { ascending: false })
+    .order("effective_date", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(1000); // P1 fix: Prevent timeout for large datasets
+    .limit(1000);
 
   if (filters.fundId && filters.fundId !== "all") {
     query = query.eq("fund_id", filters.fundId);
@@ -144,71 +145,14 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
     ])
   );
 
-  // Get yield distribution data for reporting records (join by fund_id + effective_date)
-  const yieldSourcedRecords = records.filter(
-    (r) => r.source?.startsWith("yield_distribution") ?? false
-  );
-  const distMap = new Map<
-    string,
-    {
-      id: string;
-      gross_yield: number;
-      net_yield: number;
-      total_fees: number;
-      total_ib: number;
-      allocation_count: number;
-    }
-  >();
-
-  if (yieldSourcedRecords.length > 0) {
-    const yieldFundDates = yieldSourcedRecords.map((r) => ({
-      fund_id: r.fund_id,
-      date: r.aum_date,
-    }));
-    const uniqueFundIds = [...new Set(yieldFundDates.map((rd) => rd.fund_id))] as string[];
-    const uniqueDates = [...new Set(yieldFundDates.map((rd) => rd.date))] as string[];
-
-    const { data: distributions } = await supabase
-      .from("yield_distributions")
-      .select(
-        "id, fund_id, effective_date, period_end, gross_yield, gross_yield_amount, net_yield, total_net_amount, total_fees, total_fee_amount, total_ib, total_ib_amount, allocation_count"
-      )
-      .in("fund_id", uniqueFundIds)
-      .in("effective_date", uniqueDates)
-      .in("purpose", ["reporting", "transaction"])
-      .eq("is_voided", false)
-      .limit(1000);
-
-    if (distributions) {
-      for (const d of distributions) {
-        const key = `${d.fund_id}:${d.effective_date}`;
-        distMap.set(key, {
-          id: d.id,
-          gross_yield: parseFinancial(d.gross_yield_amount ?? d.gross_yield).toNumber(),
-          net_yield: parseFinancial(d.total_net_amount ?? d.net_yield).toNumber(),
-          total_fees: parseFinancial(d.total_fee_amount ?? d.total_fees).toNumber(),
-          total_ib: parseFinancial(d.total_ib_amount ?? d.total_ib).toNumber(),
-          allocation_count: d.allocation_count || 0,
-        });
-      }
-    }
-  }
-
   return records.map((r) => {
-    const distKey = `${r.fund_id}:${r.aum_date}`;
-    const dist = distMap.get(distKey);
     return {
       ...r,
       fund_name: fundMap.get(r.fund_id)?.name || r.fund_id,
       fund_asset: fundMap.get(r.fund_id)?.asset || "Unknown",
       created_by_name: r.created_by ? profileMap.get(r.created_by) || "Unknown" : undefined,
       purpose: r.purpose as AumPurpose,
-      gross_yield: dist?.gross_yield ?? null,
-      net_yield: dist?.net_yield ?? null,
-      total_fees: dist?.total_fees ?? null,
-      total_ib: dist?.total_ib ?? null,
-      allocation_count: dist?.allocation_count ?? null,
-      distribution_id: dist?.id ?? null,
+      distribution_id: r.id, // In V6, the record ID is the distribution ID
     };
   });
 }
@@ -289,13 +233,16 @@ export async function getInvestorVisibleAUM(
   dateFrom?: string,
   dateTo?: string
 ): Promise<YieldRecord[]> {
+  // In V6, AUM history comes from yield_distributions
   let query = supabase
-    .from("fund_daily_aum")
-    .select("*")
+    .from("yield_distributions")
+    .select(
+      "fund_id, aum_date:effective_date, total_aum:recorded_aum, is_month_end, is_voided, purpose"
+    )
     .eq("purpose", "reporting")
     .eq("is_month_end", true)
     .eq("is_voided", false)
-    .order("aum_date", { ascending: false })
+    .order("effective_date", { ascending: false })
     .limit(500);
 
   if (fundId) {
@@ -325,13 +272,13 @@ export async function getInvestorVisibleAUM(
  */
 export async function getLastFinalizedAUMDate(fundId: string): Promise<string | null> {
   const { data, error } = await supabase
-    .from("fund_daily_aum")
-    .select("aum_date")
+    .from("yield_distributions")
+    .select("aum_date:effective_date")
     .eq("fund_id", fundId)
     .eq("purpose", "reporting")
     .eq("is_month_end", true)
     .eq("is_voided", false)
-    .order("aum_date", { ascending: false })
+    .order("effective_date", { ascending: false })
     .limit(1)
     .maybeSingle();
 

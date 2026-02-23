@@ -129,31 +129,30 @@ export async function getWithdrawalRequests(status?: WithdrawalStatus): Promise<
 
 export async function getFundPerformanceData(fundId?: string): Promise<any[]> {
   try {
-    let aumQuery = supabase
-      .from("fund_daily_aum")
-      .select("fund_id, total_aum, as_of_date, aum_date, created_at")
-      .eq("is_voided", false)
-      .order("as_of_date", { ascending: false })
-      .limit(30);
-
-    if (fundId) {
-      aumQuery = aumQuery.eq("fund_id", fundId);
-    }
-
-    const [{ data: aumData, error: aumError }, { data: funds }] = await Promise.all([
-      aumQuery,
-      supabase.from("funds").select("id, code, name, asset, inception_date"),
-    ]);
+    // In V6, we use the first-principles dynamic snapshot
+    const { data: aumData, error: aumError } = await supabase.rpc("get_funds_aum_snapshot", {
+      p_as_of_date: new Date().toISOString().split("T")[0],
+    });
 
     if (aumError) throw aumError;
+
+    const filteredAum = fundId
+      ? (aumData as any[]).filter((r) => r.fund_id === fundId)
+      : (aumData as any[]);
+
+    const { data: funds } = await supabase
+      .from("funds")
+      .select("id, code, name, asset, inception_date");
 
     const fundMap = new Map<string, any>();
     (funds || []).forEach((f) => fundMap.set(f.id, f));
 
-    return (aumData || []).map((row) => {
+    return (filteredAum || []).map((row) => {
       const meta = fundMap.get(row.fund_id) || {};
       return {
         ...row,
+        total_aum: row.aum_value,
+        aum_date: row.as_of_date,
         fund_code: meta.code,
         fund_name: meta.name,
         fund_asset: meta.asset,
@@ -161,7 +160,7 @@ export async function getFundPerformanceData(fundId?: string): Promise<any[]> {
       };
     });
   } catch (error) {
-    logError("adminService.getFundPerformance", error);
+    logError("adminService.getFundPerformanceData", error);
     throw error;
   }
 }
@@ -214,7 +213,10 @@ export async function updateInvestorStatus(investorId: string, status: string): 
   }
 }
 
-export async function bulkUpdateInvestors(investorIds: string[], updates: Record<string, any>): Promise<void> {
+export async function bulkUpdateInvestors(
+  investorIds: string[],
+  updates: Record<string, any>
+): Promise<void> {
   try {
     const result = await db.updateIn("profiles", updates, "id", investorIds);
     if (result.error) throw new Error(result.error.userMessage);
