@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc/index";
 import { db } from "@/lib/db/index";
 import type { Fund, FundRef } from "@/types/domains/fund";
 import { mapDbFundToFund, mapFundToDb } from "@/types/domains/fund";
@@ -136,124 +137,87 @@ export async function updateFund(fundId: string, updates: Partial<Fund>): Promis
 }
 
 /**
- * Get fund KPIs
- * Note: total_aum is calculated from investor_positions.current_value
+ * Get fund KPIs from authoritative server-side summary
+ * Eliminates client-side position aggregation bottleneck
  */
-export async function getFundKPIs() {
-  // Get funds
-  const { data: funds, error } = await supabase
-    .from("funds")
-    .select("id, code, name, asset")
-    .limit(100);
-  if (error) throw error;
+export async function getFundKPIs(): Promise<FundKPI[]> {
+  const { data, error } = await rpc.callNoArgs("get_active_funds_summary");
 
-  // Get AUM per fund from investor_positions
-  const { data: positions } = await supabase
-    .from("investor_positions")
-    .select("fund_id, current_value")
-    .limit(500);
+  if (error) {
+    throw new Error(`Failed to fetch fund KPIs: ${error.message}`);
+  }
 
-  // Calculate AUM per fund
-  const fundAumMap: Record<string, number> = {};
-  positions?.forEach((pos) => {
-    if (!fundAumMap[pos.fund_id]) fundAumMap[pos.fund_id] = 0;
-    fundAumMap[pos.fund_id] = parseFinancial(fundAumMap[pos.fund_id])
-      .plus(parseFinancial(pos.current_value))
-      .toNumber();
-  });
+  const results = (data || []) as any[];
 
-  // Map funds to KPI structure
-  return funds.map((f) => ({
+  return results.map((f) => ({
     fund_id: f.id,
     code: f.code,
     name: f.name,
     asset: f.asset,
-    current_aum: fundAumMap[f.id] || 0,
+    current_aum: Number(f.total_aum || 0),
     day_return_pct: 0,
     mtd_return: 0,
     qtd_return: 0,
     ytd_return: 0,
-    active_investors: 0,
+    itd_return: 0,
+    active_investors: f.investor_count || 0,
   })) as FundKPI[];
 }
 
 /**
  * Get latest NAV for a fund
- * Calculates AUM from investor_positions
+ * Authoritative AUM from server-side snapshot
  */
 export async function getLatestNav(fundId: string) {
-  // Get fund updated_at
-  const { data: fund, error } = await supabase
-    .from("funds")
-    .select("updated_at")
-    .eq("id", fundId)
-    .maybeSingle();
+  const { data, error } = await rpc.call("get_fund_aum_as_of", {
+    p_fund_id: fundId,
+    p_as_of_date: new Date().toISOString().split("T")[0],
+  });
 
   if (error) throw error;
-  if (!fund) return null;
+  if (!data) return null;
 
-  // Calculate AUM from positions
-  const { data: positions } = await supabase
-    .from("investor_positions")
-    .select("current_value")
-    .eq("fund_id", fundId)
-    .limit(500);
-
-  const totalAum =
-    positions
-      ?.reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
-      .toNumber() || 0;
+  const result = data as any;
 
   // Adapt to DailyNav interface
   return {
     fund_id: fundId,
-    nav_date: fund.updated_at,
-    aum: totalAum,
+    nav_date: new Date().toISOString(),
+    aum: Number(result.aum_value || 0),
     fees_accrued: 0,
     total_inflows: 0,
     total_outflows: 0,
-    investor_count: positions?.length || 0,
-    created_at: fund.updated_at,
+    investor_count: result.investor_count || 0,
+    created_at: new Date().toISOString(),
   } as DailyNav;
 }
 
 /**
  * Get fund performance summary
- * Calculates AUM from investor_positions
+ * Uses server-side aggregation for scalability
  */
 export async function getFundPerformance(fundId: string) {
-  const { data: fund, error } = await supabase
-    .from("funds")
-    .select("id, code, name, asset")
-    .eq("id", fundId)
-    .maybeSingle();
+  const { data, error } = await rpc.call("get_fund_aum_as_of", {
+    p_fund_id: fundId,
+    p_as_of_date: new Date().toISOString().split("T")[0],
+  });
 
   if (error) throw error;
-  if (!fund) throw new Error(`Fund not found: ${fundId}`);
+  if (!data) throw new Error(`Fund not found: ${fundId}`);
 
-  // Calculate AUM from positions
-  const { data: positions } = await supabase
-    .from("investor_positions")
-    .select("current_value")
-    .eq("fund_id", fundId)
-    .limit(500);
-
-  const totalAum =
-    positions
-      ?.reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
-      .toNumber() || 0;
+  const result = data as any;
 
   const kpi: FundKPI = {
-    fund_id: fund.id,
-    code: fund.code,
-    name: fund.name,
-    asset: fund.asset,
-    current_aum: totalAum,
+    fund_id: fundId,
+    code: result.fund_code || "Unknown",
+    name: result.fund_name || "Unknown",
+    asset: result.asset || "Unknown",
+    current_aum: Number(result.aum_value || 0),
     day_return_pct: 0,
     mtd_return: 0,
     qtd_return: 0,
     ytd_return: 0,
-    active_investors: positions?.length || 0,
+    active_investors: result.investor_count || 0,
   };
 
   return {
@@ -367,7 +331,7 @@ export async function updateFundStatus(fundId: string, status: string): Promise<
 export async function deleteFund(
   fundId: string
 ): Promise<{ success: boolean; purged_fund?: string }> {
-  const { data, error } = await supabase.rpc("purge_fund_hard", {
+  const { data, error } = await rpc.call("purge_fund_hard", {
     p_fund_id: fundId,
   });
 

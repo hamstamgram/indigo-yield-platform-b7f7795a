@@ -144,101 +144,34 @@ export async function getInvestorPortfolio(investorId?: string): Promise<Investo
   };
 }
 
+import { rpc } from "@/lib/rpc/index";
+
 /**
  * Get all investors with their position summaries
- * OPTIMIZED: Uses batch queries to avoid N+1 pattern
+ * Authoritative server-side aggregation for scalability
  */
 export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
-  // Step 1: Get all investors including system accounts (like INDIGO FEES)
-  const { data: investors, error } = await supabase
-    .from("profiles")
-    .select("id, email, first_name, last_name, status, onboarding_date, created_at, account_type")
-    .eq("is_admin", false)
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const { data, error } = await rpc.callNoArgs("get_all_investors_summary");
 
   if (error) {
     logError("getAllInvestorsWithSummary", error);
     throw error;
   }
 
-  if (!investors || investors.length === 0) return [];
+  const results = (data || []) as any[];
 
-  // Step 2: Get ALL positions with fund data using batching (fixes URI Too Long)
-  const investorIds = investors.map((inv) => inv.id);
-
-  const allPositions = await batchProcess(investorIds, 50, async (batchIds) => {
-    const { data, error } = await supabase
-      .from("investor_positions")
-      .select(
-        `
-        investor_id,
-        shares,
-        current_value,
-        cost_basis,
-        unrealized_pnl,
-        funds (asset)
-      `
-      )
-      .in("investor_id", batchIds)
-      .gt("shares", 0);
-
-    if (error) throw error;
-    return data;
-  });
-
-  // Step 3: Group positions by investor_id for O(1) lookup
-  const positionsByInvestor = new Map<string, typeof allPositions>();
-  (allPositions || []).forEach((pos) => {
-    const existing = positionsByInvestor.get(pos.investor_id) || [];
-    existing.push(pos);
-    positionsByInvestor.set(pos.investor_id, existing);
-  });
-
-  // Step 4: Map investors with pre-fetched positions (no additional queries)
-  const summaries = investors.map((investor) => {
-    const positions = positionsByInvestor.get(investor.id) || [];
-
-    const totalAUM = positions
-      .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
-      .toNumber();
-    const totalEarned = positions
-      .reduce((sum, pos) => sum.plus(parseFinancial(pos.unrealized_pnl)), parseFinancial(0))
-      .toNumber();
-    const totalPrincipal = positions
-      .reduce((sum, pos) => sum.plus(parseFinancial(pos.cost_basis)), parseFinancial(0))
-      .toNumber();
-
-    // Calculate asset breakdown
-    const assetBreakdown: Record<string, number> = {};
-    positions.forEach((pos) => {
-      const asset = (pos.funds as { asset?: string } | null)?.asset || "Unknown";
-      if (!assetBreakdown[asset]) {
-        assetBreakdown[asset] = 0;
-      }
-      assetBreakdown[asset] = parseFinancial(assetBreakdown[asset])
-        .plus(parseFinancial(pos.current_value))
-        .toNumber();
-    });
-
-    const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
-    const isSystemAccount = investor.account_type === "fees_account";
-
-    return {
-      id: investor.id,
-      name: fullName || "Unknown",
-      email: investor.email || "",
-      status: investor.status || "active",
-      totalAUM,
-      totalEarned,
-      totalPrincipal,
-      positionCount: positions.length,
-      assetBreakdown,
-      onboardingDate: investor.onboarding_date || investor.created_at,
-      createdAt: investor.created_at,
-      isSystemAccount,
-    };
-  });
-
-  return summaries;
+  return results.map((investor) => ({
+    id: investor.id,
+    name: investor.name || "Unknown",
+    email: investor.email || "",
+    status: investor.status || "active",
+    totalAUM: Number(investor.totalAUM || 0),
+    totalEarned: Number(investor.totalEarned || 0),
+    totalPrincipal: Number(investor.totalPrincipal || 0),
+    positionCount: investor.positionCount || 0,
+    assetBreakdown: investor.assetBreakdown || {},
+    onboardingDate: investor.onboardingDate,
+    createdAt: investor.createdAt,
+    isSystemAccount: investor.account_type === "fees_account",
+  })) as InvestorSummary[];
 }

@@ -127,31 +127,16 @@ export async function getAUMHistory(): Promise<AUMHistoryPoint[]> {
  * Fetch transaction flow metrics (deposits/withdrawals)
  */
 export async function getTransactionFlowMetrics(): Promise<FlowMetrics> {
-  const { data: transactions, error } = await supabase
-    .from("transactions_v2")
-    .select("amount, type, tx_date")
-    .eq("is_voided", false) // Exclude voided transactions
-    .limit(500);
+  const { data, error } = await rpc.call("get_platform_flow_metrics", {
+    p_days: 30,
+  });
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error fetching flow metrics:", error);
+    return { totalDeposits: 0, totalWithdrawals: 0, netFlow: 0 };
+  }
 
-  const totalDeposits =
-    transactions
-      ?.filter((t) => t.type === "DEPOSIT")
-      .reduce((acc, t) => acc.plus(parseFinancial(t.amount)), parseFinancial(0))
-      .toNumber() || 0;
-
-  const totalWithdrawals =
-    transactions
-      ?.filter((t) => t.type === "WITHDRAWAL")
-      .reduce((acc, t) => acc.plus(parseFinancial(t.amount)), parseFinancial(0))
-      .toNumber() || 0;
-
-  return {
-    totalDeposits,
-    totalWithdrawals,
-    netFlow: totalDeposits - totalWithdrawals,
-  };
+  return data as unknown as FlowMetrics;
 }
 
 /**
@@ -287,155 +272,76 @@ export async function retryDelivery(deliveryId: string): Promise<void> {
 
 /**
  * Get delivery diagnostics for a period
+ * Uses authoritative server-side RPC for scalability
  */
 export async function getDeliveryDiagnostics(periodId: string): Promise<DeliveryDiagnostics> {
-  // Fetch statements for period
-  const { data: statements, error: stmtError } = await supabase
-    .from("generated_statements")
-    .select("id, investor_id")
-    .eq("period_id", periodId)
-    .limit(500);
-
-  if (stmtError) throw stmtError;
-
-  // Fetch profiles for investors with statements
-  const investorIds = [...new Set(statements?.map((s) => s.investor_id) || [])];
-  const { data: profiles, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name, email")
-    .in("id", investorIds)
-    .limit(500);
-
-  if (profileError) throw profileError;
-
-  // Create a map of investor_id -> profile
-  const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-
-  // Fetch delivery records for period
-  const { data: deliveries, error: delError } = await supabase
-    .from("statement_email_delivery")
-    .select("id, investor_id, status, recipient_email")
-    .eq("period_id", periodId)
-    .limit(500);
-
-  if (delError) throw delError;
-
-  // Process data
-  const investorsWithStatements = new Set(statements?.map((s) => s.investor_id) || []);
-
-  const investorsWithEmail: string[] = [];
-  const investorsMissingEmail: { id: string; name: string }[] = [];
-
-  statements?.forEach((s) => {
-    const profile = profileMap.get(s.investor_id);
-    if (profile?.email) {
-      investorsWithEmail.push(s.investor_id);
-    } else {
-      const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Unknown";
-      investorsMissingEmail.push({ id: s.investor_id, name });
-    }
+  const { data, error } = await rpc.call("get_period_delivery_stats", {
+    p_period_id: periodId,
   });
 
-  const statusCounts = {
-    queued: 0,
-    sent: 0,
-    delivered: 0,
-    failed: 0,
-  };
+  if (error) {
+    console.error("Error fetching delivery diagnostics:", error);
+    throw error;
+  }
 
-  deliveries?.forEach((d) => {
-    const status = d.status?.toLowerCase() || "queued";
-    if (status === "queued") statusCounts.queued++;
-    else if (status === "sent" || status === "delivered") statusCounts.sent++;
-    else if (status === "failed" || status === "bounced") statusCounts.failed++;
-  });
+  const stats = data as any;
 
   return {
-    statements_generated: statements?.length || 0,
-    investors_with_statements: investorsWithStatements.size,
-    investors_with_email: investorsWithEmail.length,
-    investors_missing_email: investorsMissingEmail.length,
-    deliveries_queued: statusCounts.queued,
-    deliveries_sent: statusCounts.sent + statusCounts.delivered,
-    deliveries_failed: statusCounts.failed,
-    already_delivered: statusCounts.delivered,
-    missing_email_names: investorsMissingEmail.map((i) => i.name),
+    statements_generated: stats.statementsGenerated || 0,
+    investors_with_statements: stats.investorsWithStatements || 0,
+    investors_with_email: stats.investorsWithEmail || 0,
+    investors_missing_email: stats.investorsMissingEmail || 0,
+    deliveries_queued: stats.deliveriesQueued || 0,
+    deliveries_sent: stats.deliveriesSent || 0,
+    deliveries_failed: stats.deliveriesFailed || 0,
+    already_delivered: stats.alreadyDelivered || 0,
+    missing_email_names: stats.missingEmailNames || [],
   };
 }
-
-// ============================================================================
-// Delivery Exclusion Stats Functions
-// ============================================================================
 
 /**
  * Get delivery exclusion breakdown for a period
  */
 export async function getDeliveryExclusionBreakdown(periodId: string): Promise<ExclusionBreakdown> {
-  // 1. Get total investor count (active investors)
-  const investorResult = await supabase
-    .from("profiles")
-    .select("id", { count: "exact", head: true })
-    .match({ account_type: "investor", status: "active" });
-  const totalInvestors = investorResult.count ?? 0;
-
-  // 2. Get statements generated for this period
-  const statementResult = await supabase
-    .from("generated_statements")
-    .select("id", { count: "exact", head: true })
-    .match({ period_id: periodId });
-  const statementsGenerated = statementResult.count ?? 0;
-
-  // 3. Get delivery statuses breakdown
-  const { data: deliveryData } = await supabase
-    .from("statement_email_delivery")
-    .select("status, error_message")
-    .eq("period_id", periodId)
-    .limit(500);
-
-  const deliveries = deliveryData || [];
-
-  // Count by status
-  const statusCounts = {
-    queued: 0,
-    sending: 0,
-    sent: 0,
-    delivered: 0,
-    failed: 0,
-    skipped: 0,
-    cancelled: 0,
-    bounced: 0,
-    complained: 0,
-  };
-
-  let missingEmail = 0;
-
-  deliveries.forEach((d) => {
-    const status = d.status?.toLowerCase() || "unknown";
-    if (status in statusCounts) {
-      statusCounts[status as keyof typeof statusCounts]++;
-    }
-    // Track missing email specifically
-    if (status === "skipped" && d.error_message === "missing_email") {
-      missingEmail++;
-    }
+  const { data, error } = await rpc.call("get_period_delivery_stats", {
+    p_period_id: periodId,
   });
 
-  // Calculate derived values
-  const alreadySent = statusCounts.sent + statusCounts.delivered;
-  const noStatement = (totalInvestors || 0) - (statementsGenerated || 0);
-  const eligibleForDelivery =
-    (statementsGenerated || 0) - alreadySent - missingEmail - statusCounts.cancelled;
+  if (error) {
+    console.error("Error fetching delivery exclusion breakdown:", error);
+    return {
+      totalInvestors: 0,
+      statementsGenerated: 0,
+      eligibleForDelivery: 0,
+      alreadySent: 0,
+      queued: 0,
+      failed: 0,
+      skipped: 0,
+      missingEmail: 0,
+      noStatement: 0,
+      cancelled: 0,
+    };
+  }
+
+  const stats = data as any;
+  const noStatement = Math.max(0, (stats.totalInvestors || 0) - (stats.statementsGenerated || 0));
+  const eligibleForDelivery = Math.max(
+    0,
+    (stats.statementsGenerated || 0) -
+      (stats.deliveriesSent || 0) -
+      (stats.investorsMissingEmail || 0)
+  );
 
   return {
-    totalInvestors: totalInvestors || 0,
-    statementsGenerated: statementsGenerated || 0,
-    eligibleForDelivery: Math.max(0, eligibleForDelivery),
-    alreadySent,
-    queued: statusCounts.queued + statusCounts.sending,
-    failed: statusCounts.failed + statusCounts.bounced + statusCounts.complained,
-    skipped: statusCounts.skipped,
-    missingEmail,
-    noStatement: Math.max(0, noStatement),
-    cancelled: statusCounts.cancelled,
+    totalInvestors: stats.totalInvestors || 0,
+    statementsGenerated: stats.statementsGenerated || 0,
+    eligibleForDelivery,
+    alreadySent: stats.deliveriesSent || 0,
+    queued: stats.deliveriesQueued || 0,
+    failed: stats.deliveriesFailed || 0,
+    skipped: stats.skipped || 0,
+    missingEmail: stats.investorsMissingEmail || 0,
+    noStatement,
+    cancelled: 0, // Not explicitly tracked in simple RPC, but can be added if needed
   };
 }
