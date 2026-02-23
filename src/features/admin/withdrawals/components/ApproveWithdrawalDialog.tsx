@@ -126,15 +126,17 @@ export function ApproveWithdrawalDialog({
   }, [open, withdrawal.requested_amount]);
 
   // When full exit is toggled on, default processedAmount to truncated balance
-  // BUT do not overwrite it if the user manually edits it afterwards
+  // We use a ref to track the previous isFullExit state to ensure we only default ONCE per toggle
+  const prevIsFullExitRef = useRef(isFullExit);
   useEffect(() => {
-    if (isFullExit && positionBalance) {
+    if (isFullExit && !prevIsFullExitRef.current && positionBalance) {
       const balance = new Decimal(positionBalance);
       const truncated = balance.toDecimalPlaces(INVESTOR_DISPLAY_DECIMALS, Decimal.ROUND_DOWN);
       setProcessedAmount(truncated.toString());
-    } else if (!isFullExit) {
+    } else if (!isFullExit && prevIsFullExitRef.current) {
       setProcessedAmount(withdrawal.requested_amount.toString());
     }
+    prevIsFullExitRef.current = isFullExit;
   }, [isFullExit, positionBalance, withdrawal.requested_amount]);
 
   const isConfirmed = confirmText.toUpperCase() === "APPROVE";

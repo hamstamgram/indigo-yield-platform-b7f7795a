@@ -141,13 +141,16 @@ export function CreateWithdrawalDialog({
   const selectedPosition = positions.find((p) => p.fund_id === selectedFundId);
 
   // Auto-fill amount when "full" withdrawal is selected
+  // Use a ref to track transition so admins can override the amount
+  const prevWithdrawalTypeRef = useRef(withdrawalType);
   useEffect(() => {
-    if (withdrawalType === "full" && selectedFundId) {
+    if (withdrawalType === "full" && prevWithdrawalTypeRef.current !== "full" && selectedFundId) {
       const maxAmount = availableBalanceData?.availableBalance ?? selectedPosition?.current_value;
       if (maxAmount != null) {
         setValue("amount", String(maxAmount), { shouldValidate: true });
       }
     }
+    prevWithdrawalTypeRef.current = withdrawalType;
   }, [withdrawalType, selectedFundId, availableBalanceData, selectedPosition, setValue]);
 
   const onSubmit = async (data: WithdrawalFormData) => {
@@ -389,7 +392,7 @@ export function CreateWithdrawalDialog({
               value={watch("amount") || ""}
               onChange={(val) => setValue("amount", val, { shouldValidate: true })}
               placeholder="Enter amount"
-              disabled={!selectedFundId || withdrawalType === "full"}
+              disabled={!selectedFundId}
               showFormatted
               className={errors.amount ? "border-destructive" : ""}
             />
