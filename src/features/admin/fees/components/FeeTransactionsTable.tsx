@@ -106,12 +106,13 @@ export function FeeTransactionsTable({
                   Amount
                 </SortableTableHead>
                 <TableHead>Purpose</TableHead>
+                <TableHead>Notes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     <div className="space-y-2">
                       <AlertCircle className="h-8 w-8 mx-auto opacity-50" />
                       <p>No fee credit transactions found</p>
@@ -151,6 +152,9 @@ export function FeeTransactionsTable({
                       <Badge variant="outline" className="text-xs">
                         {fee.purpose || "---"}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
+                      {fee.notes || "---"}
                     </TableCell>
                   </TableRow>
                 ))

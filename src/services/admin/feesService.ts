@@ -24,6 +24,7 @@ export interface FeeRecord {
   txDate: string;
   purpose: string;
   visibilityScope: string;
+  notes?: string;
   createdAt: string;
 }
 
@@ -107,11 +108,12 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       tx_date,
       purpose,
       visibility_scope,
+      notes,
       created_at,
       is_voided
     `
     )
-    .in("type", ["FEE_CREDIT", "IB_CREDIT"])
+    .or(`type.in.(FEE_CREDIT,IB_CREDIT),investor_id.eq.${INDIGO_FEES_ACCOUNT_ID}`)
     .eq("is_voided", false)
     .order("created_at", { ascending: false })
     .limit(1000);
@@ -164,6 +166,7 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       txDate: tx.tx_date,
       purpose: tx.purpose || "",
       visibilityScope: tx.visibility_scope || "",
+      notes: tx.notes || "",
       createdAt: tx.created_at,
     };
   });
@@ -316,7 +319,8 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
       fee_amount: String(a.fee_amount || 0),
       created_at: a.created_at,
       investor_name:
-        a.investor_name || (profile
+        a.investor_name ||
+        (profile
           ? `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email
           : "Unknown"),
       investor_email: profile?.email || "",
@@ -335,7 +339,7 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
     .from("transactions_v2")
     .select("fund_id, amount, type")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT"])
+    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "DEPOSIT"])
     .eq("is_voided", false)
     .limit(500);
 

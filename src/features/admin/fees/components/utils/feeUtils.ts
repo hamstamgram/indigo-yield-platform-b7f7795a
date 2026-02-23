@@ -16,7 +16,7 @@ export function formatFeeAmount(amount: string | number, asset: string): string 
   if (asset === "BTC") {
     return num.toLocaleString("en-US", { minimumFractionDigits: 6, maximumFractionDigits: 8 });
   }
-  return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
 }
 
 /**
