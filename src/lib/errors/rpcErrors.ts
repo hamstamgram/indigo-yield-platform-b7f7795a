@@ -30,7 +30,7 @@ const ERROR_PATTERNS: Array<{
     message: (match) => {
       const [, constraint] = match;
       if (constraint.includes("investor")) {
-        return "Investor not found. The investor may have been removed or doesn't exist.";
+        return "This investor cannot be deleted because they have associated records (e.g., transactions, documents). Use Force Delete if necessary.";
       }
       if (constraint.includes("fund")) {
         return "Fund not found. The fund may have been deactivated or doesn't exist.";
