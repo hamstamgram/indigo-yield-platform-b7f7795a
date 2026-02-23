@@ -142,10 +142,14 @@ export function EditFundDialog({
 
     setIsDeleting(true);
     try {
-      await deleteFund(fund.id);
-      toast.success(`Fund "${fund.name}" deleted successfully`);
-      onSuccess();
-      onOpenChange(false);
+      // The new deleteFund service uses the purge_fund_hard RPC
+      const result = await deleteFund(fund.id);
+
+      if (result.success) {
+        toast.success(`Fund "${fund.name}" and all associated records purged successfully`);
+        onSuccess();
+        onOpenChange(false);
+      }
     } catch (error: any) {
       logError("EditFundDialog.deleteFund", error, { fundId: fund.id });
       toast.error(error.message || "Failed to delete fund");
