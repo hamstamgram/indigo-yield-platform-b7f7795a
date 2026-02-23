@@ -15,7 +15,7 @@ export interface AumAsOfResult {
   asOfDate: string;
   purpose: AumPurpose;
   aumValue: number;
-  aumSource: "fund_daily_aum" | "positions_live" | "no_data";
+  aumSource: "yield_distribution" | "positions_live" | "no_data";
   aumRecordId: string | null;
 }
 
@@ -64,7 +64,8 @@ export const yieldAumService = {
         asOfDate: row.as_of_date,
         purpose: row.purpose as AumPurpose,
         aumValue: Number(row.aum_value || 0),
-        aumSource: row.aum_source as "fund_daily_aum" | "positions_live",
+        aumSource:
+          row.aum_source === "fund_daily_aum" ? "yield_distribution" : (row.aum_source as any),
         aumRecordId: (row as any).aum_record_id || null,
       };
     } catch (err) {

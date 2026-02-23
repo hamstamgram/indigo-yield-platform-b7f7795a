@@ -159,49 +159,16 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
 
 /**
  * Update a yield record with audit logging
- * Only Super Admins can edit yields
+ * @deprecated fund_daily_aum table was dropped — this is now a no-op.
  */
 export async function updateYieldRecord(
-  recordId: string,
-  updates: UpdateYieldRecordInput,
-  adminId: string,
-  editReason?: string
-): Promise<YieldRecord> {
-  // First, check if user is super admin
-  const { data: isSuperAdmin, error: rpcError } = await rpc.callNoArgs("is_super_admin");
-  if (rpcError || !isSuperAdmin) {
-    throw new Error("Only Super Admins can edit yield records");
-  }
-
-  // Get current record values for audit
-  const { data: current, error: fetchError } = await supabase
-    .from("fund_daily_aum")
-    .select("*")
-    .eq("id", recordId)
-    .maybeSingle();
-
-  if (fetchError || !current) {
-    throw new Error("Yield record not found");
-  }
-
-  // yield_edit_audit table was dropped - skip audit logging
-
-  // Apply the update
-  const { data: updated, error: updateError } = await supabase
-    .from("fund_daily_aum")
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", recordId)
-    .select()
-    .maybeSingle();
-
-  if (updateError) {
-    throw new Error(`Failed to update yield record: ${updateError.message}`);
-  }
-
-  return updated as YieldRecord;
+  _recordId: string,
+  _updates: UpdateYieldRecordInput,
+  _adminId: string,
+  _editReason?: string
+): Promise<any> {
+  console.warn("updateYieldRecord is deprecated — fund_daily_aum table was dropped");
+  return { success: false, message: "Deprecated" };
 }
 
 /**

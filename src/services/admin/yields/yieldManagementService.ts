@@ -87,30 +87,15 @@ export interface YieldDetails {
 }
 
 /**
- * Void a yield record by AUM record ID (soft delete with audit trail)
- * Use this when voiding from the RecordedYieldsPage (AUM perspective)
+ * Void a yield record by AUM record ID
+ * @deprecated fund_daily_aum table was dropped — this is now a no-op.
  */
-export async function voidYieldRecord(recordId: string, reason: string): Promise<VoidYieldResult> {
-  // Get current user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  const { data, error } = await callRPC("void_fund_daily_aum", {
-    p_record_id: recordId,
-    p_reason: reason,
-    p_admin_id: user.id,
-  });
-
-  if (error) {
-    logError("yieldManagement.voidRecord", error, { recordId });
-    throw new Error(error.message || "Failed to void yield record");
-  }
-
-  return data as unknown as VoidYieldResult;
+export async function voidYieldRecord(
+  _recordId: string,
+  _reason: string
+): Promise<VoidYieldResult> {
+  console.warn("voidYieldRecord is deprecated — fund_daily_aum table was dropped");
+  return { success: false } as any;
 }
 
 /**
@@ -155,59 +140,31 @@ export async function voidYieldDistribution(
  */
 /**
  * Update a yield record's AUM with full cascade recalculation
- * Voids existing yield distributions and re-applies with new AUM
+ * @deprecated fund_daily_aum table was dropped — this is now a no-op.
  */
 export async function updateYieldAum(
-  recordId: string,
-  newTotalAum: number,
-  reason: string
+  _recordId: string,
+  _newTotalAum: number,
+  _reason: string
 ): Promise<UpdateYieldResult> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  // Use the new recalc function that voids and re-applies
-  const { data, error } = await callRPC("update_fund_daily_aum_with_recalc", {
-    p_record_id: recordId,
-    p_new_total_aum: newTotalAum,
-    p_reason: reason,
-    p_admin_id: user.id,
-  });
-
-  if (error) {
-    logError("yieldManagement.updateAum", error, { recordId, newTotalAum });
-    throw new Error(error.message || "Failed to update yield record");
-  }
-
-  const result = data as unknown as RecalcYieldRPCResult;
-  if (!result?.success) {
-    throw new Error(result?.error || "Failed to recalculate yield");
-  }
-
-  return {
-    success: true,
-    record_id: result.record_id,
-    old_aum: result.old_aum,
-    new_aum: result.new_aum,
-    updated_at: result.updated_at,
-  };
+  console.warn("updateYieldAum is deprecated — fund_daily_aum table was dropped");
+  return { success: false } as any;
 }
 
 /**
  * Get detailed information about a yield record
+ * @deprecated Querying yield_distributions instead for historical context.
  */
 export async function getYieldDetails(recordId: string): Promise<YieldDetails | null> {
   const { data: record, error } = await supabase
-    .from("fund_daily_aum")
-    .select("*")
+    .from("yield_distributions")
+    .select(
+      "id, fund_id, aum_date:effective_date, total_aum:recorded_aum, is_month_end, is_voided, voided_at, void_reason, created_at, created_by"
+    )
     .eq("id", recordId)
     .maybeSingle();
 
   if (error || !record) {
-    logError("yieldManagement.getDetails", error, { recordId });
     return null;
   }
 
@@ -215,44 +172,27 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
   const { data: fund } = await supabase
     .from("funds")
     .select("name, asset")
-    .eq("id", record.fund_id)
+    .eq("id", (record as any).fund_id)
     .maybeSingle();
-
-  // Get user names for created_by, voided_by, updated_by
-  const userIds = [record.created_by, record.voided_by, record.updated_by].filter(Boolean);
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name, email")
-    .in("id", userIds.length > 0 ? userIds : ["00000000-0000-0000-0000-000000000000"]);
-
-  const profileMap = new Map(
-    (profiles || []).map((p) => [
-      p.id,
-      `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email || "Unknown",
-    ])
-  );
 
   return {
     id: record.id,
-    fund_id: record.fund_id,
+    fund_id: (record as any).fund_id,
     fund_name: fund?.name || "Unknown Fund",
     fund_asset: fund?.asset || "Unknown",
-    aum_date: record.aum_date,
-    total_aum: record.total_aum,
-    purpose: record.purpose,
-    is_month_end: record.is_month_end,
-    source: record.source,
+    aum_date: (record as any).aum_date,
+    total_aum: (record as any).total_aum,
+    purpose: "reporting",
+    is_month_end: record.is_month_end || false,
+    source: "yield_distribution",
     is_voided: record.is_voided || false,
     voided_at: record.voided_at,
-    voided_by: record.voided_by,
-    voided_by_name: record.voided_by ? profileMap.get(record.voided_by) : undefined,
+    voided_by: null,
     void_reason: record.void_reason,
     created_at: record.created_at,
     created_by: record.created_by,
-    created_by_name: record.created_by ? profileMap.get(record.created_by) : undefined,
-    updated_at: record.updated_at,
-    updated_by: record.updated_by,
-    updated_by_name: record.updated_by ? profileMap.get(record.updated_by) : undefined,
+    updated_at: null,
+    updated_by: null,
   };
 }
 
@@ -298,19 +238,10 @@ export async function canEditYieldRecord(
 }
 
 /**
- * Get void impact preview for a fund_daily_aum record
- * Shows what will happen before voiding (distributions, transactions, investors affected)
+ * Get void impact preview
+ * @deprecated fund_daily_aum table was dropped — this is now a no-op.
  */
-export async function getYieldVoidImpact(recordId: string): Promise<VoidAumImpactResult> {
-  // Use the RPC gateway for consistent error handling, logging, and rate limiting
-  const { data, error } = await rpc.call("get_void_aum_impact", {
-    p_record_id: recordId,
-  });
-
-  if (error) {
-    logError("yieldManagement.getVoidImpact", error, { recordId });
-    throw new Error(error.message || "Failed to get yield void impact");
-  }
-
-  return data as unknown as VoidAumImpactResult;
+export async function getYieldVoidImpact(_recordId: string): Promise<VoidAumImpactResult> {
+  console.warn("getYieldVoidImpact is deprecated — fund_daily_aum table was dropped");
+  return { success: false } as any;
 }

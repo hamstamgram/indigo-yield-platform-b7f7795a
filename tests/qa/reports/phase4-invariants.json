@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-02-23T11:00:39.056Z",
+  "timestamp": "2026-02-23T11:09:47.891Z",
   "phase": "Phase 4: Database Invariants",
   "summary": {
     "total": 12,
@@ -12,73 +12,73 @@
     {
       "name": "AUM Conservation",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "Position-Ledger Match",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "Cost Basis Integrity",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "Yield Conservation",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "No Orphan Transactions",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "No Invalid Enums",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "No Negative Balances",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "Voided Metadata",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "warning"
     },
     {
       "name": "Unique Reference IDs",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "Crystallization Gaps",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "warning"
     },
     {
       "name": "Withdrawal State Machine",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     },
     {
       "name": "Integrity Pack",
       "passed": false,
-      "details": "Error: [object Object]",
+      "details": "Error: Invalid API key",
       "severity": "critical"
     }
   ]
