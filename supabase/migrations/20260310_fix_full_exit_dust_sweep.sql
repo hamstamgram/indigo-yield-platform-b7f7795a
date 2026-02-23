@@ -1,5 +1,11 @@
 ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS is_full_exit BOOLEAN DEFAULT false;
 
+-- Drop ALL existing complete_withdrawal functions to eliminate overload ambiguity
+DROP FUNCTION IF EXISTS public.complete_withdrawal(uuid, numeric, timestamp with time zone, text, text);
+DROP FUNCTION IF EXISTS public.complete_withdrawal(uuid, numeric, timestamp with time zone, text, text, boolean);
+DROP FUNCTION IF EXISTS public.complete_withdrawal(uuid, text, text);
+
+-- Recreate the correct single version
 CREATE OR REPLACE FUNCTION public.complete_withdrawal(p_request_id uuid, p_closing_aum numeric DEFAULT NULL::numeric, p_event_ts timestamp with time zone DEFAULT now(), p_transaction_hash text DEFAULT NULL::text, p_admin_notes text DEFAULT NULL::text)
  RETURNS boolean
  LANGUAGE plpgsql
@@ -126,8 +132,11 @@ BEGIN
     is_full_exit = p_is_full_exit -- write to actual schema column!
   WHERE id = p_request_id;
 
+  -- Explicit parameter passing to prevent overload mismatch
   RETURN complete_withdrawal(
     p_request_id := p_request_id,
+    p_closing_aum := NULL,
+    p_event_ts := NOW(),
     p_transaction_hash := p_tx_hash,
     p_admin_notes := p_admin_notes
   );
