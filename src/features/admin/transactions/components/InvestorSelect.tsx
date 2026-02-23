@@ -68,8 +68,11 @@ export function InvestorSelect({
             ) : selectedInvestor ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="flex items-center gap-1 min-w-0 max-w-[350px]">
+                  <span className="flex items-center gap-1.5 min-w-0 max-w-[350px]">
                     <span className="truncate font-medium">{selectedInvestor.displayName}</span>
+                    <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded shrink-0 font-mono">
+                      {selectedInvestor.id.split("-")[0]}
+                    </span>
                     {selectedInvestor.displayName !== selectedInvestor.email && (
                       <span className="text-muted-foreground text-xs truncate max-w-[150px]">
                         ({selectedInvestor.email})
@@ -114,8 +117,11 @@ export function InvestorSelect({
                         )}
                       />
                       <div className="flex flex-col min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="truncate">{displayName}</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="truncate font-semibold">{displayName}</span>
+                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded shrink-0 font-mono">
+                            {investor.id.split("-")[0]}
+                          </span>
                           {investor.isSystemAccount && (
                             <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">
                               System

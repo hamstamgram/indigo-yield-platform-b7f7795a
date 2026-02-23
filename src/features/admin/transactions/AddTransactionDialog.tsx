@@ -13,6 +13,7 @@ import {
   AlertDescription,
   Label,
   Input,
+  Switch,
 } from "@/components/ui";
 import { AlertTriangle, Info, Loader2 } from "lucide-react";
 import { useActiveFunds, useInvestorsForTransaction } from "@/hooks";
@@ -83,6 +84,7 @@ export function AddTransactionDialog({
       resetForm: reset,
       setInvestorError,
       fundId: selectedFundId,
+      currentBalance,
     });
 
   // Reset state when dialog opens
@@ -201,6 +203,33 @@ export function AddTransactionDialog({
 
               {/* Amount */}
               <TransactionAmountInput />
+
+              {/* Full Withdrawal / Route Dust */}
+              {txnType === "WITHDRAWAL" &&
+                (hasExistingPosition || (currentBalance !== null && currentBalance > 0)) && (
+                  <div className="flex items-center justify-between py-2 px-1 bg-muted/30 rounded-md border border-border/50">
+                    <div className="flex flex-col gap-0.5">
+                      <Label htmlFor="full-exit" className="text-sm font-semibold cursor-pointer">
+                        Full Exit
+                      </Label>
+                      <span className="text-[11px] text-muted-foreground">
+                        Route remaining decimals to Indigo Fees
+                      </span>
+                    </div>
+                    <Switch
+                      id="full-exit"
+                      checked={watch("full_withdrawal")}
+                      onCheckedChange={(checked) => {
+                        setValue("full_withdrawal", checked);
+                        if (checked && currentBalance) {
+                          // Round to 3 decimals as per user request for "what they see"
+                          const roundedAmount = Math.floor(currentBalance * 1000) / 1000;
+                          setValue("amount", roundedAmount.toString());
+                        }
+                      }}
+                    />
+                  </div>
+                )}
 
               {/* Transaction Date */}
               <TransactionDateInput />

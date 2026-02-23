@@ -40,6 +40,7 @@ export const transactionSchema = z.object({
     .max(255, "Transaction hash must be less than 255 characters")
     .optional(),
   notes: z.string().trim().max(1000, "Notes must be less than 1000 characters").optional(),
+  full_withdrawal: z.boolean().default(false),
 });
 
 export type TransactionFormData = z.infer<typeof transactionSchema>;

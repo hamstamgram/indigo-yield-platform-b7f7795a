@@ -56,8 +56,10 @@ export const QUERY_KEYS = {
       : (["investors", "recent-activity", id] as const),
   investorOverview: (id: string) => ["investors", "overview", id] as const,
   investorDefaultFund: (id: string) => ["investors", "default-fund", id] as const,
-  investorBalance: (investorId: string, fundId: string) =>
-    ["investors", "balance", investorId, fundId] as const,
+  investorBalance: (investorId?: string, fundId?: string) =>
+    investorId && fundId
+      ? (["investors", "balance", investorId, fundId] as const)
+      : (["investors", "balance"] as const),
   investorPerformance: (assetCode?: string) =>
     assetCode
       ? (["investors", "performance", assetCode] as const)
@@ -87,8 +89,10 @@ export const QUERY_KEYS = {
   investorProfileSettings: (investorId: string) =>
     ["investor-profile-settings", investorId] as const,
   investorReportPeriods: (investorId: string) => ["investor-report-periods", investorId] as const,
-  availableBalance: (investorId: string, fundId: string) =>
-    ["available-balance", investorId, fundId] as const,
+  availableBalance: (investorId?: string, fundId?: string) =>
+    investorId && fundId
+      ? (["available-balance", investorId, fundId] as const)
+      : (["available-balance"] as const),
 
   // ============ Transactions (Unified Namespace) ============
   /**
@@ -122,9 +126,14 @@ export const QUERY_KEYS = {
     ["transactions", "pending-details", type, id] as const,
   adminTransactionFormInvestors: ["admin", "transaction-form", "investors"] as const,
   adminTransactionFormFunds: ["admin", "transaction-form", "funds"] as const,
-  adminAumCheck: (fundId: string, date: string) => ["admin", "aum-check", fundId, date] as const,
-  adminBalanceCheck: (investorId: string, fundId: string) =>
-    ["admin", "balance-check", investorId, fundId] as const,
+  adminAumCheck: (fundId?: string, date?: string) =>
+    fundId && date
+      ? (["admin", "aum-check", fundId, date] as const)
+      : (["admin", "aum-check"] as const),
+  adminBalanceCheck: (investorId?: string, fundId?: string) =>
+    investorId && fundId
+      ? (["admin", "balance-check", investorId, fundId] as const)
+      : (["admin", "balance-check"] as const),
 
   // ============ Yield ============
   yieldDistributions: (fundId?: string) =>

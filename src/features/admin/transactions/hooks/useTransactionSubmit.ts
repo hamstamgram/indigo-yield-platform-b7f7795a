@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { createInvestorTransaction } from "@/services/shared";
+import { executeInternalRoute } from "@/services/admin/internalRouteService";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QueryClient } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ interface UseTransactionSubmitParams {
   resetForm: () => void;
   setInvestorError: (error: string | null) => void;
   fundId?: string; // For logging/context
+  currentBalance?: number | null;
 }
 
 export function useTransactionSubmit({
@@ -28,6 +30,7 @@ export function useTransactionSubmit({
   resetForm,
   setInvestorError,
   fundId: initialFundId,
+  currentBalance,
 }: UseTransactionSubmitParams) {
   const [loading, setLoading] = useState(false);
   const [pendingLargeDeposit, setPendingLargeDeposit] = useState<TransactionFormData | null>(null);
@@ -103,6 +106,28 @@ export function useTransactionSubmit({
 
       if (!result.success) {
         throw new Error(result.error || "Failed to create transaction");
+      }
+
+      // Handle Full Exit (Dust Routing)
+      if (data.full_withdrawal && data.txn_type === "WITHDRAWAL" && currentBalance) {
+        const withdrawalAmount = parseFloat(data.amount);
+        const dustAmount = currentBalance - withdrawalAmount;
+
+        if (dustAmount > 0) {
+          toast.info(`Routing ${dustAmount.toFixed(10)} ${data.asset} dust to Indigo Fees...`);
+          try {
+            await executeInternalRoute({
+              fromInvestorId: currentInvestorId,
+              fundId: data.fund_id,
+              amount: dustAmount,
+              effectiveDate: data.tx_date,
+              reason: `Full Exit Dust Cleanup - ${currentInvestorId}`,
+            });
+          } catch (routeError) {
+            console.error("Dust routing failed:", routeError);
+            toast.warning("Withdrawal succeeded, but dust routing failed. Please check manually.");
+          }
+        }
       }
 
       // Invalidate all relevant queries

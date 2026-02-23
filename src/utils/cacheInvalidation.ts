@@ -57,6 +57,10 @@ const INVALIDATION_GRAPH = {
     QUERY_KEYS.feeAllocations(),
     QUERY_KEYS.ibAllocations(),
     QUERY_KEYS.perAssetStats,
+    QUERY_KEYS.adminBalanceCheck(),
+    QUERY_KEYS.adminAumCheck(),
+    QUERY_KEYS.investorBalance(),
+    QUERY_KEYS.availableBalance(),
   ],
   withdrawal: [...WITHDRAWAL_RELATED_KEYS],
   deposit: [QUERY_KEYS.deposits, QUERY_KEYS.depositsAdmin, QUERY_KEYS.depositStats],
@@ -212,10 +216,12 @@ export function invalidateAfterTransaction(
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions(investorId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminBalanceCheck(investorId) });
   }
 
   if (fundId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fund(fundId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminAumCheck(fundId) });
   }
 }
 
