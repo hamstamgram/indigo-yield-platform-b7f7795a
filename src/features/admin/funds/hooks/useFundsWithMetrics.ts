@@ -8,9 +8,9 @@ import { logError } from "@/lib/logger";
 import { toast } from "sonner";
 import { fundService, deleteFund as deleteFundService } from "@/services/admin";
 import { auditLogService } from "@/services/shared";
-import { getPositionsByFund } from "@/services/investor";
 import { useAuth } from "@/services/auth";
 import type { Fund, FundStatus } from "@/types/domains/fund";
+import { rpc } from "@/lib/rpc/index";
 
 export interface FundWithMetrics extends Fund {
   total_aum: number;
@@ -27,24 +27,32 @@ export function useFundsWithMetrics() {
   return useQuery<FundWithMetrics[]>({
     queryKey: QUERY_KEY,
     queryFn: async () => {
+      // 1. Fetch the full fund data to satisfy the `Fund` interface
       const fundsData = await fundService.getAllFunds();
 
-      const fundsWithMetrics = await Promise.all(
-        (fundsData || []).map(async (fund) => {
-          const positions = await getPositionsByFund(fund.id);
+      // 2. Fetch the newly unified AUM data via RPC
+      const { data: aumData, error, success } = await rpc.callNoArgs("get_funds_with_aum");
 
-          const total_aum =
-            positions?.reduce((sum, p) => sum + Number(p.currentValue || 0), 0) || 0;
-          const uniqueInvestors = new Set(positions?.map((p) => p.investorId) || []);
+      if (!success || error) {
+        logError(
+          "useFundsWithMetrics.aumRefresh",
+          error || new Error("Failed to fetch AUM via RPC")
+        );
+      }
 
-          return {
-            ...fund,
-            status: fund.status || "active",
-            total_aum,
-            investor_count: uniqueInvestors.size,
-          };
-        })
-      );
+      const aumMap = new Map((aumData || []).map((a) => [a.fund_id, a]));
+
+      // 3. Merge the unified AUM data with the full fund objects
+      const fundsWithMetrics = (fundsData || []).map((fund) => {
+        const aumInfo = aumMap.get(fund.id);
+
+        return {
+          ...fund,
+          status: fund.status || "active",
+          total_aum: Number(aumInfo?.total_aum || 0),
+          investor_count: Number(aumInfo?.investor_count || 0),
+        };
+      });
 
       return fundsWithMetrics;
     },
