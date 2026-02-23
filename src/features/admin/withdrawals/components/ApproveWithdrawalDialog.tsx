@@ -73,14 +73,18 @@ export function ApproveWithdrawalDialog({
   const dustPreview = useMemo(() => {
     if (!isFullExit || !positionBalance) return null;
     const balance = new Decimal(positionBalance);
-    const sendAmount = balance.toDecimalPlaces(INVESTOR_DISPLAY_DECIMALS, Decimal.ROUND_DOWN);
+
+    // Use the actual entered processedAmount for dust calculation
+    // This allows admins to manually override the payout amount
+    const sendAmount = new Decimal(processedAmount || 0);
     const dust = balance.minus(sendAmount);
+
     return {
       sendAmount: sendAmount.toString(),
-      dustAmount: dust.toString(),
+      dustAmount: dust.isNegative() ? "0" : dust.toString(),
       fullBalance: balance.toString(),
     };
-  }, [isFullExit, positionBalance]);
+  }, [isFullExit, positionBalance, processedAmount]);
 
   // Check if dust exceeds warning threshold
   const isDustLarge = useMemo(() => {
@@ -121,14 +125,17 @@ export function ApproveWithdrawalDialog({
     }
   }, [open, withdrawal.requested_amount]);
 
-  // When full exit is toggled on, override processedAmount with truncated balance
+  // When full exit is toggled on, default processedAmount to truncated balance
+  // BUT do not overwrite it if the user manually edits it afterwards
   useEffect(() => {
-    if (isFullExit && dustPreview) {
-      setProcessedAmount(dustPreview.sendAmount);
+    if (isFullExit && positionBalance) {
+      const balance = new Decimal(positionBalance);
+      const truncated = balance.toDecimalPlaces(INVESTOR_DISPLAY_DECIMALS, Decimal.ROUND_DOWN);
+      setProcessedAmount(truncated.toString());
     } else if (!isFullExit) {
       setProcessedAmount(withdrawal.requested_amount.toString());
     }
-  }, [isFullExit, dustPreview, withdrawal.requested_amount]);
+  }, [isFullExit, positionBalance, withdrawal.requested_amount]);
 
   const isConfirmed = confirmText.toUpperCase() === "APPROVE";
 
@@ -259,23 +266,25 @@ export function ApproveWithdrawalDialog({
               </div>
             )}
 
-            {!isFullExit && (
-              <div>
-                <Label htmlFor="processedAmount">Processed Amount *</Label>
-                <Input
-                  id="processedAmount"
-                  type="number"
-                  step="0.00000001"
-                  min="0"
-                  value={processedAmount}
-                  onChange={(e) => setProcessedAmount(e.target.value)}
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Adjust if processing fees apply
-                </p>
-              </div>
-            )}
+            <div>
+              <Label htmlFor="processedAmount">
+                {isFullExit ? "Final Payment Amount *" : "Processed Amount *"}
+              </Label>
+              <Input
+                id="processedAmount"
+                type="number"
+                step="0.00000001"
+                min="0"
+                value={processedAmount}
+                onChange={(e) => setProcessedAmount(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {isFullExit
+                  ? "Adjust final payment. Remainder will route to INDIGO Fees."
+                  : "Adjust if processing fees apply"}
+              </p>
+            </div>
 
             <div>
               <Label htmlFor="adminNotes">Admin Notes (Optional)</Label>
