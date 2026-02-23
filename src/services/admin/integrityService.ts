@@ -33,7 +33,8 @@ export async function fetchIntegrityChecks(): Promise<IntegrityCheck[]> {
   ]);
 
   // Propagate query errors instead of hiding them as "ok"
-  if (fundAumMismatch.error) throw new Error(`fund_aum_mismatch: ${fundAumMismatch.error.message}`);
+  // Note: fund_aum_mismatch view may not exist; degrade gracefully instead of crashing all checks
+  const fundAumData = fundAumMismatch.error ? [] : (fundAumMismatch.data ?? []);
   if (yieldConservation.error)
     throw new Error(`yield_conservation: ${yieldConservation.error.message}`);
   if (ibConsistency.error) throw new Error(`ib_consistency: ${ibConsistency.error.message}`);
@@ -44,10 +45,12 @@ export async function fetchIntegrityChecks(): Promise<IntegrityCheck[]> {
     {
       name: "Fund AUM Reconciliation",
       description: "Recorded AUM matches sum of investor positions",
-      status: (fundAumMismatch.data?.length || 0) === 0 ? "ok" : "error",
-      count: fundAumMismatch.data?.length || 0,
+      status: fundAumMismatch.error ? "warning" : fundAumData.length === 0 ? "ok" : "error",
+      count: fundAumData.length,
       iconName: "wallet",
-      details: (fundAumMismatch.data as unknown as Record<string, unknown>[] | undefined) ?? undefined,
+      details: fundAumMismatch.error
+        ? [{ error: fundAumMismatch.error.message }]
+        : (fundAumData as unknown as Record<string, unknown>[]),
     },
     {
       name: "Yield Conservation",
