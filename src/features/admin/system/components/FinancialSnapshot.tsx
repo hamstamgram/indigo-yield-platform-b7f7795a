@@ -24,13 +24,9 @@ import type { Fund } from "@/types/domains/fund";
 
 interface FinancialSnapshotProps {
   onRecordYield?: (fundId: string) => void;
-  onOpenPeriod?: (fundId: string) => void;
 }
 
-export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
-  onRecordYield,
-  onOpenPeriod,
-}) => {
+export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ onRecordYield }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
 
@@ -217,7 +213,6 @@ export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({
               onEdit={() => setEditingFund(fund as unknown as Fund)}
               showYieldActions={!!onRecordYield}
               onRecordYield={onRecordYield ? () => onRecordYield(fund.id) : undefined}
-              onOpenPeriod={onOpenPeriod ? () => onOpenPeriod(fund.id) : undefined}
             />
           ))}
         </div>

@@ -4,7 +4,7 @@ import { getTodayUTC } from "@/utils/dateUtils";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { Settings, Plus, CalendarIcon } from "lucide-react";
+import { Settings, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatAUM } from "@/utils/formatters";
 import type { FundAUMData } from "@/hooks";
@@ -25,7 +25,6 @@ interface FundSnapshotCardProps {
   date?: Date;
   onClick: () => void;
   onRecordYield?: () => void;
-  onOpenPeriod?: () => void;
   onEdit?: () => void;
   showYieldActions?: boolean;
 }
@@ -37,7 +36,6 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
   date,
   onClick,
   onRecordYield,
-  onOpenPeriod,
   onEdit,
   showYieldActions = false,
 }) {
@@ -114,7 +112,9 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
           <div>
             <p className="text-xs text-muted-foreground mb-1">Withdrawals</p>
             <p className="text-sm font-semibold text-red-400 break-words">
-              -{formatAUM(flows?.daily_outflows || 0, fund.asset)}
+              {(flows?.daily_outflows || 0) !== 0
+                ? `-${formatAUM(Math.abs(flows?.daily_outflows || 0), fund.asset)}`
+                : formatAUM(0, fund.asset)}
             </p>
           </div>
 
@@ -136,20 +136,6 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
         {/* Yield Action Buttons */}
         {showYieldActions && (
           <div className="flex gap-2 pt-4 border-t border-border mt-4">
-            {fund.investor_count === 0 && onOpenPeriod && (
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenPeriod();
-                }}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Open Period
-              </Button>
-            )}
             {onRecordYield && (
               <Button
                 onClick={(e) => {

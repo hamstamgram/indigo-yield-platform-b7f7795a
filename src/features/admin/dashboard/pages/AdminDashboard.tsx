@@ -390,7 +390,7 @@ function AdminDashboardContent() {
       {/* Financial Snapshot - Full Width Glass */}
       <div className="glass-panel rounded-2xl border border-white/5 shadow-2xl overflow-hidden p-[1px] bg-gradient-to-br from-white/10 to-transparent">
         <div className="bg-black/40 rounded-[15px] overflow-hidden backdrop-blur-md">
-          <FinancialSnapshot onRecordYield={handleRecordYield} onOpenPeriod={handleOpenPeriod} />
+          <FinancialSnapshot onRecordYield={handleRecordYield} />
         </div>
       </div>
 
