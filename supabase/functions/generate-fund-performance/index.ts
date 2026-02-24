@@ -210,7 +210,9 @@ Deno.serve(async (req) => {
     if (investorProfilesError) throw investorProfilesError;
 
     const investorIds = (investorProfiles || [])
-      .filter((p: any) => !p.account_type || p.account_type === "investor")
+      .filter(
+        (p: any) => !p.account_type || p.account_type === "investor" || p.account_type === "ib"
+      )
       .map((p: any) => p.id);
 
     if (investorIds.length === 0) {
