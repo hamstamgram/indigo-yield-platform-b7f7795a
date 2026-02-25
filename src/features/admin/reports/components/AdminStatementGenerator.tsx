@@ -31,18 +31,7 @@ const AdminStatementGenerator: React.FC = () => {
     setIsGenerating(true);
     setProgress(0);
     try {
-      // 1. Fetch all active investors via service
-      const investors = await profileService.getActiveInvestors();
-
-      if (!investors || investors.length === 0) {
-        toast({ title: "No active investors found" });
-        return;
-      }
-
-      const total = investors.length;
-      let successCount = 0;
-
-      // Resolve period_id for the selected month/year via service
+      // 1. Resolve period first (needed to fetch reporting-eligible investors)
       const period = await statementsService.getStatementPeriod(
         parseInt(selectedYear),
         parseInt(selectedMonth)
@@ -57,11 +46,23 @@ const AdminStatementGenerator: React.FC = () => {
         return;
       }
 
-      // 2. Loop and generate
+      // 2. Fetch eligible investors via get_reporting_eligible_investors RPC.
+      //    This includes both 'investor' and 'ib' account types (fixed by migration
+      //    20260223152200) and only returns accounts with positions + performance data.
+      const investors = await profileService.getReportingEligibleInvestors(period.id);
+
+      if (!investors || investors.length === 0) {
+        toast({ title: "No eligible investors found for this period" });
+        return;
+      }
+
+      const total = investors.length;
+      let successCount = 0;
+
+      // 3. Loop and generate
       for (let i = 0; i < total; i++) {
         const investor = investors[i];
-        const investorFullName =
-          `${investor.firstName || ""} ${investor.lastName || ""}`.trim() || investor.email;
+        const investorFullName = investor.name || investor.email;
 
         // Fetch report data via service
         const reports = await profileService.getInvestorFundPerformanceByPeriod(

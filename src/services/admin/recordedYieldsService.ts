@@ -167,8 +167,7 @@ export async function updateYieldRecord(
   _adminId: string,
   _editReason?: string
 ): Promise<any> {
-  console.warn("updateYieldRecord is deprecated — fund_daily_aum table was dropped");
-  return { success: false, message: "Deprecated" };
+  throw new Error("updateYieldRecord is deprecated — use yieldDistributionService instead");
 }
 
 /**

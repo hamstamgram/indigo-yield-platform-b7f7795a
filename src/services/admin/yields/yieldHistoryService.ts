@@ -163,8 +163,6 @@ export async function getActiveFundsWithAUM(): Promise<
     throw new Error(`Failed to fetch active funds summary: ${error.message}`);
   }
 
-  console.log(`[yieldHistoryService] getActiveFundsWithAUM raw data:`, data?.slice(0, 2));
-
   return (data || []).map((f: any) => {
     // RIGOROUS MAPPING: Check both v5 (fund_id) and v6 (id) styles
     // The RPC returns {id, code, name, asset, total_aum, investor_count}

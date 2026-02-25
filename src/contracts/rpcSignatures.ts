@@ -34,7 +34,6 @@ export const RPC_FUNCTIONS = [
   "approve_withdrawal",
   "assert_integrity_or_raise",
   "backfill_balance_chain_fix",
-  "batch_initialize_fund_aum",
   "batch_reconcile_all_positions",
   "build_error_response",
   "build_success_response",
@@ -382,14 +381,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_fund_id", "p_investor_id"] as const,
     optionalParams: [] as const,
-  },
-  batch_initialize_fund_aum: {
-    name: "batch_initialize_fund_aum" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
-    optionalParams: ["p_admin_id", "p_dry_run"] as const,
   },
   batch_reconcile_all_positions: {
     name: "batch_reconcile_all_positions" as const,

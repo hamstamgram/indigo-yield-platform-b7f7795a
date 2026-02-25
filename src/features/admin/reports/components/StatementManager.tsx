@@ -57,12 +57,12 @@ export const StatementManager: React.FC = () => {
       // 1. Get Active Investors (profiles) via service
       const investors = await profileService.getActiveInvestors();
 
-      if (!investors || investors.length === 0) throw new Error("No active investors found");
+      if (!investors || investors.data.length === 0) throw new Error("No active investors found");
 
       let count = 0;
 
       // 2. Process Each Investor
-      for (const investor of investors) {
+      for (const investor of investors.data) {
         // Get transactions via service
         const txs = await transactionsV2Service.getByInvestorId(investor.id, {
           endDate: formatDateForDB(endDate),

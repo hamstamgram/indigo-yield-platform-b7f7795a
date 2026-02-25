@@ -94,8 +94,7 @@ export async function voidYieldRecord(
   _recordId: string,
   _reason: string
 ): Promise<VoidYieldResult> {
-  console.warn("voidYieldRecord is deprecated — fund_daily_aum table was dropped");
-  return { success: false } as any;
+  throw new Error("voidYieldRecord is deprecated — use void_yield_distribution RPC instead");
 }
 
 /**

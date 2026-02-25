@@ -33,7 +33,6 @@ const RATE_LIMITED_RPCS: Record<
   void_yield_distribution: { windowMs: 60000, maxRequests: 5, actionType: "void" },
   edit_transaction: { windowMs: 60000, maxRequests: 20, actionType: "transaction" },
   set_fund_daily_aum: { windowMs: 60000, maxRequests: 30, actionType: "aum" },
-  
 };
 
 async function checkRateLimit(functionName: string, actorId?: string): Promise<boolean> {
@@ -126,8 +125,10 @@ export async function call<T extends RPCFunctionName>(
       });
     }
 
-    // Execute RPC
-    const { data, error } = await supabase.rpc(functionName, params);
+    // Execute RPC — cast required because RPCFunctions extends Database["public"]["Functions"]
+    // with additional functions that exist in production but aren't in generated types yet.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await supabase.rpc(functionName as any, params as any);
     const durationMs = Date.now() - startTime;
 
     if (error) {
@@ -179,7 +180,8 @@ export async function callNoArgs<T extends RPCFunctionName>(
   functionName: T
 ): Promise<RPCResult<RPCFunctions[T]["Returns"]>> {
   try {
-    const { data, error } = await supabase.rpc(functionName);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await supabase.rpc(functionName as any);
 
     if (error) {
       const normalizedError = normalizeError(error, String(functionName));

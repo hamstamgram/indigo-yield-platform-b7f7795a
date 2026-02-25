@@ -26,7 +26,7 @@ export function OperationsRoutes() {
       />
 
       {/* Redirects - deprecated route: Consolidated to Command Center */}
-      <Route path="/admin/funds" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/admin/funds" element={<Navigate to="/admin" replace />} />
 
       {/* Consolidated Reports page */}
       <Route

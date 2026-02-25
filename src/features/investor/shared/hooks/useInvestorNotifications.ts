@@ -1,6 +1,6 @@
 /**
  * Investor Notifications Hook
- * 
+ *
  * React Query hook for fetching and managing investor notifications.
  * Replaces manual useState/useEffect pattern in NotificationsPage.
  */
@@ -29,7 +29,10 @@ export interface InvestorNotification {
 export function useInvestorNotifications() {
   return useQuery({
     queryKey: QUERY_KEYS.investorNotifications,
-    queryFn: () => notificationService.getMyNotifications() as Promise<InvestorNotification[]>,
+    queryFn: async () => {
+      const result = await notificationService.getMyNotifications();
+      return result.data as InvestorNotification[];
+    },
     staleTime: 30 * 1000, // 30 seconds - notifications may update frequently
   });
 }
@@ -45,14 +48,8 @@ export function useMarkNotificationAsRead() {
     mutationFn: (notificationId: string) => notificationService.markAsRead(notificationId),
     onSuccess: (_, notificationId) => {
       // Optimistically update the cache
-      queryClient.setQueryData<InvestorNotification[]>(
-        QUERY_KEYS.investorNotifications,
-        (old) => 
-          old?.map((n) => 
-            n.id === notificationId 
-              ? { ...n, read_at: new Date().toISOString() } 
-              : n
-          )
+      queryClient.setQueryData<InvestorNotification[]>(QUERY_KEYS.investorNotifications, (old) =>
+        old?.map((n) => (n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n))
       );
       toast({
         title: "Success",
@@ -77,9 +74,8 @@ export function useDeleteNotification() {
     mutationFn: (notificationId: string) => notificationService.deleteNotification(notificationId),
     onSuccess: (_, notificationId) => {
       // Optimistically remove from cache
-      queryClient.setQueryData<InvestorNotification[]>(
-        QUERY_KEYS.investorNotifications,
-        (old) => old?.filter((n) => n.id !== notificationId)
+      queryClient.setQueryData<InvestorNotification[]>(QUERY_KEYS.investorNotifications, (old) =>
+        old?.filter((n) => n.id !== notificationId)
       );
       toast({
         title: "Success",

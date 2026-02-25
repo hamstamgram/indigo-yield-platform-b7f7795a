@@ -193,6 +193,31 @@ async function getActiveInvestors(
   };
 }
 
+/**
+ * Fetch all reporting-eligible investors AND IB accounts for a given statement period.
+ * Uses get_reporting_eligible_investors RPC, which correctly includes both account types
+ * (fixed by migration 20260223152200_fix_ib_reporting_and_zero_balances.sql).
+ * Returns only eligible accounts (has positions + performance data, not already generated).
+ */
+async function getReportingEligibleInvestors(periodId: string): Promise<ProfileSummary[]> {
+  const { data, error } = await supabase.rpc("get_reporting_eligible_investors", {
+    p_period_id: periodId,
+  });
+
+  if (error) throw error;
+
+  const rows = (data as any[]) || [];
+  return rows
+    .filter((r: any) => r.is_eligible === true)
+    .map((r: any) => ({
+      id: r.investor_id,
+      email: r.email,
+      firstName: null,
+      lastName: null,
+      name: r.investor_name || r.email,
+    }));
+}
+
 async function getMyProfile(): Promise<ProfileSummary | null> {
   const {
     data: { user },
@@ -435,6 +460,7 @@ export const profileService = {
   updateProfile,
   getInvestorProfileWithFund,
   getActiveInvestors,
+  getReportingEligibleInvestors,
   getMyProfile,
   countDocuments,
   getMonthlyReports,

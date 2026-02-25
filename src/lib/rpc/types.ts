@@ -4,12 +4,6 @@ import type { Database } from "@/integrations/supabase/types";
 // TYPES
 // =============================================================================
 
-import { RPC_FUNCTIONS } from "@/contracts/rpcSignatures";
-
-// =============================================================================
-// TYPES
-// =============================================================================
-
 export type RPCFunctions = Database["public"]["Functions"] & {
   get_funds_daily_flows: {
     Args: { p_date: string };
@@ -53,9 +47,17 @@ export type RPCFunctions = Database["public"]["Functions"] & {
     Args: { p_fund_id: string };
     Returns: unknown;
   };
+  get_period_delivery_stats: {
+    Args: { p_period_id: string };
+    Returns: unknown;
+  };
+  get_all_investors_summary: {
+    Args: Record<string, never>;
+    Returns: unknown;
+  };
 };
 
-export type RPCFunctionName = keyof RPCFunctions | (typeof RPC_FUNCTIONS)[number];
+export type RPCFunctionName = keyof RPCFunctions;
 
 export interface RPCResult<T> {
   data: T | null;
