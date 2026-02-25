@@ -285,9 +285,9 @@ test.describe("Investor Portal - Position Viewing", () => {
     await page.goto("/investor/performance");
     await helpers.waitForPageLoad();
 
-    // Performance page should load
+    // Performance page should load (redirects to /investor — route removed)
     const url = page.url();
-    expect(url).toContain("/investor/performance");
+    expect(url).toContain("/investor");
 
     // Look for performance metrics
     const metrics = page.locator("text=/return|gain|performance|yield/i");
@@ -301,7 +301,10 @@ test.describe("Investor Portal - Position Viewing", () => {
     await helpers.waitForPageLoad();
 
     // Look for allocation information
-    const allocation = page.locator("text=/allocation|distribution|breakdown/i, canvas, svg");
+    const allocation = page
+      .locator("text=/allocation|distribution|breakdown/i")
+      .or(page.locator("canvas"))
+      .or(page.locator("svg"));
 
     // May show chart or table of allocations
     if ((await allocation.count()) > 0) {
@@ -1007,9 +1010,9 @@ test.describe("Investor Portal - Statement and Report Viewing", () => {
     await page.goto("/investor/documents");
     await helpers.waitForPageLoad();
 
-    // Verify we're on documents page
+    // Verify we're in investor area (documents redirects to /investor)
     const url = page.url();
-    expect(url).toContain("/investor/documents");
+    expect(url).toContain("/investor");
 
     // Page should load without errors
     const mainContent = page.locator('main, [role="main"]');

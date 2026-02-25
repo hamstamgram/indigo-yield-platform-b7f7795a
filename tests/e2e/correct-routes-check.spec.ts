@@ -36,7 +36,7 @@ const ROUTES = [
   { path: "/admin/yield-distributions", label: "→ Yield History (redirect)" },
   { path: "/admin/audit-logs", label: "→ Operations Audit Tab (redirect)" },
   { path: "/admin/investor-reports", label: "→ Reports (redirect)" },
-  { path: "/admin/funds", label: "→ /admin/dashboard (BROKEN)" },
+  { path: "/admin/funds", label: "→ /admin (redirect)" },
 ];
 
 for (const route of ROUTES) {
