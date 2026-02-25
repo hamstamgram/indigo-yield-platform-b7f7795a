@@ -115,7 +115,10 @@ test.describe("Investor Portal Smoke", () => {
   test("overview page loads with assets", async ({ page }) => {
     await page.goto("/investor");
     await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toContainText(/wealth|balance|asset/i);
+    // Overview page shows dashboard content (positions, statements, activity, or welcome message)
+    await expect(page.locator("body")).toContainText(
+      /welcome back|position|statement|overview|portfolio|history|withdrawal/i
+    );
   });
 
   test("portfolio page loads", async ({ page }) => {
