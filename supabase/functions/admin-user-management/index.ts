@@ -159,6 +159,8 @@ async function createUser(params: CreateUserRequest): Promise<any> {
 
   // Create profile record directly using admin client (bypasses RLS)
   // Use UPSERT to merge with trigger-created row (on_auth_user_created)
+  // fee_pct: null must be explicitly included so the Supabase JS client's
+  // schema cache resolves this column (bypasses stale introspection cache)
   const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
     {
       id: newUser.user.id,
@@ -168,7 +170,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
       phone: phone || null,
       is_admin: role === "admin",
       status: "active",
-      fee_pct: params.feePct ?? null, // NULL = use fund default from fee hierarchy
+      fee_pct: null, // required for schema cache to include the column
     },
     { onConflict: "id" }
   );

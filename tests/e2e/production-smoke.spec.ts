@@ -15,8 +15,8 @@ import { test, expect, Page } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.QA_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.QA_ADMIN_PASSWORD || "QaTest2026!";
-const INVESTOR_EMAIL = process.env.QA_INVESTOR_EMAIL || "qa.investor@indigo.fund";
-const INVESTOR_PASSWORD = process.env.QA_INVESTOR_PASSWORD || "QaTest2026!";
+const INVESTOR_EMAIL = process.env.QA_INVESTOR_EMAIL || "thomas.puech@indigo.fund";
+const INVESTOR_PASSWORD = process.env.QA_INVESTOR_PASSWORD || "TestInvestor2026!";
 
 async function dismissOverlays(page: Page) {
   // Accept cookie consent

@@ -11,8 +11,8 @@ export const TEST_CREDENTIALS = {
     password: process.env.QA_ADMIN_PASSWORD || "QaTest2026!",
   },
   investor: {
-    email: process.env.QA_INVESTOR_EMAIL || "qa.investor@indigo.fund",
-    password: process.env.QA_INVESTOR_PASSWORD || "QaTest2026!",
+    email: process.env.QA_INVESTOR_EMAIL || "thomas.puech@indigo.fund",
+    password: process.env.QA_INVESTOR_PASSWORD || "TestInvestor2026!",
   },
   ib: {
     email: process.env.QA_IB_EMAIL || "qa.ib@indigo.fund",

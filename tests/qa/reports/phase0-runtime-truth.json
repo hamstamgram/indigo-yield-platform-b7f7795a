@@ -1,41 +1,10 @@
 {
-  "generatedAt": "2026-02-02T05:53:33.759Z",
-  "rpcDrift": [
-    {
-      "rpcName": "admin_create_transactions_batch",
-      "status": "missing_in_db",
-      "severity": "error",
-      "details": "Frontend declares admin_create_transactions_batch but it does not exist in DB"
-    },
-    {
-      "rpcName": "get_health_trend",
-      "status": "missing_in_db",
-      "severity": "error",
-      "details": "Frontend declares get_health_trend but it does not exist in DB"
-    },
-    {
-      "rpcName": "get_latest_health_status",
-      "status": "missing_in_db",
-      "severity": "error",
-      "details": "Frontend declares get_latest_health_status but it does not exist in DB"
-    },
-    {
-      "rpcName": "log_ledger_mismatches",
-      "status": "missing_in_db",
-      "severity": "error",
-      "details": "Frontend declares log_ledger_mismatches but it does not exist in DB"
-    },
-    {
-      "rpcName": "run_daily_health_check",
-      "status": "missing_in_db",
-      "severity": "error",
-      "details": "Frontend declares run_daily_health_check but it does not exist in DB"
-    }
-  ],
+  "generatedAt": "2026-02-25T10:26:03.592Z",
+  "rpcDrift": [],
   "protectedTableViolations": [
     {
       "file": "src/services/shared/investorDataExportService.ts",
-      "line": 21,
+      "line": 15,
       "table": "transactions_v2",
       "operation": "access",
       "match": "supabase.from(\"transactions_v2\").select(\"*\").eq(\"investor_id\", userId),"
@@ -43,77 +12,112 @@
   ],
   "gatewayBypasses": [
     {
+      "file": "src/services/admin/adminService.ts",
+      "line": 134,
+      "rpcName": "get_funds_aum_snapshot",
+      "match": "const { data: aumData, error: aumError } = await supabase.rpc(\"get_funds_aum_snapshot\", {",
+      "isKnownBypass": false
+    },
+    {
       "file": "src/services/admin/integrityService.ts",
-      "line": 120,
+      "line": 131,
       "rpcName": "run_invariant_checks",
       "match": "const { data, error } = await supabase.rpc(\"run_invariant_checks\" as any);",
       "isKnownBypass": true
     },
     {
-      "file": "src/services/ib/allocations.ts",
-      "line": 141,
-      "rpcName": "get_ib_referrals",
-      "match": "const { data, error } = await supabase.rpc(\"get_ib_referrals\", {",
-      "isKnownBypass": true
+      "file": "src/services/admin/reports/dataFetch.ts",
+      "line": 158,
+      "rpcName": "get_investor_reports_v2",
+      "match": "const { data, error } = await supabase.rpc(\"get_investor_reports_v2\", {",
+      "isKnownBypass": false
     },
     {
-      "file": "src/services/ib/ibService.ts",
-      "line": 154,
-      "rpcName": "get_ib_referrals",
-      "match": "const { data, error } = await supabase.rpc(\"get_ib_referrals\", {",
-      "isKnownBypass": true
+      "file": "src/services/admin/yields/yieldHistoryService.ts",
+      "line": 159,
+      "rpcName": "get_active_funds_summary",
+      "match": "const { data, error } = await supabase.rpc(\"get_active_funds_summary\");",
+      "isKnownBypass": false
     },
     {
-      "file": "src/services/ib/ibService.ts",
-      "line": 313,
-      "rpcName": "get_ib_referral_count",
-      "match": "const { data, error } = await supabase.rpc(\"get_ib_referral_count\", {",
-      "isKnownBypass": true
+      "file": "src/services/admin/yields/yieldHistoryService.ts",
+      "line": 208,
+      "rpcName": "get_fund_composition",
+      "match": "const { data, error } = await supabase.rpc(\"get_fund_composition\", {",
+      "isKnownBypass": false
     },
     {
-      "file": "src/services/ib/ibService.ts",
-      "line": 329,
-      "rpcName": "get_ib_referrals",
-      "match": "const { data: profiles, error } = await supabase.rpc(\"get_ib_referrals\", {",
-      "isKnownBypass": true
+      "file": "src/services/shared/auditLogService.ts",
+      "line": 128,
+      "rpcName": "get_paged_audit_logs",
+      "match": "const { data, error } = await supabase.rpc(\"get_paged_audit_logs\", {",
+      "isKnownBypass": false
     },
     {
-      "file": "src/services/ib/ibService.ts",
-      "line": 390,
-      "rpcName": "get_ib_referrals",
-      "match": "const { data, error } = await supabase.rpc(\"get_ib_referrals\", {",
-      "isKnownBypass": true
+      "file": "src/services/shared/notificationService.ts",
+      "line": 17,
+      "rpcName": "get_paged_notifications",
+      "match": "const { data, error } = await supabase.rpc(\"get_paged_notifications\", {",
+      "isKnownBypass": false
     },
     {
-      "file": "src/services/ib/ibService.ts",
-      "line": 408,
-      "rpcName": "get_ib_referral_detail",
-      "match": "const { data, error } = await supabase.rpc(\"get_ib_referral_detail\", {",
-      "isKnownBypass": true
+      "file": "src/services/shared/profileService.ts",
+      "line": 172,
+      "rpcName": "get_paged_investor_summaries",
+      "match": "const { data, error } = await supabase.rpc(\"get_paged_investor_summaries\", {",
+      "isKnownBypass": false
     },
     {
-      "file": "src/services/ib/referrals.ts",
-      "line": 31,
-      "rpcName": "get_ib_referrals",
-      "match": "const { data, error } = await supabase.rpc(\"get_ib_referrals\", {",
-      "isKnownBypass": true
+      "file": "src/services/shared/profileService.ts",
+      "line": 203,
+      "rpcName": "get_reporting_eligible_investors",
+      "match": "const { data, error } = await supabase.rpc(\"get_reporting_eligible_investors\", {",
+      "isKnownBypass": false
     },
     {
-      "file": "src/services/ib/referrals.ts",
-      "line": 55,
-      "rpcName": "get_ib_parent_candidates",
-      "match": "const { data, error } = await supabase.rpc(\"get_ib_parent_candidates\", {",
-      "isKnownBypass": true
+      "file": "src/services/shared/profileService.ts",
+      "line": 370,
+      "rpcName": "update_user_profile_secure",
+      "match": "const { error } = await supabase.rpc(\"update_user_profile_secure\", {",
+      "isKnownBypass": false
+    },
+    {
+      "file": "src/features/investor/portfolio/services/investorPositionService.ts",
+      "line": 249,
+      "rpcName": "get_platform_stats",
+      "match": "const { data, error } = await supabase.rpc(\"get_platform_stats\");",
+      "isKnownBypass": false
+    },
+    {
+      "file": "src/features/investor/portfolio/services/investorPositionService.ts",
+      "line": 530,
+      "rpcName": "is_admin",
+      "match": "const { data, error } = await supabase.rpc(\"is_admin\");",
+      "isKnownBypass": false
+    },
+    {
+      "file": "src/features/investor/yields/services/investorYieldService.ts",
+      "line": 159,
+      "rpcName": "get_investor_yield_summary",
+      "match": "const { data, error } = await supabase.rpc(\"get_investor_yield_summary\", {",
+      "isKnownBypass": false
+    },
+    {
+      "file": "src/features/investor/yields/services/investorYieldService.ts",
+      "line": 185,
+      "rpcName": "get_investor_cumulative_yield",
+      "match": "const { data, error } = await supabase.rpc(\"get_investor_cumulative_yield\", {",
+      "isKnownBypass": false
     }
   ],
   "summary": {
-    "totalDbFunctions": 256,
+    "totalDbFunctions": 0,
     "totalFrontendRPCs": 256,
-    "missingInDb": 5,
+    "missingInDb": 0,
     "missingInFrontend": 0,
     "paramMismatches": 0,
     "protectedTableViolations": 1,
-    "gatewayBypasses": 9,
-    "knownBypasses": 9
+    "gatewayBypasses": 14,
+    "knownBypasses": 1
   }
 }
