@@ -67,6 +67,13 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 12%;
     --sidebar-ring: 231 48% 65%;
+
+    /* GLASS SYSTEM */
+    --glass-bg: rgba(15, 23, 42, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --shadow-glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
+    --shadow-glow-yield: 0 0 20px rgba(0, 229, 107, 0.15);
+    --surface-elevated: hsl(222 47% 8%);
   }
 }
 
@@ -122,17 +129,49 @@
   }
 
   .glass-card {
-    @apply bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-card/80;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    @apply backdrop-blur-sm rounded-2xl shadow-sm transition-all duration-150 ease-out hover:border-white/10 hover:shadow-md;
+  }
+
+  /* METRIC HERO — Hormozi principle: make the number undeniable */
+  .metric-hero {
+    @apply font-mono font-bold tabular-nums tracking-tight leading-none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* YIELD VALUE — Neon green for positive yield numbers */
+  .yield-value {
+    color: hsl(var(--yield-neon));
+    @apply font-mono font-bold tabular-nums;
+  }
+
+  /* STATUS DOT */
+  .status-dot {
+    @apply inline-block h-2 w-2 rounded-full;
+  }
+
+  .status-dot-operational {
+    @apply status-dot bg-emerald-400;
+    box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
+  }
+
+  .status-dot-warning {
+    @apply status-dot bg-amber-400;
+  }
+
+  .status-dot-error {
+    @apply status-dot bg-rose-400;
   }
 
   /* PREMIUM INTERACTIVE ELEMENTS */
   .btn-premium {
-    @apply relative overflow-hidden transition-all duration-300 active:scale-95;
+    @apply relative overflow-hidden transition-all duration-150 ease-out active:scale-[0.98];
   }
 
   .btn-premium::after {
     content: '';
-    @apply absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300;
+    @apply absolute inset-0 bg-white/20 translate-y-full transition-transform duration-150;
   }
 
   .btn-premium:hover::after {
@@ -146,7 +185,7 @@
 
   /* DASHBOARD CARD */
   .dashboard-card {
-    @apply rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-1;
+    @apply rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-150 ease-out hover:shadow-md hover:-translate-y-0.5 hover:border-white/10;
   }
 }
 
@@ -161,4 +200,9 @@
 
 .animate-delay-300 {
   animation-delay: 300ms;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }

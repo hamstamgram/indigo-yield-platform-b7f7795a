@@ -16,22 +16,26 @@ const UserProfile = ({ userName, isAdmin = false, avatarUrl }: UserProfileProps)
     .slice(0, 2);
 
   return (
-    <div className="flex items-center px-6 py-4 border-t border-sidebar-border bg-sidebar-accent/30">
-      <div className="flex items-center space-x-3 w-full">
-        <div className="flex-shrink-0">
-          <Avatar className="w-9 h-9">
+    <div className="flex items-center px-4 py-3">
+      <div className="flex items-center gap-3 w-full">
+        <div className="shrink-0">
+          <Avatar className="w-8 h-8">
             <AvatarImage src={avatarUrl} alt={userName} />
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm font-medium">
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">{userName}</p>
-            {isAdmin && <Crown className="w-3 h-3 text-sidebar-primary shrink-0" />}
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-bold text-sidebar-foreground truncate leading-tight">
+              {userName}
+            </p>
+            {isAdmin && <Crown className="w-3 h-3 text-primary shrink-0" />}
           </div>
-          {isAdmin && <p className="text-xs text-sidebar-foreground/60">Administrator</p>}
+          <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+            {isAdmin ? "Administrator" : "Investor"}
+          </p>
         </div>
       </div>
     </div>

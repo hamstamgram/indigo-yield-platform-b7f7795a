@@ -101,21 +101,21 @@ export default function InvestorOverviewPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <p className="text-slate-400 mt-1 text-sm">
-            Welcome back, <span className="text-white font-medium">{displayName}</span>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Welcome back, <span className="text-foreground font-semibold">{displayName}</span>
           </p>
         </div>
         <div className="flex gap-3">
           <Button
             variant="outline"
-            className="glass-panel border-white/10 hover:bg-white/5 text-slate-300"
+            className="border-border/60 hover:bg-accent/30 hover:border-border text-muted-foreground"
             onClick={() => navigate("/investor/statements")}
           >
             <FileText className="h-4 w-4 mr-2" />
             Statements
           </Button>
           <Button
-            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/20"
+            className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.4)] border border-indigo-400/20"
             onClick={() => navigate("/investor/transactions")}
           >
             <History className="h-4 w-4 mr-2" />
@@ -124,50 +124,76 @@ export default function InvestorOverviewPage() {
         </div>
       </div>
 
-      {/* Portfolio Balance Strip */}
-      <div className="glass-panel rounded-2xl px-5 py-4 border border-white/5">
-        <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-3">
+      {/* Hero: Portfolio Balance Strip — Hormozi: make numbers UNDENIABLE */}
+      <div
+        className="rounded-2xl p-5 border"
+        style={{
+          background: "var(--glass-bg)",
+          borderColor: "var(--glass-border)",
+          boxShadow: "var(--shadow-glow-indigo)",
+        }}
+      >
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-4">
           Current Balances
         </p>
         {isLoadingStats ? (
           <div className="flex gap-3">
             {[1, 2].map((i) => (
-              <Skeleton key={i} className="h-10 w-40 rounded-xl bg-white/5" />
+              <Skeleton key={i} className="h-14 w-48 rounded-xl" />
             ))}
           </div>
         ) : assetStats?.assets && assetStats.assets.length > 0 ? (
           <div className="flex flex-wrap gap-3">
             {assetStats.assets.map((asset) => {
               const balance = asset.mtd?.endingBalance ?? asset.ytd?.endingBalance ?? 0;
+              const mtdIncome = asset.mtd?.netIncome ?? 0;
+              const isPositive = mtdIncome > 0;
               return (
                 <div
                   key={asset.assetSymbol}
-                  className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                  className="flex items-center gap-3 px-5 py-3.5 rounded-xl bg-white/5 border border-white/8 hover:bg-white/[0.08] hover:border-white/15 transition-all duration-150 group"
                 >
                   <img
                     src={getAssetLogo(asset.assetSymbol)}
                     alt={asset.assetSymbol}
-                    className="h-5 w-5 rounded-full"
+                    className="h-6 w-6 rounded-full ring-1 ring-white/10"
                   />
-                  <span className="font-mono font-bold text-white text-sm">
-                    {formatInvestorAmount(balance, asset.assetSymbol)}
-                  </span>
-                  <span className="text-xs text-slate-500 font-bold uppercase">
-                    {asset.assetSymbol}
-                  </span>
+                  <div>
+                    <p className="font-mono font-bold text-white text-base tabular-nums leading-tight">
+                      {formatInvestorAmount(balance, asset.assetSymbol)}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">
+                        {asset.assetSymbol}
+                      </span>
+                      {isPositive && (
+                        <span
+                          className="text-[10px] font-mono font-bold"
+                          style={{ color: "hsl(var(--yield-neon))" }}
+                        >
+                          +{formatInvestorAmount(mtdIncome, asset.assetSymbol)} MTD
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">No active positions</p>
+          <div className="py-4 text-center">
+            <p className="text-sm text-muted-foreground">No active positions</p>
+          </div>
         )}
       </div>
 
+      {/* Divider */}
+      <div className="border-t border-border/30" />
+
       {isLoading ? (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-48 rounded-2xl bg-white/5" />
+            <Skeleton key={i} className="h-48 rounded-2xl" />
           ))}
         </div>
       ) : (
@@ -175,7 +201,7 @@ export default function InvestorOverviewPage() {
           {/* Left Column: Performance Cards */}
           <div className="lg:col-span-2 space-y-6">
             {/* Period Selectors */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               {availablePeriods && availablePeriods.length > 0 && (
                 <Select
                   value={selectedPeriodId || availablePeriods[0]?.id || ""}
@@ -197,7 +223,7 @@ export default function InvestorOverviewPage() {
             </div>
 
             {currentPeriodLabel && (
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 Showing {PERIOD_LABELS[period]} for {currentPeriodLabel}
               </p>
             )}
@@ -208,7 +234,7 @@ export default function InvestorOverviewPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : assetStats?.assets && assetStats.assets.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 {assetStats.assets.map((asset) => (
                   <PerformanceCard
                     key={asset.fundName}
@@ -219,8 +245,12 @@ export default function InvestorOverviewPage() {
                 ))}
               </div>
             ) : (
-              <div className="glass-panel p-8 text-center rounded-3xl border-dashed border-white/10">
-                <p className="text-slate-400">No active positions found.</p>
+              <div
+                className="p-10 text-center rounded-2xl border border-dashed"
+                style={{ borderColor: "var(--glass-border)" }}
+              >
+                <TrendingUp className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">No active positions found.</p>
               </div>
             )}
 
@@ -237,28 +267,34 @@ export default function InvestorOverviewPage() {
           </div>
 
           {/* Right Column: Recent Activity & Quick Stats */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Latest Statement */}
-            <div className="glass-panel rounded-3xl p-6 border border-white/5 bg-indigo-500/5">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+            <div
+              className="rounded-2xl p-5 border"
+              style={{
+                background: "var(--glass-bg)",
+                borderColor: "var(--glass-border)",
+              }}
+            >
+              <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5" />
                 Latest Statement
               </h3>
               {latestStatement ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-white font-bold">{latestStatement.periodName}</p>
+                  <p className="text-sm text-foreground font-bold">{latestStatement.periodName}</p>
                   {latestStatement.funds.map((fund) => (
                     <div
                       key={fund.asset_code}
-                      className="flex justify-between items-center p-3 rounded-xl bg-white/5"
+                      className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5"
                     >
                       <div className="flex items-center gap-2 min-w-0 mr-2">
                         <CryptoIcon symbol={fund.asset_code} className="h-4 w-4 shrink-0" />
-                        <span className="text-sm text-slate-300 truncate">
+                        <span className="text-sm text-muted-foreground truncate">
                           {fund.asset_code} Fund
                         </span>
                       </div>
-                      <span className="text-sm font-mono text-white font-bold">
+                      <span className="text-sm font-mono text-foreground font-bold tabular-nums">
                         {formatInvestorNumber(fund.ending_balance)} {fund.asset_code}
                       </span>
                     </div>
@@ -266,7 +302,7 @@ export default function InvestorOverviewPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full text-xs text-slate-400 hover:text-white hover:bg-white/5"
+                    className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-white/5"
                     onClick={() => navigate("/investor/statements")}
                   >
                     <Download className="h-3 w-3 mr-1" />
@@ -274,32 +310,41 @@ export default function InvestorOverviewPage() {
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No statements available yet</p>
+                <p className="text-sm text-muted-foreground">No statements available yet</p>
               )}
             </div>
 
             {/* Quick Stats */}
-            <div className="glass-panel rounded-3xl p-6 border border-white/5">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <Clock className="h-4 w-4" />
+            <div
+              className="rounded-2xl p-5 border"
+              style={{
+                background: "var(--glass-bg)",
+                borderColor: "var(--glass-border)",
+              }}
+            >
+              <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5" />
                 Quick Stats
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div
                   className={cn(
-                    "flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors",
+                    "flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/8 transition-colors duration-100",
                     pendingWithdrawals ? "cursor-pointer" : ""
                   )}
                   onClick={() => pendingWithdrawals && navigate("/investor/withdrawals")}
                 >
-                  <span className="text-sm text-slate-300">Pending Withdrawals</span>
+                  <span className="text-sm text-muted-foreground">Pending Withdrawals</span>
                   {pendingWithdrawals ? (
                     <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/20">
                       {pendingWithdrawals} Pending
                       <ArrowRight className="h-3 w-3" />
                     </span>
                   ) : (
-                    <span className="text-sm text-emerald-500 font-medium flex items-center gap-1">
+                    <span
+                      className="text-sm font-mono font-semibold flex items-center gap-1"
+                      style={{ color: "hsl(var(--yield-neon))" }}
+                    >
                       All Clear <ArrowRight className="h-3 w-3" />
                     </span>
                   )}
@@ -308,25 +353,31 @@ export default function InvestorOverviewPage() {
             </div>
 
             {/* Recent Transactions */}
-            <div className="glass-panel rounded-3xl p-6 border border-white/5">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
+            <div
+              className="rounded-2xl p-5 border"
+              style={{
+                background: "var(--glass-bg)",
+                borderColor: "var(--glass-border)",
+              }}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                  <TrendingUp className="h-3.5 w-3.5" />
                   Recent Activity
                 </h3>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentTransactions?.map((tx) => (
                   <div
                     key={tx.id}
-                    className="group flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/5"
+                    className="group flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all duration-100 cursor-pointer border border-transparent hover:border-white/5"
                     onClick={() => navigate("/investor/transactions")}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={cn(
-                          "h-8 w-8 rounded-lg flex items-center justify-center border",
+                          "h-8 w-8 rounded-lg flex items-center justify-center border shrink-0",
                           String(tx.type) === "DEPOSIT" ||
                             String(tx.type) === "YIELD" ||
                             String(tx.type) === "FEE_CREDIT" ||
@@ -335,7 +386,7 @@ export default function InvestorOverviewPage() {
                             ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                             : String(tx.type) === "WITHDRAWAL" || String(tx.type) === "FEE"
                               ? "bg-rose-500/10 border-rose-500/20 text-rose-400"
-                              : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
+                              : "bg-primary/10 border-primary/20 text-primary"
                         )}
                       >
                         {tx.type === "DEPOSIT" ? (
@@ -347,10 +398,10 @@ export default function InvestorOverviewPage() {
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white capitalize">
+                        <p className="text-sm font-semibold text-foreground capitalize leading-tight">
                           {tx.type.replace(/_/g, " ").toLowerCase()}
                         </p>
-                        <p className="text-xs text-slate-500 font-medium">
+                        <p className="text-xs text-muted-foreground font-medium mt-0.5">
                           {format(new Date(tx.tx_date), "MMM d, h:mm a")}
                         </p>
                       </div>
@@ -358,13 +409,13 @@ export default function InvestorOverviewPage() {
                     <div className="text-right min-w-0 ml-2">
                       <p
                         className={cn(
-                          "text-sm font-mono font-bold truncate",
+                          "text-sm font-mono font-bold truncate tabular-nums",
                           tx.type === "DEPOSIT" ||
                             tx.type === "YIELD" ||
                             tx.type === "FEE_CREDIT" ||
                             tx.type === "IB_CREDIT"
-                            ? "text-emerald-400"
-                            : "text-white"
+                            ? "text-[hsl(var(--yield-neon))]"
+                            : "text-foreground"
                         )}
                       >
                         {tx.type === "DEPOSIT" ||
@@ -375,9 +426,9 @@ export default function InvestorOverviewPage() {
                           : ""}
                         {formatInvestorNumber(parseFinancial(tx.amount).toNumber())}
                       </p>
-                      <div className="flex items-center gap-1 justify-end">
+                      <div className="flex items-center gap-1 justify-end mt-0.5">
                         <CryptoIcon symbol={tx.asset} className="h-3 w-3 shrink-0" />
-                        <p className="text-[10px] text-slate-500 font-bold uppercase truncate">
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase truncate">
                           {tx.asset}
                         </p>
                       </div>
@@ -386,12 +437,14 @@ export default function InvestorOverviewPage() {
                 ))}
 
                 {(!recentTransactions || recentTransactions.length === 0) && (
-                  <div className="text-center py-6 text-slate-500 text-sm">No recent activity</div>
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    No recent activity
+                  </div>
                 )}
 
                 <Button
                   variant="ghost"
-                  className="w-full mt-2 text-xs text-slate-400 hover:text-white hover:bg-white/5"
+                  className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground hover:bg-white/5"
                   onClick={() => navigate("/investor/transactions")}
                 >
                   View All History
