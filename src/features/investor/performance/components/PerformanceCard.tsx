@@ -85,14 +85,18 @@ export function PerformanceCard({ fundName, data }: PerformanceCardProps) {
       {/* Metrics grid */}
       <div className="p-5 grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Beginning</p>
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">
+            Beginning Balance
+          </p>
           <p className="font-mono font-semibold text-slate-200 text-sm">
             {formatInvestorAmount(data.beginningBalance, fundName)}
           </p>
         </div>
 
         <div className="space-y-1">
-          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Ending</p>
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">
+            Ending Balance
+          </p>
           <p className="font-mono font-bold text-white text-sm">
             {formatInvestorAmount(data.endingBalance, fundName)}
           </p>
