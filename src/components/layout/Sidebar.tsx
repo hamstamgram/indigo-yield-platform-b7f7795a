@@ -207,7 +207,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <img
-                  src="/lovable-uploads/INDIGO_logo-white.png"
+                  src="/brand/logo-white.svg"
                   alt="Indigo Yield Fund"
                   className="h-9 w-auto relative z-10 transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"

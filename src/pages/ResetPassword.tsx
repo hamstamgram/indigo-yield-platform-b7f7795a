@@ -156,7 +156,7 @@ export default function ResetPassword() {
         <div className="mb-8 flex flex-col items-center justify-center text-center space-y-4">
           <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl shadow-indigo-500/10">
             <img
-              src="/lovable-uploads/INDIGO_logo-white.png"
+              src="/brand/logo-white.svg"
               alt="Infinite Yield Fund"
               className="h-16 w-auto drop-shadow-lg"
             />
