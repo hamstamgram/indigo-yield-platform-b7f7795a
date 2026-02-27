@@ -59,16 +59,18 @@ const AdminStatementGenerator: React.FC = () => {
       const total = investors.length;
       let successCount = 0;
 
-      // 3. Loop and generate
+      // 3a. Prefetch all report data in parallel — eliminates N sequential DB round-trips
+      setProgress(5);
+      const allReports = await Promise.all(
+        investors.map((inv) => profileService.getInvestorFundPerformanceByPeriod(inv.id, period.id))
+      );
+      setProgress(30);
+
+      // 3b. Generate + upload + record — sequential to respect storage rate limits
       for (let i = 0; i < total; i++) {
         const investor = investors[i];
+        const reports = allReports[i];
         const investorFullName = investor.name || investor.email;
-
-        // Fetch report data via service
-        const reports = await profileService.getInvestorFundPerformanceByPeriod(
-          investor.id,
-          period.id
-        );
 
         // Prepare statement data
         const statementData = {
@@ -124,6 +126,8 @@ const AdminStatementGenerator: React.FC = () => {
         });
 
         successCount++;
+        // Progress: 30–95% range across the generate+upload loop
+        setProgress(30 + Math.round(((i + 1) / total) * 65));
       }
 
       toast({

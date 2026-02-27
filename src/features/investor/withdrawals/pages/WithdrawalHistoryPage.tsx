@@ -17,7 +17,7 @@ export default function WithdrawalHistoryPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Withdrawal Requests</h1>
         <Button asChild>
-          <Link to="/withdrawals/new">
+          <Link to="/investor/withdrawals/new">
             <Plus className="mr-2 h-4 w-4" />
             Request Withdrawal
           </Link>
@@ -92,7 +92,7 @@ export default function WithdrawalHistoryPage() {
                 </p>
               </div>
               <Button asChild variant="outline" className="mt-2">
-                <Link to="/withdrawals/new">
+                <Link to="/investor/withdrawals/new">
                   <Plus className="mr-2 h-4 w-4" />
                   Request Withdrawal
                 </Link>

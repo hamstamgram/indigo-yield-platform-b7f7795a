@@ -42,8 +42,16 @@ export function CookieConsent() {
       // Small delay so the CSS transition fires
       const t = setTimeout(() => setVisible(true), 50);
 
-      // Auto-dismiss after 12s
+      // Auto-dismiss after 12s — store necessary-only consent so state is never lost
       timerRef.current = setTimeout(() => {
+        const prefs: CookiePreferences = {
+          necessary: true,
+          analytics: false,
+          performance: false,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(prefs));
+        applyPreferences(prefs);
         dismiss();
       }, AUTO_DISMISS_MS);
 

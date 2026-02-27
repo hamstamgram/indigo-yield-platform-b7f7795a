@@ -40,6 +40,11 @@ export function useSignIn() {
     },
     onError: (error: Error) => {
       logError("signIn", error);
+      toast({
+        title: "Login failed",
+        description: "Invalid email or password. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 }

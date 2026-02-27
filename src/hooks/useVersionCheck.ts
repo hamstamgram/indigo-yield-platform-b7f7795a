@@ -48,6 +48,9 @@ export function useVersionCheck() {
       }
     };
 
+    // Check on initial load (catches stale tabs opened from cache)
+    checkVersion();
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);

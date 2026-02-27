@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { createInvestorTransaction } from "@/services/shared";
 import { executeInternalRoute } from "@/services/admin/internalRouteService";
+import { parseFinancial } from "@/utils/financial";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QueryClient } from "@tanstack/react-query";
@@ -73,7 +74,8 @@ export function useTransactionSubmit({
 
     // Bug #3: Large deposit confirmation
     const isDeposit = data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT";
-    const numericAmount = typeof data.amount === "string" ? parseFloat(data.amount) : data.amount;
+    const numericAmount =
+      typeof data.amount === "string" ? parseFinancial(data.amount).toNumber() : data.amount;
     const isLargeAmount = isDeposit && numericAmount > 1_000_000;
 
     if (isLargeAmount && !largeDepositConfirmed) {
@@ -110,7 +112,7 @@ export function useTransactionSubmit({
 
       // Handle Full Exit (Dust Routing)
       if (data.full_withdrawal && data.txn_type === "WITHDRAWAL" && currentBalance) {
-        const withdrawalAmount = parseFloat(data.amount);
+        const withdrawalAmount = parseFinancial(data.amount).toNumber();
         const dustAmount = currentBalance - withdrawalAmount;
 
         if (dustAmount > 0) {

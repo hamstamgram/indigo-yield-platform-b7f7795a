@@ -20,9 +20,9 @@
     /* #0F172A */
 
     /* Yield Gold — Institutional (replaces DeFi green) */
-    --yield-neon: 38 52% 47%;
-    --yield-gold: 38 52% 47%;
-    --yield-gold-muted: 38 52% 47% / 0.15;
+    --yield-neon: 38 65% 47%;
+    --yield-gold: 38 65% 47%;
+    --yield-gold-muted: 38 65% 47% / 0.15;
 
     /* DARK MODE BASE */
     --background: 224 71% 4%;

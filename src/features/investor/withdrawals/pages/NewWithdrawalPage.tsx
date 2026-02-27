@@ -18,7 +18,7 @@ export default function NewWithdrawalPage() {
       <div className="space-y-6">
         <div className="flex items-center">
           <Button variant="ghost" asChild>
-            <Link to="/withdrawals">
+            <Link to="/investor/withdrawals">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to History
             </Link>
@@ -42,7 +42,7 @@ export default function NewWithdrawalPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
-          <Link to="/withdrawals">
+          <Link to="/investor/withdrawals">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to History
           </Link>
@@ -52,8 +52,8 @@ export default function NewWithdrawalPage() {
       <div className="max-w-3xl mx-auto">
         <WithdrawalRequestForm
           positions={positions}
-          onSuccess={() => navigate("/withdrawals")}
-          onCancel={() => navigate("/withdrawals")}
+          onSuccess={() => navigate("/investor/withdrawals")}
+          onCancel={() => navigate("/investor/withdrawals")}
         />
       </div>
     </div>
