@@ -113,14 +113,23 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
         >
           Joined
         </SortableTableHead>
-        <SortableTableHead
-          column="ibParentName"
-          currentSort={sortConfig}
-          onSort={onSort}
-          className="text-muted-foreground/70 uppercase tracking-wider text-[10px] bg-transparent border-none p-0 h-auto"
-        >
-          IB
-        </SortableTableHead>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <SortableTableHead
+                column="ibParentName"
+                currentSort={sortConfig}
+                onSort={onSort}
+                className="text-muted-foreground/70 uppercase tracking-wider text-[10px] bg-transparent border-none p-0 h-auto cursor-help"
+              >
+                Broker
+              </SortableTableHead>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            Introducing Broker — the partner who referred this investor.
+          </TooltipContent>
+        </Tooltip>
         <div className="text-right text-muted-foreground/70 uppercase tracking-wider text-[10px] font-medium pr-4">
           Actions
         </div>

@@ -55,6 +55,15 @@ export default function Login() {
       {/* Deep Space Background */}
       <div className="absolute inset-0 bg-background" />
 
+      {/* Subtle dot grid — depth + seriousness */}
+      <div
+        className="absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.15) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+
       {/* Animated Orbs — slower, more subtle */}
       <div
         className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
@@ -66,7 +75,7 @@ export default function Login() {
       <div
         className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
         style={{
-          background: "hsl(var(--yield-neon) / 0.08)",
+          background: "hsl(var(--yield-neon) / 0.07)",
           animation: "pulse 12s ease-in-out infinite",
           animationDelay: "2s",
         }}
@@ -74,7 +83,7 @@ export default function Login() {
       <div
         className="absolute top-[20%] left-[20%] w-[30%] h-[30%] rounded-full blur-[80px]"
         style={{
-          background: "hsl(var(--indigo-brand) / 0.08)",
+          background: "hsl(var(--indigo-brand) / 0.06)",
           animation: "pulse 8s ease-in-out infinite",
           animationDelay: "4s",
         }}
@@ -88,14 +97,16 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-md animate-fade-in-up">
         {/* Brand Header */}
-        <div className="mb-8 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl shadow-indigo-500/10">
-            <img
-              src="/brand/logo-white.svg"
-              alt="Infinite Yield Fund"
-              className="h-14 w-auto drop-shadow-lg"
-            />
-          </div>
+        <div className="mb-6 flex flex-col items-center justify-center text-center space-y-4">
+          <img
+            src="/brand/logo-white.svg"
+            alt="Infinite Yield Fund"
+            className="h-14 w-auto drop-shadow-lg"
+          />
+          {/* Cialdini: scarcity + authority in one line */}
+          <p className="text-xs text-muted-foreground tracking-widest uppercase">
+            Invite-only · For accredited investors
+          </p>
         </div>
 
         {/* Glass Login Card */}
@@ -202,6 +213,24 @@ export default function Login() {
               )}
             </Button>
           </form>
+
+          {/* Trust strip */}
+          <div className="mt-6 pt-4 border-t border-white/[0.08]">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className="text-[11px] font-semibold text-white/70">7.4M+ USDT</p>
+                <p className="text-[10px] text-white/30 mt-0.5">AUM</p>
+              </div>
+              <div className="border-x border-white/[0.08]">
+                <p className="text-[11px] font-semibold text-white/70">40+</p>
+                <p className="text-[10px] text-white/30 mt-0.5">Active Investors</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-white/70">Invite-Only</p>
+                <p className="text-[10px] text-white/30 mt-0.5">Platform</p>
+              </div>
+            </div>
+          </div>
 
           <div className="mt-8 pt-6 border-t border-white/5 text-center space-y-4">
             <p className="text-xs text-indigo-200/40 font-light px-4 leading-relaxed">

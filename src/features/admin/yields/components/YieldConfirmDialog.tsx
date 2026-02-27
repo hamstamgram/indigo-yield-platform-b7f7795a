@@ -72,13 +72,20 @@ export function YieldConfirmDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
-            Confirm Yield Distribution
+          <AlertDialogTitle className="flex flex-col items-center gap-3 text-center pt-2">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <AlertTriangle className="h-6 w-6 text-amber-500" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">Are you certain?</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              This will distribute yield to all active investors in this fund.
+            </span>
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-4">
-              <p>You are about to distribute yield with the following details:</p>
+              <p className="text-sm text-muted-foreground text-center">
+                Review the distribution details below:
+              </p>
 
               <div className="p-3 rounded-md bg-muted space-y-1 text-sm">
                 <div className="flex justify-between">
@@ -196,7 +203,9 @@ export function YieldConfirmDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="border-border/50 text-muted-foreground hover:text-foreground">
+            Cancel
+          </AlertDialogCancel>
           <Button
             onClick={onApply}
             disabled={
@@ -205,13 +214,14 @@ export function YieldConfirmDialog({
               (yieldPurpose === "reporting" && Boolean(existingDistributionDate)) ||
               (reconciliation?.has_warning && !acknowledgeDiscrepancy)
             }
+            className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold shadow-lg shadow-indigo-600/25 transition-all duration-150"
           >
             {applyLoading ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <CheckCircle className="h-4 w-4 mr-2" />
             )}
-            Confirm & Apply
+            {applyLoading ? "Distributing..." : "Confirm Distribution"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -122,8 +122,8 @@ export default function YieldHistoryPage() {
     <AdminGuard>
       <PageShell maxWidth="wide">
         <div>
-          <h1 className="text-2xl font-bold">Yield History</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Yield History</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             View historical yield distributions and investor allocations across all funds.
           </p>
         </div>

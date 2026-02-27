@@ -150,7 +150,7 @@ const AuditLogViewer = ({ embedded = false }: { embedded?: boolean }) => {
       <div className="flex justify-between items-start">
         {!embedded ? (
           <div>
-            <h1 className="text-2xl font-bold">Audit Log</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Audit Log</h1>
             <p className="text-muted-foreground">
               Complete audit trail of all system changes and administrative actions
             </p>

@@ -240,23 +240,26 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
     return `${sign}${formatted}`;
   };
 
-  const getTypeBadgeClass = (displayType: string, type: string) => {
-    const isCredit =
-      type === "DEPOSIT" ||
-      type === "YIELD" ||
-      type === "FEE_CREDIT" ||
-      type === "IB_CREDIT" ||
-      type === "FIRST_INVESTMENT";
-    const isDebit = type === "WITHDRAWAL" || type === "FEE";
-
-    return cn(
-      "font-mono tracking-wider text-[10px] uppercase",
-      isCredit
-        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-        : isDebit
-          ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-          : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
-    );
+  const getTypeBadgeClass = (_displayType: string, type: string) => {
+    const base = "rounded-full px-2 py-0.5 text-xs font-semibold";
+    switch (type) {
+      case "YIELD":
+      case "DISTRIBUTION":
+        // yield-neon green — user override: keep green
+        return cn(base, "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25");
+      case "DEPOSIT":
+      case "FIRST_INVESTMENT":
+        return cn(base, "bg-green-500/10 text-green-400 border border-green-500/20");
+      case "WITHDRAWAL":
+        return cn(base, "bg-rose-500/10 text-rose-400 border border-rose-500/20");
+      case "FEE":
+        return cn(base, "bg-amber-500/10 text-amber-400 border border-amber-500/20");
+      case "FEE_CREDIT":
+      case "IB_CREDIT":
+        return cn(base, "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20");
+      default:
+        return cn(base, "bg-muted text-muted-foreground border border-border/40");
+    }
   };
 
   const handleAddTransactionSuccess = () => {
