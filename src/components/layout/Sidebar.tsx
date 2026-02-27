@@ -337,6 +337,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             <div className="px-4 pb-4">
               <LogoutButton />
             </div>
+            {/* Compliance marker */}
+            <div className="px-4 pb-3 border-t border-sidebar-border/20">
+              <p className="text-[10px] text-muted-foreground/40 leading-relaxed">
+                Investments are subject to risk. Past performance does not guarantee future results.
+                Indigo Yield operates under applicable EU financial regulations.
+              </p>
+            </div>
           </div>
         </div>
       </aside>

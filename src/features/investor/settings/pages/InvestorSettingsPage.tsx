@@ -217,7 +217,7 @@ export default function InvestorSettingsPage() {
                 <Button
                   onClick={handleSaveSettings}
                   disabled={savePreferencesMutation.isPending}
-                  className="bg-yield-neon text-black hover:bg-yield-neon/90 font-bold px-8 rounded-xl shadow-lg shadow-yield-neon/20 h-12"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-8 rounded-xl h-12"
                 >
                   {savePreferencesMutation.isPending ? "Saving..." : "Save Preferences"}
                 </Button>

@@ -77,7 +77,7 @@ export default function FundDetailsPage() {
           </h1>
           <p className="text-lg text-indigo-200/60 font-light tracking-wide max-w-2xl flex items-center gap-2 justify-center md:justify-start">
             <CryptoIcon symbol={assetCode} className="h-5 w-5 opacity-50" /> Strategy •
-            Institutional Grade DeFi Yield
+            Institutional Yield Strategy
           </p>
         </div>
 
