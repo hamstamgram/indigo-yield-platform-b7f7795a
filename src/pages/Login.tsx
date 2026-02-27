@@ -49,44 +49,30 @@ export default function Login() {
 
   const error = signInMutation.error?.message || null;
 
-  // Yield Spectrum Login Design
+  // Institutional background — no animation, no orbs
   const backgroundDecorators = (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none select-none">
       {/* Deep Space Background */}
       <div className="absolute inset-0 bg-background" />
 
-      {/* Subtle dot grid — depth + seriousness */}
+      {/* Subtle CSS grid overlay */}
       <div
-        className="absolute inset-0 opacity-[0.35]"
+        className="absolute inset-0 opacity-[0.12]"
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.15) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
+          backgroundImage:
+            "linear-gradient(rgba(99,102,241,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.4) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
         }}
       />
 
-      {/* Animated Orbs — slower, more subtle */}
+      {/* Two static radial gradients — indigo, 5% opacity */}
       <div
-        className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
-        style={{
-          background: "hsl(var(--indigo-brand) / 0.18)",
-          animation: "pulse 10s ease-in-out infinite",
-        }}
+        className="absolute top-[-15%] left-[-15%] w-[55%] h-[55%] rounded-full blur-[140px]"
+        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%)" }}
       />
       <div
-        className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
-        style={{
-          background: "hsl(var(--yield-neon) / 0.07)",
-          animation: "pulse 12s ease-in-out infinite",
-          animationDelay: "2s",
-        }}
-      />
-      <div
-        className="absolute top-[20%] left-[20%] w-[30%] h-[30%] rounded-full blur-[80px]"
-        style={{
-          background: "hsl(var(--indigo-brand) / 0.06)",
-          animation: "pulse 8s ease-in-out infinite",
-          animationDelay: "4s",
-        }}
+        className="absolute bottom-[-15%] right-[-15%] w-[55%] h-[55%] rounded-full blur-[140px]"
+        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%)" }}
       />
     </div>
   );
@@ -212,6 +198,21 @@ export default function Login() {
                 </span>
               )}
             </Button>
+
+            {/* Credibility strip */}
+            <div className="flex items-center justify-center gap-4 pt-1">
+              <span className="text-[10px] text-white/25 tracking-widest uppercase font-medium">
+                $7.4M AUM
+              </span>
+              <span className="text-white/15">·</span>
+              <span className="text-[10px] text-white/25 tracking-widest uppercase font-medium">
+                40+ Investors
+              </span>
+              <span className="text-white/15">·</span>
+              <span className="text-[10px] text-white/25 tracking-widest uppercase font-medium">
+                Invite Only
+              </span>
+            </div>
           </form>
 
           <div className="mt-8 pt-6 border-t border-white/5 text-center space-y-4">
