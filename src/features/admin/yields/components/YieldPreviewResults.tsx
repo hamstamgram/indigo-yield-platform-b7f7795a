@@ -222,7 +222,9 @@ export function YieldPreviewResults({
               <TableHead className="text-right">Fee %</TableHead>
               <TableHead className="text-right">Fee</TableHead>
               <TableHead className="text-right">Net</TableHead>
-              <TableHead className="text-right">IB</TableHead>
+              <TableHead className="text-right" title="Introducing Broker">
+                Broker
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -344,8 +346,10 @@ export function YieldPreviewResults({
       {/* Apply Button */}
       <Button onClick={onConfirmApply} disabled={applyLoading} className="w-full" size="lg">
         <CheckCircle className="h-4 w-4 mr-2" />
-        Apply Yield to{" "}
-        {yieldPreview.distributions.filter((d) => !checkSystemAccount(d)).length} Investors
+        Apply Yield to {
+          yieldPreview.distributions.filter((d) => !checkSystemAccount(d)).length
+        }{" "}
+        Investors
       </Button>
     </div>
   );

@@ -47,7 +47,7 @@ export const investorNav: NavItem[] = [
 // ============================================
 export const adminNavGroups: NavGroup[] = [
   {
-    title: "Command",
+    title: "",
     icon: Gauge,
     items: [
       {
@@ -65,7 +65,7 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Investors",
+    title: "",
     icon: Users,
     items: [
       {
@@ -83,7 +83,7 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Reporting",
+    title: "",
     icon: TrendingUp,
     items: [
       {
@@ -101,7 +101,7 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Admin",
+    title: "Platform",
     icon: Settings,
     items: [
       {

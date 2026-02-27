@@ -105,7 +105,7 @@ export default function Login() {
           />
           {/* Cialdini: scarcity + authority in one line */}
           <p className="text-xs text-muted-foreground tracking-widest uppercase">
-            Invite-only · For accredited investors
+            Invite-only · Accredited Investors Only
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export default function Login() {
 
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-white">Investor Portal</h2>
-            <p className="text-xs text-white/30 mt-1">Secure access to your portfolio</p>
+            <p className="text-xs text-white/30 mt-1">Private Access</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">

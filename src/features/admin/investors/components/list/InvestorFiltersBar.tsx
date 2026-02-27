@@ -145,12 +145,12 @@ export const InvestorFiltersBar: React.FC<InvestorFiltersBarProps> = ({
       <Select value={ibFilter} onValueChange={onIbChange}>
         <SelectTrigger className="w-[130px] h-9">
           <Users className="h-3.5 w-3.5 mr-1" />
-          <SelectValue placeholder="IB" />
+          <SelectValue placeholder="Broker" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All</SelectItem>
-          <SelectItem value="has_ib">Has IB</SelectItem>
-          <SelectItem value="no_ib">No IB</SelectItem>
+          <SelectItem value="has_ib">Has Broker</SelectItem>
+          <SelectItem value="no_ib">No Broker</SelectItem>
         </SelectContent>
       </Select>
 
