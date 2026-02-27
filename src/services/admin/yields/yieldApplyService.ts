@@ -145,6 +145,21 @@ export async function applyYieldDistribution(
     yieldNotifications
       .onFundYieldDistributed(notificationDistributions)
       .catch((err) => logError("sendYieldNotifications", err, { fundId }));
+
+    // Fire mobile push notifications (best-effort, non-blocking)
+    const investorIds = [...new Set(affectedInvestors.map((i) => i.investor_id))];
+    const openingAum = parseFinancial(distData.opening_aum);
+    const grossYield = parseFinancial(distData.gross_yield);
+    const yieldPct = openingAum.gt(0)
+      ? `${grossYield.div(openingAum).times(100).toDecimalPlaces(2)}%`
+      : undefined;
+    const monthLabel = targetDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
+
+    supabase.functions
+      .invoke("notify-yield-applied", {
+        body: { investor_ids: investorIds, period_label: monthLabel, yield_pct: yieldPct },
+      })
+      .catch((err) => logError("notify-yield-applied.invoke", err, { fundId }));
   }
 
   const yieldDistributions: YieldDistribution[] = [];

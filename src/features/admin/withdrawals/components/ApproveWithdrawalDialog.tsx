@@ -22,6 +22,7 @@ import { INVESTOR_DISPLAY_DECIMALS } from "@/types/asset";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Decimal from "decimal.js";
+import { parseFinancial } from "@/utils/financial";
 
 interface ApproveWithdrawalDialogProps {
   open: boolean;
@@ -150,7 +151,7 @@ export function ApproveWithdrawalDialog({
       return;
     }
 
-    const amount = parseFloat(processedAmount);
+    const amount = parseFinancial(processedAmount).toNumber();
     if (isNaN(amount) || amount <= 0) {
       toast.error("Please enter a valid amount");
       return;

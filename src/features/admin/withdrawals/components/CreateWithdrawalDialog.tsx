@@ -43,6 +43,7 @@ import {
   useAvailableBalance,
   useWithdrawalMutations,
 } from "@/hooks/data";
+import { parseFinancial } from "@/utils/financial";
 // Removed useFundYieldLock
 
 const withdrawalSchema = z.object({
@@ -173,12 +174,12 @@ export function CreateWithdrawalDialog({
     }
     setFundError(null);
 
-    const amount = parseFloat(data.amount);
+    const amount = parseFinancial(data.amount).toNumber();
 
     // Check if amount exceeds AVAILABLE balance (position minus pending withdrawals)
     const maxAmountRaw =
       availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? 0;
-    const maxAmount = typeof maxAmountRaw === "string" ? parseFloat(maxAmountRaw) : maxAmountRaw;
+    const maxAmount = parseFinancial(String(maxAmountRaw)).toNumber();
     if (amount > maxAmount) {
       const hasPending = availableBalanceData && availableBalanceData.pendingWithdrawals > 0;
       toast.error(
