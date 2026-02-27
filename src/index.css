@@ -19,8 +19,10 @@
     --indigo-night: 222 47% 11%;
     /* #0F172A */
 
-    /* Yield Green */
-    --yield-neon: 150 100% 45%;
+    /* Yield Gold — Institutional (replaces DeFi green) */
+    --yield-neon: 38 52% 47%;
+    --yield-gold: 38 52% 47%;
+    --yield-gold-muted: 38 52% 47% / 0.15;
 
     /* DARK MODE BASE */
     --background: 224 71% 4%;
@@ -48,7 +50,7 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --success: 150 100% 45%;
+    --success: 38 52% 47%;
     --success-foreground: 222 47% 11%;
 
     --border: 217.2 32.6% 12%;
@@ -72,7 +74,7 @@
     --glass-bg: rgba(15, 23, 42, 0.8);
     --glass-border: rgba(255, 255, 255, 0.06);
     --shadow-glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
-    --shadow-glow-yield: 0 0 20px rgba(0, 229, 107, 0.15);
+    --shadow-glow-yield: 0 0 20px rgba(196, 150, 42, 0.15);
     --surface-elevated: hsl(222 47% 8%);
   }
 }
@@ -140,9 +142,9 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* YIELD VALUE — Neon green for positive yield numbers */
+  /* YIELD VALUE — Institutional gold for positive yield numbers */
   .yield-value {
-    color: hsl(var(--yield-neon));
+    color: hsl(var(--yield-gold));
     @apply font-mono font-bold tabular-nums;
   }
 

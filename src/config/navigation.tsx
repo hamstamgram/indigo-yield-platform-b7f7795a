@@ -35,7 +35,7 @@ export const investorNav: NavItem[] = [
   },
   {
     title: "Withdrawals",
-    href: "/withdrawals",
+    href: "/investor/withdrawals",
     icon: <ArrowLeftRight className="h-5 w-5" />,
   },
   { title: "Statements", href: "/investor/statements", icon: <FileText className="h-5 w-5" /> },

@@ -163,11 +163,11 @@ function AdminDashboardContent() {
 
         <div className="flex items-center gap-4">
           {/* System Status Indicator */}
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-500/5 border border-emerald-500/20 shadow-[0_0_15px_-5px_rgba(16,185,129,0.2)]">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse relative">
-              <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75"></div>
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-yield/5 border border-yield/20 shadow-[0_0_15px_-5px_rgba(196,150,42,0.2)]">
+            <div className="h-2 w-2 rounded-full bg-yield animate-pulse relative">
+              <div className="absolute inset-0 rounded-full bg-yield animate-ping opacity-75"></div>
             </div>
-            <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-yield uppercase tracking-wider">
               System Operational
             </span>
           </div>
@@ -190,7 +190,7 @@ function AdminDashboardContent() {
 
           <Button
             size="lg"
-            className="h-12 px-6 bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)] border border-emerald-400/20"
+            className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(99,102,241,0.4)] border border-primary/20"
             onClick={() => setShowApplyYieldPicker(true)}
           >
             <TrendingUp className="h-4 w-4 mr-2" />

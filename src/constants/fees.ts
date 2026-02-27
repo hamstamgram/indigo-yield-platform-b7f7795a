@@ -5,10 +5,18 @@
 
 // INDIGO Fees account ID (designated fee collection account)
 // This is the account where all platform fees are credited
-// TODO: Move to environment variable (VITE_INDIGO_FEES_ACCOUNT_ID) for multi-environment support
-export const INDIGO_FEES_ACCOUNT_ID =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_INDIGO_FEES_ACCOUNT_ID) ||
-  "b464a3f7-60d5-4bc0-9833-7b413bcc6cae";
+// Requires VITE_INDIGO_FEES_ACCOUNT_ID env var — will throw at runtime if not set
+const _feesAccountId = import.meta.env.VITE_INDIGO_FEES_ACCOUNT_ID as string | undefined;
+if (!_feesAccountId) {
+  // Throw in runtime context; no-op during SSR/test where import.meta.env may be unavailable
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    throw new Error(
+      "[fees] VITE_INDIGO_FEES_ACCOUNT_ID environment variable is not set. " +
+        "Add it to your .env file. Refusing to start with a missing fees account."
+    );
+  }
+}
+export const INDIGO_FEES_ACCOUNT_ID = _feesAccountId as string;
 
 // Fee types
 export const FEE_TYPES = {

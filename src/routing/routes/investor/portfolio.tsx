@@ -22,7 +22,7 @@ export function PortfolioRoutes() {
   return (
     <>
       <Route
-        path="/withdrawals"
+        path="/investor/withdrawals"
         element={
           <InvestorRoute>
             <WithdrawalsPage />
@@ -30,7 +30,7 @@ export function PortfolioRoutes() {
         }
       />
       <Route
-        path="/withdrawals/new"
+        path="/investor/withdrawals/new"
         element={
           <InvestorRoute>
             <NewWithdrawalPage />

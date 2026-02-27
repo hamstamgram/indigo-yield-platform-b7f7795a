@@ -18,7 +18,7 @@ export default function InvestorPortfolioPage() {
       mtdChange: asset.mtd.netIncome || 0,
       itdEarned: asset.itd?.netIncome || 0,
       itdReturn: asset.itd?.rateOfReturn || 0,
-      lastUpdated: asset.mtd.endingBalance > 0 ? new Date().toISOString() : null,
+      lastUpdated: asset.mtd.endingBalance > 0 ? (asset.lastTransactionAt ?? null) : null,
     })) || [];
 
   const { sortConfig, requestSort, sortedData } = useSortableColumns(positions, {
@@ -68,7 +68,7 @@ export default function InvestorPortfolioPage() {
           className={cn(
             "font-mono font-bold px-2 py-1 rounded-md text-sm",
             item.mtdChange > 0.00001
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              ? "bg-yield/10 text-yield border border-yield/20"
               : item.mtdChange < -0.00001
                 ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                 : "text-slate-500"
@@ -89,7 +89,7 @@ export default function InvestorPortfolioPage() {
           className={cn(
             "font-mono font-bold px-2 py-1 rounded-md text-sm",
             item.itdEarned > 0
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              ? "bg-yield/10 text-yield border border-yield/20"
               : item.itdEarned < 0
                 ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                 : "text-slate-500"
@@ -110,7 +110,7 @@ export default function InvestorPortfolioPage() {
           className={cn(
             "font-mono font-bold text-sm",
             item.itdReturn > 0
-              ? "text-emerald-400"
+              ? "text-yield"
               : item.itdReturn < 0
                 ? "text-rose-400"
                 : "text-slate-500"
