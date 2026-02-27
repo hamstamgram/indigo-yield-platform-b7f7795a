@@ -146,11 +146,38 @@ export default function InvestorOverviewPage() {
               {(() => {
                 let total = 0;
                 for (const a of assetStats.assets) {
-                  total += (a.mtd?.endingBalance ?? a.ytd?.endingBalance ?? 0);
+                  total += a.mtd?.endingBalance ?? a.ytd?.endingBalance ?? 0;
                 }
                 return formatInvestorAmount(total, assetStats.assets[0]?.assetSymbol ?? "USDT");
               })()}
             </p>
+            {/* Yield-to-date — secondary metric, prominent but below the main number */}
+            {(() => {
+              let totalYieldMtd = 0;
+              for (const a of assetStats.assets) {
+                totalYieldMtd += a.mtd?.netIncome ?? 0;
+              }
+              if (totalYieldMtd > 0) {
+                return (
+                  <div className="mt-3 flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground uppercase tracking-widest font-semibold text-[10px]">
+                      Yield MTD
+                    </p>
+                    <p
+                      className="text-xl font-bold tabular-nums tracking-tight"
+                      style={{ color: "hsl(var(--yield-neon))" }}
+                    >
+                      +
+                      {formatInvestorAmount(
+                        totalYieldMtd,
+                        assetStats.assets[0]?.assetSymbol ?? "USDT"
+                      )}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })()}
             {assetStats.periodEndDate && (
               <p className="text-xs text-muted-foreground mt-1.5">
                 as of{" "}

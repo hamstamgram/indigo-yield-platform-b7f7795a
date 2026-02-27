@@ -27,6 +27,7 @@ import { type YieldCalculationResult, type YieldDistribution } from "@/services/
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
 import { toNum } from "@/utils/numeric";
 import React, { useState } from "react";
+import { DistributeYieldDialog } from "./DistributeYieldDialog";
 
 interface YieldPreviewResultsProps {
   yieldPreview: YieldCalculationResult;
@@ -59,6 +60,7 @@ export function YieldPreviewResults({
   onConfirmApply,
   applyLoading,
 }: YieldPreviewResultsProps) {
+  const [showDistributeDialog, setShowDistributeDialog] = useState(false);
   const asset = selectedFund?.asset || "";
   const isV5 =
     yieldPreview.calculationMethod === "segmented_v5" ||
@@ -343,14 +345,28 @@ export function YieldPreviewResults({
         {yieldPreview.distributions.length} investors
       </p>
 
-      {/* Apply Button */}
-      <Button onClick={onConfirmApply} disabled={applyLoading} className="w-full" size="lg">
+      {/* Apply Button — opens ceremonious confirmation dialog */}
+      <Button
+        onClick={() => setShowDistributeDialog(true)}
+        disabled={applyLoading}
+        className="w-full"
+        size="lg"
+      >
         <CheckCircle className="h-4 w-4 mr-2" />
-        Apply Yield to {
-          yieldPreview.distributions.filter((d) => !checkSystemAccount(d)).length
-        }{" "}
-        Investors
+        Distribute Yield to{" "}
+        {yieldPreview.distributions.filter((d) => !checkSystemAccount(d)).length} Investors
       </Button>
+
+      <DistributeYieldDialog
+        open={showDistributeDialog}
+        onOpenChange={setShowDistributeDialog}
+        grossYield={formatValue(toNum(yieldPreview.grossYield), asset)}
+        asset={asset}
+        fundName={selectedFund ? `${asset} Fund` : "Selected Fund"}
+        investorCount={yieldPreview.distributions.filter((d) => !checkSystemAccount(d)).length}
+        onConfirm={onConfirmApply}
+        isLoading={applyLoading}
+      />
     </div>
   );
 }
