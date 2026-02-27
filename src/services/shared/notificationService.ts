@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { callRPC } from "@/lib/supabase/typedRPC";
 import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { toNotifications, type Notification } from "@/lib/typeAdapters";
 
@@ -14,7 +15,7 @@ async function getMyNotifications(
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { data: [], count: 0 };
 
-  const { data, error } = await supabase.rpc("get_paged_notifications", {
+  const { data, error } = await callRPC("get_paged_notifications" as any, {
     p_user_id: userData.user.id,
     p_limit: limit,
     p_offset: offset,

@@ -29,7 +29,7 @@ export default function RevenuePage() {
   return (
     <PageShell>
       <div>
-        <h1 className="text-2xl font-bold">Revenue</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Revenue</h1>
         <p className="text-muted-foreground mt-1">Platform fees and IB commission management</p>
       </div>
 

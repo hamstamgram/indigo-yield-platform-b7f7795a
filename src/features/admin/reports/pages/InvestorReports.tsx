@@ -94,7 +94,7 @@ function getStatusBadge(status: string) {
       return <Badge variant="destructive">Failed</Badge>;
     case "missing":
     default:
-      return <Badge variant="outline">Missing</Badge>;
+      return <Badge variant="outline">Pending</Badge>;
   }
 }
 
@@ -487,8 +487,10 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         {!embedded && (
           <div>
-            <h1 className="text-2xl font-bold">Monthly Statements</h1>
-            <p className="text-muted-foreground">Generate, review, and deliver investor reports</p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Monthly Statements</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Generate, review, and deliver investor reports
+            </p>
           </div>
         )}
 
@@ -513,14 +515,14 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
             </SelectContent>
           </Select>
 
-          {/* Generate Missing */}
+          {/* Generate Statements */}
           <Button onClick={handleGenerate} disabled={generateMutation.isPending}>
             {generateMutation.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <FileText className="h-4 w-4 mr-2" />
             )}
-            {generateMutation.isPending ? "Generating..." : "Generate Missing"}
+            {generateMutation.isPending ? "Generating..." : "Generate Statements"}
           </Button>
 
           {/* Overflow menu for dangerous actions */}
@@ -597,7 +599,7 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
         </Card>
         <Card className="p-4">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm text-muted-foreground">Missing</span>
+            <span className="text-sm text-muted-foreground">Pending</span>
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
           </div>
           <div className="text-2xl font-bold text-yellow-500">{stats.missing}</div>
@@ -632,7 +634,7 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="generated">Ready</SelectItem>
             <SelectItem value="sent">Sent</SelectItem>
-            <SelectItem value="missing">Missing</SelectItem>
+            <SelectItem value="missing">Pending</SelectItem>
             <SelectItem value="failed">Failed</SelectItem>
           </SelectContent>
         </Select>
@@ -648,7 +650,7 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
               <p className="text-muted-foreground">
                 {searchTerm || statusFilter !== "all"
                   ? "Try adjusting your filters"
-                  : 'Click "Generate Missing" to create reports'}
+                  : 'Click "Generate Statements" to create reports'}
               </p>
             </div>
           ) : (

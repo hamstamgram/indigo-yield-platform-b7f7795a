@@ -33,7 +33,7 @@ export default function LedgerPage() {
   return (
     <PageShell>
       <div>
-        <h1 className="text-2xl font-bold">Ledger</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Ledger</h1>
         <p className="text-muted-foreground mt-1">Transaction history and withdrawal management</p>
       </div>
 

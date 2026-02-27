@@ -101,7 +101,7 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "System",
+    title: "Admin",
     icon: Settings,
     items: [
       {

@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { callRPC } from "@/lib/supabase/typedRPC";
 import type { FundDailyAUM, YieldPurpose } from "@/types/domains/yield";
 import { formatDateForDB, getTodayString, getMonthStartDate } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
@@ -156,7 +157,7 @@ export async function getActiveFundsWithAUM(): Promise<
     aum_record_count: number;
   }>
 > {
-  const { data, error } = await supabase.rpc("get_active_funds_summary");
+  const { data, error } = await callRPC("get_active_funds_summary" as any, undefined);
 
   if (error) {
     logError("yieldHistoryService.getActiveFundsWithAUM", error);
@@ -205,7 +206,7 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     mtd_yield: number;
   }>
 > {
-  const { data, error } = await supabase.rpc("get_fund_composition", {
+  const { data, error } = await callRPC("get_fund_composition" as any, {
     p_fund_id: fundId,
   });
 

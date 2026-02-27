@@ -1,0 +1,24 @@
+# CODEOWNERS — Indigo Yield Platform
+# Ensures code review assignments for autonomous agent PRs
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files
+* @hamstamgram
+
+# Core business logic
+/src/features/      @hamstamgram
+/src/integrations/  @hamstamgram
+/src/contracts/     @hamstamgram
+
+# Auth & security — require explicit review
+/src/features/auth/         @hamstamgram
+/supabase/migrations/       @hamstamgram
+/supabase/functions/        @hamstamgram
+
+# CI/CD & infra — require explicit review
+/.github/                   @hamstamgram
+/vite.config.*              @hamstamgram
+
+# Design system — lower friction
+/src/design-system/         @hamstamgram
+/src/components/            @hamstamgram

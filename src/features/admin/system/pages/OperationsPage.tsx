@@ -1016,7 +1016,7 @@ export default function OperationsPage() {
   return (
     <PageShell>
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
           <HeartPulse className="h-8 w-8" />
           Operations
         </h1>

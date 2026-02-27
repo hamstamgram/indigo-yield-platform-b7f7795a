@@ -226,30 +226,30 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           {/* Portal Switcher for users with multiple portals */}
           {hasMultiplePortals && (
             <div className="px-5 pb-6">
-              <div className="p-1 bg-sidebar-accent/50 rounded-xl flex gap-1">
+              <div className="p-1 bg-sidebar-accent/40 rounded-xl flex gap-1 border border-border/30">
                 {isAdminWithPositions && (
                   <>
                     <Button
-                      variant={portalView === "admin" ? "secondary" : "ghost"}
+                      variant="ghost"
                       size="sm"
                       className={cn(
-                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                        "flex-1 text-xs font-semibold rounded-lg transition-all duration-150",
                         portalView === "admin"
-                          ? "bg-primary text-white"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? "bg-primary text-white shadow-sm hover:bg-primary/90"
+                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/60"
                       )}
                       onClick={() => switchPortal("admin")}
                     >
                       Admin
                     </Button>
                     <Button
-                      variant={portalView === "investor" ? "secondary" : "ghost"}
+                      variant="ghost"
                       size="sm"
                       className={cn(
-                        "flex-1 text-xs font-semibold rounded-lg shadow-sm transition-all",
+                        "flex-1 text-xs font-semibold rounded-lg transition-all duration-150",
                         portalView === "investor"
-                          ? "bg-primary text-white"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? "bg-primary text-white shadow-sm hover:bg-primary/90"
+                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/60"
                       )}
                       onClick={() => switchPortal("investor")}
                     >
@@ -265,16 +265,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           {activePortal === "admin" && (
             <div className="px-5 pb-6">
               <div className="relative group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-150" />
                 <Input
                   ref={searchInputRef}
                   type="text"
                   placeholder="Jump to..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-10 bg-sidebar-accent/30 border-transparent focus:bg-background focus:border-primary/20 focus:ring-2 focus:ring-primary/10 transition-all rounded-xl text-sm"
+                  className="pl-9 h-10 bg-secondary/30 border-border/50 focus:bg-secondary/50 focus:border-primary/30 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all duration-150 rounded-xl text-sm"
                 />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[10px] font-mono text-muted-foreground border border-border rounded px-1.5 py-0.5 opacity-50">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground border border-border/50 rounded px-1.5 py-0.5 opacity-40">
                   ⌘K
                 </div>
               </div>

@@ -420,25 +420,25 @@ export function getFundIconByAsset(assetCode: string): string {
   return FUND_ICONS["BTC YIELD FUND"]; // fallback
 }
 
-export const LOGO_URL =
-  "https://indigo-yield-platform.lovable.app/lovable-uploads/INDIGO_logo-white.png";
+export const LOGO_URL = "https://indigo-yield-platform.lovable.app/brand/logo-white.svg";
 
-// Social link configuration (text-based for universal email client compatibility)
+// Social link configuration with icon URLs from CDN
 export const SOCIAL_LINKS = {
   linkedin: {
     url: "https://www.linkedin.com/company/indigofund",
     label: "LinkedIn",
-    color: "#0A66C2",
+    icon: "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
   },
-  instagram: { url: "https://www.instagram.com/indigofund", label: "Instagram", color: "#E4405F" },
-  twitter: { url: "https://twitter.com/indigofund", label: "X", color: "#000000" },
-};
-
-/** @deprecated Use SOCIAL_LINKS instead - SVG icons are blocked by email clients */
-export const SOCIAL_ICONS = {
-  linkedin: SOCIAL_LINKS.linkedin.url,
-  instagram: SOCIAL_LINKS.instagram.url,
-  twitter: SOCIAL_LINKS.twitter.url,
+  instagram: {
+    url: "https://www.instagram.com/indigofund",
+    label: "Instagram",
+    icon: "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
+  },
+  twitter: {
+    url: "https://twitter.com/indigofund",
+    label: "X",
+    icon: "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
+  },
 };
 
 /**

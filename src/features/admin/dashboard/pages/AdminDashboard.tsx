@@ -29,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  Skeleton,
 } from "@/components/ui";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { cn } from "@/lib/utils";
@@ -132,9 +133,21 @@ function AdminDashboardContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
-      </div>
+      <PageShell maxWidth="wide">
+        <div className="space-y-6 animate-pulse">
+          <Skeleton className="h-10 w-64" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
+          <Skeleton className="h-64 rounded-xl" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-48 rounded-xl" />
+            <Skeleton className="h-48 rounded-xl" />
+          </div>
+        </div>
+      </PageShell>
     );
   }
 
@@ -142,14 +155,8 @@ function AdminDashboardContent() {
     <PageShell maxWidth="wide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-white">
             Command Center
-            <Badge
-              variant="outline"
-              className="px-2 py-0.5 text-xs font-mono font-normal text-indigo-300 border-indigo-500/30 bg-indigo-500/5"
-            >
-              v3.0.0
-            </Badge>
           </h1>
           <p className="text-sm text-slate-400 mt-1">Operational overview and risk monitoring</p>
         </div>

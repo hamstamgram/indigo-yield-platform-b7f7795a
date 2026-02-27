@@ -55,10 +55,39 @@ export default function Login() {
       {/* Deep Space Background */}
       <div className="absolute inset-0 bg-background" />
 
-      {/* Animated Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-brand/20 blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-yield-neon/10 blur-[120px] animate-pulse animate-delay-200" />
-      <div className="absolute top-[20%] left-[20%] w-[30%] h-[30%] rounded-full bg-indigo-brand/10 blur-[80px] animate-dash-slow" />
+      {/* Subtle dot grid — depth + seriousness */}
+      <div
+        className="absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.15) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      {/* Animated Orbs — slower, more subtle */}
+      <div
+        className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
+        style={{
+          background: "hsl(var(--indigo-brand) / 0.18)",
+          animation: "pulse 10s ease-in-out infinite",
+        }}
+      />
+      <div
+        className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
+        style={{
+          background: "hsl(var(--yield-neon) / 0.07)",
+          animation: "pulse 12s ease-in-out infinite",
+          animationDelay: "2s",
+        }}
+      />
+      <div
+        className="absolute top-[20%] left-[20%] w-[30%] h-[30%] rounded-full blur-[80px]"
+        style={{
+          background: "hsl(var(--indigo-brand) / 0.06)",
+          animation: "pulse 8s ease-in-out infinite",
+          animationDelay: "4s",
+        }}
+      />
     </div>
   );
 
@@ -68,20 +97,29 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-md animate-fade-in-up">
         {/* Brand Header */}
-        <div className="mb-8 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl shadow-indigo-500/10">
-            <img
-              src="/brand/logo-white.svg"
-              alt="Infinite Yield Fund"
-              className="h-16 w-auto drop-shadow-lg"
-            />
-          </div>
+        <div className="mb-6 flex flex-col items-center justify-center text-center space-y-4">
+          <img
+            src="/brand/logo-white.svg"
+            alt="Infinite Yield Fund"
+            className="h-14 w-auto drop-shadow-lg"
+          />
+          {/* Cialdini: scarcity + authority in one line */}
+          <p className="text-xs text-muted-foreground tracking-widest uppercase">
+            Invite-only · For accredited investors
+          </p>
         </div>
 
         {/* Glass Login Card */}
-        <div className="glass-panel rounded-3xl p-8 backdrop-blur-2xl bg-black/40 border border-white/10 shadow-2xl relative overflow-hidden group">
+        <div
+          className="rounded-3xl p-8 backdrop-blur-2xl relative overflow-hidden"
+          style={{
+            background: "var(--glass-bg)",
+            border: "1px solid var(--glass-border)",
+            boxShadow: "var(--shadow-glow-indigo), 0 25px 50px -12px rgba(0,0,0,0.5)",
+          }}
+        >
           {/* Top light reflection */}
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
           {error && (
             <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 flex items-start gap-3">
@@ -92,6 +130,7 @@ export default function Login() {
 
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-white">Investor Portal</h2>
+            <p className="text-xs text-white/30 mt-1">Secure access to your portfolio</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -112,7 +151,7 @@ export default function Login() {
                   placeholder="name@firm.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 transition-all font-medium text-base"
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/50 transition-all duration-150 font-medium text-base"
                   required
                   autoComplete="email"
                 />
@@ -129,7 +168,7 @@ export default function Login() {
                 </Label>
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors duration-150"
                 >
                   Forgot?
                 </Link>
@@ -144,7 +183,7 @@ export default function Login() {
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 transition-all font-medium text-base font-mono tracking-tighter"
+                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:bg-white/10 focus:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/50 transition-all duration-150 font-medium text-base font-mono tracking-tighter"
                   required
                   minLength={6}
                   autoComplete="current-password"
@@ -152,7 +191,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-200/30 hover:text-indigo-200 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-200/30 hover:text-indigo-200 transition-colors duration-150"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -161,7 +200,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full h-12 btn-premium bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wide rounded-xl shadow-lg shadow-indigo-600/20 text-base mt-2"
+              className="w-full h-12 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 hover:-translate-y-0.5 text-white font-bold tracking-wide rounded-xl shadow-lg shadow-indigo-600/25 text-base mt-2 transition-all duration-150 active:scale-[0.98] active:translate-y-0"
               disabled={signInMutation.isPending}
             >
               {signInMutation.isPending ? (
@@ -175,16 +214,34 @@ export default function Login() {
             </Button>
           </form>
 
+          {/* Trust strip */}
+          <div className="mt-6 pt-4 border-t border-white/[0.08]">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className="text-[11px] font-semibold text-white/70">7.4M+ USDT</p>
+                <p className="text-[10px] text-white/30 mt-0.5">AUM</p>
+              </div>
+              <div className="border-x border-white/[0.08]">
+                <p className="text-[11px] font-semibold text-white/70">40+</p>
+                <p className="text-[10px] text-white/30 mt-0.5">Active Investors</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-white/70">Invite-Only</p>
+                <p className="text-[10px] text-white/30 mt-0.5">Platform</p>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-8 pt-6 border-t border-white/5 text-center space-y-4">
             <p className="text-xs text-indigo-200/40 font-light px-4 leading-relaxed">
               By accessing this platform, you acknowledge that you are an accredited investor or
               authorized representative.
             </p>
             <div className="flex justify-center gap-6 text-xs text-indigo-300/60 font-medium tracking-wide">
-              <Link to="/terms" className="hover:text-white transition-colors">
+              <Link to="/terms" className="hover:text-white transition-colors duration-150">
                 Terms of Service
               </Link>
-              <Link to="/privacy" className="hover:text-white transition-colors">
+              <Link to="/privacy" className="hover:text-white transition-colors duration-150">
                 Privacy Policy
               </Link>
             </div>

@@ -80,19 +80,22 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
         </div>
       </CardHeader>
       <CardContent>
-        {/* Main AUM */}
+        {/* Main AUM — Hero Number */}
         <div className="mt-4 mb-6">
-          <div className="text-2xl font-bold text-foreground">
-            {formatAUM(displayAUM, fund.asset)}{" "}
-            <span className="text-sm text-muted-foreground font-normal">{fund.asset}</span>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-2">
+            {isToday ? "Total AUM" : "AUM on Date"}
+          </p>
+          <div className="font-mono font-bold tabular-nums leading-none text-3xl md:text-4xl text-foreground">
+            {formatAUM(displayAUM, fund.asset)}
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-              {isToday ? "Total AUM" : "AUM on Date"}
-            </p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-sm text-muted-foreground font-mono">{fund.asset}</span>
             {isToday && (
-              <Badge variant="outline" className="text-xs">
-                {fund.investor_count} investors
+              <Badge
+                variant="outline"
+                className="rounded-full px-2 py-0.5 text-xs font-medium border-border/60 text-muted-foreground"
+              >
+                {fund.investor_count} investor{fund.investor_count !== 1 ? "s" : ""}
               </Badge>
             )}
           </div>
@@ -102,16 +105,23 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
         <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border text-center sm:text-left">
           {/* Inflows */}
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Deposits</p>
-            <p className="text-sm font-semibold text-green-400 break-words">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">
+              Deposits
+            </p>
+            <p
+              className="text-sm font-mono font-semibold break-words"
+              style={{ color: "hsl(var(--yield-neon))" }}
+            >
               +{formatAUM(flows?.daily_inflows || 0, fund.asset)}
             </p>
           </div>
 
           {/* Outflows */}
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Withdrawals</p>
-            <p className="text-sm font-semibold text-red-400 break-words">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">
+              Withdrawals
+            </p>
+            <p className="text-sm font-mono font-semibold text-rose-400 break-words">
               {(flows?.daily_outflows || 0) !== 0
                 ? `-${formatAUM(Math.abs(flows?.daily_outflows || 0), fund.asset)}`
                 : formatAUM(0, fund.asset)}
@@ -120,12 +130,17 @@ export const FundSnapshotCard = memo<FundSnapshotCardProps>(function FundSnapsho
 
           {/* Net Flow */}
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Net Flow</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">
+              Net Flow
+            </p>
             <p
-              className={cn(
-                "text-sm font-bold break-words",
-                (flows?.net_flow_24h || 0) >= 0 ? "text-green-400" : "text-red-400"
-              )}
+              className={cn("text-sm font-mono font-bold break-words")}
+              style={{
+                color:
+                  (flows?.net_flow_24h || 0) >= 0
+                    ? "hsl(var(--yield-neon))"
+                    : "hsl(var(--destructive))",
+              }}
             >
               {(flows?.net_flow_24h || 0) > 0 ? "+" : ""}
               {formatAUM(flows?.net_flow_24h || 0, fund.asset)}

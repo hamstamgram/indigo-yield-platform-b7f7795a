@@ -126,20 +126,20 @@ const NavSection = ({
                     handleNavigation(item.href);
                   }}
                   className={cn(
-                    "w-full text-left px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all duration-200 flex items-center space-x-2.5 mb-0.5 mt-1 cursor-pointer",
+                    "w-full text-left h-10 px-3 rounded-lg text-[13px] font-bold transition-all duration-150 flex items-center gap-2 mb-0.5 mt-1 cursor-pointer relative",
                     isItemActive
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/20"
+                      ? "bg-primary/10 text-primary border-l-2 border-primary"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/20 border-l-2 border-transparent"
                   )}
                   role="menuitem"
                 >
-                  <span className="flex items-center space-x-3">
+                  <span className="flex items-center gap-2 flex-1">
                     {item.icon}
                     <span className="flex-1 truncate">{item.title}</span>
                   </span>
                   <ChevronDown
                     className={cn(
-                      "h-4 w-4 transition-transform",
+                      "h-4 w-4 transition-transform duration-150 shrink-0",
                       !isSubNavExpanded && "-rotate-90"
                     )}
                   />
@@ -167,10 +167,10 @@ const NavSection = ({
                 onMouseLeave={cancelPrefetch}
                 disabled={isLoading}
                 className={cn(
-                  "w-full text-left px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 flex items-center space-x-2.5 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1",
+                  "w-full text-left h-10 px-3 rounded-lg text-[13px] font-medium transition-all duration-150 flex items-center gap-2 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 border-l-2",
                   isItemActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold ring-1 ring-sidebar-primary/50"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/20 hover:text-sidebar-foreground",
+                    ? "bg-primary/10 text-primary border-primary font-semibold"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/20 hover:text-sidebar-foreground border-transparent",
                   isLoading && "opacity-60 cursor-wait"
                 )}
                 role="menuitem"
@@ -180,15 +180,12 @@ const NavSection = ({
                 <span
                   className={cn(
                     "flex items-center shrink-0 transition-colors",
-                    isItemActive ? "text-sidebar-primary-foreground" : ""
+                    isItemActive ? "text-primary" : "text-sidebar-foreground/60"
                   )}
                 >
                   {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : item.icon}
                 </span>
                 <span className="flex-1 truncate">{item.title}</span>
-                {isItemActive && (
-                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-5 bg-sidebar-primary-foreground rounded-r-full" />
-                )}
               </button>
             </li>
           );
