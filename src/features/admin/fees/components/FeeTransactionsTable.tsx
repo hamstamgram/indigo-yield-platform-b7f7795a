@@ -48,12 +48,22 @@ const getTypeBadge = (type: string) => {
   switch (type) {
     case "FEE_CREDIT":
       return (
-        <Badge className="bg-yield/10 text-yield border-yield/20">Performance Fee</Badge>
+        <Badge className="bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
+          Performance Fee
+        </Badge>
       );
     case "IB_CREDIT":
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-200">IB Commission</Badge>;
+      return (
+        <Badge className="bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
+          IB Commission
+        </Badge>
+      );
     case "YIELD":
-      return <Badge className="bg-purple-100 text-purple-800 border-purple-200">Yield Share</Badge>;
+      return (
+        <Badge className="bg-amber-500/15 text-amber-400 border border-amber-500/20">
+          Yield Share
+        </Badge>
+      );
     case "DUST":
     case "DUST_SWEEP":
       return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Dust Sweep</Badge>;

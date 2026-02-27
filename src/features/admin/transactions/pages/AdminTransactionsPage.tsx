@@ -245,18 +245,17 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
     switch (type) {
       case "YIELD":
       case "DISTRIBUTION":
-        // yield-neon green — user override: keep green
-        return cn(base, "bg-yield/15 text-yield border border-emerald-500/25");
+        return cn(base, "bg-amber-500/15 text-amber-400 border border-amber-500/20");
       case "DEPOSIT":
       case "FIRST_INVESTMENT":
-        return cn(base, "bg-yield/10 text-yield border border-green-500/20");
+        return cn(base, "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20");
       case "WITHDRAWAL":
-        return cn(base, "bg-rose-500/10 text-rose-400 border border-rose-500/20");
+        return cn(base, "bg-rose-500/15 text-rose-400 border border-rose-500/20");
       case "FEE":
         return cn(base, "bg-amber-500/10 text-amber-400 border border-amber-500/20");
       case "FEE_CREDIT":
       case "IB_CREDIT":
-        return cn(base, "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20");
+        return cn(base, "bg-indigo-500/15 text-indigo-400 border border-indigo-500/20");
       default:
         return cn(base, "bg-muted text-muted-foreground border border-border/40");
     }
