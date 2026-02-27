@@ -106,10 +106,20 @@ export const QUERY_KEYS = {
     filters
       ? (["transactions", "admin-history", filters] as const)
       : (["transactions", "admin-history"] as const),
-  investorTransactions: (investorId: string, limit?: number) =>
-    limit
-      ? (["transactions", "investor", investorId, limit] as const)
-      : (["transactions", "investor", investorId] as const),
+  investorTransactions: (
+    investorId: string,
+    limit?: number,
+    assetFilter?: string,
+    typeFilter?: string
+  ) =>
+    [
+      "transactions",
+      "investor",
+      investorId,
+      limit ?? null,
+      assetFilter ?? "all",
+      typeFilter ?? "all",
+    ] as const,
   investorTransactionSummary: (investorId: string) =>
     ["investor", "transaction-summary", investorId] as const,
   investorRecentTransactions: ["investor-recent-transactions"] as const,

@@ -51,7 +51,12 @@ export function useInvestorTransactionsList(
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", searchTerm ? 100 : undefined),
+    queryKey: QUERY_KEYS.investorTransactions(
+      user?.id || "",
+      searchTerm ? 100 : undefined,
+      assetFilter,
+      typeFilter
+    ),
     queryFn: () => getInvestorTransactionsList(user!.id, searchTerm, assetFilter, typeFilter),
     enabled: !!user,
   });
@@ -177,4 +182,3 @@ export function useAccessLogs(limit = 20) {
     enabled: !!user,
   });
 }
-
