@@ -18,7 +18,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { PageShell } from "@/components/layout/PageShell";
-import { formatInvestorNumber } from "@/utils/assets";
+import { formatInvestorNumber, formatInvestorAmount, getAssetLogo } from "@/utils/assets";
+import { parseFinancial } from "@/utils/financial";
 import { PerformanceCard } from "@/features/investor/performance/components/PerformanceCard";
 import {
   PeriodSelector,
@@ -121,6 +122,46 @@ export default function InvestorOverviewPage() {
             Transaction History
           </Button>
         </div>
+      </div>
+
+      {/* Portfolio Balance Strip */}
+      <div className="glass-panel rounded-2xl px-5 py-4 border border-white/5">
+        <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-3">
+          Current Balances
+        </p>
+        {isLoadingStats ? (
+          <div className="flex gap-3">
+            {[1, 2].map((i) => (
+              <Skeleton key={i} className="h-10 w-40 rounded-xl bg-white/5" />
+            ))}
+          </div>
+        ) : assetStats?.assets && assetStats.assets.length > 0 ? (
+          <div className="flex flex-wrap gap-3">
+            {assetStats.assets.map((asset) => {
+              const balance = asset.mtd?.endingBalance ?? asset.ytd?.endingBalance ?? 0;
+              return (
+                <div
+                  key={asset.assetSymbol}
+                  className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  <img
+                    src={getAssetLogo(asset.assetSymbol)}
+                    alt={asset.assetSymbol}
+                    className="h-5 w-5 rounded-full"
+                  />
+                  <span className="font-mono font-bold text-white text-sm">
+                    {formatInvestorAmount(balance, asset.assetSymbol)}
+                  </span>
+                  <span className="text-xs text-slate-500 font-bold uppercase">
+                    {asset.assetSymbol}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">No active positions</p>
+        )}
       </div>
 
       {isLoading ? (
@@ -244,11 +285,18 @@ export default function InvestorOverviewPage() {
                 Quick Stats
               </h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+                <div
+                  className={cn(
+                    "flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors",
+                    pendingWithdrawals ? "cursor-pointer" : ""
+                  )}
+                  onClick={() => pendingWithdrawals && navigate("/investor/withdrawals")}
+                >
                   <span className="text-sm text-slate-300">Pending Withdrawals</span>
                   {pendingWithdrawals ? (
-                    <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/20">
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/20">
                       {pendingWithdrawals} Pending
+                      <ArrowRight className="h-3 w-3" />
                     </span>
                   ) : (
                     <span className="text-sm text-emerald-500 font-medium flex items-center gap-1">
@@ -325,7 +373,7 @@ export default function InvestorOverviewPage() {
                         tx.type === "IB_CREDIT"
                           ? "+"
                           : ""}
-                        {formatInvestorNumber(parseFloat(String(tx.amount)) || 0)}
+                        {formatInvestorNumber(parseFinancial(tx.amount).toNumber())}
                       </p>
                       <div className="flex items-center gap-1 justify-end">
                         <CryptoIcon symbol={tx.asset} className="h-3 w-3 shrink-0" />

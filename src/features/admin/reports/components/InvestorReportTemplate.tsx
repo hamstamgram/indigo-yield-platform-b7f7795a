@@ -517,44 +517,54 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{
-                                color: SOCIAL_LINKS.linkedin.color,
                                 textDecoration: "none",
-                                fontSize: "13px",
-                                fontWeight: 600,
-                                padding: "0 12px",
+                                padding: "0 8px",
+                                display: "inline-block",
                               }}
                             >
-                              {SOCIAL_LINKS.linkedin.label}
+                              <img
+                                src={SOCIAL_LINKS.linkedin.icon}
+                                alt="LinkedIn"
+                                width="24"
+                                height="24"
+                                style={{ display: "inline-block", border: 0 }}
+                              />
                             </a>
-                            <span style={{ color: "#cbd5e1" }}>|</span>
                             <a
                               href={SOCIAL_LINKS.instagram.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{
-                                color: SOCIAL_LINKS.instagram.color,
                                 textDecoration: "none",
-                                fontSize: "13px",
-                                fontWeight: 600,
-                                padding: "0 12px",
+                                padding: "0 8px",
+                                display: "inline-block",
                               }}
                             >
-                              {SOCIAL_LINKS.instagram.label}
+                              <img
+                                src={SOCIAL_LINKS.instagram.icon}
+                                alt="Instagram"
+                                width="24"
+                                height="24"
+                                style={{ display: "inline-block", border: 0 }}
+                              />
                             </a>
-                            <span style={{ color: "#cbd5e1" }}>|</span>
                             <a
                               href={SOCIAL_LINKS.twitter.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{
-                                color: SOCIAL_LINKS.twitter.color,
                                 textDecoration: "none",
-                                fontSize: "13px",
-                                fontWeight: 600,
-                                padding: "0 12px",
+                                padding: "0 8px",
+                                display: "inline-block",
                               }}
                             >
-                              {SOCIAL_LINKS.twitter.label}
+                              <img
+                                src={SOCIAL_LINKS.twitter.icon}
+                                alt="X"
+                                width="24"
+                                height="24"
+                                style={{ display: "inline-block", border: 0 }}
+                              />
                             </a>
                           </td>
                         </tr>
@@ -768,14 +778,18 @@ ${fundBlocksHtml}
             </td>
           </tr>
 
-          <!-- Social Links (text-based for universal email compatibility) -->
+          <!-- Social Links (icon-based) -->
           <tr>
             <td align="center" style="padding-bottom:16px;background-color:#ffffff;" bgcolor="#ffffff">
-              <a href="${SOCIAL_LINKS.linkedin.url}" target="_blank" style="color:${SOCIAL_LINKS.linkedin.color};text-decoration:none;font-size:13px;font-weight:600;padding:0 12px;">${SOCIAL_LINKS.linkedin.label}</a>
-              <span style="color:#cbd5e1;">|</span>
-              <a href="${SOCIAL_LINKS.instagram.url}" target="_blank" style="color:${SOCIAL_LINKS.instagram.color};text-decoration:none;font-size:13px;font-weight:600;padding:0 12px;">${SOCIAL_LINKS.instagram.label}</a>
-              <span style="color:#cbd5e1;">|</span>
-              <a href="${SOCIAL_LINKS.twitter.url}" target="_blank" style="color:${SOCIAL_LINKS.twitter.color};text-decoration:none;font-size:13px;font-weight:600;padding:0 12px;">${SOCIAL_LINKS.twitter.label}</a>
+              <a href="${SOCIAL_LINKS.linkedin.url}" target="_blank" style="text-decoration:none;padding:0 8px;display:inline-block;">
+                <img src="${SOCIAL_LINKS.linkedin.icon}" alt="LinkedIn" width="24" height="24" style="display:inline-block;border:0;" />
+              </a>
+              <a href="${SOCIAL_LINKS.instagram.url}" target="_blank" style="text-decoration:none;padding:0 8px;display:inline-block;">
+                <img src="${SOCIAL_LINKS.instagram.icon}" alt="Instagram" width="24" height="24" style="display:inline-block;border:0;" />
+              </a>
+              <a href="${SOCIAL_LINKS.twitter.url}" target="_blank" style="text-decoration:none;padding:0 8px;display:inline-block;">
+                <img src="${SOCIAL_LINKS.twitter.icon}" alt="X" width="24" height="24" style="display:inline-block;border:0;" />
+              </a>
             </td>
           </tr>
 

@@ -15,15 +15,23 @@ export const FUND_ICONS: Record<string, string> = {
   XAUT: `${CRYPTO_ICON_BASE}/gold.png`,
 };
 
-// Social link configuration (text-based for universal email client compatibility)
+// Social link configuration with icon URLs from CDN
 export const SOCIAL_LINKS = {
   linkedin: {
     url: "https://www.linkedin.com/company/indigofund",
     label: "LinkedIn",
-    color: "#0A66C2",
+    icon: "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
   },
-  instagram: { url: "https://www.instagram.com/indigofund", label: "Instagram", color: "#E4405F" },
-  twitter: { url: "https://twitter.com/indigofund", label: "X", color: "#000000" },
+  instagram: {
+    url: "https://www.instagram.com/indigofund",
+    label: "Instagram",
+    icon: "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
+  },
+  twitter: {
+    url: "https://twitter.com/indigofund",
+    label: "X",
+    icon: "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
+  },
 };
 
 // Logo URL - served from the deployed application
@@ -351,24 +359,25 @@ ${fundBlocksHtml}
             </td>
           </tr>
 
-          <!-- Social Links (text-based for universal email compatibility) -->
+          <!-- Social Links (icon-based) -->
           <tr>
             <td style="padding: 0 24px 24px 24px; text-align: center; background-color: #ffffff;" bgcolor="#ffffff">
-              <a href="${SOCIAL_LINKS.linkedin.url}" target="_blank" style="color: ${SOCIAL_LINKS.linkedin.color}; text-decoration: none; font-size: 13px; font-weight: 600; padding: 0 12px;">${SOCIAL_LINKS.linkedin.label}</a>
-              <span style="color: #cbd5e1;">|</span>
-              <a href="${SOCIAL_LINKS.instagram.url}" target="_blank" style="color: ${SOCIAL_LINKS.instagram.color}; text-decoration: none; font-size: 13px; font-weight: 600; padding: 0 12px;">${SOCIAL_LINKS.instagram.label}</a>
-              <span style="color: #cbd5e1;">|</span>
-              <a href="${SOCIAL_LINKS.twitter.url}" target="_blank" style="color: ${SOCIAL_LINKS.twitter.color}; text-decoration: none; font-size: 13px; font-weight: 600; padding: 0 12px;">${SOCIAL_LINKS.twitter.label}</a>
+              <a href="${SOCIAL_LINKS.linkedin.url}" target="_blank" style="text-decoration: none; padding: 0 8px; display: inline-block;">
+                <img src="${SOCIAL_LINKS.linkedin.icon}" alt="LinkedIn" width="24" height="24" style="display: inline-block; border: 0;" />
+              </a>
+              <a href="${SOCIAL_LINKS.instagram.url}" target="_blank" style="text-decoration: none; padding: 0 8px; display: inline-block;">
+                <img src="${SOCIAL_LINKS.instagram.icon}" alt="Instagram" width="24" height="24" style="display: inline-block; border: 0;" />
+              </a>
+              <a href="${SOCIAL_LINKS.twitter.url}" target="_blank" style="text-decoration: none; padding: 0 8px; display: inline-block;">
+                <img src="${SOCIAL_LINKS.twitter.icon}" alt="X" width="24" height="24" style="display: inline-block; border: 0;" />
+              </a>
             </td>
           </tr>
 
           <!-- Copyright -->
           <tr>
             <td style="padding: 0 24px 24px 24px; text-align: center; background-color: #ffffff;" bgcolor="#ffffff">
-              <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">© ${new Date().getFullYear()} Indigo Fund. All rights reserved.</p>
-              <p class="mobile-footer-text" style="margin: 0;">
-                <a href="#" style="font-size: 11px; color: #6366f1; text-decoration: none;">Unsubscribe</a>
-              </p>
+              <p class="mobile-footer-text" style="margin: 0; font-size: 12px; color: #64748b;">© ${new Date().getFullYear()} Indigo Fund. All rights reserved.</p>
             </td>
           </tr>
 
@@ -391,8 +400,7 @@ export function validateGeneratedHtml(html: string): { valid: boolean; errors: s
     "cdn.jsdelivr.net",
     "Indigo Fund. All rights reserved",
     "This document is not an offer",
-    "LinkedIn",
-    "Instagram",
+    "storage.mlcdn.com",
   ];
 
   for (const element of requiredElements) {

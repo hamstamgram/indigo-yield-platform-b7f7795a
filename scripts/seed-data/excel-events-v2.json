@@ -1,0 +1,3877 @@
+{
+  "admin_id": "a16a7e50-fefd-4bfe-897c-d16279b457c2",
+  "fund_ids": {
+    "BTC": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+    "ETH": "717614a2-9e24-4abc-a89d-02209a3a772a",
+    "SOL": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+    "USDT": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+    "XRP": "2c123c4f-76b4-4504-867e-059649855417"
+  },
+  "investor_metadata": {
+    "b464a3f7-60d5-4bc0-9833-7b413bcc6cae": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "203caf71-a9ac-4e2a-bbd3-b45dd51758d4": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "b4f5d56b-b128-4799-b805-d34264165f45": {
+      "fee_pct": 0.15,
+      "ib_pct": null
+    },
+    "d8643c68-7045-458a-b105-a41f56085c55": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "44801beb-4476-4a9b-9751-4e70267f6953": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "e134e0df-d4e7-49c4-80b3-4ef37af6bebf": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "f917cd8b-2d12-428c-ae3c-210b7ee3ae75": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "249f4ab3-3433-4d81-ac92-1531b3573a50": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "ed91c89d-23de-4981-b6b7-60e13f1a6767": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "529cac24-615c-4408-b683-2c4ab635d6fd": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "fbf8e2f4-7c5d-4496-a486-f0d8e88cc794": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2": {
+      "fee_pct": 0.135,
+      "ib_pct": 0.015
+    },
+    "d681a28c-bb59-4bb7-bf34-ab23910596df": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1": {
+      "fee_pct": 0.16,
+      "ib_pct": 0.04
+    },
+    "f462d9e5-7363-4c82-a144-4e694d2b55da": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "99e5a116-44ba-4a45-9f56-5877b235f960": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "981dd85c-35c8-4254-a3e9-27c2af302815": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "114164b0-1aba-4b40-9abc-8d72adfdc60a": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "cdcccf6e-32f9-475a-9f88-34272ca3e64b": {
+      "fee_pct": 0.18,
+      "ib_pct": 0.02
+    },
+    "9405071c-0b52-4399-85da-9f1ba9b289c1": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "3a9a5615-d4dd-4b7f-ae20-3d48a7de3dcc": {
+      "fee_pct": 0.18,
+      "ib_pct": 0.02
+    },
+    "5fc170e2-7a07-4f32-991f-d8b6deec277c": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "82f58ac0-2d34-4c00-b0df-34383c1d1dfd": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "a00073d1-f37d-4e21-a54b-1b55df17e85a": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "7fdedf56-e838-45ea-91f8-6e441810c761": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "d1f39136-4d87-4e7f-8885-a413c21d9a56": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "511991c7-93a2-4d2b-b42a-43120d58f672": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "24f3054e-a125-4954-8861-55aa617cbb2c": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "98dd4ff5-b5cb-4257-a501-aa25a6d638c5": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "bb655a37-9e91-4166-b575-cafbbbb8c200": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "20396ec2-c919-46ef-b3a3-8005a8a34bd3": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "64cb831a-3365-4a89-9369-620ab7a1ff26": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "3705c2cd-49d2-4e3b-ac09-7c1f98ebb93c": {
+      "fee_pct": 0.1,
+      "ib_pct": null
+    },
+    "af16a20d-df70-4357-9b10-efcd25d0c1aa": {
+      "fee_pct": 0.0,
+      "ib_pct": null
+    },
+    "d5719d57-5308-4b9d-8a4f-a9a8aa596af4": {
+      "fee_pct": 0.15,
+      "ib_pct": null
+    },
+    "32d75475-0b78-4b7b-925a-e9429f6fe66d": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "c85bddf5-7720-47a5-8336-669ea604b94b": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "e9bbc28b-5d8d-410c-940b-b37a54a726e0": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    },
+    "7d049f7f-b77f-4650-b772-6a8806f00103": {
+      "fee_pct": 0.16,
+      "ib_pct": 0.04
+    },
+    "99e56523-32a6-43e5-b9b3-789992cc347c": {
+      "fee_pct": 0.2,
+      "ib_pct": null
+    }
+  },
+  "events": [
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2024-07-01",
+      "aum_after": "3.4680000000",
+      "comment": "Set up the fund",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "3.4680000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-08-01",
+      "period_end": "2024-08-31",
+      "aum_after": "3.4900000000",
+      "gross_pct": 0.006343713956,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-08-21",
+      "period_end": "2024-08-31",
+      "aum_after": "3.5000000000",
+      "gross_pct": 0.002865329513,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2024-08-22",
+      "aum_after": "5.5000000000",
+      "comment": "Invest of Kyle with 2 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kyle Gulamerian",
+          "investor_uuid": "b4f5d56b-b128-4799-b805-d34264165f45",
+          "amount": "2.0000000000",
+          "fee_pct": 0.15,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-09-01",
+      "period_end": "2024-09-30",
+      "aum_after": "5.5100000000",
+      "gross_pct": 0.001818181818,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-09-30",
+      "period_end": "2024-09-30",
+      "aum_after": "5.5400000000",
+      "gross_pct": 0.005444646098,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2024-10-01",
+      "aum_after": "21.8793000000",
+      "comment": "Invest of Mathias / Thomas / Daniel with 16.3393 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Matthias Reiser",
+          "investor_uuid": "d8643c68-7045-458a-b105-a41f56085c55",
+          "amount": "4.6200000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Thomas Puech",
+          "investor_uuid": "44801beb-4476-4a9b-9751-4e70267f6953",
+          "amount": "6.5193000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "5.2000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-11-01",
+      "period_end": "2024-11-30",
+      "aum_after": "21.9900000000",
+      "gross_pct": 0.00505957686,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-11-09",
+      "period_end": "2024-11-30",
+      "aum_after": "22.0200000000",
+      "gross_pct": 0.00136425648,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2024-11-09",
+      "aum_after": "21.7500000000",
+      "comment": "Withdraw 0.27 from Danielle",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "0.2699999999",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-12-01",
+      "period_end": "2024-12-31",
+      "aum_after": "21.8400000000",
+      "gross_pct": 0.004137931034,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2024-12-14",
+      "period_end": "2024-12-31",
+      "aum_after": "21.8800000000",
+      "gross_pct": 0.001831501832,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2024-12-14",
+      "aum_after": "21.7560000000",
+      "comment": "Withdraw 0.124 from Danielle",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "0.1240000003",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2024-12-14",
+      "aum_after": "10.1879000000",
+      "comment": "Kyle / Mathias / Danielle go to Boosted Program with 11.5681 BTC",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Kyle Gulamerian",
+          "investor_uuid": "b4f5d56b-b128-4799-b805-d34264165f45",
+          "amount": "FULL",
+          "fee_pct": 0.15,
+          "ib_pct": null
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Matthias Reiser",
+          "investor_uuid": "d8643c68-7045-458a-b105-a41f56085c55",
+          "amount": "FULL",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "FULL",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-01-01",
+      "period_end": "2025-01-31",
+      "aum_after": "10.2400000000",
+      "gross_pct": 0.005113909638,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-02-01",
+      "period_end": "2025-02-28",
+      "aum_after": "10.3000000000",
+      "gross_pct": 0.005859375,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-03-01",
+      "period_end": "2025-03-31",
+      "aum_after": "10.3400000000",
+      "gross_pct": 0.003883495146,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-03-31",
+      "period_end": "2025-03-31",
+      "aum_after": "10.3800000000",
+      "gross_pct": 0.003868471954,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-03-31",
+      "aum_after": "3.6551000000",
+      "comment": "Thomas go to TAC Program with 6.7249 BTC",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Thomas Puech",
+          "investor_uuid": "44801beb-4476-4a9b-9751-4e70267f6953",
+          "amount": "FULL",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-04-16",
+      "period_end": "2025-04-30",
+      "aum_after": "3.6800000000",
+      "gross_pct": 0.006812399114,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-04-16",
+      "aum_after": "15.7000000000",
+      "comment": "Transfert of 12.02 BTC from boosted program for Kyle Gulamerian / Matthias Reiser / Danielle Richetta",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kyle Gulamerian",
+          "investor_uuid": "b4f5d56b-b128-4799-b805-d34264165f45",
+          "amount": "2.1010000000",
+          "fee_pct": 0.15,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Matthias Reiser",
+          "investor_uuid": "d8643c68-7045-458a-b105-a41f56085c55",
+          "amount": "4.8357000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "5.0335000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-05-01",
+      "period_end": "2025-05-31",
+      "aum_after": "15.7600000000",
+      "gross_pct": 0.003821656051,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-05-13",
+      "period_end": "2025-05-31",
+      "aum_after": "15.7800000000",
+      "gross_pct": 0.001269035533,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-05-13",
+      "aum_after": "15.6722000000",
+      "comment": "Withdraw 0.1078 BTC from Kyle ",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Kyle Gulamerian",
+          "investor_uuid": "b4f5d56b-b128-4799-b805-d34264165f45",
+          "amount": "FULL",
+          "fee_pct": 0.15,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-05-26",
+      "aum_after": "202.0100000000",
+      "comment": "Set up the fund - Invest :  Babak : 27.01 Indigo Main Fund : 175",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "27.0100000000",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+          "investor_uuid": "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13",
+          "amount": "175.0000000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-05-30",
+      "period_end": "2025-05-31",
+      "aum_after": "13.7340000000",
+      "gross_pct": 0.004689029676,
+      "comment": "+0.0044 BTC for Gas Fees that has been forgoten"
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-05-30",
+      "aum_after": "13.6040000000",
+      "comment": "Withdraw 0.13 from Danielle Richetta",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "0.1300000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-06-01",
+      "period_end": "2025-06-30",
+      "aum_after": "237.5266000000",
+      "gross_pct": 0.001089054997,
+      "comment": "Top up from Babak:\u00a032.25\u00a0ETH Top up from Nathana\u00ebl : 3.0466 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-06-01",
+      "aum_after": "237.5266000000",
+      "comment": "Top up from Babak:\u00a032.25\u00a0ETH Top up from Nathana\u00ebl : 3.0466 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "32.2500000000",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nathana\u00ebl Cohen",
+          "investor_uuid": "ed91c89d-23de-4981-b6b7-60e13f1a6767",
+          "amount": "3.0466000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-06-11",
+      "period_end": "2025-06-30",
+      "aum_after": "13.6446000000",
+      "gross_pct": 0.002984416348,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-06-11",
+      "aum_after": "15.6446000000",
+      "comment": "Kabbaj deposit 2 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kabbaj",
+          "investor_uuid": "f917cd8b-2d12-428c-ae3c-210b7ee3ae75",
+          "amount": "2.0000000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-06-16",
+      "aum_after": "135726.7500000000",
+      "comment": "Babak invest 135,726.75",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "135726.7500000000",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-06-30",
+      "period_end": "2025-06-30",
+      "aum_after": "15.6577000000",
+      "gross_pct": 0.0008373496286,
+      "comment": ""
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-07-01",
+      "period_end": "2025-07-31",
+      "aum_after": "241.4400000000",
+      "gross_pct": 0.008055518835,
+      "comment": "Top up from Nathana\u00ebl : 2 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-07-01",
+      "aum_after": "241.4400000000",
+      "comment": "Top up from Nathana\u00ebl : 2 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nathana\u00ebl Cohen",
+          "investor_uuid": "ed91c89d-23de-4981-b6b7-60e13f1a6767",
+          "amount": "2.0000000003",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-07-01",
+      "period_end": "2025-07-31",
+      "aum_after": "136175.4023000000",
+      "gross_pct": 0.003305555556,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-07-11",
+      "period_end": "2025-07-31",
+      "aum_after": "15.7177000000",
+      "gross_pct": 0.003831980431,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-07-11",
+      "aum_after": "28.0931000000",
+      "comment": "Top Up from Kabbaj : 0.9914\u00a0BTC Transfert from TAC Program Victoria :0.1484 BTC Nathanael Cohen : 0.4460 BTC Thomas Puech : 6.69 BTC Blondish : 4.0996 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Thomas Puech",
+          "investor_uuid": "44801beb-4476-4a9b-9751-4e70267f6953",
+          "amount": "6.6900000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kabbaj",
+          "investor_uuid": "f917cd8b-2d12-428c-ae3c-210b7ee3ae75",
+          "amount": "0.9927438663",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Victoria Pariente-Cohen",
+          "investor_uuid": "249f4ab3-3433-4d81-ac92-1531b3573a50",
+          "amount": "0.1484000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nathana\u00ebl Cohen",
+          "investor_uuid": "ed91c89d-23de-4981-b6b7-60e13f1a6767",
+          "amount": "0.4460000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Blondish",
+          "investor_uuid": "529cac24-615c-4408-b683-2c4ab635d6fd",
+          "amount": "4.0996000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-07-11",
+      "period_end": "2025-07-31",
+      "aum_after": "452.7300000000",
+      "gross_pct": 0.005384360504,
+      "comment": "Transfert from ETH TAC Program Jose Molla :62.6261 ETH Nathanael Cohen : 26.6797 ETH Indigo : 0.8980 ETH Blondish : 119.7862 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-07-11",
+      "aum_after": "452.7300000000",
+      "comment": "Transfert from ETH TAC Program Jose Molla :62.6261 ETH Nathanael Cohen : 26.6797 ETH Indigo : 0.8980 ETH Blondish : 119.7862 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nathana\u00ebl Cohen",
+          "investor_uuid": "ed91c89d-23de-4981-b6b7-60e13f1a6767",
+          "amount": "26.6796999996",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "62.6261000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Blondish",
+          "investor_uuid": "529cac24-615c-4408-b683-2c4ab635d6fd",
+          "amount": "119.7862000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-07-14",
+      "period_end": "2025-07-31",
+      "aum_after": "994196.9000000000",
+      "gross_pct": 0.001538440012,
+      "comment": "julien grunebaum : 109392 daniele francilia : 109776 pierre bezencon : 109333 matthew beatty : 255504 bo kriek : 273807"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-07-14",
+      "aum_after": "994196.9000000000",
+      "comment": "julien grunebaum : 109392 daniele francilia : 109776 pierre bezencon : 109333 matthew beatty : 255504 bo kriek : 273807",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Julien Grunebaum",
+          "investor_uuid": "7fdedf56-e838-45ea-91f8-6e441810c761",
+          "amount": "109392.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Daniele Francilia",
+          "investor_uuid": "d1f39136-4d87-4e7f-8885-a413c21d9a56",
+          "amount": "109776.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Pierre Bezen\u00e7on",
+          "investor_uuid": "511991c7-93a2-4d2b-b42a-43120d58f672",
+          "amount": "109333.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Matthew Beatty",
+          "investor_uuid": "24f3054e-a125-4954-8861-55aa617cbb2c",
+          "amount": "255504.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Bo De kriek",
+          "investor_uuid": "98dd4ff5-b5cb-4257-a501-aa25a6d638c5",
+          "amount": "273807.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-07-19",
+      "period_end": "2025-07-31",
+      "aum_after": "1242294.3899999999",
+      "gross_pct": 0.001491143253,
+      "comment": "Dario: 199,659.72 Babak:\u00a046,955.28"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-07-19",
+      "aum_after": "1242294.3899999999",
+      "comment": "Dario: 199,659.72 Babak:\u00a046,955.28",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "46955.2799437685",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Dario Deiana",
+          "investor_uuid": "bb655a37-9e91-4166-b575-cafbbbb8c200",
+          "amount": "199659.7200000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-07-23",
+      "period_end": "2025-07-31",
+      "aum_after": "1823034.0000000000",
+      "gross_pct": 0.001262671725,
+      "comment": "alain bensimon : 136737 anne cecile noique : 222687 terance chen : 219747"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-07-23",
+      "aum_after": "1823034.0000000000",
+      "comment": "alain bensimon : 136737 anne cecile noique : 222687 terance chen : 219747",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Alain Bensimon",
+          "investor_uuid": "20396ec2-c919-46ef-b3a3-8005a8a34bd3",
+          "amount": "136737.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Anne Cecile Noique",
+          "investor_uuid": "64cb831a-3365-4a89-9369-620ab7a1ff26",
+          "amount": "222687.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Terance Chen",
+          "investor_uuid": "3705c2cd-49d2-4e3b-ac09-7c1f98ebb93c",
+          "amount": "219747.0000000000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-07-24",
+      "period_end": "2025-07-31",
+      "aum_after": "28.1007000000",
+      "gross_pct": 0.0002705290623,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-07-24",
+      "aum_after": "30.2160640000",
+      "comment": "oliver loisel : 2.115364 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Oliver Loisel",
+          "investor_uuid": "fbf8e2f4-7c5d-4496-a486-f0d8e88cc794",
+          "amount": "2.1153640000",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-07-25",
+      "period_end": "2025-07-31",
+      "aum_after": "30.2177000000",
+      "gross_pct": 5.414338545e-5,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-07-25",
+      "aum_after": "29.9577000000",
+      "comment": "Withdrawal Danielle Richetta - 0.26 BTC",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "0.2599999998",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-07-30",
+      "period_end": "2025-07-31",
+      "aum_after": "486.8200000000",
+      "gross_pct": 0.004616438054,
+      "comment": "Invest from Advantage Blockchain : 32 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-07-30",
+      "aum_after": "486.8200000000",
+      "comment": "Invest from Advantage Blockchain : 32 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Advantage Blockchain",
+          "investor_uuid": "3a9a5615-d4dd-4b7f-ae20-3d48a7de3dcc",
+          "amount": "32.0000000000",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-07-31",
+      "period_end": "2025-07-31",
+      "aum_after": "29.9777000000",
+      "gross_pct": 0.0006676079939,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-07-31",
+      "aum_after": "30.5777000000",
+      "comment": "Kabbaj : 0.6 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kabbaj",
+          "investor_uuid": "f917cd8b-2d12-428c-ae3c-210b7ee3ae75",
+          "amount": "0.5999999996",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-07-31",
+      "aum_after": "308.4476152000",
+      "comment": "Withdrawal from INDIGO Main fund : -178.37 ETH",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+          "investor_uuid": "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13",
+          "amount": "FULL",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-07-31",
+      "period_end": "2025-07-31",
+      "aum_after": "1827189.0000000000",
+      "gross_pct": 0.002279167585,
+      "comment": ""
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-08-04",
+      "period_end": "2025-08-31",
+      "aum_after": "1968196.0000000000",
+      "gross_pct": 0.0005511197802,
+      "comment": "INDIGO Ventures: $130,000 Babak top-up: $10,000"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-08-04",
+      "aum_after": "1968196.0000000000",
+      "comment": "INDIGO Ventures: $130,000 Babak top-up: $10,000",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "10000.0000034019",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "INDIGO Ventures",
+          "investor_uuid": "af16a20d-df70-4357-9b10-efcd25d0c1aa",
+          "amount": "130000.0000000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-08-14",
+      "period_end": "2025-08-31",
+      "aum_after": "2001615.0000000000",
+      "gross_pct": 0.003820249609,
+      "comment": "Matthew Beatty: +25,900 USDC"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-08-14",
+      "aum_after": "2001615.0000000000",
+      "comment": "Matthew Beatty: +25,900 USDC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Matthew Beatty",
+          "investor_uuid": "24f3054e-a125-4954-8861-55aa617cbb2c",
+          "amount": "25900.0000937055",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-08-19",
+      "period_end": "2025-08-31",
+      "aum_after": "2116260.0000000000",
+      "gross_pct": 0.001636178786,
+      "comment": "INDIGO Main Fund: +$111,370"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-08-19",
+      "aum_after": "2116260.0000000000",
+      "comment": "INDIGO Main Fund: +$111,370",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+          "investor_uuid": "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13",
+          "amount": "111370.0000000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-08-20",
+      "period_end": "2025-08-31",
+      "aum_after": "30.6600000000",
+      "gross_pct": 0.002691503939,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-08-20",
+      "aum_after": "30.5500000000",
+      "comment": "Withdrawal Danielle Richetta - 0.11 BTC",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "0.1100000009",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-08-25",
+      "period_end": "2025-08-31",
+      "aum_after": "30.5650000000",
+      "gross_pct": 0.0004909983633,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-08-25",
+      "aum_after": "31.4752000000",
+      "comment": "Top Up Kabbaj : 0.9102 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kabbaj",
+          "investor_uuid": "f917cd8b-2d12-428c-ae3c-210b7ee3ae75",
+          "amount": "0.9102000005",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-09-01",
+      "period_end": "2025-09-30",
+      "aum_after": "31.4900000000",
+      "gross_pct": 0.0004702114681,
+      "comment": ""
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-09-01",
+      "period_end": "2025-09-30",
+      "aum_after": "311.0900000000",
+      "gross_pct": 0.008566721372,
+      "comment": ""
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-09-01",
+      "period_end": "2025-09-30",
+      "aum_after": "2124583.0000000000",
+      "gross_pct": 0.003932881593,
+      "comment": ""
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-09-02",
+      "aum_after": "1250.0000000000",
+      "comment": "INDIGO LP invest 1250",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+          "investor_uuid": "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13",
+          "amount": "1250.0000000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-09-04",
+      "period_end": "2025-09-30",
+      "aum_after": "322.0300000000",
+      "gross_pct": 0.001607251921,
+      "comment": "Paul Johnson invests 10.44 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-09-04",
+      "aum_after": "322.0300000000",
+      "comment": "Paul Johnson invests 10.44 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "10.4400000000",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-09-04",
+      "period_end": "2025-09-30",
+      "aum_after": "1486.1700000000",
+      "gross_pct": 0.0016,
+      "comment": "Paul Johnson invests 234.17 SOL"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-09-04",
+      "aum_after": "1486.1700000000",
+      "comment": "Paul Johnson invests 234.17 SOL",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "234.1700000000",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-09-10",
+      "period_end": "2025-09-30",
+      "aum_after": "327.0827000000",
+      "gross_pct": 0.001304226314,
+      "comment": "Paul Johnson top up 4.6327 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-09-10",
+      "aum_after": "327.0827000000",
+      "comment": "Paul Johnson top up 4.6327 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "4.6326999957",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-09-12",
+      "period_end": "2025-09-30",
+      "aum_after": "339.4400000000",
+      "gross_pct": 0.000144611745,
+      "comment": "Top up from : Paul Jaunson : 8.96 ETH Nathana\u00ebl Cohen : 3.35 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-09-12",
+      "aum_after": "339.4400000000",
+      "comment": "Top up from : Paul Jaunson : 8.96 ETH Nathana\u00ebl Cohen : 3.35 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nathana\u00ebl Cohen",
+          "investor_uuid": "ed91c89d-23de-4981-b6b7-60e13f1a6767",
+          "amount": "3.3499999955",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "8.9600000013",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-09-24",
+      "period_end": "2025-09-30",
+      "aum_after": "2148665.0000000000",
+      "gross_pct": 0.006628124201,
+      "comment": "Babak top-up: $10,000"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-09-24",
+      "aum_after": "2148665.0000000000",
+      "comment": "Babak top-up: $10,000",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "9999.9999934185",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-09-27",
+      "period_end": "2025-09-30",
+      "aum_after": "403.4200000000",
+      "gross_pct": 0.002592505303,
+      "comment": "Tomer Zur Invest 63.1 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-09-27",
+      "aum_after": "403.4200000000",
+      "comment": "Tomer Zur Invest 63.1 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "63.1000000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-09-30",
+      "period_end": "2025-09-30",
+      "aum_after": "31.6000000000",
+      "gross_pct": 0.003493172436,
+      "comment": ""
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-09-30",
+      "period_end": "2025-09-30",
+      "aum_after": "404.0500000000",
+      "gross_pct": 0.00156164791,
+      "comment": ""
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-09-30",
+      "period_end": "2025-09-30",
+      "aum_after": "2153219.0000000000",
+      "gross_pct": 0.002119455569,
+      "comment": ""
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-09-30",
+      "period_end": "2025-09-30",
+      "aum_after": "1500.0000000000",
+      "gross_pct": 0.009305799471,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-10-03",
+      "period_end": "2025-10-31",
+      "aum_after": "31.6200000000",
+      "gross_pct": 0.0006329113924,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-10-03",
+      "aum_after": "32.0595000000",
+      "comment": "Top Up Paul Johnson: 0.4395 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "0.4395000000",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-10-03",
+      "period_end": "2025-10-31",
+      "aum_after": "392.2500000000",
+      "gross_pct": 0.000494988244,
+      "comment": "Withdrawal from : Paul Johnson: 12 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-10-03",
+      "aum_after": "392.2500000000",
+      "comment": "Withdrawal from : Paul Johnson: 12 ETH",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "11.9999999916",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-10-03",
+      "aum_after": "1263.9800000000",
+      "comment": "Paul Johnson withdrawal : 236.02 SOL",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "FULL",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-10-06",
+      "period_end": "2025-10-31",
+      "aum_after": "2155208.0000000000",
+      "gross_pct": 0.000923733257,
+      "comment": "INDIGO Ventures: $-100,000 Sacha Oshry: +$100,000"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-10-08",
+      "period_end": "2025-10-31",
+      "aum_after": "402.9510000000",
+      "gross_pct": 0.001657106437,
+      "comment": "Tomer Zur top up 10.051 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-10-08",
+      "aum_after": "402.9510000000",
+      "comment": "Tomer Zur top up 10.051 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "10.0510000044",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-10-09",
+      "period_end": "2025-10-31",
+      "aum_after": "2179126.0000000000",
+      "gross_pct": 0.001817921982,
+      "comment": "Babak top-up: $20,000"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-10-09",
+      "aum_after": "2179126.0000000000",
+      "comment": "Babak top-up: $20,000",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "20000.0000383096",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-10-13",
+      "period_end": "2025-10-31",
+      "aum_after": "2154158.4500000002",
+      "gross_pct": 0.001205529189,
+      "comment": "Ventures withdrawal : $32,594.55 Ventures Top-up : $5,000 Total : - $27,594.55"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-10-13",
+      "aum_after": "2154158.4500000002",
+      "comment": "Ventures withdrawal : $32,594.55 Ventures Top-up : $5,000 Total : - $27,594.55",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "INDIGO Ventures",
+          "investor_uuid": "af16a20d-df70-4357-9b10-efcd25d0c1aa",
+          "amount": "27594.5500003035",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-10-14",
+      "period_end": "2025-10-31",
+      "aum_after": "471.4200000000",
+      "gross_pct": 0.001114279404,
+      "comment": "Tomer Zur top up 64.27 ETH Babak top up 3.75 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-10-14",
+      "aum_after": "471.4200000000",
+      "comment": "Tomer Zur top up 64.27 ETH Babak top up 3.75 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "3.7499999918",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "64.2699999924",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-10-15",
+      "period_end": "2025-10-31",
+      "aum_after": "2256585.0000000000",
+      "gross_pct": 0.001131091355,
+      "comment": "Invest HALLEY86 : $99,990"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-10-15",
+      "aum_after": "2256585.0000000000",
+      "comment": "Invest HALLEY86 : $99,990",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "HALLEY86",
+          "investor_uuid": "32d75475-0b78-4b7b-925a-e9429f6fe66d",
+          "amount": "99990.0000000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-10-17",
+      "period_end": "2025-10-31",
+      "aum_after": "474.6200000000",
+      "gross_pct": 0.0002121250689,
+      "comment": "Babak top up 3.10 ETH"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-10-17",
+      "aum_after": "474.6200000000",
+      "comment": "Babak top up 3.10 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "3.1000000020",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-10-20",
+      "aum_after": "481.1617000000",
+      "comment": "Tomer Zur top up 6.5417 ETH",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "6.5417000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-10-23",
+      "period_end": "2025-10-31",
+      "aum_after": "32.1400000000",
+      "gross_pct": 0.002510956191,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-10-23",
+      "aum_after": "32.2020000000",
+      "comment": "Jose Molla BTC 0.062",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "0.0620000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-10-23",
+      "period_end": "2025-10-31",
+      "aum_after": "489.4900000000",
+      "gross_pct": 0.001513628371,
+      "comment": "Jose Molla ETH 1.20 Tomer Zur ETH 6.40"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-10-23",
+      "aum_after": "489.4900000000",
+      "comment": "Jose Molla ETH 1.20 Tomer Zur ETH 6.40",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "1.2000000068",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "6.4000000118",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-10-23",
+      "period_end": "2025-10-31",
+      "aum_after": "2368119.0000000000",
+      "gross_pct": 0.001501826876,
+      "comment": "Jose Molla USDT 97,695.00 Babak Eftekhari USDT 10,450.00"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-10-23",
+      "aum_after": "2368119.0000000000",
+      "comment": "Jose Molla USDT 97,695.00 Babak Eftekhari USDT 10,450.00",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Babak Eftekhari",
+          "investor_uuid": "cdcccf6e-32f9-475a-9f88-34272ca3e64b",
+          "amount": "10450.0000701232",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "97695.0000000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-10-23",
+      "period_end": "2025-10-31",
+      "aum_after": "1361.9800000000",
+      "gross_pct": 0.007927340622,
+      "comment": "Jose Molla        SOL        87.98"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-10-23",
+      "aum_after": "1361.9800000000",
+      "comment": "Jose Molla        SOL        87.98",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "87.9800000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-10-31",
+      "period_end": "2025-10-31",
+      "aum_after": "32.2100000000",
+      "gross_pct": 0.0002484317744,
+      "comment": ""
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-10-31",
+      "period_end": "2025-10-31",
+      "aum_after": "490.7100000000",
+      "gross_pct": 0.002492390039,
+      "comment": ""
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-10-31",
+      "period_end": "2025-10-31",
+      "aum_after": "2374584.0000000000",
+      "gross_pct": 0.002730014835,
+      "comment": ""
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-10-31",
+      "period_end": "2025-10-31",
+      "aum_after": "1365.0000000000",
+      "gross_pct": 0.00221736002,
+      "comment": ""
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-11-03",
+      "period_end": "2025-11-30",
+      "aum_after": "499.1340000000",
+      "gross_pct": 4.075727008e-5,
+      "comment": "Refund Tea-Fi hack for 8.404 ETH Indigo : 0.0359 Jose : 2.5064 Nathanael : 1.0677 Blondish : 4.7940"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-11-03",
+      "aum_after": "499.1340000000",
+      "comment": "Refund Tea-Fi hack for 8.404 ETH Indigo : 0.0359 Jose : 2.5064 Nathanael : 1.0677 Blondish : 4.7940",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nathana\u00ebl Cohen",
+          "investor_uuid": "ed91c89d-23de-4981-b6b7-60e13f1a6767",
+          "amount": "1.0677000007",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "2.5063999980",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Blondish",
+          "investor_uuid": "529cac24-615c-4408-b683-2c4ab635d6fd",
+          "amount": "4.7939999244",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-03",
+      "period_end": "2025-11-30",
+      "aum_after": "2261287.3500000001",
+      "gross_pct": 0.0002295138854,
+      "comment": "INDIGO LP Account worth : 113 867.78 Withdraw INDIGO LP : 113 841.65 INDIGO take the delta : 26.13"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-03",
+      "aum_after": "2261287.3500000001",
+      "comment": "INDIGO LP Account worth : 113 867.78 Withdraw INDIGO LP : 113 841.65 INDIGO take the delta : 26.13",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+          "investor_uuid": "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13",
+          "amount": "FULL",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-11-04",
+      "period_end": "2025-11-30",
+      "aum_after": "506.2479000000",
+      "gross_pct": 0.0003245621416,
+      "comment": "Tomer Zur ETH 6.9519"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-11-04",
+      "aum_after": "506.2479000000",
+      "comment": "Tomer Zur ETH 6.9519",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "6.9518999979",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-04",
+      "period_end": "2025-11-30",
+      "aum_after": "2297206.0000000000",
+      "gross_pct": 0.0002735830986,
+      "comment": "Matthew Beatty  USDT  35,300.00"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-04",
+      "aum_after": "2297206.0000000000",
+      "comment": "Matthew Beatty  USDT  35,300.00",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Matthew Beatty",
+          "investor_uuid": "24f3054e-a125-4954-8861-55aa617cbb2c",
+          "amount": "35299.9999842052",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-11-05",
+      "period_end": "2025-11-30",
+      "aum_after": "32.2300000000",
+      "gross_pct": 0.0006209251785,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-11-05",
+      "aum_after": "31.5062000000",
+      "comment": "Withdrawal  Danielle Richetta - 0.283 BTC Paul Johnson -0.4408 (OUT)",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "0.2830000003",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "FULL",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-11-05",
+      "period_end": "2025-11-30",
+      "aum_after": "501.8115000000",
+      "gross_pct": 0.0003201988591,
+      "comment": "Tomer Zur ETH 7.6215 Paul Johnson ETH -12.22 (OUT)"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-11-05",
+      "aum_after": "501.8115000000",
+      "comment": "Tomer Zur ETH 7.6215 Paul Johnson ETH -12.22 (OUT)",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Paul Johnson",
+          "investor_uuid": "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2",
+          "amount": "FULL",
+          "fee_pct": 0.135,
+          "ib_pct": 0.015
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "7.6215000556",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-11-07",
+      "period_end": "2025-11-30",
+      "aum_after": "512.3340000000",
+      "gross_pct": 0.000594844877,
+      "comment": "Tomer Zur ETH 10.224"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-11-07",
+      "aum_after": "512.3340000000",
+      "comment": "Tomer Zur ETH 10.224",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "10.2239999558",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-07",
+      "period_end": "2025-11-30",
+      "aum_after": "3140530.0299999998",
+      "gross_pct": 0.001373842833,
+      "comment": "Monica Levy Chicheportiche  USDT  840,168.03"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-07",
+      "aum_after": "3140530.0299999998",
+      "comment": "Monica Levy Chicheportiche  USDT  840,168.03",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Monica Levy Chicheportiche",
+          "investor_uuid": "c85bddf5-7720-47a5-8336-669ea604b94b",
+          "amount": "840168.0300000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-08",
+      "period_end": "2025-11-30",
+      "aum_after": "3091094.0000000000",
+      "gross_pct": 0.0001795779676,
+      "comment": "Jose Molla USDT -50000"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-08",
+      "aum_after": "3091094.0000000000",
+      "comment": "Jose Molla USDT -50000",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "50000.0000056900",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-11-10",
+      "period_end": "2025-11-30",
+      "aum_after": "31.5500000000",
+      "gross_pct": 0.001390202563,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-11-10",
+      "aum_after": "32.0367000000",
+      "comment": "Jose Molla BTC 0.4867",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "0.4867000008",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-13",
+      "period_end": "2025-11-30",
+      "aum_after": "3395962.7700000000",
+      "gross_pct": 0.001602345319,
+      "comment": "Nath & Thomas        USDT        299,915.77"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-13",
+      "aum_after": "3395962.7700000000",
+      "comment": "Nath & Thomas        USDT        299,915.77",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nath & Thomas",
+          "investor_uuid": "99e5a116-44ba-4a45-9f56-5877b235f960",
+          "amount": "299915.7700000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-11-17",
+      "period_end": "2025-11-30",
+      "aum_after": "32.0600000000",
+      "gross_pct": 0.0007272908883,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-11-17",
+      "aum_after": "35.3600000000",
+      "comment": "Sam Johnson BTC 3.30",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "3.3000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-11-17",
+      "period_end": "2025-11-30",
+      "aum_after": "597.1340000000",
+      "gross_pct": 0.001104748074,
+      "comment": "Tomer Zur ETH 6.234 Sam Johnson ETH 78.00"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-11-17",
+      "aum_after": "597.1340000000",
+      "comment": "Tomer Zur ETH 6.234 Sam Johnson ETH 78.00",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "6.2340000324",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "78.0000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-11-17",
+      "period_end": "2025-11-30",
+      "aum_after": "3169.0500000000",
+      "gross_pct": 0.00293040293,
+      "comment": "Sam Johnson        SOL        1,800.05"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-11-17",
+      "aum_after": "3169.0500000000",
+      "comment": "Sam Johnson        SOL        1,800.05",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "1800.0500000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "FLOW",
+      "date": "2025-11-17",
+      "aum_after": "135003.0000000000",
+      "comment": "Sam Johnson invest 135003",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "135003.0000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-21",
+      "period_end": "2025-11-30",
+      "aum_after": "3354273.0000000000",
+      "gross_pct": 0.001831065421,
+      "comment": "Jose Molla        USDT        -47,908.00"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-21",
+      "aum_after": "3354273.0000000000",
+      "comment": "Jose Molla        USDT        -47,908.00",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "47907.9999952139",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-11-25",
+      "aum_after": "36.9080000000",
+      "comment": "Sam Johnson BTC 1 Jose Molla BTC 0.548",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Jose Molla",
+          "investor_uuid": "203caf71-a9ac-4e2a-bbd3-b45dd51758d4",
+          "amount": "0.5480000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "1.0000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-11-25",
+      "period_end": "2025-11-30",
+      "aum_after": "632.8800000000",
+      "gross_pct": 0.001249300827,
+      "comment": "Sam Johnson ETH 35"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-11-25",
+      "aum_after": "632.8800000000",
+      "comment": "Sam Johnson ETH 35",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "35.0000000284",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-25",
+      "period_end": "2025-11-30",
+      "aum_after": "3407086.0000000000",
+      "gross_pct": 0.0008386317989,
+      "comment": "Valeria Cruz        USDT        50000"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-25",
+      "aum_after": "3407086.0000000000",
+      "comment": "Valeria Cruz        USDT        50000",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Valeria Cruz",
+          "investor_uuid": "e9bbc28b-5d8d-410c-940b-b37a54a726e0",
+          "amount": "50000.0000000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-11-25",
+      "period_end": "2025-11-30",
+      "aum_after": "3926.0000000000",
+      "gross_pct": 0.002193086256,
+      "comment": "Sam Johnson        SOL        750"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-11-25",
+      "aum_after": "3926.0000000000",
+      "comment": "Sam Johnson        SOL        750",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "750.0000000679",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "FLOW",
+      "date": "2025-11-25",
+      "aum_after": "184003.0000000000",
+      "comment": "Sam Johnson XRP 49000",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "49000.0000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-26",
+      "period_end": "2025-11-30",
+      "aum_after": "3337879.0000000000",
+      "gross_pct": 0.0002142593407,
+      "comment": "Matthew Beatty USDT 18000 Nath & Thomas USDT -87,937.00"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-26",
+      "aum_after": "3337879.0000000000",
+      "comment": "Matthew Beatty USDT 18000 Nath & Thomas USDT -87,937.00",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Matthew Beatty",
+          "investor_uuid": "24f3054e-a125-4954-8861-55aa617cbb2c",
+          "amount": "17999.9999318001",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Nath & Thomas",
+          "investor_uuid": "99e5a116-44ba-4a45-9f56-5877b235f960",
+          "amount": "87936.9999079024",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-11-27",
+      "period_end": "2025-11-30",
+      "aum_after": "36.9200000000",
+      "gross_pct": 0.0003251327625,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-11-27",
+      "aum_after": "41.3310000000",
+      "comment": "Nath & Thomas        BTC        1.00 Vivie & Liana        BTC        3.411",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nath & Thomas",
+          "investor_uuid": "99e5a116-44ba-4a45-9f56-5877b235f960",
+          "amount": "1.0000000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Vivie & Liana",
+          "investor_uuid": "981dd85c-35c8-4254-a3e9-27c2af302815",
+          "amount": "3.4110000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-11-27",
+      "aum_after": "3437879.0000000000",
+      "comment": "Rabih Mokbel        USDT        100,000.00",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Ventures Life Style",
+          "investor_uuid": "7d049f7f-b77f-4650-b772-6a8806f00103",
+          "amount": "100000.0000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-11-30",
+      "aum_after": "42.5310000000",
+      "comment": "Sam Johnson BTC 1.2",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "1.2000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-11-30",
+      "period_end": "2025-11-30",
+      "aum_after": "667.2000000000",
+      "gross_pct": 0.002085703451,
+      "comment": "Sam Johnson ETH 33"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-11-30",
+      "aum_after": "667.2000000000",
+      "comment": "Sam Johnson ETH 33",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "32.9999999329",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-11-30",
+      "period_end": "2025-11-30",
+      "aum_after": "3444580.0000000000",
+      "gross_pct": 0.001949166914,
+      "comment": ""
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-11-30",
+      "period_end": "2025-11-30",
+      "aum_after": "4684.0000000000",
+      "gross_pct": 0.002037697402,
+      "comment": "Sam Johnson        SOL        750"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-11-30",
+      "aum_after": "4684.0000000000",
+      "comment": "Sam Johnson        SOL        750",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "749.9999995381",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "YIELD",
+      "date": "2025-11-30",
+      "period_end": "2025-11-30",
+      "aum_after": "229358.0000000000",
+      "gross_pct": 0.00192931637,
+      "comment": "Sam Johnson XRP 45000"
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "FLOW",
+      "date": "2025-11-30",
+      "aum_after": "229358.0000000000",
+      "comment": "Sam Johnson XRP 45000",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "44999.9999999767",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-12-02",
+      "period_end": "2025-12-31",
+      "aum_after": "676.7030000000",
+      "gross_pct": 0.0005395683453,
+      "comment": "Tomer Zur ETH 9.143"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-12-02",
+      "aum_after": "676.7030000000",
+      "comment": "Tomer Zur ETH 9.143",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Tomer Zur",
+          "investor_uuid": "82f58ac0-2d34-4c00-b0df-34383c1d1dfd",
+          "amount": "9.1430000545",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-12-04",
+      "period_end": "2025-12-31",
+      "aum_after": "708.3200000000",
+      "gross_pct": 0.0003650050317,
+      "comment": "Brandon Hood ETH 31.37"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-12-04",
+      "aum_after": "708.3200000000",
+      "comment": "Brandon Hood ETH 31.37",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Brandon Hood",
+          "investor_uuid": "a00073d1-f37d-4e21-a54b-1b55df17e85a",
+          "amount": "31.3700000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-12-04",
+      "period_end": "2025-12-31",
+      "aum_after": "3404.3400000000",
+      "gross_pct": 0.001280956447,
+      "comment": "INDIGO DIGITAL ASSET FUND LP        SOL        -1,285.66"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-12-04",
+      "aum_after": "3404.3400000000",
+      "comment": "INDIGO DIGITAL ASSET FUND LP        SOL        -1,285.66",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+          "investor_uuid": "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13",
+          "amount": "FULL",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-12-08",
+      "period_end": "2025-12-31",
+      "aum_after": "42.5800000000",
+      "gross_pct": 0.001152100821,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-12-08",
+      "aum_after": "43.6800000000",
+      "comment": "Sam Johnson BTC 1.1",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "1.0997464858",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-12-08",
+      "period_end": "2025-12-31",
+      "aum_after": "742.8300000000",
+      "gross_pct": 0.0007200135532,
+      "comment": "Sam Johnson ETH 34"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-12-08",
+      "aum_after": "742.8300000000",
+      "comment": "Sam Johnson ETH 34",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "33.9999999532",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2025-12-08",
+      "period_end": "2025-12-31",
+      "aum_after": "3281744.2000000002",
+      "gross_pct": 0.001136568174,
+      "comment": "Nath & Thomas withdrawal : -213,501.60 Thomas Puech investment : 106,750.80"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2025-12-08",
+      "aum_after": "3281744.2000000002",
+      "comment": "Nath & Thomas withdrawal : -213,501.60 Thomas Puech investment : 106,750.80",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Nath & Thomas",
+          "investor_uuid": "99e5a116-44ba-4a45-9f56-5877b235f960",
+          "amount": "FULL",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Thomas Puech",
+          "investor_uuid": "44801beb-4476-4a9b-9751-4e70267f6953",
+          "amount": "46750.8000000000",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-12-08",
+      "period_end": "2025-12-31",
+      "aum_after": "4175.0000000000",
+      "gross_pct": 0.0001938701775,
+      "comment": "Sam Johnson        SOL        770"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-12-08",
+      "aum_after": "4175.0000000000",
+      "comment": "Sam Johnson        SOL        770",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "769.9999999679",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "YIELD",
+      "date": "2025-12-08",
+      "period_end": "2025-12-31",
+      "aum_after": "279231.0000000000",
+      "gross_pct": 0.001626278569,
+      "comment": "Sam Johnson XRP 49500"
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "FLOW",
+      "date": "2025-12-08",
+      "aum_after": "279231.0000000000",
+      "comment": "Sam Johnson XRP 49500",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "49499.9999725998",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-12-09",
+      "period_end": "2025-12-31",
+      "aum_after": "43.7300000000",
+      "gross_pct": 0.001144688645,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-12-09",
+      "aum_after": "44.3870000000",
+      "comment": "Thomas Puech : 0.657 BTC",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Thomas Puech",
+          "investor_uuid": "44801beb-4476-4a9b-9751-4e70267f6953",
+          "amount": "0.6593338143",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-12-15",
+      "period_end": "2025-12-31",
+      "aum_after": "44.4000000000",
+      "gross_pct": 0.0002928785455,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-12-15",
+      "aum_after": "45.5700000000",
+      "comment": "Sam Johnson BTC 1.17",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "1.1699225365",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2025-12-15",
+      "period_end": "2025-12-31",
+      "aum_after": "776.1600000000",
+      "gross_pct": 0.001117348519,
+      "comment": "Sam Johnson ETH 32.5"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2025-12-15",
+      "aum_after": "776.1600000000",
+      "comment": "Sam Johnson ETH 32.5",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "32.5000000790",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2025-12-15",
+      "period_end": "2025-12-31",
+      "aum_after": "4947.0000000000",
+      "gross_pct": 0.001437125749,
+      "comment": "Sam Johnson        SOL        766"
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2025-12-15",
+      "aum_after": "4947.0000000000",
+      "comment": "Sam Johnson        SOL        766",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "765.9999999542",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "YIELD",
+      "date": "2025-12-15",
+      "period_end": "2025-12-31",
+      "aum_after": "329819.0000000000",
+      "gross_pct": 0.001747656958,
+      "comment": "Sam Johnson XRP 50100"
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "FLOW",
+      "date": "2025-12-15",
+      "aum_after": "329819.0000000000",
+      "comment": "Sam Johnson XRP 50100",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "50099.9999962379",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2025-12-23",
+      "period_end": "2025-12-31",
+      "aum_after": "45.5800000000",
+      "gross_pct": 0.0002194426158,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2025-12-23",
+      "aum_after": "40.5905000000",
+      "comment": "Matthias Reiser out",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Matthias Reiser",
+          "investor_uuid": "d8643c68-7045-458a-b105-a41f56085c55",
+          "amount": "FULL",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2026-01-01",
+      "period_end": "2026-01-31",
+      "aum_after": "778.9300000000",
+      "gross_pct": 0.003568851783,
+      "comment": ""
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2026-01-01",
+      "period_end": "2026-01-31",
+      "aum_after": "3302426.0000000000",
+      "gross_pct": 0.006302075585,
+      "comment": ""
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "YIELD",
+      "date": "2026-01-01",
+      "period_end": "2026-01-31",
+      "aum_after": "4974.0000000000",
+      "gross_pct": 0.005457853244,
+      "comment": ""
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "YIELD",
+      "date": "2026-01-01",
+      "period_end": "2026-01-31",
+      "aum_after": "330976.0000000000",
+      "gross_pct": 0.003507984683,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2026-01-02",
+      "aum_after": "32.8053000000",
+      "comment": "Sam Johnson BTC -7.7852",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "FULL",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2026-01-02",
+      "aum_after": "583.2000000000",
+      "comment": "Advantage +18 Sam Johnson -213.73",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Advantage Blockchain",
+          "investor_uuid": "3a9a5615-d4dd-4b7f-ae20-3d48a7de3dcc",
+          "amount": "18.0000000000",
+          "fee_pct": 0.18,
+          "ib_pct": 0.02
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "FULL",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "SOL",
+      "fund_id": "7574bc81-aab3-4175-9e7f-803aa6f9eb8f",
+      "event_type": "FLOW",
+      "date": "2026-01-02",
+      "aum_after": "100.8500000000",
+      "comment": "Sam Johnson -4873.15",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "FULL",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "XRP",
+      "fund_id": "2c123c4f-76b4-4504-867e-059649855417",
+      "event_type": "FLOW",
+      "date": "2026-01-02",
+      "aum_after": "475.5800000000",
+      "comment": "Sam Johnson XRP -330500.42",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "FULL",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2026-01-05",
+      "period_end": "2026-01-31",
+      "aum_after": "32.8200000000",
+      "gross_pct": 0.0004480983256,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2026-01-05",
+      "aum_after": "31.5556000000",
+      "comment": "Vivie & Liana - Out -3.4221 Kabbaj BTC 2.1577",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kabbaj",
+          "investor_uuid": "f917cd8b-2d12-428c-ae3c-210b7ee3ae75",
+          "amount": "2.1577000006",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Vivie & Liana",
+          "investor_uuid": "981dd85c-35c8-4254-a3e9-27c2af302815",
+          "amount": "FULL",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2026-01-05",
+      "period_end": "2026-01-31",
+      "aum_after": "595.1855600000",
+      "gross_pct": 0.0002400548697,
+      "comment": "Nathana\u00ebl Cohen\tETH\t11.84556"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2026-01-05",
+      "aum_after": "595.1855600000",
+      "comment": "Nathana\u00ebl Cohen\tETH\t11.84556",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Nathana\u00ebl Cohen",
+          "investor_uuid": "ed91c89d-23de-4981-b6b7-60e13f1a6767",
+          "amount": "11.8455599952",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2026-01-08",
+      "period_end": "2026-01-31",
+      "aum_after": "3187354.3700000001",
+      "gross_pct": 0.001487088583,
+      "comment": "INDIGO Ventures : -5,115.04 Daniele Francilla : -114,867.59"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2026-01-08",
+      "aum_after": "3187354.3700000001",
+      "comment": "INDIGO Ventures : -5,115.04 Daniele Francilla : -114,867.59",
+      "transactions": [
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Daniele Francilia",
+          "investor_uuid": "d1f39136-4d87-4e7f-8885-a413c21d9a56",
+          "amount": "FULL",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "INDIGO Ventures",
+          "investor_uuid": "af16a20d-df70-4357-9b10-efcd25d0c1aa",
+          "amount": "FULL",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2026-01-13",
+      "period_end": "2026-01-31",
+      "aum_after": "31.6100000000",
+      "gross_pct": 0.001723941234,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2026-01-13",
+      "aum_after": "32.3455766000",
+      "comment": "Nick Smits van Oyen        BTC        0.622 Thomas Puech        BTC        0.1135766",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Thomas Puech",
+          "investor_uuid": "44801beb-4476-4a9b-9751-4e70267f6953",
+          "amount": "0.1174389260",
+          "fee_pct": 0.0,
+          "ib_pct": null
+        },
+        {
+          "type": "DEPOSIT",
+          "investor_name": "NSVO Holdings",
+          "investor_uuid": "114164b0-1aba-4b40-9abc-8d72adfdc60a",
+          "amount": "0.6220000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "YIELD",
+      "date": "2026-01-13",
+      "period_end": "2026-01-31",
+      "aum_after": "621.0600000000",
+      "gross_pct": 0.001418784421,
+      "comment": "Nick Smits van Oyen        ETH        25.03"
+    },
+    {
+      "fund": "ETH",
+      "fund_id": "717614a2-9e24-4abc-a89d-02209a3a772a",
+      "event_type": "FLOW",
+      "date": "2026-01-13",
+      "aum_after": "621.0600000000",
+      "comment": "Nick Smits van Oyen        ETH        25.03",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "NSVO Holdings",
+          "investor_uuid": "114164b0-1aba-4b40-9abc-8d72adfdc60a",
+          "amount": "25.0300000000",
+          "fee_pct": 0.2,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "YIELD",
+      "date": "2026-01-19",
+      "period_end": "2026-01-31",
+      "aum_after": "32.3600000000",
+      "gross_pct": 0.0004459156867,
+      "comment": ""
+    },
+    {
+      "fund": "BTC",
+      "fund_id": "0a048d9b-c4cf-46eb-b428-59e10307df93",
+      "event_type": "FLOW",
+      "date": "2026-01-19",
+      "aum_after": "36.2398000000",
+      "comment": "Kyle Gulamerian        BTC        3.9998 Danielle Richetta        BTC        -0.12",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Kyle Gulamerian",
+          "investor_uuid": "b4f5d56b-b128-4799-b805-d34264165f45",
+          "amount": "3.9998000000",
+          "fee_pct": 0.15,
+          "ib_pct": null
+        },
+        {
+          "type": "WITHDRAWAL",
+          "investor_name": "Danielle Richetta",
+          "investor_uuid": "e134e0df-d4e7-49c4-80b3-4ef37af6bebf",
+          "amount": "0.1199999995",
+          "fee_pct": 0.1,
+          "ib_pct": null
+        }
+      ]
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "YIELD",
+      "date": "2026-01-19",
+      "period_end": "2026-01-31",
+      "aum_after": "7394608.0000000000",
+      "gross_pct": 0.002275752602,
+      "comment": "Sam Johnson        USDT        4,200,000.00"
+    },
+    {
+      "fund": "USDT",
+      "fund_id": "8ef9dc49-e76c-4882-84ab-a449ef4326db",
+      "event_type": "FLOW",
+      "date": "2026-01-19",
+      "aum_after": "7394608.0000000000",
+      "comment": "Sam Johnson        USDT        4,200,000.00",
+      "transactions": [
+        {
+          "type": "DEPOSIT",
+          "investor_name": "Sam Johnson",
+          "investor_uuid": "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1",
+          "amount": "4200000.0000000000",
+          "fee_pct": 0.16,
+          "ib_pct": 0.04
+        }
+      ]
+    }
+  ],
+  "final_balances": {
+    "BTC": {
+      "b464a3f7-60d5-4bc0-9833-7b413bcc6cae": {
+        "name": "Indigo Fees",
+        "balance": 0.206435098,
+        "as_of": "2026-01-19"
+      },
+      "203caf71-a9ac-4e2a-bbd3-b45dd51758d4": {
+        "name": "Jose Molla",
+        "balance": 4.834201273,
+        "as_of": "2026-01-19"
+      },
+      "b4f5d56b-b128-4799-b805-d34264165f45": {
+        "name": "Kyle Gulamerian",
+        "balance": 3.9998,
+        "as_of": "2026-01-19"
+      },
+      "d8643c68-7045-458a-b105-a41f56085c55": {
+        "name": "Matthias Reiser",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "44801beb-4476-4a9b-9751-4e70267f6953": {
+        "name": "Thomas Puech",
+        "balance": 7.597853117,
+        "as_of": "2026-01-19"
+      },
+      "e134e0df-d4e7-49c4-80b3-4ef37af6bebf": {
+        "name": "Danielle Richetta",
+        "balance": 4.291298963,
+        "as_of": "2026-01-19"
+      },
+      "f917cd8b-2d12-428c-ae3c-210b7ee3ae75": {
+        "name": "Kabbaj",
+        "balance": 6.739706077,
+        "as_of": "2026-01-19"
+      },
+      "249f4ab3-3433-4d81-ac92-1531b3573a50": {
+        "name": "Victoria Pariente-Cohen",
+        "balance": 0.151398328,
+        "as_of": "2026-01-19"
+      },
+      "ed91c89d-23de-4981-b6b7-60e13f1a6767": {
+        "name": "Nathana\u00ebl Cohen",
+        "balance": 0.4550111474,
+        "as_of": "2026-01-19"
+      },
+      "529cac24-615c-4408-b683-2c4ab635d6fd": {
+        "name": "Blondish",
+        "balance": 4.182429821,
+        "as_of": "2026-01-19"
+      },
+      "fbf8e2f4-7c5d-4496-a486-f0d8e88cc794": {
+        "name": "Oliver Loisel",
+        "balance": 2.153270293,
+        "as_of": "2026-01-19"
+      },
+      "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2": {
+        "name": "Paul Johnson",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "d681a28c-bb59-4bb7-bf34-ab23910596df": {
+        "name": "Alex\u00a0Jacobs",
+        "balance": 2.245098223e-5,
+        "as_of": "2026-01-19"
+      },
+      "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1": {
+        "name": "Sam Johnson",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "f462d9e5-7363-4c82-a144-4e694d2b55da": {
+        "name": "Ryan Van Der Wall",
+        "balance": 0.0007598933542,
+        "as_of": "2026-01-19"
+      },
+      "99e5a116-44ba-4a45-9f56-5877b235f960": {
+        "name": "Nath & Thomas",
+        "balance": 1.005438734,
+        "as_of": "2026-01-19"
+      },
+      "981dd85c-35c8-4254-a3e9-27c2af302815": {
+        "name": "Vivie & Liana",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "114164b0-1aba-4b40-9abc-8d72adfdc60a": {
+        "name": "NSVO Holdings",
+        "balance": 0.6222218876,
+        "as_of": "2026-01-19"
+      }
+    },
+    "ETH": {
+      "b464a3f7-60d5-4bc0-9833-7b413bcc6cae": {
+        "name": "Indigo Fees",
+        "balance": 3.432434771,
+        "as_of": "2026-01-13"
+      },
+      "cdcccf6e-32f9-475a-9f88-34272ca3e64b": {
+        "name": "Babak Eftekhari",
+        "balance": 68.89412097,
+        "as_of": "2026-01-13"
+      },
+      "9405071c-0b52-4399-85da-9f1ba9b289c1": {
+        "name": "Lars Ahlgreen",
+        "balance": 0.04812842663,
+        "as_of": "2026-01-13"
+      },
+      "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13": {
+        "name": "INDIGO DIGITAL ASSET FUND LP",
+        "balance": 0.0,
+        "as_of": "2026-01-13"
+      },
+      "ed91c89d-23de-4981-b6b7-60e13f1a6767": {
+        "name": "Nathana\u00ebl Cohen",
+        "balance": 49.50510554,
+        "as_of": "2026-01-13"
+      },
+      "203caf71-a9ac-4e2a-bbd3-b45dd51758d4": {
+        "name": "Jose Molla",
+        "balance": 68.49020428,
+        "as_of": "2026-01-13"
+      },
+      "529cac24-615c-4408-b683-2c4ab635d6fd": {
+        "name": "Blondish",
+        "balance": 129.7211329,
+        "as_of": "2026-01-13"
+      },
+      "3a9a5615-d4dd-4b7f-ae20-3d48a7de3dcc": {
+        "name": "Advantage Blockchain",
+        "balance": 50.98265585,
+        "as_of": "2026-01-13"
+      },
+      "5fc170e2-7a07-4f32-991f-d8b6deec277c": {
+        "name": "Alec Beckman",
+        "balance": 0.0248894614,
+        "as_of": "2026-01-13"
+      },
+      "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2": {
+        "name": "Paul Johnson",
+        "balance": 0.0,
+        "as_of": "2026-01-13"
+      },
+      "d681a28c-bb59-4bb7-bf34-ab23910596df": {
+        "name": "Alex Jacobs",
+        "balance": 0.003369787219,
+        "as_of": "2026-01-13"
+      },
+      "82f58ac0-2d34-4c00-b0df-34383c1d1dfd": {
+        "name": "Tomer Zur",
+        "balance": 193.3187709,
+        "as_of": "2026-01-13"
+      },
+      "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1": {
+        "name": "Sam Johnson",
+        "balance": 0.0,
+        "as_of": "2026-01-13"
+      },
+      "f462d9e5-7363-4c82-a144-4e694d2b55da": {
+        "name": "Ryan Van Der Wall",
+        "balance": 0.06154761137,
+        "as_of": "2026-01-13"
+      },
+      "a00073d1-f37d-4e21-a54b-1b55df17e85a": {
+        "name": "Brandon Hood",
+        "balance": 31.54763953,
+        "as_of": "2026-01-13"
+      },
+      "114164b0-1aba-4b40-9abc-8d72adfdc60a": {
+        "name": "NSVO Holdings",
+        "balance": 25.03,
+        "as_of": "2026-01-13"
+      }
+    },
+    "USDT": {
+      "b464a3f7-60d5-4bc0-9833-7b413bcc6cae": {
+        "name": "Indigo Fees",
+        "balance": 16693.18059,
+        "as_of": "2026-01-19"
+      },
+      "cdcccf6e-32f9-475a-9f88-34272ca3e64b": {
+        "name": "Babak Eftekhari",
+        "balance": 242825.2234,
+        "as_of": "2026-01-19"
+      },
+      "7fdedf56-e838-45ea-91f8-6e441810c761": {
+        "name": "Julien Grunebaum",
+        "balance": 114700.2302,
+        "as_of": "2026-01-19"
+      },
+      "d1f39136-4d87-4e7f-8885-a413c21d9a56": {
+        "name": "Daniele Francilia",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "511991c7-93a2-4d2b-b42a-43120d58f672": {
+        "name": "Pierre Bezen\u00e7on",
+        "balance": 114638.3672,
+        "as_of": "2026-01-19"
+      },
+      "24f3054e-a125-4954-8861-55aa617cbb2c": {
+        "name": "Matthew Beatty",
+        "balance": 348958.4782,
+        "as_of": "2026-01-19"
+      },
+      "98dd4ff5-b5cb-4257-a501-aa25a6d638c5": {
+        "name": "Bo De kriek",
+        "balance": 287093.4431,
+        "as_of": "2026-01-19"
+      },
+      "bb655a37-9e91-4166-b575-cafbbbb8c200": {
+        "name": "Dario Deiana",
+        "balance": 208002.1363,
+        "as_of": "2026-01-19"
+      },
+      "20396ec2-c919-46ef-b3a3-8005a8a34bd3": {
+        "name": "Alain Bensimon",
+        "balance": 143017.4648,
+        "as_of": "2026-01-19"
+      },
+      "64cb831a-3365-4a89-9369-620ab7a1ff26": {
+        "name": "Anne Cecile Noique",
+        "balance": 232915.2328,
+        "as_of": "2026-01-19"
+      },
+      "3705c2cd-49d2-4e3b-ac09-7c1f98ebb93c": {
+        "name": "Terance Chen",
+        "balance": 229840.1957,
+        "as_of": "2026-01-19"
+      },
+      "af16a20d-df70-4357-9b10-efcd25d0c1aa": {
+        "name": "INDIGO Ventures",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13": {
+        "name": "INDIGO DIGITAL ASSET FUND LP",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "9405071c-0b52-4399-85da-9f1ba9b289c1": {
+        "name": "Lars Ahlgreen",
+        "balance": 213.4131641,
+        "as_of": "2026-01-19"
+      },
+      "d5719d57-5308-4b9d-8a4f-a9a8aa596af4": {
+        "name": "Sacha Oshry",
+        "balance": 102412.67,
+        "as_of": "2026-01-19"
+      },
+      "32d75475-0b78-4b7b-925a-e9429f6fe66d": {
+        "name": "HALLEY86",
+        "balance": 101919.9688,
+        "as_of": "2026-01-19"
+      },
+      "203caf71-a9ac-4e2a-bbd3-b45dd51758d4": {
+        "name": "Jose Molla",
+        "balance": 296.9904213,
+        "as_of": "2026-01-19"
+      },
+      "c85bddf5-7720-47a5-8336-669ea604b94b": {
+        "name": "Monica Levy Chicheportiche",
+        "balance": 852212.8619,
+        "as_of": "2026-01-19"
+      },
+      "99e5a116-44ba-4a45-9f56-5877b235f960": {
+        "name": "Nath & Thomas",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1": {
+        "name": "Sam Johnson",
+        "balance": 4200000.0,
+        "as_of": "2026-01-19"
+      },
+      "f462d9e5-7363-4c82-a144-4e694d2b55da": {
+        "name": "Ryan Van Der Wall",
+        "balance": 0.0,
+        "as_of": "2026-01-19"
+      },
+      "e9bbc28b-5d8d-410c-940b-b37a54a726e0": {
+        "name": "Valeria Cruz",
+        "balance": 50536.62208,
+        "as_of": "2026-01-19"
+      },
+      "7d049f7f-b77f-4650-b772-6a8806f00103": {
+        "name": "Ventures Life Style",
+        "balance": 101055.9224,
+        "as_of": "2026-01-19"
+      },
+      "99e56523-32a6-43e5-b9b3-789992cc347c": {
+        "name": "Joel\u00a0Barbeau",
+        "balance": 52.98995997,
+        "as_of": "2026-01-19"
+      },
+      "44801beb-4476-4a9b-9751-4e70267f6953": {
+        "name": "Thomas Puech",
+        "balance": 47222.61076,
+        "as_of": "2026-01-19"
+      }
+    },
+    "SOL": {
+      "b464a3f7-60d5-4bc0-9833-7b413bcc6cae": {
+        "name": "Indigo Fees",
+        "balance": 9.72026242,
+        "as_of": "2026-01-02"
+      },
+      "d91f3eb7-bd47-4c42-ab4f-c4f20fb41b13": {
+        "name": "INDIGO DIGITAL ASSET FUND LP",
+        "balance": 0.0,
+        "as_of": "2026-01-02"
+      },
+      "d1f8c666-58c5-4a83-a5c6-0f66a380aaf2": {
+        "name": "Paul Johnson",
+        "balance": 0.0,
+        "as_of": "2026-01-02"
+      },
+      "d681a28c-bb59-4bb7-bf34-ab23910596df": {
+        "name": "Alex Jacobs",
+        "balance": 0.03336417509,
+        "as_of": "2026-01-02"
+      },
+      "203caf71-a9ac-4e2a-bbd3-b45dd51758d4": {
+        "name": "Jose Molla",
+        "balance": 89.23651496,
+        "as_of": "2026-01-02"
+      },
+      "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1": {
+        "name": "Sam Johnson",
+        "balance": 0.0,
+        "as_of": "2026-01-02"
+      },
+      "f462d9e5-7363-4c82-a144-4e694d2b55da": {
+        "name": "Ryan Van Der Wall",
+        "balance": 1.859858446,
+        "as_of": "2026-01-02"
+      }
+    },
+    "XRP": {
+      "b464a3f7-60d5-4bc0-9833-7b413bcc6cae": {
+        "name": "Indigo Fees",
+        "balance": 633.6485493,
+        "as_of": "2026-01-05"
+      },
+      "2f7b8bb2-6a60-4fc9-953d-b9fae44337c1": {
+        "name": "Sam Johnson",
+        "balance": 0.0,
+        "as_of": "2026-01-05"
+      },
+      "f462d9e5-7363-4c82-a144-4e694d2b55da": {
+        "name": "Ryan Van Der Wall",
+        "balance": 158.350864,
+        "as_of": "2026-01-05"
+      }
+    }
+  }
+}

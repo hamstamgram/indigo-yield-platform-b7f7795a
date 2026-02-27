@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import {
   getAssetLogo,
   getAssetName,
@@ -6,6 +5,7 @@ import {
   formatSignedInvestorAmount,
 } from "@/utils/assets";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { PerformancePeriod } from "./PeriodSelector";
 
 interface PerformanceData {
@@ -23,7 +23,7 @@ interface PerformanceCardProps {
   data: PerformanceData;
 }
 
-export function PerformanceCard({ fundName, period, data }: PerformanceCardProps) {
+export function PerformanceCard({ fundName, data }: PerformanceCardProps) {
   // DB stores rate_of_return already as percentage (e.g. 1.29 = 1.29%)
   const rateOfReturn = data.rateOfReturn;
   const isPositive = rateOfReturn > 0;
@@ -36,62 +36,103 @@ export function PerformanceCard({ fundName, period, data }: PerformanceCardProps
       ? "text-rose-400"
       : "text-muted-foreground";
 
+  const badgeBg = isPositive
+    ? "bg-emerald-500/10 border-emerald-500/20"
+    : isNegative
+      ? "bg-rose-500/10 border-rose-500/20"
+      : "bg-white/5 border-white/10";
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
+    <div className="glass-panel rounded-3xl overflow-hidden border border-white/5 relative group">
+      {/* Top light reflection */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+      {/* Header */}
+      <div className="px-5 pt-5 pb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <img src={getAssetLogo(fundName)} alt={fundName} className="h-8 w-8 rounded-full" />
-          <div>
-            <CardTitle className="text-lg">{getAssetName(fundName)}</CardTitle>
-            <p className="text-xs text-muted-foreground uppercase">{fundName}</p>
+          <div className="relative">
+            <img
+              src={getAssetLogo(fundName)}
+              alt={fundName}
+              className="h-10 w-10 rounded-full ring-2 ring-white/10"
+            />
           </div>
-          <div className={`ml-auto flex items-center gap-1 ${trendColor}`}>
-            <TrendIcon className="h-4 w-4" />
-            <span className="font-semibold">
-              {isPositive ? "+" : ""}
-              {rateOfReturn.toFixed(3)}%
-            </span>
+          <div>
+            <p className="text-white font-bold text-base leading-tight">{getAssetName(fundName)}</p>
+            <p className="text-xs text-slate-500 font-mono uppercase tracking-widest">{fundName}</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-muted-foreground">Beginning Balance</p>
-            <p className="font-mono font-medium">
-              {formatInvestorAmount(data.beginningBalance, fundName)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Ending Balance</p>
-            <p className="font-mono font-semibold">
-              {formatInvestorAmount(data.endingBalance, fundName)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Additions</p>
-            <p className="font-mono text-emerald-400">
-              {formatSignedInvestorAmount(data.additions, fundName)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Redemptions</p>
-            <p className="font-mono text-rose-400">
-              {data.redemptions !== 0
-                ? formatSignedInvestorAmount(-Math.abs(data.redemptions), fundName)
-                : formatInvestorAmount(0, fundName)}
-            </p>
-          </div>
-          <div className="col-span-2">
-            <p className="text-xs text-muted-foreground">Net Income</p>
-            <p
-              className={`font-mono font-medium ${data.netIncome >= 0 ? "text-emerald-400" : "text-rose-400"}`}
-            >
-              {formatSignedInvestorAmount(data.netIncome, fundName)}
-            </p>
-          </div>
+
+        {/* Rate of Return badge */}
+        <div
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-bold",
+            badgeBg,
+            trendColor
+          )}
+        >
+          <TrendIcon className="h-3.5 w-3.5" />
+          <span>
+            {isPositive ? "+" : ""}
+            {rateOfReturn.toFixed(3)}%
+          </span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Divider */}
+      <div className="mx-5 h-px bg-white/5" />
+
+      {/* Metrics grid */}
+      <div className="p-5 grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Beginning</p>
+          <p className="font-mono font-semibold text-slate-200 text-sm">
+            {formatInvestorAmount(data.beginningBalance, fundName)}
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Ending</p>
+          <p className="font-mono font-bold text-white text-sm">
+            {formatInvestorAmount(data.endingBalance, fundName)}
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Additions</p>
+          <p className="font-mono text-emerald-400 font-semibold text-sm">
+            {data.additions !== 0
+              ? formatSignedInvestorAmount(data.additions, fundName)
+              : formatInvestorAmount(0, fundName)}
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Redemptions</p>
+          <p className="font-mono text-rose-400 font-semibold text-sm">
+            {data.redemptions !== 0
+              ? formatSignedInvestorAmount(-Math.abs(data.redemptions), fundName)
+              : formatInvestorAmount(0, fundName)}
+          </p>
+        </div>
+
+        {/* Net Income — full width */}
+        <div className="col-span-2 pt-2 border-t border-white/5 space-y-1">
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Net Income</p>
+          <p
+            className={cn(
+              "font-mono font-bold text-base",
+              data.netIncome > 0
+                ? "text-emerald-400"
+                : data.netIncome < 0
+                  ? "text-rose-400"
+                  : "text-slate-400"
+            )}
+          >
+            {formatSignedInvestorAmount(data.netIncome, fundName)}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
