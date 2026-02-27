@@ -40,8 +40,8 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
       count: breakdown.investments,
       icon: TrendingUp,
       description: "Awaiting processing",
-      color: "text-emerald-400",
-      bgColor: "bg-emerald-500/10",
+      color: "text-yield",
+      bgColor: "bg-yield/10",
       href: "/admin/investments",
     },
   ];
@@ -102,9 +102,9 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
               breakdown.withdrawals === 0 &&
               breakdown.investments === 0 && (
                 <div className="text-center py-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 mb-3">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-yield/10 mb-3">
                     <svg
-                      className="h-6 w-6 text-emerald-400"
+                      className="h-6 w-6 text-yield"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

@@ -8,10 +8,10 @@ interface WithdrawalAuditTimelineProps {
 
 const actionConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
   create: { icon: PlusCircle, color: "text-blue-500", label: "Request Created" },
-  approve: { icon: CheckCircle, color: "text-green-500", label: "Approved" },
+  approve: { icon: CheckCircle, color: "text-yield", label: "Approved" },
   reject: { icon: XCircle, color: "text-red-500", label: "Rejected" },
   processing: { icon: Play, color: "text-amber-500", label: "Processing Started" },
-  complete: { icon: CheckCircle2, color: "text-emerald-600", label: "Completed" },
+  complete: { icon: CheckCircle2, color: "text-yield", label: "Completed" },
   cancel: { icon: Ban, color: "text-muted-foreground", label: "Cancelled" },
   update: { icon: PlusCircle, color: "text-muted-foreground", label: "Updated" },
 };

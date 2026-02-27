@@ -174,7 +174,7 @@ export function YieldInputForm({
               <div
                 className={cn(
                   "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
-                  yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
+                  yieldPurpose === "reporting" ? "bg-yield" : "bg-muted-foreground/30"
                 )}
               />
               <div>
@@ -188,7 +188,7 @@ export function YieldInputForm({
           <div
             className={cn(
               "flex items-start gap-2 p-3 rounded-md text-sm",
-              isReporting ? "bg-green-950/20 text-green-400" : "bg-orange-950/20 text-orange-400"
+              isReporting ? "bg-green-950/20 text-yield" : "bg-orange-950/20 text-orange-400"
             )}
           >
             <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />

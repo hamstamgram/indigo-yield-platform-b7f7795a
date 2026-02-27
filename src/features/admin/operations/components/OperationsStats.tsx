@@ -18,7 +18,7 @@ export function OperationsStats({ stats }: OperationsStatsProps) {
   const getStatusColor = (status?: string) => {
     switch (status) {
       case "success":
-        return "text-emerald-400";
+        return "text-yield";
       case "warning":
         return "text-yellow-600";
       case "error":
@@ -43,8 +43,8 @@ export function OperationsStats({ stats }: OperationsStatsProps) {
               <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
               {stat.trend && (
                 <div className="flex items-center mt-2 text-xs">
-                  <TrendingUp className="h-3 w-3 mr-1 text-emerald-400" />
-                  <span className="text-emerald-400">{stat.trend}</span>
+                  <TrendingUp className="h-3 w-3 mr-1 text-yield" />
+                  <span className="text-yield">{stat.trend}</span>
                 </div>
               )}
             </CardContent>

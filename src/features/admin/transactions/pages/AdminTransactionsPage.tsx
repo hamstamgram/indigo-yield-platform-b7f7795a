@@ -246,10 +246,10 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
       case "YIELD":
       case "DISTRIBUTION":
         // yield-neon green — user override: keep green
-        return cn(base, "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25");
+        return cn(base, "bg-yield/15 text-yield border border-emerald-500/25");
       case "DEPOSIT":
       case "FIRST_INVESTMENT":
-        return cn(base, "bg-green-500/10 text-green-400 border border-green-500/20");
+        return cn(base, "bg-yield/10 text-yield border border-green-500/20");
       case "WITHDRAWAL":
         return cn(base, "bg-rose-500/10 text-rose-400 border border-rose-500/20");
       case "FEE":
@@ -599,7 +599,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                                     ? "line-through text-muted-foreground"
                                     : tx.type === "WITHDRAWAL" || tx.type === "FEE"
                                       ? "text-rose-400"
-                                      : "text-emerald-400"
+                                      : "text-yield"
                                 }
                               >
                                 {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}

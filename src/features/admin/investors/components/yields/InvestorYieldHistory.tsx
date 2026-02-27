@@ -104,7 +104,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
 
   const getTriggerBadge = (trigger: string) => {
     const colors: Record<string, string> = {
-      deposit: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      deposit: "bg-yield/10 text-yield border-yield/20",
       withdrawal: "bg-amber-500/10 text-amber-400 border-amber-500/20",
       month_end: "bg-blue-500/10 text-blue-400 border-blue-500/20",
       manual: "bg-purple-500/10 text-purple-400 border-purple-500/20",
@@ -169,7 +169,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                 )}
                 <Badge
                   variant="outline"
-                  className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  className="bg-yield/10 text-yield border-yield/20"
                 >
                   <Eye className="h-3 w-3 mr-1" />
                   {stats.visibleCount} Visible
@@ -198,7 +198,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                 <p
                   className={cn(
                     "text-lg font-mono font-semibold",
-                    stats.totalNet >= 0 ? "text-emerald-400" : "text-rose-400"
+                    stats.totalNet >= 0 ? "text-yield" : "text-rose-400"
                   )}
                 >
                   {formatNumber(stats.totalNet)}
@@ -310,7 +310,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             event.is_voided
                               ? "line-through text-muted-foreground"
                               : parseFloat(String(event.net_yield_amount)) >= 0
-                                ? "text-emerald-400"
+                                ? "text-yield"
                                 : "text-rose-400"
                           )}
                         >
@@ -328,7 +328,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                           ) : (
                             <Badge
                               variant="outline"
-                              className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              className="bg-yield/10 text-yield border-yield/20"
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               Visible

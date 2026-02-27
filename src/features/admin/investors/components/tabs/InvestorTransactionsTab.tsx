@@ -55,7 +55,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
     const typeUpper = (type || "").toUpperCase();
     switch (typeUpper) {
       case "DEPOSIT":
-        return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
+        return <ArrowDownLeft className="h-4 w-4 text-yield" />;
       case "WITHDRAWAL":
         return <ArrowUpRight className="h-4 w-4 text-red-500" />;
       case "YIELD":

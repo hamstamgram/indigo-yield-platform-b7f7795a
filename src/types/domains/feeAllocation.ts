@@ -4,6 +4,7 @@
  */
 
 import type { Database } from "@/integrations/supabase/types";
+import { parseFinancial } from "@/utils/financial";
 
 // ============================================================================
 // Database Types (snake_case) - Direct mappings from Supabase
@@ -91,9 +92,9 @@ export function toFeeAllocationInsert(
     period_start: allocation.periodStart,
     period_end: allocation.periodEnd,
     purpose: allocation.purpose,
-    base_net_income: allocation.baseNetIncome ? parseFloat(allocation.baseNetIncome) : undefined,
-    fee_percentage: allocation.feePercentage ? parseFloat(allocation.feePercentage) : undefined,
-    fee_amount: allocation.feeAmount ? parseFloat(allocation.feeAmount) : undefined,
+    base_net_income: allocation.baseNetIncome ? parseFinancial(allocation.baseNetIncome).toNumber() : undefined,
+    fee_percentage: allocation.feePercentage ? parseFinancial(allocation.feePercentage).toNumber() : undefined,
+    fee_amount: allocation.feeAmount ? parseFinancial(allocation.feeAmount).toNumber() : undefined,
     debit_transaction_id: allocation.debitTransactionId,
     credit_transaction_id: allocation.creditTransactionId,
   };

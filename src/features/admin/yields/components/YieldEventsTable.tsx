@@ -101,7 +101,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
         return (
           <Badge
             variant="outline"
-            className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            className="bg-yield/10 text-yield border-yield/20"
           >
             Deposit
           </Badge>
@@ -142,7 +142,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
       );
     }
     return (
-      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+      <Badge variant="outline" className="bg-yield/10 text-yield border-yield/20">
         <Eye className="h-3 w-3 mr-1" />
         Visible
       </Badge>
@@ -180,7 +180,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
             <Badge variant="secondary" className="text-amber-400 bg-amber-500/10">
               {stats.pending} Pending
             </Badge>
-            <Badge variant="secondary" className="text-emerald-400 bg-emerald-500/10">
+            <Badge variant="secondary" className="text-yield bg-yield/10">
               {stats.visible} Visible
             </Badge>
           </div>

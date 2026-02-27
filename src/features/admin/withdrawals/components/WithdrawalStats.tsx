@@ -31,7 +31,7 @@ export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsPr
       title: "Completed",
       value: stats.completed,
       icon: CheckCircle2,
-      color: "text-emerald-400",
+      color: "text-yield",
     },
     {
       title: "Rejected",

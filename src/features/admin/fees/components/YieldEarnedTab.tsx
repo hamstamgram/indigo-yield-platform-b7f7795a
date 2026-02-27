@@ -15,10 +15,10 @@ interface YieldEarnedTabProps {
 
 export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
   return (
-    <Card className="border-emerald-500/30 bg-emerald-500/5">
+    <Card className="border-yield/30 bg-emerald-500/5">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <TrendingUp className="h-6 w-6 text-emerald-500" />
+          <TrendingUp className="h-6 w-6 text-yield" />
           <div>
             <CardTitle>Yield Earned by INDIGO Fees Account</CardTitle>
             <CardDescription>
@@ -43,7 +43,7 @@ export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Total Yield</span>
-                    <span className="font-mono font-semibold text-emerald-600">
+                    <span className="font-mono font-semibold text-yield">
                       +{formatFeeAmount(item.totalYieldEarned, item.asset)}
                     </span>
                   </div>

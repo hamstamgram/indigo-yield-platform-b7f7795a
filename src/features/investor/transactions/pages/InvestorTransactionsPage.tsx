@@ -63,7 +63,7 @@ export default function InvestorTransactionsPage() {
               item.type === "FEE_CREDIT" ||
               item.type === "IB_CREDIT" ||
               item.type === "FIRST_INVESTMENT"
-              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+              ? "bg-yield/10 text-yield border-yield/20"
               : item.type === "WITHDRAWAL" || item.type === "FEE"
                 ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
                 : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
@@ -109,7 +109,7 @@ export default function InvestorTransactionsPage() {
           <span
             className={cn(
               "font-mono font-bold text-lg",
-              amount >= 0 ? "text-emerald-400" : "text-rose-400"
+              amount >= 0 ? "text-yield" : "text-rose-400"
             )}
           >
             {amount >= 0 ? "+" : ""}
@@ -127,14 +127,14 @@ export default function InvestorTransactionsPage() {
           <span
             className={cn(
               "flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider",
-              isPending ? "text-amber-500" : "text-emerald-500"
+              isPending ? "text-amber-500" : "text-yield"
             )}
           >
             <span
               className={cn(
                 "h-1.5 w-1.5 rounded-full",
                 isPending ? "bg-amber-500" : "bg-emerald-500",
-                !isPending && "shadow-[0_0_8px_rgba(16,185,129,0.5)]",
+                !isPending && "shadow-[0_0_8px_rgba(196,150,42,0.5)]",
                 isPending && "shadow-[0_0_8px_rgba(245,158,11,0.5)]"
               )}
             />

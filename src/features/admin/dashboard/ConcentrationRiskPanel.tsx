@@ -22,7 +22,7 @@ const concentrationConfig = {
   CRITICAL: { color: "bg-rose-500/10 text-rose-400", priority: 4 },
   HIGH: { color: "bg-orange-500/10 text-orange-400", priority: 3 },
   MEDIUM: { color: "bg-yellow-500/10 text-yellow-400", priority: 2 },
-  LOW: { color: "bg-emerald-500/10 text-emerald-400", priority: 1 },
+  LOW: { color: "bg-yield/10 text-yield", priority: 1 },
 } as const;
 
 const fallbackConcentrationConfig = concentrationConfig.LOW;
@@ -70,7 +70,7 @@ export function ConcentrationRiskPanel() {
       <CardContent>
         {safeConcentrationData.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
-            <PieChart className="h-8 w-8 mx-auto mb-2 text-green-500" />
+            <PieChart className="h-8 w-8 mx-auto mb-2 text-yield" />
             <p>No concentration risks detected</p>
             <p className="text-xs">All investors below 20% threshold</p>
           </div>

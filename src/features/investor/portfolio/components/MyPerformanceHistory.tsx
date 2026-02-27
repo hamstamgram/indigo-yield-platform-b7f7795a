@@ -118,7 +118,7 @@ const AssetSection = memo(function AssetSection({
       {
         header: "Additions",
         accessor: (report) => (
-          <span className="text-emerald-400">
+          <span className="text-yield">
             {report.additions && parseFinancial(report.additions).gt(0) ? "+" : ""}
             {formatInvestorAmount(report.additions || "0", assetCode)}
           </span>

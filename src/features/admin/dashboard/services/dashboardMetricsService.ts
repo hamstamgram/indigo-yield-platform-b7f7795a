@@ -7,6 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { parseFinancial } from "@/utils/financial";
+import { logError } from "@/lib/logger";
 
 // ============================================================================
 // Types
@@ -132,7 +133,7 @@ export async function getTransactionFlowMetrics(): Promise<FlowMetrics> {
   });
 
   if (error) {
-    console.error("Error fetching flow metrics:", error);
+    logError("dashboardMetrics.fetchFlowMetrics", error);
     return { totalDeposits: 0, totalWithdrawals: 0, netFlow: 0 };
   }
 
@@ -172,7 +173,7 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
   });
 
   if (aumError) {
-    console.error("Error fetching historical AUM snapshot:", aumError);
+    logError("dashboardMetrics.fetchAUMSnapshot", aumError);
     return new Map();
   }
 
@@ -182,7 +183,7 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
   });
 
   if (flowError) {
-    console.error("Error fetching daily flows:", flowError);
+    logError("dashboardMetrics.fetchDailyFlows", flowError);
   }
 
   const flowMap = new Map<string, FlowData>();
@@ -292,7 +293,7 @@ export async function getDeliveryDiagnostics(periodId: string): Promise<Delivery
   });
 
   if (error) {
-    console.error("Error fetching delivery diagnostics:", error);
+    logError("dashboardMetrics.fetchDeliveryDiagnostics", error);
     throw error;
   }
 
@@ -320,7 +321,7 @@ export async function getDeliveryExclusionBreakdown(periodId: string): Promise<E
   });
 
   if (error) {
-    console.error("Error fetching delivery exclusion breakdown:", error);
+    logError("dashboardMetrics.fetchExclusionBreakdown", error);
     return {
       totalInvestors: 0,
       statementsGenerated: 0,

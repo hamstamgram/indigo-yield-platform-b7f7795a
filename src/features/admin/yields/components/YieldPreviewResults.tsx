@@ -112,13 +112,13 @@ export function YieldPreviewResults({
             </CardContent>
           </Card>
         )}
-        <Card className="border-emerald-500/20 bg-green-950/20">
+        <Card className="border-yield/20 bg-green-950/20">
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">Gross Yield</p>
             <p
               className={cn(
                 "text-lg font-mono font-bold",
-                toNum(yieldPreview.grossYield) >= 0 ? "text-emerald-400" : "text-rose-400"
+                toNum(yieldPreview.grossYield) >= 0 ? "text-yield" : "text-rose-400"
               )}
             >
               {toNum(yieldPreview.grossYield) >= 0 ? "+" : ""}
@@ -261,7 +261,7 @@ export function YieldPreviewResults({
                       <div>
                         <span
                           className={cn(
-                            toNum(inv.grossYield) >= 0 ? "text-emerald-500/80" : "text-rose-500/80"
+                            toNum(inv.grossYield) >= 0 ? "text-yield/80" : "text-rose-500/80"
                           )}
                         >
                           {toNum(inv.grossYield) >= 0 ? "+" : ""}
@@ -271,7 +271,7 @@ export function YieldPreviewResults({
                           <div
                             className={cn(
                               "font-bold mt-0.5",
-                              toNum(inv.mtdGross) >= 0 ? "text-emerald-400" : "text-rose-400"
+                              toNum(inv.mtdGross) >= 0 ? "text-yield" : "text-rose-400"
                             )}
                           >
                             {toNum(inv.mtdGross) >= 0 ? "+" : ""}

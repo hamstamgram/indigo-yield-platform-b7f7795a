@@ -131,7 +131,7 @@ export default function YieldHistoryPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4">
           <div className="flex items-center gap-3">
-            <Coins className="h-8 w-8 text-emerald-500/30" />
+            <Coins className="h-8 w-8 text-yield/30" />
             <div>
               <p className="text-xs text-muted-foreground uppercase">Total Yield Earned</p>
               {isLoading ? (
@@ -146,7 +146,7 @@ export default function YieldHistoryPage() {
                       <p
                         className={cn(
                           "text-lg font-mono font-bold",
-                          fund.totalNetYield >= 0 ? "text-emerald-400" : "text-rose-400"
+                          fund.totalNetYield >= 0 ? "text-yield" : "text-rose-400"
                         )}
                       >
                         {fund.totalNetYield >= 0 ? "+" : ""}
@@ -307,7 +307,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     <span
                       className={cn(
                         "font-mono font-semibold",
-                        fg.totals.net >= 0 ? "text-emerald-400" : "text-rose-400"
+                        fg.totals.net >= 0 ? "text-yield" : "text-rose-400"
                       )}
                     >
                       {fg.totals.net >= 0 ? "+" : ""}
@@ -335,7 +335,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     <span
                       className={cn(
                         "font-mono",
-                        fg.totals.net >= 0 ? "text-emerald-400" : "text-rose-400"
+                        fg.totals.net >= 0 ? "text-yield" : "text-rose-400"
                       )}
                     >
                       {fg.totals.net >= 0 ? "+" : ""}
@@ -391,7 +391,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
                           className={cn(
                             "text-right font-mono font-semibold",
                             fg.monthEndEvent.net_yield_amount >= 0
-                              ? "text-emerald-400"
+                              ? "text-yield"
                               : "text-rose-400"
                           )}
                         >
@@ -429,7 +429,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
                             <TableCell
                               className={cn(
                                 "text-right font-mono font-semibold",
-                                aggNet >= 0 ? "text-emerald-400" : "text-rose-400"
+                                aggNet >= 0 ? "text-yield" : "text-rose-400"
                               )}
                             >
                               {aggNet >= 0 ? "+" : ""}

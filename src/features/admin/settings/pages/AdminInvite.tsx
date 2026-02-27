@@ -153,7 +153,7 @@ const AdminInvite = () => {
             </form>
           ) : acceptMutation.isSuccess ? (
             <div className="text-center py-4 space-y-4">
-              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
+              <CheckCircle2 className="h-16 w-16 text-yield mx-auto" />
               <p className="text-lg font-medium">Account Created Successfully</p>
               <p className="text-muted-foreground">
                 You will be redirected to the admin panel shortly.

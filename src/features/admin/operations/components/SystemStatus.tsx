@@ -26,7 +26,7 @@ export function SystemStatus({ systems }: SystemStatusProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "operational":
-        return <CheckCircle className="h-4 w-4 text-emerald-400" />;
+        return <CheckCircle className="h-4 w-4 text-yield" />;
       case "degraded":
         return <AlertCircle className="h-4 w-4 text-yellow-600" />;
       case "down":

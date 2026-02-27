@@ -26,9 +26,10 @@ export function useSignIn() {
 
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const result = await authService.signInWithEmail(email, password);
-      const isAdmin = await authService.getUserAdminStatus(result.user.id);
-      return { ...result, isAdmin };
+      const result = await authService.signIn({ email, password });
+      if (!result.success || !result.data?.user) throw new Error("Authentication failed");
+      const isAdmin = await authService.getUserAdminStatus(result.data.user.id);
+      return { ...result.data, isAdmin };
     },
     onSuccess: ({ isAdmin }) => {
       toast({

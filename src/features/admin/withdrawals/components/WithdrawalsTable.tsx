@@ -95,11 +95,11 @@ const statusColors: Record<WithdrawalFullStatus, string> = {
   pending:
     "bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase tracking-wider text-[10px] font-mono",
   approved:
-    "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase tracking-wider text-[10px] font-mono",
+    "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono",
   processing:
     "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 uppercase tracking-wider text-[10px] font-mono",
   completed:
-    "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase tracking-wider text-[10px] font-mono",
+    "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono",
   rejected:
     "bg-rose-500/10 text-rose-400 border-rose-500/20 uppercase tracking-wider text-[10px] font-mono",
   cancelled:
@@ -164,7 +164,7 @@ const ActionsDropdown = memo(function ActionsDropdown({
 
         {withdrawal.status === "pending" && onApprove && (
           <DropdownMenuItem onClick={() => onApprove(withdrawal)}>
-            <CheckCircle className="h-4 w-4 mr-2 text-emerald-400" />
+            <CheckCircle className="h-4 w-4 mr-2 text-yield" />
             Approve
           </DropdownMenuItem>
         )}
@@ -474,7 +474,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 px-2 text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                              className="h-7 px-2 text-yield hover:text-green-300 hover:bg-yield/10"
                               onClick={() => onApprove(w)}
                             >
                               <CheckCircle className="h-3.5 w-3.5 mr-1" />

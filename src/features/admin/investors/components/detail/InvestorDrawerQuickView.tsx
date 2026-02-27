@@ -203,7 +203,7 @@ export function InvestorDrawerQuickView({
                 <div className="flex items-center gap-2">
                   {activity.type === "transaction" ? (
                     activity.amount > 0 ? (
-                      <TrendingUp className="h-4 w-4 text-green-500" />
+                      <TrendingUp className="h-4 w-4 text-yield" />
                     ) : activity.amount < 0 ? (
                       <TrendingDown className="h-4 w-4 text-red-500" />
                     ) : (

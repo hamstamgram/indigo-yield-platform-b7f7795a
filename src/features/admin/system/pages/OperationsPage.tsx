@@ -97,7 +97,7 @@ function HealthTab() {
   const overallStatus = health ? getOverallStatus(health) : "operational";
 
   const statusColors: Record<ServiceStatus, string> = {
-    operational: "text-emerald-400 bg-emerald-500/10",
+    operational: "text-yield bg-yield/10",
     degraded: "text-yellow-400 bg-yellow-500/10",
     down: "text-rose-400 bg-rose-500/10",
   };
@@ -288,7 +288,7 @@ function CheckCard({ check }: { check: InvariantCheckResult }) {
         disabled={!hasViolations}
       >
         {check.passed ? (
-          <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-yield shrink-0" />
         ) : (
           <XCircle className="h-5 w-5 text-rose-400 shrink-0" />
         )}
@@ -478,8 +478,8 @@ function IntegrityTab() {
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-xs uppercase tracking-wider text-emerald-500 mb-1">Passed</p>
-                <p className="text-2xl font-bold font-mono text-emerald-400">
+                <p className="text-xs uppercase tracking-wider text-yield mb-1">Passed</p>
+                <p className="text-2xl font-bold font-mono text-yield">
                   {invariantResult.passed}
                 </p>
               </CardContent>
@@ -747,7 +747,7 @@ function YieldEventsTab() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-400">
+            <div className="text-2xl font-bold text-yield">
               {dashboardData?.reduce((sum, f) => sum + f.up_to_date, 0) || 0}
             </div>
           </CardContent>
@@ -831,7 +831,7 @@ function YieldEventsTab() {
                           {fund.total_positions}
                         </TableCell>
                         <TableCell className="text-right">
-                          <span className="text-emerald-400 font-mono">{fund.up_to_date}</span>
+                          <span className="text-yield font-mono">{fund.up_to_date}</span>
                         </TableCell>
                         <TableCell className="text-right">
                           <Badge
@@ -993,8 +993,8 @@ function YieldEventsTab() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-              <p className="text-sm font-medium text-emerald-400">
+              <CheckCircle2 className="h-12 w-12 text-yield mx-auto mb-3" />
+              <p className="text-sm font-medium text-yield">
                 All positions have been recorded
               </p>
               <p className="text-xs text-muted-foreground mt-1">No gaps found</p>

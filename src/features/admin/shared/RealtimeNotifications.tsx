@@ -23,7 +23,7 @@ export function RealtimeNotifications() {
       case "withdrawal_update":
         return <CheckCircle className="h-4 w-4 text-blue-500" />;
       case "yield_applied":
-        return <AlertCircle className="h-4 w-4 text-green-500" />;
+        return <AlertCircle className="h-4 w-4 text-yield" />;
       case "investor_update":
         return <Users className="h-4 w-4 text-purple-500" />;
       default:

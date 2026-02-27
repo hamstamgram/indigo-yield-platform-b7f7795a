@@ -153,7 +153,7 @@ const AdminUsersList = () => {
                         <span
                           className={
                             userItem.is_admin
-                              ? "text-emerald-400 font-medium"
+                              ? "text-yield font-medium"
                               : "text-muted-foreground"
                           }
                         >

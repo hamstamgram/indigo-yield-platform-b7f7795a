@@ -194,7 +194,7 @@ const AdminInvites = () => {
                           <span
                             className={
                               invite.used
-                                ? "text-emerald-400 font-medium"
+                                ? "text-yield font-medium"
                                 : "text-amber-500 font-medium"
                             }
                           >

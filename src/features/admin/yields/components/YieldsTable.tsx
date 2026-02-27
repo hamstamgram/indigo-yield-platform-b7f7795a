@@ -208,7 +208,7 @@ export function YieldsTable({
           Net Yield
         </SortableTableHead>
       ),
-      className: "text-right text-green-500/90",
+      className: "text-right text-yield/90",
       cell: (record: DistributionRow) =>
         record.net_yield != null ? (
           <FinancialValue value={record.net_yield} asset={getFund(record.fund_id)?.asset} />
@@ -340,7 +340,7 @@ export function YieldsTable({
           variant={record.purpose === "reporting" ? "default" : "secondary"}
           className={
             record.purpose === "reporting"
-              ? "bg-green-900/30 text-green-400"
+              ? "bg-green-900/30 text-yield"
               : "bg-orange-900/30 text-orange-400"
           }
         >
@@ -439,7 +439,7 @@ export function YieldsTable({
                         "-"
                       )}
                     </TableCell>
-                    <TableCell className="text-right text-green-500/80">
+                    <TableCell className="text-right text-yield/80">
                       {(alloc.fee_credit || 0) > 0 || (alloc.ib_credit || 0) > 0 ? (
                         <div className="flex flex-col items-end">
                           {alloc.fee_credit && alloc.fee_credit > 0 && (
@@ -457,7 +457,7 @@ export function YieldsTable({
                         "-"
                       )}
                     </TableCell>
-                    <TableCell className="text-right font-medium text-green-500/90">
+                    <TableCell className="text-right font-medium text-yield/90">
                       <FinancialValue value={alloc.net_amount} asset={asset} />
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground font-mono">
@@ -633,7 +633,7 @@ export function YieldsTable({
                           variant={record.purpose === "reporting" ? "default" : "secondary"}
                           className={
                             record.purpose === "reporting"
-                              ? "bg-green-900/30 text-green-400"
+                              ? "bg-green-900/30 text-yield"
                               : "bg-orange-900/30 text-orange-400"
                           }
                         >

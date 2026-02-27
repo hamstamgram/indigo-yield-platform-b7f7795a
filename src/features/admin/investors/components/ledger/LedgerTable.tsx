@@ -45,7 +45,7 @@ function getTypeIcon(type: string) {
       "ib_credit",
     ].includes(lowerType)
   ) {
-    return <ArrowDownRight className="h-3.5 w-3.5 text-emerald-400" />;
+    return <ArrowDownRight className="h-3.5 w-3.5 text-yield" />;
   }
   if (["withdrawal", "transfer_out", "fee"].includes(lowerType)) {
     return <ArrowUpRight className="h-3.5 w-3.5 text-rose-400" />;

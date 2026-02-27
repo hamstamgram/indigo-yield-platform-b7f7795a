@@ -30,7 +30,7 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
-          <TrendingUp className="h-6 w-6 text-emerald-500" />
+          <TrendingUp className="h-6 w-6 text-yield" />
           <div>
             <CardTitle className="text-base">Yield Earned</CardTitle>
             <CardDescription className="text-xs">On fee balances</CardDescription>
@@ -44,7 +44,7 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
               <div key={asset} className="flex items-center gap-3 p-2.5 rounded-lg bg-background">
                 <CryptoIcon symbol={asset} className="h-7 w-7" />
                 <div>
-                  <p className="font-mono font-semibold text-sm text-emerald-600">
+                  <p className="font-mono font-semibold text-sm text-yield">
                     +{formatFeeAmount(total, asset)}
                   </p>
                   <p className="text-xs text-muted-foreground">

@@ -44,7 +44,7 @@ function KPICard({ title, totals }: { title: string; totals: AssetTotal[] }) {
                 <CryptoIcon symbol={asset} className="h-5 w-5" />
                 <span className="text-xs text-muted-foreground">{asset}</span>
               </div>
-              <span className="font-mono text-sm font-semibold text-emerald-600">
+              <span className="font-mono text-sm font-semibold text-yield">
                 +{formatFeeAmount(amount, asset)}
               </span>
             </div>

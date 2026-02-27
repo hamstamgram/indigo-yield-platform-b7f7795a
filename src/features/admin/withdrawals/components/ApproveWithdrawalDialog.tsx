@@ -239,7 +239,7 @@ export function ApproveWithdrawalDialog({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Send to investor</span>
-                      <span className="font-mono text-emerald-400">
+                      <span className="font-mono text-yield">
                         {formatAssetAmount(dustPreview.sendAmount, asset)}
                       </span>
                     </div>

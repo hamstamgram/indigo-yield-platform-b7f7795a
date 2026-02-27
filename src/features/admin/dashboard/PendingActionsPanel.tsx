@@ -75,7 +75,7 @@ export function PendingActionsPanel() {
           </>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <CheckCircle2 className="h-12 w-12 text-green-500 mb-3" />
+            <CheckCircle2 className="h-12 w-12 text-yield mb-3" />
             <p className="text-sm font-medium text-muted-foreground">All caught up!</p>
             <p className="text-xs text-muted-foreground">No pending actions</p>
           </div>

@@ -28,23 +28,6 @@ export async function signIn(
 }
 
 /**
- * Sign in with email and password (throws on error)
- */
-export async function signInWithEmail(email: string, password: string): Promise<SignInResult> {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) throw error;
-  if (!data.user || !data.session) {
-    throw new Error("No user returned from login");
-  }
-
-  return { user: data.user, session: data.session };
-}
-
-/**
  * Sign up a new user
  */
 export async function signUp(

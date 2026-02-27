@@ -58,9 +58,9 @@ export function BulkRestoreDistributionsDialog({
         </DialogHeader>
 
         <div className="space-y-4 pt-4">
-          <Alert className="border-emerald-500/50 bg-emerald-500/10">
+          <Alert className="border-emerald-500/50 bg-yield/10">
             <div className="flex items-start gap-2">
-              <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-emerald-600" />
+              <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-yield" />
               <AlertDescription className="text-emerald-700 text-sm">
                 Restored distributions will return to active status and recalculate affected
                 investor positions.
@@ -90,7 +90,7 @@ export function BulkRestoreDistributionsDialog({
           <Button
             onClick={handleConfirm}
             disabled={isPending || reason.trim().length < 3}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-yield hover:bg-yield/90 text-white"
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Restore All

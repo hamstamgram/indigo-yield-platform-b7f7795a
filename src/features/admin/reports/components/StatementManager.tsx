@@ -33,6 +33,7 @@ import { transactionsV2Service } from "@/services/investor";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { logError, logDebug } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 import { formatDateForDB } from "@/utils/dateUtils";
 
 export const StatementManager: React.FC = () => {
@@ -61,113 +62,129 @@ export const StatementManager: React.FC = () => {
 
       let count = 0;
 
-      // 2. Process Each Investor
-      for (const investor of investors.data) {
-        // Get transactions via service
-        const txs = await transactionsV2Service.getByInvestorId(investor.id, {
-          endDate: formatDateForDB(endDate),
-        });
+      // 2. Process investors in parallel batches of 5 (was sequential — ~80 awaits serialised)
+      const BATCH_SIZE = 5;
+      for (let batchStart = 0; batchStart < investors.data.length; batchStart += BATCH_SIZE) {
+        const batch = investors.data.slice(batchStart, batchStart + BATCH_SIZE);
 
-        if (!txs || txs.length === 0) continue;
+        const batchCounts = await Promise.all(
+          batch.map(async (investor) => {
+            try {
+              // Fetch txs and performance in parallel per investor
+              const [txs, monthlyPerformance] = await Promise.all([
+                transactionsV2Service.getByInvestorId(investor.id, {
+                  endDate: formatDateForDB(endDate),
+                }),
+                profileService.getInvestorFundPerformance(investor.id),
+              ]);
 
-        // Get monthly performance via service
-        const monthlyPerformance = await profileService.getInvestorFundPerformance(investor.id);
+              if (!txs || txs.length === 0) return 0;
 
-        const yieldMap = new Map();
-        monthlyPerformance?.forEach((r: any) =>
-          yieldMap.set(r.fund_name, parseFloat(String(r.mtd_net_income || 0)))
+              const yieldMap = new Map<string, number>();
+              monthlyPerformance?.forEach((r: any) =>
+                yieldMap.set(r.fund_name, parseFinancial(r.mtd_net_income || 0).toNumber())
+              );
+
+              const assetMap = new Map<string, { open: number; in: number; out: number; close: number }>();
+
+              txs.forEach((tx) => {
+                const asset = tx.asset;
+                if (!assetMap.has(asset))
+                  assetMap.set(asset, { open: 0, in: 0, out: 0, close: 0 });
+                const rec = assetMap.get(asset)!;
+
+                const txDate = new Date(tx.tx_date);
+                const amount = parseFinancial(tx.amount).toNumber();
+
+                if (txDate < startDate) {
+                  rec.open += amount;
+                } else {
+                  if (tx.type === "DEPOSIT") rec.in += amount;
+                  else rec.out += Math.abs(amount);
+                }
+                rec.close += amount;
+              });
+
+              const positions = Array.from(assetMap.entries())
+                .map(([code, val]) => {
+                  const begin_balance = val.open;
+                  const additions = val.in;
+                  const redemptions = val.out;
+                  const yield_earned = yieldMap.get(code) || 0;
+                  const closing_balance = begin_balance + additions - redemptions + yield_earned;
+                  return {
+                    asset_code: code,
+                    begin_balance,
+                    additions,
+                    redemptions,
+                    yield_earned,
+                    end_balance: closing_balance,
+                  };
+                })
+                .filter(
+                  (p) =>
+                    p.end_balance !== 0 ||
+                    p.additions !== 0 ||
+                    p.redemptions !== 0 ||
+                    p.yield_earned !== 0
+                );
+
+              if (positions.length === 0) return 0;
+
+              const fullName = `${investor.firstName || ""} ${investor.lastName || ""}`.trim();
+
+              const pdfBlob = generatePDF({
+                investor: {
+                  name: fullName,
+                  id: investor.id,
+                  accountNumber: `IND-${investor.id.slice(0, 8).toUpperCase()}`,
+                },
+                period: {
+                  month,
+                  year,
+                  start: format(startDate, "yyyy-MM-dd"),
+                  end: format(endDate, "yyyy-MM-dd"),
+                },
+                summary: {
+                  total_aum: 0,
+                  total_pnl: 0,
+                  total_fees: 0,
+                },
+                positions,
+              });
+
+              const filePath = `statements/${year}/${month}/${investor.id}_${Date.now()}.pdf`;
+              const pdfBlobResolved = await pdfBlob;
+
+              await statementsService.uploadStatementPDF(filePath, pdfBlobResolved);
+
+              // asset_code must match the DB enum; default to USDT if unknown
+              const primaryAsset = (positions[0]?.asset_code || "USDT") as import("@/integrations/supabase/types").Database["public"]["Enums"]["asset_code"];
+
+              await statementsService.upsertStatement({
+                investor_id: investor.id,
+                period_year: year,
+                period_month: month,
+                asset_code: primaryAsset,
+                begin_balance: positions[0]?.begin_balance || 0,
+                additions: positions[0]?.additions || 0,
+                redemptions: positions[0]?.redemptions || 0,
+                net_income: positions[0]?.yield_earned || 0,
+                end_balance: positions[0]?.end_balance || 0,
+                storage_path: filePath,
+              });
+
+              return 1;
+            } catch (investorError) {
+              logError("StatementManager.generateDraft.investor", investorError, {
+                investorId: investor.id,
+              });
+              return 0; // don't abort the whole batch for one investor
+            }
+          })
         );
 
-        const assetMap = new Map();
-
-        txs.forEach((tx) => {
-          const asset = tx.asset;
-          if (!assetMap.has(asset)) assetMap.set(asset, { open: 0, in: 0, out: 0, close: 0 });
-          const rec = assetMap.get(asset);
-
-          const txDate = new Date(tx.tx_date);
-          const amount = parseFloat(String(tx.amount));
-
-          if (txDate < startDate) {
-            rec.open += amount;
-          } else {
-            if (tx.type === "DEPOSIT") rec.in += amount;
-            else rec.out += Math.abs(amount);
-          }
-          rec.close += amount;
-        });
-
-        const positions = Array.from(assetMap.entries())
-          .map(([code, val]) => {
-            const begin_balance = val.open;
-            const additions = val.in;
-            const redemptions = val.out;
-            const yield_earned = yieldMap.get(code) || 0;
-            const closing_balance = begin_balance + additions - redemptions + yield_earned;
-            return {
-              asset_code: code,
-              begin_balance,
-              additions,
-              redemptions,
-              yield_earned,
-              end_balance: closing_balance,
-            };
-          })
-          .filter(
-            (p) =>
-              p.end_balance !== 0 ||
-              p.additions !== 0 ||
-              p.redemptions !== 0 ||
-              p.yield_earned !== 0
-          );
-
-        if (positions.length === 0) continue;
-
-        const fullName = `${investor.firstName || ""} ${investor.lastName || ""}`.trim();
-
-        const pdfBlob = generatePDF({
-          investor: {
-            name: fullName,
-            id: investor.id,
-            accountNumber: `IND-${investor.id.slice(0, 8).toUpperCase()}`,
-          },
-          period: {
-            month,
-            year,
-            start: format(startDate, "yyyy-MM-dd"),
-            end: format(endDate, "yyyy-MM-dd"),
-          },
-          summary: {
-            total_aum: 0,
-            total_pnl: 0,
-            total_fees: 0,
-          },
-          positions,
-        });
-
-        const filePath = `statements/${year}/${month}/${investor.id}_${Date.now()}.pdf`;
-        const pdfBlobResolved = await pdfBlob;
-
-        // Upload PDF via service
-        await statementsService.uploadStatementPDF(filePath, pdfBlobResolved);
-
-        const primaryAsset = positions[0]?.asset_code || "MULTI";
-
-        // Upsert statement via service
-        await statementsService.upsertStatement({
-          investor_id: investor.id,
-          period_year: year,
-          period_month: month,
-          asset_code: primaryAsset,
-          begin_balance: positions[0]?.begin_balance || 0,
-          additions: positions[0]?.additions || 0,
-          redemptions: positions[0]?.redemptions || 0,
-          net_income: positions[0]?.yield_earned || 0,
-          end_balance: positions[0]?.end_balance || 0,
-          storage_path: filePath,
-        });
-
-        count++;
+        count += batchCounts.reduce((a, b) => a + b, 0);
       }
 
       toast.success(`Generated ${count} draft statements`);
@@ -291,7 +308,7 @@ export const StatementManager: React.FC = () => {
                   </TableCell>
                   <TableCell className="py-1.5">
                     {draft.status === "published" ? (
-                      <Badge className="bg-green-500 text-[10px]">
+                      <Badge className="bg-yield text-[10px]">
                         <CheckCircle className="w-3 h-3 mr-1" /> Published
                       </Badge>
                     ) : (

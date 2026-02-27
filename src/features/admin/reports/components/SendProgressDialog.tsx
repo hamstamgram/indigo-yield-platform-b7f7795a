@@ -46,7 +46,7 @@ export function SendProgressDialog({ open, onOpenChange, progress }: SendProgres
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isComplete ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              <CheckCircle2 className="h-5 w-5 text-yield" />
             ) : (
               <Loader2 className="h-5 w-5 animate-spin" />
             )}
@@ -65,7 +65,7 @@ export function SendProgressDialog({ open, onOpenChange, progress }: SendProgres
           <div className="flex items-center justify-between text-sm">
             <div className="flex gap-3">
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-yield" />
                 {sent} sent
               </span>
               {failed > 0 && (

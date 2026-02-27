@@ -210,7 +210,7 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
                       className={cn(
                         "text-[9px] px-2 py-0 h-4 uppercase tracking-tighter font-bold",
                         investor.fundsHeldCount > 0
-                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                          ? "bg-yield/10 text-yield border-yield/20"
                           : "bg-muted/10 text-muted-foreground border-muted/20"
                       )}
                     >
@@ -290,7 +290,7 @@ export const UnifiedInvestorsTable: React.FC<UnifiedInvestorsTableProps> = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 hover:bg-emerald-500/20 hover:text-emerald-500 transition-all"
+                            className="h-8 w-8 hover:bg-yield/20 hover:text-yield transition-all"
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/admin/transactions/new`);

@@ -94,7 +94,7 @@ export const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ onRecordYi
                 <span>Live AUM with daily flows.</span>
                 {lastUpdated && (
                   <Badge variant="outline" className="text-xs gap-1">
-                    <Radio className="h-2 w-2 text-green-500 animate-pulse" />
+                    <Radio className="h-2 w-2 text-yield animate-pulse" />
                     Live
                   </Badge>
                 )}

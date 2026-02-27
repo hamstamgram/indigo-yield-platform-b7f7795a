@@ -105,7 +105,7 @@ export function YieldConfirmDialog({
                     variant="outline"
                     className={
                       yieldPurpose === "reporting"
-                        ? "border-green-500 text-green-400"
+                        ? "border-green-500 text-yield"
                         : "border-orange-500 text-orange-700"
                     }
                   >
@@ -120,7 +120,7 @@ export function YieldConfirmDialog({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Gross Yield:</span>
-                  <span className="font-mono font-medium text-emerald-400">
+                  <span className="font-mono font-medium text-yield">
                     +{formatValue(toNum(yieldPreview?.grossYield ?? 0), asset)} {asset}
                   </span>
                 </div>
@@ -149,7 +149,7 @@ export function YieldConfirmDialog({
               </div>
 
               {yieldPurpose === "reporting" && (
-                <div className="flex items-start gap-2 p-3 rounded-md bg-green-950/20 text-green-400 text-sm">
+                <div className="flex items-start gap-2 p-3 rounded-md bg-green-950/20 text-yield text-sm">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>
                     <strong>This yield will be visible to investors</strong> on their statements and

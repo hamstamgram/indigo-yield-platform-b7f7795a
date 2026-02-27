@@ -123,9 +123,9 @@ export function InternalRouteDialog({
 
         {result ? (
           <div className="space-y-4">
-            <Alert className="bg-green-500/10 border-green-500/20">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-              <AlertDescription className="text-emerald-400">
+            <Alert className="bg-yield/10 border-green-500/20">
+              <CheckCircle2 className="h-4 w-4 text-yield" />
+              <AlertDescription className="text-yield">
                 Internal transfer completed successfully!
               </AlertDescription>
             </Alert>

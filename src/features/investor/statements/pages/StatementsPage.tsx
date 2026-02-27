@@ -245,7 +245,7 @@ const StatementsPage = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Additions</p>
-                  <p className="text-sm font-mono font-medium text-emerald-400">
+                  <p className="text-sm font-mono font-medium text-yield">
                     +
                     {formatInvestorAmount(
                       parseFloat(statement.additions) || 0,
@@ -276,8 +276,8 @@ const StatementsPage = () => {
 
               {statement.rate_of_return_mtd && (
                 <div className="mt-3 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  <span className="text-sm font-mono font-medium text-emerald-400">
+                  <TrendingUp className="h-4 w-4 text-yield" />
+                  <span className="text-sm font-mono font-medium text-yield">
                     Return: {(parseFloat(statement.rate_of_return_mtd) || 0).toFixed(3)}% MTD
                   </span>
                 </div>

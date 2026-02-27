@@ -48,7 +48,7 @@ const getTypeBadge = (type: string) => {
   switch (type) {
     case "FEE_CREDIT":
       return (
-        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Performance Fee</Badge>
+        <Badge className="bg-yield/10 text-yield border-yield/20">Performance Fee</Badge>
       );
     case "IB_CREDIT":
       return <Badge className="bg-blue-100 text-blue-800 border-blue-200">IB Commission</Badge>;
@@ -161,7 +161,7 @@ export function FeeTransactionsTable({
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      <span className={toNumber(fee.amount) > 0 ? "text-emerald-600" : ""}>
+                      <span className={toNumber(fee.amount) > 0 ? "text-yield" : ""}>
                         {toNumber(fee.amount) > 0 ? "+" : ""}
                         {formatFeeAmount(fee.amount, fee.asset)}
                       </span>

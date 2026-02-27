@@ -32,13 +32,13 @@ export function PerformanceCard({ fundName, data }: PerformanceCardProps) {
   const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
 
   const badgeBg = isPositive
-    ? "bg-emerald-500/10 border-emerald-500/20"
+    ? "bg-yield/10 border-yield/20"
     : isNegative
       ? "bg-rose-500/10 border-rose-500/20"
       : "bg-white/5 border-white/10";
 
   const trendTextColor = isPositive
-    ? "text-emerald-400"
+    ? "text-yield"
     : isNegative
       ? "text-rose-400"
       : "text-muted-foreground";

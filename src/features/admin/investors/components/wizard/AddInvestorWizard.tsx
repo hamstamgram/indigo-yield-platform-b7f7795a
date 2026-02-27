@@ -45,7 +45,7 @@ const WizardContent: React.FC<WizardContentProps> = ({ onSubmit, isLoading, onCa
               className={cn(
                 "flex items-center justify-center w-7 h-7 rounded-full text-[10px] font-bold transition-all duration-300",
                 idx < stepIndex
-                  ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/30"
+                  ? "bg-yield/20 text-yield border border-yield/30"
                   : idx === stepIndex
                     ? "bg-primary text-primary-foreground ring-4 ring-primary/20 scale-110 shadow-[0_0_15px_rgba(var(--primary),0.3)]"
                     : "bg-white/5 text-muted-foreground/50 border border-white/5"

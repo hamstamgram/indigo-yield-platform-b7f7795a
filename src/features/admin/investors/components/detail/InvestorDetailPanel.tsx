@@ -154,7 +154,7 @@ export function InvestorDetailPanel({
                     onClick={handleCopyId}
                   >
                     {copied ? (
-                      <Check className="h-3 w-3 text-green-500" />
+                      <Check className="h-3 w-3 text-yield" />
                     ) : (
                       <Copy className="h-3 w-3 text-muted-foreground" />
                     )}

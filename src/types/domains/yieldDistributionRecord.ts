@@ -8,6 +8,7 @@
  */
 
 import type { Database } from "@/integrations/supabase/types";
+import { parseFinancial } from "@/utils/financial";
 
 // ============================================================================
 // Database Types (snake_case) - Direct mappings from Supabase
@@ -145,7 +146,7 @@ export function toYieldDistributionInsert(
   record: Partial<YieldDistributionRecord>
 ): Partial<YieldDistributionInsert> {
   const toNumOrUndefined = (v: string | null | undefined) =>
-    v != null ? parseFloat(v) : undefined;
+    v != null ? parseFinancial(v).toNumber() : undefined;
   return {
     fund_id: record.fundId,
     effective_date: record.effectiveDate,

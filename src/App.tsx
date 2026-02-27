@@ -2,7 +2,7 @@
 import { BrowserRouter as Router, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { initPostHog } from "./utils/analytics/posthog";
-import "./utils/cleanup/debugCleanup"; // Initialize cleanup on app start
+// debugCleanup removed — was logging to console in production
 import { SkipLink } from "./components/accessibility/SkipLink";
 import { ErrorBoundary } from "./components/error/ErrorBoundary";
 import { AuthProvider } from "@/services/auth";

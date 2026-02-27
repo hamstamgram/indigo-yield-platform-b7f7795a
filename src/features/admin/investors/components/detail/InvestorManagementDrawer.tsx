@@ -417,7 +417,7 @@ export function InvestorManagementDrawer({
                           <p
                             className={cn(
                               "font-mono font-semibold",
-                              pos.unrealized_pnl >= 0 ? "text-emerald-400" : "text-rose-400"
+                              pos.unrealized_pnl >= 0 ? "text-yield" : "text-rose-400"
                             )}
                           >
                             {pos.unrealized_pnl >= 0 ? "+" : ""}

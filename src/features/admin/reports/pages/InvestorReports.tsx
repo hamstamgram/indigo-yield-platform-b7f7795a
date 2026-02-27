@@ -582,9 +582,9 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm text-muted-foreground">Sent</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <CheckCircle2 className="h-4 w-4 text-yield" />
           </div>
-          <div className="text-2xl font-bold text-emerald-500">{stats.sent}</div>
+          <div className="text-2xl font-bold text-yield">{stats.sent}</div>
           <p className="text-xs text-muted-foreground">delivered</p>
         </Card>
         <Card className="p-4">

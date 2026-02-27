@@ -57,8 +57,16 @@ export type { ProfileSummary, TransactionInvestor } from "./profileService";
 
 // Note: transactionsV2Service should be imported from @/services/investor
 
-// Invite service
-export { inviteService } from "./inviteService";
+// Invite service (consolidated into auth/inviteService — stub deleted)
+// Re-export as named functions AND as inviteService object for compat
+export {
+  waitForProfile,
+  verifyInvestorInvite,
+  verifyAdminInvite,
+  acceptInvestorInvite,
+  acceptAdminInvite,
+} from "@/services/auth/inviteService";
+export * as inviteService from "@/services/auth/inviteService";
 
 // Storage service (new)
 export { storageService, type UploadResult } from "./storageService";

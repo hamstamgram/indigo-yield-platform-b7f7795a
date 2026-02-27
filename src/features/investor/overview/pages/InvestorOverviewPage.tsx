@@ -115,7 +115,7 @@ export default function InvestorOverviewPage() {
             Statements
           </Button>
           <Button
-            className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.4)] border border-indigo-400/20"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(99,102,241,0.4)] border border-primary/20"
             onClick={() => navigate("/investor/transactions")}
           >
             <History className="h-4 w-4 mr-2" />
@@ -130,11 +130,40 @@ export default function InvestorOverviewPage() {
         style={{
           background: "var(--glass-bg)",
           borderColor: "var(--glass-border)",
-          boxShadow: "var(--shadow-glow-indigo)",
+          boxShadow: "var(--shadow-glow-yield)",
         }}
       >
+        {/* Total portfolio value — the single most important number */}
+        {!isLoadingStats && assetStats?.assets && assetStats.assets.length > 0 && (
+          <div className="mb-5 pb-4 border-b border-white/8">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-1.5">
+              Total Portfolio Value
+            </p>
+            <p
+              className="text-4xl md:text-5xl font-bold tabular-nums tracking-tight leading-none"
+              style={{ color: "hsl(var(--yield-gold))" }}
+            >
+              {(() => {
+                let total = 0;
+                for (const a of assetStats.assets) {
+                  total += (a.mtd?.endingBalance ?? a.ytd?.endingBalance ?? 0);
+                }
+                return formatInvestorAmount(total, assetStats.assets[0]?.assetSymbol ?? "USDT");
+              })()}
+            </p>
+            {assetStats.periodEndDate && (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                as of{" "}
+                {new Date(assetStats.periodEndDate).toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            )}
+          </div>
+        )}
         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-4">
-          Current Balances
+          By Asset
         </p>
         {isLoadingStats ? (
           <div className="flex gap-3">
@@ -383,7 +412,7 @@ export default function InvestorOverviewPage() {
                             String(tx.type) === "FEE_CREDIT" ||
                             String(tx.type) === "IB_CREDIT" ||
                             String(tx.type) === "FIRST_INVESTMENT"
-                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            ? "bg-yield/10 border-yield/20 text-yield"
                             : String(tx.type) === "WITHDRAWAL" || String(tx.type) === "FEE"
                               ? "bg-rose-500/10 border-rose-500/20 text-rose-400"
                               : "bg-primary/10 border-primary/20 text-primary"

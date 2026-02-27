@@ -25,6 +25,7 @@ import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useFunds, useFundsWithAUM } from "@/hooks/data";
+import { parseFinancial } from "@/utils/financial";
 
 export function QuickYieldEntry() {
   const navigate = useNavigate();
@@ -43,14 +44,11 @@ export function QuickYieldEntry() {
 
   const calculateYield = () => {
     if (!selectedFundData || !newAUM) return null;
-    const newAUMNum = parseFloat(newAUM);
-    if (isNaN(newAUMNum)) return null;
+    const newAUMNum = parseFinancial(newAUM).toNumber();
+    if (isNaN(newAUMNum) || newAUMNum === 0) return null;
 
     // Convert currentAUM from string to number for arithmetic
-    const currentAUMNum =
-      typeof selectedFundData.currentAUM === "string"
-        ? parseFloat(selectedFundData.currentAUM) || 0
-        : selectedFundData.currentAUM || 0;
+    const currentAUMNum = parseFinancial(selectedFundData.currentAUM || 0).toNumber();
 
     const yieldAmount = newAUMNum - currentAUMNum;
     const yieldPct = currentAUMNum > 0 ? (yieldAmount / currentAUMNum) * 100 : 0;
@@ -74,7 +72,7 @@ export function QuickYieldEntry() {
   };
 
   const formatCrypto = (value: string | number, decimals: number = 4) => {
-    const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
+    const numValue = parseFinancial(value).toNumber();
     return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
@@ -156,7 +154,7 @@ export function QuickYieldEntry() {
             {yieldCalc && (
               <div className="p-3 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <TrendingUp className="h-4 w-4 text-yield" />
                   <span className="text-xs font-medium uppercase tracking-wider">
                     Calculated Yield
                   </span>
@@ -166,7 +164,7 @@ export function QuickYieldEntry() {
                     <p className="text-xs text-muted-foreground">Amount</p>
                     <p
                       className={`text-lg font-mono font-bold ${
-                        yieldCalc.amount >= 0 ? "text-emerald-400" : "text-rose-400"
+                        yieldCalc.amount >= 0 ? "text-yield" : "text-rose-400"
                       }`}
                     >
                       {yieldCalc.amount >= 0 ? "+" : ""}

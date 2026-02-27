@@ -57,7 +57,7 @@ export default function WithdrawalHistoryPage() {
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${
                               item.status === "completed"
-                                ? "bg-emerald-500/10 text-emerald-400"
+                                ? "bg-yield/10 text-yield"
                                 : item.status === "approved"
                                   ? "bg-blue-500/10 text-blue-400"
                                   : item.status === "processing"

@@ -131,7 +131,7 @@ export const InvestorCompositionSheet: React.FC<InvestorCompositionSheetProps> =
                         Live Fund AUM ({compositionData.length} active holdings)
                       </p>
                       <Badge variant="outline" className="text-xs gap-1">
-                        <Radio className="h-2 w-2 text-green-500 animate-pulse" />
+                        <Radio className="h-2 w-2 text-yield animate-pulse" />
                         Live
                       </Badge>
                     </div>

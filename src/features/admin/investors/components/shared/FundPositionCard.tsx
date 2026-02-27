@@ -172,14 +172,14 @@ export function FundPositionCard({
                   </p>
                   <div className="flex items-center gap-1 justify-end">
                     {mtdYield >= 0 ? (
-                      <TrendingUp className="h-4 w-4 text-green-500" />
+                      <TrendingUp className="h-4 w-4 text-yield" />
                     ) : (
                       <TrendingDown className="h-4 w-4 text-red-500" />
                     )}
                     <p
                       className={cn(
                         "text-lg font-mono font-bold",
-                        mtdYield >= 0 ? "text-emerald-400" : "text-rose-400"
+                        mtdYield >= 0 ? "text-yield" : "text-rose-400"
                       )}
                     >
                       {mtdYield >= 0 ? "+" : ""}
@@ -214,7 +214,7 @@ export function FundPositionCard({
                 <p
                   className={cn(
                     "text-sm font-mono font-semibold",
-                    mtdReturn >= 0 ? "text-emerald-400" : "text-rose-400"
+                    mtdReturn >= 0 ? "text-yield" : "text-rose-400"
                   )}
                 >
                   {formatPercent(mtdReturn)}
@@ -232,7 +232,7 @@ export function FundPositionCard({
                   className={cn(
                     "text-sm font-mono font-semibold",
                     (performance?.ytd_rate_of_return || 0) >= 0
-                      ? "text-emerald-400"
+                      ? "text-yield"
                       : "text-rose-400"
                   )}
                 >
@@ -303,7 +303,7 @@ export function FundPositionCard({
                       className="font-mono h-9"
                     />
                   ) : (
-                    <p className="font-mono text-sm py-2 text-emerald-400">
+                    <p className="font-mono text-sm py-2 text-yield">
                       +{formatCrypto(performance?.mtd_additions || 0)}
                     </p>
                   )}
@@ -345,7 +345,7 @@ export function FundPositionCard({
                       className={cn(
                         "font-mono text-sm py-2 font-semibold",
                         (performance?.mtd_net_income || 0) >= 0
-                          ? "text-emerald-400"
+                          ? "text-yield"
                           : "text-rose-400"
                       )}
                     >

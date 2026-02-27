@@ -30,7 +30,7 @@ const STATUS_CONFIG: Record<
 > = {
   queued: { label: "Queued", variant: "secondary", icon: Clock, color: "text-yellow-600" },
   sending: { label: "Sending", variant: "outline", icon: Loader2, color: "text-blue-400" },
-  sent: { label: "Sent", variant: "default", icon: CheckCircle, color: "text-emerald-400" },
+  sent: { label: "Sent", variant: "default", icon: CheckCircle, color: "text-yield" },
   failed: { label: "Failed", variant: "destructive", icon: XCircle, color: "text-destructive" },
   cancelled: { label: "Cancelled", variant: "outline", icon: Ban, color: "text-muted-foreground" },
   skipped: { label: "Skipped", variant: "outline", icon: AlertTriangle, color: "text-orange-600" },
@@ -142,7 +142,7 @@ export function StatementDeliveryStatus({
         {latestDelivery.sent_at && (
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Sent At</span>
-            <span className="font-medium text-emerald-400">
+            <span className="font-medium text-yield">
               {format(new Date(latestDelivery.sent_at), "MMM d, yyyy HH:mm")}
             </span>
           </div>

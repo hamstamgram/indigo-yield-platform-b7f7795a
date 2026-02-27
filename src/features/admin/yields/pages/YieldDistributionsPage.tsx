@@ -779,7 +779,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                               className={
                                                 distribution.purpose === "reporting"
                                                   ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 uppercase tracking-wider text-[10px] font-mono"
-                                                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase tracking-wider text-[10px] font-mono"
+                                                  : "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono"
                                               }
                                             >
                                               {distribution.purpose === "reporting"
@@ -838,7 +838,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
-                                                  className="text-emerald-400 hover:text-emerald-400 hover:bg-emerald-400/10"
+                                                  className="text-yield hover:text-yield hover:bg-emerald-400/10"
                                                   onClick={() => setRestoreTarget(distribution)}
                                                 >
                                                   <Undo2 className="h-4 w-4 mr-1" />

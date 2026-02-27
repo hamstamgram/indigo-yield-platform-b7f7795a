@@ -222,7 +222,7 @@ function AdminManagementTab() {
                       </TableCell>
                       <TableCell>
                         {row.type === "admin" ? (
-                          <Badge className="bg-emerald-500/10 text-emerald-400 text-xs">
+                          <Badge className="bg-yield/10 text-yield text-xs">
                             Active
                           </Badge>
                         ) : (

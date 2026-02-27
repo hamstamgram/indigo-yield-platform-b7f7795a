@@ -254,7 +254,7 @@ const InvestorManagement = () => {
                   {isSavingName ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Save className="h-4 w-4 text-green-500" />
+                    <Save className="h-4 w-4 text-yield" />
                   )}
                 </Button>
                 <Button
@@ -288,7 +288,7 @@ const InvestorManagement = () => {
               <p className="text-muted-foreground">{investor.email}</p>
               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyLink}>
                 {linkCopied ? (
-                  <Check className="h-3 w-3 text-green-500" />
+                  <Check className="h-3 w-3 text-yield" />
                 ) : (
                   <Copy className="h-3 w-3 text-muted-foreground" />
                 )}

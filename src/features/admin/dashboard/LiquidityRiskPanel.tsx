@@ -4,7 +4,7 @@ import { useLiquidityRisk, type LiquidityRisk } from "@/features/admin/system/ho
 import { logWarn } from "@/lib/logger";
 
 const riskLevelConfig = {
-  LOW: { color: "bg-green-500", text: "text-green-400", bg: "bg-green-900/30" },
+  LOW: { color: "bg-yield", text: "text-yield", bg: "bg-green-900/30" },
   MEDIUM: { color: "bg-yellow-500", text: "text-yellow-400", bg: "bg-yellow-900/30" },
   HIGH: { color: "bg-red-500", text: "text-red-400", bg: "bg-red-900/30" },
   NO_AUM: { color: "bg-gray-400", text: "text-gray-400", bg: "bg-gray-900/30" },
@@ -114,7 +114,7 @@ export function LiquidityRiskPanel() {
                     </div>
                     <div className="text-center p-2 bg-muted rounded">
                       <div className="text-muted-foreground">Available</div>
-                      <div className="font-medium text-green-400">
+                      <div className="font-medium text-yield">
                         {((fund.total_aum || 0) - (fund.pending_withdrawals || 0)).toLocaleString(
                           undefined,
                           {

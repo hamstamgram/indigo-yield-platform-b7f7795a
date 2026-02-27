@@ -4,6 +4,7 @@
  */
 
 import type { Database } from "@/integrations/supabase/types";
+import { parseFinancial } from "@/utils/financial";
 
 // ============================================================================
 // Database Types (snake_case) - Direct mappings from Supabase
@@ -235,10 +236,10 @@ export function toIBAllocationInsert(
     purpose: allocation.purpose,
     source: allocation.source,
     source_net_income: allocation.sourceNetIncome
-      ? parseFloat(allocation.sourceNetIncome)
+      ? parseFinancial(allocation.sourceNetIncome).toNumber()
       : undefined,
-    ib_percentage: allocation.ibPercentage ? parseFloat(allocation.ibPercentage) : undefined,
-    ib_fee_amount: allocation.ibFeeAmount ? parseFloat(allocation.ibFeeAmount) : undefined,
+    ib_percentage: allocation.ibPercentage ? parseFinancial(allocation.ibPercentage).toNumber() : undefined,
+    ib_fee_amount: allocation.ibFeeAmount ? parseFinancial(allocation.ibFeeAmount).toNumber() : undefined,
     payout_status: allocation.payoutStatus,
   };
 }

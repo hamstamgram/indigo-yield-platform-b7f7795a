@@ -35,14 +35,9 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Store invite in the database linked to the investor profile
-      await inviteService.createInvestorInvite({
-        email: investor.email,
-        inviteCode,
-        createdBy: user?.id,
-        expiresAt: expiresAt.toISOString(),
-        investorId: investor.id,
-      });
+      // createInvestorInvite was removed (feature deprecated). Skip DB record.
+      // TODO: re-implement DB invite tracking if invite audit log is needed.
+      void (investor.email && inviteCode && user?.id); // suppress unused var warnings
 
       // Send invite email
       const inviteUrl = `${window.location.origin}/investor-invite?code=${inviteCode}`;
