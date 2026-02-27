@@ -214,24 +214,6 @@ export default function Login() {
             </Button>
           </form>
 
-          {/* Trust strip */}
-          <div className="mt-6 pt-4 border-t border-white/[0.08]">
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <p className="text-[11px] font-semibold text-white/70">7.4M+ USDT</p>
-                <p className="text-[10px] text-white/30 mt-0.5">AUM</p>
-              </div>
-              <div className="border-x border-white/[0.08]">
-                <p className="text-[11px] font-semibold text-white/70">40+</p>
-                <p className="text-[10px] text-white/30 mt-0.5">Active Investors</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-white/70">Invite-Only</p>
-                <p className="text-[10px] text-white/30 mt-0.5">Platform</p>
-              </div>
-            </div>
-          </div>
-
           <div className="mt-8 pt-6 border-t border-white/5 text-center space-y-4">
             <p className="text-xs text-indigo-200/40 font-light px-4 leading-relaxed">
               By accessing this platform, you acknowledge that you are an accredited investor or
