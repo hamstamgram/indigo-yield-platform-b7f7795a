@@ -7,7 +7,7 @@
 export { EditYieldDialog } from "./EditYieldDialog";
 export { VoidYieldDialog } from "./VoidYieldDialog";
 export { OpenPeriodDialog } from "./OpenPeriodDialog";
-export { YieldConfirmDialog } from "./YieldConfirmDialog";
+export { DistributeYieldDialog } from "./DistributeYieldDialog";
 
 // Components
 export { YieldActionsColumn } from "./YieldActionsColumn";

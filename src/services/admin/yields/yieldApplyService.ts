@@ -72,22 +72,29 @@ export async function applyYieldDistribution(
     throw new Error(`Failed to apply yield: ${error.message}`);
   }
 
-  // The RPC returns a UUID (distribution_id), not a JSON object
-  const distributionId = data as unknown as string;
-  if (!distributionId) {
-    throw new Error("Apply failed: no distribution ID returned");
+  // The RPC returns a JSONB object with all distribution details
+  const rpcResult = data as unknown as Record<string, unknown>;
+  if (!rpcResult || !rpcResult.distribution_id) {
+    throw new Error("Apply failed: no distribution data returned");
   }
 
-  // Fetch the distribution row the RPC just created
-  const { data: distData, error: distError } = await supabase
-    .from("yield_distributions")
-    .select("*")
-    .eq("id", distributionId)
-    .single();
+  const distributionId = rpcResult.distribution_id as string;
 
-  if (distError || !distData) {
-    throw new Error("Apply succeeded but failed to fetch distribution details");
-  }
+  // Map RPC response to a distData-compatible shape used throughout this function
+  const distData = {
+    opening_aum: String(rpcResult.opening_aum ?? 0),
+    recorded_aum: String(rpcResult.recorded_aum ?? 0),
+    gross_yield: String(rpcResult.gross_yield ?? 0),
+    net_yield: String(rpcResult.net_yield ?? 0),
+    total_fees: String(rpcResult.total_fees ?? 0),
+    total_ib: String(rpcResult.total_ib ?? 0),
+    total_fee_credit: "0",
+    total_ib_credit: "0",
+    investor_count: Number(rpcResult.allocation_count ?? 0),
+    period_start: rpcResult.period_start as string,
+    period_end: rpcResult.period_end as string,
+    dust_amount: String(rpcResult.dust_amount ?? 0),
+  };
 
   const result: Partial<V5YieldRPCResult> = {
     success: true,
@@ -97,9 +104,9 @@ export async function applyYieldDistribution(
     net_yield: Number(distData.net_yield || 0),
     total_fees: Number(distData.total_fees || 0),
     total_ib: Number(distData.total_ib || 0),
-    total_fee_credit: Number(distData.total_fee_credit || 0),
-    total_ib_credit: Number(distData.total_ib_credit || 0),
-    investor_count: distData.investor_count,
+    total_fee_credit: 0,
+    total_ib_credit: 0,
+    investor_count: Number(distData.investor_count || 0),
     period_start: distData.period_start,
     period_end: distData.period_end,
   };

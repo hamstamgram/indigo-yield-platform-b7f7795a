@@ -56,6 +56,27 @@ export interface MonthlyStatement {
   end_balance: string;
   rate_of_return_mtd: string;
   report_month: string;
+  // QTD
+  qtd_beginning_balance: string;
+  qtd_additions: string;
+  qtd_redemptions: string;
+  qtd_net_income: string;
+  qtd_ending_balance: string;
+  qtd_rate_of_return: string;
+  // YTD
+  ytd_beginning_balance: string;
+  ytd_additions: string;
+  ytd_redemptions: string;
+  ytd_net_income: string;
+  ytd_ending_balance: string;
+  ytd_rate_of_return: string;
+  // ITD
+  itd_beginning_balance: string;
+  itd_additions: string;
+  itd_redemptions: string;
+  itd_net_income: string;
+  itd_ending_balance: string;
+  itd_rate_of_return: string;
 }
 
 // ============= Transaction Functions =============
@@ -135,6 +156,24 @@ export async function getInvestorStatements(
       mtd_net_income,
       mtd_ending_balance,
       mtd_rate_of_return,
+      qtd_beginning_balance,
+      qtd_additions,
+      qtd_redemptions,
+      qtd_net_income,
+      qtd_ending_balance,
+      qtd_rate_of_return,
+      ytd_beginning_balance,
+      ytd_additions,
+      ytd_redemptions,
+      ytd_net_income,
+      ytd_ending_balance,
+      ytd_rate_of_return,
+      itd_beginning_balance,
+      itd_additions,
+      itd_redemptions,
+      itd_net_income,
+      itd_ending_balance,
+      itd_rate_of_return,
       purpose,
       period:statement_periods!inner(
         year,
@@ -161,6 +200,7 @@ export async function getInvestorStatements(
     period_month: record.period.month,
     asset_code: fundAssetMap.get(record.fund_name) || record.fund_name,
     fund_name: record.fund_name,
+    // MTD
     begin_balance: record.mtd_beginning_balance?.toString() || "0",
     additions: record.mtd_additions?.toString() || "0",
     redemptions: record.mtd_redemptions?.toString() || "0",
@@ -168,6 +208,27 @@ export async function getInvestorStatements(
     end_balance: record.mtd_ending_balance?.toString() || "0",
     rate_of_return_mtd: record.mtd_rate_of_return?.toString() || "0",
     report_month: record.period.period_end_date,
+    // QTD
+    qtd_beginning_balance: record.qtd_beginning_balance?.toString() || "0",
+    qtd_additions: record.qtd_additions?.toString() || "0",
+    qtd_redemptions: record.qtd_redemptions?.toString() || "0",
+    qtd_net_income: record.qtd_net_income?.toString() || "0",
+    qtd_ending_balance: record.qtd_ending_balance?.toString() || "0",
+    qtd_rate_of_return: record.qtd_rate_of_return?.toString() || "0",
+    // YTD
+    ytd_beginning_balance: record.ytd_beginning_balance?.toString() || "0",
+    ytd_additions: record.ytd_additions?.toString() || "0",
+    ytd_redemptions: record.ytd_redemptions?.toString() || "0",
+    ytd_net_income: record.ytd_net_income?.toString() || "0",
+    ytd_ending_balance: record.ytd_ending_balance?.toString() || "0",
+    ytd_rate_of_return: record.ytd_rate_of_return?.toString() || "0",
+    // ITD
+    itd_beginning_balance: record.itd_beginning_balance?.toString() || "0",
+    itd_additions: record.itd_additions?.toString() || "0",
+    itd_redemptions: record.itd_redemptions?.toString() || "0",
+    itd_net_income: record.itd_net_income?.toString() || "0",
+    itd_ending_balance: record.itd_ending_balance?.toString() || "0",
+    itd_rate_of_return: record.itd_rate_of_return?.toString() || "0",
   }));
 }
 
@@ -319,4 +380,3 @@ export async function getActiveSessions(_userId: string): Promise<Session[]> {
 export async function getAccessLogs(_userId: string, _limit = 20): Promise<AccessLog[]> {
   return [];
 }
-

@@ -5025,7 +5025,7 @@ export type Database = {
           p_purpose?: Database["public"]["Enums"]["aum_purpose"];
           p_recorded_aum: number;
         };
-        Returns: string;
+        Returns: Json;
       };
       approve_and_complete_withdrawal: {
         Args: {

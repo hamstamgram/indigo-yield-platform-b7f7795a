@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useYieldOperationsState } from "@/hooks/data/admin/useYieldOperationsState";
 import { YieldInputForm } from "@/features/admin/yields/components/YieldInputForm";
 import { YieldPreviewResults } from "@/features/admin/yields/components/YieldPreviewResults";
-import { YieldConfirmDialog } from "@/features/admin/yields/components/YieldConfirmDialog";
+import { DistributeYieldDialog } from "@/features/admin/yields/components/DistributeYieldDialog";
 import { usePendingYieldEvents } from "@/features/admin/yields/hooks/useYieldCrystallization";
 import { getMonth, getYear } from "date-fns";
 
@@ -121,23 +121,28 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
         </div>
       )}
 
-      <YieldConfirmDialog
+      <DistributeYieldDialog
         open={ops.showConfirmDialog}
         onOpenChange={ops.setShowConfirmDialog}
-        selectedFund={ops.selectedFund}
+        grossYield={ops.formatValue(
+          parseFloat(ops.yieldPreview?.grossYield ?? "0"),
+          ops.selectedFund?.asset ?? ""
+        )}
+        asset={ops.selectedFund?.asset ?? ""}
+        fundName={ops.selectedFund?.name ?? "Selected Fund"}
+        investorCount={ops.yieldPreview?.investorCount ?? 0}
+        onConfirm={ops.handleApplyYield}
+        isLoading={ops.applyLoading}
         yieldPurpose={ops.yieldPurpose}
         aumDate={ops.aumDate}
         distributionDate={ops.distributionDate}
-        yieldPreview={ops.yieldPreview}
-        confirmationText={ops.confirmationText}
-        setConfirmationText={ops.setConfirmationText}
-        acknowledgeDiscrepancy={ops.acknowledgeDiscrepancy}
-        setAcknowledgeDiscrepancy={ops.setAcknowledgeDiscrepancy}
+        totalFees={ops.yieldPreview?.totalFees}
+        totalIbFees={ops.yieldPreview?.totalIbFees}
+        indigoFeesCredit={ops.yieldPreview?.indigoFeesCredit}
+        netYield={ops.yieldPreview?.netYield}
         reconciliation={reconciliation}
-        formatValue={ops.formatValue}
-        onApply={ops.handleApplyYield}
-        applyLoading={ops.applyLoading}
         existingDistributionDate={ops.existingDistributionDate}
+        formatValue={ops.formatValue}
       />
     </div>
   );

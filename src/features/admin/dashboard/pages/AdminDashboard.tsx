@@ -65,7 +65,7 @@ import {
   OpenPeriodDialog,
   YieldInputForm,
   YieldPreviewResults,
-  YieldConfirmDialog,
+  DistributeYieldDialog,
 } from "@/features/admin/yields/components";
 
 function AdminDashboardContent() {
@@ -287,23 +287,28 @@ function AdminDashboardContent() {
       </Dialog>
 
       {/* Yield Confirmation Dialog */}
-      <YieldConfirmDialog
+      <DistributeYieldDialog
         open={ops.showConfirmDialog}
         onOpenChange={ops.setShowConfirmDialog}
-        selectedFund={ops.selectedFund}
+        grossYield={ops.formatValue(
+          parseFloat(ops.yieldPreview?.grossYield ?? "0"),
+          ops.selectedFund?.asset ?? ""
+        )}
+        asset={ops.selectedFund?.asset ?? ""}
+        fundName={ops.selectedFund?.name ?? "Selected Fund"}
+        investorCount={ops.yieldPreview?.investorCount ?? 0}
+        onConfirm={ops.handleApplyYield}
+        isLoading={ops.applyLoading}
         yieldPurpose={ops.yieldPurpose}
         aumDate={ops.aumDate}
         distributionDate={ops.distributionDate}
-        yieldPreview={ops.yieldPreview}
-        confirmationText={ops.confirmationText}
-        setConfirmationText={ops.setConfirmationText}
-        acknowledgeDiscrepancy={ops.acknowledgeDiscrepancy}
-        setAcknowledgeDiscrepancy={ops.setAcknowledgeDiscrepancy}
+        totalFees={ops.yieldPreview?.totalFees}
+        totalIbFees={ops.yieldPreview?.totalIbFees}
+        indigoFeesCredit={ops.yieldPreview?.indigoFeesCredit}
+        netYield={ops.yieldPreview?.netYield}
         reconciliation={reconciliation}
-        formatValue={ops.formatValue}
-        onApply={ops.handleApplyYield}
-        applyLoading={ops.applyLoading}
         existingDistributionDate={ops.existingDistributionDate}
+        formatValue={ops.formatValue}
       />
 
       {/* Open Period Dialog */}
