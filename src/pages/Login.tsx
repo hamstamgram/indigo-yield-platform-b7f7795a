@@ -198,21 +198,6 @@ export default function Login() {
                 </span>
               )}
             </Button>
-
-            {/* Credibility strip */}
-            <div className="flex items-center justify-center gap-4 pt-1">
-              <span className="text-[10px] text-white/25 tracking-widest uppercase font-medium">
-                $7.4M AUM
-              </span>
-              <span className="text-white/15">·</span>
-              <span className="text-[10px] text-white/25 tracking-widest uppercase font-medium">
-                40+ Investors
-              </span>
-              <span className="text-white/15">·</span>
-              <span className="text-[10px] text-white/25 tracking-widest uppercase font-medium">
-                Invite Only
-              </span>
-            </div>
           </form>
 
           <div className="mt-8 pt-6 border-t border-white/5 text-center space-y-4">
