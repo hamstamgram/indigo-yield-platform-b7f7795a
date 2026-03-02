@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { callRPC } from "@/lib/supabase/typedRPC";
+import { callRPC, callRPCNoArgs } from "@/lib/supabase/typedRPC";
 import type { IntegrityCheck, AuditEvent } from "@/types/domains/integrity";
 
 /**
@@ -129,7 +129,7 @@ export interface InvariantSuiteResult {
 export async function runInvariantChecks(): Promise<InvariantSuiteResult> {
   // RPC added via migration; cast fn name until generated types are refreshed
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await callRPC("run_invariant_checks" as any, undefined);
+  const { data, error } = await callRPCNoArgs("run_invariant_checks" as any);
   if (error) throw new Error(error.message);
   return data as unknown as InvariantSuiteResult;
 }

@@ -28,6 +28,9 @@ export function validateParams<T extends RPCFunctionName>(
   functionName: T,
   params: RPCFunctions[T]["Args"]
 ): void {
+  // Guard: no-arg RPCs pass undefined/null — nothing to validate
+  if (params == null || typeof params !== "object") return;
+
   const p = params as Record<string, unknown>;
 
   // Validate tx_type parameters (skip for functions where p_type means something else)
