@@ -45,11 +45,6 @@ export function useYieldSubmission() {
     }) => {
       if (!selectedFund || !user || !yieldPreview) return;
 
-      if (confirmationText !== "APPLY") {
-        toast.error("Please type APPLY to confirm.");
-        return;
-      }
-
       setApplyLoading(true);
       try {
         if (yieldPurpose === "reporting") {
