@@ -58,7 +58,7 @@ export async function applyYieldDistribution(
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),
     p_recorded_aum: parsedAum.toString() as unknown as number,
-    p_created_by: adminId,
+    p_admin_id: adminId,
     p_purpose: purpose,
     p_distribution_date: formatDateForDB(effectiveDistDate),
   });
