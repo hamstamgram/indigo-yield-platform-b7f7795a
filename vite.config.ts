@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    __APP_VERSION__: JSON.stringify(buildVersion),
+    __APP_VERSION__: JSON.stringify(mode === "production" ? buildVersion : "dev"),
   },
   plugins: [
     react(),
