@@ -231,9 +231,7 @@ export function FundPositionCard({
                 <p
                   className={cn(
                     "text-sm font-mono font-semibold",
-                    (performance?.ytd_rate_of_return || 0) >= 0
-                      ? "text-yield"
-                      : "text-rose-400"
+                    (performance?.ytd_rate_of_return || 0) >= 0 ? "text-yield" : "text-rose-400"
                   )}
                 >
                   {formatPercent(performance?.ytd_rate_of_return)}
@@ -344,9 +342,7 @@ export function FundPositionCard({
                     <p
                       className={cn(
                         "font-mono text-sm py-2 font-semibold",
-                        (performance?.mtd_net_income || 0) >= 0
-                          ? "text-yield"
-                          : "text-rose-400"
+                        (performance?.mtd_net_income || 0) >= 0 ? "text-yield" : "text-rose-400"
                       )}
                     >
                       {(performance?.mtd_net_income || 0) >= 0 ? "+" : ""}
@@ -373,27 +369,6 @@ export function FundPositionCard({
                   )}
                 </div>
               </div>
-
-              {/* Validation Message */}
-              {isEditing && (
-                <div className="p-2 rounded bg-muted/50 text-xs text-muted-foreground">
-                  <span className="font-medium">Formula:</span> Beginning + Additions - Redemptions
-                  + Net Income = Ending
-                  <span className="ml-2">
-                    ({formatCrypto(editData.mtd_beginning_balance)} +{" "}
-                    {formatCrypto(editData.mtd_additions)} -{" "}
-                    {formatCrypto(editData.mtd_redemptions)} +{" "}
-                    {formatCrypto(editData.mtd_net_income)} ={" "}
-                    {formatCrypto(
-                      editData.mtd_beginning_balance +
-                        editData.mtd_additions -
-                        editData.mtd_redemptions +
-                        editData.mtd_net_income
-                    )}
-                    )
-                  </span>
-                </div>
-              )}
             </div>
           </CardContent>
         </CollapsibleContent>

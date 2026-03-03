@@ -28,7 +28,6 @@ import {
   TableHead,
   TableBody,
   TableCell,
-  TableFooter,
 } from "@/components/ui";
 import { TrendingUp } from "lucide-react";
 import { cn as classNameUtils } from "@/lib/utils";
@@ -483,17 +482,6 @@ export function YieldsTable({
                 );
               })}
             </TableBody>
-            <TableFooter className="bg-muted/5 border-t">
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="py-2 text-[10px] text-muted-foreground text-center"
-                >
-                  <strong>First Principles Check:</strong> Position After = Opening Balance + Net
-                  Yield + Reinvested Credits.
-                </TableCell>
-              </TableRow>
-            </TableFooter>
           </Table>
         </div>
       </div>
