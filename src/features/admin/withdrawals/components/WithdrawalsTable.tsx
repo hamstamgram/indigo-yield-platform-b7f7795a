@@ -94,8 +94,7 @@ interface WithdrawalsTableProps {
 const statusColors: Record<WithdrawalFullStatus, string> = {
   pending:
     "bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase tracking-wider text-[10px] font-mono",
-  approved:
-    "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono",
+  approved: "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono",
   processing:
     "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 uppercase tracking-wider text-[10px] font-mono",
   completed:
@@ -120,9 +119,12 @@ interface ActionsDropdownProps {
 }
 
 const canEdit = (status: WithdrawalFullStatus) => status === "pending";
-const canDelete = (status: WithdrawalFullStatus) => status !== "completed";
+const canDelete = (_status: WithdrawalFullStatus) => true;
 const canVoid = (status: WithdrawalFullStatus) =>
-  status === "pending" || status === "approved" || status === "processing";
+  status === "pending" ||
+  status === "approved" ||
+  status === "processing" ||
+  status === "completed";
 const canRestore = (status: WithdrawalFullStatus) =>
   status === "cancelled" || status === "rejected";
 const canRouteToFees = (status: WithdrawalFullStatus) => status === "pending";
@@ -381,7 +383,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
               </TableHeader>
               <TableBody>
                 {displayedWithdrawals.map((w) => {
-                  const isSelectable = w.status !== "completed";
+                  const isSelectable = true;
                   const isCancelledOrRejected = w.status === "cancelled" || w.status === "rejected";
                   const ageDays =
                     w.status === "pending"
@@ -518,7 +520,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                 {/* Header: Investor name + Status + Checkbox */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 min-w-0 flex-1">
-                    {selection && withdrawal.status !== "completed" && (
+                    {selection && (
                       <Checkbox
                         checked={selection.isSelected(withdrawal.id)}
                         onCheckedChange={() => selection.toggleOne(withdrawal.id)}

@@ -33,10 +33,10 @@ interface UseWithdrawalSelectionReturn {
 
 /**
  * Get the list of withdrawals eligible for selection.
- * Completed withdrawals cannot be bulk-deleted.
+ * All statuses are selectable (completed can be voided/deleted).
  */
 function getSelectableRows(data: Withdrawal[]): Withdrawal[] {
-  return data.filter((w) => w.status !== "completed");
+  return data;
 }
 
 export function useWithdrawalSelection(

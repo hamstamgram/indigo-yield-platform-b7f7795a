@@ -65,7 +65,7 @@ export function DeleteWithdrawalDialog({
 
   if (!withdrawal) return null;
 
-  const canDelete = withdrawal.status !== "completed";
+  const canDelete = true;
   const amount = withdrawal.processed_amount || withdrawal.requested_amount;
   const asset = withdrawal.asset || withdrawal.fund_class || "UNITS";
 
