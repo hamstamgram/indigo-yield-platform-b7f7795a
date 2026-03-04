@@ -245,25 +245,25 @@ export async function getIndigoFeesBalance(): Promise<Record<string, string>> {
 }
 
 /**
- * Load fee allocations (audit trail) from platform_fee_ledger
- * This table contains the actual fee records created during yield distributions
+ * Load fee allocations (audit trail) from fee_allocations
+ * This table contains the actual fee records created during yield distributions (V5)
  */
 export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
-  // Query platform_fee_ledger which has the actual fee records
+  // Query fee_allocations — the table V5 yield distribution actually writes to
   const { data: ledgerData, error } = await supabase
-    .from("platform_fee_ledger")
+    .from("fee_allocations")
     .select(
       `
       id,
-      yield_distribution_id,
+      distribution_id,
       fund_id,
       investor_id,
-      investor_name,
-      gross_yield_amount,
+      period_start,
+      period_end,
+      purpose,
+      base_net_income,
       fee_percentage,
       fee_amount,
-      effective_date,
-      asset,
       created_at,
       is_voided
     `
@@ -278,7 +278,7 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
     return [];
   }
 
-  // Enrich with investor emails and fund names
+  // Enrich with investor names/emails and fund names
   const investorIds = [
     ...new Set(ledgerData.map((a) => a.investor_id).filter((id): id is string => Boolean(id))),
   ];
@@ -286,48 +286,39 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
     ...new Set(ledgerData.map((a) => a.fund_id).filter((id): id is string => Boolean(id))),
   ];
 
-  const [profileResult, fundResult, distributionResult] = await Promise.all([
+  const [profileResult, fundResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
       .in("id", investorIds)
       .limit(2000),
     supabase.from("funds").select("id, name, asset").in("id", fundIds).limit(100),
-    supabase
-      .from("yield_distributions")
-      .select("id, period_start, period_end, purpose")
-      .in("id", ledgerData.map((l) => l.yield_distribution_id).filter(Boolean))
-      .limit(2000),
   ]);
 
   const profileMap = new Map((profileResult.data || []).map((p) => [p.id, p]));
   const fundMap = new Map((fundResult.data || []).map((f) => [f.id, f]));
-  const distributionMap = new Map((distributionResult.data || []).map((d) => [d.id, d]));
 
   return ledgerData.map((a) => {
     const profile = profileMap.get(a.investor_id);
     const fund = fundMap.get(a.fund_id);
-    const distribution = distributionMap.get(a.yield_distribution_id);
     return {
       id: a.id,
-      distribution_id: a.yield_distribution_id || "",
+      distribution_id: a.distribution_id || "",
       fund_id: a.fund_id,
       investor_id: a.investor_id,
-      period_start: distribution?.period_start || a.effective_date,
-      period_end: distribution?.period_end || a.effective_date,
-      purpose: distribution?.purpose || "reporting",
-      base_net_income: String(a.gross_yield_amount || 0),
+      period_start: a.period_start,
+      period_end: a.period_end,
+      purpose: a.purpose || "reporting",
+      base_net_income: String(a.base_net_income || 0),
       fee_percentage: String(a.fee_percentage || 0),
       fee_amount: String(a.fee_amount || 0),
       created_at: a.created_at,
-      investor_name:
-        a.investor_name ||
-        (profile
-          ? `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email
-          : "Unknown"),
+      investor_name: profile
+        ? `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email
+        : "Unknown",
       investor_email: profile?.email || "",
       fund_name: fund?.name || "Unknown",
-      fund_asset: a.asset || fund?.asset || "",
+      fund_asset: fund?.asset || "",
     };
   });
 }
