@@ -85,6 +85,7 @@ async function createInvestorUser(params: {
         selectedFunds: [],
         sendWelcomeEmail: true,
         feePct: params.feePct ?? null,
+        status: params.status || "active",
       },
       headers: addCsrfHeader({}),
     }

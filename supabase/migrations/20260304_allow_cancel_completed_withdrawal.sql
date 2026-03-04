@@ -1,6 +1,13 @@
 -- Allow cancelling/voiding completed withdrawals
--- When a completed withdrawal is cancelled, void the associated WITHDRAWAL + DUST_SWEEP transactions
+-- When a completed withdrawal is cancelled, void the associated WITHDRAWAL + DUST transactions
 -- The trg_ledger_sync trigger will automatically reverse the position changes
+--
+-- Fixes from audit:
+--   1. void_reason (not voided_reason)
+--   2. Reference patterns: WDR:{request_id}, DUST_SWEEP_OUT:{request_id}, DUST_RECV:{request_id}
+--   3. Advisory lock to prevent concurrent voiding
+--   4. FOR UPDATE on SELECT to prevent race conditions
+--   5. Match both DUST_SWEEP and DUST types for sweep-out and credit transactions
 
 BEGIN;
 
@@ -17,7 +24,7 @@ AS $$
 DECLARE
   v_request RECORD;
   v_was_completed boolean := false;
-  v_tx RECORD;
+  v_voided_count int := 0;
 BEGIN
   -- Ensure admin privileges
   PERFORM public.ensure_admin();
@@ -27,10 +34,14 @@ BEGIN
     RAISE EXCEPTION 'Cancellation reason is required';
   END IF;
 
-  -- Get request details
+  -- Advisory lock to prevent concurrent cancellation of the same withdrawal
+  PERFORM pg_advisory_xact_lock(hashtext('withdrawal:' || p_request_id::text));
+
+  -- Get request details with row lock
   SELECT * INTO v_request
   FROM public.withdrawal_requests
-  WHERE id = p_request_id;
+  WHERE id = p_request_id
+  FOR UPDATE;
 
   IF v_request IS NULL THEN
     RAISE EXCEPTION 'Withdrawal request not found';
@@ -42,34 +53,34 @@ BEGIN
 
   v_was_completed := (v_request.status = 'completed');
 
-  -- If completed, void the associated WITHDRAWAL and DUST_SWEEP transactions
+  -- If completed, void the associated WITHDRAWAL and DUST transactions
   IF v_was_completed THEN
     PERFORM set_config('indigo.canonical_rpc', 'true', true);
 
-    -- Void all non-voided transactions linked to this withdrawal
-    FOR v_tx IN
-      SELECT id, type, reference_id FROM transactions_v2
-      WHERE investor_id = v_request.investor_id
-        AND fund_id = v_request.fund_id
-        AND is_voided = false
-        AND (
-          -- Match WITHDRAWAL transactions by reference pattern WDR-{investor_id}-...
-          (type = 'WITHDRAWAL' AND reference_id LIKE 'WDR-' || v_request.investor_id || '-%'
-           AND tx_date >= COALESCE(v_request.approved_at::date, v_request.request_date))
-          OR
-          -- Match DUST_SWEEP transactions by reference pattern dust-{sweep|credit}-{request_id}
-          (type = 'DUST_SWEEP' AND (
-            reference_id = 'dust-sweep-' || p_request_id::text
-            OR reference_id = 'dust-credit-' || p_request_id::text
-          ))
-        )
-    LOOP
-      UPDATE transactions_v2
-      SET is_voided = true,
-          voided_at = NOW(),
-          voided_reason = 'Withdrawal cancellation: ' || p_reason
-      WHERE id = v_tx.id;
-    END LOOP;
+    -- Void WITHDRAWAL transaction (WDR:{request_id})
+    UPDATE transactions_v2
+    SET is_voided = true,
+        voided_at = NOW(),
+        void_reason = 'Withdrawal cancellation: ' || p_reason
+    WHERE reference_id = 'WDR:' || p_request_id::text
+      AND is_voided = false;
+    GET DIAGNOSTICS v_voided_count = ROW_COUNT;
+
+    -- Void DUST_SWEEP transaction (DUST_SWEEP_OUT:{request_id})
+    UPDATE transactions_v2
+    SET is_voided = true,
+        voided_at = NOW(),
+        void_reason = 'Withdrawal cancellation: ' || p_reason
+    WHERE reference_id = 'DUST_SWEEP_OUT:' || p_request_id::text
+      AND is_voided = false;
+
+    -- Void DUST credit transaction to fees_account (DUST_RECV:{request_id})
+    UPDATE transactions_v2
+    SET is_voided = true,
+        voided_at = NOW(),
+        void_reason = 'Withdrawal cancellation: ' || p_reason
+    WHERE reference_id = 'DUST_RECV:' || p_request_id::text
+      AND is_voided = false;
 
     -- Re-activate the investor position if it was deactivated (full exit case)
     UPDATE investor_positions
@@ -100,7 +111,8 @@ BEGIN
       'previous_status', v_request.status,
       'admin_notes', p_admin_notes,
       'was_completed', v_was_completed,
-      'transactions_voided', v_was_completed
+      'transactions_voided', v_was_completed,
+      'withdrawal_tx_voided', v_voided_count > 0
     )
   );
 
@@ -122,7 +134,6 @@ AS $$
 DECLARE
   v_old_record withdrawal_requests%ROWTYPE;
   v_user_id uuid;
-  v_tx RECORD;
 BEGIN
   -- SECURITY: Require admin privileges
   PERFORM public.ensure_admin();
@@ -133,9 +144,13 @@ BEGIN
     RAISE EXCEPTION 'Reason is required for deletion';
   END IF;
 
+  -- Advisory lock to prevent concurrent deletion of the same withdrawal
+  PERFORM pg_advisory_xact_lock(hashtext('withdrawal:' || p_withdrawal_id::text));
+
   SELECT * INTO v_old_record
   FROM withdrawal_requests
-  WHERE id = p_withdrawal_id;
+  WHERE id = p_withdrawal_id
+  FOR UPDATE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Withdrawal not found';
@@ -145,28 +160,31 @@ BEGIN
   IF v_old_record.status = 'completed' THEN
     PERFORM set_config('indigo.canonical_rpc', 'true', true);
 
-    FOR v_tx IN
-      SELECT id FROM transactions_v2
-      WHERE investor_id = v_old_record.investor_id
-        AND fund_id = v_old_record.fund_id
-        AND is_voided = false
-        AND (
-          (type = 'WITHDRAWAL' AND reference_id LIKE 'WDR-' || v_old_record.investor_id || '-%'
-           AND tx_date >= COALESCE(v_old_record.approved_at::date, v_old_record.request_date))
-          OR
-          (type = 'DUST_SWEEP' AND (
-            reference_id = 'dust-sweep-' || p_withdrawal_id::text
-            OR reference_id = 'dust-credit-' || p_withdrawal_id::text
-          ))
-        )
-    LOOP
-      UPDATE transactions_v2
-      SET is_voided = true,
-          voided_at = NOW(),
-          voided_reason = 'Withdrawal deletion: ' || p_reason
-      WHERE id = v_tx.id;
-    END LOOP;
+    -- Void WITHDRAWAL transaction
+    UPDATE transactions_v2
+    SET is_voided = true,
+        voided_at = NOW(),
+        void_reason = 'Withdrawal deletion: ' || p_reason
+    WHERE reference_id = 'WDR:' || p_withdrawal_id::text
+      AND is_voided = false;
 
+    -- Void DUST_SWEEP transaction
+    UPDATE transactions_v2
+    SET is_voided = true,
+        voided_at = NOW(),
+        void_reason = 'Withdrawal deletion: ' || p_reason
+    WHERE reference_id = 'DUST_SWEEP_OUT:' || p_withdrawal_id::text
+      AND is_voided = false;
+
+    -- Void DUST credit transaction to fees_account
+    UPDATE transactions_v2
+    SET is_voided = true,
+        voided_at = NOW(),
+        void_reason = 'Withdrawal deletion: ' || p_reason
+    WHERE reference_id = 'DUST_RECV:' || p_withdrawal_id::text
+      AND is_voided = false;
+
+    -- Re-activate the investor position if deactivated (full exit)
     UPDATE investor_positions
     SET is_active = true, updated_at = NOW()
     WHERE investor_id = v_old_record.investor_id

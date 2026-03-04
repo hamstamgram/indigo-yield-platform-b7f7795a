@@ -119,7 +119,9 @@ const IdentityStep: React.FC = () => {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="individual">Individual</SelectItem>
-                      <SelectItem value="entity">Entity / Company</SelectItem>
+                      <SelectItem value="corporate">Corporate</SelectItem>
+                      <SelectItem value="trust">Trust</SelectItem>
+                      <SelectItem value="foundation">Foundation</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

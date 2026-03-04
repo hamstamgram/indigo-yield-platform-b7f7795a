@@ -9,8 +9,8 @@ export const identitySchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
-  entity_type: z.enum(["individual", "entity"]),
-  status: z.enum(["active", "inactive", "pending"]),
+  entity_type: z.enum(["individual", "corporate", "trust", "foundation"]),
+  status: z.enum(["active", "pending", "suspended", "archived", "inactive"]),
 });
 
 // Step 2: IB Configuration

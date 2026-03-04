@@ -23,6 +23,7 @@ interface CreateUserRequest {
   selectedFunds: string[];
   sendWelcomeEmail: boolean;
   feePct?: number | null;
+  status?: string;
 }
 
 interface UpdateUserRequest {
@@ -130,7 +131,17 @@ serve(async (req) => {
 });
 
 async function createUser(params: CreateUserRequest): Promise<any> {
-  const { email, firstName, lastName, phone, role, selectedFunds, sendWelcomeEmail } = params;
+  const {
+    email,
+    firstName,
+    lastName,
+    phone,
+    role,
+    selectedFunds,
+    sendWelcomeEmail,
+    feePct,
+    status,
+  } = params;
 
   console.log(`Creating user account for ${email} with role ${role}`);
 
@@ -159,8 +170,10 @@ async function createUser(params: CreateUserRequest): Promise<any> {
 
   // Create profile record directly using admin client (bypasses RLS)
   // Use UPSERT to merge with trigger-created row (on_auth_user_created)
-  // fee_pct: null must be explicitly included so the Supabase JS client's
-  // schema cache resolves this column (bypasses stale introspection cache)
+  // Validate status against DB constraint
+  const validStatuses = ["active", "pending", "suspended", "archived", "inactive"];
+  const profileStatus = status && validStatuses.includes(status) ? status : "active";
+
   const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
     {
       id: newUser.user.id,
@@ -169,8 +182,8 @@ async function createUser(params: CreateUserRequest): Promise<any> {
       last_name: lastName,
       phone: phone || null,
       is_admin: role === "admin",
-      status: "active",
-      fee_pct: null, // required for schema cache to include the column
+      status: profileStatus,
+      fee_pct: feePct != null ? feePct : 20,
     },
     { onConflict: "id" }
   );
@@ -195,27 +208,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     }
   }
 
-  // Generate invite code
-  const inviteCode = `invite_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
-
-  // Create admin invite record
-  const { data: invite, error: inviteError } = await supabase
-    .from("admin_invites")
-    .insert({
-      email: email,
-      invite_code: inviteCode,
-      expires_at: expiresAt.toISOString(),
-    })
-    .select()
-    .single();
-
-  if (inviteError) {
-    console.warn("Failed to create invite record:", inviteError);
-  }
-
-  // Send welcome email if requested
+  // Send welcome notification if requested
   if (sendWelcomeEmail) {
     try {
       const { error: notificationError } = await supabase.functions.invoke("ef_send_notification", {
@@ -224,10 +217,6 @@ async function createUser(params: CreateUserRequest): Promise<any> {
           type: "system",
           title: "Welcome to Indigo Yield",
           body: `Your investor account has been created. Please check your email for setup instructions.`,
-          data: {
-            invite_code: inviteCode,
-            expires_at: expiresAt.toISOString(),
-          },
           send_email: true,
         },
       });
@@ -246,9 +235,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     success: true,
     user_id: newUser.user.id,
     email: email,
-    invite_code: inviteCode,
     message: `Investor account created successfully for ${email}. ${sendWelcomeEmail ? "Welcome email sent." : "No email sent."}`,
-    invite_id: invite?.id,
   };
 }
 
@@ -466,8 +453,8 @@ async function updateInvestorProfile(params: UpdateInvestorProfileRequest): Prom
     throw new Error("First name and last name are required");
   }
 
-  // Validate status if provided
-  const validStatuses = ["active", "inactive", "pending"];
+  // Validate status if provided (must match profiles_status_check constraint)
+  const validStatuses = ["active", "pending", "suspended", "archived", "inactive"];
   if (status && !validStatuses.includes(status)) {
     throw new Error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`);
   }
