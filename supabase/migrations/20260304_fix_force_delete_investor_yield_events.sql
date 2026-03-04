@@ -75,9 +75,12 @@ BEGIN
   DELETE FROM documents WHERE user_profile_id = p_investor_id OR created_by_profile_id = p_investor_id;
 
   -- 6. Infrastructure & Config
-  UPDATE fund_daily_aum SET created_by = NULL WHERE created_by = p_investor_id;
-  UPDATE fund_daily_aum SET voided_by = NULL WHERE voided_by = p_investor_id;
-  UPDATE fund_daily_aum SET voided_by_profile_id = NULL WHERE voided_by_profile_id = p_investor_id;
+  -- fund_daily_aum may have been dropped (20260310_rip_out_fund_daily_aum.sql)
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'fund_daily_aum') THEN
+    UPDATE fund_daily_aum SET created_by = NULL WHERE created_by = p_investor_id;
+    UPDATE fund_daily_aum SET voided_by = NULL WHERE voided_by = p_investor_id;
+    UPDATE fund_daily_aum SET voided_by_profile_id = NULL WHERE voided_by_profile_id = p_investor_id;
+  END IF;
   UPDATE yield_distributions SET dust_receiver_id = NULL WHERE dust_receiver_id = p_investor_id;
   UPDATE yield_distributions SET voided_by = NULL WHERE voided_by = p_investor_id;
   UPDATE global_fee_settings SET updated_by = NULL WHERE updated_by = p_investor_id;

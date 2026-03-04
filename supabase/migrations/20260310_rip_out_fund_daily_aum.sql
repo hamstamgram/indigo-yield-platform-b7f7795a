@@ -25,19 +25,12 @@ BEGIN
     ),
     historical_adjustments AS (
         -- If we are querying a past date, we need to unwind transactions that happened AFTER p_as_of_date
-        -- Deposits AFTER the date -> subtract from live AUM
-        -- Withdrawals AFTER the date -> add back to live AUM
-        -- Yield/Fees AFTER the date (if any) -> subtract from live AUM
-        SELECT 
+        -- To unwind: reverse each transaction's effect on positions
+        -- amount is stored as-is for credits (DEPOSIT, YIELD, etc.) and negated for debits (WITHDRAWAL, FEE, etc.)
+        -- Reversing = negate the stored amount
+        SELECT
             t.fund_id,
-            SUM(
-                CASE 
-                    WHEN t.type IN ('DEPOSIT') THEN -t.amount
-                    WHEN t.type IN ('WITHDRAWAL') THEN t.amount
-                    WHEN t.type IN ('YIELD_CRYSTALLIZATION', 'FEE_DEDUCTION', 'IB_COMMISSION') THEN -t.amount
-                    ELSE 0 
-                END
-            ) as adjustment_amount
+            SUM(-t.amount) as adjustment_amount
         FROM public.transactions_v2 t
         WHERE t.tx_date > p_as_of_date 
           AND t.is_voided = false
