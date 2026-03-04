@@ -90,7 +90,8 @@ export function useWithdrawalMutations() {
             hardDelete,
           });
         } catch (err) {
-          errors.push(`${id}: ${err instanceof Error ? err.message : "Unknown error"}`);
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`${id}: ${msg}`);
         }
       }
 
@@ -99,21 +100,22 @@ export function useWithdrawalMutations() {
         if (succeeded === 0) {
           throw new Error(`All deletions failed. First error: ${errors[0]}`);
         }
-        await withdrawalService.logBulkAudit(
-          "BULK_WITHDRAWALS_DELETED_PARTIAL",
-          withdrawalIds,
-          { total: withdrawalIds.length, succeeded, failed: errors.length }
-        );
+        await withdrawalService.logBulkAudit("BULK_WITHDRAWALS_DELETED_PARTIAL", withdrawalIds, {
+          total: withdrawalIds.length,
+          succeeded,
+          failed: errors.length,
+        });
         throw new Error(
           `${succeeded} of ${withdrawalIds.length} deleted. ${errors.length} failed.`
         );
       }
 
-      await withdrawalService.logBulkAudit(
-        "BULK_WITHDRAWALS_DELETED",
-        withdrawalIds,
-        { count: withdrawalIds.length, ids: withdrawalIds, hard_delete: hardDelete, reason }
-      );
+      await withdrawalService.logBulkAudit("BULK_WITHDRAWALS_DELETED", withdrawalIds, {
+        count: withdrawalIds.length,
+        ids: withdrawalIds,
+        hard_delete: hardDelete,
+        reason,
+      });
     },
     onSuccess: (_, params) => {
       const label = params.hardDelete ? "permanently deleted" : "cancelled";
@@ -123,8 +125,9 @@ export function useWithdrawalMutations() {
       invalidateAfterWithdrawal(queryClient);
     },
     onError: (error: Error) => {
-      toast.error("Bulk delete failed", { description: error.message });
-      // Still invalidate in case of partial success
+      toast.error("Bulk delete failed", {
+        description: error?.message || String(error),
+      });
       invalidateAfterWithdrawal(queryClient);
     },
   });
@@ -138,7 +141,8 @@ export function useWithdrawalMutations() {
         try {
           await withdrawalService.cancelWithdrawal(id, reason);
         } catch (err) {
-          errors.push(`${id}: ${err instanceof Error ? err.message : "Unknown error"}`);
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`${id}: ${msg}`);
         }
       }
 
@@ -147,19 +151,20 @@ export function useWithdrawalMutations() {
         if (succeeded === 0) {
           throw new Error(`All void operations failed. First error: ${errors[0]}`);
         }
-        await withdrawalService.logBulkAudit(
-          "BULK_WITHDRAWALS_VOIDED_PARTIAL",
-          withdrawalIds,
-          { total: withdrawalIds.length, succeeded, failed: errors.length, reason }
-        );
+        await withdrawalService.logBulkAudit("BULK_WITHDRAWALS_VOIDED_PARTIAL", withdrawalIds, {
+          total: withdrawalIds.length,
+          succeeded,
+          failed: errors.length,
+          reason,
+        });
         throw new Error(`${succeeded} of ${withdrawalIds.length} voided. ${errors.length} failed.`);
       }
 
-      await withdrawalService.logBulkAudit(
-        "BULK_WITHDRAWALS_VOIDED",
-        withdrawalIds,
-        { count: withdrawalIds.length, ids: withdrawalIds, reason }
-      );
+      await withdrawalService.logBulkAudit("BULK_WITHDRAWALS_VOIDED", withdrawalIds, {
+        count: withdrawalIds.length,
+        ids: withdrawalIds,
+        reason,
+      });
     },
     onSuccess: (_, params) => {
       toast.success(
@@ -168,7 +173,9 @@ export function useWithdrawalMutations() {
       invalidateAfterWithdrawal(queryClient);
     },
     onError: (error: Error) => {
-      toast.error("Bulk void failed", { description: error.message });
+      toast.error("Bulk void failed", {
+        description: error?.message || String(error),
+      });
       invalidateAfterWithdrawal(queryClient);
     },
   });
@@ -182,7 +189,8 @@ export function useWithdrawalMutations() {
         try {
           await withdrawalService.restoreWithdrawal(id, reason);
         } catch (err) {
-          errors.push(`${id}: ${err instanceof Error ? err.message : "Unknown error"}`);
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`${id}: ${msg}`);
         }
       }
 
@@ -191,21 +199,22 @@ export function useWithdrawalMutations() {
         if (succeeded === 0) {
           throw new Error(`All restore operations failed. First error: ${errors[0]}`);
         }
-        await withdrawalService.logBulkAudit(
-          "BULK_WITHDRAWALS_RESTORED_PARTIAL",
-          withdrawalIds,
-          { total: withdrawalIds.length, succeeded, failed: errors.length, reason }
-        );
+        await withdrawalService.logBulkAudit("BULK_WITHDRAWALS_RESTORED_PARTIAL", withdrawalIds, {
+          total: withdrawalIds.length,
+          succeeded,
+          failed: errors.length,
+          reason,
+        });
         throw new Error(
           `${succeeded} of ${withdrawalIds.length} restored. ${errors.length} failed.`
         );
       }
 
-      await withdrawalService.logBulkAudit(
-        "BULK_WITHDRAWALS_RESTORED",
-        withdrawalIds,
-        { count: withdrawalIds.length, ids: withdrawalIds, reason }
-      );
+      await withdrawalService.logBulkAudit("BULK_WITHDRAWALS_RESTORED", withdrawalIds, {
+        count: withdrawalIds.length,
+        ids: withdrawalIds,
+        reason,
+      });
     },
     onSuccess: (_, params) => {
       toast.success(
@@ -214,7 +223,9 @@ export function useWithdrawalMutations() {
       invalidateAfterWithdrawal(queryClient);
     },
     onError: (error: Error) => {
-      toast.error("Bulk restore failed", { description: error.message });
+      toast.error("Bulk restore failed", {
+        description: error?.message || String(error),
+      });
       invalidateAfterWithdrawal(queryClient);
     },
   });
