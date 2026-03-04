@@ -114,7 +114,7 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
     `
     )
     .or(
-      `type.in.(FEE_CREDIT,IB_CREDIT,YIELD,DUST,DUST_SWEEP),investor_id.eq.${INDIGO_FEES_ACCOUNT_ID}`
+      `type.in.(FEE_CREDIT,IB_CREDIT,YIELD,DUST,DUST_SWEEP,INTERNAL_CREDIT),investor_id.eq.${INDIGO_FEES_ACCOUNT_ID}`
     )
     .eq("is_voided", false)
     .order("created_at", { ascending: false })
@@ -341,7 +341,7 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
     .from("transactions_v2")
     .select("fund_id, amount, type")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "DEPOSIT", "DUST", "DUST_SWEEP"])
+    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "DEPOSIT", "DUST", "DUST_SWEEP", "INTERNAL_CREDIT"])
     .eq("is_voided", false)
     .limit(5000);
 

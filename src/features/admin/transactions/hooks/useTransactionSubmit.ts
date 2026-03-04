@@ -9,6 +9,7 @@ import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QueryClient } from "@tanstack/react-query";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { TransactionFormData } from "./useTransactionForm";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UseTransactionSubmitParams {
   selectedInvestorId: string;
@@ -111,24 +112,31 @@ export function useTransactionSubmit({
       }
 
       // Handle Full Exit (Dust Routing)
-      if (data.full_withdrawal && data.txn_type === "WITHDRAWAL" && currentBalance) {
-        const withdrawalAmount = parseFinancial(data.amount).toNumber();
-        const dustAmount = currentBalance - withdrawalAmount;
+      // Re-fetch live position balance to avoid stale prop race condition
+      if (data.full_withdrawal && data.txn_type === "WITHDRAWAL") {
+        try {
+          const { data: positionData } = await supabase
+            .from("investor_positions")
+            .select("current_value")
+            .eq("investor_id", currentInvestorId)
+            .eq("fund_id", data.fund_id)
+            .single();
 
-        if (dustAmount > 0) {
-          toast.info(`Routing ${dustAmount.toFixed(10)} ${data.asset} dust to Indigo Fees...`);
-          try {
+          const actualDust = positionData?.current_value ?? 0;
+
+          if (actualDust > 0) {
+            toast.info(`Routing ${Number(actualDust).toFixed(10)} ${data.asset} dust to Indigo Fees...`);
             await executeInternalRoute({
               fromInvestorId: currentInvestorId,
               fundId: data.fund_id,
-              amount: dustAmount,
+              amount: Number(actualDust),
               effectiveDate: data.tx_date,
               reason: `Full Exit Dust Cleanup - ${currentInvestorId}`,
             });
-          } catch (routeError) {
-            console.error("Dust routing failed:", routeError);
-            toast.warning("Withdrawal succeeded, but dust routing failed. Please check manually.");
           }
+        } catch (routeError) {
+          console.error("Dust routing failed:", routeError);
+          toast.warning("Withdrawal succeeded, but dust routing failed. Please check manually.");
         }
       }
 

@@ -67,6 +67,18 @@ const getTypeBadge = (type: string) => {
     case "DUST":
     case "DUST_SWEEP":
       return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Dust Sweep</Badge>;
+    case "INTERNAL_CREDIT":
+      return (
+        <Badge className="bg-teal-500/15 text-teal-400 border border-teal-500/20">
+          Dust Route
+        </Badge>
+      );
+    case "INTERNAL_WITHDRAWAL":
+      return (
+        <Badge className="bg-slate-500/15 text-slate-400 border border-slate-500/20">
+          Internal Debit
+        </Badge>
+      );
     default:
       return <Badge variant="outline">{type}</Badge>;
   }
