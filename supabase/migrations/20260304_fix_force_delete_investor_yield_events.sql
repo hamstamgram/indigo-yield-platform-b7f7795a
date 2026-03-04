@@ -44,12 +44,13 @@ BEGIN
   DELETE FROM investor_fee_schedule WHERE investor_id = p_investor_id;
   DELETE FROM platform_fee_ledger WHERE investor_id = p_investor_id OR created_by = p_investor_id OR voided_by = p_investor_id;
 
-  -- 3b. Investor yield events (MUST come before transactions_v2 due to FK on trigger_transaction_id)
-  DELETE FROM investor_yield_events WHERE investor_id = p_investor_id;
-  -- Nullify references where this investor is a secondary actor
-  UPDATE investor_yield_events SET created_by = NULL WHERE created_by = p_investor_id;
-  UPDATE investor_yield_events SET voided_by = NULL WHERE voided_by = p_investor_id;
-  UPDATE investor_yield_events SET made_visible_by = NULL WHERE made_visible_by = p_investor_id;
+  -- 3b. Investor yield events (table may not exist on remote)
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'investor_yield_events') THEN
+    DELETE FROM investor_yield_events WHERE investor_id = p_investor_id;
+    UPDATE investor_yield_events SET created_by = NULL WHERE created_by = p_investor_id;
+    UPDATE investor_yield_events SET voided_by = NULL WHERE voided_by = p_investor_id;
+    UPDATE investor_yield_events SET made_visible_by = NULL WHERE made_visible_by = p_investor_id;
+  END IF;
 
   -- 4. Transactions & Positions
   DELETE FROM transactions_v2 WHERE investor_id = p_investor_id;

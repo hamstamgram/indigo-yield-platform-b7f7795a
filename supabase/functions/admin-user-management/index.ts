@@ -174,6 +174,8 @@ async function createUser(params: CreateUserRequest): Promise<any> {
   const validStatuses = ["active", "pending", "suspended", "archived", "inactive"];
   const profileStatus = status && validStatuses.includes(status) ? status : "active";
 
+  // fee_pct column does NOT exist on remote profiles table.
+  // Fees are managed via investor_fee_schedule table instead.
   const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
     {
       id: newUser.user.id,
@@ -183,7 +185,6 @@ async function createUser(params: CreateUserRequest): Promise<any> {
       phone: phone || null,
       is_admin: role === "admin",
       status: profileStatus,
-      fee_pct: feePct != null ? feePct : 20,
     },
     { onConflict: "id" }
   );
