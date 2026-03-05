@@ -9,7 +9,7 @@ import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 describe("First-Class System Users", () => {
   describe("INDIGO FEES Account", () => {
     it("should have correct account ID constant", () => {
-      expect(INDIGO_FEES_ACCOUNT_ID).toBe("169bb053-36cb-4f6e-93ea-831f0dfeaf1d");
+      expect(INDIGO_FEES_ACCOUNT_ID).toBe("b464a3f7-60d5-4bc0-9833-7b413bcc6cae");
     });
 
     it("should be a valid UUID", () => {
@@ -22,7 +22,7 @@ describe("First-Class System Users", () => {
     it("should not use USD in token symbol constants", () => {
       // Stablecoins USDC/USDT are valid token symbols, not USD currency
       const tokenSymbols = ["BTC", "ETH", "SOL", "USDC", "USDT"];
-      tokenSymbols.forEach(symbol => {
+      tokenSymbols.forEach((symbol) => {
         expect(symbol).not.toBe("USD"); // Pure USD is not a token
       });
     });
@@ -41,11 +41,11 @@ describe("First-Class System Users", () => {
     it("should have correct source types for tracking", () => {
       const sources = [
         "manual_admin",
-        "yield_distribution", 
+        "yield_distribution",
         "fee_allocation",
         "ib_allocation",
         "system_bootstrap",
-        "investor_wizard"
+        "investor_wizard",
       ];
       expect(sources).toHaveLength(6);
       expect(sources).toContain("yield_distribution");

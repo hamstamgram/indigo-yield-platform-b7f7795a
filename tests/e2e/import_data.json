@@ -1,0 +1,269 @@
+{
+  "sol": [
+    {
+      "action": "transaction",
+      "date": "2025-09-02",
+      "investor": "Indigo LP",
+      "amount": "1250",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-09-04",
+      "type": "Transaction",
+      "aum": "1252"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-09-04",
+      "investor": "Paul Johnson",
+      "amount": "234.17",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-09-30",
+      "type": "Reporting",
+      "aum": "1500"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-10-03",
+      "investor": "Paul Johnson",
+      "amount": "236.02",
+      "type": "Withdrawal",
+      "isFullExit": true
+    },
+    {
+      "action": "yield",
+      "date": "2025-10-23",
+      "type": "Transaction",
+      "aum": "1274"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-10-23",
+      "investor": "Jose Molla",
+      "amount": "87.98",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-10-31",
+      "type": "Reporting",
+      "aum": "1365"
+    },
+    {
+      "action": "yield",
+      "date": "2025-11-17",
+      "type": "Transaction",
+      "aum": "1369"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-11-17",
+      "investor": "Sam Johnson",
+      "amount": "1800.05",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-11-25",
+      "type": "Transaction",
+      "aum": "3176"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-11-25",
+      "investor": "Sam Johnson",
+      "amount": "750",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-11-30",
+      "type": "Reporting",
+      "aum": "3934"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-11-30",
+      "investor": "Sam Johnson",
+      "amount": "750",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-12-04",
+      "type": "Transaction",
+      "aum": "4690"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-12-04",
+      "investor": "Indigo LP",
+      "amount": "1285.66",
+      "type": "Withdrawal",
+      "isFullExit": false
+    },
+    {
+      "action": "yield",
+      "date": "2025-12-08",
+      "type": "Transaction",
+      "aum": "3405"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-12-08",
+      "investor": "Sam Johnson",
+      "amount": "770",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-12-15",
+      "type": "Transaction",
+      "aum": "4181"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-12-15",
+      "investor": "Sam Johnson",
+      "amount": "766",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-12-31",
+      "type": "Reporting",
+      "aum": "4974"
+    },
+    {
+      "action": "transaction",
+      "date": "2026-01-02",
+      "investor": "Sam Johnson",
+      "amount": "4873.15",
+      "type": "Withdrawal",
+      "isFullExit": false
+    },
+    {
+      "action": "yield",
+      "date": "2026-01-31",
+      "type": "Reporting",
+      "aum": "102"
+    },
+    {
+      "action": "yield",
+      "date": "2026-02-12",
+      "type": "Transaction",
+      "aum": "102"
+    },
+    {
+      "action": "transaction",
+      "date": "2026-02-12",
+      "investor": "Jose Molla",
+      "amount": "393.77",
+      "type": "Deposit"
+    },
+    {
+      "action": "transaction",
+      "date": "2026-02-12",
+      "investor": "ALOK PAVAN BATRA",
+      "amount": "826.54",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2026-02-28",
+      "type": "Reporting",
+      "aum": "1328"
+    }
+  ],
+  "xrp": [
+    {
+      "action": "transaction",
+      "date": "2025-11-17",
+      "investor": "Sam Johnson",
+      "amount": "135003",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-11-25",
+      "type": "Transaction",
+      "aum": "135003"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-11-25",
+      "investor": "Sam Johnson",
+      "amount": "49000",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-11-30",
+      "type": "Reporting",
+      "aum": "184358"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-11-30",
+      "investor": "Sam Johnson",
+      "amount": "45000",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-12-08",
+      "type": "Transaction",
+      "aum": "229731"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-12-08",
+      "investor": "Sam Johnson",
+      "amount": "49500",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-12-15",
+      "type": "Transaction",
+      "aum": "279719"
+    },
+    {
+      "action": "transaction",
+      "date": "2025-12-15",
+      "investor": "Sam Johnson",
+      "amount": "50100",
+      "type": "Deposit"
+    },
+    {
+      "action": "yield",
+      "date": "2025-12-31",
+      "type": "Reporting",
+      "aum": "330976"
+    },
+    {
+      "action": "transaction",
+      "date": "2026-01-02",
+      "investor": "Sam Johnson",
+      "amount": "330500.42",
+      "type": "Withdrawal",
+      "isFullExit": true
+    },
+    {
+      "action": "yield",
+      "date": "2026-01-31",
+      "type": "Reporting",
+      "aum": "795"
+    },
+    {
+      "action": "yield",
+      "date": "2026-02-28",
+      "type": "Reporting",
+      "aum": "795"
+    }
+  ]
+}

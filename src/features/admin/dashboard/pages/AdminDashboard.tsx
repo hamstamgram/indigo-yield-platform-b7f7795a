@@ -334,7 +334,6 @@ function AdminDashboardContent() {
                 key={fund.id}
                 type="button"
                 className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-indigo-500/30 transition-all text-left"
-                disabled={fund.investor_count === 0}
                 onClick={() => {
                   setShowApplyYieldPicker(false);
                   ops.openYieldDialog(fund);

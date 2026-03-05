@@ -110,7 +110,11 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       visibility_scope,
       notes,
       created_at,
-      is_voided
+      is_voided,
+      fee_allocations!credit_transaction_id(
+        investor_id,
+        investor_name:profiles(first_name, last_name, email)
+      )
     `
     )
     .or(
@@ -126,10 +130,19 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
     return [];
   }
 
-  // Enrich with investor and fund details
+  // Extract all relevant IDs for enrichment
   const investorIds = [
     ...new Set(feeTxData.map((t) => t.investor_id).filter((id): id is string => Boolean(id))),
   ];
+
+  // Also collect IDs from fee allocations if they differ (though usually transactions_v2 investor_id is the recipient, not the source)
+  feeTxData.forEach((tx: any) => {
+    const allocation = tx.fee_allocations?.[0];
+    if (allocation?.investor_id) {
+      investorIds.push(allocation.investor_id);
+    }
+  });
+
   const fundIds = [
     ...new Set(feeTxData.map((t) => t.fund_id).filter((id): id is string => Boolean(id))),
   ];
@@ -138,7 +151,7 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
     supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
-      .in("id", investorIds.length > 0 ? investorIds : [""])
+      .in("id", [...new Set(investorIds)].length > 0 ? [...new Set(investorIds)] : [""])
       .limit(2000),
     supabase
       .from("funds")
@@ -150,12 +163,20 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
   const investorMap = new Map((investorResult.data ?? []).map((p) => [p.id, p]));
   const fundMap = new Map((fundResult.data ?? []).map((f) => [f.id, f]));
 
-  return feeTxData.map((tx) => {
-    const investor = investorMap.get(tx.investor_id);
+  return feeTxData.map((tx: any) => {
+    const allocation = tx.fee_allocations?.[0];
+    const sourceInvestorId = allocation?.investor_id;
+
+    // For fee credits, we want to show who PAID the fee, not who RECEIVED it (Indigo Fees)
+    const effectiveInvestorId =
+      tx.type === "FEE_CREDIT" && sourceInvestorId ? sourceInvestorId : tx.investor_id;
+
+    const investor = investorMap.get(effectiveInvestorId);
     const fund = fundMap.get(tx.fund_id);
+
     return {
       id: tx.id,
-      investorId: tx.investor_id,
+      investorId: effectiveInvestorId,
       investorName: investor
         ? `${investor.first_name ?? ""} ${investor.last_name ?? ""}`.trim() || investor.email
         : "Unknown",
@@ -332,7 +353,15 @@ export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
     .from("transactions_v2")
     .select("fund_id, amount, type")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "DEPOSIT", "DUST", "DUST_SWEEP", "INTERNAL_CREDIT"])
+    .in("type", [
+      "YIELD",
+      "FEE_CREDIT",
+      "IB_CREDIT",
+      "DEPOSIT",
+      "DUST",
+      "DUST_SWEEP",
+      "INTERNAL_CREDIT",
+    ])
     .eq("is_voided", false)
     .limit(5000);
 
