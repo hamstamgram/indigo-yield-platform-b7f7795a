@@ -294,7 +294,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
       {/* Filters */}
       <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 space-y-4">
         {/* Quick Date Filters */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full">
           <Button variant="outline" size="sm" onClick={setThisMonth}>
             This Month
           </Button>
@@ -496,7 +496,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                       column="fundName"
                       currentSort={sortConfig}
                       onSort={requestSort}
-                      className="whitespace-nowrap"
+                      className="whitespace-nowrap hidden md:table-cell"
                     >
                       Fund
                     </SortableTableHead>
@@ -516,7 +516,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                     >
                       Amount
                     </SortableTableHead>
-                    <TableHead className="whitespace-nowrap">Notes</TableHead>
+                    <TableHead className="whitespace-nowrap hidden lg:table-cell">Notes</TableHead>
                     <TableHead className="w-[50px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -567,7 +567,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                               />
                             </button>
                           </TableCell>
-                          <TableCell className="py-1.5">
+                          <TableCell className="py-1.5 hidden md:table-cell">
                             <div className="flex items-center gap-1.5">
                               <CryptoIcon symbol={tx.asset} className="h-4 w-4" />
                               <span>{tx.fundName}</span>
@@ -613,7 +613,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                               <CryptoIcon symbol={tx.asset} className="h-3.5 w-3.5" />
                             </div>
                           </TableCell>
-                          <TableCell className="max-w-[160px] py-1.5">
+                          <TableCell className="max-w-[160px] py-1.5 hidden lg:table-cell">
                             <TruncatedText
                               text={tx.notes || "—"}
                               className="text-muted-foreground"

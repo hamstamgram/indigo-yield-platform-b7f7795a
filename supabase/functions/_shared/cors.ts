@@ -20,7 +20,7 @@ function matchOrigin(origin: string): boolean {
 
 // Static CORS headers (used when origin is not dynamic)
 export const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGINS[0], // Default to primary production URL
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-csrf-token",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",

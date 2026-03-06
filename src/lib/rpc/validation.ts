@@ -65,6 +65,5 @@ export function validateParams<T extends RPCFunctionName>(
   );
   if (isMutation && !("p_reference_id" in p) && !("p_notes" in p)) {
     // Allow if notes contain a reference
-    console.warn(`[RPC] Mutation ${String(functionName)} called without explicit reference_id`);
   }
 }

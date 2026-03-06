@@ -175,7 +175,6 @@ export async function updateYieldRecord(
  * @deprecated yield_edit_audit table was dropped — this is dead code.
  */
 export async function getYieldEditHistory(_recordId: string): Promise<any[]> {
-  console.warn("getYieldEditHistory is deprecated — yield_edit_audit table was dropped");
   return [];
 }
 

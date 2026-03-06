@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
   Skeleton,
-  SortableTableHead,
   Table,
   TableBody,
   TableCell,
@@ -39,11 +38,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui";
+
 import { FinancialValue } from "@/components/common/FinancialValue";
-import { CryptoIcon } from "@/components/CryptoIcons";
 import { PageShell } from "@/components/layout/PageShell";
 import { useAuth } from "@/services/auth";
-import { useSortableColumns } from "@/hooks";
+
 import { useTabFromUrl } from "@/hooks/ui/useTabFromUrl";
 import {
   useSystemHealth,
@@ -51,8 +50,6 @@ import {
   useIntegrityRuns,
   useAdminAlerts,
   useAcknowledgeAlert,
-  useCrystallizationDashboard,
-  useCrystallizationGaps,
 } from "@/hooks/data";
 import { useInvariantChecks } from "@/hooks/data";
 import { getOverallStatus, type ServiceStatus } from "@/services/core/systemHealthService";
@@ -479,9 +476,7 @@ function IntegrityTab() {
             <Card>
               <CardContent className="pt-6 text-center">
                 <p className="text-xs uppercase tracking-wider text-yield mb-1">Passed</p>
-                <p className="text-2xl font-bold font-mono text-yield">
-                  {invariantResult.passed}
-                </p>
+                <p className="text-2xl font-bold font-mono text-yield">{invariantResult.passed}</p>
               </CardContent>
             </Card>
             <Card>
@@ -637,376 +632,6 @@ function IntegrityTab() {
 }
 
 // ============================================================================
-// Yield Events Tab
-// ============================================================================
-
-function YieldEventsTab() {
-  const [selectedFundId, setSelectedFundId] = useState<string | undefined>(undefined);
-
-  const {
-    data: dashboardData,
-    isLoading: dashboardLoading,
-    refetch: refetchDashboard,
-  } = useCrystallizationDashboard();
-  const {
-    data: gaps,
-    isLoading: gapsLoading,
-    refetch: refetchGaps,
-  } = useCrystallizationGaps(selectedFundId);
-
-  const {
-    sortConfig: fundSortConfig,
-    requestSort: fundRequestSort,
-    sortedData: sortedFunds,
-  } = useSortableColumns(dashboardData || [], { column: "fund_code", direction: "asc" });
-
-  const {
-    sortConfig: gapSortConfig,
-    requestSort: gapRequestSort,
-    sortedData: sortedGaps,
-  } = useSortableColumns(gaps || [], { column: "days_behind", direction: "desc" });
-
-  const handleRefresh = () => {
-    refetchDashboard();
-    refetchGaps();
-  };
-
-  const totalGaps =
-    dashboardData?.reduce(
-      (sum, f) => sum + f.warning_stale + f.critical_stale + f.never_crystallized,
-      0
-    ) || 0;
-  const totalPositions = dashboardData?.reduce((sum, f) => sum + f.total_positions, 0) || 0;
-
-  if (dashboardLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardContent className="pt-6">
-                <Skeleton className="h-6 w-32 mb-4" />
-                <Skeleton className="h-4 w-48" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Badge variant={totalGaps === 0 ? "default" : "secondary"}>
-            {totalGaps === 0 ? (
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-            ) : (
-              <AlertTriangle className="h-4 w-4 mr-1" />
-            )}
-            {totalGaps} gaps
-          </Badge>
-        </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              Total Funds
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{dashboardData?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Total Positions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalPositions}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              Recorded Events
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yield">
-              {dashboardData?.reduce((sum, f) => sum + f.up_to_date, 0) || 0}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className={totalGaps > 0 ? "border-yellow-500/30" : undefined}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Gaps
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${totalGaps > 0 ? "text-yellow-400" : ""}`}>
-              {totalGaps}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Fund Status Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Fund Yield Event Status
-          </CardTitle>
-          <CardDescription>Yield application coverage per fund</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sortedFunds && sortedFunds.length > 0 ? (
-            <div className="rounded-md border">
-              <Table className="text-xs">
-                <TableHeader>
-                  <TableRow>
-                    <SortableTableHead
-                      column="fund_code"
-                      currentSort={fundSortConfig}
-                      onSort={fundRequestSort}
-                    >
-                      Fund
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="total_positions"
-                      currentSort={fundSortConfig}
-                      onSort={fundRequestSort}
-                      className="text-right"
-                    >
-                      Positions
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="up_to_date"
-                      currentSort={fundSortConfig}
-                      onSort={fundRequestSort}
-                      className="text-right"
-                    >
-                      Recorded Events
-                    </SortableTableHead>
-                    <TableHead className="text-right">Gaps</TableHead>
-                    <TableHead className="text-right">Staleness</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedFunds.map((fund) => {
-                    const fundGaps =
-                      fund.warning_stale + fund.critical_stale + fund.never_crystallized;
-                    return (
-                      <TableRow key={fund.fund_id}>
-                        <TableCell className="py-1.5">
-                          <div className="flex items-center gap-2">
-                            <CryptoIcon
-                              symbol={fund.fund_code.split("-").pop() || fund.fund_code}
-                              className="h-4 w-4"
-                            />
-                            <div className="flex flex-col">
-                              <span className="font-medium">{fund.fund_code}</span>
-                              <span className="text-muted-foreground">{fund.fund_name}</span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {fund.total_positions}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className="text-yield font-mono">{fund.up_to_date}</span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Badge
-                            variant={fundGaps > 0 ? "secondary" : "default"}
-                            className="text-xs"
-                          >
-                            {fundGaps}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {fund.critical_stale > 0 ? (
-                            <span className="text-rose-400">{fund.critical_stale} critical</span>
-                          ) : fund.warning_stale > 0 ? (
-                            <span className="text-yellow-400">{fund.warning_stale} stale</span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">No funds found</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Crystallization Gaps */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Yield Event Gaps
-              </CardTitle>
-              <CardDescription>Positions that need yield events applied</CardDescription>
-            </div>
-            <Select
-              value={selectedFundId || "all"}
-              onValueChange={(val) => setSelectedFundId(val === "all" ? undefined : val)}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All funds" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All funds</SelectItem>
-                {dashboardData?.map((fund) => (
-                  <SelectItem key={fund.fund_id} value={fund.fund_id}>
-                    {fund.fund_code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {gapsLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : sortedGaps && sortedGaps.length > 0 ? (
-            <div className="rounded-md border">
-              <Table className="text-xs">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Investor</TableHead>
-                    <SortableTableHead
-                      column="fund_code"
-                      currentSort={gapSortConfig}
-                      onSort={gapRequestSort}
-                    >
-                      Fund
-                    </SortableTableHead>
-                    <TableHead>Last Event</TableHead>
-                    <SortableTableHead
-                      column="days_behind"
-                      currentSort={gapSortConfig}
-                      onSort={gapRequestSort}
-                      className="text-right"
-                    >
-                      Days
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="current_value"
-                      currentSort={gapSortConfig}
-                      onSort={gapRequestSort}
-                      className="text-right"
-                    >
-                      Value
-                    </SortableTableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedGaps.map((gap, idx) => (
-                    <TableRow key={`${gap.investor_id}-${gap.fund_id}-${idx}`}>
-                      <TableCell className="py-1.5">
-                        <div className="flex flex-col">
-                          <span className="font-medium truncate max-w-[140px]">
-                            {gap.investor_email}
-                          </span>
-                          <span className="text-muted-foreground font-mono">
-                            {gap.investor_id.slice(0, 8)}...
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-1.5">
-                        <div className="flex items-center gap-2">
-                          <CryptoIcon
-                            symbol={gap.fund_code.split("-").pop() || gap.fund_code}
-                            className="h-4 w-4"
-                          />
-                          <Badge variant="outline" className="text-[10px]">
-                            {gap.fund_code}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-1.5">
-                        {gap.last_yield_crystallization_date ? (
-                          <div className="flex flex-col">
-                            <span>
-                              {format(new Date(gap.last_yield_crystallization_date), "MMM d, yyyy")}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(gap.last_yield_crystallization_date), {
-                                addSuffix: true,
-                              })}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Never</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right py-1.5">
-                        <span
-                          className={
-                            gap.days_behind > 30
-                              ? "text-rose-400 font-bold"
-                              : gap.days_behind > 7
-                                ? "text-yellow-400"
-                                : ""
-                          }
-                        >
-                          {gap.days_behind}d
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right py-1.5">
-                        <FinancialValue value={gap.current_value} displayDecimals={2} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <CheckCircle2 className="h-12 w-12 text-yield mx-auto mb-3" />
-              <p className="text-sm font-medium text-yield">
-                All positions have been recorded
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">No gaps found</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ============================================================================
 // Main Operations Page
 // ============================================================================
 
@@ -1035,10 +660,7 @@ export default function OperationsPage() {
             <Shield className="h-4 w-4" />
             Integrity
           </TabsTrigger>
-          <TabsTrigger value="crystallization" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Yield Events
-          </TabsTrigger>
+
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Audit Trail
@@ -1051,10 +673,6 @@ export default function OperationsPage() {
 
         <TabsContent value="integrity">
           <IntegrityTab />
-        </TabsContent>
-
-        <TabsContent value="crystallization">
-          <YieldEventsTab />
         </TabsContent>
 
         <TabsContent value="audit">

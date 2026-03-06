@@ -199,12 +199,13 @@ function AdminManagementTab() {
                         {row.type === "admin" && row.id !== user?.id ? (
                           <Select
                             value={row.role}
-                            onValueChange={(newRole) =>
+                            onValueChange={(newRole) => {
                               updateRole.mutate({
                                 userId: row.id,
                                 newRole: newRole as "admin" | "super_admin",
-                              })
-                            }
+                              });
+                            }}
+                            disabled={updateRole.isPending}
                           >
                             <SelectTrigger className="w-32 h-8">
                               <SelectValue />
@@ -222,9 +223,7 @@ function AdminManagementTab() {
                       </TableCell>
                       <TableCell>
                         {row.type === "admin" ? (
-                          <Badge className="bg-yield/10 text-yield text-xs">
-                            Active
-                          </Badge>
+                          <Badge className="bg-yield/10 text-yield text-xs">Active</Badge>
                         ) : (
                           <Badge className="bg-yellow-500/10 text-yellow-400 text-xs">
                             Pending Invite

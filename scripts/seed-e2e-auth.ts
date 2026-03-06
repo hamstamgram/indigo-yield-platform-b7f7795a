@@ -2,10 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL as string,
-  process.env.SUPABASE_SERVICE_ROLE_KEY as string
-);
+const supabaseUrl = process.env.VITE_SUPABASE_URL || "http://127.0.0.1:54321";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function ensureE2EUsers() {
   console.log("Forcing E2E Test Credentials onto Database...");

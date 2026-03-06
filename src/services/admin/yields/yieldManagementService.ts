@@ -141,30 +141,7 @@ export async function unvoidYieldDistribution(
   distributionId: string,
   reason: string
 ): Promise<{ success: boolean; unvoided_transactions?: number; error?: string }> {
-  // Get current user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  const { data, error } = await callRPC("unvoid_yield_distribution", {
-    p_distribution_id: distributionId,
-    p_admin_id: user.id,
-    p_reason: reason,
-  });
-
-  if (error) {
-    logError("yieldManagement.unvoidDistribution", error, { distributionId });
-    throw new Error(error.message || "Failed to unvoid yield distribution");
-  }
-
-  return data as unknown as {
-    success: boolean;
-    unvoided_transactions?: number;
-    error?: string;
-  };
+  throw new Error("unvoid_yield_distribution RPC has been removed.");
 }
 
 /**
@@ -179,7 +156,6 @@ export async function updateYieldAum(
   _newTotalAum: number,
   _reason: string
 ): Promise<UpdateYieldResult> {
-  console.warn("updateYieldAum is deprecated — fund_daily_aum table was dropped");
   return { success: false } as any;
 }
 
@@ -274,6 +250,5 @@ export async function canEditYieldRecord(
  * @deprecated fund_daily_aum table was dropped — this is now a no-op.
  */
 export async function getYieldVoidImpact(_recordId: string): Promise<VoidAumImpactResult> {
-  console.warn("getYieldVoidImpact is deprecated — fund_daily_aum table was dropped");
   return { success: false } as any;
 }

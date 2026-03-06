@@ -166,7 +166,7 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
     throw new Error("Authentication required to create deposits");
   }
 
-  const rpcResult = await rpc.call("apply_investor_transaction", {
+  const rpcResult = await rpc.call("apply_transaction_with_crystallization", {
     p_fund_id: fund.id,
     p_investor_id: profileId,
     p_tx_type: "DEPOSIT",

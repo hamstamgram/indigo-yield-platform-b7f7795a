@@ -92,9 +92,9 @@ function UnifiedInvestorsContent() {
     return enrichedInvestors.filter((inv) => {
       // Text search filter (name, email, or investor ID)
       const search = searchTerm.toLowerCase();
+      const fullName = `${inv.firstName} ${inv.lastName}`.toLowerCase();
       const matchesSearch =
-        inv.firstName.toLowerCase().includes(search) ||
-        inv.lastName.toLowerCase().includes(search) ||
+        fullName.includes(search) ||
         inv.email.toLowerCase().includes(search) ||
         inv.id.toLowerCase().includes(search);
 

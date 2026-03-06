@@ -289,18 +289,7 @@ export function YieldsTable({
       ),
       className: "text-right text-blue-500/70",
       cell: (record: DistributionRow) => {
-        const totalCredits = (record.total_fee_credit || 0) + (record.total_ib_credit || 0);
-        return totalCredits > 0 ? (
-          <div className="flex flex-col items-end">
-            <FinancialValue value={totalCredits} asset={getFund(record.fund_id)?.asset} />
-            <div className="flex gap-1 text-[8px] opacity-60">
-              {record.total_fee_credit ? <span>F:{record.total_fee_credit.toFixed(2)}</span> : null}
-              {record.total_ib_credit ? <span>I:{record.total_ib_credit.toFixed(2)}</span> : null}
-            </div>
-          </div>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        );
+        return <span className="text-muted-foreground">-</span>;
       },
     },
     {
@@ -438,24 +427,7 @@ export function YieldsTable({
                         "-"
                       )}
                     </TableCell>
-                    <TableCell className="text-right text-yield/80">
-                      {(alloc.fee_credit || 0) > 0 || (alloc.ib_credit || 0) > 0 ? (
-                        <div className="flex flex-col items-end">
-                          {alloc.fee_credit && alloc.fee_credit > 0 && (
-                            <div className="text-[10px] text-blue-400">
-                              Fee Credit: +<FinancialValue value={alloc.fee_credit} asset={asset} />
-                            </div>
-                          )}
-                          {alloc.ib_credit && alloc.ib_credit > 0 && (
-                            <div className="text-[10px] text-purple-400">
-                              IB Credit: +<FinancialValue value={alloc.ib_credit} asset={asset} />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
+                    <TableCell className="text-right text-yield/80">-</TableCell>
                     <TableCell className="text-right font-medium text-yield/90">
                       <FinancialValue value={alloc.net_amount} asset={asset} />
                     </TableCell>
@@ -465,8 +437,6 @@ export function YieldsTable({
                           <FinancialValue
                             value={new Decimal(alloc.position_value_at_calc || 0)
                               .plus(new Decimal(alloc.net_amount || 0))
-                              .plus(new Decimal(alloc.fee_credit || 0))
-                              .plus(new Decimal(alloc.ib_credit || 0))
                               .toNumber()}
                             asset={asset}
                           />

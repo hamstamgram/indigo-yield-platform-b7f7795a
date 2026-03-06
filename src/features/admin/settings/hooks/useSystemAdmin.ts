@@ -5,6 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useToast } from "@/hooks";
 import {
   getResetHistory,
   getPositionResetPreview,
@@ -120,13 +121,25 @@ export function useRemoveAdminRole() {
  */
 export function useUpdateAdminRole() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: ({ userId, newRole }: { userId: string; newRole: "admin" | "super_admin" }) =>
       updateAdminRole(userId, newRole),
-    onSuccess: () => {
+    onSuccess: (_, { newRole }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUsers });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUsersWithRoles });
+      toast({
+        title: "Role Updated",
+        description: `Successfully updated user role to ${newRole === "super_admin" ? "Super Admin" : "Admin"}.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update user role",
+        variant: "destructive",
+      });
     },
   });
 }

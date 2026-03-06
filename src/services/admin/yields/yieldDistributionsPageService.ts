@@ -28,8 +28,6 @@ export type DistributionRow = {
   net_yield: number | null;
   recorded_aum: number;
   allocation_count: number | null;
-  total_fee_credit: number | null;
-  total_ib_credit: number | null;
   created_at: string;
   is_voided: boolean | null;
   summary_json: unknown | null;
@@ -48,8 +46,6 @@ export type AllocationRow = {
   fee_pct: number | null;
   ib_pct: number | null;
   position_value_at_calc: number | null;
-  fee_credit: number | null;
-  ib_credit: number | null;
 };
 
 export type FeeAllocationRow = {
@@ -114,8 +110,6 @@ export async function fetchYieldDistributionsPageData(
         net_yield,
         recorded_aum,
         allocation_count,
-        total_fee_credit,
-        total_ib_credit,
         created_at,
         is_voided,
         summary_json
@@ -178,9 +172,7 @@ export async function fetchYieldDistributionsPageData(
         ownership_pct,
         fee_pct,
         ib_pct,
-        position_value_at_calc,
-        fee_credit,
-        ib_credit
+        position_value_at_calc
       `
       )
       .in("distribution_id", distributionIds)

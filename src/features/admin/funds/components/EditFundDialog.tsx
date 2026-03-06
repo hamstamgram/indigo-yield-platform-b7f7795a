@@ -31,6 +31,7 @@ import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
 import { updateFund, checkFundUsage, feeSettingsService, deleteFund } from "@/services/admin";
 import { auditLogService } from "@/services/shared";
+import { getTodayUTC } from "@/utils/dateUtils";
 import type { Fund } from "@/types/domains/fund";
 
 const editFundSchema = z.object({
@@ -100,7 +101,7 @@ export function EditFundDialog({
       reset({
         name: fund.name,
         asset: fund.asset,
-        inception_date: fund.inception_date,
+        inception_date: fund.inception_date ? fund.inception_date.split("T")[0] : getTodayUTC(),
         status: fund.status as "active" | "deprecated",
         perf_fee_bps: Number(fund.perf_fee_bps) || 0,
       });

@@ -192,7 +192,7 @@ export async function createInvestorTransaction(
         `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${generateUUID()}`;
       const triggerReference = triggerReferenceRaw.replace(/^(DEP:|WDR:)/, "");
 
-      const result = await rpc.call("apply_investor_transaction", {
+      const result = await rpc.call("apply_transaction_with_crystallization", {
         p_fund_id: params.fund_id,
         p_investor_id: params.investor_id,
         p_tx_type: dbType,
@@ -265,7 +265,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   // Generate unique trigger reference to prevent duplicates
   const triggerReference = `manual:${params.fundId}:${params.investorId}:${today}:${generateUUID()}`;
 
-  const result = await rpc.call("apply_investor_transaction", {
+  const result = await rpc.call("apply_transaction_with_crystallization", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: params.type,

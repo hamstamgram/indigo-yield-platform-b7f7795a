@@ -238,82 +238,6 @@ async function autoResolveStaleAlerts(): Promise<void> {
 }
 
 /**
- * Fetch crystallization dashboard data
- */
-export async function fetchCrystallizationDashboard(
-  fundId?: string
-): Promise<CrystallizationDashboardRow[]> {
-  let query = supabase
-    .from("v_crystallization_dashboard")
-    .select(
-      "fund_id, fund_code, fund_name, total_positions, up_to_date, warning_stale, critical_stale, never_crystallized, newest_crystallization, oldest_crystallization"
-    );
-
-  if (fundId) {
-    query = query.eq("fund_id", fundId);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    logError("fetchCrystallizationDashboard", error);
-    throw error;
-  }
-
-  return (data || []).map((row) => ({
-    fund_id: row.fund_id,
-    fund_code: row.fund_code,
-    fund_name: row.fund_name,
-    total_positions: row.total_positions,
-    up_to_date: row.up_to_date,
-    warning_stale: row.warning_stale,
-    critical_stale: row.critical_stale,
-    never_crystallized: row.never_crystallized,
-    newest_crystallization: row.newest_crystallization,
-    oldest_crystallization: row.oldest_crystallization,
-  })) as CrystallizationDashboardRow[];
-}
-
-/**
- * Fetch crystallization gaps
- */
-export async function fetchCrystallizationGaps(
-  fundId?: string,
-  limit = 100
-): Promise<CrystallizationGap[]> {
-  let query = supabase
-    .from("v_crystallization_gaps")
-    .select(
-      "investor_id, fund_id, investor_email, fund_code, last_yield_crystallization_date, days_behind, current_value, gap_type, cumulative_yield_earned"
-    )
-    .order("days_behind", { ascending: false })
-    .limit(limit);
-
-  if (fundId) {
-    query = query.eq("fund_id", fundId);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    logError("fetchCrystallizationGaps", error);
-    throw error;
-  }
-
-  return (data || []).map((row) => ({
-    investor_id: row.investor_id,
-    fund_id: row.fund_id,
-    investor_email: row.investor_email,
-    fund_code: row.fund_code,
-    last_yield_crystallization_date: row.last_yield_crystallization_date,
-    days_behind: row.days_behind,
-    current_value: row.current_value,
-    gap_type: row.gap_type,
-    cumulative_yield_earned: row.cumulative_yield_earned,
-  })) as CrystallizationGap[];
-}
-
-/**
  * Fetch potential duplicate profiles
  */
 export async function fetchDuplicateProfiles(): Promise<DuplicateProfile[]> {
@@ -369,8 +293,8 @@ export async function mergeDuplicateProfiles(
   mergeProfileId: string
 ): Promise<MergeDuplicatesResult> {
   const { data, error } = await callRPC("merge_duplicate_profiles", {
-    p_keep_id: keepProfileId,
-    p_merge_id: mergeProfileId,
+    p_keep_profile_id: keepProfileId,
+    p_merge_profile_id: mergeProfileId,
   });
 
   if (error) {
@@ -389,8 +313,6 @@ export const integrityOperationsService = {
   // Fetch functions
   fetchIntegrityRuns,
   fetchAdminAlerts,
-  fetchCrystallizationDashboard,
-  fetchCrystallizationGaps,
   fetchDuplicateProfiles,
   fetchLedgerReconciliation,
   // Action functions

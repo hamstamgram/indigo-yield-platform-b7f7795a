@@ -161,7 +161,7 @@ function AdminDashboardContent() {
           <p className="text-sm text-slate-400 mt-1">Operational overview and risk monitoring</p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between md:w-auto w-full gap-2 md:gap-4">
           {/* System Status Indicator */}
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-yield/5 border border-yield/20 shadow-[0_0_15px_-5px_rgba(196,150,42,0.2)]">
             <div className="h-2 w-2 rounded-full bg-yield animate-pulse relative">
@@ -176,7 +176,7 @@ function AdminDashboardContent() {
           <Button
             variant="outline"
             size="icon"
-            className="relative h-12 w-12 rounded-xl glass-panel hover:bg-white/10 border-white/10"
+            className="relative h-10 w-10 md:h-12 md:w-12 rounded-xl glass-panel hover:bg-white/10 border-white/10"
             onClick={handleAlertClick}
             title="View integrity alerts"
           >
@@ -190,7 +190,7 @@ function AdminDashboardContent() {
 
           <Button
             size="lg"
-            className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(99,102,241,0.4)] border border-primary/20"
+            className="h-10 md:h-12 px-3 md:px-6 text-sm md:text-base whitespace-nowrap bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-5px_rgba(99,102,241,0.4)] border border-primary/20"
             onClick={() => setShowApplyYieldPicker(true)}
           >
             <TrendingUp className="h-4 w-4 mr-2" />
@@ -199,7 +199,7 @@ function AdminDashboardContent() {
 
           <Button
             size="lg"
-            className="h-12 px-6 bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/20"
+            className="h-10 md:h-12 px-3 md:px-6 text-sm md:text-base whitespace-nowrap bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] border border-indigo-400/20"
             onClick={() => setShowAddTransaction(true)}
           >
             <Command className="h-4 w-4 mr-2" />
@@ -220,7 +220,7 @@ function AdminDashboardContent() {
 
       {/* Yield Distribution Dialog */}
       <Dialog open={ops.showYieldDialog} onOpenChange={ops.setShowYieldDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-panel border-white/10 p-0">
+        <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[85vh] overflow-y-auto glass-panel border-white/10 p-0">
           <DialogHeader className="p-6 bg-black/20 border-b border-white/5">
             <DialogTitle className="flex items-center gap-3 text-2xl">
               {ops.selectedFund && (
@@ -424,7 +424,7 @@ function AdminDashboardContent() {
             size="sm"
             onClick={handleRefreshRiskData}
             disabled={isRefreshing}
-            className="text-xs text-slate-400 hover:text-white hover:bg-white/5"
+            className="text-xs text-slate-400 hover:text-white hover:bg-white/5 whitespace-nowrap"
           >
             <RefreshCw className={cn("h-3.5 w-3.5 mr-2", isRefreshing && "animate-spin")} />
             Refresh Data
@@ -432,7 +432,7 @@ function AdminDashboardContent() {
         </div>
 
         <Tabs defaultValue="liquidity" className="w-full">
-          <TabsList className="bg-black/20 border border-white/10 p-1 rounded-xl w-full max-w-md">
+          <TabsList className="bg-black/20 border border-white/10 p-1 rounded-xl w-full flex flex-wrap h-auto gap-1 md:max-w-md">
             <TabsTrigger
               value="liquidity"
               className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"

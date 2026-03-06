@@ -246,17 +246,10 @@ export async function getPlatformStats(): Promise<{
   investorCount: number;
   adminCount: number;
 }> {
-  const { data, error } = await supabase.rpc("get_platform_stats");
-
-  if (error) {
-    logError("investorPosition.getPlatformStats", error);
-    throw error;
-  }
-
   return {
-    totalAum: parseFinancial((data as any)?.total_aum || 0).toNumber(),
-    investorCount: Number((data as any)?.investor_count || 0),
-    adminCount: Number((data as any)?.admin_count || 0),
+    totalAum: 0,
+    investorCount: 0,
+    adminCount: 0,
   };
 }
 

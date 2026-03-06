@@ -108,12 +108,12 @@ const AssetSection = memo(function AssetSection({
           </div>
         ),
         width: "180px",
-        className: "font-medium",
+        className: "font-medium whitespace-nowrap",
       },
       {
         header: "Opening Balance",
         accessor: (report) => formatInvestorAmount(report.opening_balance || "0", assetCode),
-        className: "text-right font-mono",
+        className: "text-right font-mono whitespace-nowrap",
       },
       {
         header: "Additions",
@@ -123,7 +123,7 @@ const AssetSection = memo(function AssetSection({
             {formatInvestorAmount(report.additions || "0", assetCode)}
           </span>
         ),
-        className: "text-right font-mono",
+        className: "text-right font-mono whitespace-nowrap",
       },
       {
         header: "Withdrawals",
@@ -133,7 +133,7 @@ const AssetSection = memo(function AssetSection({
             {formatInvestorAmount(report.withdrawals || "0", assetCode)}
           </span>
         ),
-        className: "text-right font-mono",
+        className: "text-right font-mono whitespace-nowrap",
       },
       {
         header: "Yield Earned",
@@ -149,17 +149,17 @@ const AssetSection = memo(function AssetSection({
             </span>
           );
         },
-        className: "text-right font-mono",
+        className: "text-right font-mono whitespace-nowrap",
       },
       {
         header: "Rate of Return",
         accessor: (report) => `${report.rate.toFixed(3)}%`,
-        className: "text-right font-mono font-medium",
+        className: "text-right font-mono font-medium whitespace-nowrap",
       },
       {
         header: "Closing Balance",
         accessor: (report) => formatInvestorAmount(report.closing_balance || "0", assetCode),
-        className: "text-right font-mono font-bold bg-muted/10",
+        className: "text-right font-mono font-bold bg-muted/10 whitespace-nowrap",
       },
     ],
     [assetCode]

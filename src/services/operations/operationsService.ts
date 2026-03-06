@@ -60,13 +60,21 @@ export const operationsService = {
           .select("id", { count: "exact", head: true })
           .in("status", ["pending", "approved"]),
 
-        // Pending deposits - transactions_v2 doesn't have status column, deposits are immediately confirmed
-        // Return typed result with 0 count
-        Promise.resolve({ count: 0, error: null } as CountQueryResult),
+        // Pending deposits - counted as today's actual deposits
+        supabase
+          .from("transactions_v2")
+          .select("id", { count: "exact", head: true })
+          .eq("type", "DEPOSIT")
+          .gte("tx_date", getTodayString())
+          .eq("is_voided", false),
 
-        // Pending investments - Note: "INVESTMENT" type doesn't exist, investments are tracked via DEPOSIT
-        // Return typed result with 0 count
-        Promise.resolve({ count: 0, error: null } as CountQueryResult),
+        // Pending investments - counted as today's YIELD or related events
+        supabase
+          .from("transactions_v2")
+          .select("id", { count: "exact", head: true })
+          .eq("type", "YIELD")
+          .gte("tx_date", getTodayString())
+          .eq("is_voided", false),
 
         // Today's transactions
         supabase

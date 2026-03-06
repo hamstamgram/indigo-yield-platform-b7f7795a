@@ -28,7 +28,7 @@ export const RPC_FUNCTIONS = [
   "add_fund_to_investor",
   "adjust_investor_position",
   "apply_daily_yield_with_validation",
-  "apply_investor_transaction",
+  "apply_transaction_with_crystallization",
   "apply_segmented_yield_distribution_v5",
   "approve_and_complete_withdrawal",
   "approve_withdrawal",
@@ -320,8 +320,8 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_created_by", "p_fund_id", "p_gross_yield_pct", "p_yield_date"] as const,
     optionalParams: ["p_purpose", "p_skip_validation"] as const,
   },
-  apply_investor_transaction: {
-    name: "apply_investor_transaction" as const,
+  apply_transaction_with_crystallization: {
+    name: "apply_transaction_with_crystallization" as const,
     returnType: "Json;",
     returnsSet: false,
     securityDefiner: false,

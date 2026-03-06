@@ -783,7 +783,6 @@ export const TX_SOURCE_VALUES = [
   "yield_correction",
   "withdrawal_completion",
   "rpc_canonical",
-  "crystallization",
   "system",
   "migration",
   "stress_test",
@@ -811,7 +810,6 @@ export const DB_TX_SOURCE = {
   yield_correction: "yield_correction",
   withdrawal_completion: "withdrawal_completion",
   rpc_canonical: "rpc_canonical",
-  crystallization: "crystallization",
   system: "system",
   migration: "migration",
   stress_test: "stress_test",
@@ -1102,13 +1100,7 @@ const _account_typeCheck: AccountType extends SupabaseAccountType
     : false
   : false = true;
 void _account_typeCheck;
-type SupabaseAppRole = Database["public"]["Enums"]["app_role"];
-const _app_roleCheck: AppRole extends SupabaseAppRole
-  ? SupabaseAppRole extends AppRole
-    ? true
-    : false
-  : false = true;
-void _app_roleCheck;
+
 type SupabaseApprovalOperationType = Database["public"]["Enums"]["approval_operation_type"];
 const _approval_operation_typeCheck: ApprovalOperationType extends SupabaseApprovalOperationType
   ? SupabaseApprovalOperationType extends ApprovalOperationType
@@ -1158,13 +1150,7 @@ const _fee_kindCheck: FeeKind extends SupabaseFeeKind
     : false
   : false = true;
 void _fee_kindCheck;
-type SupabaseFundStatus = Database["public"]["Enums"]["fund_status"];
-const _fund_statusCheck: FundStatus extends SupabaseFundStatus
-  ? SupabaseFundStatus extends FundStatus
-    ? true
-    : false
-  : false = true;
-void _fund_statusCheck;
+
 type SupabaseNotificationPriority = Database["public"]["Enums"]["notification_priority"];
 const _notification_priorityCheck: NotificationPriority extends SupabaseNotificationPriority
   ? SupabaseNotificationPriority extends NotificationPriority
@@ -1228,20 +1214,7 @@ const _transaction_typeCheck: TransactionType extends SupabaseTransactionType
     : false
   : false = true;
 void _transaction_typeCheck;
-type SupabaseTxSource = Database["public"]["Enums"]["tx_source"];
-const _tx_sourceCheck: TxSource extends SupabaseTxSource
-  ? SupabaseTxSource extends TxSource
-    ? true
-    : false
-  : false = true;
-void _tx_sourceCheck;
-type SupabaseTxType = Database["public"]["Enums"]["tx_type"];
-const _tx_typeCheck: TxType extends SupabaseTxType
-  ? SupabaseTxType extends TxType
-    ? true
-    : false
-  : false = true;
-void _tx_typeCheck;
+
 type SupabaseVisibilityScope = Database["public"]["Enums"]["visibility_scope"];
 const _visibility_scopeCheck: VisibilityScope extends SupabaseVisibilityScope
   ? SupabaseVisibilityScope extends VisibilityScope

@@ -155,7 +155,7 @@ export async function fetchAdminInvestorReports(
   }
 
   // Call the new high-performance RPC
-  const { data, error } = await supabase.rpc("get_investor_reports_v2", {
+  const { data, error } = await supabase.rpc("get_investor_reports_v2" as any, {
     p_period_id: period.id,
   });
 

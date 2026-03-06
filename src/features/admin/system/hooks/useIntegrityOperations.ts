@@ -83,32 +83,6 @@ export function useAcknowledgeAlert() {
 }
 
 // ============================================================================
-// Crystallization
-// ============================================================================
-
-/**
- * Fetch crystallization dashboard
- */
-export function useCrystallizationDashboard(fundId?: string) {
-  return useQuery({
-    queryKey: QUERY_KEYS.crystallizationDashboard(fundId),
-    queryFn: () => integrityOperationsService.fetchCrystallizationDashboard(fundId),
-    refetchInterval: 60000,
-  });
-}
-
-/**
- * Fetch crystallization gaps
- */
-export function useCrystallizationGaps(fundId?: string, limit = 100) {
-  return useQuery({
-    queryKey: QUERY_KEYS.crystallizationGaps(fundId),
-    queryFn: () => integrityOperationsService.fetchCrystallizationGaps(fundId, limit),
-    refetchInterval: 60000,
-  });
-}
-
-// ============================================================================
 // Duplicates
 // ============================================================================
 

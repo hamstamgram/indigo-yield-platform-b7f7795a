@@ -554,6 +554,7 @@ export const YIELD_RELATED_KEYS = [
  */
 export const INVESTOR_RELATED_KEYS = [
   QUERY_KEYS.investorsList,
+  QUERY_KEYS.unifiedInvestors,
   QUERY_KEYS.investorPositions(),
   QUERY_KEYS.transactions(),
   QUERY_KEYS.dashboardStats,
@@ -593,4 +594,8 @@ export const WITHDRAWAL_RELATED_KEYS = [
 /**
  * Helper for admin investor-related queries
  */
-export const ADMIN_INVESTOR_RELATED_KEYS = [QUERY_KEYS.adminInvestors, QUERY_KEYS.investorsList];
+export const ADMIN_INVESTOR_RELATED_KEYS = [
+  QUERY_KEYS.adminInvestors,
+  QUERY_KEYS.investorsList,
+  QUERY_KEYS.unifiedInvestors,
+];

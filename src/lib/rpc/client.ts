@@ -15,7 +15,7 @@ const RATE_LIMITED_RPCS: Record<
   string,
   { windowMs: number; maxRequests: number; actionType: string }
 > = {
-  apply_investor_transaction: {
+  apply_transaction_with_crystallization: {
     windowMs: 60000,
     maxRequests: 10,
     actionType: "transaction",
@@ -218,7 +218,7 @@ export async function deposit(params: {
   notes?: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_investor_transaction", {
+  return call("apply_transaction_with_crystallization", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "DEPOSIT",
@@ -242,7 +242,7 @@ export async function withdrawal(params: {
   notes?: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_investor_transaction", {
+  return call("apply_transaction_with_crystallization", {
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: "WITHDRAWAL",

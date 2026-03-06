@@ -15,12 +15,10 @@ export interface FundAUMData {
   name: string;
   asset: string;
   fund_class: string;
-  inception_date: string | null;
   status: string;
   latest_aum: number;
   latest_aum_date: string | null;
   investor_count: number;
-  logo_url: string | null;
 }
 
 const QUERY_KEY = ["fund-aum-unified"];
@@ -38,12 +36,10 @@ async function fetchFundsWithAUM(): Promise<FundAUMData[]> {
     name: fund.fund_name,
     asset: fund.asset,
     fund_class: fund.fund_class,
-    inception_date: fund.inception_date,
     status: fund.status,
     latest_aum: Number(fund.total_aum || 0),
     latest_aum_date: null, // We could derive this if needed, but keeping existing behavior
     investor_count: Number(fund.investor_count || 0),
-    logo_url: fund.logo_url,
   }));
 }
 

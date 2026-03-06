@@ -86,7 +86,6 @@ export async function callRPCNoArgs<T extends keyof RPCFunctions>(
  * }
  *
  * // data is properly typed here!
- * console.log("Success:", data);
  * ```
  */
 

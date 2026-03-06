@@ -3,6 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
+import { generateUnifiedEmailHtml } from "../_shared/email-layout.ts";
+
 interface AdminInvite {
   id: string;
   email: string;
@@ -25,86 +27,45 @@ const generateInviteEmailHtml = (inviteLink: string, role: string, expiresAt: st
     day: "numeric",
   });
 
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Invitation - Indigo Yield</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f7;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-    <tr>
-      <td align="center" style="padding: 40px 0;">
-        <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <!-- Header -->
-          <tr>
-            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Indigo Yield</h1>
-              <p style="margin: 10px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px;">Investment Management Platform</p>
-            </td>
-          </tr>
-          
-          <!-- Content -->
-          <tr>
-            <td style="padding: 40px;">
-              <h2 style="margin: 0 0 20px; color: #1a1a2e; font-size: 22px; font-weight: 600;">You've Been Invited!</h2>
-              
-              <p style="margin: 0 0 20px; color: #4a4a68; font-size: 16px; line-height: 1.6;">
-                You have been invited to join <strong>Indigo Yield</strong> as a <strong style="color: #4F46E5;">${roleDisplay}</strong>.
-              </p>
-              
-              <p style="margin: 0 0 30px; color: #4a4a68; font-size: 16px; line-height: 1.6;">
-                Click the button below to set up your account and access the admin dashboard.
-              </p>
-              
-              <!-- CTA Button -->
-              <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td align="center">
-                    <a href="${inviteLink}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
-                      Accept Invitation
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Expiry Notice -->
-              <div style="margin: 30px 0; padding: 16px 20px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
-                <p style="margin: 0; color: #92400e; font-size: 14px;">
-                  <strong>⏰ This invitation expires on ${expiryDate}</strong>
-                </p>
-              </div>
-              
-              <!-- Link fallback -->
-              <p style="margin: 20px 0 0; color: #6b7280; font-size: 13px; line-height: 1.5;">
-                If the button doesn't work, copy and paste this link into your browser:
-              </p>
-              <p style="margin: 8px 0 0; word-break: break-all;">
-                <a href="${inviteLink}" style="color: #4F46E5; font-size: 13px;">${inviteLink}</a>
-              </p>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #6b7280; font-size: 13px; text-align: center;">
-                This is an automated message from Indigo Yield.
-              </p>
-              <p style="margin: 0; color: #6b7280; font-size: 13px; text-align: center;">
-                If you didn't expect this invitation, please ignore this email.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+  const innerHtml = `
+      <p style="color: #4F46E5; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 20px;">You've Been Invited!</p>
+      
+      <p style="margin: 0 0 20px; color: #334155; font-size: 16px; line-height: 1.6;">
+        You have been invited to join <strong>Indigo Yield</strong> as a <strong style="color: #4F46E5;">${roleDisplay}</strong>.
+      </p>
+      
+      <p style="margin: 0 0 30px; color: #334155; font-size: 16px; line-height: 1.6;">
+        Click the button below to set up your account and access the admin dashboard.
+      </p>
+      
+      <!-- CTA Button -->
+      <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td align="center">
+            <a href="${inviteLink}" style="display: inline-block; padding: 14px 32px; background-color: #4F46E5; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 6px;">
+              Accept Invitation
+            </a>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Expiry Notice -->
+      <div style="margin: 30px 0; padding: 16px 20px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px;">
+        <p style="margin: 0; color: #92400E; font-size: 14px; font-weight: 600;">
+          ⏰ This invitation expires on ${expiryDate}
+        </p>
+      </div>
+      
+      <!-- Link fallback -->
+      <p style="margin: 20px 0 0; color: #64748B; font-size: 13px; line-height: 1.5;">
+        If the button doesn't work, copy and paste this link into your browser:
+      </p>
+      <p style="margin: 8px 0 0; word-break: break-all;">
+        <a href="${inviteLink}" style="color: #4F46E5; font-size: 13px;">${inviteLink}</a>
+      </p>
   `.trim();
+
+  return generateUnifiedEmailHtml("Admin Invitation", innerHtml);
 };
 
 serve(async (req) => {

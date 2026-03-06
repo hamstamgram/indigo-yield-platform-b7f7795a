@@ -38,7 +38,6 @@ export interface FlowData {
   daily_outflows: number;
   net_flow_24h: number;
   aum: number;
-  aum_source: string;
 }
 
 /** RPC result from get_historical_nav */
@@ -197,7 +196,6 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
       daily_outflows: Number(fundFlow.daily_outflows || 0),
       net_flow_24h: Number(fundFlow.net_flow_24h || 0),
       aum: Number(row.aum_value || 0),
-      aum_source: row.aum_source,
     });
   }
 

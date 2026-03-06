@@ -133,7 +133,7 @@ export function AddTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto transition-all duration-300 sm:max-w-[500px]">
+      <DialogContent className="max-h-[85vh] overflow-y-auto transition-all w-[95vw] md:w-full max-w-lg md:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
           <DialogDescription className="sr-only">Record a new transaction</DialogDescription>

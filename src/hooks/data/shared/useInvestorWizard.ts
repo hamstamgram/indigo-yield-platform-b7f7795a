@@ -44,6 +44,7 @@ export function useCreateInvestorWizard() {
     onSuccess: () => {
       // Invalidate investor-related queries
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorsList });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.unifiedInvestors });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
     },
     onError: (error) => {

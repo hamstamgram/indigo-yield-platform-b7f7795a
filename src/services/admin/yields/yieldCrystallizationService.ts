@@ -55,7 +55,8 @@ export async function finalizeMonthYield(
 ): Promise<FinalizationResult> {
   const { data, error } = await callRPC("finalize_month_yield", {
     p_fund_id: fundId,
-    p_month: `${year}-${String(month).padStart(2, '0')}-01`,
+    p_period_year: year,
+    p_period_month: month,
     p_admin_id: adminId,
   });
 

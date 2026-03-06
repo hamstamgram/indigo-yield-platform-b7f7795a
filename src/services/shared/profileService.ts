@@ -169,17 +169,16 @@ async function getActiveInvestors(
   limit = 100,
   offset = 0
 ): Promise<{ data: ProfileSummary[]; total: number }> {
-  const { data, error } = await supabase.rpc("get_paged_investor_summaries", {
-    p_limit: limit,
-    p_offset: offset,
-    p_status: "active",
-  });
+  const { data, error, count } = await supabase
+    .from("profiles")
+    .select("id, email, first_name, last_name", { count: "exact" })
+    .eq("status", "active")
+    .order("last_name")
+    .range(offset, offset + limit - 1);
 
   if (error) throw error;
 
-  const total_data = data as any[];
-  const totalCount = total_data?.[0]?.total_count || 0;
-  const profiles = (total_data || []).map((p: any) => ({
+  const profiles = (data || []).map((p: any) => ({
     id: p.id,
     email: p.email,
     firstName: p.first_name,
@@ -189,7 +188,7 @@ async function getActiveInvestors(
 
   return {
     data: profiles,
-    total: Number(totalCount),
+    total: count || 0,
   };
 }
 

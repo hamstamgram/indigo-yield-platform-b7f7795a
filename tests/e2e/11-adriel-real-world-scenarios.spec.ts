@@ -1,0 +1,540 @@
+import { test, expect, Page } from "@playwright/test";
+
+// Environment Configuration
+const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
+
+// Generate unique identifiers to prevent collisions with existing Profiles
+const TIMESTAMP = Date.now();
+
+const INVESTOR_PAUL = "Paul Johnson";
+const INVESTOR_LP = "Indigo LP";
+const INVESTOR_SAM = "Sam Johnson";
+const FUND_SOL = "Solana Yield Fund";
+const FUND_XRP = "Ripple Yield Fund";
+
+// Login Credentials
+const ADRIEL_EMAIL = "adriel@indigo.fund";
+const ADRIEL_PASS = "TestAdmin2026!";
+
+// Fee Variables
+const DEFAULT_FEE = "13.5";
+const XRP_FEE = "16";
+const XRP_IB = "4";
+const PAUL_IB = "1.5";
+
+// Helpers
+async function loginAsAdmin(page: Page, email: string = ADRIEL_EMAIL, pass: string = ADRIEL_PASS) {
+  await page.goto(`${BASE_URL}/login`);
+
+  // Accept cookies if present
+  const cookieBtn = page.getByRole("button", { name: /accept/i }).first();
+  if (await cookieBtn.isVisible()) {
+    await cookieBtn.click();
+  }
+
+  await page.fill('input[type="email"], [name="email"]', email);
+  await page.fill('input[type="password"], [name="password"]', pass);
+  await page.click('button[type="submit"]');
+
+  // Wait for "Welcome back" or redirect
+  await page.waitForTimeout(5000);
+
+  // Support either direct redirect to admin or dashboard
+  await expect(page).toHaveURL(/\/(dashboard|admin)/, { timeout: 60000 });
+}
+
+async function createFund(page: Page, fundName: string, assetType: string) {
+  await page.goto(`${BASE_URL}/admin/funds`);
+  await page.waitForLoadState("networkidle");
+  await page
+    .getByRole("button", { name: /Add Fund|New Fund/i })
+    .first()
+    .click();
+
+  const dialog = page.getByRole("dialog").first();
+  await dialog.waitFor({ state: "visible" });
+
+  // Name
+  await dialog.locator('input[name="name"], input#name').fill(fundName);
+
+  // Config
+  await dialog
+    .locator('input[name="code"], input#code')
+    .fill(fundName.replace(/\s+/g, "").substring(0, 10));
+
+  // Ticker (replaces the old Asset Select dropdown in V5)
+  const tickerInput = dialog.getByRole("textbox", { name: /Ticker/i }).first();
+  if (await tickerInput.isVisible()) {
+    await tickerInput.fill(assetType);
+  } else {
+    await dialog
+      .locator('input[name="ticker"], input#ticker, input[placeholder*="BTC"]')
+      .fill(assetType);
+  }
+
+  await dialog.getByRole("button", { name: /Create|Save/i }).click();
+  await expect(page.getByText(/success/i).first()).toBeVisible({ timeout: 10000 });
+  await expect(dialog).toBeHidden({ timeout: 10000 });
+}
+
+async function createProfileUser(page: Page, fullName: string, email: string, role: string) {
+  await page.goto(`${BASE_URL}/admin/investors`);
+  await page.waitForLoadState("networkidle");
+
+  // Add User
+  const addUserBtn = page
+    .locator('button:has-text("Add User"), button:has-text("New Profile")')
+    .first();
+  if (await addUserBtn.isVisible()) {
+    await addUserBtn.click();
+  } else {
+    await page
+      .getByRole("button", { name: /Add|New/i })
+      .first()
+      .click();
+  }
+
+  const dialog = page
+    .locator('div[role="dialog"]')
+    .filter({ hasText: /Add User|New Profile/i })
+    .first();
+  await dialog.waitFor({ state: "visible" });
+
+  await dialog
+    .locator('input[name="full_name"], input#full_name, input[placeholder*="name" i]')
+    .fill(fullName);
+  await dialog.locator('input[name="email"], input[type="email"], input#email').fill(email);
+
+  const roleTrigger = dialog.locator('button[role="combobox"]').first();
+  await roleTrigger.click();
+  await page.getByRole("option", { name: new RegExp(role, "i") }).click();
+
+  const saveBtn = dialog.getByRole("button", { name: /Create User|Save/i }).first();
+  await saveBtn.click();
+  await expect(page.getByText(/success/i).first()).toBeVisible({ timeout: 10000 });
+  await expect(dialog).toBeHidden({ timeout: 10000 });
+}
+
+async function assignFundAndFees(
+  page: Page,
+  investorName: string,
+  fundName: string,
+  platformFee: string
+) {
+  await page.goto(`${BASE_URL}/admin/investors`);
+  await page.waitForLoadState("networkidle");
+
+  // Filter and open profile
+  await page.getByPlaceholder("Search").fill(investorName);
+  await page.waitForTimeout(1000);
+  const row = page.locator("tr").filter({ hasText: investorName }).first();
+  await row.getByRole("button", { name: /Open|View/i }).click();
+  await page.waitForLoadState("domcontentloaded");
+
+  // Click Settings Tab
+  const settingsTab = page.getByRole("tab", { name: /Settings/i });
+  if (await settingsTab.isVisible()) {
+    await settingsTab.click();
+  }
+
+  // Set Global Performance Fee
+  const globalFeeInput = page.locator('input[type="number"], spinbutton').first();
+  await globalFeeInput.fill(platformFee);
+  await page.locator('button:has-text("Save")').first().click();
+  await expect(page.getByText(/success|updated/i).first()).toBeVisible({ timeout: 5000 });
+  await page.waitForTimeout(500);
+
+  // Give them access to the specific Fund so we can deposit
+  // Navigate to Access/Funds area if required by architecture.
+  // Testing reveals that users can be assigned via the deposit modal directly,
+  // or we might need to grant access. Assuming standard configuration grants all active users
+  // visibility in the deposit dropdown if they are an active investor.
+}
+
+async function assignIBCommission(
+  page: Page,
+  investorName: string,
+  fundName: string,
+  ibName: string,
+  ibFee: string
+) {
+  await page.goto(`${BASE_URL}/admin/investors`);
+  await page.waitForLoadState("networkidle");
+
+  await page.getByPlaceholder("Search").fill(investorName);
+  await page.waitForTimeout(1000);
+  const row = page.locator("tr").filter({ hasText: investorName }).first();
+  await row.getByRole("button", { name: /Open|View/i }).click();
+
+  const settingsTab = page.getByRole("tab", { name: /Settings/i });
+  if (await settingsTab.isVisible()) {
+    await settingsTab.click();
+  }
+
+  // Assign IB
+  const ibSection = page.locator('h3:has-text("Partnership & IB Settings")').locator("xpath=./..");
+  const addBtn = ibSection.getByRole("button", { name: /Add/i }).first();
+  await addBtn.click();
+
+  const dialog = page.locator('div[role="dialog"]').first();
+  await dialog.waitFor({ state: "visible" });
+
+  // Select Fund
+  const fundTrigger = dialog.locator('button[role="combobox"]').nth(0);
+  await fundTrigger.click();
+  await page.getByRole("option", { name: new RegExp(fundName, "i") }).click();
+
+  // Select IB
+  const ibTrigger = dialog.locator('button[role="combobox"]').nth(1);
+  await ibTrigger.click();
+  await page.getByRole("option", { name: new RegExp(ibName, "i") }).click();
+
+  // Fill Fee
+  await dialog.locator('input[type="number"]').first().fill(ibFee);
+
+  await dialog.getByRole("button", { name: /Add Entry|Save/i }).click();
+  await expect(page.getByText(/success/i).first()).toBeVisible({ timeout: 10000 });
+  await expect(dialog).toBeHidden({ timeout: 10000 });
+}
+
+async function executeDeposit(
+  page: Page,
+  fundName: string,
+  investorName: string,
+  amount: string,
+  dateStr: string
+) {
+  await page.goto(`${BASE_URL}/admin/transactions`);
+  await page.waitForLoadState("networkidle");
+
+  const newTxBtn = page
+    .locator('button:has-text("New Transaction"), button:has-text("Add Transaction")')
+    .first();
+  await newTxBtn.click();
+
+  const modal = page.getByRole("dialog");
+  await modal.waitFor({ state: "visible" });
+
+  // Type = DEPOSIT
+  const typeTrigger = modal.locator('button[role="combobox"]').nth(0);
+  await typeTrigger.click();
+  await page.getByRole("option", { name: /DEPOSIT/i }).click();
+
+  // Fund
+  const fundTrigger = modal.locator('button[role="combobox"]').nth(1);
+  await fundTrigger.click();
+  await page.getByRole("option", { name: new RegExp(fundName, "i") }).click();
+
+  // Investor
+  const invTrigger = modal.locator('button[role="combobox"]').nth(2);
+  await invTrigger.click();
+  await page
+    .locator('[role="option"]')
+    .filter({ hasText: new RegExp(investorName, "i") })
+    .click();
+
+  // Amount
+  await modal.locator('input[type="number"], input[name="amount"]').fill(amount);
+
+  // Optional Date Override if available in the UI
+  const dateInput = modal.locator(
+    'input[type="date"], input#effective-date, input#transaction-date'
+  );
+  if ((await dateInput.isVisible()) && dateStr) {
+    await dateInput.fill(dateStr);
+  }
+
+  // Submit
+  await modal.getByRole("button", { name: /Add Transaction|Submit/i }).click();
+
+  // Wait for success toast OR check for error
+  try {
+    await expect(page.getByText(/success|added|created/i).first()).toBeVisible({ timeout: 10000 });
+  } catch (e) {
+    // If success toast not found, check for error messages in the modal
+    const errorText = await modal.innerText();
+    if (errorText.toLowerCase().includes("error") || errorText.toLowerCase().includes("invalid")) {
+      throw new Error(`Deposit failed. UI Error Text: ${errorText}`);
+    }
+    throw e;
+  }
+  await expect(modal).toBeHidden({ timeout: 10000 });
+}
+
+async function simulateYieldWorkflow(
+  page: Page,
+  fundName: string,
+  newAUM: string,
+  purpose: "Transaction" | "Reporting",
+  dateStr: string,
+  asserts?: any[]
+) {
+  console.log(`\n--- Simulating ${purpose} Yield: ${newAUM} ${fundName} for ${dateStr} ---`);
+
+  // Always navigate to the Command Center to ensure "Apply Yield" is visible
+  await page.goto(`${BASE_URL}/admin`);
+  await page.waitForSelector('h1:has-text("Command Center")', { timeout: 30000 });
+
+  await page.getByRole("button", { name: /Apply Yield/i }).click();
+
+  // Select Fund (Support both card-based and combobox-based fund selection)
+  const fundCard = page.getByRole("button").filter({ hasText: fundName }).first();
+  const fundSelect = page.getByRole("combobox", { name: "Select Fund" });
+
+  if (await fundCard.isVisible()) {
+    await fundCard.click();
+    // Wait for the actual distribution form to appear
+    await page.waitForSelector("text=Record Yield Event", { timeout: 10000 });
+  } else if (await fundSelect.isVisible()) {
+    await fundSelect.click();
+    await page.getByRole("option", { name: fundName, exact: false }).click();
+  }
+  await page.waitForTimeout(500);
+
+  // Wait for modal and purpose selection
+  await page.waitForSelector("text=Choose Period & Purpose", { timeout: 10000 });
+
+  // Purpose Selection (Transaction vs Reporting)
+  if (purpose === "Transaction") {
+    console.log("Selecting Transaction purpose...");
+    await page
+      .locator("div")
+      .filter({ hasText: /^Transaction$/ })
+      .first()
+      .click({ force: true });
+  } else {
+    console.log("Selecting Reporting purpose...");
+    await page
+      .locator("div")
+      .filter({ hasText: /^Reporting$/ })
+      .first()
+      .click({ force: true });
+  }
+  await page.waitForTimeout(2000);
+
+  // Date / Month Handling
+  if (purpose === "Reporting") {
+    const date = new Date(dateStr);
+    const monthLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(
+      date
+    );
+    console.log(`Selecting month: ${monthLabel}`);
+
+    const combobox = page.locator('button[role="combobox"]').first();
+    await expect(combobox).toBeVisible({ timeout: 20000 });
+    await combobox.click();
+    await page.waitForTimeout(1000);
+
+    // Log available options for debugging
+    const options = await page.getByRole("option").allInnerTexts();
+    console.log(`Available months: ${options.join(", ")}`);
+
+    const option = page.getByRole("option", { name: monthLabel, exact: false }).first();
+    await expect(option).toBeVisible({ timeout: 10000 });
+    await option.click({ force: true });
+    await page.waitForTimeout(1000);
+  } else {
+    const dateInput = page.locator('input[type="date"], input#yield-date').first();
+    console.log(`Filling date: ${dateStr}`);
+    await dateInput.fill(dateStr);
+    await dateInput.press("Enter");
+    await page.waitForTimeout(1000);
+  }
+
+  // New AUM Input
+  console.log(`Setting AUM: ${newAUM}`);
+  const aumInput = page.locator('input[name="newAUM"], input#newAUM, input[id*="aum"]').first();
+  await aumInput.fill(newAUM);
+  await aumInput.press("Tab");
+  await page.waitForTimeout(1000);
+
+  // Preview
+  const previewBtn = page.getByRole("button", { name: /Preview Yield Distribution/i });
+  if (await previewBtn.isVisible()) {
+    await expect(previewBtn).toBeEnabled({ timeout: 15000 });
+    await previewBtn.click();
+  } else {
+    await page
+      .getByRole("button", { name: /Preview/i })
+      .first()
+      .click();
+  }
+  await page.waitForTimeout(1000);
+
+  // Assertions
+  const previewHeader = page.getByText(/Investor Allocation Breakdown|Confirm & Apply/i);
+  await expect(previewHeader).toBeVisible({ timeout: 20000 });
+
+  if (asserts && asserts.length > 0) {
+    console.log("Verifying Preview Breakdown...");
+    // Scope to the table to avoid background rows
+    const previewTable = page
+      .locator("table")
+      .filter({ hasText: /Investor|Gross|Net/i })
+      .first();
+
+    for (const req of asserts) {
+      const row = previewTable.locator("tr").filter({ hasText: req.name }).first();
+      await expect(row).toBeVisible({ timeout: 15000 });
+
+      console.log(`Checking row for ${req.name} matches ${req.value}`);
+      const cell = row.getByText(req.value, { exact: false }).first();
+      await expect(cell).toBeVisible({ timeout: 10000 });
+
+      if (req.ibValue) {
+        await expect(row.getByText(req.ibValue, { exact: false }).first()).toBeVisible({
+          timeout: 10000,
+        });
+      }
+    }
+  }
+
+  // Distribute
+  const distributeBtn = page
+    .getByRole("button", { name: /Distribute Yield to/i })
+    .or(page.locator("button").filter({ hasText: /Distribute/i }));
+  if (await distributeBtn.isVisible()) {
+    await distributeBtn.click();
+    await page.waitForTimeout(1000);
+
+    // Discrepancy Checkbox in Confirmation Dialog
+    const discrepancy = page
+      .getByText(/acknowledge the .* AUM discrepancy/i)
+      .or(page.locator("label").filter({ hasText: /discrepancy/i }));
+    if (await discrepancy.first().isVisible()) {
+      console.log("Acknowledging discrepancy...");
+      await discrepancy.first().click({ force: true });
+      await page.waitForTimeout(300);
+    }
+
+    // Final Confirmation Checkbox
+    const confirmation = page
+      .getByText(/I confirm this yield/i)
+      .or(page.locator("label").filter({ hasText: /confirm.*accurate/i }));
+    if (await confirmation.first().isVisible()) {
+      console.log("Confirming distribution accuracy...");
+      await confirmation.first().click({ force: true });
+      await page.waitForTimeout(300);
+    }
+
+    const finalConfirm = page.getByRole("button", { name: /Confirm Distribution/i });
+    await expect(finalConfirm).toBeEnabled({ timeout: 10000 });
+    await finalConfirm.click();
+
+    await expect(page.getByText(/complete|success/i).first()).toBeVisible({ timeout: 20000 });
+    await page
+      .getByRole("button", { name: /Done/i })
+      .click()
+      .catch(() => {});
+  }
+}
+
+test.describe("Adriel Real-World Golden Scenarios (E2E UI TEST)", () => {
+  test.describe.configure({ mode: "serial" });
+
+  test("Unified Adriel Real-World Golden Scenarios (SOL + XRP)", async ({ page }) => {
+    test.setTimeout(900000); // 15 minutes for the whole flow
+
+    // Setup loggers
+    page.on("console", (msg) => {
+      if (msg.type() === "error") console.log(`BROWSER ERROR: ${msg.text()}`);
+      if (msg.type() === "log") console.log(`BROWSER LOG: ${msg.text()}`);
+    });
+    page.on("requestfailed", (request) => {
+      console.log(`REQUEST FAILED: ${request.url()} - ${request.failure()?.errorText}`);
+    });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("block_emails", "true");
+    });
+
+    // 1. Intercept noisy background polls to stabilize UI
+    await page.route("**/admin_alerts**", (route) => route.fulfill({ status: 200, body: "[]" }));
+    await page.route("**/risk_alerts**", (route) => route.fulfill({ status: 200, body: "[]" }));
+    await page.route(
+      "**/*.supabase.co/rest/v1/profiles?select=id,email,first_name,last_name,is_admin**",
+      (route) => route.fulfill({ status: 200, body: "[]" })
+    );
+    await page.route("**/functions/v1/notify-yield-applied", (route) =>
+      route.fulfill({ status: 200, body: '{"success":true}' })
+    );
+
+    // 2. Login
+    await loginAsAdmin(page, ADRIEL_EMAIL, ADRIEL_PASS);
+    await page.waitForTimeout(2000);
+
+    // --- SCENARIO 1: SOL Fund Flow ---
+    console.log("\n>>> STARTING SCENARIO 1: SOL");
+    await page.goto(`${BASE_URL}/admin/transactions`);
+    await page.waitForSelector("h1", { timeout: 30000 });
+
+    // 3. Action (02/09/2025): Deposit INDIGO LP = 1250 SOL
+    await executeDeposit(page, FUND_SOL, INVESTOR_LP, "1250", "2025-09-02");
+
+    // 4. Action (04/09/2025): Yield (Transaction). New AUM 1252 SOL.
+    await simulateYieldWorkflow(page, FUND_SOL, "1252", "Transaction", "2025-09-04", [
+      { name: INVESTOR_LP, value: "+2" },
+    ]);
+
+    // 5. Action (04/09/2025): Deposit Paul Johnson = 234.17 SOL
+    await executeDeposit(page, FUND_SOL, INVESTOR_PAUL, "234.17", "2025-09-04");
+
+    // 6. Action (30/09/2025): Yield (Reporting). New AUM 1500 SOL.
+    const solGoldenAsserts = [
+      { name: INVESTOR_LP, value: "+11.65" },
+      { name: INVESTOR_PAUL, value: "+1.85", ibValue: "0.03" },
+    ];
+    await simulateYieldWorkflow(
+      page,
+      FUND_SOL,
+      "1500",
+      "Reporting",
+      "2025-09-30",
+      solGoldenAsserts
+    );
+
+    await expect(page.locator("text=/0\\.29/")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=/0\\.03/")).toBeVisible({ timeout: 5000 });
+
+    // --- SCENARIO 2: XRP Fund Flow ---
+    console.log("\n>>> STARTING SCENARIO 2: XRP");
+    await page.goto(`${BASE_URL}/admin/transactions`);
+    await page.waitForSelector("h1", { timeout: 30000 });
+
+    // 4. Action (08/10/2025): Sam Johnson Deposits 11,400 XRP
+    await executeDeposit(page, FUND_XRP, INVESTOR_SAM, "11400", "2025-10-08");
+
+    // 4. Deposit 25/11/2025: Sam = 49000 XRP
+    await executeDeposit(page, FUND_XRP, INVESTOR_SAM, "49000", "2025-11-25");
+
+    // 5. Yield 30/11/2025 (Reporting). New AUM: 184358 XRP.
+    const xrpFirstYieldAsserts = [{ name: INVESTOR_SAM, value: "+284" }];
+    await simulateYieldWorkflow(
+      page,
+      FUND_XRP,
+      "184358",
+      "Reporting",
+      "2025-11-30",
+      xrpFirstYieldAsserts
+    );
+    await expect(page.locator("text=/14\\.20/")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=/56\\.80/")).toBeVisible({ timeout: 5000 });
+
+    // 6. Deposit 30/11/2025: Sam = 45000 XRP
+    await executeDeposit(page, FUND_XRP, INVESTOR_SAM, "45000", "2025-11-30");
+
+    // 7. Yield 08/12/2025 (Transaction). New AUM: 229731 XRP.
+    const xrpSecondYieldAsserts = [{ name: INVESTOR_SAM, value: "+298.31" }];
+    await simulateYieldWorkflow(
+      page,
+      FUND_XRP,
+      "229731",
+      "Transaction",
+      "2025-12-08",
+      xrpSecondYieldAsserts
+    );
+    await expect(page.locator("text=/14\\.93/")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=/59\\.76/")).toBeVisible({ timeout: 5000 });
+  });
+});

@@ -111,8 +111,22 @@ export async function verifyResourceAccess(
   const isAdmin = roles.includes("admin") || roles.includes("super_admin");
   const isSuperAdmin = roles.includes("super_admin");
 
+  // Check if requester is the IB for the target investor
+  let isAuthorizedIB = false;
+  if (!isAdmin && roles.includes("ib")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("ib_parent_id")
+      .eq("id", targetInvestorId)
+      .single();
+
+    if (profile?.ib_parent_id === userId) {
+      isAuthorizedIB = true;
+    }
+  }
+
   return {
-    authorized: isAdmin,
+    authorized: isAdmin || isAuthorizedIB,
     isAdmin,
     isSuperAdmin,
     userId,

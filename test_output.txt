@@ -1,0 +1,61 @@
+
+Running 5 tests using 1 worker
+
+  ✓  1 [chromium] › tests/e2e/ux-and-resilience.spec.ts:40:9 › UX & Resilience (Frontend Polish) › 1. Admin logs in (1.2s)
+  ✓  2 [chromium] › tests/e2e/ux-and-resilience.spec.ts:44:9 › UX & Resilience (Frontend Polish) › 2. Yield Form Conditionals: Reporting hides fields, Transaction shows them (1.7s)
+DUMPING INVESTOR PAGE DOM:
+Skip to main content
+Welcome back!
+You've successfully logged in.
+
+We use cookies to improve your experience.
+
+Accept
+Decline
+  ✘  3 [chromium] › tests/e2e/ux-and-resilience.spec.ts:78:9 › UX & Resilience (Frontend Polish) › 3. KPIs: Log in as Investor. Verify YTD, MTD, ITD calculate and display (1.3s)
+  -  4 [chromium] › tests/e2e/ux-and-resilience.spec.ts:102:9 › UX & Resilience (Frontend Polish) › 4. Data Export: Ledger page -> Click 'Export CSV'. Verify download triggers
+  -  5 [chromium] › tests/e2e/ux-and-resilience.spec.ts:124:10 › UX & Resilience (Frontend Polish) › 6. Error Boundary: Mock a 500 API error during a transaction.
+
+
+  1) [chromium] › tests/e2e/ux-and-resilience.spec.ts:78:9 › UX & Resilience (Frontend Polish) › 3. KPIs: Log in as Investor. Verify YTD, MTD, ITD calculate and display 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('text=MTD').locator('..')
+    Expected: visible
+    Error: strict mode violation: locator('text=MTD').locator('..') resolved to 3 elements:
+        1) <div class="mt-3 flex items-center gap-2">…</div> aka getByText('Yield MTD+5,805.253 T7126')
+        2) <div class="flex items-center gap-1.5 mt-0.5">…</div> aka getByText('USDT+5,805.253 USDT MTD')
+        3) <div tabindex="0" role="tablist" aria-orientation="horizontal" data-orientation="horizontal" class="h-10 items-center justify-center rounded-xl bg-secondary/40 border border-border/50 p-1 text-muted-foreground grid w-full grid-cols-4 lg:max-w-md">…</div> aka getByText('MTDQTDYTDITD')
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('text=MTD').locator('..')[22m
+
+
+      90 |         await investorPage.screenshot({ path: "investor-dashboard-kpi-debug.png" });
+      91 |
+    > 92 |         await expect(mtdKpi).toBeVisible({ timeout: 10000 });
+         |                              ^
+      93 |         await expect(ytdKpi).toBeVisible({ timeout: 10000 });
+      94 |         await expect(itdKpi).toBeVisible({ timeout: 10000 });
+      95 |
+        at /Users/mama/indigo-yield-platform-v01/tests/e2e/ux-and-resilience.spec.ts:92:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ux-and-resilience-UX-Resil-2fd1a-D-ITD-calculate-and-display-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ux-and-resilience-UX-Resil-2fd1a-D-ITD-calculate-and-display-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/ux-and-resilience-UX-Resil-2fd1a-D-ITD-calculate-and-display-chromium/error-context.md
+
+  1 failed
+    [chromium] › tests/e2e/ux-and-resilience.spec.ts:78:9 › UX & Resilience (Frontend Polish) › 3. KPIs: Log in as Investor. Verify YTD, MTD, ITD calculate and display 
+  1 skipped
+  1 did not run
+  2 passed (5.6s)
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

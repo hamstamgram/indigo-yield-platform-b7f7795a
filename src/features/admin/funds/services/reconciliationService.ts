@@ -74,7 +74,7 @@ export async function reconcileInvestorPosition(
   _fundId: string,
   _adminId: string,
   _action: "check" | "recalculate" | "log" = "check"
-): Promise<InvestorPositionReconciliationResult> {
+): Promise<any> {
   throw new Error("reconcile_investor_position RPC has been removed");
 }
 
@@ -98,6 +98,7 @@ export async function getVoidYieldImpact(distributionId: string): Promise<VoidYi
 export async function forceDeleteInvestor(investorId: string): Promise<boolean> {
   const { data, error } = await rpc.call("force_delete_investor", {
     p_investor_id: investorId,
+    p_admin_id: "system",
   });
 
   if (error) throw error;
