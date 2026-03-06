@@ -515,8 +515,8 @@ export const RPC_SIGNATURES = {
     returnType: "Json;",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_fund_id"] as const,
-    optionalParams: ["p_as_of_date", "p_tolerance_pct"] as const,
+    requiredParams: ["p_as_of_date", "p_fund_id"] as const,
+    optionalParams: ["p_tolerance_pct"] as const,
   },
   check_duplicate_ib_allocations: {
     name: "check_duplicate_ib_allocations" as const,

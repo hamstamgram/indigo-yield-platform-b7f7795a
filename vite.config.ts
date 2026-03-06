@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
       "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
       // SECURITY: Removed 'unsafe-eval' - not needed for production React builds
       "Content-Security-Policy":
-        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-ancestors 'none';",
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: http: wss: ws:; frame-ancestors 'none';",
     },
   },
   preview: {
@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => ({
       "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
       // SECURITY: Removed 'unsafe-eval' - not needed for production React builds
       "Content-Security-Policy":
-        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-ancestors 'none';",
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: http: wss: ws:; frame-ancestors 'none';",
     },
   },
   define: {

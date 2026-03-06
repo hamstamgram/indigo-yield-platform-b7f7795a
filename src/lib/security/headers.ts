@@ -30,7 +30,13 @@ function buildCSPPolicy() {
     // Allow 'unsafe-inline' for Tailwind/styled components and Google Fonts stylesheets
     "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src": "'self' data: https:",
-    "connect-src": `'self'${supabaseHost ? ` https://${supabaseHost} wss://${supabaseHost}` : ""}`,
+    "connect-src": `'self'${
+      supabaseHost
+        ? supabaseHost.includes("localhost") || supabaseHost.includes("127.0.0.1")
+          ? ` http://${supabaseHost} ws://${supabaseHost}`
+          : ` https://${supabaseHost} wss://${supabaseHost}`
+        : ""
+    }`,
     // Allow Google Fonts and font data URIs
     "font-src": "'self' data: https://fonts.gstatic.com",
     "object-src": "'none'",

@@ -108,6 +108,19 @@ export function YieldInputForm({
       setYieldAmount("");
     }
   };
+  // DIAGNOSTIC FOR E2E Playwright:
+  console.log("E2E YIELD BTN RENDER:", {
+    newAUM,
+    previewLoading,
+    isReporting,
+    existingDistributionDate,
+    validationResult: JSON.stringify(validationResult),
+    isDisabled:
+      !newAUM ||
+      previewLoading ||
+      (isReporting && Boolean(existingDistributionDate)) ||
+      (isReporting && !validationResult.valid),
+  });
 
   return (
     <div className="space-y-6">
@@ -384,7 +397,21 @@ export function YieldInputForm({
         </div>
 
         <Button
-          onClick={handlePreviewYield}
+          onClick={() => {
+            console.log("E2E YIELD BTN DIAGNOSTIC ON CLICK:", {
+              newAUM,
+              previewLoading,
+              isReporting,
+              existingDistributionDate,
+              validationResult,
+              isDisabled:
+                !newAUM ||
+                previewLoading ||
+                (isReporting && Boolean(existingDistributionDate)) ||
+                (isReporting && !validationResult.valid),
+            });
+            handlePreviewYield();
+          }}
           disabled={
             !newAUM ||
             previewLoading ||

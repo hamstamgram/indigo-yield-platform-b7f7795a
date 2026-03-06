@@ -81,7 +81,7 @@ export function useYieldPeriod() {
 
       const aumDate = new Date(aumDateStr + "T12:00:00");
 
-      if (aumDate > today) {
+      if (aumDate > today && yieldPurpose !== "reporting") {
         return { valid: false, error: "Yield cannot be distributed for future dates." };
       }
 

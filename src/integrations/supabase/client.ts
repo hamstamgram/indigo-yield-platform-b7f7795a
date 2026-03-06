@@ -47,15 +47,22 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 // Validate URL format
-if (!SUPABASE_URL.startsWith("https://") || !SUPABASE_URL.includes(".supabase.co")) {
+const isLocal = SUPABASE_URL.includes("localhost") || SUPABASE_URL.includes("127.0.0.1");
+if (!isLocal && (!SUPABASE_URL.startsWith("https://") || !SUPABASE_URL.includes(".supabase.co"))) {
   throw new Error(
     `Invalid Supabase URL format: ${SUPABASE_URL}. Must be a valid Supabase URL (https://*.supabase.co)`
   );
 }
 
-// Validate key format (basic JWT structure check)
-if (!SUPABASE_ANON_KEY.startsWith("eyJ") || SUPABASE_ANON_KEY.split(".").length !== 3) {
-  throw new Error("Invalid Supabase Anon Key format. Must be a valid JWT token.");
+// Validate key format (basic JWT structure check or modern publishable key)
+const isModernKey = SUPABASE_ANON_KEY.startsWith("sb_");
+if (
+  !isModernKey &&
+  (!SUPABASE_ANON_KEY.startsWith("eyJ") || SUPABASE_ANON_KEY.split(".").length !== 3)
+) {
+  throw new Error(
+    "Invalid Supabase Anon Key format. Must be a valid JWT token or modern publishable key."
+  );
 }
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);

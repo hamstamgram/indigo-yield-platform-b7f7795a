@@ -81,7 +81,8 @@ export function useYieldSubmission() {
           `Distributed ${formatAUM(grossYieldNum, asset)} ${asset} to ${yieldPreview.investorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
         );
 
-        setShowConfirmDialog(false);
+        // Allow the DistributeYieldDialog to handle its own success phase
+        // setShowConfirmDialog(false); // Removed to prevent premature unmounting
         setApplyLoading(false);
 
         // Cache invalidation

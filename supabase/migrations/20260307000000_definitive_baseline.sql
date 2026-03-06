@@ -74,6 +74,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
+DROP TYPE IF EXISTS "public"."access_event" CASCADE;
 CREATE TYPE "public"."access_event" AS ENUM (
     'login',
     'logout',
@@ -87,6 +88,7 @@ CREATE TYPE "public"."access_event" AS ENUM (
 ALTER TYPE "public"."access_event" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."account_type" CASCADE;
 CREATE TYPE "public"."account_type" AS ENUM (
     'investor',
     'ib',
@@ -97,6 +99,7 @@ CREATE TYPE "public"."account_type" AS ENUM (
 ALTER TYPE "public"."account_type" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."app_role" CASCADE;
 CREATE TYPE "public"."app_role" AS ENUM (
     'super_admin',
     'admin',
@@ -110,6 +113,7 @@ CREATE TYPE "public"."app_role" AS ENUM (
 ALTER TYPE "public"."app_role" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."approval_operation_type" CASCADE;
 CREATE TYPE "public"."approval_operation_type" AS ENUM (
     'PERIOD_LOCK',
     'PERIOD_UNLOCK',
@@ -127,6 +131,7 @@ CREATE TYPE "public"."approval_operation_type" AS ENUM (
 ALTER TYPE "public"."approval_operation_type" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."asset_code" CASCADE;
 CREATE TYPE "public"."asset_code" AS ENUM (
     'BTC',
     'ETH',
@@ -146,6 +151,7 @@ COMMENT ON TYPE "public"."asset_code" IS 'Platform canonical funds: BTC, ETH, SO
 
 
 
+DROP TYPE IF EXISTS "public"."aum_purpose" CASCADE;
 CREATE TYPE "public"."aum_purpose" AS ENUM (
     'reporting',
     'transaction'
@@ -155,6 +161,7 @@ CREATE TYPE "public"."aum_purpose" AS ENUM (
 ALTER TYPE "public"."aum_purpose" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."benchmark_type" CASCADE;
 CREATE TYPE "public"."benchmark_type" AS ENUM (
     'BTC',
     'ETH',
@@ -166,6 +173,7 @@ CREATE TYPE "public"."benchmark_type" AS ENUM (
 ALTER TYPE "public"."benchmark_type" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."document_type" CASCADE;
 CREATE TYPE "public"."document_type" AS ENUM (
     'statement',
     'notice',
@@ -178,6 +186,7 @@ CREATE TYPE "public"."document_type" AS ENUM (
 ALTER TYPE "public"."document_type" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."error_category" CASCADE;
 CREATE TYPE "public"."error_category" AS ENUM (
     'VALIDATION',
     'BUSINESS_RULE',
@@ -192,6 +201,7 @@ CREATE TYPE "public"."error_category" AS ENUM (
 ALTER TYPE "public"."error_category" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."fee_kind" CASCADE;
 CREATE TYPE "public"."fee_kind" AS ENUM (
     'mgmt',
     'perf'
@@ -201,6 +211,7 @@ CREATE TYPE "public"."fee_kind" AS ENUM (
 ALTER TYPE "public"."fee_kind" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."fund_status" CASCADE;
 CREATE TYPE "public"."fund_status" AS ENUM (
     'active',
     'inactive',
@@ -213,6 +224,7 @@ CREATE TYPE "public"."fund_status" AS ENUM (
 ALTER TYPE "public"."fund_status" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."notification_priority" CASCADE;
 CREATE TYPE "public"."notification_priority" AS ENUM (
     'low',
     'medium',
@@ -223,6 +235,7 @@ CREATE TYPE "public"."notification_priority" AS ENUM (
 ALTER TYPE "public"."notification_priority" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."notification_type" CASCADE;
 CREATE TYPE "public"."notification_type" AS ENUM (
     'deposit',
     'statement',
@@ -237,6 +250,7 @@ CREATE TYPE "public"."notification_type" AS ENUM (
 ALTER TYPE "public"."notification_type" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."platform_error_code" CASCADE;
 CREATE TYPE "public"."platform_error_code" AS ENUM (
     'PREFLOW_AUM_MISSING',
     'AUM_NOT_FOUND',
@@ -284,6 +298,7 @@ CREATE TYPE "public"."platform_error_code" AS ENUM (
 ALTER TYPE "public"."platform_error_code" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."share_scope" CASCADE;
 CREATE TYPE "public"."share_scope" AS ENUM (
     'portfolio',
     'documents',
@@ -294,6 +309,7 @@ CREATE TYPE "public"."share_scope" AS ENUM (
 ALTER TYPE "public"."share_scope" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."ticket_category" CASCADE;
 CREATE TYPE "public"."ticket_category" AS ENUM (
     'account',
     'portfolio',
@@ -306,6 +322,7 @@ CREATE TYPE "public"."ticket_category" AS ENUM (
 ALTER TYPE "public"."ticket_category" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."ticket_priority" CASCADE;
 CREATE TYPE "public"."ticket_priority" AS ENUM (
     'low',
     'medium',
@@ -317,6 +334,7 @@ CREATE TYPE "public"."ticket_priority" AS ENUM (
 ALTER TYPE "public"."ticket_priority" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."ticket_status" CASCADE;
 CREATE TYPE "public"."ticket_status" AS ENUM (
     'open',
     'in_progress',
@@ -328,6 +346,7 @@ CREATE TYPE "public"."ticket_status" AS ENUM (
 ALTER TYPE "public"."ticket_status" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."transaction_status" CASCADE;
 CREATE TYPE "public"."transaction_status" AS ENUM (
     'pending',
     'confirmed',
@@ -339,6 +358,7 @@ CREATE TYPE "public"."transaction_status" AS ENUM (
 ALTER TYPE "public"."transaction_status" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."transaction_type" CASCADE;
 CREATE TYPE "public"."transaction_type" AS ENUM (
     'DEPOSIT',
     'WITHDRAWAL',
@@ -351,6 +371,7 @@ CREATE TYPE "public"."transaction_type" AS ENUM (
 ALTER TYPE "public"."transaction_type" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."tx_source" CASCADE;
 CREATE TYPE "public"."tx_source" AS ENUM (
     'manual_admin',
     'yield_distribution',
@@ -376,6 +397,7 @@ COMMENT ON TYPE "public"."tx_source" IS 'Transaction source types: manual_admin,
 
 
 
+DROP TYPE IF EXISTS "public"."tx_type" CASCADE;
 CREATE TYPE "public"."tx_type" AS ENUM (
     'DEPOSIT',
     'WITHDRAWAL',
@@ -395,6 +417,7 @@ CREATE TYPE "public"."tx_type" AS ENUM (
 ALTER TYPE "public"."tx_type" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."visibility_scope" CASCADE;
 CREATE TYPE "public"."visibility_scope" AS ENUM (
     'investor_visible',
     'admin_only'
@@ -404,6 +427,7 @@ CREATE TYPE "public"."visibility_scope" AS ENUM (
 ALTER TYPE "public"."visibility_scope" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."withdrawal_action" CASCADE;
 CREATE TYPE "public"."withdrawal_action" AS ENUM (
     'create',
     'approve',
@@ -419,6 +443,7 @@ CREATE TYPE "public"."withdrawal_action" AS ENUM (
 ALTER TYPE "public"."withdrawal_action" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."withdrawal_status" CASCADE;
 CREATE TYPE "public"."withdrawal_status" AS ENUM (
     'pending',
     'approved',
@@ -432,6 +457,7 @@ CREATE TYPE "public"."withdrawal_status" AS ENUM (
 ALTER TYPE "public"."withdrawal_status" OWNER TO "postgres";
 
 
+DROP TYPE IF EXISTS "public"."yield_distribution_status" CASCADE;
 CREATE TYPE "public"."yield_distribution_status" AS ENUM (
     'draft',
     'applied',
@@ -4222,7 +4248,7 @@ $$;
 ALTER FUNCTION "public"."check_aum_position_health"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."check_aum_reconciliation"("p_fund_id" "uuid", "p_tolerance_pct" numeric DEFAULT 1.0) RETURNS "jsonb"
+CREATE OR REPLACE FUNCTION "public"."check_aum_reconciliation"("p_as_of_date" "date", "p_fund_id" "uuid", "p_tolerance_pct" numeric DEFAULT 1.0) RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$
@@ -4244,12 +4270,12 @@ BEGIN
   SELECT COALESCE(SUM(current_value), 0) INTO v_positions_sum
   FROM investor_positions WHERE fund_id = p_fund_id AND is_active = true;
 
-  -- FIXED: Get latest AUM record up to TODAY (not future dates)
+  -- FIXED: Get latest AUM record up to p_as_of_date
   SELECT aum_date, total_aum INTO v_aum_date, v_recorded_aum
   FROM fund_daily_aum
   WHERE fund_id = p_fund_id 
     AND is_voided = false 
-    AND aum_date <= CURRENT_DATE
+    AND aum_date <= p_as_of_date
   ORDER BY aum_date DESC
   LIMIT 1;
 
@@ -4284,7 +4310,7 @@ END;
 $$;
 
 
-ALTER FUNCTION "public"."check_aum_reconciliation"("p_fund_id" "uuid", "p_tolerance_pct" numeric) OWNER TO "postgres";
+ALTER FUNCTION "public"."check_aum_reconciliation"("p_as_of_date" "date", "p_fund_id" "uuid", "p_tolerance_pct" numeric) OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."check_concentration_risk"() RETURNS "trigger"
@@ -15912,7 +15938,7 @@ DECLARE
   v_warnings TEXT[] := ARRAY[]::TEXT[];
 BEGIN
   -- Check AUM reconciliation
-  SELECT check_aum_reconciliation(p_fund_id, 0.01) INTO v_reconciliation;
+  SELECT check_aum_reconciliation(p_period_end, p_fund_id, 0.01) INTO v_reconciliation;
 
   v_recorded_aum := (v_reconciliation->>'recorded_aum')::NUMERIC;
   v_calculated_aum := (v_reconciliation->>'calculated_aum')::NUMERIC;
@@ -22225,9 +22251,9 @@ GRANT ALL ON FUNCTION "public"."check_aum_position_health"() TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."check_aum_reconciliation"("p_fund_id" "uuid", "p_tolerance_pct" numeric) TO "anon";
-GRANT ALL ON FUNCTION "public"."check_aum_reconciliation"("p_fund_id" "uuid", "p_tolerance_pct" numeric) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."check_aum_reconciliation"("p_fund_id" "uuid", "p_tolerance_pct" numeric) TO "service_role";
+GRANT ALL ON FUNCTION "public"."check_aum_reconciliation"("p_as_of_date" "date", "p_fund_id" "uuid", "p_tolerance_pct" numeric) TO "anon";
+GRANT ALL ON FUNCTION "public"."check_aum_reconciliation"("p_as_of_date" "date", "p_fund_id" "uuid", "p_tolerance_pct" numeric) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_aum_reconciliation"("p_as_of_date" "date", "p_fund_id" "uuid", "p_tolerance_pct" numeric) TO "service_role";
 
 
 

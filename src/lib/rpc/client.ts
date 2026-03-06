@@ -132,6 +132,10 @@ export async function call<T extends RPCFunctionName>(
     const durationMs = Date.now() - startTime;
 
     if (error) {
+      console.error(
+        `[CRITICAL_RPC_ERROR] ${String(functionName)} failed. Exact error:`,
+        JSON.stringify(error)
+      );
       const normalizedError = normalizeError(error, String(functionName));
       logError(`rpc.error.${String(functionName)}`, error, {
         requestId,
