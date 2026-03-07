@@ -90,7 +90,7 @@ export async function previewYieldDistribution(
       investorId: d.investor_id,
       investorName: d.investor_name,
       accountType: d.account_type,
-      currentBalance: String(d.gross || 0), // Use gross as "current" context for display
+      currentBalance: String((d as any).current_value || d.opening_balance || 0),
       allocationPercentage: "0",
       feePercentage: String(d.fee_pct || 0),
       grossYield: String(d.gross || 0),
@@ -104,7 +104,7 @@ export async function previewYieldDistribution(
       referenceId: "",
       wouldSkip: false,
       hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
-      openingBalance: String(d.opening_balance || 0),
+      openingBalance: String((d as any).current_value || d.opening_balance || 0),
       // Month-to-date aggregates
       mtdGross: d.mtd_gross !== undefined ? String(d.mtd_gross) : undefined,
       mtdFee: d.mtd_fee !== undefined ? String(d.mtd_fee) : undefined,
