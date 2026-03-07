@@ -120,7 +120,7 @@ function getAUMDecimals(asset: string): AUMDecimalConfig {
     normalized.includes("RIPPLE") ||
     normalized.includes("XAUT")
   ) {
-    return { min: 3, max: 3 };
+    return { min: 3, max: 8 };
   }
 
   if (normalized.includes("USDT") || normalized.includes("USDC") || normalized.includes("EURC")) {
