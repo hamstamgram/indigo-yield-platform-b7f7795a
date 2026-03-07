@@ -227,6 +227,7 @@ export function YieldPreviewResults({
               <TableHead className="text-right">Fee %</TableHead>
               <TableHead className="text-right">Fee</TableHead>
               <TableHead className="text-right">Net</TableHead>
+              <TableHead className="text-right">IB %</TableHead>
               <TableHead className="text-right" title="Introducing Broker">
                 Broker
               </TableHead>
@@ -323,6 +324,11 @@ export function YieldPreviewResults({
                           {formatValue(toNum(inv.mtdNet), asset)} MTD
                         </div>
                       )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs">
+                      {inv.ibPercentage && toNum(inv.ibPercentage) > 0
+                        ? `${inv.ibPercentage}%`
+                        : "\u2014"}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
                       <div className="text-purple-600/80">
