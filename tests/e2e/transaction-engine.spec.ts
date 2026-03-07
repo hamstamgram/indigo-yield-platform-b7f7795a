@@ -1,12 +1,12 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page) {
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
   await page.fill('input[type="email"], input[name="email"]', ADMIN_EMAIL);
   await page.fill('input[type="password"], input[name="password"]', ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
@@ -32,7 +32,7 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
 
   test("2. Deposits: Admin makes a standard deposit", async () => {
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
 
     const newTxBtn = page
       .locator('button:has-text("New Transaction"), button:has-text("Add Transaction")')
@@ -61,7 +61,7 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
 
   test("3. Insufficient Funds: Admin tries to withdraw more than investor's balance", async () => {
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
 
     const newTxBtn = page
       .locator('button:has-text("New Transaction"), button:has-text("Add Transaction")')
@@ -104,7 +104,7 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
 
   test("4. Partial Withdrawal: Admin withdraws a partial amount", async () => {
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
 
     const newTxBtn = page
       .locator('button:has-text("New Transaction"), button:has-text("Add Transaction")')
@@ -132,7 +132,7 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
   test("5. Full Withdrawal & Dust: Admin logic checking EXACT dust sweeping", async () => {
     // Navigate to the specific investor's profile to trigger full withdrawal
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
 
     await page.locator('input[placeholder*="Search"]').fill("Alice");
     await page.getByText(/Alice/i).first().click();
@@ -160,6 +160,6 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
 
     // To verify dust goes to fees, we'd navigate to INDIGO fees ledger, but ensuring the test doesn't crash on standard Full Withdrawal flow proves the underlying mechanism operates properly.
     await page.goto(`${BASE_URL}/admin/funds`);
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
   });
 });

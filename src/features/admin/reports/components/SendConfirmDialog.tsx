@@ -59,17 +59,9 @@ export function SendConfirmDialog({
                     <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     <span className="truncate font-medium">{r.investor_name}</span>
                   </div>
-                  <div className="flex flex-col items-end min-w-0">
-                    {r.investor_emails?.map((e, idx) => (
-                      <span key={idx} className="text-muted-foreground truncate ml-2 text-xs">
-                        {e.email}
-                      </span>
-                    )) || (
-                      <span className="text-muted-foreground truncate ml-2 text-xs">
-                        {r.investor_email}
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-muted-foreground truncate ml-2 text-xs">
+                    {r.investor_email}
+                  </span>
                 </div>
               ))}
             </div>

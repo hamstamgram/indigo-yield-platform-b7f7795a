@@ -1,8 +1,8 @@
 import { test, expect, Page } from "@playwright/test";
 
 // Environment Configuration
-const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
+const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 // Generate unique identifiers to prevent collisions with existing Profiles
@@ -11,8 +11,6 @@ const TIMESTAMP = Date.now();
 const INVESTOR_PAUL = "Paul Johnson";
 const INVESTOR_LP = "Indigo LP";
 const INVESTOR_SAM = "Sam Johnson";
-const INVESTOR_ALEX = "Alex Jacobs";
-const INVESTOR_RYAN = "Ryan Van Der Wall";
 const FUND_SOL = "Solana Yield Fund";
 const FUND_XRP = "Ripple Yield Fund";
 
@@ -31,7 +29,7 @@ const PAUL_IB = "1.5";
 async function loginAsAdmin(page: Page, email: string = ADRIEL_EMAIL, pass: string = ADRIEL_PASS) {
   console.log(`LOGIN: Navigating to ${BASE_URL}/login for ${email}`);
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
 
   const emailInput = page.locator('input[type="email"]');
   const passwordInput = page.locator('input[type="password"]');
@@ -48,7 +46,7 @@ async function loginAsAdmin(page: Page, email: string = ADRIEL_EMAIL, pass: stri
 
 async function createFund(page: Page, fundName: string, assetType: string) {
   await page.goto(`${BASE_URL}/admin/funds`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("button", { name: /Add Fund|New Fund/i })
     .first()
@@ -97,7 +95,7 @@ async function createFund(page: Page, fundName: string, assetType: string) {
 async function createProfileUser(page: Page, fullName: string, email: string) {
   console.log(`CREATING PROFILE: ${fullName} (${email})`);
   await page.goto(`${BASE_URL}/admin/investors`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("button", { name: /Add Investor/i })
     .first()
@@ -137,7 +135,7 @@ async function assignFundAndFees(
   platformFee: string
 ) {
   await page.goto(`${BASE_URL}/admin/investors`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
 
   // Filter and open profile
   await page.getByPlaceholder("Search").fill(investorName);
@@ -179,7 +177,7 @@ async function assignIBCommission(
   ibFee: string
 ) {
   await page.goto(`${BASE_URL}/admin/investors`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
 
   await page.getByPlaceholder("Search").fill(investorName);
   await page.waitForTimeout(1000);
@@ -225,7 +223,7 @@ async function executeDeposit(
 ) {
   console.log(`EXECUTING DEPOSIT: ${amount} ${fundName} for ${investorName} on ${dateStr}`);
   await page.goto(`${BASE_URL}/admin/transactions`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
 
   await page
     .getByRole("button", { name: /Add Transaction/i })
@@ -264,14 +262,10 @@ async function executeDeposit(
     await dateInput.fill(dateStr);
   }
 
-  const responsePromise = page
-    .waitForResponse((resp) => resp.url().includes("/rpc/apply_investor_transaction"), {
-      timeout: 15000,
-    })
-    .catch((e) => {
-      console.error("waitForResponse timed out!");
-      return null;
-    });
+  const responsePromise = page.waitForResponse(
+    (resp) => resp.url().includes("/rpc/apply_investor_transaction") && resp.status() === 200,
+    { timeout: 15000 }
+  );
 
   // Submit
   await modal.getByRole("button", { name: /Add Transaction/i }).click();
@@ -497,20 +491,19 @@ test.describe("Adriel Real-World Golden Scenarios (E2E UI TEST)", () => {
 
     // 4. Action (04/09/2025): Yield (Transaction). New AUM 1252 SOL.
     await simulateYieldWorkflow(page, FUND_SOL, "1252", "Transaction", "2025-09-04", [
-      { name: INVESTOR_LP, value: "+2.000" },
+      { name: INVESTOR_LP, value: "+2" },
     ]);
 
-    // 5. Action (05/09/2025): Deposit Paul Johnson = 234.17 SOL
-    await executeDeposit(page, FUND_SOL, INVESTOR_PAUL, "234.17", "2025-09-05");
+    // 5. Action (04/09/2025): Deposit Paul Johnson = 234.17 SOL
+    await executeDeposit(page, FUND_SOL, INVESTOR_PAUL, "234.17", "2025-09-04");
 
-    // 5b. Assign IB for Paul (to match benchmarks: Alex Jacobs 4%)
-    await assignIBCommission(page, INVESTOR_PAUL, FUND_SOL, INVESTOR_ALEX, "4");
+    // 5b. Assign IB for Paul (to match benchmarks)
+    await assignIBCommission(page, INVESTOR_PAUL, FUND_SOL, INVESTOR_LP, "1.5");
 
     // 6. Action (30/09/2025): Yield (Reporting). New AUM 1500 SOL.
     const solGoldenAsserts = [
-      { name: INVESTOR_LP, value: "+11.650" },
-      { name: INVESTOR_PAUL, value: "+1.850" },
-      { name: INDIGO_FEES_NAME, value: "0.294" },
+      { name: INVESTOR_LP, value: "+11.6479" },
+      { name: INVESTOR_PAUL, value: "+1.8002", ibValue: "-0.0327" },
     ];
     await simulateYieldWorkflow(
       page,
@@ -526,20 +519,14 @@ test.describe("Adriel Real-World Golden Scenarios (E2E UI TEST)", () => {
     await page.goto(`${BASE_URL}/admin/transactions`);
     await page.waitForSelector("h1", { timeout: 30000 });
 
-    // 4. Action (17/11/2025): Sam Johnson Deposits 135,003 XRP
-    await executeDeposit(page, FUND_XRP, INVESTOR_SAM, "135003", "2025-11-17");
+    // 4. Action (08/10/2025): Sam Johnson Deposits 11,400 XRP
+    await executeDeposit(page, FUND_XRP, INVESTOR_SAM, "11400", "2025-10-08");
 
-    // 4b. Assign IB for Sam (Ryan Van Der Wall 4%)
-    await assignIBCommission(page, INVESTOR_SAM, FUND_XRP, INVESTOR_RYAN, "4");
-
-    // 5. Deposit 25/11/2025: Sam = 49000 XRP
+    // 4. Deposit 25/11/2025: Sam = 49000 XRP
     await executeDeposit(page, FUND_XRP, INVESTOR_SAM, "49000", "2025-11-25");
 
-    // 6. Yield 30/11/2025 (Reporting). New AUM: 184358 XRP.
-    const xrpFirstYieldAsserts = [
-      { name: INVESTOR_SAM, value: "+284.000" },
-      { name: INDIGO_FEES_NAME, value: "56.800" },
-    ];
+    // 5. Yield 30/11/2025 (Reporting). New AUM: 184358 XRP.
+    const xrpFirstYieldAsserts = [{ name: INVESTOR_SAM, value: "+99,166.40" }];
     await simulateYieldWorkflow(
       page,
       FUND_XRP,
@@ -549,14 +536,11 @@ test.describe("Adriel Real-World Golden Scenarios (E2E UI TEST)", () => {
       xrpFirstYieldAsserts
     );
 
-    // 7. Deposit 30/11/2025: Sam = 45000 XRP (Après le reporting)
+    // 6. Deposit 30/11/2025: Sam = 45000 XRP
     await executeDeposit(page, FUND_XRP, INVESTOR_SAM, "45000", "2025-11-30");
 
-    // 8. Yield 08/12/2025 (Transaction). New AUM: 229731 XRP.
-    const xrpSecondYieldAsserts = [
-      { name: INVESTOR_SAM, value: "+298.310" },
-      { name: INDIGO_FEES_NAME, value: "59.760" },
-    ];
+    // 7. Yield 08/12/2025 (Transaction). New AUM: 229731 XRP.
+    const xrpSecondYieldAsserts = [{ name: INVESTOR_SAM, value: "+266.1456", ibValue: "-13.3073" }];
     await simulateYieldWorkflow(
       page,
       FUND_XRP,

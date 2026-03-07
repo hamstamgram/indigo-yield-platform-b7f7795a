@@ -2,7 +2,7 @@ import { test, expect, Page } from "@playwright/test";
 
 // Environment setup
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const SUPERADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
+const SUPERADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
 const SUPERADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 // A fresh test email that will be created and then upgraded/downgraded through the RBAC system
@@ -18,7 +18,7 @@ async function login(page: Page, email: string, password: string) {
   console.log(`LOGIN: Navigating to ${BASE_URL}/login for ${email}`);
   await page.goto(`${BASE_URL}/login`);
   console.log(`LOGIN: Waiting for networkidle`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
   console.log(`LOGIN: Filling email`);
   await page.fill('input[type="email"], input[name="email"]', email);
   console.log(`LOGIN: Filling password`);
@@ -109,7 +109,7 @@ test.describe("Admin RBAC & Superadmin Privileges Test Suite", () => {
   // We will attempt to login with a known standard admin credential or skip DB setup for the sake of UI testing.
 
   test("2. The Permission Boundary (Standard Admin Flow)", async () => {
-    // We need a real standard admin to test the RBAC boundary. We will leverage the `qa.admin@indigo.fund`
+    // We need a real standard admin to test the RBAC boundary. We will leverage the `adriel@indigo.fund`
     // who is a superadmin to ensure `standard.admin@test.indigo.com` exists and is a base Admin, not Super.
 
     // Ensure the standard admin is downgraded (in case a previous run failed mid-way)

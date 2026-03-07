@@ -186,9 +186,7 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
       const matchesSearch =
         !searchTerm ||
         report.investor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.investor_emails.some((e) =>
-          e.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        report.investor_email.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus = statusFilter === "all" || report.delivery_status === statusFilter;
 
@@ -694,14 +692,7 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
                       </Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground py-1.5 truncate max-w-[150px]">
-                      <div className="flex flex-col">
-                        <span>{report.investor_email}</span>
-                        {report.investor_emails.length > 1 && (
-                          <span className="text-[10px] text-muted-foreground/80">
-                            +{report.investor_emails.length - 1} more
-                          </span>
-                        )}
-                      </div>
+                      {report.investor_email}
                     </TableCell>
                     <TableCell className="py-1.5">
                       <div className="flex gap-1 items-center">

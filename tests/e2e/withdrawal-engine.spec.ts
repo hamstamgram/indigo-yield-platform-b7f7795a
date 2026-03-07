@@ -1,14 +1,14 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 const INVESTOR_EMAIL = process.env.TEST_INVESTOR_EMAIL || "alice@test.indigo.com";
 
 // Helper Functions
 async function login(page: Page, email: string, password: string) {
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
 
   await page.fill('input[type="email"], input[name="email"]', email);
   await page.fill('input[type="password"], input[name="password"]', password);
@@ -34,7 +34,7 @@ test.describe("Withdrawal Engine Edge Cases", () => {
     test.setTimeout(60000);
     await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
 
     // Click New Transaction
     const newTxBtn = page
@@ -75,7 +75,7 @@ test.describe("Withdrawal Engine Edge Cases", () => {
 
   test("2. Insufficient Funds Blocked", async () => {
     await page.goto(`${BASE_URL}/admin/withdrawals`);
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
 
     const newWdBtn = page
       .locator('button:has-text("New Withdrawal"), [data-testid="new-withdrawal-btn"]')
