@@ -2,7 +2,7 @@ import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
 const ADRIEL_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
-const ADRIEL_PASS = process.env.TEST_ADMIN_PASSWORD || "IndigoInvestor2026!";
+const ADRIEL_PASS = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 test.describe("Platform Resilience: UI Navigation & Interaction Audit", () => {
   test.beforeEach(async ({ page }) => {
