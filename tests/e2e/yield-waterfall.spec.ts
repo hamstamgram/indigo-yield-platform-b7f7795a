@@ -1,12 +1,12 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page) {
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   await page.fill('input[type="email"], input[name="email"]', ADMIN_EMAIL);
   await page.fill('input[type="password"], input[name="password"]', ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
@@ -31,7 +31,7 @@ test.describe("Yield Waterfall (Distributions & Fees)", () => {
 
     // Deposit 10k so they have a balance
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const newTxBtn = page
       .locator('button:has-text("New Transaction"), button:has-text("Add Transaction")')
       .first();
@@ -54,7 +54,7 @@ test.describe("Yield Waterfall (Distributions & Fees)", () => {
 
   test("2. Custom Fees: Assign IB (4%) & Fee (15%)", async () => {
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.getByText(/Alice/i).first().click();
 
     // Go to Settings Tab
@@ -89,7 +89,7 @@ test.describe("Yield Waterfall (Distributions & Fees)", () => {
 
   test("3. Positive Yield: 4% IB, 11% INDIGO, 85% Investor", async () => {
     await page.goto(`${BASE_URL}/admin`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("button", { name: "Apply Yield" }).click();
 
@@ -140,7 +140,7 @@ test.describe("Yield Waterfall (Distributions & Fees)", () => {
 
   test("4. Negative Yield (Loss): Investor absorbs full loss", async () => {
     await page.goto(`${BASE_URL}/admin`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("button", { name: "Apply Yield" }).click();
 
@@ -190,7 +190,7 @@ test.describe("Yield Waterfall (Distributions & Fees)", () => {
   test("5. The Open-Ended Fee Schedule", async () => {
     // 1. Reset Alice's Fees to test the new schedule logic
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.getByText(/Alice/i).first().click();
     await page.getByRole("tab", { name: /Settings/i }).click();
 
@@ -280,7 +280,7 @@ test.describe("Yield Waterfall (Distributions & Fees)", () => {
     // Test distribution dates
     const runYieldDistribution = async (date: string, expectedFeeMatch: RegExp) => {
       await page.goto(`${BASE_URL}/admin`);
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("domcontentloaded");
       await page.getByRole("button", { name: "Apply Yield" }).click();
 
       const alphaFundBtn = page.locator("button").filter({ hasText: /Indigo Alpha/i });

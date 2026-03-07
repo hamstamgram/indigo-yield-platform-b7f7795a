@@ -1,12 +1,12 @@
 import { test, expect, Page } from "@playwright/test";
 
-const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page) {
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   await page.fill('input[type="email"]', ADMIN_EMAIL);
   await page.fill('input[type="password"]', ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
@@ -28,7 +28,7 @@ test.describe("Scenario 10: Coverage Expansion (Docs, Settings, Pagination)", ()
 
   test("Document Management: PDF Generation & Preview", async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/reports`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Wait for at least one report to be visible or empty state
     const noReports = page.getByText(/No statements found/i);
@@ -60,7 +60,7 @@ test.describe("Scenario 10: Coverage Expansion (Docs, Settings, Pagination)", ()
   test("Global Settings: Revenue Metrics UI", async ({ page }) => {
     // Navigate to Revenue page as discovered by subagent
     await page.goto(`${BASE_URL}/admin/revenue`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Header is 'Revenue'
     await expect(page.getByRole("heading", { name: "Revenue" })).toBeVisible({ timeout: 15000 });
@@ -80,7 +80,7 @@ test.describe("Scenario 10: Coverage Expansion (Docs, Settings, Pagination)", ()
 
   test("Data Table Pagination: Transactions List", async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Check for pagination controls using discovered labels
     const prevBtn = page.getByLabel("Go to previous page");
@@ -103,7 +103,7 @@ test.describe("Scenario 10: Coverage Expansion (Docs, Settings, Pagination)", ()
     // If we have many records, test 'Next'
     if ((await nextBtn.isVisible()) && (await nextBtn.isEnabled())) {
       await nextBtn.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("domcontentloaded");
       // Verify table content changed or page indicator updated
       await expect(page.getByText(/Page 2/i).or(rows.first())).toBeVisible();
     }
@@ -112,7 +112,7 @@ test.describe("Scenario 10: Coverage Expansion (Docs, Settings, Pagination)", ()
   test("Toast UI Transitions: Success feedback", async ({ page }) => {
     // Navigate to a simple action page (e.g., Funds)
     await page.goto(`${BASE_URL}/admin/funds`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Trigger a non-destructive edit or modal open
     const editBtn = page.locator('button:has(.lucide-edit), button:has-text("Edit")').first();

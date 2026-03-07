@@ -1,12 +1,12 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page) {
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   await page.fill('input[type="email"], input[name="email"]', ADMIN_EMAIL);
   await page.fill('input[type="password"], input[name="password"]', ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
@@ -37,7 +37,7 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
 
   test("2. Funds: Create, Edit, Archive a new Fund", async () => {
     await page.goto(`${BASE_URL}/admin/funds`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Create
     await page.getByRole("button", { name: /Add Fund|New Fund/i }).click();
@@ -101,7 +101,7 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
 
   test("3. Profiles: Create new IB Profile", async () => {
     await page.goto(`${BASE_URL}/admin/ib`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // UI varies, assuming standard "Add IB" button
     const addIbBtn = page.getByRole("button", { name: /Add IB|New Introducing Broker/i });
@@ -118,7 +118,7 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
 
   test("4. Profiles: Create new Investor & assign to fund", async () => {
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("button", { name: /Add Investor/i }).click();
     const dialog = page.getByRole("dialog");
@@ -137,7 +137,7 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
 
   test("5. Deletion Guardrails: Delete Investor with balance > 0 and 0 balance", async () => {
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Step 1: Find an investor with balance > 0 (Alice ideally)
     await page.locator('input[placeholder*="Search"]').fill("Alice");
@@ -160,7 +160,7 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
 
     // Step 2: Delete investor with 0 balance (the newly created Zero Balance investor)
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.locator('input[placeholder*="Search"]').fill("Zero Balance");
     await page
       .getByText(/Zero Balance/i)

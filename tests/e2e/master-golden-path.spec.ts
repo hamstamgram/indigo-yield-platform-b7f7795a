@@ -2,7 +2,7 @@ import { test, expect, Page } from "@playwright/test";
 
 // Environment Configuration
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 const INVESTOR_EMAIL = process.env.TEST_INVESTOR_EMAIL || "alice@test.indigo.com";
 const INVESTOR_PASSWORD = process.env.TEST_INVESTOR_PASSWORD || "Alice!Investor2026#Secure";
@@ -11,7 +11,7 @@ const INVESTOR_PASSWORD = process.env.TEST_INVESTOR_PASSWORD || "Alice!Investor2
 async function login(page: Page, email: string, password: string) {
   console.log(`LOGIN: Navigating to ${BASE_URL} for ${email}`);
   await page.goto(BASE_URL);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
 
   if (page.url().includes("/login")) {
     await page.fill('input[type="email"], input[name="email"]', email);
@@ -42,7 +42,7 @@ async function logout(page: Page) {
     .first();
   if (await logoutButton.isVisible()) {
     await logoutButton.click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await expect(page).toHaveURL(/\/(login)?$/);
   } else {
     // Force redirect to clear session if UI button isn't found
@@ -81,7 +81,7 @@ test.describe("Master Golden Path E2E verification", () => {
   test("2. Admin executes 10,000 USDT Deposit", async () => {
     // Navigate to Ledger / Transactions
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Open New Transaction Modal
     const newTxButton = page.locator(
@@ -139,7 +139,7 @@ test.describe("Master Golden Path E2E verification", () => {
   test("3. Admin executes Yield Generation", async () => {
     // Navigate to Command Center
     await page.goto(`${BASE_URL}/admin`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Click "Apply Yield" from the quick actions
     await page.getByRole("button", { name: "Apply Yield" }).click();
@@ -192,7 +192,7 @@ test.describe("Master Golden Path E2E verification", () => {
   test("4. Void Cascade Verification", async () => {
     // Navigate to Ledger
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Find the latest YIELD transaction
     // Using loose text matching for the table row.

@@ -1,14 +1,14 @@
 import { test, expect, Page } from "@playwright/test";
 import { format } from "date-fns";
 
-const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page, email: string, password: string) {
   console.log(`LOGIN: Navigating to ${BASE_URL} for ${email}`);
   await page.goto(`${BASE_URL}/`);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
 
   // Wait for login form elements to appear on home page or /login
   const emailInput = page.locator('input[type="email"], input[name="email"]');
@@ -18,7 +18,7 @@ async function login(page: Page, email: string, password: string) {
   if (!(await emailInput.isVisible())) {
     console.log("LOGIN: Email input not visible on root, trying /login...");
     await page.goto(`${BASE_URL}/login`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
   }
 
   console.log("LOGIN: Filling credentials...");

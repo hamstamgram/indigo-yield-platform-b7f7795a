@@ -1,13 +1,13 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page, email: string, password: string) {
   console.log(`LOGIN: Navigating to ${BASE_URL} for ${email}`);
   await page.goto(BASE_URL);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
 
   if (page.url().includes("/login")) {
     await page.fill('input[type="email"], input[name="email"]', email);
@@ -40,7 +40,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
 
     // Add Investor
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const addBtn = page.getByRole("button", { name: /Add Investor|New Investor/i });
     await addBtn.click();
     const dialog = page.getByRole("dialog");
@@ -57,7 +57,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
 
     // Add Deposit from Investor Profile directly to ensure fund linkage
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.locator('input[placeholder*="Search"]').fill(INV_EMAIL);
     await page.waitForTimeout(1000);
     await page
@@ -88,7 +88,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
 
   test("1. Void Deposit: Verify balance drops back to 0", async () => {
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.locator('input[placeholder*="Search"]').fill(INV_EMAIL);
     await page.waitForTimeout(1000);
     await page
@@ -138,7 +138,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
     // Check if balance reverted (hard to explicitly assert text unless we know exactly what it says, but UI checks pass)
     // Redo deposit for the next tests
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page
       .getByRole("button", { name: /New Transaction|Add Transaction/i })
       .first()
@@ -160,7 +160,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
   test("2. Void Partial Withdrawal: Verify balance is perfectly restored", async () => {
     // First, create a withdrawal from Investor Profile directly
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.locator('input[placeholder*="Search"]').fill(INV_EMAIL);
     await page.waitForTimeout(1000);
     await page
@@ -190,7 +190,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
 
     // Now void it
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.locator('input[placeholder*="Search"]').fill(INV_EMAIL);
     await page.waitForTimeout(1000);
     await page
@@ -255,7 +255,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
   test("4. Void Full Withdrawal (Dust Reversal): Verify fully restored and dust subtracted back out", async () => {
     // Do Full Withdrawal
     await page.goto(`${BASE_URL}/admin/investors`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.locator('input[placeholder*="Search"]').fill(INV_EMAIL);
     await page.waitForTimeout(1000);
     await page

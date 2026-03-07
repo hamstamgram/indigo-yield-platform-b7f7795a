@@ -313,6 +313,16 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Investor has no email address");
     }
 
+    const { data: additionalEmails } = await supabase
+      .from("investor_emails")
+      .select("email")
+      .eq("investor_id", investor_id);
+
+    const emailRecipients = [
+      recipientEmail,
+      ...(additionalEmails?.map((row_1) => row_1.email) || []),
+    ];
+
     // Build period name
     const monthNames = [
       "January",
@@ -348,7 +358,7 @@ This is an automated message from Indigo Yield.
     // Prepare Resend API payload
     const emailPayload: Record<string, unknown> = {
       from: `${RESEND_FROM_NAME} <${RESEND_FROM_EMAIL}>`,
-      to: [recipientEmail],
+      to: emailRecipients,
       subject,
       text: plainText,
     };

@@ -1,14 +1,14 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 const INVESTOR_EMAIL = process.env.TEST_INVESTOR_EMAIL || "alice@test.indigo.com";
 const INVESTOR_PASSWORD = "Alice!Investor2026#Secure";
 
 async function login(page: Page, email = ADMIN_EMAIL, password = ADMIN_PASSWORD) {
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   await page.fill('input[type="email"], input[name="email"]', email);
   await page.fill('input[type="password"], input[name="password"]', password);
   await page.click('button[type="submit"]');
@@ -43,7 +43,7 @@ test.describe("UX & Resilience (Frontend Polish)", () => {
 
   test("2. Yield Form Conditionals: Reporting hides fields, Transaction shows them", async () => {
     await page.goto(`${BASE_URL}/admin`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("button", { name: "Apply Yield" }).click();
     const alphaFundBtn = page.locator("button").filter({ hasText: /Indigo Alpha/i });
@@ -88,7 +88,7 @@ test.describe("UX & Resilience (Frontend Polish)", () => {
 
   test("3. KPIs: Log in as Investor. Verify YTD, MTD, ITD calculate and display", async () => {
     await login(investorPage, INVESTOR_EMAIL, INVESTOR_PASSWORD);
-    await investorPage.waitForLoadState("networkidle");
+    await investorPage.waitForLoadState("domcontentloaded");
 
     // The dashboard should have KPIs
     const mtdKpi = investorPage.locator("text=MTD").locator("xpath=..").first();
@@ -109,7 +109,7 @@ test.describe("UX & Resilience (Frontend Polish)", () => {
 
   test("4. Data Export: Ledger page -> Click 'Export CSV'. Verify download triggers", async () => {
     await page.goto(`${BASE_URL}/admin/transactions`); // Or wherever ledger is
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const exportBtn = page.getByRole("button", { name: /Export|Download CSV/i });
     if (await exportBtn.isVisible()) {
@@ -131,7 +131,7 @@ test.describe("UX & Resilience (Frontend Polish)", () => {
 
   test.skip("6. Error Boundary: Mock a 500 API error during a transaction.", async () => {
     await page.goto(`${BASE_URL}/admin/transactions`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Mock a 500 error on the /rest/v1/transactions endpoint
     await page.route("**/rest/v1/transactions*", async (route) => {

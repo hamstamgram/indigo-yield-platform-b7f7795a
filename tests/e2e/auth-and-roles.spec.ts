@@ -1,14 +1,14 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 const INVESTOR_EMAIL = process.env.TEST_INVESTOR_EMAIL || "alice@test.indigo.com";
 const INVESTOR_PASSWORD = "Alice!Investor2026#Secure";
 
 async function login(page: Page, email: string, password: string) {
   await page.goto(`${BASE_URL}/login`);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
 
   await page.fill('input[type="email"], input[name="email"]', email);
   await page.fill('input[type="password"], input[name="password"]', password);
@@ -44,7 +44,7 @@ test.describe("Auth and Roles (Security & Access)", () => {
 
     // Navigate to Investors
     await adminPage.goto(`${BASE_URL}/admin/investors`);
-    await adminPage.waitForLoadState("networkidle");
+    await adminPage.waitForLoadState("domcontentloaded");
 
     // Open Add Investor Wizard
     await adminPage.getByRole("button", { name: /Add Investor/i }).click();
@@ -82,7 +82,7 @@ test.describe("Auth and Roles (Security & Access)", () => {
   test("2. Investor Flow: Password reset flow UI, successful login", async () => {
     // Test Reset Password UI Flow (just checking if it works since we can't intercept email)
     await investorPage.goto(`${BASE_URL}/login`);
-    await investorPage.waitForLoadState("networkidle");
+    await investorPage.waitForLoadState("domcontentloaded");
 
     const forgotPasswordLink = investorPage.getByText(/Forgot password/i);
     if (await forgotPasswordLink.isVisible()) {
@@ -103,7 +103,7 @@ test.describe("Auth and Roles (Security & Access)", () => {
     // Investor is already logged in from previous test
     // Let's force navigation to admin path
     const response = await investorPage.goto(`${BASE_URL}/admin`);
-    await investorPage.waitForLoadState("networkidle");
+    await investorPage.waitForLoadState("domcontentloaded");
 
     // Verify the system either blocks with a 403, shows an Unauthorized message, or redirects back to /investor
     const appUrl = investorPage.url();
@@ -117,7 +117,7 @@ test.describe("Auth and Roles (Security & Access)", () => {
 
     // Also explicitly check another admin sub-route
     await investorPage.goto(`${BASE_URL}/admin/transactions`);
-    await investorPage.waitForLoadState("networkidle");
+    await investorPage.waitForLoadState("domcontentloaded");
     expect(
       !investorPage.url().includes("/admin/transactions") ||
         (await investorPage.getByText(/Unauthorized|Access Denied|Not Found/i).isVisible())
