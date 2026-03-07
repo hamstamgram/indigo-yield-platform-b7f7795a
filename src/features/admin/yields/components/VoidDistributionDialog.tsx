@@ -138,8 +138,8 @@ export function VoidDistributionDialog({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Purpose:</span>
-                <Badge variant="outline" className="text-xs">
-                  {distribution.purpose}
+                <Badge variant="outline" className="text-xs uppercase tracking-wider">
+                  {distribution.purpose === "reporting" ? "Reporting" : "Transaction"}
                 </Badge>
               </div>
             </div>

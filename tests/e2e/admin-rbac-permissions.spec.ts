@@ -3,7 +3,7 @@ import { test, expect, Page } from "@playwright/test";
 // Environment setup
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
 const SUPERADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
-const SUPERADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
+const SUPERADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "IndigoInvestor2026!";
 
 // A fresh test email that will be created and then upgraded/downgraded through the RBAC system
 const INVESTOR_EMAIL = `rbac_test_${Date.now()}@test.indigo.com`;
@@ -11,7 +11,7 @@ const INVESTOR_PASSWORD = "RbacInvestor2026!";
 
 // Standard admin and investor credentials
 const STANDARD_ADMIN_EMAIL = "standard.admin@test.indigo.com";
-const STANDARD_ADMIN_PASSWORD = "TestAdmin2026!";
+const STANDARD_ADMIN_PASSWORD = "IndigoInvestor2026!";
 
 /** Helper to log in and return the page object */
 async function login(page: Page, email: string, password: string) {

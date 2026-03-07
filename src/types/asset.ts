@@ -85,8 +85,10 @@ export interface AssetConfig {
 export const ASSET_PRECISION: Record<string, number> = {
   BTC: 8,
   ETH: 8,
-  SOL: 8,
+  SOL: 9,
+  SOLANA: 9,
   XRP: 6,
+  RIPPLE: 6,
   USDT: 6,
   USDC: 6,
   EURC: 6,

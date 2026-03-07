@@ -110,21 +110,24 @@ interface AUMDecimalConfig {
 function getAUMDecimals(asset: string): AUMDecimalConfig {
   const normalized = asset.toUpperCase();
 
-  switch (normalized) {
-    case "BTC":
-      return { min: 2, max: 6 };
-    case "ETH":
-    case "SOL":
-    case "XRP":
-    case "XAUT":
-      return { min: 2, max: 4 };
-    case "USDT":
-    case "USDC":
-    case "EURC":
-      return { min: 2, max: 2 };
-    default:
-      return { min: 2, max: 4 };
+  // Robust mapping for V5 global 3-decimal polish
+  if (
+    normalized.includes("BTC") ||
+    normalized.includes("ETH") ||
+    normalized.includes("SOL") ||
+    normalized.includes("XRP") ||
+    normalized.includes("SOLANA") ||
+    normalized.includes("RIPPLE") ||
+    normalized.includes("XAUT")
+  ) {
+    return { min: 3, max: 3 };
   }
+
+  if (normalized.includes("USDT") || normalized.includes("USDC") || normalized.includes("EURC")) {
+    return { min: 2, max: 2 };
+  }
+
+  return { min: 2, max: 4 };
 }
 
 /**

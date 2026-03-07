@@ -89,7 +89,7 @@ const FeesStep: React.FC = () => {
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Percentage of yield allocated as platform fees (typically 20%)
+                  Percentage of yield allocated as INDIGO Fees (typically 20%)
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -163,7 +163,7 @@ const FeesStep: React.FC = () => {
             <h4 className="font-medium mb-2">Fee Summary</h4>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Platform Fee:</span>
+                <span className="text-muted-foreground">INDIGO Fee:</span>
                 <span className="font-medium">{form.watch("investor_fee_pct")}%</span>
               </div>
               {ibEnabled && (

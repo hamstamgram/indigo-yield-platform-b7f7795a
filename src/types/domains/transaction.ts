@@ -88,6 +88,8 @@ export interface LedgerTransaction {
   type: string;
   /** @precision NUMERIC(28,10) from database */
   amount: string;
+  /** @precision NUMERIC(28,10) from database */
+  running_balance?: string;
   purpose: string | null;
   reference_id: string | null;
   notes: string | null;

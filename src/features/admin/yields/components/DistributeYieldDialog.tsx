@@ -44,6 +44,7 @@ interface DistributeYieldDialogProps {
   netYield?: string;
   reconciliation?: ReconciliationData | null;
   existingDistributionDate?: string | null;
+  asOfAum?: string | number | null;
   formatValue: (value: number, asset: string) => string;
 }
 
@@ -67,6 +68,7 @@ export function DistributeYieldDialog({
   netYield,
   reconciliation,
   existingDistributionDate,
+  asOfAum,
   formatValue,
 }: DistributeYieldDialogProps) {
   const [phase, setPhase] = useState<Phase>("confirm");
@@ -158,16 +160,50 @@ export function DistributeYieldDialog({
                   </span>
                 </div>
                 {netYield && (
-                  <div className="flex items-center justify-between px-4 py-2.5">
-                    <span className="text-sm text-muted-foreground">Net Yield</span>
-                    <span className="text-sm font-mono font-semibold text-white">
-                      {formatValue(toNum(netYield), asset)} {asset}
-                    </span>
+                  <div className="flex flex-col gap-1 px-4 py-2 bg-indigo-500/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground font-medium">Net Yield</span>
+                      <span className="text-sm font-mono font-bold text-white">
+                        {formatValue(toNum(netYield), asset)} {asset}
+                      </span>
+                    </div>
+                    {/* Math Reconciliation breakdown */}
+                    <div className="flex flex-col gap-1.5 pl-3 border-l border-indigo-500/20 my-1">
+                      {totalIbFees && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                            + IB Fees
+                          </span>
+                          <span className="text-[11px] font-mono text-purple-400">
+                            {formatValue(toNum(totalIbFees), asset)} {asset}
+                          </span>
+                        </div>
+                      )}
+                      {totalFees && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                            + INDIGO Fees
+                          </span>
+                          <span className="text-[11px] font-mono text-indigo-400">
+                            {formatValue(toNum(totalFees), asset)} {asset}
+                          </span>
+                        </div>
+                      )}
+                      <div className="h-px bg-white/5 w-full my-0.5" />
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-indigo-300 font-semibold uppercase tracking-wider">
+                          = Gross Yield
+                        </span>
+                        <span className="text-[11px] font-mono font-bold text-indigo-300">
+                          {grossYield} {asset}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
                 {totalFees && toNum(totalFees) > 0 && (
                   <div className="flex items-center justify-between px-4 py-2.5">
-                    <span className="text-sm text-muted-foreground">Platform Fees</span>
+                    <span className="text-sm text-muted-foreground">INDIGO Fees Credit</span>
                     <span className="text-sm font-mono text-slate-300">
                       {formatValue(toNum(totalFees), asset)} {asset}
                     </span>
@@ -182,10 +218,10 @@ export function DistributeYieldDialog({
                   </div>
                 )}
                 {indigoFeesCredit && toNum(indigoFeesCredit) > 0 && (
-                  <div className="flex items-center justify-between px-4 py-2.5">
-                    <span className="text-sm text-muted-foreground">INDIGO Fees Credit</span>
-                    <span className="text-sm font-mono text-blue-400">
-                      {formatValue(toNum(indigoFeesCredit), asset)} {asset}
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-blue-500/5">
+                    <span className="text-sm text-blue-400 font-medium">INDIGO Fees Credit</span>
+                    <span className="text-sm font-mono text-blue-400 font-bold">
+                      +{formatValue(toNum(indigoFeesCredit), asset)} {asset}
                     </span>
                   </div>
                 )}
@@ -223,10 +259,10 @@ export function DistributeYieldDialog({
                     </span>
                   </div>
                 )}
-                <div className="flex items-center justify-between px-4 py-2.5">
-                  <span className="text-sm text-muted-foreground">Effective Date</span>
-                  <span className="text-sm font-semibold text-white">
-                    {format(effectiveDate, "PPP")}
+                <div className="flex items-center justify-between px-4 py-3 bg-indigo-500/10 border-t border-indigo-500/20">
+                  <span className="text-sm font-semibold text-white">Ending Balance</span>
+                  <span className="text-lg font-bold text-white tabular-nums">
+                    {formatValue(toNum(asOfAum || 0) + toNum(grossYield), asset)} {asset}
                   </span>
                 </div>
               </div>

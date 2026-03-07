@@ -6,6 +6,7 @@ export interface LedgerTransaction {
   id: string;
   type: string;
   amount: string;
+  running_balance?: string;
   asset: string;
   tx_date: string;
   notes: string | null;

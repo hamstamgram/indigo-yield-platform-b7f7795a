@@ -32,7 +32,8 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
       // Build query with optional voided filter
       let dbQuery = supabase
         .from("transactions_v2")
-        .select(`
+        .select(
+          `
           id,
           tx_date,
           type,
@@ -45,10 +46,15 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
           tx_hash,
           is_system_generated,
           visibility_scope,
+          balance_after,
+          balance_before,
+          fund_id,
           fund:funds!fk_transactions_v2_fund(name, asset)
-        `)
+        `
+        )
         .eq("investor_id", investorId)
         .order("tx_date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(100);
 
       // Only filter out voided if showVoided is not true
@@ -82,13 +88,19 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
 
       // Diagnostic logging for empty results
       if ((!data || data.length === 0) && process.env.NODE_ENV === "development") {
-        logDebug("useInvestorLedger.emptyResult", { investorId, filters, showVoided: filters.showVoided ?? false });
+        logDebug("useInvestorLedger.emptyResult", {
+          investorId,
+          filters,
+          showVoided: filters.showVoided ?? false,
+        });
       }
 
       // Map DB data to domain types, converting amount to string for precision
+      // Using balance_after as the authoritative source for running_balance (Ending Balance)
       return (data || []).map((tx) => ({
         ...tx,
         amount: String(tx.amount ?? "0"),
+        running_balance: tx.balance_after != null ? String(tx.balance_after) : undefined,
       })) as LedgerTransaction[];
     },
     enabled: !!investorId,

@@ -156,6 +156,7 @@ export function YieldInputForm({
 
           <div className="grid grid-cols-2 gap-3">
             <div
+              data-testid="purpose-transaction"
               className={cn(
                 "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
                 yieldPurpose === "transaction"
@@ -176,6 +177,7 @@ export function YieldInputForm({
               </div>
             </div>
             <div
+              data-testid="purpose-reporting"
               className={cn(
                 "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
                 yieldPurpose === "reporting"
@@ -295,9 +297,10 @@ export function YieldInputForm({
 
         {/* New AUM Input */}
         <div className="space-y-2">
-          <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
+          <Label htmlFor="new-aum">Closing AUM ({selectedFund?.asset})</Label>
           <NumericInput
             id="new-aum"
+            data-testid="aum-input"
             asset={selectedFund?.asset}
             value={newAUM}
             onChange={handleNewAUMChange}

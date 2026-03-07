@@ -2,15 +2,22 @@ import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
 const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
-const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "IndigoInvestor2026!";
 
-async function login(page: Page) {
-  await page.goto(`${BASE_URL}/login`);
+async function login(page: Page, email: string, password: string) {
+  console.log(`LOGIN: Navigating to ${BASE_URL} for ${email}`);
+  await page.goto(BASE_URL);
   await page.waitForLoadState("networkidle");
-  await page.fill('input[type="email"], input[name="email"]', ADMIN_EMAIL);
-  await page.fill('input[type="password"], input[name="password"]', ADMIN_PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/\/(dashboard|admin)/, { timeout: 15000 });
+
+  if (page.url().includes("/login")) {
+    await page.fill('input[type="email"], input[name="email"]', email);
+    await page.fill('input[type="password"], input[name="password"]', password);
+    await page.click('button[type="submit"]');
+  }
+
+  console.log("LOGIN: Waiting for dashboard content...");
+  await page.waitForSelector("text=Command Center", { timeout: 30000 });
+  console.log("LOGIN: Dashboard loaded successfully.");
 }
 
 test.describe("Omni-Void Cascade (Total Reversibility)", () => {
@@ -29,7 +36,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
   });
 
   test("0. Setup: Create Investor and Deposit", async () => {
-    await login(page);
+    await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
     // Add Investor
     await page.goto(`${BASE_URL}/admin/investors`);

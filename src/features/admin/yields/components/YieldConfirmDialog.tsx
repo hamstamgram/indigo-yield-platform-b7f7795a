@@ -125,7 +125,7 @@ export function YieldConfirmDialog({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Fees:</span>
+                  <span className="text-muted-foreground">INDIGO Fees Credit:</span>
                   <span className="font-mono">
                     {formatValue(toNum(yieldPreview?.totalFees ?? 0), asset)} {asset}
                   </span>

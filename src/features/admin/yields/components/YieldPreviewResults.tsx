@@ -122,14 +122,20 @@ export function YieldPreviewResults({
               )}
             >
               {toNum(yieldPreview.grossYield) >= 0 ? "+" : ""}
-              {formatValue(toNum(yieldPreview.grossYield), asset)}
+              {/* Math Reconciliation: Ensure display equals sum of components */}
+              {formatValue(
+                toNum(yieldPreview.totalFees) +
+                  toNum(yieldPreview.totalIbFees ?? 0) +
+                  toNum(yieldPreview.netYield),
+                asset
+              )}
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-indigo-500/20 bg-indigo-950/20">
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">System Input</p>
-            <p className="text-lg font-mono font-semibold">
+            <p className="text-xs text-muted-foreground">INDIGO Fees Credit</p>
+            <p className="text-lg font-mono font-semibold text-indigo-400">
               {formatValue(toNum(yieldPreview.totalFees), asset)}
             </p>
           </CardContent>
@@ -225,6 +231,7 @@ export function YieldPreviewResults({
               <TableHead className="text-right" title="Introducing Broker">
                 Broker
               </TableHead>
+              <TableHead className="text-right font-bold">Ending Balance</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -267,7 +274,7 @@ export function YieldPreviewResults({
                           )}
                         >
                           {toNum(inv.grossYield) >= 0 ? "+" : ""}
-                          {formatValue(toNum(inv.grossYield), asset)}
+                          {formatValue(toNum(inv.grossYield), asset)} {asset}
                         </span>
                         {inv.mtdGross !== undefined && (
                           <div
@@ -329,6 +336,9 @@ export function YieldPreviewResults({
                           -{formatValue(toNum(inv.mtdIb), asset)} MTD
                         </div>
                       )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold text-sm bg-muted/30">
+                      {formatValue(toNum(inv.openingBalance || 0) + toNum(inv.netYield), asset)}
                     </TableCell>
                   </TableRow>
                 </React.Fragment>

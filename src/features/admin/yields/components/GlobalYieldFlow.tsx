@@ -142,6 +142,7 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
         netYield={ops.yieldPreview?.netYield}
         reconciliation={reconciliation}
         existingDistributionDate={ops.existingDistributionDate}
+        asOfAum={ops.asOfAum}
         formatValue={ops.formatValue}
       />
     </div>

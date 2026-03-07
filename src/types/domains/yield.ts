@@ -28,6 +28,8 @@ export interface YieldDistribution {
   investorId: string;
   investorName: string;
   accountType?: string;
+  /** Opening balance before yield - string for NUMERIC(28,10) precision */
+  openingBalance?: string;
   /** Current balance - string for NUMERIC(28,10) precision */
   currentBalance: string;
   /** Allocation percentage - string for decimal precision */
@@ -333,6 +335,7 @@ export interface V5AllocationItem {
   investor_name: string;
   investor_email?: string;
   account_type?: string;
+  opening_balance?: number;
   gross: number;
   fee_pct: number;
   fee: number;

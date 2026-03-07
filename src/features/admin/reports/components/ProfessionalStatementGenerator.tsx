@@ -250,7 +250,7 @@ const ProfessionalStatementGenerator = () => {
                   <strong>Important Notes:</strong>
                 </p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>Net Income reflects yield earned after platform fees have been deducted</li>
+                  <li>Net Income reflects yield earned after INDIGO Fees have been deducted</li>
                   <li>All amounts are denominated in their respective token units</li>
                   <li>
                     This statement is generated from our secure database and reflects real-time

@@ -104,6 +104,7 @@ export async function previewYieldDistribution(
       referenceId: "",
       wouldSkip: false,
       hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
+      openingBalance: String(d.opening_balance || 0),
       // Month-to-date aggregates
       mtdGross: d.mtd_gross !== undefined ? String(d.mtd_gross) : undefined,
       mtdFee: d.mtd_fee !== undefined ? String(d.mtd_fee) : undefined,

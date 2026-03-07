@@ -72,6 +72,7 @@ export function LedgerTable({ transactions, onVoid }: LedgerTableProps) {
             <TableHead className="text-xs h-9">Type</TableHead>
             <TableHead className="text-xs h-9">Fund</TableHead>
             <TableHead className="text-xs h-9 text-right">Amount</TableHead>
+            <TableHead className="text-xs h-9 text-right">Ending Balance</TableHead>
             <TableHead className="text-xs h-9">Purpose</TableHead>
             <TableHead className="text-xs h-9 w-[60px]">Actions</TableHead>
           </TableRow>
@@ -119,6 +120,13 @@ export function LedgerTable({ transactions, onVoid }: LedgerTableProps) {
                   colorize
                   showAsset
                 />
+              </TableCell>
+              <TableCell className="py-2 text-right font-mono font-medium">
+                {tx.running_balance ? (
+                  <FinancialValue value={tx.running_balance} asset={tx.asset} showAsset />
+                ) : (
+                  <span className="text-muted-foreground italic">Pending</span>
+                )}
               </TableCell>
               <TableCell className="py-2">{getPurposeBadge(tx.purpose)}</TableCell>
               <TableCell className="py-2">
