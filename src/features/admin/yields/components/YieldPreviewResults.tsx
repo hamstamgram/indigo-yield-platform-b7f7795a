@@ -64,6 +64,11 @@ export function YieldPreviewResults({
     yieldPreview.calculationMethod === "segmented_v5" ||
     yieldPreview.calculationMethod === "unified_v6";
 
+  // The true Total Gross Yield is the sum of ALL allocations (including system fee accounts) + any dust
+  const trueTotalGross =
+    yieldPreview.distributions.reduce((acc, inv) => acc + toNum(inv.grossYield), 0) +
+    toNum((yieldPreview as any).dustAmount || 0);
+
   return (
     <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
       <div className="flex items-center gap-2 mb-4">
@@ -121,14 +126,8 @@ export function YieldPreviewResults({
                 toNum(yieldPreview.grossYield) >= 0 ? "text-yield" : "text-rose-400"
               )}
             >
-              {toNum(yieldPreview.grossYield) >= 0 ? "+" : ""}
-              {/* Math Reconciliation: Ensure display equals sum of components */}
-              {formatValue(
-                toNum(yieldPreview.totalFees) +
-                  toNum(yieldPreview.totalIbFees ?? 0) +
-                  toNum(yieldPreview.netYield),
-                asset
-              )}
+              {trueTotalGross >= 0 ? "+" : ""}
+              {formatValue(trueTotalGross, asset)}
             </p>
           </CardContent>
         </Card>
