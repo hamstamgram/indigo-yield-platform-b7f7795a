@@ -2,8 +2,8 @@ import { test, expect, Page } from "@playwright/test";
 import { format } from "date-fns";
 
 const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
-const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "IndigoInvestor2026!";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page, email: string, password: string) {
   console.log(`LOGIN: Navigating to ${BASE_URL} for ${email}`);

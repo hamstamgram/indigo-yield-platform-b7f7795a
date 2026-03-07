@@ -111,8 +111,8 @@ test.describe("Scenario 11: Adriel Golden Datasets", () => {
 
 async function login(page: Page) {
   const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-  const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
-  const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "IndigoInvestor2026!";
+  const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
+  const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
   await page.goto(`${BASE_URL}/login`);
   await page.fill('input[type="email"]', ADMIN_EMAIL);
   await page.fill('input[type="password"]', ADMIN_PASSWORD);

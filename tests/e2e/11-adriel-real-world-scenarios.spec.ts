@@ -2,7 +2,7 @@ import { test, expect, Page } from "@playwright/test";
 
 // Environment Configuration
 const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 // Generate unique identifiers to prevent collisions with existing Profiles
