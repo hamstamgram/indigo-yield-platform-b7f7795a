@@ -1,8 +1,8 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
-const ADRIEL_EMAIL = "adriel@indigo.fund";
-const ADRIEL_PASS = "IndigoInvestor2026!";
+const ADRIEL_EMAIL = process.env.TEST_ADMIN_EMAIL || "qa.admin@indigo.fund";
+const ADRIEL_PASS = process.env.TEST_ADMIN_PASSWORD || "IndigoInvestor2026!";
 
 const TIMESTAMP = Date.now();
 

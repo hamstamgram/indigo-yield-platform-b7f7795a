@@ -14,9 +14,9 @@ const INVESTOR_SAM = "Sam Johnson";
 const FUND_SOL = "Solana Yield Fund";
 const FUND_XRP = "Ripple Yield Fund";
 
-// Login Credentials
-const ADRIEL_EMAIL = "adriel@indigo.fund";
-const ADRIEL_PASS = "IndigoInvestor2026!";
+// Login Credentials - Use standardized QA Admin instead of deleted Adriel account
+const ADRIEL_EMAIL = ADMIN_EMAIL;
+const ADRIEL_PASS = ADMIN_PASSWORD;
 
 // Fee Variables
 const INDIGO_FEES_NAME = "INDIGO Fees";
