@@ -84,33 +84,51 @@ export async function previewYieldDistribution(
     throw new Error(result?.error || "Preview failed: Invalid response from server");
   }
 
+  // The production database might be running an older version of the V5 RPC which doesn't
+  // return the investor balances in its JSON payload. We fetch them here to guarantee the UI works.
+  const { data: positions } = await supabase
+    .from("investor_positions")
+    .select("investor_id, current_value")
+    .eq("fund_id", fundId)
+    .eq("is_active", true);
+
+  const balanceMap = new Map<string, number>();
+  if (positions) {
+    positions.forEach((p) => {
+      balanceMap.set(p.investor_id, Number(p.current_value));
+    });
+  }
+
   // Map distributions from V5 backend format
   const distributions: YieldDistribution[] = (result.allocations || []).map(
-    (d: V5AllocationItem) => ({
-      investorId: d.investor_id,
-      investorName: d.investor_name,
-      accountType: d.account_type,
-      currentBalance: String((d as any).current_value || d.opening_balance || 0),
-      allocationPercentage: "0",
-      feePercentage: String(d.fee_pct || 0),
-      grossYield: String(d.gross || 0),
-      feeAmount: String(d.fee || 0),
-      netYield: String(d.net || 0),
-      newBalance: "0",
-      positionDelta: String(d.net || 0),
-      ibParentId: d.ib_parent_id,
-      ibPercentage: String(d.ib_rate || 0),
-      ibAmount: String(d.ib || 0),
-      referenceId: "",
-      wouldSkip: false,
-      hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
-      openingBalance: String((d as any).current_value || d.opening_balance || 0),
-      // Month-to-date aggregates
-      mtdGross: d.mtd_gross !== undefined ? String(d.mtd_gross) : undefined,
-      mtdFee: d.mtd_fee !== undefined ? String(d.mtd_fee) : undefined,
-      mtdIb: d.mtd_ib !== undefined ? String(d.mtd_ib) : undefined,
-      mtdNet: d.mtd_net !== undefined ? String(d.mtd_net) : undefined,
-    })
+    (d: V5AllocationItem) => {
+      const liveBalance = balanceMap.get(d.investor_id) || 0;
+      return {
+        investorId: d.investor_id,
+        investorName: d.investor_name,
+        accountType: d.account_type,
+        currentBalance: String((d as any).current_value || d.opening_balance || liveBalance),
+        allocationPercentage: "0",
+        feePercentage: String(d.fee_pct || 0),
+        grossYield: String(d.gross || 0),
+        feeAmount: String(d.fee || 0),
+        netYield: String(d.net || 0),
+        newBalance: "0",
+        positionDelta: String(d.net || 0),
+        ibParentId: d.ib_parent_id,
+        ibPercentage: String(d.ib_rate || 0),
+        ibAmount: String(d.ib || 0),
+        referenceId: "",
+        wouldSkip: false,
+        hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
+        openingBalance: String((d as any).current_value || d.opening_balance || liveBalance),
+        // Month-to-date aggregates
+        mtdGross: d.mtd_gross !== undefined ? String(d.mtd_gross) : undefined,
+        mtdFee: d.mtd_fee !== undefined ? String(d.mtd_fee) : undefined,
+        mtdIb: d.mtd_ib !== undefined ? String(d.mtd_ib) : undefined,
+        mtdNet: d.mtd_net !== undefined ? String(d.mtd_net) : undefined,
+      };
+    }
   );
 
   const ibCredits: IBCredit[] = [];
