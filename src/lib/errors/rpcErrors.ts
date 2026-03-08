@@ -93,6 +93,11 @@ const ERROR_PATTERNS: Array<{
     pattern: /Cannot void.*locked/i,
     message: () => "This transaction is locked and cannot be voided. Contact an administrator.",
   },
+  {
+    pattern: /FIRST PRINCIPLES VIOLATION/i,
+    message: () =>
+      "Cannot void this transaction because a subsequent yield distribution depends on it. Void the yield distribution first, then void this transaction.",
+  },
 
   // Permission errors
   {
@@ -113,7 +118,15 @@ const ERROR_PATTERNS: Array<{
  * Parse an RPC error and return a user-friendly message
  */
 export function getUserFriendlyError(error: Error | unknown): string {
-  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : error !== null &&
+          typeof error === "object" &&
+          "message" in error &&
+          typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message
+        : String(error);
 
   // Check against known patterns
   for (const { pattern, message } of ERROR_PATTERNS) {
@@ -186,12 +199,22 @@ export function handleRPCError(
   if (logger) {
     logger(context, error, {
       userMessage,
-      originalError: error instanceof Error ? error.message : String(error),
+      originalError:
+        error instanceof Error
+          ? error.message
+          : error !== null && typeof error === "object" && "message" in error
+            ? (error as { message: string }).message
+            : String(error),
     });
   } else {
     logError(context, error, {
       userMessage,
-      originalError: error instanceof Error ? error.message : String(error),
+      originalError:
+        error instanceof Error
+          ? error.message
+          : error !== null && typeof error === "object" && "message" in error
+            ? (error as { message: string }).message
+            : String(error),
     });
   }
 
