@@ -246,9 +246,22 @@ describe("Yield Calculation Formulas (Manual Check)", () => {
     expect(gross * (1 - fee)).toBeCloseTo(expectedNet, 5);
   });
 
-  it("IB commission = fee × IB%", () => {
-    const feeAmount = 100;
+  it("IB commission = gross_yield × IB% (from GROSS, not from fee)", () => {
+    const grossYield = 355; // XRP example from Adriel's golden scenario
     const ibPercent = 0.04; // 4%
-    expect(feeAmount * ibPercent).toBe(4);
+    const expectedIB = 14.2; // 355 * 4% = 14.20
+    expect(grossYield * ibPercent).toBeCloseTo(expectedIB, 5);
+  });
+
+  it("INDIGO fee = gross_yield × fee% (separate from IB)", () => {
+    const grossYield = 355;
+    const feePct = 0.16; // 16%
+    const ibPct = 0.04; // 4%
+    const expectedFee = 56.8; // 355 * 16%
+    const expectedIB = 14.2; // 355 * 4%
+    const expectedNet = 284; // 355 * 80%
+    expect(grossYield * feePct).toBeCloseTo(expectedFee, 5);
+    expect(grossYield * ibPct).toBeCloseTo(expectedIB, 5);
+    expect(grossYield - expectedFee - expectedIB).toBeCloseTo(expectedNet, 5);
   });
 });

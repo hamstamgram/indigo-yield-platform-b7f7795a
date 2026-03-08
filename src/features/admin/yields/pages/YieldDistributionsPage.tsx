@@ -1063,6 +1063,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                       <TableHead className="text-right whitespace-nowrap">
                                                         IB
                                                       </TableHead>
+                                                      <TableHead className="whitespace-nowrap">
+                                                        IB Person
+                                                      </TableHead>
                                                       <TableHead className="text-right whitespace-nowrap">
                                                         Net
                                                       </TableHead>
@@ -1118,6 +1121,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                               value={allocation.ib_amount || 0}
                                                               asset={fund?.asset}
                                                             />
+                                                          </TableCell>
+                                                          <TableCell className="py-1.5 text-xs text-muted-foreground truncate max-w-[120px]">
+                                                            {allocation.ib_investor_name || "---"}
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 font-semibold tabular-nums">
                                                             <FinancialValue

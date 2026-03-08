@@ -46,6 +46,7 @@ export type AllocationRow = {
   fee_pct: number | null;
   ib_pct: number | null;
   position_value_at_calc: number | null;
+  ib_investor_name: string | null;
 };
 
 export type FeeAllocationRow = {
@@ -180,7 +181,48 @@ export async function fetchYieldDistributionsPageData(
 
     if (allocationError) throw allocationError;
 
-    const allocations = (allocationRows || []) as AllocationRow[];
+    const rawAllocations = (allocationRows || []) as (Omit<AllocationRow, "ib_investor_name"> & {
+      ib_investor_name?: string | null;
+    })[];
+
+    // Fetch IB allocations to enrich with IB person names
+    const { data: ibAllocRows } = await supabase
+      .from("ib_allocations")
+      .select("distribution_id, source_investor_id, ib_investor_id")
+      .in("distribution_id", distributionIds)
+      .eq("is_voided", false);
+
+    // Build map: (distribution_id, source_investor_id) -> ib_investor_id
+    const ibMap = new Map<string, string>();
+    const ibPersonIds = new Set<string>();
+    (ibAllocRows || []).forEach((ib) => {
+      const key = `${ib.distribution_id}:${ib.source_investor_id}`;
+      ibMap.set(key, ib.ib_investor_id);
+      ibPersonIds.add(ib.ib_investor_id);
+    });
+
+    // Fetch IB person profiles
+    const ibProfileMap = new Map<string, string>();
+    if (ibPersonIds.size > 0) {
+      const { data: ibProfiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", Array.from(ibPersonIds));
+      (ibProfiles || []).forEach((p) => {
+        ibProfileMap.set(p.id, `${p.first_name || ""} ${p.last_name || ""}`.trim());
+      });
+    }
+
+    // Enrich allocations with IB person name
+    const allocations: AllocationRow[] = rawAllocations.map((a) => {
+      const ibKey = `${a.distribution_id}:${a.investor_id}`;
+      const ibInvestorId = ibMap.get(ibKey);
+      return {
+        ...a,
+        ib_investor_name: ibInvestorId ? ibProfileMap.get(ibInvestorId) || null : null,
+      };
+    });
+
     const grouped: Record<string, AllocationRow[]> = {};
     allocations.forEach((allocation) => {
       if (!grouped[allocation.distribution_id]) {

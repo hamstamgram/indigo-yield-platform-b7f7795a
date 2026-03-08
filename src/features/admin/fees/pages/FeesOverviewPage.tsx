@@ -51,9 +51,19 @@ function FeesOverviewContent({ embedded = false }: { embedded?: boolean }) {
   // Extract data with defaults
   const allDataFees = data?.fees || [];
 
-  // Filter out non-platform fees - the user only wants to see fees Indigo receives
+  // Show fee-related transactions: FEE_CREDIT, IB_CREDIT, YIELD, DUST, etc.
+  // Note: FEE_CREDIT transactions have effectiveInvestorId set to the source investor
+  // (who paid the fee), not the fees account, so filtering by investorId misses them.
   const fees = useMemo(() => {
-    return allDataFees.filter((f) => f.investorId === INDIGO_FEES_ACCOUNT_ID);
+    return allDataFees.filter(
+      (f) =>
+        f.type === "FEE_CREDIT" ||
+        f.type === "IB_CREDIT" ||
+        f.type === "YIELD" ||
+        f.type === "DUST" ||
+        f.type === "DUST_SWEEP" ||
+        f.type === "INTERNAL_CREDIT"
+    );
   }, [allDataFees]);
 
   const funds = data?.funds || [];

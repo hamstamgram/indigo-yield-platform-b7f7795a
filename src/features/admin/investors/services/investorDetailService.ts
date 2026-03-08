@@ -39,6 +39,7 @@ export interface InvestorPosition {
   current_value: number;
   cost_basis: number;
   unrealized_pnl: number;
+  realized_pnl: number;
 }
 
 export interface InvestorPositionsData {
@@ -154,6 +155,7 @@ export async function fetchInvestorPositionsWithTotals(
       current_value,
       cost_basis,
       unrealized_pnl,
+      realized_pnl,
       funds!fk_investor_positions_fund(name, code, asset)
     `
     )
@@ -171,6 +173,7 @@ export async function fetchInvestorPositionsWithTotals(
     current_value: p.current_value || 0,
     cost_basis: p.cost_basis || 0,
     unrealized_pnl: p.unrealized_pnl || 0,
+    realized_pnl: p.realized_pnl || 0,
   }));
 
   const totalValue = mappedPositions.reduce((sum, p) => sum + p.current_value, 0);
@@ -194,6 +197,7 @@ export async function fetchActivePositions(investorId: string): Promise<Investor
       current_value,
       cost_basis,
       unrealized_pnl,
+      realized_pnl,
       funds!fk_investor_positions_fund(name, code, asset)
     `
     )
@@ -211,6 +215,7 @@ export async function fetchActivePositions(investorId: string): Promise<Investor
     current_value: p.current_value || 0,
     cost_basis: p.cost_basis || 0,
     unrealized_pnl: p.unrealized_pnl || 0,
+    realized_pnl: p.realized_pnl || 0,
   }));
 }
 
