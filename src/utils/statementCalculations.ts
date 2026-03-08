@@ -5,6 +5,7 @@ import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
+import { supabase } from "@/integrations/supabase/client";
 
 // Re-export StatementTransaction as the canonical type for statement views
 export type { StatementTransaction } from "@/types/domains/transaction";
@@ -72,6 +73,47 @@ export function calculateRateOfReturn(
   return { netIncome, rateOfReturn };
 }
 
+/**
+ * Get reporting cutoff timestamps per asset for a given period.
+ * Returns a map of asset_code -> created_at timestamp from the yield_distribution
+ * that was used for reporting. Deposits/withdrawals created AFTER this timestamp
+ * should be excluded from that period's report.
+ */
+async function getReportingCutoffs(
+  periodYear: number,
+  periodMonth: number
+): Promise<Map<string, string>> {
+  const cutoffMap = new Map<string, string>();
+
+  // Use .match() to avoid deep type instantiation from chained .eq() calls
+  const { data: distributions } = await supabase
+    .from("yield_distributions")
+    .select("id, created_at, fund_id")
+    .match({ is_voided: false, period_year: periodYear, period_month: periodMonth });
+
+  if (distributions && distributions.length > 0) {
+    const fundIds = [...new Set(distributions.map((d: any) => d.fund_id))];
+
+    const { data: fundsData } = await supabase
+      .from("funds")
+      .select("id, asset")
+      .in("id", fundIds as string[]);
+
+    const fundAssetMap = new Map(
+      (fundsData ?? []).map((f: any) => [f.id, f.asset] as [string, string])
+    );
+
+    for (const dist of distributions) {
+      const asset = fundAssetMap.get((dist as any).fund_id);
+      if (asset && dist.created_at) {
+        cutoffMap.set(asset, dist.created_at);
+      }
+    }
+  }
+
+  return cutoffMap;
+}
+
 export async function computeStatement(
   investor_id: string,
   period_year: number,
@@ -96,11 +138,13 @@ export async function computeStatement(
     const period_end = new Date(period_year, period_month, 0, 23, 59, 59);
     const period_end_str = getMonthEndDate(period_year, period_month);
 
-    // Fetch all transactions for this investor up to the end of the period
-    // using transactionsV2Service with deterministic ordering
-    const transactions = await transactionsV2Service.getByInvestorId(investor_id, {
-      endDate: period_end_str,
-    });
+    // Fetch transactions and reporting cutoffs in parallel
+    const [transactions, reportingCutoffs] = await Promise.all([
+      transactionsV2Service.getByInvestorId(investor_id, {
+        endDate: period_end_str,
+      }),
+      getReportingCutoffs(period_year, period_month),
+    ]);
 
     // Reverse to get ascending order (service returns descending by default)
     transactions.reverse();
@@ -127,6 +171,19 @@ export async function computeStatement(
     // Process transactions
     transactions?.forEach((transaction) => {
       const assetCode = transaction.asset;
+
+      // Skip post-reporting deposits/withdrawals:
+      // If a reporting yield distribution exists for this asset+period,
+      // exclude deposits/withdrawals created after the distribution's created_at
+      const cutoff = reportingCutoffs.get(assetCode);
+      if (
+        cutoff &&
+        (transaction.type === "DEPOSIT" || transaction.type === "WITHDRAWAL") &&
+        (transaction as any).created_at > cutoff
+      ) {
+        return; // Skip this transaction — it was made after reporting
+      }
+
       if (!assetsMap[assetCode]) {
         const fund = fundMap.get(assetCode) as any;
         assetsMap[assetCode] = {

@@ -35,6 +35,7 @@ import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { logError, logDebug } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
 import { formatDateForDB } from "@/utils/dateUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const StatementManager: React.FC = () => {
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
@@ -55,8 +56,34 @@ export const StatementManager: React.FC = () => {
       const startDate = startOfMonth(new Date(year, month - 1));
       const endDate = endOfMonth(new Date(year, month - 1));
 
-      // 1. Get Active Investors (profiles) via service
-      const investors = await profileService.getActiveInvestors();
+      // 1. Get Active Investors and reporting cutoffs in parallel
+      const [investors, reportingCutoffs] = await Promise.all([
+        profileService.getActiveInvestors(),
+        (async () => {
+          const cutoffMap = new Map<string, string>();
+          const { data: distributions } = await supabase
+            .from("yield_distributions")
+            .select("id, created_at, fund_id")
+            .match({ is_voided: false, period_year: year, period_month: month });
+          if (distributions && distributions.length > 0) {
+            const fundIds = [...new Set(distributions.map((d: any) => d.fund_id))];
+            const { data: fundsData } = await supabase
+              .from("funds")
+              .select("id, asset")
+              .in("id", fundIds as string[]);
+            const fundAssetMap = new Map(
+              (fundsData ?? []).map((f: any) => [f.id, f.asset] as [string, string])
+            );
+            for (const dist of distributions) {
+              const asset = fundAssetMap.get((dist as any).fund_id);
+              if (asset && dist.created_at) {
+                cutoffMap.set(asset, dist.created_at);
+              }
+            }
+          }
+          return cutoffMap;
+        })(),
+      ]);
 
       if (!investors || investors.data.length === 0) throw new Error("No active investors found");
 
@@ -85,12 +112,25 @@ export const StatementManager: React.FC = () => {
                 yieldMap.set(r.fund_name, parseFinancial(r.mtd_net_income || 0).toNumber())
               );
 
-              const assetMap = new Map<string, { open: number; in: number; out: number; close: number }>();
+              const assetMap = new Map<
+                string,
+                { open: number; in: number; out: number; close: number }
+              >();
 
               txs.forEach((tx) => {
                 const asset = tx.asset;
-                if (!assetMap.has(asset))
-                  assetMap.set(asset, { open: 0, in: 0, out: 0, close: 0 });
+
+                // Skip post-reporting deposits/withdrawals
+                const cutoff = reportingCutoffs.get(asset);
+                if (
+                  cutoff &&
+                  (tx.type === "DEPOSIT" || tx.type === "WITHDRAWAL") &&
+                  (tx as any).created_at > cutoff
+                ) {
+                  return;
+                }
+
+                if (!assetMap.has(asset)) assetMap.set(asset, { open: 0, in: 0, out: 0, close: 0 });
                 const rec = assetMap.get(asset)!;
 
                 const txDate = new Date(tx.tx_date);
@@ -159,7 +199,8 @@ export const StatementManager: React.FC = () => {
               await statementsService.uploadStatementPDF(filePath, pdfBlobResolved);
 
               // asset_code must match the DB enum; default to USDT if unknown
-              const primaryAsset = (positions[0]?.asset_code || "USDT") as import("@/integrations/supabase/types").Database["public"]["Enums"]["asset_code"];
+              const primaryAsset = (positions[0]?.asset_code ||
+                "USDT") as import("@/integrations/supabase/types").Database["public"]["Enums"]["asset_code"];
 
               await statementsService.upsertStatement({
                 investor_id: investor.id,

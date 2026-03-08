@@ -266,7 +266,7 @@ Deno.serve(async (req) => {
     // so there's no risk of double-counting across different purposes.
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
-      .select("investor_id, asset, amount, type, tx_date")
+      .select("investor_id, asset, amount, type, tx_date, created_at")
       .in("investor_id", investorIds)
       .in("asset", Array.from(activeAssets))
       .lte("tx_date", periodEndDateStr)
@@ -276,6 +276,30 @@ Deno.serve(async (req) => {
     if (txError) throw txError;
 
     console.log(`Found ${transactions?.length || 0} transactions`);
+
+    // Step 4a: Determine reporting cutoffs per asset
+    // Post-reporting deposits/withdrawals should be excluded from the current period
+    // They will naturally appear in the next period's beginning balance
+    const { data: reportingDists } = await supabase
+      .from("yield_distributions")
+      .select("fund_id, created_at")
+      .eq("purpose", "reporting")
+      .eq("is_voided", false)
+      .eq("period_end", periodEndDateStr);
+
+    const reportingCutoffs = new Map<string, string>();
+    for (const dist of reportingDists || []) {
+      const asset = fundAssetById.get((dist as any).fund_id);
+      if (!asset) continue;
+      const existing = reportingCutoffs.get(asset);
+      if (!existing || (dist as any).created_at > existing) {
+        reportingCutoffs.set(asset, (dist as any).created_at);
+      }
+    }
+
+    if (reportingCutoffs.size > 0) {
+      console.log("Reporting cutoffs:", Object.fromEntries(reportingCutoffs));
+    }
 
     // Step 4b: Pull end-of-period snapshots (authoritative if available)
     const { data: snapshots, error: snapshotsError } = await supabase
@@ -303,6 +327,34 @@ Deno.serve(async (req) => {
         transactionGroups.set(key, []);
       }
       transactionGroups.get(key)!.push(tx);
+    }
+
+    // Filter out post-reporting deposits/withdrawals from in-period transactions
+    // These will naturally appear in the next period's beginning balance
+    const postReportingFilterTypes = new Set([
+      "DEPOSIT",
+      "WITHDRAWAL",
+      "INTERNAL_CREDIT",
+      "INTERNAL_WITHDRAWAL",
+    ]);
+    const mtdStartStr = mtdStart.toISOString().split("T")[0];
+
+    for (const [key, txs] of transactionGroups.entries()) {
+      const [, asset] = key.split(":");
+      const cutoff = reportingCutoffs.get(asset);
+      if (!cutoff) continue;
+
+      const filtered = txs.filter((tx: any) => {
+        if (!postReportingFilterTypes.has(tx.type)) return true;
+        if (tx.tx_date < mtdStartStr || tx.tx_date > periodEndDateStr) return true;
+        return tx.created_at <= cutoff;
+      });
+
+      if (filtered.length < txs.length) {
+        console.log(`Filtered ${txs.length - filtered.length} post-reporting tx(s) for ${key}`);
+      }
+
+      transactionGroups.set(key, filtered);
     }
 
     const allKeys = new Set<string>([...snapshotBalances.keys(), ...transactionGroups.keys()]);
@@ -422,8 +474,10 @@ Deno.serve(async (req) => {
       }
 
       // Prefer snapshot balances at period end; fallback to transaction-derived balance
+      // Skip snapshot when a reporting cutoff exists (snapshot reflects post-reporting state)
+      const snapshotBal = reportingCutoffs.has(fundAsset) ? undefined : snapshotBalances.get(key);
       const endingBalance: Decimal =
-        snapshotBalances.get(key) ??
+        snapshotBal ??
         (investorTxs.length > 0 ? sumBalanceThrough(investorTxs, mtdEnd) : new Decimal(0));
 
       // ============= MTD CALCULATIONS =============
