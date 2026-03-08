@@ -112,8 +112,7 @@ export async function getFeeTransactions(): Promise<FeeRecord[]> {
       created_at,
       is_voided,
       fee_allocations!credit_transaction_id(
-        investor_id,
-        investor_name:profiles(first_name, last_name, email)
+        investor_id
       )
     `
     )
