@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { MoreHorizontal, Trash2, Users, Eye } from "lucide-react";
+import { MoreHorizontal, Trash2, Users, Eye, Undo2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ interface YieldActionsColumnProps {
   record: any;
   canEdit: boolean;
   onVoid: (record: any) => void;
+  onRestore?: (record: any) => void;
   onViewHistory: (record: any) => void;
   isExpanded: boolean;
   isVoided?: boolean;
@@ -29,6 +30,7 @@ export function YieldActionsColumn({
   record,
   canEdit,
   onVoid,
+  onRestore,
   onViewHistory,
   isExpanded,
   isVoided = false,
@@ -37,14 +39,44 @@ export function YieldActionsColumn({
 
   if (isVoided) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" disabled>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Record is voided</TooltipContent>
-      </Tooltip>
+      <div className="flex items-center justify-end gap-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={isExpanded ? "secondary" : "ghost"}
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewHistory(record);
+              }}
+              className={isExpanded ? "bg-muted text-primary" : ""}
+            >
+              <Users className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{isExpanded ? "Hide Investors" : "View Investors"}</TooltipContent>
+        </Tooltip>
+        {onRestore && canEdit && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRestore(record);
+                }}
+              >
+                <Undo2 className="h-4 w-4 mr-2" />
+                Restore Distribution
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
     );
   }
 

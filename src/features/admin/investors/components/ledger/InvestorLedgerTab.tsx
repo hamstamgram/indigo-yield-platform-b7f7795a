@@ -16,6 +16,7 @@ import { useUrlFilters, useInvestorLedger, useInvestorDefaultFund } from "@/hook
 import { useLedgerSubscription } from "@/hooks/data";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { VoidTransactionDialog } from "@/features/admin/transactions/VoidTransactionDialog";
+import { VoidAndReissueDialog } from "@/features/admin/transactions/VoidAndReissueDialog";
 
 import { LedgerHeader } from "./LedgerHeader";
 import { LedgerFilters } from "./LedgerFilters";
@@ -45,6 +46,10 @@ export function InvestorLedgerTab({
   // Void dialog state
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<SelectedTransaction | null>(null);
+
+  // Void & Correct dialog state
+  const [voidAndReissueOpen, setVoidAndReissueOpen] = useState(false);
+  const [reissueTransaction, setReissueTransaction] = useState<LedgerTransaction | null>(null);
 
   // Convert URL filters to hook filters
   const ledgerFilters = useMemo(
@@ -175,7 +180,14 @@ export function InvestorLedgerTab({
 
       {/* Transactions Table */}
       {showTable ? (
-        <LedgerTable transactions={transactions as LedgerTransaction[]} onVoid={openVoidDialog} />
+        <LedgerTable
+          transactions={transactions as LedgerTransaction[]}
+          onVoid={openVoidDialog}
+          onVoidAndReissue={(tx) => {
+            setReissueTransaction(tx);
+            setVoidAndReissueOpen(true);
+          }}
+        />
       ) : (
         !loading &&
         !error &&
@@ -200,6 +212,31 @@ export function InvestorLedgerTab({
         transaction={selectedTransaction}
         onSuccess={handleEditVoidSuccess}
       />
+
+      {/* Void & Correct Dialog */}
+      {reissueTransaction && (
+        <VoidAndReissueDialog
+          open={voidAndReissueOpen}
+          onOpenChange={setVoidAndReissueOpen}
+          transaction={{
+            id: reissueTransaction.id,
+            type: reissueTransaction.type,
+            amount: String(reissueTransaction.amount),
+            asset: reissueTransaction.asset,
+            investorName: investorName || "Investor",
+            txDate: reissueTransaction.tx_date,
+            investorId: investorId,
+            fundId: null,
+            notes: reissueTransaction.notes || null,
+          }}
+          onSuccess={() => {
+            setVoidAndReissueOpen(false);
+            setReissueTransaction(null);
+            invalidateAll();
+            onDataChange?.();
+          }}
+        />
+      )}
     </div>
   );
 }

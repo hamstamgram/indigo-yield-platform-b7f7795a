@@ -38,6 +38,7 @@ interface AddTransactionDialogProps {
   onOpenChange: (open: boolean) => void;
   investorId?: string;
   fundId?: string;
+  defaultType?: TransactionFormData["txn_type"];
   onSuccess: () => void;
 }
 
@@ -46,6 +47,7 @@ export function AddTransactionDialog({
   onOpenChange,
   investorId,
   fundId,
+  defaultType,
   onSuccess,
 }: AddTransactionDialogProps) {
   const [selectedInvestorId, setSelectedInvestorId] = useState<string>("");
@@ -97,8 +99,11 @@ export function AddTransactionDialog({
         setSelectedInvestorId("");
       }
       setInvestorError(null);
+      if (defaultType) {
+        setValue("txn_type", defaultType);
+      }
     }
-  }, [open, investorId]);
+  }, [open, investorId, defaultType, setValue]);
 
   const selectedFund = funds?.find((f) => f.id === selectedFundId);
   const isDeposit = txnType === "FIRST_INVESTMENT" || txnType === "DEPOSIT";

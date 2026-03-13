@@ -52,6 +52,7 @@ export function TransactionTypeSelect({
           >
             Withdrawal
           </SelectItem>
+          <SelectItem value="ADJUSTMENT">Adjustment</SelectItem>
         </SelectContent>
       </Select>
       {error && <p className="text-sm text-destructive">{error}</p>}

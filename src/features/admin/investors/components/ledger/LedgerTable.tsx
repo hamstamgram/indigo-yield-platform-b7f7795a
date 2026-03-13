@@ -30,6 +30,7 @@ import type { LedgerTransaction } from "./types";
 interface LedgerTableProps {
   transactions: LedgerTransaction[];
   onVoid: (tx: LedgerTransaction) => void;
+  onVoidAndReissue?: (tx: LedgerTransaction) => void;
 }
 
 function getTypeIcon(type: string) {
@@ -62,7 +63,7 @@ function getPurposeBadge(purpose: string | null) {
   );
 }
 
-export function LedgerTable({ transactions, onVoid }: LedgerTableProps) {
+export function LedgerTable({ transactions, onVoid, onVoidAndReissue }: LedgerTableProps) {
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -150,6 +151,12 @@ export function LedgerTable({ transactions, onVoid }: LedgerTableProps) {
                         <Ban className="h-3.5 w-3.5 mr-2" />
                         Void
                       </DropdownMenuItem>
+                      {onVoidAndReissue && (
+                        <DropdownMenuItem onClick={() => onVoidAndReissue(tx)}>
+                          <RefreshCw className="h-3.5 w-3.5 mr-2" />
+                          Void & Correct
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}

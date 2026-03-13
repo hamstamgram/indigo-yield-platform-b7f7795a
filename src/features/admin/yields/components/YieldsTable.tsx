@@ -55,6 +55,7 @@ interface YieldsTableProps {
   isLoading: boolean;
   canEdit: boolean;
   onVoid: (record: DistributionRow) => void;
+  onRestore?: (record: DistributionRow) => void;
 }
 
 export function YieldsTable({
@@ -65,6 +66,7 @@ export function YieldsTable({
   isLoading,
   canEdit,
   onVoid,
+  onRestore,
 }: YieldsTableProps) {
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
@@ -358,6 +360,7 @@ export function YieldsTable({
           record={record}
           canEdit={canEdit}
           onVoid={onVoid}
+          onRestore={onRestore}
           isExpanded={expandedRows.has(record.id)}
           onViewHistory={() => handleToggleRow(record.id)}
           isVoided={record.is_voided ?? false}
@@ -642,6 +645,7 @@ export function YieldsTable({
                         record={record}
                         canEdit={canEdit}
                         onVoid={onVoid}
+                        onRestore={onRestore}
                         isExpanded={isExpanded}
                         onViewHistory={() => handleToggleRow(record.id)}
                         isVoided={record.is_voided ?? false}

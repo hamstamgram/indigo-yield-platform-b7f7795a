@@ -45,6 +45,7 @@ import {
   Ban,
   Lock,
   Undo2,
+  RefreshCw,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui";
 import { AdminGuard, useSuperAdmin } from "@/components/admin";
@@ -60,6 +61,7 @@ import { BulkActionToolbar } from "../components/BulkActionToolbar";
 import { BulkVoidDialog } from "../components/BulkVoidDialog";
 import { BulkUnvoidDialog } from "../components/BulkUnvoidDialog";
 import { UnvoidTransactionDialog } from "../components/UnvoidTransactionDialog";
+import { VoidAndReissueDialog } from "../VoidAndReissueDialog";
 import { cn } from "@/lib/utils";
 
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
@@ -93,6 +95,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
   const [unvoidDialogOpen, setUnvoidDialogOpen] = useState(false);
   const [bulkVoidDialogOpen, setBulkVoidDialogOpen] = useState(false);
   const [bulkUnvoidDialogOpen, setBulkUnvoidDialogOpen] = useState(false);
+  const [voidAndReissueDialogOpen, setVoidAndReissueDialogOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDisplayType, setSelectedDisplayType] = useState<string>("all");
@@ -103,6 +106,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [dialogInvestorId, setDialogInvestorId] = useState<string>("");
   const [dialogFundId, setDialogFundId] = useState<string>("");
+  const [dialogDefaultType, setDialogDefaultType] = useState<"ADJUSTMENT" | undefined>(undefined);
   const [showVoided, setShowVoided] = useState(false);
 
   // Fetch active funds via hook
@@ -280,6 +284,14 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
   const handleOpenAddDialog = () => {
     setDialogInvestorId("");
     setDialogFundId(funds.length > 0 ? funds[0].id : "");
+    setDialogDefaultType(undefined);
+    setAddDialogOpen(true);
+  };
+
+  const handleOpenAdjustmentDialog = () => {
+    setDialogInvestorId("");
+    setDialogFundId(funds.length > 0 ? funds[0].id : "");
+    setDialogDefaultType("ADJUSTMENT");
     setAddDialogOpen(true);
   };
 
@@ -448,10 +460,16 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
               disabled={filteredTransactions.length === 0}
             />
           </div>
-          <Button onClick={handleOpenAddDialog} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Transaction
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleOpenAdjustmentDialog} size="sm" variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Post Adjustment
+            </Button>
+            <Button onClick={handleOpenAddDialog} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Transaction
+            </Button>
+          </div>
         </div>
         <div className="p-4">
           {isLoading ? (
@@ -629,16 +647,27 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 {!tx.isVoided ? (
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setSelectedTx(tx);
-                                      setVoidDialogOpen(true);
-                                    }}
-                                    className="text-destructive"
-                                  >
-                                    <Ban className="mr-2 h-4 w-4" />
-                                    Void
-                                  </DropdownMenuItem>
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setSelectedTx(tx);
+                                        setVoidDialogOpen(true);
+                                      }}
+                                      className="text-destructive"
+                                    >
+                                      <Ban className="mr-2 h-4 w-4" />
+                                      Void
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setSelectedTx(tx);
+                                        setVoidAndReissueDialogOpen(true);
+                                      }}
+                                    >
+                                      <RefreshCw className="mr-2 h-4 w-4" />
+                                      Void & Correct
+                                    </DropdownMenuItem>
+                                  </>
                                 ) : (
                                   <DropdownMenuItem
                                     onClick={() => {
@@ -676,6 +705,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
         onOpenChange={setAddDialogOpen}
         investorId={dialogInvestorId}
         fundId={dialogFundId}
+        defaultType={dialogDefaultType}
         onSuccess={handleAddTransactionSuccess}
       />
 
@@ -740,6 +770,34 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
           );
         }}
       />
+
+      {/* Void & Correct Dialog */}
+      {selectedTx && (
+        <VoidAndReissueDialog
+          open={voidAndReissueDialogOpen}
+          onOpenChange={setVoidAndReissueDialogOpen}
+          transaction={{
+            id: selectedTx.id,
+            type: selectedTx.type,
+            amount: String(selectedTx.amount),
+            asset: selectedTx.asset,
+            investorName: selectedTx.investorName,
+            txDate: selectedTx.txDate,
+            investorId: selectedTx.investorId,
+            fundId: selectedTx.fundId,
+            notes: selectedTx.notes || null,
+          }}
+          onSuccess={() => {
+            invalidateAfterTransaction(
+              queryClient,
+              selectedTx.investorId,
+              selectedTx.fundId || undefined
+            );
+            setVoidAndReissueDialogOpen(false);
+            setSelectedTx(null);
+          }}
+        />
+      )}
 
       {/* Bulk Unvoid Dialog */}
       <BulkUnvoidDialog
