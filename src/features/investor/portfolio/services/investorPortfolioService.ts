@@ -150,8 +150,9 @@ export const investorPortfolioService = {
     const insertPayload: Record<string, unknown> = {
       investor_id: params.investorId,
       fund_id: params.fundId,
-      amount: params.amount,
-      status: "pending_approval",
+      requested_amount: params.amount,
+      withdrawal_type: params.type,
+      status: "pending",
       notes: params.notes,
     };
     const { error } = await supabase.from("withdrawal_requests").insert(insertPayload as any);

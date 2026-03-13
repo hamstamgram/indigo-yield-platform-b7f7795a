@@ -36,16 +36,18 @@ export const requestsQueueService = {
    * Approve and complete a withdrawal request in one atomic operation via RPC
    */
   async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
+    const now = new Date().toISOString();
     const updatePayload: Record<string, unknown> = {
       status: "completed",
-      approved_date: new Date().toISOString(),
-      completed_date: new Date().toISOString(),
+      approved_at: now,
+      processed_at: now,
     };
     if (params.amount) {
-      updatePayload.amount = Number(parseFinancial(params.amount).toString());
+      updatePayload.approved_amount = Number(parseFinancial(params.amount).toString());
+      updatePayload.processed_amount = updatePayload.approved_amount;
     }
     if (params.notes) {
-      updatePayload.notes = params.notes;
+      updatePayload.admin_notes = params.notes;
     }
 
     const { error } = await supabase
@@ -64,9 +66,9 @@ export const requestsQueueService = {
       .from("withdrawal_requests")
       .update({
         status: "rejected",
-        notes: params.notes
-          ? `${params.notes} — Reason: ${params.reason}`
-          : `Reason: ${params.reason}`,
+        rejection_reason: params.reason,
+        admin_notes: params.notes,
+        rejected_at: new Date().toISOString(),
       } as any)
       .eq("id", params.requestId);
 

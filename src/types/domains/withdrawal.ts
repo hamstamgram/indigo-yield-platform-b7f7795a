@@ -120,8 +120,8 @@ export interface CreateWithdrawalParams {
   /** Withdrawal amount - string for NUMERIC(28,10) precision */
   amount: string;
   withdrawalType: "partial" | "full";
-  /** Execution date for the withdrawal (YYYY-MM-DD). Defaults to today. */
-  executionDate?: string;
+  /** Settlement date for the withdrawal (YYYY-MM-DD). */
+  settlementDate?: string;
   notes?: string;
 }
 

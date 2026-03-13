@@ -54,9 +54,9 @@ const withdrawalSchema = z.object({
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Amount must be a positive number",
     }),
-  execution_date: z
+  settlement_date: z
     .string()
-    .min(1, "Execution date is required")
+    .min(1, "Settlement date is required")
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid date format",
     }),
@@ -115,7 +115,7 @@ export function CreateWithdrawalDialog({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       withdrawal_type: "partial",
-      execution_date: new Date().toISOString().split("T")[0],
+      settlement_date: new Date().toISOString().split("T")[0],
     },
   });
 
@@ -214,7 +214,7 @@ export function CreateWithdrawalDialog({
         fundId: selectedFundId,
         amount: String(amount),
         withdrawalType: data.withdrawal_type,
-        executionDate: data.execution_date,
+        settlementDate: data.settlement_date,
         notes: data.notes,
       },
       {
@@ -408,17 +408,17 @@ export function CreateWithdrawalDialog({
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
           </div>
 
-          {/* Execution Date */}
+          {/* Settlement Date */}
           <div className="space-y-2">
-            <Label htmlFor="execution_date">Execution Date *</Label>
+            <Label htmlFor="settlement_date">Settlement Date *</Label>
             <Input
-              id="execution_date"
+              id="settlement_date"
               type="date"
-              {...register("execution_date")}
-              className={errors.execution_date ? "border-destructive" : ""}
+              {...register("settlement_date")}
+              className={errors.settlement_date ? "border-destructive" : ""}
             />
-            {errors.execution_date && (
-              <p className="text-sm text-destructive">{errors.execution_date.message}</p>
+            {errors.settlement_date && (
+              <p className="text-sm text-destructive">{errors.settlement_date.message}</p>
             )}
           </div>
 

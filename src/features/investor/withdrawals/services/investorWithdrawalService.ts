@@ -98,8 +98,9 @@ export async function createWithdrawalRequest(
   const insertPayload: Record<string, unknown> = {
     investor_id: investorId,
     fund_id: fundId,
-    amount,
-    status: "pending_approval",
+    requested_amount: amount,
+    withdrawal_type: withdrawalType,
+    status: "pending",
     notes,
   };
   const { data, error } = await supabase
@@ -126,7 +127,7 @@ export async function cancelWithdrawalRequest(requestId: string, reason?: string
     .update({ status: "cancelled", notes: reason ?? "Cancelled by investor" } as any)
     .eq("id", requestId)
     .eq("investor_id", user.user.id)
-    .eq("status", "pending_approval" as any);
+    .eq("status", "pending" as any);
 
   if (error) throw error;
 }

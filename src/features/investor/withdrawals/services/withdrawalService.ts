@@ -302,9 +302,9 @@ export const withdrawalService = {
       .from("withdrawal_requests")
       .update({
         status: "rejected",
-        notes: adminNotes
-          ? `${adminNotes} [${corrId}] Reason: ${reason}`
-          : `[${corrId}] Reason: ${reason}`,
+        rejection_reason: reason,
+        admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+        rejected_at: new Date().toISOString(),
       } as any)
       .eq("id", withdrawalId);
 
@@ -340,9 +340,9 @@ export const withdrawalService = {
       .from("withdrawal_requests")
       .update({
         status: "cancelled",
-        notes: adminNotes
-          ? `${adminNotes} [${corrId}] Reason: ${reason}`
-          : `[${corrId}] Reason: ${reason}`,
+        cancellation_reason: reason,
+        admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+        cancelled_at: new Date().toISOString(),
       } as any)
       .eq("id", withdrawalId);
 
@@ -408,18 +408,21 @@ export const withdrawalService = {
   ): Promise<void> {
     const corrId = params.idempotencyKey || generateCorrelationId("wdr_create");
     const notes = params.notes ? `${params.notes} [${corrId}]` : `[${corrId}]`;
-    const executionDate = params.executionDate || new Date().toISOString().split("T")[0];
 
     // Direct insert: create_withdrawal_request RPC was removed.
-    // Column names must match withdrawal_requests schema exactly.
+    // Column names match withdrawal_requests schema: requested_amount, withdrawal_type, status='pending'
     const insertPayload: Record<string, unknown> = {
       investor_id: params.investorId,
       fund_id: params.fundId,
-      amount: Number(params.amount),
-      status: "pending_approval",
+      requested_amount: Number(params.amount),
+      withdrawal_type: params.withdrawalType,
+      status: "pending",
       notes,
-      execution_date: executionDate,
+      is_full_exit: params.withdrawalType === "full",
     };
+    if (params.settlementDate) {
+      insertPayload.settlement_date = params.settlementDate;
+    }
     const { error } = await supabase.from("withdrawal_requests").insert(insertPayload as any);
 
     if (error) throw error;
@@ -434,8 +437,8 @@ export const withdrawalService = {
       .from("withdrawal_requests")
       .update({
         status: "completed",
-        notes: params.reason || "Routed to INDIGO FEES",
-        completed_date: new Date().toISOString(),
+        admin_notes: params.reason || "Routed to INDIGO FEES",
+        processed_at: new Date().toISOString(),
       } as any)
       .eq("id", params.withdrawalId);
 
@@ -447,7 +450,8 @@ export const withdrawalService = {
    */
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
     const updatePayload: Record<string, unknown> = {};
-    if (params.requestedAmount != null) updatePayload.amount = Number(params.requestedAmount);
+    if (params.requestedAmount != null)
+      updatePayload.requested_amount = Number(params.requestedAmount);
     if (params.notes != null) updatePayload.notes = params.notes;
 
     const { error } = await supabase
@@ -471,7 +475,11 @@ export const withdrawalService = {
     } else {
       const { error } = await supabase
         .from("withdrawal_requests")
-        .update({ status: "cancelled", notes: params.reason } as any)
+        .update({
+          status: "cancelled",
+          cancellation_reason: params.reason,
+          cancelled_at: new Date().toISOString(),
+        } as any)
         .eq("id", params.withdrawalId);
       if (error) throw error;
     }
@@ -493,8 +501,8 @@ export const withdrawalService = {
     const { error } = await supabase
       .from("withdrawal_requests")
       .update({
-        status: "pending_approval",
-        notes: adminNotes
+        status: "pending",
+        admin_notes: adminNotes
           ? `${adminNotes} [${corrId}] Restored: ${reason}`
           : `[${corrId}] Restored: ${reason}`,
       } as any)
@@ -585,8 +593,9 @@ export const withdrawalService = {
     const insertPayload: Record<string, unknown> = {
       investor_id: investorId,
       fund_id: params.fundId,
-      amount: Number(params.amount),
-      status: "pending_approval",
+      requested_amount: Number(params.amount),
+      withdrawal_type: "partial",
+      status: "pending",
       notes,
     };
     const { data, error: insertError } = await supabase
