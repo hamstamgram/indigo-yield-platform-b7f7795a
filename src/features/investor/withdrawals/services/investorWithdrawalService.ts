@@ -94,16 +94,22 @@ export async function createWithdrawalRequest(
 
   const investorId = user.user.id;
 
-  const { data, error } = await rpc.call("create_withdrawal_request", {
-    p_investor_id: investorId,
-    p_fund_id: fundId,
-    p_amount: amount,
-    p_type: withdrawalType,
-    p_notes: notes ?? undefined,
-  });
+  // Direct insert: create_withdrawal_request RPC was removed.
+  const insertPayload: Record<string, unknown> = {
+    investor_id: investorId,
+    fund_id: fundId,
+    amount,
+    status: "pending_approval",
+    notes,
+  };
+  const { data, error } = await supabase
+    .from("withdrawal_requests")
+    .insert(insertPayload as any)
+    .select("id")
+    .single();
 
   if (error) throw error;
-  return data as string;
+  return (data as any)?.id as string;
 }
 
 /**
@@ -114,20 +120,15 @@ export async function cancelWithdrawalRequest(requestId: string, reason?: string
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) throw new Error("Not authenticated");
 
-  // Use RPC to ensure state machine validation and audit trail
-  const { data, error } = await rpc.call("cancel_withdrawal_by_investor", {
-    p_request_id: requestId,
-    p_investor_id: user.user.id,
-    p_reason: reason ?? "Cancelled by investor",
-  });
+  // Only allow cancelling own pending withdrawals
+  const { error } = await supabase
+    .from("withdrawal_requests")
+    .update({ status: "cancelled", notes: reason ?? "Cancelled by investor" } as any)
+    .eq("id", requestId)
+    .eq("investor_id", user.user.id)
+    .eq("status", "pending_approval" as any);
 
   if (error) throw error;
-
-  // Check for RPC-level errors
-  const result = data as { success?: boolean; message?: string; error_code?: string } | null;
-  if (result && result.success === false) {
-    throw new Error(result.message || result.error_code || "Failed to cancel withdrawal");
-  }
 }
 
 /**

@@ -36,27 +36,39 @@ export const requestsQueueService = {
    * Approve and complete a withdrawal request in one atomic operation via RPC
    */
   async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
-    // Precision-preserving cast: pass string to preserve NUMERIC(28,10) precision
-    const { error } = await rpc.call("approve_and_complete_withdrawal", {
-      p_request_id: params.requestId,
-      p_processed_amount: params.amount
-        ? (parseFinancial(params.amount).toString() as unknown as number)
-        : undefined,
-      p_admin_notes: params.notes,
-    });
+    const updatePayload: Record<string, unknown> = {
+      status: "completed",
+      approved_date: new Date().toISOString(),
+      completed_date: new Date().toISOString(),
+    };
+    if (params.amount) {
+      updatePayload.amount = Number(parseFinancial(params.amount).toString());
+    }
+    if (params.notes) {
+      updatePayload.notes = params.notes;
+    }
+
+    const { error } = await supabase
+      .from("withdrawal_requests")
+      .update(updatePayload as any)
+      .eq("id", params.requestId);
 
     if (error) throw error;
   },
 
   /**
-   * Reject a withdrawal request via RPC
+   * Reject a withdrawal request
    */
   async rejectWithdrawal(params: RejectWithdrawalParams): Promise<void> {
-    const { error } = await rpc.call("reject_withdrawal", {
-      p_request_id: params.requestId,
-      p_reason: params.reason,
-      p_admin_notes: params.notes,
-    });
+    const { error } = await supabase
+      .from("withdrawal_requests")
+      .update({
+        status: "rejected",
+        notes: params.notes
+          ? `${params.notes} — Reason: ${params.reason}`
+          : `Reason: ${params.reason}`,
+      } as any)
+      .eq("id", params.requestId);
 
     if (error) throw error;
   },

@@ -147,13 +147,14 @@ export const investorPortfolioService = {
     type: string;
     notes?: string;
   }): Promise<void> {
-    const { error } = await rpc.call("create_withdrawal_request", {
-      p_investor_id: params.investorId,
-      p_fund_id: params.fundId,
-      p_amount: params.amount,
-      p_type: params.type,
-      p_notes: params.notes ?? undefined,
-    });
+    const insertPayload: Record<string, unknown> = {
+      investor_id: params.investorId,
+      fund_id: params.fundId,
+      amount: params.amount,
+      status: "pending_approval",
+      notes: params.notes,
+    };
+    const { error } = await supabase.from("withdrawal_requests").insert(insertPayload as any);
 
     if (error) throw error;
   },

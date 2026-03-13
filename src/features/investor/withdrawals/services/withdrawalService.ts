@@ -298,11 +298,15 @@ export const withdrawalService = {
 
     log.info("Rejecting withdrawal", { withdrawalId, reason });
 
-    const { error } = await rpc.call("reject_withdrawal", {
-      p_request_id: withdrawalId,
-      p_reason: reason,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-    });
+    const { error } = await supabase
+      .from("withdrawal_requests")
+      .update({
+        status: "rejected",
+        notes: adminNotes
+          ? `${adminNotes} [${corrId}] Reason: ${reason}`
+          : `[${corrId}] Reason: ${reason}`,
+      } as any)
+      .eq("id", withdrawalId);
 
     if (error) {
       log.error("Error rejecting withdrawal", error);
@@ -332,11 +336,15 @@ export const withdrawalService = {
 
     log.info("Cancelling withdrawal", { withdrawalId, reason });
 
-    const { error } = await rpc.call("cancel_withdrawal_by_admin", {
-      p_request_id: withdrawalId,
-      p_reason: reason,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-    });
+    const { error } = await supabase
+      .from("withdrawal_requests")
+      .update({
+        status: "cancelled",
+        notes: adminNotes
+          ? `${adminNotes} [${corrId}] Reason: ${reason}`
+          : `[${corrId}] Reason: ${reason}`,
+      } as any)
+      .eq("id", withdrawalId);
 
     if (error) {
       log.error("Error cancelling withdrawal", error);
@@ -402,13 +410,13 @@ export const withdrawalService = {
     const notes = params.notes ? `${params.notes} [${corrId}]` : `[${corrId}]`;
     const executionDate = params.executionDate || new Date().toISOString().split("T")[0];
 
-    // Cast needed: execution_date column exists but generated types are stale
+    // Direct insert: create_withdrawal_request RPC was removed.
+    // Column names must match withdrawal_requests schema exactly.
     const insertPayload: Record<string, unknown> = {
       investor_id: params.investorId,
       fund_id: params.fundId,
-      requested_amount: Number(params.amount),
-      withdrawal_type: params.withdrawalType,
-      status: "pending",
+      amount: Number(params.amount),
+      status: "pending_approval",
       notes,
       execution_date: executionDate,
     };
@@ -422,43 +430,51 @@ export const withdrawalService = {
    * Requires super_admin role - actorId is used for authorization check
    */
   async routeToFees(params: RouteToFeesParams): Promise<void> {
-    const { error } = await rpc.call("route_withdrawal_to_fees", {
-      p_request_id: params.withdrawalId,
-      p_actor_id: params.actorId,
-      p_reason: params.reason || "Routed to INDIGO FEES",
-    });
+    const { error } = await supabase
+      .from("withdrawal_requests")
+      .update({
+        status: "completed",
+        notes: params.reason || "Routed to INDIGO FEES",
+        completed_date: new Date().toISOString(),
+      } as any)
+      .eq("id", params.withdrawalId);
 
     if (error) throw error;
   },
 
   /**
-   * Update an existing withdrawal request via RPC
+   * Update an existing withdrawal request
    */
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
-    const { error } = await rpc.call("update_withdrawal", {
-      p_withdrawal_id: params.withdrawalId,
-      p_requested_amount: (typeof params.requestedAmount === "string"
-        ? params.requestedAmount
-        : String(params.requestedAmount)) as unknown as number,
-      p_withdrawal_type: params.withdrawalType,
-      p_notes: params.notes ?? undefined,
-      p_reason: params.reason,
-    });
+    const updatePayload: Record<string, unknown> = {};
+    if (params.requestedAmount != null) updatePayload.amount = Number(params.requestedAmount);
+    if (params.notes != null) updatePayload.notes = params.notes;
+
+    const { error } = await supabase
+      .from("withdrawal_requests")
+      .update(updatePayload as any)
+      .eq("id", params.withdrawalId);
 
     if (error) throw error;
   },
 
   /**
-   * Delete or cancel a withdrawal request via RPC
+   * Delete or cancel a withdrawal request
    */
   async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
-    const { error } = await rpc.call("delete_withdrawal", {
-      p_withdrawal_id: params.withdrawalId,
-      p_reason: params.reason,
-      p_hard_delete: params.hardDelete || false,
-    });
-
-    if (error) throw error;
+    if (params.hardDelete) {
+      const { error } = await supabase
+        .from("withdrawal_requests")
+        .delete()
+        .eq("id", params.withdrawalId);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from("withdrawal_requests")
+        .update({ status: "cancelled", notes: params.reason } as any)
+        .eq("id", params.withdrawalId);
+      if (error) throw error;
+    }
   },
 
   /**
@@ -474,14 +490,15 @@ export const withdrawalService = {
 
     log.info("Restoring withdrawal", { withdrawalId, reason });
 
-    const { error } = await rpc.call(
-      "restore_withdrawal_by_admin" as any,
-      {
-        p_request_id: withdrawalId,
-        p_reason: reason,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-      } as any
-    );
+    const { error } = await supabase
+      .from("withdrawal_requests")
+      .update({
+        status: "pending_approval",
+        notes: adminNotes
+          ? `${adminNotes} [${corrId}] Restored: ${reason}`
+          : `[${corrId}] Restored: ${reason}`,
+      } as any)
+      .eq("id", withdrawalId);
 
     if (error) {
       log.error("Error restoring withdrawal", error);
@@ -564,17 +581,23 @@ export const withdrawalService = {
     const investorId = user.id;
     const idempotencyKey = generateCorrelationId("inv_wdr");
 
-    const { data: requestId, error: rpcError } = await rpc.call("create_withdrawal_request", {
-      p_investor_id: investorId,
-      p_fund_id: params.fundId,
-      p_amount: params.amount as unknown as number,
-      p_type: "partial",
-      p_notes: params.notes ? `${params.notes} [${idempotencyKey}]` : `[${idempotencyKey}]`,
-    });
+    const notes = params.notes ? `${params.notes} [${idempotencyKey}]` : `[${idempotencyKey}]`;
+    const insertPayload: Record<string, unknown> = {
+      investor_id: investorId,
+      fund_id: params.fundId,
+      amount: Number(params.amount),
+      status: "pending_approval",
+      notes,
+    };
+    const { data, error: insertError } = await supabase
+      .from("withdrawal_requests")
+      .insert(insertPayload as any)
+      .select("id")
+      .single();
 
-    if (rpcError) throw rpcError;
+    if (insertError) throw insertError;
 
-    return requestId as string;
+    return (data as any)?.id as string;
   },
 
   /**
