@@ -54,7 +54,7 @@ export interface TransactionFilters {
 interface LocalCreateTransactionParams {
   investorId: string;
   fundId: string;
-  type: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL";
+  type: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL" | "ADJUSTMENT";
   amount: number;
   txDate: string;
   asset: string;
@@ -67,7 +67,10 @@ interface LocalCreateTransactionParams {
 /**
  * Fetch transactions with filters
  */
-async function fetchTransactions(filters: TransactionFilters): Promise<TransactionWithFund[]> {
+async function fetchTransactions(
+  filters: TransactionFilters,
+  options?: { visibilityScope?: "investor_visible" }
+): Promise<TransactionWithFund[]> {
   let query = supabase
     .from("transactions_v2")
     .select(
@@ -86,6 +89,11 @@ async function fetchTransactions(filters: TransactionFilters): Promise<Transacti
     )
     .eq("is_voided", false)
     .order("tx_date", { ascending: false });
+
+  // Filter by visibility scope (defense-in-depth alongside RLS)
+  if (options?.visibilityScope) {
+    query = query.eq("visibility_scope", options.visibilityScope);
+  }
 
   if (filters.investorId) {
     query = query.eq("investor_id", filters.investorId);
@@ -138,7 +146,8 @@ export function useTransactions(filters: TransactionFilters = {}) {
 export function useInvestorTransactions(investorId: string, limit?: number) {
   return useQuery<TransactionWithFund[], Error>({
     queryKey: QUERY_KEYS.investorTransactions(investorId, limit),
-    queryFn: () => fetchTransactions({ investorId, limit }),
+    queryFn: () =>
+      fetchTransactions({ investorId, limit }, { visibilityScope: "investor_visible" }),
     enabled: !!investorId,
   });
 }

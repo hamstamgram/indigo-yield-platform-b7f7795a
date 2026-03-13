@@ -131,6 +131,16 @@ describe("Report Email-Safe Attributes", () => {
     expect(html).toContain("background-color:#edf0fe");
   });
 
+  it("should include fund block bgcolor fallback for white", () => {
+    const html = generateMonthlyStatementHTML(mockStatementData);
+    expect(html).toContain('bgcolor="#ffffff"');
+  });
+
+  it("should include alternating row bgcolor fallback", () => {
+    const html = generateMonthlyStatementHTML(mockStatementData);
+    expect(html).toContain('bgcolor="#f8fafc"');
+  });
+
   it("should include content area bgcolor fallback", () => {
     const html = generateMonthlyStatementHTML(mockStatementData);
     expect(html).toContain('bgcolor="#f8fafc"');
@@ -147,6 +157,10 @@ describe("Report Email-Safe Attributes", () => {
     expect(html).toContain("background-color:#edf0fe");
     // Content area
     expect(html).toContain('bgcolor="#f8fafc"');
+    expect(html).toContain("background-color: #f8fafc");
+    // Fund blocks
+    expect(html).toContain("background-color:#ffffff");
+    expect(html).toContain('bgcolor="#ffffff"');
   });
 });
 

@@ -52,9 +52,9 @@ export function useYieldOperationsState() {
   const openYieldDialog = useCallback(
     (fund: Fund) => {
       const todayUTC = getTodayUTC();
-      const currentMonthStart = format(startOfMonth(parseISO(todayUTC)), "yyyy-MM-dd");
-      const lastDayOfMonth = endOfMonth(parseISO(todayUTC));
-      const asOfDateIso = format(lastDayOfMonth, "yyyy-MM-dd");
+      const todayDate = parseISO(todayUTC);
+      const currentMonthStart = format(startOfMonth(todayDate), "yyyy-MM-dd");
+      const asOfDateIso = format(todayDate, "yyyy-MM-dd");
 
       // Force refetch of fund AUM data before displaying
       refetchFunds();
@@ -69,12 +69,12 @@ export function useYieldOperationsState() {
 
       period.setPeriod({
         ...period,
-        yieldPurpose: "reporting",
+        yieldPurpose: "transaction",
         aumDate: asOfDateIso,
         asOfDateIso: asOfDateIso,
         reportingMonth: currentMonthStart,
         aumTime: "12:00",
-        distributionDate: lastDayOfMonth,
+        distributionDate: todayDate,
       });
 
       calculation.setNewAUM("");

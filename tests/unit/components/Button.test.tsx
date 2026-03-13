@@ -40,12 +40,14 @@ describe("Button Component", () => {
       render(<Button variant="default">Default</Button>);
       const button = screen.getByRole("button");
       expect(button).toHaveClass("bg-gradient-to-r");
+      expect(button).toHaveClass("from-primary");
     });
 
     it("renders destructive variant", () => {
       render(<Button variant="destructive">Delete</Button>);
       const button = screen.getByRole("button");
       expect(button).toHaveClass("bg-gradient-to-r");
+      expect(button).toHaveClass("from-red-600");
     });
 
     it("renders outline variant", () => {

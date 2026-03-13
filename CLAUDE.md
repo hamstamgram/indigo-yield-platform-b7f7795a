@@ -100,8 +100,8 @@ IB allocation logic remains active in the yield distribution engine.
 ### Critical RPCs
 | RPC | Purpose | Tables Written |
 |-----|---------|---------------|
-| `apply_adb_yield_distribution_v3` | Apply ADB yield distribution | yield_distributions, yield_allocations, fee_allocations, ib_allocations, transactions_v2 |
-| `preview_adb_yield_distribution_v3` | Preview yield (read-only) | None |
+| `apply_segmented_yield_distribution_v5` | Apply ADB yield distribution (V6 engine) | yield_distributions, yield_allocations, fee_allocations, ib_allocations, transactions_v2 |
+| `preview_segmented_yield_distribution_v5` | Preview yield (read-only) | None |
 | `apply_transaction_with_crystallization` | Deposit/withdrawal with yield crystallization | transactions_v2, investor_positions (trigger) |
 
 | `crystallize_yield_before_flow` | Distribute accrued yield before deposit/withdrawal | investor_yield_events, transactions_v2 |

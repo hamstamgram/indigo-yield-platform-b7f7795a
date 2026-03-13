@@ -13,7 +13,7 @@ export interface FundWithAUM {
 
 export interface ActivityItem {
   id: string;
-  type: "deposit" | "withdrawal" | "yield" | "user" | "report" | "transaction";
+  type: "deposit" | "withdrawal" | "yield" | "user" | "report" | "transaction" | "adjustment";
   title: string;
   description: string;
   timestamp: Date;

@@ -114,6 +114,53 @@ async function getReportingCutoffs(
   return cutoffMap;
 }
 
+/**
+ * Deduplicate yield-related transactions by distribution_id.
+ * When both 'transaction' and 'reporting' purpose records exist for the same
+ * distribution_id, keep only the 'reporting' one (used for investor statements).
+ * Non-yield transactions and yields without a distribution_id pass through unchanged.
+ */
+function deduplicateYieldTransactions(
+  transactions: import("@/features/investor/transactions/services/transactionsV2Service").TransactionRecord[],
+  yieldTypes: Set<string>
+): import("@/features/investor/transactions/services/transactionsV2Service").TransactionRecord[] {
+  // Group yield transactions by distribution_id
+  const byDistId = new Map<string, typeof transactions>();
+  const result: typeof transactions = [];
+
+  for (const tx of transactions) {
+    if (!yieldTypes.has(tx.type) || !tx.distribution_id) {
+      result.push(tx);
+      continue;
+    }
+    const group = byDistId.get(tx.distribution_id) || [];
+    group.push(tx);
+    byDistId.set(tx.distribution_id, group);
+  }
+
+  // For each distribution_id group, prefer 'reporting' over 'transaction'
+  for (const [, group] of byDistId) {
+    const hasReporting = group.some((tx) => tx.purpose === "reporting");
+    if (hasReporting) {
+      // Keep only reporting-purpose transactions from this group
+      for (const tx of group) {
+        if (tx.purpose === "reporting") {
+          result.push(tx);
+        }
+      }
+    } else {
+      // No reporting records — keep all (fallback)
+      for (const tx of group) {
+        result.push(tx);
+      }
+    }
+  }
+
+  // Re-sort by tx_date ascending (groups may have been appended out of order)
+  result.sort((a, b) => a.tx_date.localeCompare(b.tx_date));
+  return result;
+}
+
 export async function computeStatement(
   investor_id: string,
   period_year: number,
@@ -149,6 +196,12 @@ export async function computeStatement(
     // Reverse to get ascending order (service returns descending by default)
     transactions.reverse();
 
+    // Deduplicate yield-related transactions by distribution_id.
+    // When both 'transaction' and 'reporting' purpose yields exist for the same
+    // distribution_id, keep only the 'reporting' one (used for statements).
+    const YIELD_TYPES = new Set(["YIELD", "FEE_CREDIT", "IB_CREDIT"]);
+    const deduped = deduplicateYieldTransactions(transactions, YIELD_TYPES);
+
     // Fetch funds information for asset mapping
     const funds = await fundService.getAllFunds();
 
@@ -168,8 +221,8 @@ export async function computeStatement(
       rate_of_return_itd: 0,
     };
 
-    // Process transactions
-    transactions?.forEach((transaction) => {
+    // Process transactions (using deduplicated list)
+    deduped.forEach((transaction) => {
       const assetCode = transaction.asset;
 
       // Skip post-reporting deposits/withdrawals:
@@ -233,6 +286,16 @@ export async function computeStatement(
         } else if (transaction.type === "FEE") {
           assetStat.fees = parseFinancial(assetStat.fees).plus(amount).toNumber();
           type = "fee";
+        } else if (transaction.type === "ADJUSTMENT") {
+          // ADJUSTMENT can be positive (addition) or negative (redemption)
+          if (amount.gte(0)) {
+            assetStat.deposits = parseFinancial(assetStat.deposits).plus(amount).toNumber();
+          } else {
+            assetStat.withdrawals = parseFinancial(assetStat.withdrawals)
+              .plus(amount.abs())
+              .toNumber();
+          }
+          type = "adjustment";
         }
 
         assetStat.transactions.push({

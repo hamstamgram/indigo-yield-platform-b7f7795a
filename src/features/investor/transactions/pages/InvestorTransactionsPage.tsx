@@ -27,6 +27,7 @@ const TRANSACTION_TYPES = [
   { value: "DEPOSIT", label: "Deposit" },
   { value: "WITHDRAWAL", label: "Withdrawal" },
   { value: "YIELD", label: "Yield" },
+  { value: "ADJUSTMENT", label: "Adjustment" },
 ];
 
 export default function InvestorTransactionsPage() {

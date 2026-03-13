@@ -95,9 +95,12 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
         });
       }
 
+      // Filter out DUST_SWEEP entries (internal routing, keep only one dust line per exit)
+      const filtered = (data || []).filter((tx) => tx.type !== "DUST_SWEEP");
+
       // Map DB data to domain types, converting amount to string for precision
       // Using balance_after as the authoritative source for running_balance (Ending Balance)
-      return (data || []).map((tx) => ({
+      return filtered.map((tx) => ({
         ...tx,
         amount: String(tx.amount ?? "0"),
         running_balance: tx.balance_after != null ? String(tx.balance_after) : undefined,

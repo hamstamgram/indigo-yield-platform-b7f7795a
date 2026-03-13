@@ -399,16 +399,20 @@ export const withdrawalService = {
     params: CreateWithdrawalParams & { idempotencyKey?: string }
   ): Promise<void> {
     const corrId = params.idempotencyKey || generateCorrelationId("wdr_create");
+    const notes = params.notes ? `${params.notes} [${corrId}]` : `[${corrId}]`;
+    const executionDate = params.executionDate || new Date().toISOString().split("T")[0];
 
-    const { error } = await rpc.call("create_withdrawal_request", {
-      p_investor_id: params.investorId,
-      p_fund_id: params.fundId,
-      p_amount: (typeof params.amount === "string"
-        ? params.amount
-        : String(params.amount)) as unknown as number,
-      p_type: params.withdrawalType,
-      p_notes: params.notes ? `${params.notes} [${corrId}]` : `[${corrId}]`,
-    });
+    // Cast needed: execution_date column exists but generated types are stale
+    const insertPayload: Record<string, unknown> = {
+      investor_id: params.investorId,
+      fund_id: params.fundId,
+      requested_amount: Number(params.amount),
+      withdrawal_type: params.withdrawalType,
+      status: "pending",
+      notes,
+      execution_date: executionDate,
+    };
+    const { error } = await supabase.from("withdrawal_requests").insert(insertPayload as any);
 
     if (error) throw error;
   },

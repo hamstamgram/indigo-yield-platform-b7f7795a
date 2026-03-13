@@ -102,11 +102,14 @@ function getMonthLabel(monthStr: string): string {
   return format(parseISO(`${monthStr}-01`), "MMMM yyyy");
 }
 
-/** Build combined month options for the dropdown (last 24 months) */
+/** Build combined month options for the dropdown (from Jan 2024 to last month) */
 function buildMonthOptions(): Array<{ value: string; label: string }> {
   const options: Array<{ value: string; label: string }> = [];
   const now = new Date();
-  for (let i = 1; i <= 24; i++) {
+  const start = new Date(2024, 0, 1);
+  const monthsBack =
+    (now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth();
+  for (let i = 1; i <= monthsBack; i++) {
     const d = subMonths(now, i);
     const value = format(d, "yyyy-MM");
     const label = format(d, "MMMM yyyy");

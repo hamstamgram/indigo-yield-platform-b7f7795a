@@ -335,6 +335,15 @@ export const dataIntegrityService = {
             .eq("type", "WITHDRAWAL")
             .limit(2000);
 
+          const { data: adjustments } = await supabase
+            .from("transactions_v2")
+            .select("amount")
+            .eq("investor_id", position.investor_id)
+            .eq("fund_id", position.fund_id)
+            .eq("is_voided", false)
+            .eq("type", "ADJUSTMENT")
+            .limit(2000);
+
           const totalDeposits =
             deposits
               ?.reduce((sum, tx) => sum.plus(parseFinancial(tx.amount)), parseFinancial(0))
@@ -343,8 +352,14 @@ export const dataIntegrityService = {
             withdrawals
               ?.reduce((sum, tx) => sum.plus(parseFinancial(tx.amount)), parseFinancial(0))
               .toNumber() || 0;
+          // ADJUSTMENT uses signed amounts — sum directly
+          const totalAdjustments =
+            adjustments
+              ?.reduce((sum, tx) => sum.plus(parseFinancial(tx.amount)), parseFinancial(0))
+              .toNumber() || 0;
           const totalInvested = parseFinancial(totalDeposits)
             .minus(parseFinancial(totalWithdrawals))
+            .plus(parseFinancial(totalAdjustments))
             .toNumber();
           const costBasis = parseFinancial(position.cost_basis).toNumber();
 

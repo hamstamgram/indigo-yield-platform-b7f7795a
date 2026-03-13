@@ -108,7 +108,7 @@ export interface LedgerTransaction {
 export interface StatementTransaction {
   id: string;
   date: string;
-  type: "deposit" | "withdrawal" | "interest" | "fee";
+  type: "deposit" | "withdrawal" | "interest" | "fee" | "adjustment";
   /** @precision NUMERIC(28,10) from database */
   amount: string;
   description: string;
@@ -368,23 +368,28 @@ export function getTransactionNetAmount(tx: Transaction): string {
     // Return negative by prepending minus if not already negative
     return amount.startsWith("-") ? amount : `-${amount}`;
   }
+  // ADJUSTMENT: return as-is (can be positive or negative)
   return amount;
 }
 
 /**
  * Check if transaction is a credit (positive flow)
+ * Note: ADJUSTMENT can be either — use getTransactionNetAmount() for sign-aware logic
  */
 export function isCredit(type: TransactionType | string): boolean {
   const t = typeof type === "string" ? type.toUpperCase() : String(type);
-  return t === "DEPOSIT" || t === "INTEREST" || t === "YIELD";
+  return (
+    t === "DEPOSIT" || t === "INTEREST" || t === "YIELD" || t === "FEE_CREDIT" || t === "IB_CREDIT"
+  );
 }
 
 /**
  * Check if transaction is a debit (negative flow)
+ * Note: ADJUSTMENT can be either — use getTransactionNetAmount() for sign-aware logic
  */
 export function isDebit(type: TransactionType | string): boolean {
   const t = typeof type === "string" ? type.toUpperCase() : String(type);
-  return t === "WITHDRAWAL" || t === "FEE";
+  return t === "WITHDRAWAL" || t === "FEE" || t === "IB";
 }
 
 // ============================================

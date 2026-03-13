@@ -31,7 +31,7 @@ import {
 // Memoized month options generator
 const getMonthOptions = () => {
   const months = [];
-  const start = new Date("2024-06-01");
+  const start = new Date("2024-01-01");
   const end = new Date();
 
   for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {

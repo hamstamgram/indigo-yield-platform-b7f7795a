@@ -80,6 +80,11 @@ function computePeriodStats(
     else if (tx.type === "WITHDRAWAL") redemptionsDec = redemptionsDec.plus(amt);
     else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
       netIncomeDec = netIncomeDec.plus(parseFinancial(tx.amount));
+    } else if (tx.type === "ADJUSTMENT") {
+      // ADJUSTMENT can be positive (addition) or negative (redemption)
+      const raw = parseFinancial(tx.amount);
+      if (raw.gte(0)) additionsDec = additionsDec.plus(raw);
+      else redemptionsDec = redemptionsDec.plus(raw.abs());
     }
   }
   const beginningBalanceDec = toDecimal(beginningBalance);
@@ -123,7 +128,7 @@ async function fetchFilteredTxs(userId: string, fundId: string, startDate?: stri
     .eq("investor_id", userId)
     .eq("fund_id", fundId)
     .eq("is_voided", false)
-    .in("type", ["DEPOSIT", "WITHDRAWAL", "YIELD", "FEE"]);
+    .in("type", ["DEPOSIT", "WITHDRAWAL", "YIELD", "FEE", "ADJUSTMENT", "FEE_CREDIT", "IB_CREDIT"]);
   if (startDate) {
     txQuery = txQuery.gte("tx_date", startDate);
   }
@@ -159,6 +164,10 @@ async function buildPeriodStatsFromTxs(userId: string, fundId: string, endingBal
       else if (tx.type === "WITHDRAWAL") withdrawals = withdrawals.plus(amt);
       else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
         income = income.plus(parseFinancial(tx.amount));
+      } else if (tx.type === "ADJUSTMENT") {
+        const raw = parseFinancial(tx.amount);
+        if (raw.gte(0)) deposits = deposits.plus(raw);
+        else withdrawals = withdrawals.plus(raw.abs());
       }
     }
     return toDecimal(endingBalance).minus(deposits).plus(withdrawals).minus(income).toNumber();
@@ -211,7 +220,15 @@ async function buildPerformanceHistoryFromTxs(
       .eq("investor_id", userId)
       .eq("fund_id", pos.fundId)
       .eq("is_voided", false)
-      .in("type", ["DEPOSIT", "WITHDRAWAL", "YIELD", "FEE"])
+      .in("type", [
+        "DEPOSIT",
+        "WITHDRAWAL",
+        "YIELD",
+        "FEE",
+        "ADJUSTMENT",
+        "FEE_CREDIT",
+        "IB_CREDIT",
+      ])
       .order("tx_date", { ascending: true });
 
     const allEvents: Array<{
@@ -256,6 +273,9 @@ async function buildPerformanceHistoryFromTxs(
       } else if (evt.type === "YIELD" || evt.type === "FEE") {
         // FEE is stored as negative in ledger, adds to net income correctly
         month.yields = month.yields.plus(amt);
+      } else if (evt.type === "ADJUSTMENT") {
+        if (amt.gte(0)) month.deposits = month.deposits.plus(amt);
+        else month.withdrawals = month.withdrawals.plus(amt.abs());
       }
     }
 

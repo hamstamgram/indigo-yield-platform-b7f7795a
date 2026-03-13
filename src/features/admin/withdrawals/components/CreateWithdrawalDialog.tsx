@@ -54,6 +54,12 @@ const withdrawalSchema = z.object({
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Amount must be a positive number",
     }),
+  execution_date: z
+    .string()
+    .min(1, "Execution date is required")
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid date format",
+    }),
   withdrawal_type: z.enum(["partial", "full"], {
     required_error: "Withdrawal type is required",
   }),
@@ -109,6 +115,7 @@ export function CreateWithdrawalDialog({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       withdrawal_type: "partial",
+      execution_date: new Date().toISOString().split("T")[0],
     },
   });
 
@@ -207,6 +214,7 @@ export function CreateWithdrawalDialog({
         fundId: selectedFundId,
         amount: String(amount),
         withdrawalType: data.withdrawal_type,
+        executionDate: data.execution_date,
         notes: data.notes,
       },
       {
@@ -398,6 +406,20 @@ export function CreateWithdrawalDialog({
               className={errors.amount ? "border-destructive" : ""}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
+          </div>
+
+          {/* Execution Date */}
+          <div className="space-y-2">
+            <Label htmlFor="execution_date">Execution Date *</Label>
+            <Input
+              id="execution_date"
+              type="date"
+              {...register("execution_date")}
+              className={errors.execution_date ? "border-destructive" : ""}
+            />
+            {errors.execution_date && (
+              <p className="text-sm text-destructive">{errors.execution_date.message}</p>
+            )}
           </div>
 
           {/* Withdrawal Type */}

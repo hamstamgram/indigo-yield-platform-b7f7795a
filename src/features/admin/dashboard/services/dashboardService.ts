@@ -107,6 +107,9 @@ export async function fetchRecentActivities(): Promise<ActivityItem[]> {
     } else if (txType === "YIELD" || txType === "INCOME" || txType === "INTEREST") {
       type = "yield";
       title = "Yield Applied";
+    } else if (txType === "ADJUSTMENT") {
+      type = "adjustment";
+      title = "Adjustment";
     }
 
     activityItems.push({

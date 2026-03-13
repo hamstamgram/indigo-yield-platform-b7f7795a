@@ -344,10 +344,9 @@ async function getUsersForDeposits(): Promise<
 async function getInvestorsForTransaction(): Promise<TransactionInvestor[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, first_name, last_name")
-    .eq("is_admin", false)
+    .select("id, email, first_name, last_name, account_type, is_system_account")
     .order("last_name")
-    .limit(100);
+    .limit(200);
 
   if (error) throw error;
 
@@ -355,7 +354,7 @@ async function getInvestorsForTransaction(): Promise<TransactionInvestor[]> {
     id: p.id,
     email: p.email,
     displayName: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-    isSystemAccount: false,
+    isSystemAccount: p.is_system_account === true || p.account_type === "fees_account",
   }));
 }
 

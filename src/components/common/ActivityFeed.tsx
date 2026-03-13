@@ -99,6 +99,8 @@ function getActivityIcon(type: string): LucideIcon {
       return UserPlus;
     case "report":
       return FileText;
+    case "adjustment":
+      return Activity;
     default:
       return Activity;
   }
@@ -134,6 +136,8 @@ function getIconColor(type: string, status?: string): string {
       return "text-purple-500";
     case "report":
       return "text-amber-500";
+    case "adjustment":
+      return "text-indigo-500";
     default:
       return "text-muted-foreground";
   }

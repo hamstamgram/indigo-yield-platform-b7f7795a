@@ -144,6 +144,15 @@ export async function calculateTransactionSummary(): Promise<UserTransactionSumm
         summary.totalWithdrawals = parseFinancial(summary.totalWithdrawals)
           .plus(parseFinancial(tx.amount))
           .toString();
+      } else if (txType === "ADJUSTMENT") {
+        const amt = parseFinancial(tx.amount);
+        if (amt.gte(0)) {
+          summary.totalDeposits = parseFinancial(summary.totalDeposits).plus(amt).toString();
+        } else {
+          summary.totalWithdrawals = parseFinancial(summary.totalWithdrawals)
+            .plus(amt.abs())
+            .toString();
+        }
       }
     });
 
@@ -183,6 +192,32 @@ export async function createInvestorTransaction(
 
     // Map FIRST_INVESTMENT to DEPOSIT for DB enum compliance
     const dbType = mapTypeForDb(params.type);
+
+    // ADJUSTMENT uses dedicated adjust_investor_position RPC (accepts signed amounts)
+    if (dbType === "ADJUSTMENT") {
+      const result = await rpc.call("adjust_investor_position", {
+        p_fund_id: params.fund_id,
+        p_investor_id: params.investor_id,
+        p_amount: String(params.amount) as unknown as number,
+        p_tx_date: params.tx_date,
+        p_reason: params.notes || "Manual adjustment",
+        p_admin_id: user.id,
+      });
+
+      if (result.error) {
+        logError("createTransaction.ADJUSTMENT", result.error, { fundId: params.fund_id });
+        const errMsg =
+          result.error.message || result.error.userMessage || JSON.stringify(result.error);
+        throw new Error(errMsg);
+      }
+
+      const data = result.data as { success?: boolean; error?: string } | null;
+      if (!data?.success) {
+        throw new Error(data?.error || "Failed to create adjustment");
+      }
+
+      return { success: true };
+    }
 
     // For DEPOSIT/WITHDRAWAL, use pure transaction RPC.
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
@@ -231,7 +266,9 @@ export async function createInvestorTransaction(
 
       return { success: true };
     }
-    // `See docs/FLOW_MATRIX.md for canonical mutation pathways.` // This line was causing a syntax error.
+
+    // Unsupported transaction type — fail explicitly
+    return { success: false, error: `Unsupported transaction type: ${dbType}` };
   } catch (error) {
     logError("createInvestorTransaction", error);
     return {

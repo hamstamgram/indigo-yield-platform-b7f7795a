@@ -38,6 +38,7 @@ import {
   useTransactionFormInvestors,
   useTransactionFormFunds,
   useTransactionFormBalanceCheck,
+  useTransactionFormAumCheck,
 } from "@/hooks/data/admin";
 import { logError } from "@/lib/logger";
 import { getTodayString } from "@/utils/dateUtils";
@@ -86,6 +87,9 @@ export default function AdminManualTransaction() {
     selectedInvestorId,
     selectedFundId
   );
+
+  // AUM pre-check for selected fund + date
+  const { data: aumExists } = useTransactionFormAumCheck(selectedFundId, txDate);
 
   const currentBalance = balanceCheck?.currentBalance ?? null;
   const hasTransactionHistory = balanceCheck?.hasTransactionHistory ?? false;
@@ -259,6 +263,20 @@ export default function AdminManualTransaction() {
               </Alert>
             )}
 
+            {/* AUM duplicate warning */}
+            {aumExists && selectedFundId && txDate && (
+              <Alert
+                variant="default"
+                className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20 py-2"
+              >
+                <Info className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
+                  An AUM record already exists for this fund on {txDate}. A pre-flow crystallization
+                  may have already been recorded. Submitting will reuse the existing AUM snapshot.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Type Selection */}
               <div className="space-y-2">
@@ -323,7 +341,7 @@ export default function AdminManualTransaction() {
                     {txDate ? format(new Date(txDate), "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-[340px] p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={txDate ? new Date(txDate) : undefined}

@@ -238,7 +238,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
   );
 
   const formatAmount = (amount: number, asset: string, type: string) => {
-    const isNegative = type === "WITHDRAWAL" || type === "FEE";
+    const isNegative = type === "WITHDRAWAL" || type === "FEE" || amount < 0;
     const sign = isNegative ? "-" : "+";
     const formatted = formatAssetValue(Math.abs(amount), asset);
     return `${sign}${formatted}`;
@@ -267,6 +267,8 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
         return cn(base, "bg-teal-500/15 text-teal-400 border border-teal-500/20");
       case "INTERNAL_WITHDRAWAL":
         return cn(base, "bg-slate-500/15 text-slate-400 border border-slate-500/20");
+      case "ADJUSTMENT":
+        return cn(base, "bg-violet-500/15 text-violet-400 border border-violet-500/20");
       default:
         return cn(base, "bg-muted text-muted-foreground border border-border/40");
     }
@@ -621,7 +623,9 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                                 className={
                                   tx.isVoided
                                     ? "line-through text-muted-foreground"
-                                    : tx.type === "WITHDRAWAL" || tx.type === "FEE"
+                                    : tx.type === "WITHDRAWAL" ||
+                                        tx.type === "FEE" ||
+                                        parseFloat(tx.amount) < 0
                                       ? "text-rose-400"
                                       : "text-yield"
                                 }

@@ -49,17 +49,32 @@ import { PlatformErrorCode } from "@/types/errors/platformErrors";
 import { getCurrentUser } from "@/services/auth/authService";
 import { logError } from "@/lib/logger";
 
-const reissueSchema = z.object({
-  tx_date: z.string().min(1, "Transaction date is required"),
-  amount: z
-    .string()
-    .min(1, "Amount is required")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Amount must be a positive number",
-    }),
-  notes: z.string().optional(),
-  reason: z.string().min(10, "Reason must be at least 10 characters for audit trail"),
-});
+const reissueSchema = z
+  .object({
+    tx_date: z.string().min(1, "Transaction date is required"),
+    amount: z
+      .string()
+      .min(1, "Amount is required")
+      .refine((val) => !isNaN(Number(val)) && Number(val) !== 0, {
+        message: "Amount must be a non-zero number",
+      }),
+    notes: z.string().optional(),
+    reason: z
+      .string()
+      .min(10, "Reason must be at least 10 characters for audit trail")
+      .max(1000, "Reason must be 1000 characters or fewer"),
+    originalType: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Only ADJUSTMENT allows negative amounts in reissue
+    if (data.originalType !== "ADJUSTMENT" && Number(data.amount) < 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Amount must be a positive number",
+        path: ["amount"],
+      });
+    }
+  });
 
 type ReissueFormData = z.infer<typeof reissueSchema>;
 
@@ -122,6 +137,7 @@ export function VoidAndReissueDialog({
         amount: transaction.amount,
         notes: transaction.notes || "",
         reason: "",
+        originalType: transaction.type,
       });
       setConfirmText("");
       setActiveTab("changes");
@@ -309,8 +325,9 @@ export function VoidAndReissueDialog({
                   <Label htmlFor="amount">Amount ({transaction.asset}) *</Label>
                   <Input
                     id="amount"
-                    type="number"
-                    step="0.00000001"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0.00000000"
                     {...register("amount")}
                     disabled={transaction.isSystemGenerated}
                   />

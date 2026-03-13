@@ -15,6 +15,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useRealtimeSubscription } from "@/hooks";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { formatAssetAmount } from "@/utils/assets";
@@ -51,13 +52,19 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
     onUpdate: () => refetchTransactions(),
   });
 
-  const getTransactionIcon = (type: string) => {
+  const getTransactionIcon = (type: string, amount?: number) => {
     const typeUpper = (type || "").toUpperCase();
     switch (typeUpper) {
       case "DEPOSIT":
         return <ArrowDownLeft className="h-4 w-4 text-yield" />;
       case "WITHDRAWAL":
         return <ArrowUpRight className="h-4 w-4 text-red-500" />;
+      case "ADJUSTMENT":
+        return amount !== undefined && amount < 0 ? (
+          <ArrowUpRight className="h-4 w-4 text-red-500" />
+        ) : (
+          <ArrowDownLeft className="h-4 w-4 text-yield" />
+        );
       case "YIELD":
       case "INTEREST":
       case "FEE":
@@ -122,7 +129,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                   className="flex items-center justify-between p-4 border rounded-lg bg-card"
                 >
                   <div className="flex items-center gap-4 flex-1">
-                    {getTransactionIcon(txType)}
+                    {getTransactionIcon(txType, parseFloat(String(transaction.amount)))}
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{txType}</span>
@@ -137,10 +144,19 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium">
-                      {txType === "WITHDRAWAL" ? "-" : ""}
+                    <div
+                      className={cn(
+                        "font-medium",
+                        txType === "WITHDRAWAL" || parseFloat(String(transaction.amount)) < 0
+                          ? "text-red-500"
+                          : "text-yield"
+                      )}
+                    >
+                      {txType === "WITHDRAWAL" || parseFloat(String(transaction.amount)) < 0
+                        ? "-"
+                        : "+"}
                       {formatAssetAmount(
-                        parseFloat(String(transaction.amount)),
+                        Math.abs(parseFloat(String(transaction.amount))),
                         transaction.fund?.code || "USD"
                       )}
                     </div>

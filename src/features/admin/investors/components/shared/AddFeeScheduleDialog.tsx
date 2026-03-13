@@ -180,7 +180,7 @@ export function AddFeeScheduleDialog({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-[340px] p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={effectiveDate ? new Date(effectiveDate + "T00:00:00") : undefined}
@@ -213,7 +213,7 @@ export function AddFeeScheduleDialog({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-[340px] p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={endDate ? new Date(endDate + "T00:00:00") : undefined}

@@ -401,34 +401,32 @@ Deno.serve(async (req) => {
       "INTEREST",
       "FEE_CREDIT",
       "IB_CREDIT",
-      "ADJUSTMENT",
       "DUST_SWEEP",
     ]);
     const outflowTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL", "IB_DEBIT", "FEE"]);
     const additionTypes = new Set(["DEPOSIT", "INTERNAL_CREDIT"]);
     const redemptionTypes = new Set(["WITHDRAWAL", "INTERNAL_WITHDRAWAL"]);
 
+    // ADJUSTMENT uses signed amount directly (can be positive or negative)
+    const balanceReducer = (sum: Decimal, tx: any): Decimal => {
+      if (tx.type === "ADJUSTMENT") return sum.plus(toDecimal(tx.amount));
+      const amount = toDecimal(tx.amount).abs();
+      if (inflowTypes.has(tx.type)) return sum.plus(amount);
+      if (outflowTypes.has(tx.type)) return sum.minus(amount);
+      return sum;
+    };
+
     const sumBalanceUpTo = (txs: any[], beforeDate: Date): Decimal => {
       return txs
         .filter((tx: any) => new Date(tx.tx_date) <= beforeDate)
-        .reduce((sum: Decimal, tx: any) => {
-          const amount = toDecimal(tx.amount).abs();
-          if (inflowTypes.has(tx.type)) return sum.plus(amount);
-          if (outflowTypes.has(tx.type)) return sum.minus(amount);
-          return sum;
-        }, new Decimal(0));
+        .reduce(balanceReducer, new Decimal(0));
     };
 
     // Strict "before" comparison for beginning balances: excludes transactions ON the date
     const sumBalanceBefore = (txs: any[], beforeDate: Date): Decimal => {
       return txs
         .filter((tx: any) => new Date(tx.tx_date) < beforeDate)
-        .reduce((sum: Decimal, tx: any) => {
-          const amount = toDecimal(tx.amount).abs();
-          if (inflowTypes.has(tx.type)) return sum.plus(amount);
-          if (outflowTypes.has(tx.type)) return sum.minus(amount);
-          return sum;
-        }, new Decimal(0));
+        .reduce(balanceReducer, new Decimal(0));
     };
 
     const sumByType = (txs: any[], startDate: Date, endDate: Date, types: Set<string>): Decimal => {
@@ -440,15 +438,30 @@ Deno.serve(async (req) => {
         .reduce((sum: Decimal, tx: any) => sum.plus(toDecimal(tx.amount).abs()), new Decimal(0));
     };
 
+    // Sum ADJUSTMENT amounts by sign within a date range (positive→additions, negative→redemptions)
+    const sumAdjustments = (
+      txs: any[],
+      startDate: Date,
+      endDate: Date,
+      sign: "positive" | "negative"
+    ): Decimal => {
+      return txs
+        .filter((tx: any) => {
+          const txDate = new Date(tx.tx_date);
+          return txDate > startDate && txDate <= endDate && tx.type === "ADJUSTMENT";
+        })
+        .reduce((sum: Decimal, tx: any) => {
+          const amt = toDecimal(tx.amount);
+          if (sign === "positive" && amt.gt(0)) return sum.plus(amt);
+          if (sign === "negative" && amt.lt(0)) return sum.plus(amt.abs());
+          return sum;
+        }, new Decimal(0));
+    };
+
     const sumBalanceThrough = (txs: any[], endDate: Date): Decimal => {
       return txs
         .filter((tx: any) => new Date(tx.tx_date) <= endDate)
-        .reduce((sum: Decimal, tx: any) => {
-          const amount = toDecimal(tx.amount).abs();
-          if (inflowTypes.has(tx.type)) return sum.plus(amount);
-          if (outflowTypes.has(tx.type)) return sum.minus(amount);
-          return sum;
-        }, new Decimal(0));
+        .reduce(balanceReducer, new Decimal(0));
     };
 
     // Calculate metrics for each investor + asset combination
@@ -491,8 +504,13 @@ Deno.serve(async (req) => {
           mtdBeginning = priorBal;
         }
       }
-      const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, additionTypes);
-      const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, redemptionTypes);
+      // Include ADJUSTMENT amounts in additions/redemptions by sign
+      const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, additionTypes).plus(
+        sumAdjustments(investorTxs, mtdStart, mtdEnd, "positive")
+      );
+      const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, redemptionTypes).plus(
+        sumAdjustments(investorTxs, mtdStart, mtdEnd, "negative")
+      );
 
       // Guard: skip investors with zero activity AND zero balance
       // (This is the definitive fix for ghost reports like Sam Johnson)
@@ -516,8 +534,12 @@ Deno.serve(async (req) => {
 
       // ============= QTD CALCULATIONS =============
       const qtdBeginning = sumBalanceUpTo(investorTxs, qtdStart);
-      const qtdAdditions = sumByType(investorTxs, qtdStart, mtdEnd, additionTypes);
-      const qtdRedemptions = sumByType(investorTxs, qtdStart, mtdEnd, redemptionTypes);
+      const qtdAdditions = sumByType(investorTxs, qtdStart, mtdEnd, additionTypes).plus(
+        sumAdjustments(investorTxs, qtdStart, mtdEnd, "positive")
+      );
+      const qtdRedemptions = sumByType(investorTxs, qtdStart, mtdEnd, redemptionTypes).plus(
+        sumAdjustments(investorTxs, qtdStart, mtdEnd, "negative")
+      );
 
       const qtdMetrics = calculatePerformanceMetrics(
         endingBalance,
@@ -528,8 +550,12 @@ Deno.serve(async (req) => {
 
       // ============= YTD CALCULATIONS =============
       const ytdBeginning = sumBalanceUpTo(investorTxs, ytdStart);
-      const ytdAdditions = sumByType(investorTxs, ytdStart, mtdEnd, additionTypes);
-      const ytdRedemptions = sumByType(investorTxs, ytdStart, mtdEnd, redemptionTypes);
+      const ytdAdditions = sumByType(investorTxs, ytdStart, mtdEnd, additionTypes).plus(
+        sumAdjustments(investorTxs, ytdStart, mtdEnd, "positive")
+      );
+      const ytdRedemptions = sumByType(investorTxs, ytdStart, mtdEnd, redemptionTypes).plus(
+        sumAdjustments(investorTxs, ytdStart, mtdEnd, "negative")
+      );
 
       const ytdMetrics = calculatePerformanceMetrics(
         endingBalance,
@@ -541,8 +567,12 @@ Deno.serve(async (req) => {
       // ============= ITD CALCULATIONS =============
       // ITD beginning is always 0 (inception)
       const itdBeginning = new Decimal(0);
-      const itdAdditions = sumByType(investorTxs, new Date(0), mtdEnd, additionTypes);
-      const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, redemptionTypes);
+      const itdAdditions = sumByType(investorTxs, new Date(0), mtdEnd, additionTypes).plus(
+        sumAdjustments(investorTxs, new Date(0), mtdEnd, "positive")
+      );
+      const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, redemptionTypes).plus(
+        sumAdjustments(investorTxs, new Date(0), mtdEnd, "negative")
+      );
 
       const itdMetrics = calculatePerformanceMetrics(
         endingBalance,

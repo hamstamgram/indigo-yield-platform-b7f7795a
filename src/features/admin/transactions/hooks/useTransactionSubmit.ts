@@ -54,17 +54,6 @@ export function useTransactionSubmit({
     }
     setInvestorError(null);
 
-    // Block manual deposits to INDIGO FEES account
-    if (
-      currentInvestorId === INDIGO_FEES_ACCOUNT_ID &&
-      (data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT")
-    ) {
-      toast.error(
-        "INDIGO FEES cannot receive manual deposits. Fee credits are system-generated only."
-      );
-      return;
-    }
-
     // Only block FIRST_INVESTMENT if position already exists
     if (hasExistingPosition && data.txn_type === "FIRST_INVESTMENT") {
       toast.error(

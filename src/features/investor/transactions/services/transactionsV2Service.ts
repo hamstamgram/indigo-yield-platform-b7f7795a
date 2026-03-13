@@ -16,12 +16,15 @@ export interface TransactionRecord {
   fund_id: string | null;
   type: string;
   asset: string;
-  amount: number;
+  /** Amount - string for NUMERIC(28,10) precision */
+  amount: string;
   tx_date: string;
   notes: string | null;
   tx_hash: string | null;
   reference_id: string | null;
   created_at: string;
+  purpose: string | null;
+  distribution_id: string | null;
 }
 
 export interface TransactionFilters {
@@ -42,7 +45,7 @@ export async function getByInvestorId(
   let query = supabase
     .from("transactions_v2")
     .select(
-      "id, investor_id, fund_id, type, asset, amount, tx_date, notes, tx_hash, reference_id, created_at"
+      "id, investor_id, fund_id, type, asset, amount, tx_date, notes, tx_hash, reference_id, created_at, purpose, distribution_id"
     )
     .eq("investor_id", investorId)
     .eq("is_voided", false)
@@ -75,7 +78,10 @@ export async function getByInvestorId(
   const { data, error } = await query;
 
   if (error) throw error;
-  return (data || []) as TransactionRecord[];
+  return (data || []).map((tx) => ({
+    ...tx,
+    amount: String(tx.amount),
+  })) as TransactionRecord[];
 }
 
 /**
@@ -85,13 +91,14 @@ export async function getById(transactionId: string): Promise<TransactionRecord 
   const { data, error } = await supabase
     .from("transactions_v2")
     .select(
-      "id, investor_id, fund_id, type, asset, amount, tx_date, notes, tx_hash, reference_id, created_at"
+      "id, investor_id, fund_id, type, asset, amount, tx_date, notes, tx_hash, reference_id, created_at, purpose, distribution_id"
     )
     .eq("id", transactionId)
     .maybeSingle();
 
   if (error) throw error;
-  return data as TransactionRecord | null;
+  if (!data) return null;
+  return { ...data, amount: String(data.amount) } as TransactionRecord;
 }
 
 /**
@@ -183,6 +190,12 @@ export async function getSummary(investorId: string): Promise<{
       totalWithdrawals = totalWithdrawals.plus(amount.abs());
     } else if (type === "YIELD" || type === "FEE_CREDIT" || type === "IB_CREDIT") {
       totalYield = totalYield.plus(amount);
+    } else if (type === "ADJUSTMENT") {
+      if (amount.gte(0)) {
+        totalDeposits = totalDeposits.plus(amount);
+      } else {
+        totalWithdrawals = totalWithdrawals.plus(amount.abs());
+      }
     }
   });
 

@@ -6,42 +6,53 @@ import { getTodayString } from "@/utils/dateUtils";
 import { useInvestorBalance, useTransactionHistory } from "@/hooks";
 
 // Transaction validation schema
-export const transactionSchema = z.object({
-  txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "ADJUSTMENT"], {
-    required_error: "Transaction type is required",
-  }),
-  fund_id: z.string().uuid("Please select a valid fund"),
-  asset: z.string().min(1, "Asset is required"),
-  amount: z
-    .string()
-    .trim()
-    .min(1, "Amount is required")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Amount must be a positive number",
-    })
-    .refine((val) => Number(val) <= 1000000000, {
-      message: "Amount must be less than 1 billion",
+export const transactionSchema = z
+  .object({
+    txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "ADJUSTMENT"], {
+      required_error: "Transaction type is required",
     }),
-  tx_date: z
-    .string()
-    .min(1, "Transaction date is required")
-    .refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid date format",
-    }),
+    fund_id: z.string().uuid("Please select a valid fund"),
+    asset: z.string().min(1, "Asset is required"),
+    amount: z
+      .string()
+      .trim()
+      .min(1, "Amount is required")
+      .refine((val) => !isNaN(Number(val)) && Number(val) !== 0, {
+        message: "Amount must be a non-zero number",
+      })
+      .refine((val) => Math.abs(Number(val)) <= 1000000000, {
+        message: "Amount must be less than 1 billion",
+      }),
+    tx_date: z
+      .string()
+      .min(1, "Transaction date is required")
+      .refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid date format",
+      }),
 
-  reference_id: z
-    .string()
-    .trim()
-    .max(100, "Reference ID must be less than 100 characters")
-    .optional(),
-  tx_hash: z
-    .string()
-    .trim()
-    .max(255, "Transaction hash must be less than 255 characters")
-    .optional(),
-  notes: z.string().trim().max(1000, "Notes must be less than 1000 characters").optional(),
-  full_withdrawal: z.boolean().default(false),
-});
+    reference_id: z
+      .string()
+      .trim()
+      .max(100, "Reference ID must be less than 100 characters")
+      .optional(),
+    tx_hash: z
+      .string()
+      .trim()
+      .max(255, "Transaction hash must be less than 255 characters")
+      .optional(),
+    notes: z.string().trim().max(1000, "Notes must be less than 1000 characters").optional(),
+    full_withdrawal: z.boolean().default(false),
+  })
+  .superRefine((data, ctx) => {
+    // ADJUSTMENT allows negative amounts (balance reductions); all other types require positive
+    if (data.txn_type !== "ADJUSTMENT" && Number(data.amount) < 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Amount must be a positive number",
+        path: ["amount"],
+      });
+    }
+  });
 
 export type TransactionFormData = z.infer<typeof transactionSchema>;
 

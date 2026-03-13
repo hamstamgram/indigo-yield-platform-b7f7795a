@@ -65,6 +65,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useYieldDistributionSelection } from "../hooks/useYieldDistributionSelection";
 import { YieldBulkActionToolbar } from "../components/YieldBulkActionToolbar";
 import { BulkRestoreDistributionsDialog } from "../components/BulkRestoreDistributionsDialog";
+import { BulkVoidDistributionsDialog } from "../components/BulkVoidDistributionsDialog";
 import { unvoidYieldDistribution } from "@/services/admin/yields/yieldManagementService";
 
 interface Fund {
@@ -315,6 +316,10 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
   const [bulkRestoreDialogOpen, setBulkRestoreDialogOpen] = useState(false);
   const [restorePending, setRestorePending] = useState(false);
 
+  // Bulk void dialog state
+  const [bulkVoidDialogOpen, setBulkVoidDialogOpen] = useState(false);
+  const [bulkVoidPending, setBulkVoidPending] = useState(false);
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -406,6 +411,37 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
       selection.clearSelection();
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
       setRestorePending(false);
+    },
+    [selection, queryClient, toast]
+  );
+
+  const handleBulkVoidConfirm = useCallback(
+    async (reason: string) => {
+      setBulkVoidPending(true);
+      const ids = Array.from(selection.selectedIds);
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const id of ids) {
+        try {
+          await voidYieldDistribution(id, reason, false);
+          successCount++;
+        } catch (err) {
+          errorCount++;
+          console.error(`Failed to void distribution ${id}`, err);
+        }
+      }
+
+      toast({
+        title: "Bulk void complete",
+        description: `Successfully voided ${successCount} distribution(s)${errorCount > 0 ? `. ${errorCount} failed.` : "."}`,
+        variant: errorCount > 0 ? "destructive" : "default",
+      });
+
+      setBulkVoidDialogOpen(false);
+      selection.clearSelection();
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+      setBulkVoidPending(false);
     },
     [selection, queryClient, toast]
   );
@@ -614,12 +650,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
       <YieldBulkActionToolbar
         summary={selection.summary}
         isSuperAdmin={isSuperAdmin}
-        onVoid={() => {
-          toast({
-            title: "Bulk void not yet implemented",
-            description: "Please void distributions individually.",
-          });
-        }}
+        onVoid={() => setBulkVoidDialogOpen(true)}
         onRestore={() => setBulkRestoreDialogOpen(true)}
         onClear={selection.clearSelection}
       />
@@ -1183,6 +1214,23 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         }}
         onConfirm={handleVoidConfirm}
         isPending={voidPending}
+      />
+
+      <BulkVoidDistributionsDialog
+        open={bulkVoidDialogOpen}
+        onOpenChange={setBulkVoidDialogOpen}
+        summary={selection.summary}
+        isPending={bulkVoidPending}
+        onConfirm={handleBulkVoidConfirm}
+      />
+
+      <BulkRestoreDistributionsDialog
+        open={bulkRestoreDialogOpen}
+        onOpenChange={setBulkRestoreDialogOpen}
+        distributions={selectedDistributions}
+        summary={selection.summary}
+        isPending={restorePending}
+        onConfirm={handleBulkRestoreConfirm}
       />
 
       {/* Route to INDIGO FEES Confirmation Dialog */}
