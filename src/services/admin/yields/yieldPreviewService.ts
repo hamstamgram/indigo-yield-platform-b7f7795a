@@ -99,10 +99,19 @@ export async function previewYieldDistribution(
     });
   }
 
+  // Build IB parent name lookup from allocations
+  const ibParentNameMap = new Map<string, string>();
+  for (const d of (result.allocations || []) as V5AllocationItem[]) {
+    if (d.investor_id && d.investor_name) {
+      ibParentNameMap.set(d.investor_id, d.investor_name);
+    }
+  }
+
   // Map distributions from V5 backend format
   const distributions: YieldDistribution[] = (result.allocations || []).map(
     (d: V5AllocationItem) => {
       const liveBalance = balanceMap.get(d.investor_id) || 0;
+      const ibParentName = d.ib_parent_id ? ibParentNameMap.get(d.ib_parent_id) || null : null;
       return {
         investorId: d.investor_id,
         investorName: d.investor_name,
@@ -116,6 +125,7 @@ export async function previewYieldDistribution(
         newBalance: "0",
         positionDelta: String(d.net || 0),
         ibParentId: d.ib_parent_id,
+        ibParentName: ibParentName ?? undefined,
         ibPercentage: String(d.ib_rate || 0),
         ibAmount: String(d.ib || 0),
         referenceId: "",
