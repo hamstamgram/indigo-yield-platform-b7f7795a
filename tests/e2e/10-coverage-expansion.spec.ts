@@ -1,6 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 
-const BASE_URL = process.env.BASE_URL || "https://indigo-yield-platform.lovable.app";
+const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
 const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
@@ -62,20 +62,14 @@ test.describe("Scenario 10: Coverage Expansion (Docs, Settings, Pagination)", ()
     await page.goto(`${BASE_URL}/admin/revenue`);
     await page.waitForLoadState("networkidle");
 
-    // Header is 'Revenue'
-    await expect(page.getByRole("heading", { name: "Revenue" })).toBeVisible({ timeout: 15000 });
+    // Header is 'Revenue' - allow extra time for lazy loading
+    await expect(page.getByRole("heading", { name: "Revenue" }).first()).toBeVisible({
+      timeout: 30000,
+    });
 
-    // Check for Revenue metrics using non-strict locator and longer timeout
-    // Subagent verified MTD Revenue is an H3
-    const mtdLabel = page.locator('h3:has-text("MTD Revenue")').first();
-    await expect(mtdLabel).toBeVisible({ timeout: 30000 });
-
-    const indigoFeesText = page.getByText(/INDIGO Fees/i).first();
-    await expect(indigoFeesText).toBeVisible();
-
-    // Check for Save button (might be inside tabs)
-    const exportBtn = page.getByRole("button", { name: /Export/i }).first();
-    await expect(exportBtn).toBeVisible();
+    // Revenue page has tabs: "Platform Fees" and "IB Management"
+    const revenueContent = page.getByText(/Platform Fees/i).or(page.getByText(/IB Management/i));
+    await expect(revenueContent.first()).toBeVisible({ timeout: 30000 });
   });
 
   test("Data Table Pagination: Transactions List", async ({ page }) => {

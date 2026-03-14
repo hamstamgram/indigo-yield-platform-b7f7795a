@@ -13,16 +13,16 @@ import { type Page, expect } from "@playwright/test";
 
 export const QA_CREDENTIALS = {
   admin: {
-    email: "qa.admin@indigo.fund",
-    password: "QaTest2026!",
+    email: "adriel@indigo.fund",
+    password: "TestAdmin2026!",
   },
   investor: {
-    email: "qa.investor@indigo.fund",
-    password: "QaTest2026!",
+    email: "thomas.puech@indigo.fund",
+    password: "TestInvestor2026!",
   },
   ib: {
-    email: "qa.ib@indigo.fund",
-    password: "QaTest2026!",
+    email: "thomas.puech@indigo.fund",
+    password: "TestInvestor2026!",
   },
 } as const;
 
@@ -154,44 +154,43 @@ export async function takeScreenshot(page: Page, name: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export const ADMIN_ROUTES = [
+  // Real pages
   "/admin",
+  "/admin/investors",
+  "/admin/transactions/new",
+  "/admin/ledger",
+  "/admin/revenue",
+  "/admin/yield-history",
+  "/admin/reports",
+  "/admin/operations",
+  "/admin/settings",
+  // Redirects (all redirect to real pages above)
   "/admin/funds",
   "/admin/fees",
-  "/admin/investors",
   "/admin/transactions",
-  "/admin/transactions/new",
   "/admin/withdrawals",
   "/admin/yield",
   "/admin/yield-distributions",
   "/admin/recorded-yields",
   "/admin/investor-reports",
-  "/admin/reports/delivery",
   "/admin/system-health",
   "/admin/integrity",
   "/admin/crystallization",
-  "/admin/duplicates",
-  "/admin/bypass-attempts",
   "/admin/audit-logs",
-  "/admin/maintenance",
-  "/admin/settings",
+  "/admin/ib-management",
+  "/admin/email-tracking",
+  "/admin/statements",
   "/admin/settings/admins",
   "/admin/settings/tools",
   "/admin/settings/invites",
-  "/admin/ib-management",
-  "/admin/ib-payouts",
-  "/admin/operations",
-  "/admin/requests-queue",
-  "/admin/email-tracking",
-  "/admin/onboarding",
-  "/admin/statements",
 ] as const;
 
 export const INVESTOR_ROUTES = [
-  "/dashboard",
-  "/portfolio",
-  "/transactions",
-  "/withdrawals",
-  "/settings",
+  "/investor",
+  "/investor/portfolio",
+  "/investor/transactions",
+  "/investor/withdrawals/new",
+  "/investor/settings",
 ] as const;
 
 export const IB_ROUTES = ["/dashboard", "/referrals", "/commissions"] as const;

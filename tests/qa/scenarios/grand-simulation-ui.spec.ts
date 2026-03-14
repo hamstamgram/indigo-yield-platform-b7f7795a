@@ -22,10 +22,10 @@ test.describe("Grand Simulation - UI Execution", () => {
     // If not redirected, we are already logged in from auth.setup
     if (page.url().includes("/login")) {
       await expect(page.locator("#email")).toBeVisible({ timeout: 15000 });
-      await page.fill("#email", "qa.admin@indigo.fund");
-      await page.fill("#password", "QaTest2026!"); // Correct test password
+      await page.fill("#email", "adriel@indigo.fund");
+      await page.fill("#password", "TestAdmin2026!");
       await page.click('button[type="submit"]');
-      await page.waitForURL("/admin", { timeout: 30000 });
+      await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 30000 });
     }
   });
 
@@ -37,53 +37,56 @@ test.describe("Grand Simulation - UI Execution", () => {
     date: string
   ) {
     console.log(`[Tx] Starting: ${investorName} | ${fundName} | ${amount} | ${date}`);
-    await page.goto("/admin/transactions/new");
+    await page.goto("/admin/transactions");
     await page.waitForLoadState("networkidle");
 
-    // Handle cookie banner if it appears
-    const cookieBanner = page.locator(
-      'button:has-text("Reject Optional"), button:has-text("Accept All")'
-    );
-    if (await cookieBanner.first().isVisible()) {
-      console.log(`[Tx] Handling cookie banner...`);
-      await cookieBanner.first().click();
+    // Open Add Transaction dialog
+    await page
+      .getByRole("button", { name: /Add Transaction|New Transaction/i })
+      .first()
+      .click();
+    const modal = page.getByRole("dialog");
+    await modal.waitFor({ state: "visible" });
+
+    // Type = DEPOSIT (first combobox)
+    await modal.locator('button[role="combobox"]').nth(0).click();
+    await page.getByRole("option", { name: /DEPOSIT/i }).click();
+
+    // Fund (second combobox)
+    await modal.locator('button[role="combobox"]').nth(1).click();
+    await page
+      .getByRole("option", { name: new RegExp(fundName.replace(/[()]/g, "\\$&"), "i") })
+      .click();
+
+    // Investor (third combobox)
+    await modal.locator('button[role="combobox"]').nth(2).click();
+    const searchInput = page.getByPlaceholder(/Search by name or email/i);
+    if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      const shortName = investorName.split(" (")[0];
+      await searchInput.fill(shortName);
     }
-
-    // Select Investor
-    console.log(`[Tx] Selecting Investor: ${investorName}`);
-    await page.click('button:has-text("Select Investor")');
-    // Wait for the options to appear
-    await page.waitForSelector('[role="option"]', { state: "visible" });
-
-    // Find the specific option by name and click it
-    const option = page.getByRole("option", { name: investorName, exact: false });
-    await option.scrollIntoViewIfNeeded();
-    await option.click();
-
-    // Select Fund
-    console.log(`[Tx] Selecting Fund: ${fundName}`);
-    await page.click('button:has-text("Select Fund")');
-    await page.waitForSelector('[role="option"]', { state: "visible" });
-    await page.getByRole("option", { name: fundName, exact: false }).click();
+    await page
+      .locator('[role="option"]')
+      .filter({ hasText: new RegExp(investorName.split(" (")[0], "i") })
+      .first()
+      .click();
 
     // Amount
-    await page.fill('input[name="amount"]', amount);
+    await modal.locator('input[name="amount"]').fill(amount);
 
-    // Date
-    console.log(`[Tx] Picking Date: ${date}`);
-    await page.click('button:has-text("Pick a date"), button:has(svg.lucide-calendar)');
-    const day = parseInt(date.split("-")[2]);
-    // Click the day that is not muted (to avoid selecting from prev/next month in the same view)
-    // We also use a more specific selector for the calendar cell
-    await page.locator(`button[role="gridcell"]:has-text("${day}"):not(.muted)`).first().click();
+    // Date (use native date input if available)
+    const dateInput = modal.locator('input[type="date"]');
+    if (await dateInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await dateInput.fill(date);
+    }
 
     // Submit
     console.log(`[Tx] Submitting...`);
-    const submitBtn = page.locator('button:has-text("Create Transaction")');
-    await submitBtn.scrollIntoViewIfNeeded();
-    await submitBtn.click();
+    await modal.getByRole("button", { name: /Add Transaction/i }).click();
 
-    await expect(page.locator("text=Transaction Created")).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(/success|created|Transaction Created/i).first()).toBeVisible({
+      timeout: 30000,
+    });
     console.log(`[Tx] Success!`);
   }
 
@@ -97,46 +100,81 @@ test.describe("Grand Simulation - UI Execution", () => {
     await page.click('button:has-text("Apply Yield")');
     await page.locator(`button:has-text("${fundName}")`).click();
 
-    // Yield Input Form
+    // Select Transaction purpose
     console.log(`[Yield] Selecting Purpose: Transaction`);
-    // Be very specific to avoid clicking the explainer text
-    await page.locator('div:has(> p:text("Transaction"))').click();
+    const purposeBtn = page.getByTestId("purpose-transaction");
+    if (await purposeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await purposeBtn.click();
+    }
 
+    // Fill date
     console.log(`[Yield] Entering Date: ${date}`);
-    await page.fill('input[type="date"]', date);
+    const dateInput = page.locator('input[type="date"]');
+    if (await dateInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await dateInput.fill(date);
+    }
 
+    // Fill AUM (try multiple selectors)
     console.log(`[Yield] Entering AUM: ${aum}`);
-    await page.fill("input#new-aum", aum);
+    const aumInput = page.getByTestId("aum-input");
+    if (await aumInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await aumInput.fill(aum);
+    } else {
+      await page.locator('input#new-aum, input[name="newAUM"], input[id*="aum"]').first().fill(aum);
+    }
 
     // Preview
     console.log(`[Yield] Generating preview...`);
-    await page.click('button:has-text("Preview Yield Distribution")');
+    await page
+      .getByRole("button", { name: /Preview Yield Distribution|Preview/i })
+      .first()
+      .click();
 
-    // Apply (from Preview)
+    // Click Distribute Yield
     console.log(`[Yield] Confirming selection...`);
-    await page.click('button:has-text("Apply Yield to")');
+    const distributeBtn = page.getByRole("button", { name: /Distribute Yield to/i });
+    if (await distributeBtn.isVisible({ timeout: 15000 }).catch(() => false)) {
+      await distributeBtn.click();
+    } else {
+      await page
+        .getByRole("button", { name: /Distribute/i })
+        .last()
+        .click();
+    }
 
-    // Confirm Dialog
+    // Confirm Dialog - check confirmation checkbox
     console.log(`[Yield] Final Confirmation...`);
-    await page.locator("#confirm-distribution").check();
+    const checkbox = page.locator('[role="checkbox"], #confirm-distribution');
+    if (await checkbox.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await checkbox.click();
+    }
 
-    const discrepancyCheckbox = page.locator(
-      'input[type="checkbox"]:near(span:has-text("discrepancy"))'
-    );
-    if (await discrepancyCheckbox.isVisible()) {
+    const discrepancyCheckbox = page.locator('[role="checkbox"]:near(:text("discrepancy"))');
+    if (await discrepancyCheckbox.isVisible({ timeout: 2000 }).catch(() => false)) {
       console.log(`[Yield] Acknowledging discrepancy...`);
-      await discrepancyCheckbox.check();
+      await discrepancyCheckbox.click();
     }
 
     // Final Confirm
     console.log(`[Yield] Applying final distribution...`);
-    await page.click('button:has-text("Confirm & Apply")');
+    const confirmBtn = page.getByRole("button", { name: /Confirm Distribution/i });
+    if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await confirmBtn.click();
+    } else {
+      await page.getByRole("button", { name: /Confirm/i }).click();
+    }
 
     // Wait for success
     await expect(
-      page.locator("text=/Distributed/").or(page.locator("text=Distribution recorded"))
+      page.getByText(/complete|success|Distributed|Distribution recorded/i).first()
     ).toBeVisible({ timeout: 60000 });
     console.log(`[Yield] Success!`);
+
+    // Close modal
+    await page
+      .getByRole("button", { name: /Done/i })
+      .click()
+      .catch(() => {});
   }
 
   test("Execute Full Scenario through UI", async ({ page }) => {

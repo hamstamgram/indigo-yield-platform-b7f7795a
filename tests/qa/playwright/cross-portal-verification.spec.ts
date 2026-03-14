@@ -26,7 +26,7 @@ test.describe("Cross-Portal Verification", () => {
     await assertPageLoaded(page);
 
     // Navigate to transaction history
-    const txPages = ["/transactions", "/history", "/dashboard"];
+    const txPages = ["/investor/transactions", "/investor/yield-history", "/investor"];
     let foundTxPage = false;
 
     for (const path of txPages) {
@@ -34,9 +34,11 @@ test.describe("Cross-Portal Verification", () => {
       await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Check if page has transaction-like content
-      const txContent = page.locator(
-        'table, [data-testid="transactions"], text=/DEPOSIT/i, text=/transaction/i'
-      );
+      const txContent = page
+        .locator("table")
+        .or(page.locator('[data-testid="transactions"]'))
+        .or(page.locator("text=/DEPOSIT/i"))
+        .or(page.locator("text=/transaction/i"));
       if ((await txContent.count()) > 0) {
         foundTxPage = true;
         break;
@@ -51,7 +53,12 @@ test.describe("Cross-Portal Verification", () => {
     await assertPageLoaded(page);
 
     // Navigate through investor pages
-    const investorPages = ["/dashboard", "/portfolio", "/transactions", "/history"];
+    const investorPages = [
+      "/investor",
+      "/investor/portfolio",
+      "/investor/transactions",
+      "/investor/yield-history",
+    ];
 
     for (const path of investorPages) {
       await page.goto(path);
@@ -175,14 +182,22 @@ test.describe("Cross-Portal Verification", () => {
     await assertPageLoaded(page);
 
     // Navigate to all investor pages
-    const investorPages = ["/dashboard", "/portfolio", "/transactions", "/history"];
+    const investorPages = [
+      "/investor",
+      "/investor/portfolio",
+      "/investor/transactions",
+      "/investor/yield-history",
+    ];
 
     for (const path of investorPages) {
       await page.goto(path);
       await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Look for voided indicators
-      const voidedContent = page.locator('text=/voided/i, [data-status="voided"], .voided');
+      const voidedContent = page
+        .locator("text=/voided/i")
+        .or(page.locator('[data-status="voided"]'))
+        .or(page.locator(".voided"));
       const count = await voidedContent.count();
 
       // Voided items should not be visible to investors
@@ -270,16 +285,16 @@ test.describe("Cross-Portal Verification", () => {
     // Login as admin and capture nav
     await loginAs(page, "admin");
     await assertPageLoaded(page);
-    const adminNav = await page.locator("nav, [role='navigation'], aside").textContent();
+    const adminNav = await page.locator("nav, [role='navigation'], aside").first().textContent();
     await takeScreenshot(page, "cross-portal-admin-nav");
 
     // Clear session and login as investor
-    await page.goto("/login");
-    await page.waitForLoadState("networkidle");
+    await page.context().clearCookies();
+    await page.evaluate(() => localStorage.clear());
 
     await loginAs(page, "investor");
     await assertPageLoaded(page);
-    const investorNav = await page.locator("nav, [role='navigation'], aside").textContent();
+    const investorNav = await page.locator("nav, [role='navigation'], aside").first().textContent();
     await takeScreenshot(page, "cross-portal-investor-nav");
 
     // Navigation content should be different between roles

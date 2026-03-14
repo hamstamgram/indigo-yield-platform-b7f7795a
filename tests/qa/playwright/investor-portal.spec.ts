@@ -42,13 +42,20 @@ test.describe("Investor Portal", () => {
 
   test("voided transactions not visible to investor", async ({ page }) => {
     // Navigate to transaction history
-    const txPages = ["/dashboard", "/portfolio", "/transactions", "/history"];
+    const txPages = [
+      "/investor",
+      "/investor/portfolio",
+      "/investor/transactions",
+      "/investor/yield-history",
+    ];
     for (const path of txPages) {
       await page.goto(path);
       const response = await page.waitForLoadState("networkidle").catch(() => null);
 
       // Check there are no elements showing "voided" status to investor
-      const voidedElements = page.locator('text=/voided/i, [data-status="voided"]');
+      const voidedElements = page
+        .locator("text=/voided/i")
+        .or(page.locator('[data-status="voided"]'));
       const count = await voidedElements.count();
       // Voided transactions should not be visible to investors
       // (they might appear in some admin-only contexts)

@@ -28,6 +28,7 @@ interface RouteMapping {
 
 test.describe("Admin Surface Area Crawl", () => {
   test("crawl all admin routes and capture RPC mapping", async ({ page }) => {
+    test.setTimeout(300000); // 5 minutes for full surface crawl
     await loginAs(page, "admin");
 
     const mappings: RouteMapping[] = [];

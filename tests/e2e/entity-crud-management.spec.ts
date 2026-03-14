@@ -139,9 +139,13 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
     await page.goto(`${BASE_URL}/admin/investors`);
     await page.waitForLoadState("networkidle");
 
-    // Step 1: Find an investor with balance > 0 (Alice ideally)
-    await page.locator('input[placeholder*="Search"]').fill("Alice");
-    await page.getByText(/Alice/i).first().click();
+    // Step 1: Find an investor with balance > 0
+    // Investors page uses virtualized grid, not <table>
+    await page
+      .locator('.cursor-pointer[class*="grid"][class*="items-center"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 15000 });
+    await page.locator('.cursor-pointer[class*="grid"][class*="items-center"]').first().click();
 
     // Settings Tab
     await page.getByRole("tab", { name: /Settings/i }).click();
@@ -161,7 +165,7 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
     // Step 2: Delete investor with 0 balance (the newly created Zero Balance investor)
     await page.goto(`${BASE_URL}/admin/investors`);
     await page.waitForLoadState("networkidle");
-    await page.locator('input[placeholder*="Search"]').fill("Zero Balance");
+    await page.locator('input[placeholder*="Search"]').first().fill("Zero Balance");
     await page
       .getByText(/Zero Balance/i)
       .first()

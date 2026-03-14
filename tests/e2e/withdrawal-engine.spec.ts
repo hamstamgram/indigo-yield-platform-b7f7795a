@@ -3,7 +3,7 @@ import { test, expect, Page } from "@playwright/test";
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
 const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
-const INVESTOR_EMAIL = process.env.TEST_INVESTOR_EMAIL || "alice@test.indigo.com";
+const INVESTOR_EMAIL = process.env.TEST_INVESTOR_EMAIL || "thomas.puech@indigo.fund";
 
 // Helper Functions
 async function login(page: Page, email: string, password: string) {
@@ -59,10 +59,9 @@ test.describe("Withdrawal Engine Edge Cases", () => {
       await page.getByRole("option").nth(0).click();
     }
 
-    // Investor: Alice
     if (await selects.nth(2).isVisible()) {
       await selects.nth(2).click();
-      await page.getByRole("option", { name: /Alice/i }).click();
+      await page.getByRole("option").first().click();
     }
 
     // Amount: 10000
@@ -104,7 +103,7 @@ test.describe("Withdrawal Engine Edge Cases", () => {
     }
     if (await selects.nth(2).isVisible()) {
       await selects.nth(2).click();
-      await page.getByRole("option", { name: /Alice/i }).click();
+      await page.getByRole("option").first().click();
     }
 
     // Amount: 50000 (Insufficient)
@@ -144,7 +143,7 @@ test.describe("Withdrawal Engine Edge Cases", () => {
     await page.getByRole("option").nth(0).click();
 
     await selects.nth(2).click();
-    await page.getByRole("option", { name: /Alice/i }).click();
+    await page.getByRole("option").first().click();
 
     await modal.locator('input[type="number"], input[name="amount"]').fill("1000");
     await modal.locator('button[type="submit"]:not([disabled])').click();
@@ -176,7 +175,7 @@ test.describe("Withdrawal Engine Edge Cases", () => {
     await page.getByRole("option").nth(0).click();
 
     await selects.nth(2).click();
-    await page.getByRole("option", { name: /Alice/i }).click();
+    await page.getByRole("option").first().click();
 
     // Toggle Full Withdrawal
     const fullWithdrawalCheckbox = modal.locator('button[role="switch"], input[type="checkbox"]');

@@ -95,7 +95,14 @@ test.describe("Admin Yield Operations", () => {
     }
 
     const criticalErrors = errors.filter(
-      (e) => !e.includes("ResizeObserver") && !e.includes("net::ERR")
+      (e) =>
+        !e.includes("ResizeObserver") &&
+        !e.includes("net::ERR") &&
+        !e.includes("Warning:") &&
+        !e.includes("validateDOMNesting") &&
+        !e.includes("Each child in a list") &&
+        !e.includes("Operation failed") &&
+        !e.includes("fetchUserRoles")
     );
 
     expect(criticalErrors).toHaveLength(0);

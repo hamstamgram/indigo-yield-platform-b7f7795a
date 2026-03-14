@@ -47,11 +47,10 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
     await typeTrigger.click();
     await page.getByRole("option", { name: /DEPOSIT/i }).click();
 
-    // Select Investor (Alice)
     const selects = modal.locator('button[role="combobox"]');
     if (await selects.nth(2).isVisible()) {
       await selects.nth(2).click();
-      await page.getByRole("option", { name: /Alice/i }).click();
+      await page.getByRole("option").first().click();
     }
 
     await modal.locator('input[type="number"], input[name="amount"]').fill("50000");
@@ -75,11 +74,10 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
     await typeTrigger.click();
     await page.getByRole("option", { name: /WITHDRAWAL/i }).click();
 
-    // Select Investor (Alice)
     const selects = modal.locator('button[role="combobox"]');
     if (await selects.nth(2).isVisible()) {
       await selects.nth(2).click();
-      await page.getByRole("option", { name: /Alice/i }).click();
+      await page.getByRole("option").first().click();
     }
 
     // Alice only has 50k from previous test (perhaps some leftover). Let's try to withdraw 999 million
@@ -120,7 +118,7 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
     const selects = modal.locator('button[role="combobox"]');
     if (await selects.nth(2).isVisible()) {
       await selects.nth(2).click();
-      await page.getByRole("option", { name: /Alice/i }).click();
+      await page.getByRole("option").first().click();
     }
 
     // Withdraw 1000
@@ -134,8 +132,12 @@ test.describe("Transaction Engine (Deposits & Withdrawals)", () => {
     await page.goto(`${BASE_URL}/admin/investors`);
     await page.waitForLoadState("networkidle");
 
-    await page.locator('input[placeholder*="Search"]').fill("Alice");
-    await page.getByText(/Alice/i).first().click();
+    // Click first available investor row — investors page uses virtualized grid, not <table>
+    await page
+      .locator('.cursor-pointer[class*="grid"][class*="items-center"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 15000 });
+    await page.locator('.cursor-pointer[class*="grid"][class*="items-center"]').first().click();
 
     await page.getByRole("tab", { name: /Activity|Transactions/i }).click();
 

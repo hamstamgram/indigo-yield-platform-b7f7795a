@@ -6,17 +6,17 @@ const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
 
 async function login(page: Page, email: string, password: string) {
   console.log(`LOGIN: Navigating to ${BASE_URL} for ${email}`);
-  await page.goto(BASE_URL);
+  await page.goto(`${BASE_URL}/login`);
   await page.waitForLoadState("networkidle");
 
-  if (page.url().includes("/login")) {
-    await page.fill('input[type="email"], input[name="email"]', email);
-    await page.fill('input[type="password"], input[name="password"]', password);
-    await page.click('button[type="submit"]');
-  }
+  const emailInput = page.locator('input[type="email"], input[name="email"]');
+  await emailInput.waitFor({ state: "visible", timeout: 15000 });
+  await emailInput.fill(email);
+  await page.fill('input[type="password"], input[name="password"]', password);
+  await page.click('button[type="submit"]');
 
   console.log("LOGIN: Waiting for dashboard content...");
-  await page.waitForSelector("text=Command Center", { timeout: 30000 });
+  await page.waitForSelector("text=Command Center", { timeout: 90000 });
   console.log("LOGIN: Dashboard loaded successfully.");
 }
 
@@ -36,6 +36,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
   });
 
   test("0. Setup: Create Investor and Deposit", async () => {
+    test.setTimeout(120000);
     await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
     // Add Investor
@@ -121,7 +122,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
       );
       if (await moreBtn.isVisible()) {
         await moreBtn.click();
-        await page.getByRole("menuitem", { name: /Void/i }).click();
+        await page.getByRole("menuitem", { name: "Void", exact: true }).click();
       }
     } else {
       await voidBtn.click();
@@ -215,7 +216,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
         'button[aria-haspopup="menu"], button[title="More options"]'
       );
       await moreBtn.first().click();
-      await page.getByRole("menuitem", { name: /Void/i }).click();
+      await page.getByRole("menuitem", { name: "Void", exact: true }).click();
     } else {
       await voidBtn.first().click();
     }
@@ -293,7 +294,7 @@ test.describe("Omni-Void Cascade (Total Reversibility)", () => {
         'button[aria-haspopup="menu"], button[title="More options"]'
       );
       await moreBtnMenu.first().click();
-      await page.getByRole("menuitem", { name: /Void/i }).click();
+      await page.getByRole("menuitem", { name: "Void", exact: true }).click();
     } else {
       await voidBtn.first().click();
     }

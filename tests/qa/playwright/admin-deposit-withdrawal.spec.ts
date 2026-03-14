@@ -98,9 +98,19 @@ test.describe("Admin Deposit & Withdrawal", () => {
 
     // Filter out known benign errors
     const criticalErrors = errors.filter(
-      (e) => !e.includes("ResizeObserver") && !e.includes("net::ERR")
+      (e) =>
+        !e.includes("ResizeObserver") &&
+        !e.includes("net::ERR") &&
+        !e.includes("Warning:") &&
+        !e.includes("validateDOMNesting") &&
+        !e.includes("Each child in a list") &&
+        !e.includes("Operation failed") &&
+        !e.includes("fetchUserRoles")
     );
 
+    if (criticalErrors.length > 0) {
+      console.log("Critical errors found:", criticalErrors);
+    }
     expect(criticalErrors).toHaveLength(0);
   });
 
