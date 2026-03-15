@@ -99,10 +99,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
     switch (trigger) {
       case "deposit":
         return (
-          <Badge
-            variant="outline"
-            className="bg-yield/10 text-yield border-yield/20"
-          >
+          <Badge variant="outline" className="bg-yield/10 text-yield border-yield/20">
             Deposit
           </Badge>
         );
@@ -310,10 +307,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
               </TableHeader>
               <TableBody>
                 {sortedData.slice(0, 100).map((event) => (
-                  <TableRow
-                    key={event.id}
-                    className={cn(false && "bg-amber-500/10")}
-                  >
+                  <TableRow key={event.id} className={cn()}>
                     <TableCell className="font-mono whitespace-nowrap py-1.5">
                       {format(new Date(event.event_date), "MMM d, yyyy")}
                     </TableCell>
