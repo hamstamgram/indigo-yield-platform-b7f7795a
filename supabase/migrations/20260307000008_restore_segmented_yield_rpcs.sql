@@ -541,7 +541,7 @@ BEGIN
       p_purpose := p_purpose,
       p_distribution_id := v_distribution_id
     );
-    v_yield_tx_id := (v_tx_result->>'transaction_id')::uuid;
+    v_yield_tx_id := (v_tx_result->>'tx_id')::uuid;
 
     IF v_yield_tx_id IS NOT NULL THEN
       IF p_purpose = 'reporting'::aum_purpose THEN
@@ -599,7 +599,7 @@ BEGIN
         p_purpose := p_purpose,
         p_distribution_id := v_distribution_id
       );
-      v_ib_tx_id := (v_ib_tx_result->>'transaction_id')::uuid;
+      v_ib_tx_id := (v_ib_tx_result->>'tx_id')::uuid;
 
       UPDATE yield_allocations SET ib_transaction_id = v_ib_tx_id
       WHERE distribution_id = v_distribution_id
@@ -634,7 +634,7 @@ BEGIN
       p_purpose := p_purpose,
       p_distribution_id := v_distribution_id
     );
-    v_fee_tx_id := (v_fee_tx_result->>'transaction_id')::uuid;
+    v_fee_tx_id := (v_fee_tx_result->>'tx_id')::uuid;
 
     UPDATE platform_fee_ledger SET transaction_id = v_fee_tx_id
     WHERE yield_distribution_id = v_distribution_id AND transaction_id IS NULL;
@@ -657,7 +657,7 @@ BEGIN
       p_purpose := p_purpose,
       p_distribution_id := v_distribution_id
     );
-    v_yield_tx_id := (v_tx_result->>'transaction_id')::uuid;
+    v_yield_tx_id := (v_tx_result->>'tx_id')::uuid;
 
     IF v_yield_tx_id IS NOT NULL THEN
       UPDATE transactions_v2 SET visibility_scope = 'admin_only'::visibility_scope

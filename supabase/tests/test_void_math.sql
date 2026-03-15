@@ -56,7 +56,7 @@ BEGIN
 
   -- Use V5 RPC to simulate the deposit dynamically
   v_yield_result := apply_transaction_with_crystallization(v_fund_id, v_investor_id, 'DEPOSIT', 100000, '2026-03-01', 'dep_01', NULL, v_admin_id);
-  v_deposit_tx_id := (v_yield_result->>'transaction_id')::uuid;
+  v_deposit_tx_id := (v_yield_result->>'tx_id')::uuid;
 
   -- Capture Balance BEFORE Yield
   SELECT current_value INTO v_pre_yield_balance FROM investor_positions WHERE investor_id = v_investor_id AND fund_id = v_fund_id;

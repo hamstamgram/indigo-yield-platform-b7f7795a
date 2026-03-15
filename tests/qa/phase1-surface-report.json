@@ -1,0 +1,292 @@
+[
+  {
+    "route": "/admin",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin",
+    "rpcsCalledOnLoad": [
+      "get_funds_with_aum",
+      "get_admin_stats",
+      "get_active_funds_summary",
+      "get_funds_aum_snapshot",
+      "get_funds_daily_flows"
+    ],
+    "screenshotPath": "tests/qa/screenshots/admin.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 2748
+  },
+  {
+    "route": "/admin/investors",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/investors",
+    "rpcsCalledOnLoad": ["get_funds_with_aum", "get_admin_stats", "get_all_investors_summary"],
+    "screenshotPath": "tests/qa/screenshots/admin_investors.png",
+    "consoleErrors": [
+      "Warning: validateDOMNesting(...): %s cannot appear as a child of <%s>.%s%s%s <th> div   \n    at th\n    at _c10 (http://localhost:8080/src/components/ui/table.tsx:66:60)\n    at SortableTableHead (http://localhost:8080/src/components/ui/sortable-table-head.tsx:6:37)\n    at div\n    at div\n    at UnifiedInvestorsTable (http://localhost:8080/src/features/admin/investors/components/list/UnifiedInvestorsTable.tsx?t=1773508231026:11:41)\n    at div\n    at div\n    at PanelWithForwardedRef (http://localhost:8080/node_modules/.vite/deps/react-resizable-panels.js?v=f6610f20:41:3)\n    at forwardRef(Panel)\n    at div\n    at PanelGroupWithForwardedRef (http://localhost:8080/node_modules/.vite/deps/react-resizable-panels.js?v=f6610f20:1440:3)\n    at forwardRef(PanelGroup)\n    at ResizablePanelGroup (http://localhost:8080/src/components/ui/resizable.tsx:5:32)\n    at div\n    at UnifiedInvestorsContent (http://localhost:8080/src/features/admin/investors/pages/UnifiedInvestorsPage.tsx:67:23)\n    at AdminGuard (http://localhost:8080/src/features/admin/shared/AdminGuard.tsx:10:30)\n    at UnifiedInvestorsPage\n    at AdminRoute (http://localhost:8080/src/routing/AdminRoute.tsx?t=1773508231026:15:34)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Outlet (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4536:26)\n    at div\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at div\n    at div\n    at div\n    at DashboardLayout (http://localhost:8080/src/components/layout/DashboardLayout.tsx?t=1773508231026:14:43)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4600:5)\n    at Suspense\n    at AppRoutes\n    at Suspense\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at RouteSuspense (http://localhost:8080/src/routing/RouteSuspense.tsx?t=1773508231026:5:33)\n    at main\n    at AppContent (http://localhost:8080/src/App.tsx?t=1773508231026:30:5)\n    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4543:15)\n    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:5289:5)\n    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-ZVO65UMV.js?v=f6610f20:37:15)\n    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=f6610f20:159:5)\n    at AuthProvider (http://localhost:8080/src/services/auth/context.tsx:28:32)\n    at SecurityProvider (http://localhost:8080/src/components/security/SecurityProvider.tsx:21:36)\n    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=f6610f20:3103:3)\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at App (http://localhost:8080/src/App.tsx?t=1773508231026:109:5)"
+    ],
+    "loadTimeMs": 2692
+  },
+  {
+    "route": "/admin/transactions/new",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/transactions/new",
+    "rpcsCalledOnLoad": ["get_funds_with_aum"],
+    "screenshotPath": "tests/qa/screenshots/admin_transactions_new.png",
+    "consoleErrors": [],
+    "loadTimeMs": 1628
+  },
+  {
+    "route": "/admin/ledger",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/ledger",
+    "rpcsCalledOnLoad": ["get_funds_with_aum"],
+    "screenshotPath": "tests/qa/screenshots/admin_ledger.png",
+    "consoleErrors": [],
+    "loadTimeMs": 1736
+  },
+  {
+    "route": "/admin/revenue",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/revenue",
+    "rpcsCalledOnLoad": ["get_funds_with_aum", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_revenue.png",
+    "consoleErrors": [],
+    "loadTimeMs": 2682
+  },
+  {
+    "route": "/admin/yield-history",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/yield-history",
+    "rpcsCalledOnLoad": ["get_funds_with_aum", "is_super_admin", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_yield-history.png",
+    "consoleErrors": [
+      "Warning: validateDOMNesting(...): %s cannot appear as a child of <%s>.%s%s%s <th> th   \n    at th\n    at _c10 (http://localhost:8080/src/components/ui/table.tsx:66:60)\n    at SortableTableHead (http://localhost:8080/src/components/ui/sortable-table-head.tsx:6:37)\n    at th\n    at _c10 (http://localhost:8080/src/components/ui/table.tsx:66:60)\n    at tr\n    at _c8 (http://localhost:8080/src/components/ui/table.tsx:55:58)\n    at thead\n    at _c2 (http://localhost:8080/src/components/ui/table.tsx:22:61)\n    at table\n    at div\n    at _c (http://localhost:8080/src/components/ui/table.tsx:4:54)\n    at div\n    at div\n    at ResponsiveTable (http://localhost:8080/src/components/ui/responsive-table.tsx:7:35)\n    at div\n    at div\n    at _c8 (http://localhost:8080/src/components/ui/card.tsx:48:61)\n    at div\n    at _c (http://localhost:8080/src/components/ui/card.tsx:4:53)\n    at YieldsTable (http://localhost:8080/src/features/admin/yields/components/YieldsTable.tsx?t=1773508231026:17:31)\n    at div\n    at div\n    at PageShell (http://localhost:8080/src/components/layout/PageShell.tsx:8:29)\n    at AdminGuard (http://localhost:8080/src/features/admin/shared/AdminGuard.tsx:10:30)\n    at YieldHistoryPage (http://localhost:8080/src/features/admin/yields/pages/YieldHistoryPage.tsx:20:38)\n    at AdminRoute (http://localhost:8080/src/routing/AdminRoute.tsx?t=1773508231026:15:34)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Outlet (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4536:26)\n    at div\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at div\n    at div\n    at div\n    at DashboardLayout (http://localhost:8080/src/components/layout/DashboardLayout.tsx?t=1773508231026:14:43)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4600:5)\n    at Suspense\n    at AppRoutes\n    at Suspense\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at RouteSuspense (http://localhost:8080/src/routing/RouteSuspense.tsx?t=1773508231026:5:33)\n    at main\n    at AppContent (http://localhost:8080/src/App.tsx?t=1773508231026:30:5)\n    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4543:15)\n    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:5289:5)\n    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-ZVO65UMV.js?v=f6610f20:37:15)\n    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=f6610f20:159:5)\n    at AuthProvider (http://localhost:8080/src/services/auth/context.tsx:28:32)\n    at SecurityProvider (http://localhost:8080/src/components/security/SecurityProvider.tsx:21:36)\n    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=f6610f20:3103:3)\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at App (http://localhost:8080/src/App.tsx?t=1773508231026:109:5)"
+    ],
+    "loadTimeMs": 2634
+  },
+  {
+    "route": "/admin/reports",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/reports",
+    "rpcsCalledOnLoad": ["get_funds_with_aum", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_reports.png",
+    "consoleErrors": [],
+    "loadTimeMs": 2868
+  },
+  {
+    "route": "/admin/operations",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/operations",
+    "rpcsCalledOnLoad": ["get_funds_with_aum", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_operations.png",
+    "consoleErrors": [],
+    "loadTimeMs": 3578
+  },
+  {
+    "route": "/admin/settings",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/settings",
+    "rpcsCalledOnLoad": ["get_funds_with_aum"],
+    "screenshotPath": "tests/qa/screenshots/admin_settings.png",
+    "consoleErrors": [],
+    "loadTimeMs": 1853
+  },
+  {
+    "route": "/admin/funds",
+    "status": "redirect",
+    "finalUrl": "http://localhost:8080/admin",
+    "rpcsCalledOnLoad": [
+      "get_admin_stats",
+      "get_active_funds_summary",
+      "get_funds_with_aum",
+      "get_funds_aum_snapshot",
+      "get_funds_daily_flows"
+    ],
+    "screenshotPath": "tests/qa/screenshots/admin_funds.png",
+    "consoleErrors": [],
+    "loadTimeMs": 2908
+  },
+  {
+    "route": "/admin/fees",
+    "status": "redirect",
+    "finalUrl": "http://localhost:8080/admin/revenue",
+    "rpcsCalledOnLoad": ["get_funds_with_aum", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_fees.png",
+    "consoleErrors": [],
+    "loadTimeMs": 2862
+  },
+  {
+    "route": "/admin/transactions",
+    "status": "redirect",
+    "finalUrl": "http://localhost:8080/admin/ledger",
+    "rpcsCalledOnLoad": ["get_funds_with_aum"],
+    "screenshotPath": "tests/qa/screenshots/admin_transactions.png",
+    "consoleErrors": [],
+    "loadTimeMs": 1931
+  },
+  {
+    "route": "/admin/withdrawals",
+    "status": "redirect",
+    "finalUrl": "http://localhost:8080/admin/ledger?tab=withdrawals",
+    "rpcsCalledOnLoad": ["get_funds_with_aum", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_withdrawals.png",
+    "consoleErrors": [
+      "TypeError: Failed to fetch\n    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6610f20:6812:23\n    at _handleRequest2 (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6610f20:7102:20)\n    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6610f20:7092:22)\n    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6610f20:9616:22\n    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6610f20:9519:20)\n    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6610f20:9607:14)\n    at async http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6610f20:9591:14",
+      "[fetchUserTransactions] Operation failed {error: Error: User not authenticated\n    at Object.fetchUserTransactions (http://localhost:8080/src/servic…}"
+    ],
+    "loadTimeMs": 2853
+  },
+  {
+    "route": "/admin/yield",
+    "status": "redirect",
+    "finalUrl": "http://localhost:8080/admin/yield-history",
+    "rpcsCalledOnLoad": ["is_super_admin", "get_funds_with_aum", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_yield.png",
+    "consoleErrors": [
+      "Warning: validateDOMNesting(...): %s cannot appear as a child of <%s>.%s%s%s <th> th   \n    at th\n    at _c10 (http://localhost:8080/src/components/ui/table.tsx:66:60)\n    at SortableTableHead (http://localhost:8080/src/components/ui/sortable-table-head.tsx:6:37)\n    at th\n    at _c10 (http://localhost:8080/src/components/ui/table.tsx:66:60)\n    at tr\n    at _c8 (http://localhost:8080/src/components/ui/table.tsx:55:58)\n    at thead\n    at _c2 (http://localhost:8080/src/components/ui/table.tsx:22:61)\n    at table\n    at div\n    at _c (http://localhost:8080/src/components/ui/table.tsx:4:54)\n    at div\n    at div\n    at ResponsiveTable (http://localhost:8080/src/components/ui/responsive-table.tsx:7:35)\n    at div\n    at div\n    at _c8 (http://localhost:8080/src/components/ui/card.tsx:48:61)\n    at div\n    at _c (http://localhost:8080/src/components/ui/card.tsx:4:53)\n    at YieldsTable (http://localhost:8080/src/features/admin/yields/components/YieldsTable.tsx?t=1773508231026:17:31)\n    at div\n    at div\n    at PageShell (http://localhost:8080/src/components/layout/PageShell.tsx:8:29)\n    at AdminGuard (http://localhost:8080/src/features/admin/shared/AdminGuard.tsx:10:30)\n    at YieldHistoryPage (http://localhost:8080/src/features/admin/yields/pages/YieldHistoryPage.tsx:20:38)\n    at AdminRoute (http://localhost:8080/src/routing/AdminRoute.tsx?t=1773508231026:15:34)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Outlet (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4536:26)\n    at div\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at div\n    at div\n    at div\n    at DashboardLayout (http://localhost:8080/src/components/layout/DashboardLayout.tsx?t=1773508231026:14:43)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4600:5)\n    at Suspense\n    at AppRoutes\n    at Suspense\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at RouteSuspense (http://localhost:8080/src/routing/RouteSuspense.tsx?t=1773508231026:5:33)\n    at main\n    at AppContent (http://localhost:8080/src/App.tsx?t=1773508231026:30:5)\n    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4543:15)\n    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:5289:5)\n    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-ZVO65UMV.js?v=f6610f20:37:15)\n    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=f6610f20:159:5)\n    at AuthProvider (http://localhost:8080/src/services/auth/context.tsx:28:32)\n    at SecurityProvider (http://localhost:8080/src/components/security/SecurityProvider.tsx:21:36)\n    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=f6610f20:3103:3)\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at App (http://localhost:8080/src/App.tsx?t=1773508231026:109:5)"
+    ],
+    "loadTimeMs": 3005
+  },
+  {
+    "route": "/admin/yield-distributions",
+    "status": "redirect",
+    "finalUrl": "http://localhost:8080/admin/yield-history",
+    "rpcsCalledOnLoad": ["is_super_admin", "get_funds_with_aum", "get_admin_stats"],
+    "screenshotPath": "tests/qa/screenshots/admin_yield-distributions.png",
+    "consoleErrors": [
+      "Warning: validateDOMNesting(...): %s cannot appear as a child of <%s>.%s%s%s <th> th   \n    at th\n    at _c10 (http://localhost:8080/src/components/ui/table.tsx:66:60)\n    at SortableTableHead (http://localhost:8080/src/components/ui/sortable-table-head.tsx:6:37)\n    at th\n    at _c10 (http://localhost:8080/src/components/ui/table.tsx:66:60)\n    at tr\n    at _c8 (http://localhost:8080/src/components/ui/table.tsx:55:58)\n    at thead\n    at _c2 (http://localhost:8080/src/components/ui/table.tsx:22:61)\n    at table\n    at div\n    at _c (http://localhost:8080/src/components/ui/table.tsx:4:54)\n    at div\n    at div\n    at ResponsiveTable (http://localhost:8080/src/components/ui/responsive-table.tsx:7:35)\n    at div\n    at div\n    at _c8 (http://localhost:8080/src/components/ui/card.tsx:48:61)\n    at div\n    at _c (http://localhost:8080/src/components/ui/card.tsx:4:53)\n    at YieldsTable (http://localhost:8080/src/features/admin/yields/components/YieldsTable.tsx?t=1773508231026:17:31)\n    at div\n    at div\n    at PageShell (http://localhost:8080/src/components/layout/PageShell.tsx:8:29)\n    at AdminGuard (http://localhost:8080/src/features/admin/shared/AdminGuard.tsx:10:30)\n    at YieldHistoryPage (http://localhost:8080/src/features/admin/yields/pages/YieldHistoryPage.tsx:20:38)\n    at AdminRoute (http://localhost:8080/src/routing/AdminRoute.tsx?t=1773508231026:15:34)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Outlet (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4536:26)\n    at div\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at div\n    at div\n    at div\n    at DashboardLayout (http://localhost:8080/src/components/layout/DashboardLayout.tsx?t=1773508231026:14:43)\n    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4130:5)\n    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4600:5)\n    at Suspense\n    at AppRoutes\n    at Suspense\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at RouteSuspense (http://localhost:8080/src/routing/RouteSuspense.tsx?t=1773508231026:5:33)\n    at main\n    at AppContent (http://localhost:8080/src/App.tsx?t=1773508231026:30:5)\n    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:4543:15)\n    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=f6610f20:5289:5)\n    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-ZVO65UMV.js?v=f6610f20:37:15)\n    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=f6610f20:159:5)\n    at AuthProvider (http://localhost:8080/src/services/auth/context.tsx:28:32)\n    at SecurityProvider (http://localhost:8080/src/components/security/SecurityProvider.tsx:21:36)\n    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=f6610f20:3103:3)\n    at ErrorBoundary (http://localhost:8080/src/components/error/ErrorBoundary.tsx?t=1773508231026:261:5)\n    at App (http://localhost:8080/src/App.tsx?t=1773508231026:109:5)"
+    ],
+    "loadTimeMs": 2980
+  },
+  {
+    "route": "/admin/recorded-yields",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/recorded-yields",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_recorded-yields.png",
+    "consoleErrors": [],
+    "loadTimeMs": 860
+  },
+  {
+    "route": "/admin/investor-reports",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/investor-reports",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_investor-reports.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 858
+  },
+  {
+    "route": "/admin/system-health",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/system-health",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_system-health.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 852
+  },
+  {
+    "route": "/admin/integrity",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/integrity",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_integrity.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 866
+  },
+  {
+    "route": "/admin/crystallization",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/crystallization",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_crystallization.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 847
+  },
+  {
+    "route": "/admin/audit-logs",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/audit-logs",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_audit-logs.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 859
+  },
+  {
+    "route": "/admin/ib-management",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/ib-management",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_ib-management.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 852
+  },
+  {
+    "route": "/admin/email-tracking",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/email-tracking",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_email-tracking.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 853
+  },
+  {
+    "route": "/admin/statements",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/statements",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_statements.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 854
+  },
+  {
+    "route": "/admin/settings/admins",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/settings/admins",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_settings_admins.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 852
+  },
+  {
+    "route": "/admin/settings/tools",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/settings/tools",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_settings_tools.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 854
+  },
+  {
+    "route": "/admin/settings/invites",
+    "status": "loaded",
+    "finalUrl": "http://localhost:8080/admin/settings/invites",
+    "rpcsCalledOnLoad": [],
+    "screenshotPath": "tests/qa/screenshots/admin_settings_invites.png",
+    "consoleErrors": [
+      "[fetchUserRoles] Operation failed {userId: a16a7e50-fefd-4bfe-897c-d16279b457c2, error: Object}"
+    ],
+    "loadTimeMs": 850
+  }
+]
