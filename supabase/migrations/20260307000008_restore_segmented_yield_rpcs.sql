@@ -693,7 +693,7 @@ BEGIN
   WHERE id = v_distribution_id;
 
   -- Apply check_aum_reconciliation to the current date dynamically instead of 1 month behind
-  PERFORM check_aum_reconciliation(p_period_end, p_fund_id, 0.01);
+  PERFORM check_aum_reconciliation(p_fund_id, 0.01, p_period_end);
 
   IF p_purpose = 'reporting'::aum_purpose THEN
     INSERT INTO fund_daily_aum (fund_id, aum_date, total_aum, purpose, source, created_by, is_month_end)
