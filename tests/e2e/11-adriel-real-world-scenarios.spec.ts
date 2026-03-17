@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { cleanupTestData } from "./helpers/cleanup";
+import { cleanupQAFund } from "./helpers/cleanup";
 
 // Environment Configuration
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
@@ -490,7 +490,7 @@ test.describe("Adriel Real-World Golden Scenarios (E2E UI TEST)", () => {
   test.describe.configure({ mode: "serial" });
 
   test.afterAll(async () => {
-    await cleanupTestData();
+    await cleanupQAFund();
   });
 
   test("Unified Adriel Real-World Golden Scenarios (SOL + XRP)", async ({ page }) => {

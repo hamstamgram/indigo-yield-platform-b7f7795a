@@ -1,8 +1,9 @@
 import { test, expect, Page } from "@playwright/test";
+import { cleanupQAFund } from "./helpers/cleanup";
+import { QA_FUND, QA_ADMIN, BASE_URL } from "./helpers/qa-fund";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
-const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
+const ADMIN_EMAIL = QA_ADMIN.email;
+const ADMIN_PASSWORD = QA_ADMIN.password;
 
 async function login(page: Page) {
   await page.goto(`${BASE_URL}/login`);
@@ -17,7 +18,11 @@ test.describe("Entity CRUD Management (Fund, Investor & IB)", () => {
   test.describe.configure({ mode: "serial" });
   let page: Page;
 
-  const FUND_NAME = `E2E_Test_Fund_${Date.now()}`;
+  test.afterAll(async () => {
+    await cleanupQAFund();
+  });
+
+  const FUND_NAME = QA_FUND.name;
   const IB_EMAIL = `ib_${Date.now()}@test.indigo.com`;
   const INV_EMAIL_BALANCE = `inv_bal_${Date.now()}@test.indigo.com`;
   const INV_EMAIL_ZERO = `inv_zero_${Date.now()}@test.indigo.com`;

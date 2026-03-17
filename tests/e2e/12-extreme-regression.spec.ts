@@ -1,9 +1,9 @@
 import { test, expect, Page } from "@playwright/test";
-import { cleanupTestData } from "./helpers/cleanup";
+import { cleanupQAFund } from "./helpers/cleanup";
+import { QA_FUND, QA_ADMIN, BASE_URL } from "./helpers/qa-fund";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
-const ADRIEL_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
-const ADRIEL_PASS = process.env.TEST_ADMIN_PASSWORD || "TestAdmin2026!";
+const ADRIEL_EMAIL = QA_ADMIN.email;
+const ADRIEL_PASS = QA_ADMIN.password;
 
 const TIMESTAMP = Date.now();
 
@@ -223,7 +223,7 @@ async function distributeYield(
 
 test.describe("Scenario 12: Extreme Regression & Expert Financials", () => {
   test.afterAll(async () => {
-    await cleanupTestData();
+    await cleanupQAFund();
   });
 
   test.beforeEach(async ({ page }) => {
@@ -232,10 +232,9 @@ test.describe("Scenario 12: Extreme Regression & Expert Financials", () => {
 
   test("Financial: Negative Yield Safety", async ({ page }) => {
     test.setTimeout(120000);
-    const FUND = `Expert Neg Fund ${TIMESTAMP}`;
+    const FUND = QA_FUND.name;
     const INV = `neg${TIMESTAMP}@expert.com`;
     const NAME = `Neg User ${TIMESTAMP}`;
-    await createFund(page, FUND, "USDT");
     await createProfileUser(page, NAME, INV);
     await executeDeposit(page, FUND, NAME, "1000", "2026-01-01");
     // Negative yield: investor absorbs loss, fees should be 0
@@ -244,10 +243,9 @@ test.describe("Scenario 12: Extreme Regression & Expert Financials", () => {
 
   test("Financial: INDIGO Fees Compounding & Withdrawal", async ({ page }) => {
     test.setTimeout(120000);
-    const FUND = `FeesComp Fund ${TIMESTAMP}`;
+    const FUND = QA_FUND.name;
     const INV = `comp${TIMESTAMP}@test.com`;
     const NAME = `Comp User ${TIMESTAMP}`;
-    await createFund(page, FUND, "USDC");
     await createProfileUser(page, NAME, INV);
     await executeDeposit(page, FUND, NAME, "1000", "2026-01-01");
     // Record 1100 AUM (+100 gross). 10% fee = 10.
@@ -260,10 +258,9 @@ test.describe("Scenario 12: Extreme Regression & Expert Financials", () => {
 
   test("UX: Dust Editable Full Withdrawal", async ({ page }) => {
     test.setTimeout(120000);
-    const FUND = `Dust Fund ${TIMESTAMP}`;
+    const FUND = QA_FUND.name;
     const INV = `dust${TIMESTAMP}@test.com`;
     const NAME = `Dust User ${TIMESTAMP}`;
-    await createFund(page, FUND, "BTC");
     await createProfileUser(page, NAME, INV);
     await executeDeposit(page, FUND, NAME, "1.298", "2026-02-01");
 
@@ -289,10 +286,9 @@ test.describe("Scenario 12: Extreme Regression & Expert Financials", () => {
 
   test("Math: Zero-Yield & Precision", async ({ page }) => {
     test.setTimeout(120000);
-    const FUND = `Zero Fund ${TIMESTAMP}`;
+    const FUND = QA_FUND.name;
     const INV = `zero${TIMESTAMP}@test.com`;
     const NAME = `Zero User ${TIMESTAMP}`;
-    await createFund(page, FUND, "ETH");
     await createProfileUser(page, NAME, INV);
     await executeDeposit(page, FUND, NAME, "100.000", "2026-04-01");
 
@@ -317,10 +313,9 @@ test.describe("Scenario 12: Extreme Regression & Expert Financials", () => {
 
   test("Resilience: Phantom Void Reversal", async ({ page }) => {
     test.setTimeout(120000);
-    const FUND = `Void Fund ${TIMESTAMP}`;
+    const FUND = QA_FUND.name;
     const INV = `void${TIMESTAMP}@test.com`;
     const NAME = `Void User ${TIMESTAMP}`;
-    await createFund(page, FUND, "USDT");
     await createProfileUser(page, NAME, INV);
     await executeDeposit(page, FUND, NAME, "500", "2026-05-01");
 
