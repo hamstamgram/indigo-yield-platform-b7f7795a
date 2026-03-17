@@ -1,4 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
+import { cleanupTestData } from "./helpers/cleanup";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:8080";
 const ADRIEL_EMAIL = process.env.TEST_ADMIN_EMAIL || "adriel@indigo.fund";
@@ -221,6 +222,10 @@ async function distributeYield(
 }
 
 test.describe("Scenario 12: Extreme Regression & Expert Financials", () => {
+  test.afterAll(async () => {
+    await cleanupTestData();
+  });
+
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
   });

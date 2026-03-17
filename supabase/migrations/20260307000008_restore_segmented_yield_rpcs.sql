@@ -440,12 +440,14 @@ BEGIN
     recorded_aum, previous_aum, gross_yield, gross_yield_amount,
     total_net_amount, total_fee_amount, total_ib_amount,
     net_yield, total_fees, total_ib, dust_amount,
-    status, created_by, calculation_method, purpose, is_month_end, allocation_count
+    status, created_by, calculation_method, purpose, is_month_end, allocation_count,
+    distribution_type
   ) VALUES (
     p_fund_id, v_period_end, v_period_end, v_period_start, v_period_end,
     p_recorded_aum, v_opening_aum, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     'applied'::yield_distribution_status, v_admin,
-    'flat_position_proportional_v6', p_purpose, v_is_month_end, 0
+    'flat_position_proportional_v6', p_purpose, v_is_month_end, 0,
+    CASE WHEN p_purpose = 'reporting' THEN 'month_end' ELSE p_purpose::text END
   ) RETURNING id INTO v_distribution_id;
 
   DROP TABLE IF EXISTS _vflat_alloc;

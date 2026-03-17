@@ -323,7 +323,9 @@ export const withdrawalService = {
   },
 
   /**
-   * Cancel a withdrawal request using secure RPC with server-side admin check
+   * Cancel/void a withdrawal request.
+   * Uses RPC for completed withdrawals (voids associated transactions + recomputes position).
+   * Uses direct update for pending/approved withdrawals.
    */
   async cancelWithdrawal(
     withdrawalId: string,
@@ -336,6 +338,35 @@ export const withdrawalService = {
 
     log.info("Cancelling withdrawal", { withdrawalId, reason });
 
+    // First check the withdrawal status
+    const { data: withdrawal } = await supabase
+      .from("withdrawal_requests")
+      .select("status")
+      .eq("id", withdrawalId)
+      .single();
+
+    if (withdrawal?.status === "completed") {
+      // Completed withdrawals require RPC to void transactions + recompute positions
+      const { data, error } = await supabase.rpc("void_completed_withdrawal" as any, {
+        p_withdrawal_id: withdrawalId,
+        p_reason: reason,
+      });
+
+      if (error) {
+        log.error("Error voiding completed withdrawal", error);
+        throw new Error(error.message || "Failed to void completed withdrawal");
+      }
+
+      const result = data as Record<string, unknown> | null;
+      if (result && !result.success) {
+        throw new Error((result.error as string) || "Failed to void completed withdrawal");
+      }
+
+      log.info("Completed withdrawal voided successfully", { result: data });
+      return { correlationId: corrId };
+    }
+
+    // Pending/approved withdrawals: direct status update (no transactions to void)
     const { error } = await supabase
       .from("withdrawal_requests")
       .update({

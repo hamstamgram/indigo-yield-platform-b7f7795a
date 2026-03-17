@@ -92,7 +92,7 @@ export function EditWithdrawalDialog({
 
   if (!withdrawal) return null;
 
-  const canEdit = withdrawal.status === "pending" || withdrawal.status === "approved";
+  const canEdit = withdrawal.status === "pending";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,8 +111,8 @@ export function EditWithdrawalDialog({
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Cannot edit withdrawal with status "{withdrawal.status}". Only pending or approved
-              withdrawals can be edited.
+              Cannot edit withdrawal with status "{withdrawal.status}". Only pending withdrawals can
+              be edited.
             </AlertDescription>
           </Alert>
         ) : (
@@ -136,10 +136,15 @@ export function EditWithdrawalDialog({
               <Label htmlFor="requested-amount">Requested Amount</Label>
               <Input
                 id="requested-amount"
-                type="number"
-                step="0.00000001"
+                type="text"
+                inputMode="decimal"
                 value={requestedAmount}
-                onChange={(e) => setRequestedAmount(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                    setRequestedAmount(val);
+                  }
+                }}
               />
             </div>
 

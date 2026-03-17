@@ -14,6 +14,7 @@
     "type-check": "NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md,json}\"",
     "test": "vitest run",
+    "db:verify": "node scripts/verify-db-functions.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
