@@ -102,7 +102,7 @@ async function executeDeposit(
   await page.waitForTimeout(1000);
   // SelectContent renders options - scroll through to find the fund
   const escapedFundName = fundName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const fundOption = page.getByRole("option", { name: new RegExp(escapedFundName, "i") });
+  const fundOption = page.getByRole("option", { name: new RegExp(escapedFundName, "i") }).first();
   // Scroll the option into view if needed
   await fundOption.scrollIntoViewIfNeeded({ timeout: 10000 }).catch(() => {});
   await fundOption.click({ timeout: 15000 });
