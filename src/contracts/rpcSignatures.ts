@@ -1337,7 +1337,7 @@ export const RPC_SIGNATURES = {
     returnType: "Json;",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_keep_profile_id", "p_merge_profile_id"] as const,
+    requiredParams: ["p_keep_id", "p_merge_id"] as const,
     optionalParams: ["p_admin_id"] as const,
   },
   nightly_aum_reconciliation: {
