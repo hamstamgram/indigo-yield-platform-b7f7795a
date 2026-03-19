@@ -345,15 +345,15 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
 }
 
 /**
- * Load yield earned by INDIGO FEES account
- * Note: Yield transactions can be type YIELD or INTEREST
+ * Load fee revenue collected by INDIGO FEES account
+ * Only includes FEE_CREDIT transactions from reporting-purpose distributions
  */
 export async function getYieldEarned(funds: FundRef[]): Promise<YieldEarned[]> {
   const { data: yieldTxs, error } = await supabase
     .from("transactions_v2")
     .select("fund_id, amount, type")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-    .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT", "DEPOSIT", "DUST_SWEEP", "INTERNAL_CREDIT"])
+    .in("type", ["FEE_CREDIT"])
     .eq("is_voided", false)
     .neq("purpose", "transaction")
     .limit(5000);

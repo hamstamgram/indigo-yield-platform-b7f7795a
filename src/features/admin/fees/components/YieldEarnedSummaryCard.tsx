@@ -1,10 +1,10 @@
 /**
- * Yield Earned Summary Card
- * Displays yield earned on fee balances, broken down by asset
+ * Fee Revenue Collected Summary Card
+ * Displays fee revenue collected from yield distributions, broken down by asset
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui";
-import { TrendingUp, Info } from "lucide-react";
+import { DollarSign, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import { toNumber } from "@/utils/numeric";
@@ -30,10 +30,10 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
-          <TrendingUp className="h-6 w-6 text-yield" />
+          <DollarSign className="h-6 w-6 text-primary" />
           <div>
-            <CardTitle className="text-base">Yield Earned</CardTitle>
-            <CardDescription className="text-xs">On fee balances</CardDescription>
+            <CardTitle className="text-base">Fee Revenue Collected</CardTitle>
+            <CardDescription className="text-xs">From yield distributions</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -44,7 +44,7 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
               <div key={asset} className="flex items-center gap-3 p-2.5 rounded-lg bg-background">
                 <CryptoIcon symbol={asset} className="h-7 w-7" />
                 <div>
-                  <p className="font-mono font-semibold text-sm text-yield">
+                  <p className="font-mono font-semibold text-sm text-primary">
                     +{formatFeeAmount(total, asset)}
                   </p>
                   <p className="text-xs text-muted-foreground">

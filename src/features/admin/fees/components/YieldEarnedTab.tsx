@@ -4,7 +4,7 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui";
-import { TrendingUp, ArrowUpRight } from "lucide-react";
+import { DollarSign, ArrowUpRight } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import type { YieldEarned } from "@/hooks/data";
@@ -15,15 +15,15 @@ interface YieldEarnedTabProps {
 
 export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
   return (
-    <Card className="border-yield/30 bg-emerald-500/5">
+    <Card className="border-primary/30 bg-primary/5">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <TrendingUp className="h-6 w-6 text-yield" />
+          <DollarSign className="h-6 w-6 text-primary" />
           <div>
-            <CardTitle>Yield Earned by INDIGO Fees Account</CardTitle>
+            <CardTitle>Fee Revenue Collected by INDIGO Fees Account</CardTitle>
             <CardDescription>
-              INDIGO FEES participates in yield distributions just like any investor. This shows
-              yield earned on the accumulated fee balance.
+              Total fee revenue credited to the INDIGO FEES account from yield distributions.
+              Only includes reporting-purpose distributions.
             </CardDescription>
           </div>
         </div>
@@ -42,8 +42,8 @@ export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Total Yield</span>
-                    <span className="font-mono font-semibold text-yield">
+                    <span className="text-sm text-muted-foreground">Total Revenue</span>
+                    <span className="font-mono font-semibold text-primary">
                       +{formatFeeAmount(item.totalYieldEarned, item.asset)}
                     </span>
                   </div>
@@ -58,10 +58,10 @@ export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <ArrowUpRight className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="font-medium mb-1">No yield earned yet</p>
+            <p className="font-medium mb-1">No fee revenue collected yet</p>
             <p className="text-sm max-w-md mx-auto">
-              Yield will be earned when month-end reporting distributions include INDIGO FEES
-              positions.
+              Fee revenue will appear when yield distributions include fee deductions
+              for investors.
             </p>
           </div>
         )}
