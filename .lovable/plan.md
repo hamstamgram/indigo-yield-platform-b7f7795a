@@ -1,74 +1,102 @@
 
 
-## Dust Routing Fix: Audit and Plan
+## Deep Audit: `fund_daily_aum` Duplicate Key Violation
 
-### Problem Summary
+### Root Cause Found
 
-Paul Johnson's full exit withdrawal left **0.000660460000000000** residual dust. Two issues caused this:
+The error `duplicate key value violates unique constraint "fund_daily_aum_fund_date_purpose_unique"` is caused by a **trigger-RPC race** inside `apply_segmented_yield_distribution_v5`.
 
-1. **Race condition in frontend dust routing**: `useTransactionSubmit.ts` reads `currentBalance` (a prop) to calculate dust, but this value is stale — it was captured before the withdrawal transaction was inserted. After the withdrawal INSERT, the `trg_recompute_position_on_tx` trigger updates the position, but the frontend doesn't re-read it before calculating dust.
+**Chain of events:**
 
-2. **Revenue page filter gap**: `feesService.ts` queries only `FEE_CREDIT, IB_CREDIT, YIELD, DUST, DUST_SWEEP` — missing `INTERNAL_CREDIT` and `INTERNAL_WITHDRAWAL`, so any dust routed via `internal_route_to_fees` (which creates those types) would not appear.
+```text
+1. RPC INSERTs into yield_distributions (line 97-110)
+     ↓
+2. TRIGGER trg_sync_yield_to_aum fires (AFTER INSERT on yield_distributions)
+     → sync_reporting_aum_to_transaction() INSERTs into fund_daily_aum
+       with purpose = 'transaction', using ON CONFLICT upsert ✓
+     ↓
+3. RPC continues, UPDATEs yield_distributions (line 336-352)
+     ↓
+4. TRIGGER fires AGAIN (AFTER UPDATE)
+     → upserts fund_daily_aum again (ON CONFLICT handles it) ✓
+     ↓
+5. RPC reaches line 364-365: raw INSERT into fund_daily_aum
+   for 'transaction' purpose — NO ON CONFLICT clause
+     ↓
+6. BOOM: Row already exists from step 2 → unique constraint violation
+```
 
-### Trigger/Function Audit
+**Secondary issue:** The trigger `sync_reporting_aum_to_transaction` always writes with purpose `'transaction'` regardless of the yield's actual purpose. This means it conflicts with both the `transaction` path (raw INSERT, no ON CONFLICT = crash) and could create phantom transaction-purpose AUM rows for reporting yields.
 
-| Trigger/Function | Impact | Status |
+### Trigger/Function Audit Summary
+
+| Component | Status | Issue |
 |---|---|---|
-| `validate_transaction_type` (trg_validate_tx_type) | Only checks balance for `WITHDRAWAL` type; `DUST_SWEEP` and `INTERNAL_WITHDRAWAL` pass through | Safe — no change needed |
-| `enforce_internal_tx_visibility` | Forces `admin_only` for `INTERNAL_WITHDRAWAL`, `INTERNAL_CREDIT`, `FEE_CREDIT` | Safe — correct behavior |
-| `enforce_canonical_transaction_mutation` | Allows `INTERNAL_CREDIT`, `INTERNAL_WITHDRAWAL` in allowed types array | Safe |
-| `enforce_transaction_via_rpc` | Allows `internal_routing` source | Safe |
-| `recompute_investor_position` | Sums ALL transaction amounts including `DUST_SWEEP`, `DUST`, `INTERNAL_WITHDRAWAL`, `INTERNAL_CREDIT` correctly | Safe |
-| `complete_withdrawal` RPC | Uses `DUST_SWEEP`/`DUST` types for dust — works correctly | Safe |
-| `internal_route_to_fees` RPC | Uses `INTERNAL_WITHDRAWAL`/`INTERNAL_CREDIT` types — works correctly | Safe |
-| `check_historical_lock` | Called by `internal_route_to_fees` — could block dust routing if a yield distribution is locked on that date | Potential blocker — but not the current issue |
+| `trg_sync_yield_to_aum` (on yield_distributions) | **BUG** | Races with the RPC's own fund_daily_aum INSERT; always hardcodes purpose='transaction' |
+| `apply_segmented_yield_distribution_v5` lines 364-365 | **BUG** | Raw INSERT for 'transaction' purpose — no ON CONFLICT, no UPDATE-then-INSERT |
+| `apply_transaction_with_crystallization` | Safe | Uses ON CONFLICT with partial index correctly |
+| `fn_ledger_drives_position` (on transactions_v2) | Safe | Does not touch fund_daily_aum |
+| All other transactions_v2 triggers | Safe | No fund_daily_aum writes |
+| All investor_positions triggers | Safe | No fund_daily_aum writes |
+| No triggers on fund_daily_aum itself | Safe | Confirmed empty |
 
 ### Fix Plan
 
-**1. Fix the race condition in `useTransactionSubmit.ts`**
+**One database migration with two changes:**
 
-After the withdrawal transaction succeeds, fetch the **live position balance** from the database instead of using the stale `currentBalance` prop. This ensures the dust amount is calculated from the actual post-withdrawal position.
+**1. Fix `apply_segmented_yield_distribution_v5` — use UPDATE-then-INSERT for both paths**
 
+Replace lines 357-366 with the safe UPDATE-then-INSERT pattern (same pattern already used in `apply_deposit_with_crystallization` and `apply_withdrawal_with_crystallization`):
+
+```sql
+-- For BOTH reporting and transaction purposes:
+UPDATE fund_daily_aum
+SET total_aum = p_recorded_aum,
+    source = 'yield_distribution_v5',
+    is_month_end = v_is_month_end,
+    updated_at = now()
+WHERE fund_id = p_fund_id
+  AND aum_date = v_period_end
+  AND purpose = p_purpose
+  AND is_voided = false;
+
+GET DIAGNOSTICS v_updated_rows = ROW_COUNT;
+
+IF v_updated_rows = 0 THEN
+  INSERT INTO fund_daily_aum (
+    fund_id, aum_date, total_aum, purpose,
+    source, created_by, is_month_end
+  ) VALUES (
+    p_fund_id, v_period_end, p_recorded_aum, p_purpose,
+    'yield_distribution_v5', v_admin, v_is_month_end
+  );
+END IF;
 ```
-// After successful withdrawal, re-fetch actual position balance
-const { data: positionData } = await supabase
-  .from("investor_positions")
-  .select("current_value")
-  .eq("investor_id", currentInvestorId)
-  .eq("fund_id", data.fund_id)
-  .single();
 
-const actualDust = positionData?.current_value ?? 0;
-if (actualDust > 0 && actualDust < dustThreshold) {
-  // Route dust
-}
+**2. Drop the redundant `trg_sync_yield_to_aum` trigger**
+
+This trigger is completely redundant — the RPC already handles its own `fund_daily_aum` write. The trigger causes:
+- Double-writes (trigger + RPC both write to same table)
+- Hardcoded `'transaction'` purpose regardless of actual yield purpose
+- The race condition that causes the duplicate key error
+
+```sql
+DROP TRIGGER IF EXISTS trg_sync_yield_to_aum ON yield_distributions;
 ```
 
-**2. Add `INTERNAL_CREDIT` to Revenue page queries in `feesService.ts`**
-
-- Line 117: Add `INTERNAL_CREDIT` to the `.or()` filter
-- Line 344: Add `INTERNAL_CREDIT` and `INTERNAL_WITHDRAWAL` to the `.in()` filter
-
-**3. Add badge for `INTERNAL_CREDIT` in `FeeTransactionsTable.tsx`**
-
-Add a case in `getTypeBadge()` for `INTERNAL_CREDIT` displaying as "Dust Route" or similar.
-
-**4. Data fix: Re-sweep Paul Johnson's residual dust**
-
-Execute `internal_route_to_fees` to sweep the remaining `0.000660460000000000` from Paul Johnson's position (investor `d1f8c666`, fund `7574bc81`) to the INDIGO Fees account, zeroing out his position.
-
-### Files Changed
-
-| File | Change |
-|---|---|
-| `src/features/admin/transactions/hooks/useTransactionSubmit.ts` | Re-fetch live position balance after withdrawal before dust calculation |
-| `src/services/admin/feesService.ts` | Add `INTERNAL_CREDIT` to both query filters |
-| `src/features/admin/fees/components/FeeTransactionsTable.tsx` | Add `INTERNAL_CREDIT` badge case |
+The function `sync_reporting_aum_to_transaction` can be kept (no harm) but the trigger that fires it must be removed.
 
 ### What This Does NOT Touch
 
-- No database migrations needed — all tx_type enum values already exist
-- No trigger modifications — all BEFORE INSERT triggers already handle these types correctly
-- No changes to `complete_withdrawal` or `internal_route_to_fees` RPCs — both work correctly
-- No changes to `recompute_investor_position` — it already handles all types
+- No frontend code changes needed
+- No changes to `apply_investor_transaction`, `apply_deposit_with_crystallization`, or `apply_withdrawal_with_crystallization` — all already use safe patterns
+- No changes to the partial unique index `fund_daily_aum_fund_date_purpose_unique` — it's correct
+- No changes to `fn_ledger_drives_position` or any other trigger
+- No schema changes
+
+### Risk Assessment
+
+- **Low risk**: The trigger being dropped is purely redundant — the RPC already does the exact same INSERT/upsert
+- **No data loss**: Existing `fund_daily_aum` rows are unaffected
+- **Backwards compatible**: The RPC's behavior is unchanged except it no longer crashes on duplicates
 
