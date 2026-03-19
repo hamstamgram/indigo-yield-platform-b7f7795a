@@ -4,7 +4,7 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui";
-import { TrendingUp, ArrowUpRight } from "lucide-react";
+import { DollarSign, ArrowUpRight } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import type { YieldEarned } from "@/hooks/data";
