@@ -21,3 +21,8 @@ Migration corrected 5 column names (`gross_yield->gross_amount`, `net_yield->net
 
 ### Fix Applied
 Updated `apply_investor_transaction` with type-aware amount guard. Zero/negative amounts now allowed for yield-family types (`YIELD`, `FEE_CREDIT`, `IB_CREDIT`, `DUST`, `FEE`). Capital flow types (`DEPOSIT`, `WITHDRAWAL`) retain strict positive-only check. Also expanded the tx_type whitelist to include all valid types (`ADJUSTMENT`).
+
+## Fix: Fee percentages used as decimals instead of percentages — RESOLVED
+
+### Fix Applied
+Updated `apply_segmented_yield_distribution_v5` to divide fee_pct and ib_rate by 100 before multiplying against gross yield. Changed `v_fee := ROUND(v_gross * v_fee_pct, 10)` to `v_fee := ROUND(v_gross * (v_fee_pct / 100.0), 10)` and same for IB. The `calculate_yield_allocations` function (used by preview) already had the correct `/100` division.
