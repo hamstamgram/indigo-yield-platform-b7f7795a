@@ -30,10 +30,10 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
-          <TrendingUp className="h-6 w-6 text-yield" />
+          <DollarSign className="h-6 w-6 text-primary" />
           <div>
-            <CardTitle className="text-base">Yield Earned</CardTitle>
-            <CardDescription className="text-xs">On fee balances</CardDescription>
+            <CardTitle className="text-base">Fee Revenue Collected</CardTitle>
+            <CardDescription className="text-xs">From yield distributions</CardDescription>
           </div>
         </div>
       </CardHeader>
