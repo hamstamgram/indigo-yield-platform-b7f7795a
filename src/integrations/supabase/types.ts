@@ -5253,21 +5253,36 @@ export type Database = {
         }
         Returns: string
       }
-      apply_investor_transaction: {
-        Args: {
-          p_admin_id?: string
-          p_amount: number
-          p_distribution_id?: string
-          p_fund_id: string
-          p_investor_id: string
-          p_notes?: string
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_reference_id: string
-          p_tx_date: string
-          p_tx_type: Database["public"]["Enums"]["tx_type"]
-        }
-        Returns: Json
-      }
+      apply_investor_transaction:
+        | {
+            Args: {
+              p_admin_id?: string
+              p_amount: number
+              p_distribution_id?: string
+              p_fund_id: string
+              p_investor_id: string
+              p_notes?: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_reference_id: string
+              p_tx_date: string
+              p_tx_type: Database["public"]["Enums"]["tx_type"]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id: string
+              p_amount: number
+              p_fund_id: string
+              p_investor_id: string
+              p_notes?: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_reference_id: string
+              p_tx_date: string
+              p_tx_type: Database["public"]["Enums"]["tx_type"]
+            }
+            Returns: Json
+          }
       apply_segmented_yield_distribution_v5: {
         Args: {
           p_admin_id?: string
