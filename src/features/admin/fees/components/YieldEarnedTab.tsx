@@ -42,8 +42,8 @@ export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Total Yield</span>
-                    <span className="font-mono font-semibold text-yield">
+                    <span className="text-sm text-muted-foreground">Total Revenue</span>
+                    <span className="font-mono font-semibold text-primary">
                       +{formatFeeAmount(item.totalYieldEarned, item.asset)}
                     </span>
                   </div>
