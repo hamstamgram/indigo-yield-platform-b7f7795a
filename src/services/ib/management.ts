@@ -166,7 +166,8 @@ async function getIBCredits(ibUserIds: string[]): Promise<
     .select("investor_id, fund_id, asset, amount")
     .in("investor_id", ibUserIds)
     .eq("type", "IB_CREDIT")
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .neq("purpose", "transaction");
 
   if (error) throw error;
   return (data || []).map((row) => ({
