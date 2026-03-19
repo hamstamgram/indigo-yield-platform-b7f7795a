@@ -5270,7 +5270,7 @@ export type Database = {
       }
       apply_segmented_yield_distribution_v5: {
         Args: {
-          p_admin_id: string
+          p_admin_id?: string
           p_distribution_date?: string
           p_fund_id: string
           p_period_end: string
