@@ -290,6 +290,7 @@ export async function getFeeAllocations(): Promise<PlatformFeeLedgerEntry[]> {
     `
     )
     .eq("is_voided", false)
+    .neq("purpose", "transaction")
     .order("created_at", { ascending: false })
     .limit(5000);
 

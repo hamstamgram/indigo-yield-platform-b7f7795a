@@ -195,6 +195,7 @@ async function getIBAllocations(ibUserIds: string[]): Promise<
     )
     .in("ib_investor_id", ibUserIds)
     .eq("is_voided", false)
+    .neq("purpose", "transaction")
     .limit(1000);
 
   if (error) throw error;

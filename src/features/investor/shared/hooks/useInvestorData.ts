@@ -175,7 +175,8 @@ export function useInvestorRecentActivity(investorId: string, limit = 5) {
         .from("transactions_v2")
         .select("id, amount, tx_date, type, fund_id")
         .eq("investor_id", investorId)
-        .eq("is_voided", false) // Exclude voided transactions
+        .eq("is_voided", false)
+        .neq("purpose", "transaction")
         .order("tx_date", { ascending: false })
         .limit(limit);
 
