@@ -1,50 +1,23 @@
 
 
-## Fix: "Amount must be positive" blocks zero/negative yield distributions
+## Deep Audit: `fund_daily_aum` Duplicate Key Violation — RESOLVED
 
 ### Root Cause
 
-The live `apply_investor_transaction` function has a blanket guard:
+Trigger-RPC race: `trg_sync_yield_to_aum` on `yield_distributions` inserted into `fund_daily_aum` with purpose='transaction', then the RPC did a raw INSERT (no ON CONFLICT) for the same row.
 
-```sql
-IF p_amount <= 0 THEN RAISE EXCEPTION 'Amount must be positive';
-```
+### Fixes Applied
 
-This blocks ALL amounts <= 0 regardless of transaction type. But the V5 yield RPC passes `v_alloc.net` as the amount for YIELD transactions, which is legitimately zero or negative when:
-- The new AUM equals the opening AUM (zero yield)
-- The new AUM is less than the opening AUM (negative yield / loss month)
-- Fees consume all of an investor's gross yield (net = 0)
+1. **Migration**: Replaced the raw INSERT in `apply_segmented_yield_distribution_v5` with safe UPDATE-then-INSERT pattern for both reporting and transaction purposes.
+2. **Migration**: Dropped redundant `trg_sync_yield_to_aum` trigger on `yield_distributions`.
+3. **TS fix**: Corrected `merge_duplicate_profiles` RPC params from `p_keep_profile_id` to `p_keep_id` to match DB schema.
 
-The sign convention for YIELD in this function is `v_balance_after := v_balance_before + p_amount` — it uses the raw value, so negative amounts correctly reduce the balance. The INSERT also passes `p_amount` as-is for YIELD types. The function already handles negative yield correctly — the guard is just too strict.
+## Fix: `yield_allocations` Column Name Mismatch — RESOLVED
 
-### Fix
+### Fix Applied
+Migration corrected 5 column names (`gross_yield->gross_amount`, `net_yield->net_amount`, `fee_percentage->fee_pct`, `ib_percentage->ib_pct`, `opening_balance->position_value_at_calc`), removed non-existent columns (`purpose`, `created_by`), and added `ownership_pct`.
 
-One migration to update `apply_investor_transaction`:
+## Fix: "Amount must be positive" blocks zero/negative yield — RESOLVED
 
-**Replace the blanket `p_amount <= 0` check with a type-aware check:**
-
-```sql
--- Allow zero/negative amounts for yield-family types (negative yield, fee consumption)
--- Block zero/negative for capital flow types (DEPOSIT, WITHDRAWAL, etc.)
-IF p_amount <= 0 AND p_tx_type NOT IN (
-  'YIELD', 'FEE_CREDIT', 'IB_CREDIT', 'DUST', 'FEE'
-) THEN
-  RAISE EXCEPTION 'Amount must be positive for % transactions', p_tx_type
-    USING ERRCODE = 'P0001';
-END IF;
-```
-
-This preserves the safety guard for deposits/withdrawals while allowing the yield engine to pass zero and negative amounts for yield-related types.
-
-**Also fix the DUST call in V5 RPC:** The dust amount (`v_residual`) can be negative. The current V5 RPC already guards with `IF v_residual <> 0` but `apply_investor_transaction` uses `p_amount` directly for DUST (falls into the ELSE branch). Need to confirm the DUST case uses the correct sign — it should, since DUST is in the ELSE branch: `v_balance_after := v_balance_before + p_amount`.
-
-### What This Fixes
-
-- Zero yield distributions (new AUM = opening AUM)
-- Negative yield / loss months (new AUM < opening AUM)
-- Edge case where fees consume 100% of an investor's gross yield
-
-### Risk
-
-Low — only relaxes the guard for yield-family types. Capital flow types (DEPOSIT, WITHDRAWAL) retain the strict positive-amount check. The function's sign handling for YIELD types already correctly uses the raw amount value.
-
+### Fix Applied
+Updated `apply_investor_transaction` with type-aware amount guard. Zero/negative amounts now allowed for yield-family types (`YIELD`, `FEE_CREDIT`, `IB_CREDIT`, `DUST`, `FEE`). Capital flow types (`DEPOSIT`, `WITHDRAWAL`) retain strict positive-only check. Also expanded the tx_type whitelist to include all valid types (`ADJUSTMENT`).
