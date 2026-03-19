@@ -14,8 +14,10 @@ Trigger-RPC race: `trg_sync_yield_to_aum` on `yield_distributions` inserted into
 
 ## Fix: `yield_allocations` Column Name Mismatch — RESOLVED
 
-### Problem
-The `apply_segmented_yield_distribution_v5` RPC used wrong column names for `yield_allocations` INSERT.
-
 ### Fix Applied
 Migration corrected 5 column names (`gross_yield->gross_amount`, `net_yield->net_amount`, `fee_percentage->fee_pct`, `ib_percentage->ib_pct`, `opening_balance->position_value_at_calc`), removed non-existent columns (`purpose`, `created_by`), and added `ownership_pct`.
+
+## Fix: "Amount must be positive" blocks zero/negative yield — RESOLVED
+
+### Fix Applied
+Updated `apply_investor_transaction` with type-aware amount guard. Zero/negative amounts now allowed for yield-family types (`YIELD`, `FEE_CREDIT`, `IB_CREDIT`, `DUST`, `FEE`). Capital flow types (`DEPOSIT`, `WITHDRAWAL`) retain strict positive-only check. Also expanded the tx_type whitelist to include all valid types (`ADJUSTMENT`).
