@@ -1,55 +1,33 @@
 
 
-## Fix: Double fee deduction in yield distribution
+## Deep Audit: `fund_daily_aum` Duplicate Key Violation — RESOLVED
 
-### Problem
+### Root Cause
 
-The `apply_segmented_yield_distribution_v5` function creates a **FEE transaction on the investor** (stored as -56.80) in addition to recording the YIELD as `net` (which is already `gross - fee - ib`). Since `recompute_investor_position` sums ALL transaction amounts, the fee is deducted twice:
+Trigger-RPC race: `trg_sync_yield_to_aum` on `yield_distributions` inserted into `fund_daily_aum` with purpose='transaction', then the RPC did a raw INSERT (no ON CONFLICT) for the same row.
 
-```text
-Sam's transactions:
-  YIELD:  +284.00  (net = 355 - 56.80 - 14.20)
-  FEE:    -56.80   (double deduction!)
-  ─────────────────
-  Total:  +227.20  (should be +284.00)
+### Fixes Applied
 
-Fees account: FEE_CREDIT +56.80
-IB (Ryan):    IB_CREDIT  +14.20
-─────────────────────────────────
-Grand total:  +298.20  (should be +355.00 = gross yield)
-```
+1. **Migration**: Replaced the raw INSERT in `apply_segmented_yield_distribution_v5` with safe UPDATE-then-INSERT pattern for both reporting and transaction purposes.
+2. **Migration**: Dropped redundant `trg_sync_yield_to_aum` trigger on `yield_distributions`.
+3. **TS fix**: Corrected `merge_duplicate_profiles` RPC params from `p_keep_profile_id` to `p_keep_id` to match DB schema.
 
-This causes the 42.6 XRP discrepancy (184,315.4 vs 184,358).
+## Fix: `yield_allocations` Column Name Mismatch — RESOLVED
 
-### Fix
+### Fix Applied
+Migration corrected 5 column names (`gross_yield->gross_amount`, `net_yield->net_amount`, `fee_percentage->fee_pct`, `ib_percentage->ib_pct`, `opening_balance->position_value_at_calc`), removed non-existent columns (`purpose`, `created_by`), and added `ownership_pct`.
 
-In `apply_segmented_yield_distribution_v5`, **remove the FEE transaction on the investor** (lines 240–291 in the current function). The fee is already deducted via the net calculation. Keep the `fee_allocations`, `platform_fee_ledger`, and `FEE_CREDIT` records — those are correct audit/accounting entries.
+## Fix: "Amount must be positive" blocks zero/negative yield — RESOLVED
 
-**Specific changes:**
+### Fix Applied
+Updated `apply_investor_transaction` with type-aware amount guard. Zero/negative amounts now allowed for yield-family types (`YIELD`, `FEE_CREDIT`, `IB_CREDIT`, `DUST`, `FEE`). Capital flow types (`DEPOSIT`, `WITHDRAWAL`) retain strict positive-only check. Also expanded the tx_type whitelist to include all valid types (`ADJUSTMENT`).
 
-1. **Remove** the `apply_investor_transaction(..., 'FEE', v_alloc.fee, ...)` call that debits the investor
-2. **Keep** the `fee_allocations` INSERT (audit trail) — but without `debit_transaction_id` (set to NULL)
-3. **Keep** the `platform_fee_ledger` INSERT (fee tracking)
-4. **Keep** the `FEE_CREDIT` to fees account (correct — this is the platform's fee income)
-5. **Keep** the `IB_CREDIT` to IB parent (correct — this is the IB's commission)
+## Fix: Fee percentages used as decimals instead of percentages — RESOLVED
 
-After fix:
-```text
-Sam:     YIELD    +284.00  (net)
-Fees:    FEE_CREDIT +56.80
-Ryan:    IB_CREDIT  +14.20
-─────────────────────────────
-Total:              +355.00  = gross yield ✓
-AUM: 184,003 + 355 = 184,358 ✓
-```
+### Fix Applied
+Updated `apply_segmented_yield_distribution_v5` to divide fee_pct and ib_rate by 100 before multiplying against gross yield. Changed `v_fee := ROUND(v_gross * v_fee_pct, 10)` to `v_fee := ROUND(v_gross * (v_fee_pct / 100.0), 10)` and same for IB. The `calculate_yield_allocations` function (used by preview) already had the correct `/100` division.
 
-### Pre-requisite
+## Fix: Double fee deduction in yield distribution — RESOLVED
 
-The incorrectly applied yield distribution must be **voided** before reapplying, to reverse the wrong positions.
-
-### Scope
-
-- One SQL migration replacing `apply_segmented_yield_distribution_v5`
-- No frontend changes
-- Conservation identity preserved: `net + fee_credit + ib_credit = gross`
-
+### Fix Applied
+Removed the redundant `apply_investor_transaction(..., 'FEE', ...)` call on the investor from `apply_segmented_yield_distribution_v5`. The YIELD transaction already records the NET amount (gross - fee), so the separate FEE transaction was subtracting the fee a second time. Kept `fee_allocations` (audit, with `debit_transaction_id = NULL`), `platform_fee_ledger` (tracking), `FEE_CREDIT` to fees account, and `IB_CREDIT` to IB parent. Conservation identity: `net + fee_credit + ib_credit = gross`.
