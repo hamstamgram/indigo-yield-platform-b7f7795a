@@ -1,43 +1,28 @@
 
 
-## Fix: Fee percentages used as decimals instead of percentages
+## Deep Audit: `fund_daily_aum` Duplicate Key Violation — RESOLVED
 
 ### Root Cause
 
-The `apply_segmented_yield_distribution_v5` function retrieves fee and IB percentages as whole numbers (e.g. `16` for 16%, `4` for 4%) but multiplies them directly against gross yield without dividing by 100.
+Trigger-RPC race: `trg_sync_yield_to_aum` on `yield_distributions` inserted into `fund_daily_aum` with purpose='transaction', then the RPC did a raw INSERT (no ON CONFLICT) for the same row.
 
-**Actual calculation (broken):**
-- Gross yield: 355 XRP
-- Fee: 355 × 16 = 5,680 (should be 56.80)
-- IB: 355 × 4 = 1,420 (should be 14.20)
-- Net: 355 − 5,680 = −5,325 (should be 284)
+### Fixes Applied
 
-**Expected calculation:**
-- Fee: 355 × 0.16 = 56.80
-- IB: 355 × 0.04 = 14.20
-- Net: 355 − 56.80 = 298.20 → Sam gets 284 net (after IB deducted from fee pool)
+1. **Migration**: Replaced the raw INSERT in `apply_segmented_yield_distribution_v5` with safe UPDATE-then-INSERT pattern for both reporting and transaction purposes.
+2. **Migration**: Dropped redundant `trg_sync_yield_to_aum` trigger on `yield_distributions`.
+3. **TS fix**: Corrected `merge_duplicate_profiles` RPC params from `p_keep_profile_id` to `p_keep_id` to match DB schema.
 
-### Fix
+## Fix: `yield_allocations` Column Name Mismatch — RESOLVED
 
-One migration to update `apply_segmented_yield_distribution_v5`. Two lines change (lines 167–168 in the function body):
+### Fix Applied
+Migration corrected 5 column names (`gross_yield->gross_amount`, `net_yield->net_amount`, `fee_percentage->fee_pct`, `ib_percentage->ib_pct`, `opening_balance->position_value_at_calc`), removed non-existent columns (`purpose`, `created_by`), and added `ownership_pct`.
 
-```sql
--- Before (BROKEN):
-v_fee := ROUND(v_gross * v_fee_pct, 10);
-v_ib  := ROUND(v_gross * v_ib_rate, 10);
+## Fix: "Amount must be positive" blocks zero/negative yield — RESOLVED
 
--- After (FIXED):
-v_fee := ROUND(v_gross * (v_fee_pct / 100.0), 10);
-v_ib  := ROUND(v_gross * (v_ib_rate / 100.0), 10);
-```
+### Fix Applied
+Updated `apply_investor_transaction` with type-aware amount guard. Zero/negative amounts now allowed for yield-family types (`YIELD`, `FEE_CREDIT`, `IB_CREDIT`, `DUST`, `FEE`). Capital flow types (`DEPOSIT`, `WITHDRAWAL`) retain strict positive-only check. Also expanded the tx_type whitelist to include all valid types (`ADJUSTMENT`).
 
-### Pre-fix cleanup
+## Fix: Fee percentages used as decimals instead of percentages — RESOLVED
 
-Before reapplying, the incorrectly applied yield distribution must be voided. The current positions (Sam: 178,678, Fees: 5,680, Ryan: 1,420) are wrong and need correction.
-
-### Scope
-
-- One SQL migration replacing the function
-- No frontend changes needed
-- The `fee_pct` and `ib_rate` values stored in `yield_allocations` remain as whole-number percentages (display convention) — only the multiplication is fixed
-
+### Fix Applied
+Updated `apply_segmented_yield_distribution_v5` to divide fee_pct and ib_rate by 100 before multiplying against gross yield. Changed `v_fee := ROUND(v_gross * v_fee_pct, 10)` to `v_fee := ROUND(v_gross * (v_fee_pct / 100.0), 10)` and same for IB. The `calculate_yield_allocations` function (used by preview) already had the correct `/100` division.
