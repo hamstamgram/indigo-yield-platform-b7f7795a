@@ -87,7 +87,8 @@ export async function getInvestorTransactionAssets(userId: string): Promise<stri
     .select("asset")
     .eq("investor_id", userId)
     .eq("visibility_scope", "investor_visible")
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .neq("purpose", "transaction");
 
   const uniqueAssets = new Set<string>();
   data?.forEach((d) => {
