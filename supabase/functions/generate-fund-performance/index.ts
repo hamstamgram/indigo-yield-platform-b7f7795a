@@ -260,22 +260,59 @@ Deno.serve(async (req) => {
 
     // Step 4: Get transactions for calculations
     // Include ALL non-voided transactions for accurate statement calculations.
-    // The purpose filter was causing deposits (which have no purpose or purpose='transaction')
-    // to be invisible, misclassifying all position value as Net Income.
-    // The sumByType helper already filters by transaction type (DEPOSIT, WITHDRAWAL, etc.)
-    // so there's no risk of double-counting across different purposes.
+    // We also fetch distribution_id so we can exclude "transaction" (checkpoint)
+    // purpose yield entries that should not appear in investor reports.
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
-      .select("investor_id, asset, amount, type, tx_date, created_at")
+      .select("investor_id, asset, amount, type, tx_date, created_at, distribution_id")
       .in("investor_id", investorIds)
       .in("asset", Array.from(activeAssets))
       .lte("tx_date", periodEndDateStr)
-      .eq("is_voided", false) // Only include non-voided transactions
+      .eq("is_voided", false)
       .order("tx_date", { ascending: true });
 
     if (txError) throw txError;
 
-    console.log(`Found ${transactions?.length || 0} transactions`);
+    // Step 4 (cont): Exclude checkpoint (transaction-purpose) yield entries from reports.
+    // These are mid-period metadata snapshots and should NOT inflate investor net income.
+    const yieldFamilyTypes = new Set(["YIELD", "FEE_CREDIT", "IB_CREDIT", "DUST"]);
+    const checkpointDistIds = new Set<string>();
+
+    // Collect all distribution_ids that have purpose='transaction'
+    const distIdsInTxs = [
+      ...new Set(
+        (transactions || [])
+          .filter((tx: any) => tx.distribution_id && yieldFamilyTypes.has(tx.type))
+          .map((tx: any) => tx.distribution_id)
+      ),
+    ];
+
+    if (distIdsInTxs.length > 0) {
+      const { data: checkpointDists } = await supabase
+        .from("yield_distributions")
+        .select("id")
+        .in("id", distIdsInTxs)
+        .eq("purpose", "transaction")
+        .eq("is_voided", false);
+
+      for (const d of checkpointDists || []) {
+        checkpointDistIds.add((d as any).id);
+      }
+    }
+
+    // Filter out checkpoint yield transactions
+    const filteredTransactions = (transactions || []).filter((tx: any) => {
+      if (!yieldFamilyTypes.has(tx.type)) return true; // keep non-yield txs
+      if (!tx.distribution_id) return true; // keep yield txs without distribution link
+      return !checkpointDistIds.has(tx.distribution_id); // exclude checkpoint yields
+    });
+
+    const checkpointCount = (transactions?.length || 0) - filteredTransactions.length;
+    if (checkpointCount > 0) {
+      console.log(`Excluded ${checkpointCount} checkpoint (transaction-purpose) yield entries from reports`);
+    }
+
+    console.log(`Found ${filteredTransactions.length} transactions (after checkpoint filter)`);
 
     // Step 4a: Determine reporting cutoffs per asset
     // Post-reporting deposits/withdrawals should be excluded from the current period
