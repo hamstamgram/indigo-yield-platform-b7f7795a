@@ -107,7 +107,8 @@ export async function getInvestorTransactionsList(
     .select("*")
     .eq("investor_id", userId)
     .eq("visibility_scope", "investor_visible")
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .neq("purpose", "transaction");
 
   if (searchTerm) {
     const safeFilter = buildSafeOrFilter(searchTerm, ["asset", "notes"]);

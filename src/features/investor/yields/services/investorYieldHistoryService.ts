@@ -66,6 +66,7 @@ export async function getYieldHistory(days: number = 30): Promise<YieldHistoryEn
     .eq("investor_id", investorId)
     .in("type", ["YIELD", "FEE_CREDIT", "IB_CREDIT"])
     .eq("is_voided", false)
+    .neq("purpose", "transaction")
     .gte("tx_date", formatDateForDB(startDate))
     .order("tx_date", { ascending: false })
     .order("id", { ascending: false });
