@@ -44,7 +44,7 @@ export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) 
               <div key={asset} className="flex items-center gap-3 p-2.5 rounded-lg bg-background">
                 <CryptoIcon symbol={asset} className="h-7 w-7" />
                 <div>
-                  <p className="font-mono font-semibold text-sm text-yield">
+                  <p className="font-mono font-semibold text-sm text-primary">
                     +{formatFeeAmount(total, asset)}
                   </p>
                   <p className="text-xs text-muted-foreground">

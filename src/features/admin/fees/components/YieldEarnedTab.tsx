@@ -58,10 +58,10 @@ export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <ArrowUpRight className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="font-medium mb-1">No yield earned yet</p>
+            <p className="font-medium mb-1">No fee revenue collected yet</p>
             <p className="text-sm max-w-md mx-auto">
-              Yield will be earned when month-end reporting distributions include INDIGO FEES
-              positions.
+              Fee revenue will appear when yield distributions include fee deductions
+              for investors.
             </p>
           </div>
         )}
