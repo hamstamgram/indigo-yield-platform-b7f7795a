@@ -1,10 +1,10 @@
 /**
- * Yield Earned Summary Card
- * Displays yield earned on fee balances, broken down by asset
+ * Fee Revenue Collected Summary Card
+ * Displays fee revenue collected from yield distributions, broken down by asset
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui";
-import { TrendingUp, Info } from "lucide-react";
+import { DollarSign, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import { toNumber } from "@/utils/numeric";
