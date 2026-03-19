@@ -15,15 +15,15 @@ interface YieldEarnedTabProps {
 
 export function YieldEarnedTab({ yields }: YieldEarnedTabProps) {
   return (
-    <Card className="border-yield/30 bg-emerald-500/5">
+    <Card className="border-primary/30 bg-primary/5">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <TrendingUp className="h-6 w-6 text-yield" />
+          <DollarSign className="h-6 w-6 text-primary" />
           <div>
-            <CardTitle>Yield Earned by INDIGO Fees Account</CardTitle>
+            <CardTitle>Fee Revenue Collected by INDIGO Fees Account</CardTitle>
             <CardDescription>
-              INDIGO FEES participates in yield distributions just like any investor. This shows
-              yield earned on the accumulated fee balance.
+              Total fee revenue credited to the INDIGO FEES account from yield distributions.
+              Only includes reporting-purpose distributions.
             </CardDescription>
           </div>
         </div>
