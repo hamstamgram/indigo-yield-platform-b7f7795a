@@ -26,3 +26,8 @@ Updated `apply_investor_transaction` with type-aware amount guard. Zero/negative
 
 ### Fix Applied
 Updated `apply_segmented_yield_distribution_v5` to divide fee_pct and ib_rate by 100 before multiplying against gross yield. Changed `v_fee := ROUND(v_gross * v_fee_pct, 10)` to `v_fee := ROUND(v_gross * (v_fee_pct / 100.0), 10)` and same for IB. The `calculate_yield_allocations` function (used by preview) already had the correct `/100` division.
+
+## Fix: Double fee deduction in yield distribution — RESOLVED
+
+### Fix Applied
+Removed the redundant `apply_investor_transaction(..., 'FEE', ...)` call on the investor from `apply_segmented_yield_distribution_v5`. The YIELD transaction already records the NET amount (gross - fee), so the separate FEE transaction was subtracting the fee a second time. Kept `fee_allocations` (audit, with `debit_transaction_id = NULL`), `platform_fee_ledger` (tracking), `FEE_CREDIT` to fees account, and `IB_CREDIT` to IB parent. Conservation identity: `net + fee_credit + ib_credit = gross`.
