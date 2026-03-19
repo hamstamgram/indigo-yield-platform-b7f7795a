@@ -27,6 +27,11 @@ Updated `apply_investor_transaction` with type-aware amount guard. Zero/negative
 ### Fix Applied
 Updated `apply_segmented_yield_distribution_v5` to divide fee_pct and ib_rate by 100 before multiplying against gross yield. Changed `v_fee := ROUND(v_gross * v_fee_pct, 10)` to `v_fee := ROUND(v_gross * (v_fee_pct / 100.0), 10)` and same for IB. The `calculate_yield_allocations` function (used by preview) already had the correct `/100` division.
 
+## Fix: IB commission not subtracted from investor net yield — RESOLVED
+
+### Fix Applied
+Updated `apply_segmented_yield_distribution_v5` net calculation from `v_net := v_gross - v_fee` to `v_net := v_gross - v_fee - v_ib`. The IB commission was being credited to the IB account but not deducted from the investor's net yield, creating value from nothing. Conservation identity now holds: `net + fee_credit + ib_credit = gross`.
+
 ## Fix: Double fee deduction in yield distribution — RESOLVED
 
 ### Fix Applied
