@@ -358,7 +358,7 @@ Deno.serve(async (req) => {
     }
 
     const transactionGroups = new Map<string, any[]>();
-    for (const tx of transactions || []) {
+    for (const tx of filteredTransactions) {
       const key = `${(tx as any).investor_id}:${(tx as any).asset}`;
       if (!transactionGroups.has(key)) {
         transactionGroups.set(key, []);
