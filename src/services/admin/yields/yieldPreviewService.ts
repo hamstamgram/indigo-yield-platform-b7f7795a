@@ -108,16 +108,26 @@ export async function previewYieldDistribution(
   }
 
   // Map distributions from V5 backend format
+  const totalOpeningAum = Number(result.opening_aum || 0);
+
   const distributions: YieldDistribution[] = (result.allocations || []).map(
     (d: V5AllocationItem) => {
       const liveBalance = balanceMap.get(d.investor_id) || 0;
       const ibParentName = d.ib_parent_id ? ibParentNameMap.get(d.ib_parent_id) || null : null;
+      const investorBalance = Number((d as any).current_value || d.opening_balance || liveBalance);
+      const allocationPercentage =
+        totalOpeningAum > 0
+          ? parseFinancial(investorBalance)
+              .div(parseFinancial(totalOpeningAum))
+              .times(100)
+              .toFixed(4)
+          : "0";
       return {
         investorId: d.investor_id,
         investorName: d.investor_name,
         accountType: d.account_type,
         currentBalance: String((d as any).current_value || d.opening_balance || liveBalance),
-        allocationPercentage: "0",
+        allocationPercentage,
         feePercentage: String(d.fee_pct || 0),
         grossYield: String(d.gross || 0),
         feeAmount: String(d.fee || 0),

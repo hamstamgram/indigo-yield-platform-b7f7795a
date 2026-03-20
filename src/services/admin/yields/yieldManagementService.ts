@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { logError } from "@/lib/logger";
+import { logError, logWarn } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { rpc } from "@/lib/rpc/index";
 
@@ -126,11 +126,22 @@ export async function voidYieldDistribution(
     throw new Error(error.message || "Failed to void yield distribution");
   }
 
-  return data as unknown as {
-    success: boolean;
-    voided_count?: number;
-    voided_crystals?: number;
-    error?: string;
+  const result = data as Record<string, unknown>;
+  const voidedCount = Number(result.voided_count ?? 0);
+  const voidedCrystals = Number(result.voided_crystals ?? 0);
+
+  if (voidedCount === 0) {
+    logWarn("voidYieldDistribution.noCascade", {
+      distributionId,
+      message: "Yield voided but no allocations were cascaded — verify fee/ib allocations manually",
+    });
+  }
+
+  return {
+    success: Boolean(result.success),
+    voided_count: voidedCount,
+    voided_crystals: voidedCrystals,
+    error: result.error as string | undefined,
   };
 }
 
