@@ -26,6 +26,7 @@ export function useYieldSubmission() {
       distributionDate,
       checkExistingDistribution,
       onSuccess,
+      onApplyResult,
     }: {
       selectedFund: any;
       user: any;
@@ -42,6 +43,7 @@ export function useYieldSubmission() {
         purpose: YieldPurpose
       ) => Promise<{ exists: boolean; id: string | null; date: string | null }>;
       onSuccess: () => void;
+      onApplyResult?: (result: any) => void;
     }) => {
       if (!selectedFund || !user || !yieldPreview) return;
 
@@ -58,9 +60,7 @@ export function useYieldSubmission() {
           }
         }
 
-        const isTransaction = yieldPurpose === "transaction";
-
-        await applyYieldDistribution(
+        const applyResult = await applyYieldDistribution(
           {
             fundId: selectedFund.id,
             targetDate: aumDate,
@@ -73,13 +73,17 @@ export function useYieldSubmission() {
 
         const asset = selectedFund.asset;
         const grossYieldNum =
-          typeof yieldPreview.grossYield === "string"
-            ? parseFloat(yieldPreview.grossYield)
-            : yieldPreview.grossYield;
+          typeof applyResult.grossYield === "string"
+            ? parseFloat(applyResult.grossYield)
+            : applyResult.grossYield;
+        const appliedInvestorCount = applyResult.investorCount ?? yieldPreview.investorCount;
 
         toast.success(
-          `Distributed ${formatAUM(grossYieldNum, asset)} ${asset} to ${yieldPreview.investorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
+          `Distributed ${formatAUM(grossYieldNum, asset)} ${asset} to ${appliedInvestorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
         );
+
+        // Update preview with actual result so the dialog success phase shows correct numbers
+        onApplyResult?.(applyResult);
 
         // Allow the DistributeYieldDialog to handle its own success phase
         // setShowConfirmDialog(false); // Removed to prevent premature unmounting

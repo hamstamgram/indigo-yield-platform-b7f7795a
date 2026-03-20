@@ -167,6 +167,9 @@ export function useYieldOperationsState() {
         selection.setShowYieldDialog(false);
         refetchFunds();
       },
+      onApplyResult: (result) => {
+        calculation.setYieldPreview(result);
+      },
     });
   }, [submission, selection, user, calculation, period, asOfAum, refetchFunds]);
 
