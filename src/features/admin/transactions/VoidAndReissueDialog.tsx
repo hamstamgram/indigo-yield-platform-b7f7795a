@@ -234,6 +234,7 @@ export function VoidAndReissueDialog({
         {
           transactionId: transaction.id,
           newAmount: data.amount,
+          newDate: data.tx_date,
           reason: data.reason.trim(),
           investorId: transaction.investorId,
           fundId: transaction.fundId || undefined,

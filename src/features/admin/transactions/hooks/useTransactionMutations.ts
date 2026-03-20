@@ -194,6 +194,7 @@ export function useTransactionMutations() {
     mutationFn: (params: {
       transactionId: string;
       newAmount: string;
+      newDate?: string;
       reason: string;
       investorId?: string;
       fundId?: string;

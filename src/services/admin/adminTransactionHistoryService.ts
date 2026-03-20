@@ -546,6 +546,7 @@ export async function getTransactionContext(
 async function voidAndReissueFullExit(params: {
   transactionId: string;
   newAmount: string;
+  newDate?: string;
   reason: string;
 }): Promise<VoidAndReissueResult> {
   const {
@@ -562,6 +563,7 @@ async function voidAndReissueFullExit(params: {
       p_new_amount: parseFinancial(params.newAmount).toString() as unknown as number,
       p_admin_id: user.id,
       p_reason: params.reason,
+      p_new_date: params.newDate || undefined,
     } as any
   );
 
