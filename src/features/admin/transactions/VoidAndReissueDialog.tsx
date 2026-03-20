@@ -434,9 +434,14 @@ export function VoidAndReissueDialog({
               if (!newAmount || restoredBalance.eq(0)) return null;
 
               try {
-                // Full exit: TRUNC(restored_balance, 3) for withdrawal, remainder for dust
-                const truncated = restoredBalance.toDecimalPlaces(3, 1); // 1 = ROUND_DOWN (floor)
-                const dust = restoredBalance.minus(truncated);
+                // Use the admin's entered amount as the withdrawal amount
+                // Dust = restored balance - entered amount (what's left over goes to fees)
+                const enteredAmount = parseFinancial(newAmount);
+                // Clamp: can't withdraw more than the restored balance
+                const withdrawalAmount = enteredAmount.gt(restoredBalance)
+                  ? restoredBalance
+                  : enteredAmount;
+                const dust = restoredBalance.minus(withdrawalAmount);
                 const feesAccountName = "Indigo Fees";
 
                 return (
@@ -447,7 +452,7 @@ export function VoidAndReissueDialog({
                       </p>
                     </div>
                     <div className="divide-y divide-white/5">
-                      {truncated.gt(0) && (
+                      {withdrawalAmount.gt(0) && (
                         <div className="px-3 py-2 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2 min-w-0">
                             <Badge
@@ -461,7 +466,7 @@ export function VoidAndReissueDialog({
                             </span>
                           </div>
                           <FinancialValue
-                            value={`-${truncated.toString()}`}
+                            value={`-${withdrawalAmount.toString()}`}
                             asset={asset}
                             showAsset
                             colorize
