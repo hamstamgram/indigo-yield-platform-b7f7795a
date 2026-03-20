@@ -425,7 +425,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                             className="h-5 w-5"
                           />
                           <FinancialValue
-                            value={w.requested_amount}
+                            value={w.processed_amount || w.requested_amount}
                             asset={w.asset || w.fund_class || "UNITS"}
                             showAsset
                           />
@@ -562,7 +562,7 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                         className="h-4 w-4"
                       />
                       <FinancialValue
-                        value={withdrawal.requested_amount}
+                        value={withdrawal.processed_amount || withdrawal.requested_amount}
                         asset={withdrawal.asset || withdrawal.fund_class || "UNITS"}
                         showAsset
                         className="text-sm"
