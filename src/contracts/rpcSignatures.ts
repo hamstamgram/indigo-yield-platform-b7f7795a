@@ -226,6 +226,7 @@ export const RPC_FUNCTIONS = [
   "validate_yield_temporal_lock",
   "verify_aum_purpose_usage",
   "verify_yield_distribution_balance",
+  "void_and_reissue_full_exit",
   "void_and_reissue_transaction",
   "void_fund_daily_aum",
   "void_investor_yield_events_for_distribution",
@@ -1942,6 +1943,14 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_date", "p_fund_id"] as const,
     optionalParams: ["p_purpose"] as const,
+  },
+  void_and_reissue_full_exit: {
+    name: "void_and_reissue_full_exit" as const,
+    returnType: "Json;",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_transaction_id", "p_new_amount", "p_admin_id", "p_reason"] as const,
+    optionalParams: ["p_send_precision"] as const,
   },
   void_and_reissue_transaction: {
     name: "void_and_reissue_transaction" as const,
