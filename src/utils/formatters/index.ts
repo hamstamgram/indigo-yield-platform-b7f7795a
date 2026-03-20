@@ -12,6 +12,7 @@
 
 // Import for internal use
 import { getAssetConfig, getAssetDecimals } from "@/types/asset";
+import { parseFinancial } from "@/utils/financial";
 
 // Re-export asset config types and helpers from central location
 export {
@@ -53,10 +54,11 @@ export function formatAssetWithSymbol(amount: number, symbol: string): string {
  * Format an asset value without symbol (just the number)
  * For formatting WITH symbol, use formatAssetAmount from @/utils/assets
  */
-export function formatAssetValue(amount: number, symbol: string): string {
+export function formatAssetValue(amount: number | string, symbol: string): string {
   const decimals = getAssetDecimals(symbol);
+  const numericAmount = typeof amount === "string" ? parseFinancial(amount).toNumber() : amount;
 
-  return amount.toLocaleString("en-US", {
+  return numericAmount.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
