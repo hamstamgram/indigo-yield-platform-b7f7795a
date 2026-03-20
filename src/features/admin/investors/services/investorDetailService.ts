@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { batchMapProcess } from "@/utils/batchHelper";
+import { parseFinancial } from "@/utils/financial";
 
 export interface InvestorDetailData {
   id: string;
@@ -170,10 +171,10 @@ export async function fetchInvestorPositionsWithTotals(
     fund_name: p.funds?.name || "Unknown",
     fund_code: p.funds?.code || "",
     asset: p.funds?.asset || "",
-    current_value: p.current_value || 0,
-    cost_basis: p.cost_basis || 0,
-    unrealized_pnl: p.unrealized_pnl || 0,
-    realized_pnl: p.realized_pnl || 0,
+    current_value: parseFinancial(p.current_value || 0).toNumber(),
+    cost_basis: parseFinancial(p.cost_basis || 0).toNumber(),
+    unrealized_pnl: parseFinancial(p.unrealized_pnl || 0).toNumber(),
+    realized_pnl: parseFinancial(p.realized_pnl || 0).toNumber(),
   }));
 
   const totalValue = mappedPositions.reduce((sum, p) => sum + p.current_value, 0);
@@ -212,10 +213,10 @@ export async function fetchActivePositions(investorId: string): Promise<Investor
     fund_name: p.funds?.name || "Unknown",
     fund_code: p.funds?.code || "",
     asset: p.funds?.asset || "",
-    current_value: p.current_value || 0,
-    cost_basis: p.cost_basis || 0,
-    unrealized_pnl: p.unrealized_pnl || 0,
-    realized_pnl: p.realized_pnl || 0,
+    current_value: parseFinancial(p.current_value || 0).toNumber(),
+    cost_basis: parseFinancial(p.cost_basis || 0).toNumber(),
+    unrealized_pnl: parseFinancial(p.unrealized_pnl || 0).toNumber(),
+    realized_pnl: parseFinancial(p.realized_pnl || 0).toNumber(),
   }));
 }
 

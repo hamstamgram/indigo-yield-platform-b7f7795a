@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
+import { parseFinancial } from "@/utils/financial";
 
 export interface PortfolioPosition {
   investor_id: string;
@@ -62,8 +63,8 @@ export const investorPortfolioService = {
     return (data || []).map((pos: any) => ({
       investor_id: pos.investor_id,
       fund_id: pos.fund_id,
-      shares: parseFloat(String(pos.shares)) || 0,
-      current_value: parseFloat(String(pos.current_value)) || 0,
+      shares: parseFinancial(pos.shares || 0).toNumber(),
+      current_value: parseFinancial(pos.current_value || 0).toNumber(),
       fund_class: pos.fund_class,
       fund: pos.funds || { id: "", name: "Unknown", code: "UNK", asset: "N/A" },
     }));
@@ -96,8 +97,8 @@ export const investorPortfolioService = {
 
     return (data || []).map((pos: any) => ({
       fund_id: pos.fund_id,
-      current_value: Number(pos.current_value) || 0,
-      shares: Number(pos.shares) || 0,
+      current_value: parseFinancial(pos.current_value || 0).toNumber(),
+      shares: parseFinancial(pos.shares || 0).toNumber(),
       fund_class: pos.fund_class,
       fund: pos.funds || { name: "Unknown", code: "UNK", asset: "N/A" },
     }));

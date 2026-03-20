@@ -74,9 +74,15 @@ export async function getInvestorSummary(investorId: string): Promise<InvestorSu
   // Get positions to calculate totals
   const positions = await getInvestorPositions(investorId);
 
-  const totalAUM = positions.reduce((sum, pos) => sum + pos.currentValue, 0);
-  const totalEarned = positions.reduce((sum, pos) => sum + pos.unrealizedPnl, 0);
-  const totalPrincipal = positions.reduce((sum, pos) => sum + pos.costBasis, 0);
+  const totalAUM = positions
+    .reduce((sum, pos) => sum.plus(parseFinancial(pos.currentValue || 0)), parseFinancial(0))
+    .toNumber();
+  const totalEarned = positions
+    .reduce((sum, pos) => sum.plus(parseFinancial(pos.unrealizedPnl || 0)), parseFinancial(0))
+    .toNumber();
+  const totalPrincipal = positions
+    .reduce((sum, pos) => sum.plus(parseFinancial(pos.costBasis || 0)), parseFinancial(0))
+    .toNumber();
 
   // Calculate asset breakdown
   const assetBreakdown: Record<string, number> = {};
