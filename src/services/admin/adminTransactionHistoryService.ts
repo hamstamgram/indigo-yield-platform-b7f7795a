@@ -264,7 +264,7 @@ async function voidAndReissueTransaction(
 
   const { data, error } = await rpc.call("void_and_reissue_transaction", {
     p_original_tx_id: params.transactionId,
-    p_new_amount: parseFinancial(params.newValues.amount).toNumber(),
+    p_new_amount: parseFinancial(params.newValues.amount).toString() as unknown as number,
     p_new_date: params.newValues.tx_date,
     p_new_notes: mergedNotes ?? undefined,
     p_admin_id: user.id,
@@ -336,11 +336,14 @@ interface RPCJsonResult {
 async function unvoidTransaction(params: UnvoidTransactionParams): Promise<void> {
   const adminId = await getAdminUserId();
 
-  const { data, error } = await rpc.call("unvoid_transaction" as any, {
-    p_transaction_id: params.transactionId,
-    p_admin_id: adminId,
-    p_reason: params.reason,
-  } as any);
+  const { data, error } = await rpc.call(
+    "unvoid_transaction" as any,
+    {
+      p_transaction_id: params.transactionId,
+      p_admin_id: adminId,
+      p_reason: params.reason,
+    } as any
+  );
 
   if (error) throw new Error(error.message || "Failed to restore transaction");
 
@@ -358,11 +361,14 @@ async function voidTransactionsBulk(
 ): Promise<BulkOperationResult> {
   const adminId = await getAdminUserId();
 
-  const { data, error } = await rpc.call("void_transactions_bulk" as any, {
-    p_transaction_ids: params.transactionIds,
-    p_admin_id: adminId,
-    p_reason: params.reason,
-  } as any);
+  const { data, error } = await rpc.call(
+    "void_transactions_bulk" as any,
+    {
+      p_transaction_ids: params.transactionIds,
+      p_admin_id: adminId,
+      p_reason: params.reason,
+    } as any
+  );
 
   if (error) throw new Error(error.message || "Failed to void transactions");
 
@@ -386,11 +392,14 @@ async function unvoidTransactionsBulk(
 ): Promise<BulkOperationResult> {
   const adminId = await getAdminUserId();
 
-  const { data, error } = await rpc.call("unvoid_transactions_bulk" as any, {
-    p_transaction_ids: params.transactionIds,
-    p_admin_id: adminId,
-    p_reason: params.reason,
-  } as any);
+  const { data, error } = await rpc.call(
+    "unvoid_transactions_bulk" as any,
+    {
+      p_transaction_ids: params.transactionIds,
+      p_admin_id: adminId,
+      p_reason: params.reason,
+    } as any
+  );
 
   if (error) throw new Error(error.message || "Failed to restore transactions");
 
