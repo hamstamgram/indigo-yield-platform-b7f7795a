@@ -192,16 +192,22 @@ export function VoidTransactionDialog({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                 <div>Current Position:</div>
                 <div className="font-mono">
-                  <FinancialValue value={impact.current_position ?? 0} displayDecimals={4} />
+                  <FinancialValue
+                    value={String(impact.current_position ?? 0)}
+                    displayDecimals={4}
+                  />
                 </div>
                 <div>After Void:</div>
                 <div className="font-mono">
-                  <FinancialValue value={impact.projected_position ?? 0} displayDecimals={4} />
+                  <FinancialValue
+                    value={String(impact.projected_position ?? 0)}
+                    displayDecimals={4}
+                  />
                 </div>
                 <div>Change:</div>
                 <div className="font-mono">
                   <FinancialValue
-                    value={impact.position_change ?? 0}
+                    value={String(impact.position_change ?? 0)}
                     displayDecimals={4}
                     colorize
                     prefix={(impact.position_change ?? 0) >= 0 ? "+" : ""}
