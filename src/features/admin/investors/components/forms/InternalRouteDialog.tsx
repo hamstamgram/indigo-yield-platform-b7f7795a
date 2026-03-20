@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { parseFinancial } from "@/utils/financial";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Dialog,
@@ -56,6 +57,8 @@ export function InternalRouteDialog({
   const { data: positions } = useInvestorPositionsForRoute(investorId, open);
   const routeMutation = useInternalRouteMutation(investorId, fundId);
 
+  const queryClient = useQueryClient();
+
   const selectedPosition = positions?.find((p) => p.fund_id === fundId);
   const maxAmount = selectedPosition?.current_value || 0;
   const selectedAsset = selectedPosition?.funds?.asset || "";
@@ -66,12 +69,12 @@ export function InternalRouteDialog({
       return;
     }
 
-    if (parseFloat(amount) <= 0) {
+    if (parseFinancial(amount).lte(0)) {
       toast.error("Amount must be positive");
       return;
     }
 
-    if (parseFloat(amount) > maxAmount) {
+    if (parseFinancial(amount).gt(parseFinancial(maxAmount))) {
       toast.error(`Amount exceeds available balance`);
       return;
     }
@@ -80,7 +83,7 @@ export function InternalRouteDialog({
       {
         fromInvestorId: investorId,
         fundId,
-        amount: parseFloat(amount),
+        amount: parseFinancial(amount).toString() as unknown as number,
         effectiveDate,
         reason,
       },
@@ -91,6 +94,7 @@ export function InternalRouteDialog({
             debit_tx_id: data.debit_tx_id,
             credit_tx_id: data.credit_tx_id,
           });
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
         },
       }
     );
