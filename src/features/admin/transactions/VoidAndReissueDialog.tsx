@@ -194,10 +194,9 @@ export function VoidAndReissueDialog({
       return;
     }
 
-    if (!hasChanges) {
-      toast.info("No changes to apply");
-      return;
-    }
+    // Allow reissue even without field changes — voiding and recreating
+    // with the same values is a valid correction workflow (e.g., to fix
+    // associated records or re-trigger position recalculation)
 
     // Re-apply negative sign for debit types — form shows absolute value
     // but RPC expects the original sign convention (negative for outflows)
@@ -317,9 +316,7 @@ export function VoidAndReissueDialog({
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "changes" | "review")}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="changes">1. Enter Corrections</TabsTrigger>
-              <TabsTrigger value="review" disabled={!hasChanges}>
-                2. Review & Confirm
-              </TabsTrigger>
+              <TabsTrigger value="review">2. Review & Confirm</TabsTrigger>
             </TabsList>
 
             <TabsContent value="changes" className="space-y-4 mt-4">
@@ -366,18 +363,12 @@ export function VoidAndReissueDialog({
               <Button
                 type="button"
                 className="w-full"
-                disabled={!hasChanges || transaction.isSystemGenerated}
+                disabled={transaction.isSystemGenerated}
                 onClick={() => setActiveTab("review")}
               >
                 Continue to Review
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-
-              {!hasChanges && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Make changes to the fields above to continue
-                </p>
-              )}
             </TabsContent>
 
             <TabsContent value="review" className="space-y-4 mt-4">
@@ -457,10 +448,7 @@ export function VoidAndReissueDialog({
               <Button
                 type="submit"
                 disabled={
-                  voidAndReissueMutation.isPending ||
-                  confirmText !== "REISSUE" ||
-                  !hasChanges ||
-                  !!errors.reason
+                  voidAndReissueMutation.isPending || confirmText !== "REISSUE" || !!errors.reason
                 }
               >
                 {voidAndReissueMutation.isPending && (
