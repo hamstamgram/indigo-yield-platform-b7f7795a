@@ -92,7 +92,6 @@ export async function getInvestorVisibleYield(
     .eq("investor_id", investorId)
     .in("type", ["YIELD", "FEE_CREDIT"])
     .eq("is_voided", false)
-    .neq("purpose", "transaction")
     .order("tx_date", { ascending: false });
 
   if (options?.fundId) {
