@@ -15,10 +15,10 @@ import { parseFinancial } from "@/utils/financial";
 export interface InvestorPositionRow {
   investor_id: string;
   fund_id: string;
-  shares: number;
-  cost_basis: number;
-  current_value: number;
-  realized_pnl: number;
+  shares: string;
+  cost_basis: string;
+  current_value: string;
+  realized_pnl: string;
   fund_class: string;
   updated_at: string;
   funds: {
@@ -216,7 +216,13 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
     .limit(100);
 
   if (error) throw error;
-  return (data as InvestorPositionRow[]) || [];
+  return (data || []).map((p: any) => ({
+    ...p,
+    current_value: String(p.current_value ?? 0),
+    cost_basis: String(p.cost_basis ?? 0),
+    shares: String(p.shares ?? 0),
+    realized_pnl: String(p.realized_pnl ?? 0),
+  })) as InvestorPositionRow[];
 }
 
 /**
