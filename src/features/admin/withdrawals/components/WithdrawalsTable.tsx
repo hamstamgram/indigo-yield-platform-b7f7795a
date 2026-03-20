@@ -557,10 +557,13 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                   <div className="flex items-center gap-2">
                     <Coins className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-1.5">
-                      <CryptoIcon symbol={withdrawal.fund_class ?? "ASSET"} className="h-4 w-4" />
+                      <CryptoIcon
+                        symbol={withdrawal.asset || withdrawal.fund_class || "ASSET"}
+                        className="h-4 w-4"
+                      />
                       <FinancialValue
                         value={withdrawal.requested_amount}
-                        asset={withdrawal.fund_class ?? "UNITS"}
+                        asset={withdrawal.asset || withdrawal.fund_class || "UNITS"}
                         showAsset
                         className="text-sm"
                       />

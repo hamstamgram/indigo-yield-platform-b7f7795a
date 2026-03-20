@@ -70,6 +70,7 @@ export interface AssetConfig {
   symbol: string;
   name: string;
   decimals: number;
+  displayDecimals: number;
   logoUrl?: string;
   color?: string;
 }
@@ -111,6 +112,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "BTC",
     name: "BTC Yield Fund",
     decimals: 8,
+    displayDecimals: 8,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png",
     color: "#F7931A",
   },
@@ -118,6 +120,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "ETH",
     name: "ETH Yield Fund",
     decimals: 8,
+    displayDecimals: 6,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png",
     color: "#627EEA",
   },
@@ -125,6 +128,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "SOL",
     name: "SOL Yield Fund",
     decimals: 9,
+    displayDecimals: 4,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png",
     color: "#14F195",
   },
@@ -132,6 +136,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "USDT",
     name: "Stablecoin Fund",
     decimals: 6,
+    displayDecimals: 2,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdt.png",
     color: "#26A17B",
   },
@@ -141,6 +146,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
+    displayDecimals: 2,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdc.png",
     color: "#2775CA",
   },
@@ -148,6 +154,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "EURC",
     name: "EURC Yield Fund",
     decimals: 6,
+    displayDecimals: 2,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eur.png",
     color: "#0052FF",
   },
@@ -155,6 +162,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "xAUT",
     name: "Tokenized Gold",
     decimals: 6,
+    displayDecimals: 4,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/gold.png",
     color: "#FFD700",
   },
@@ -162,6 +170,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "xAUT",
     name: "Tokenized Gold",
     decimals: 6,
+    displayDecimals: 4,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/gold.png",
     color: "#FFD700",
   },
@@ -169,6 +178,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "XRP",
     name: "XRP Yield Fund",
     decimals: 6,
+    displayDecimals: 4,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xrp.png",
     color: "#00AAE4",
   },
@@ -193,6 +203,7 @@ export function getAssetConfig(symbol: string): AssetConfig {
       symbol: symbol.toUpperCase(),
       name: symbol,
       decimals: 4,
+      displayDecimals: 4,
     }
   );
 }
@@ -215,9 +226,17 @@ export function getAssetName(symbol: string): string {
 }
 
 /**
- * Get decimals for an asset
+ * Get display decimals for an asset (used for UI formatting)
  */
 export function getAssetDecimals(symbol: string): number {
+  const config = getAssetConfig(symbol);
+  return config.displayDecimals ?? config.decimals;
+}
+
+/**
+ * Get storage precision for an asset (used for DB/RPC operations)
+ */
+export function getAssetStoragePrecision(symbol: string): number {
   return getAssetConfig(symbol).decimals;
 }
 
