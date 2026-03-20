@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Withdrawal } from "@/types/domains";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
 import { withdrawalService } from "@/services/investor";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { formatAssetAmount } from "@/utils/assets";
 import { INVESTOR_DISPLAY_DECIMALS } from "@/types/asset";
 import { Loader2, AlertTriangle } from "lucide-react";
@@ -47,6 +49,7 @@ export function ApproveWithdrawalDialog({
   withdrawal,
   onSuccess,
 }: ApproveWithdrawalDialogProps) {
+  const queryClient = useQueryClient();
   const [processedAmount, setProcessedAmount] = useState(withdrawal.requested_amount.toString());
   const [adminNotes, setAdminNotes] = useState("");
   const [confirmText, setConfirmText] = useState("");
@@ -172,6 +175,9 @@ export function ApproveWithdrawalDialog({
         ? "Full exit completed. Dust routed to INDIGO Fees. Position deactivated."
         : "Withdrawal approved and completed. Ledger updated.";
       toast.success(successMsg);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawals });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboardStats });
       onSuccess();
       onOpenChange(false);
     } catch (error) {
