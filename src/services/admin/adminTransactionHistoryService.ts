@@ -427,18 +427,32 @@ async function unvoidTransactionsBulk(
  * Detect if a transaction is part of a full-exit withdrawal.
  * Checks for linked DUST_SWEEP transactions and withdrawal_request.
  */
-export async function getTransactionContext(transactionId: string): Promise<{
+export interface RelatedTransaction {
+  id: string;
+  type: string;
+  amount: string;
+  asset: string;
+  investorName: string;
+  notes: string | null;
+}
+
+export interface TransactionContextResult {
   isFullExit: boolean;
   hasDustSweeps: boolean;
   withdrawalRequestId: string | null;
   dustSweepCount: number;
-}> {
+  relatedTransactions: RelatedTransaction[];
+}
+
+export async function getTransactionContext(
+  transactionId: string
+): Promise<TransactionContextResult> {
   const supabaseClient = (await import("@/integrations/supabase/client")).supabase;
 
   // Fetch the transaction
   const { data: tx } = await supabaseClient
     .from("transactions_v2")
-    .select("id, type, amount, tx_date, investor_id, fund_id, created_at")
+    .select("id, type, amount, asset, tx_date, investor_id, fund_id, created_at")
     .eq("id", transactionId)
     .maybeSingle();
 
@@ -448,19 +462,35 @@ export async function getTransactionContext(transactionId: string): Promise<{
       hasDustSweeps: false,
       withdrawalRequestId: null,
       dustSweepCount: 0,
+      relatedTransactions: [],
     };
   }
 
-  // Check for DUST_SWEEP transactions on same fund + date
-  const { data: dustSweeps } = await supabaseClient
+  // Fetch ALL related transactions (withdrawal + dust sweeps) on same fund + date
+  const { data: relatedTxs } = await supabaseClient
     .from("transactions_v2")
-    .select("id")
-    .eq("type", "DUST_SWEEP")
+    .select(
+      "id, type, amount, asset, notes, investor_id, profiles!fk_transactions_v2_investor(first_name, last_name)"
+    )
+    .in("type", ["WITHDRAWAL", "DUST_SWEEP"])
     .eq("fund_id", tx.fund_id)
     .eq("tx_date", tx.tx_date)
-    .eq("is_voided", false);
+    .eq("is_voided", false)
+    .order("type")
+    .order("amount");
 
-  const dustSweepCount = dustSweeps?.length ?? 0;
+  const relatedTransactions: RelatedTransaction[] = (relatedTxs || []).map((t: any) => ({
+    id: t.id,
+    type: t.type,
+    amount: String(t.amount),
+    asset: t.asset || tx.asset,
+    investorName: t.profiles
+      ? `${t.profiles.first_name || ""} ${t.profiles.last_name || ""}`.trim()
+      : "Unknown",
+    notes: t.notes,
+  }));
+
+  const dustSweepCount = relatedTransactions.filter((t) => t.type === "DUST_SWEEP").length;
 
   // Look for linked withdrawal_request
   const { data: request } = await supabaseClient
@@ -480,6 +510,7 @@ export async function getTransactionContext(transactionId: string): Promise<{
     hasDustSweeps: dustSweepCount > 0,
     withdrawalRequestId: request?.id ?? null,
     dustSweepCount,
+    relatedTransactions,
   };
 }
 

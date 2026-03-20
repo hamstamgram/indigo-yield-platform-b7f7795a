@@ -43,7 +43,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data";
-import { getTransactionContext } from "@/services/admin/adminTransactionHistoryService";
+import {
+  getTransactionContext,
+  type TransactionContextResult,
+  type RelatedTransaction,
+} from "@/services/admin/adminTransactionHistoryService";
+import { Badge } from "@/components/ui/badge";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import usePlatformError, { routeErrorAction } from "@/hooks/usePlatformError";
 import { PlatformErrorCode } from "@/types/errors/platformErrors";
@@ -79,12 +84,7 @@ const reissueSchema = z
 
 type ReissueFormData = z.infer<typeof reissueSchema>;
 
-type TransactionContext = {
-  isFullExit: boolean;
-  hasDustSweeps: boolean;
-  withdrawalRequestId: string | null;
-  dustSweepCount: number;
-};
+type TransactionContext = TransactionContextResult;
 
 /**
  * Transaction data required for void and reissue
@@ -354,20 +354,57 @@ export function VoidAndReissueDialog({
         )}
 
         {isFullExit && (
-          <Alert className="border-amber-500/20 bg-amber-500/10">
-            <AlertTriangle className="h-4 w-4 text-amber-400" />
-            <AlertDescription className="text-amber-200">
-              <strong>Full-exit withdrawal detected.</strong>
-              <p className="text-sm mt-1">
-                This correction will void the original withdrawal
-                {txContext?.dustSweepCount
-                  ? ` + ${txContext.dustSweepCount} dust sweep transactions`
-                  : ""}
-                , then re-process the full exit with the new amount. Dust will be recalculated
-                automatically.
-              </p>
-            </AlertDescription>
-          </Alert>
+          <div className="space-y-3">
+            <Alert className="border-amber-500/20 bg-amber-500/10">
+              <AlertTriangle className="h-4 w-4 text-amber-400" />
+              <AlertDescription className="text-amber-200">
+                <strong>Full-exit withdrawal detected.</strong>
+                <p className="text-sm mt-1">
+                  All transactions below will be voided and the full exit re-processed with the
+                  corrected amount. Dust will be recalculated automatically.
+                </p>
+              </AlertDescription>
+            </Alert>
+
+            {/* Affected transactions table */}
+            {txContext?.relatedTransactions && txContext.relatedTransactions.length > 0 && (
+              <div className="rounded-md border border-white/10 overflow-hidden">
+                <div className="px-3 py-2 bg-white/5 border-b border-white/10">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Transactions to be voided ({txContext.relatedTransactions.length})
+                  </p>
+                </div>
+                <div className="divide-y divide-white/5">
+                  {txContext.relatedTransactions.map((rt) => (
+                    <div key={rt.id} className="px-3 py-2 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] uppercase tracking-wider shrink-0 ${
+                            rt.type === "WITHDRAWAL"
+                              ? "border-red-500/30 text-red-400"
+                              : "border-amber-500/30 text-amber-400"
+                          }`}
+                        >
+                          {rt.type.replace("_", " ")}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground truncate">
+                          {rt.investorName}
+                        </span>
+                      </div>
+                      <FinancialValue
+                        value={rt.amount}
+                        asset={rt.asset}
+                        showAsset
+                        colorize
+                        className="text-sm font-mono shrink-0"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Platform error display */}
