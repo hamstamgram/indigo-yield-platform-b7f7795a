@@ -469,7 +469,7 @@ export async function getTransactionContext(transactionId: string): Promise<{
     .eq("investor_id", tx.investor_id)
     .eq("fund_id", tx.fund_id)
     .eq("status", "completed")
-    .order("created_at", { ascending: false })
+    .order("request_date", { ascending: false })
     .limit(1)
     .maybeSingle();
 

@@ -65,8 +65,8 @@ BEGIN
   WHERE investor_id = v_orig.investor_id
     AND fund_id = v_orig.fund_id
     AND status = 'completed'
-    AND ABS(EXTRACT(EPOCH FROM (created_at - v_orig.created_at))) < 86400  -- within 24h
-  ORDER BY created_at DESC
+    AND ABS(EXTRACT(EPOCH FROM (request_date - v_orig.created_at))) < 86400  -- within 24h
+  ORDER BY request_date DESC
   LIMIT 1;
 
   IF v_request IS NULL THEN
