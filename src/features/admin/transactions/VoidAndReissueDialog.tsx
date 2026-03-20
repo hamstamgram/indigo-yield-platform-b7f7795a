@@ -199,12 +199,18 @@ export function VoidAndReissueDialog({
       return;
     }
 
+    // Re-apply negative sign for debit types — form shows absolute value
+    // but RPC expects the original sign convention (negative for outflows)
+    const DEBIT_TYPES = ["WITHDRAWAL", "FEE", "INTERNAL_WITHDRAWAL", "IB_DEBIT"];
+    const isDebit = DEBIT_TYPES.includes(transaction.type);
+    const signedAmount = isDebit ? `-${data.amount.replace(/^-/, "")}` : data.amount;
+
     voidAndReissueMutation.mutate(
       {
         transactionId: transaction.id,
         newValues: {
           tx_date: data.tx_date,
-          amount: data.amount, // Keep as string for NUMERIC precision
+          amount: signedAmount,
           notes: data.notes || null,
         },
         reason: data.reason.trim(),
