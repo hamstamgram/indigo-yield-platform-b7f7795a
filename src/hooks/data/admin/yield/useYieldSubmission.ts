@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { applyYieldDistribution } from "@/services/admin";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 import { formatAUM } from "@/utils/formatters";
+import { parseFinancial } from "@/utils/financial";
 import type { YieldPurpose } from "./useYieldPeriod";
 
 export function useYieldSubmission() {
@@ -74,7 +75,7 @@ export function useYieldSubmission() {
         const asset = selectedFund.asset;
         const grossYieldNum =
           typeof applyResult.grossYield === "string"
-            ? parseFloat(applyResult.grossYield)
+            ? parseFinancial(applyResult.grossYield).toNumber()
             : applyResult.grossYield;
         const appliedInvestorCount = applyResult.investorCount ?? yieldPreview.investorCount;
 
