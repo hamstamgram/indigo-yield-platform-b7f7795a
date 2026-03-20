@@ -423,6 +423,111 @@ async function unvoidTransactionsBulk(
   };
 }
 
+/**
+ * Detect if a transaction is part of a full-exit withdrawal.
+ * Checks for linked DUST_SWEEP transactions and withdrawal_request.
+ */
+export async function getTransactionContext(transactionId: string): Promise<{
+  isFullExit: boolean;
+  hasDustSweeps: boolean;
+  withdrawalRequestId: string | null;
+  dustSweepCount: number;
+}> {
+  const supabaseClient = (await import("@/integrations/supabase/client")).supabase;
+
+  // Fetch the transaction
+  const { data: tx } = await supabaseClient
+    .from("transactions_v2")
+    .select("id, type, amount, tx_date, investor_id, fund_id, created_at")
+    .eq("id", transactionId)
+    .maybeSingle();
+
+  if (!tx || tx.type !== "WITHDRAWAL") {
+    return {
+      isFullExit: false,
+      hasDustSweeps: false,
+      withdrawalRequestId: null,
+      dustSweepCount: 0,
+    };
+  }
+
+  // Check for DUST_SWEEP transactions on same fund + date
+  const { data: dustSweeps } = await supabaseClient
+    .from("transactions_v2")
+    .select("id")
+    .eq("type", "DUST_SWEEP")
+    .eq("fund_id", tx.fund_id)
+    .eq("tx_date", tx.tx_date)
+    .eq("is_voided", false);
+
+  const dustSweepCount = dustSweeps?.length ?? 0;
+
+  // Look for linked withdrawal_request
+  const { data: request } = await supabaseClient
+    .from("withdrawal_requests")
+    .select("id, withdrawal_type")
+    .eq("investor_id", tx.investor_id)
+    .eq("fund_id", tx.fund_id)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const isFullExit = dustSweepCount > 0 || request?.withdrawal_type === "FULL";
+
+  return {
+    isFullExit,
+    hasDustSweeps: dustSweepCount > 0,
+    withdrawalRequestId: request?.id ?? null,
+    dustSweepCount,
+  };
+}
+
+/**
+ * Void and reissue a full-exit withdrawal.
+ * Calls the dedicated RPC that voids original + dust sweeps,
+ * resets withdrawal_request, and re-processes via approve_and_complete_withdrawal.
+ */
+async function voidAndReissueFullExit(params: {
+  transactionId: string;
+  newAmount: string;
+  reason: string;
+}): Promise<VoidAndReissueResult> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user?.id) throw new Error("Authentication required");
+
+  const { data, error } = await rpc.call(
+    "void_and_reissue_full_exit" as any,
+    {
+      p_transaction_id: params.transactionId,
+      p_new_amount: parseFinancial(params.newAmount).toString() as unknown as number,
+      p_admin_id: user.id,
+      p_reason: params.reason,
+    } as any
+  );
+
+  if (error) {
+    throw new Error(error.userMessage || error.message);
+  }
+
+  const result = (data as Record<string, unknown>) || {};
+  if (result.success === false) {
+    const errorObj = (result.error as Record<string, unknown>) || {};
+    throw new Error((errorObj.message as string) || "Full-exit void and reissue failed");
+  }
+
+  return {
+    success: true,
+    voided_transaction_id: (result.voided_tx_id as string) || params.transactionId,
+    new_transaction_id: (result.new_tx_id as string) || "",
+    message: (result.message as string) || "Full-exit withdrawal corrected successfully",
+  };
+}
+
 export const adminTransactionHistoryService = {
   fetchActiveFunds,
   fetchTransactions,
@@ -432,4 +537,6 @@ export const adminTransactionHistoryService = {
   voidAndReissueTransaction,
   voidTransactionsBulk,
   unvoidTransactionsBulk,
+  getTransactionContext,
+  voidAndReissueFullExit,
 };

@@ -190,6 +190,36 @@ export function useTransactionMutations() {
     },
   });
 
+  const voidAndReissueFullExitMutation = useMutation({
+    mutationFn: (params: {
+      transactionId: string;
+      newAmount: string;
+      reason: string;
+      investorId?: string;
+      fundId?: string;
+    }) => adminTransactionHistoryService.voidAndReissueFullExit(params),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.adminTransactions });
+      const previousTransactions = queryClient.getQueriesData({
+        queryKey: QUERY_KEYS.adminTransactions,
+      });
+      return { previousTransactions };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+    onSuccess: () => {
+      // Toast handled by component
+    },
+    onSettled: (_, __, variables) => {
+      invalidateAfterTransaction(queryClient, variables.investorId, variables.fundId);
+    },
+  });
+
   const bulkUnvoidMutation = useMutation({
     mutationFn: (params: BulkUnvoidTransactionParams) =>
       adminTransactionHistoryService.unvoidTransactionsBulk(params),
@@ -221,6 +251,7 @@ export function useTransactionMutations() {
     voidMutation,
     unvoidMutation,
     voidAndReissueMutation,
+    voidAndReissueFullExitMutation,
     bulkVoidMutation,
     bulkUnvoidMutation,
   };
