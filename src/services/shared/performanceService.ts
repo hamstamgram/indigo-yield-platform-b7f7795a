@@ -492,6 +492,10 @@ export const performanceService = {
         const pos = positionMap.get(r.fund_name) as any;
         const liveBalance = pos.currentValue;
 
+        // MTD is the current in-progress month — use live balance for accuracy.
+        // QTD/YTD/ITD span completed past periods — use the DB-computed ending
+        // balance so the balance equation (beginning + net = ending) holds exactly.
+        // Fall back to liveBalance only when the DB field is zero/null (no data yet).
         return {
           fundName: pos.fundName,
           assetSymbol: pos.asset,
@@ -509,7 +513,7 @@ export const performanceService = {
             additions: Number(r.qtd_additions || 0),
             redemptions: Number(r.qtd_redemptions || 0),
             netIncome: Number(r.qtd_net_income || 0),
-            endingBalance: liveBalance,
+            endingBalance: Number(r.qtd_ending_balance || 0) || liveBalance,
             rateOfReturn: Number(r.qtd_rate_of_return || 0),
           },
           ytd: {
@@ -517,7 +521,7 @@ export const performanceService = {
             additions: Number(r.ytd_additions || 0),
             redemptions: Number(r.ytd_redemptions || 0),
             netIncome: Number(r.ytd_net_income || 0),
-            endingBalance: liveBalance,
+            endingBalance: Number(r.ytd_ending_balance || 0) || liveBalance,
             rateOfReturn: Number(r.ytd_rate_of_return || 0),
           },
           itd: {
@@ -525,7 +529,7 @@ export const performanceService = {
             additions: Number(r.itd_additions || 0),
             redemptions: Number(r.itd_redemptions || 0),
             netIncome: Number(r.itd_net_income || 0),
-            endingBalance: liveBalance,
+            endingBalance: Number(r.itd_ending_balance || 0) || liveBalance,
             rateOfReturn: Number(r.itd_rate_of_return || 0),
           },
         };
