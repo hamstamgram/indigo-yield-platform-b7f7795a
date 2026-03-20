@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -100,6 +102,8 @@ export function CreateWithdrawalDialog({
     selectedInvestorId || null,
     selectedFundId || null
   );
+
+  const queryClient = useQueryClient();
 
   // Mutation hook
   const { createMutation } = useWithdrawalMutations();
@@ -219,6 +223,9 @@ export function CreateWithdrawalDialog({
       },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawals });
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingWithdrawals });
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalStats });
           reset();
           setSelectedInvestorId("");
           setSelectedFundId("");
