@@ -23,7 +23,6 @@ import type {
   YieldDistribution,
   YieldTotals,
   YieldCalculationResult,
-  V5YieldRPCResult,
 } from "@/types/domains/yield";
 
 /**
@@ -92,21 +91,6 @@ export async function applyYieldDistribution(
     period_start: rpcResult.period_start as string,
     period_end: rpcResult.period_end as string,
     dust_amount: String(rpcResult.dust_amount ?? 0),
-  };
-
-  const result: Partial<V5YieldRPCResult> = {
-    success: true,
-    opening_aum: Number(distData.opening_aum || 0),
-    recorded_aum: Number(distData.recorded_aum || 0),
-    gross_yield: Number(distData.gross_yield || 0),
-    net_yield: Number(distData.net_yield || 0),
-    total_fees: Number(distData.total_fees || 0),
-    total_ib: Number(distData.total_ib || 0),
-    total_fee_credit: 0,
-    total_ib_credit: 0,
-    investor_count: Number(distData.investor_count || 0),
-    period_start: distData.period_start,
-    period_end: distData.period_end,
   };
 
   // Finalize yield visibility
@@ -205,7 +189,7 @@ export async function applyYieldDistribution(
     dustAmount: String(distData.dust_amount ?? 0),
     calculationMethod: "segmented_v5",
     features: ["segmented_proportional"],
-    conservationCheck: true,
+    conservationCheck: Boolean(rpcResult.conservation_check ?? true),
     segmentCount: undefined,
     openingAum: String(distData.opening_aum || 0),
     recordedAum: String(distData.recorded_aum || 0),
