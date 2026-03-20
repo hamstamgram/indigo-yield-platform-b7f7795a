@@ -2,8 +2,9 @@ import { describe, it, expect } from "vitest";
 
 /**
  * Issue 5: Ledger shows duplicate dust transactions
- * The fix filters out DUST_SWEEP entries from the ledger display.
- * DUST_SWEEP is an internal routing transaction — only DUST should appear.
+ * The fix filters out DUST_SWEEP entries from the investor ledger display.
+ * DUST_SWEEP is an internal routing transaction (admin-only visibility).
+ * DB enum only has DUST_SWEEP — "DUST" was a phantom value and has been removed.
  */
 describe("useInvestorLedger DUST_SWEEP filter (Issue 5)", () => {
   it("filters out DUST_SWEEP transactions from results", () => {
@@ -11,7 +12,7 @@ describe("useInvestorLedger DUST_SWEEP filter (Issue 5)", () => {
     const rawData = [
       { id: "1", type: "DEPOSIT", amount: 100, tx_date: "2026-01-01" },
       { id: "2", type: "YIELD", amount: 5, tx_date: "2026-01-15" },
-      { id: "3", type: "DUST", amount: 0.01, tx_date: "2026-01-15" },
+      { id: "3", type: "INTERNAL_CREDIT", amount: 0.01, tx_date: "2026-01-15" },
       { id: "4", type: "DUST_SWEEP", amount: 0.01, tx_date: "2026-01-15" },
     ];
 
@@ -19,7 +20,7 @@ describe("useInvestorLedger DUST_SWEEP filter (Issue 5)", () => {
 
     expect(filtered).toHaveLength(3);
     expect(filtered.find((tx) => tx.type === "DUST_SWEEP")).toBeUndefined();
-    expect(filtered.find((tx) => tx.type === "DUST")).toBeDefined();
+    expect(filtered.find((tx) => tx.type === "INTERNAL_CREDIT")).toBeDefined();
   });
 
   it("preserves all non-DUST_SWEEP transactions", () => {
@@ -29,7 +30,7 @@ describe("useInvestorLedger DUST_SWEEP filter (Issue 5)", () => {
       { id: "3", type: "YIELD", amount: 5 },
       { id: "4", type: "FEE_CREDIT", amount: 1.5 },
       { id: "5", type: "IB_CREDIT", amount: 0.5 },
-      { id: "6", type: "DUST", amount: 0.001 },
+      { id: "6", type: "INTERNAL_CREDIT", amount: 0.001 },
     ];
 
     const filtered = rawData.filter((tx) => tx.type !== "DUST_SWEEP");

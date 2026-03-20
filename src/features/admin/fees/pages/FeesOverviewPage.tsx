@@ -60,7 +60,6 @@ function FeesOverviewContent({ embedded = false }: { embedded?: boolean }) {
         f.type === "FEE_CREDIT" ||
         f.type === "IB_CREDIT" ||
         f.type === "YIELD" ||
-        f.type === "DUST" ||
         f.type === "DUST_SWEEP" ||
         f.type === "INTERNAL_CREDIT"
     );

@@ -260,7 +260,6 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
       case "FEE_CREDIT":
       case "IB_CREDIT":
         return cn(base, "bg-indigo-500/15 text-indigo-400 border border-indigo-500/20");
-      case "DUST":
       case "DUST_SWEEP":
         return cn(base, "bg-amber-100 text-amber-800 border-amber-200");
       case "INTERNAL_CREDIT":

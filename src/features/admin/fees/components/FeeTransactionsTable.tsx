@@ -64,14 +64,11 @@ const getTypeBadge = (type: string) => {
           Yield Share
         </Badge>
       );
-    case "DUST":
     case "DUST_SWEEP":
       return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Dust Sweep</Badge>;
     case "INTERNAL_CREDIT":
       return (
-        <Badge className="bg-teal-500/15 text-teal-400 border border-teal-500/20">
-          Dust Route
-        </Badge>
+        <Badge className="bg-teal-500/15 text-teal-400 border border-teal-500/20">Dust Route</Badge>
       );
     case "INTERNAL_WITHDRAWAL":
       return (
