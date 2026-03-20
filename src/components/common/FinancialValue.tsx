@@ -7,6 +7,7 @@
 import Decimal from "decimal.js";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { getAssetDecimals } from "@/types/asset";
 
 interface FinancialValueProps {
   /** The numeric value to display */
@@ -24,18 +25,6 @@ interface FinancialValueProps {
   /** Whether to apply color based on value sign */
   colorize?: boolean;
 }
-
-// Asset-specific default decimals
-const ASSET_DECIMALS: Record<string, number> = {
-  BTC: 8,
-  ETH: 6,
-  SOL: 4,
-  XRP: 4,
-  USDC: 2,
-  USDT: 2,
-  EURC: 2,
-  XAUT: 4,
-};
 
 export function FinancialValue({
   value,
@@ -60,8 +49,8 @@ export function FinancialValue({
     return <span className={cn("text-muted-foreground", className)}>—</span>;
   }
 
-  // Determine display decimals: explicit > asset-specific > default 8
-  const decimals = displayDecimals ?? ASSET_DECIMALS[asset?.toUpperCase()] ?? 8;
+  // Determine display decimals: explicit > asset-specific (from ASSET_CONFIGS) > default 4
+  const decimals = displayDecimals ?? getAssetDecimals(asset);
 
   // Format for display
   const displayValue = decimalValue.toFixed(decimals);

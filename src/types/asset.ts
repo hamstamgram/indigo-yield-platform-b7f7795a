@@ -124,7 +124,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
   SOL: {
     symbol: "SOL",
     name: "SOL Yield Fund",
-    decimals: 8,
+    decimals: 9,
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png",
     color: "#14F195",
   },

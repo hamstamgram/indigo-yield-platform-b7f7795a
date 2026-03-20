@@ -66,6 +66,7 @@ import { cn } from "@/lib/utils";
 
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 import { formatAssetValue } from "@/utils/formatters";
+import { parseFinancial } from "@/utils/financial";
 import { ExportButton } from "@/components/common";
 import type { ExportColumn } from "@/lib/export/csv-export";
 
@@ -237,10 +238,11 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
     [sortedData, selection.selectedIds]
   );
 
-  const formatAmount = (amount: number, asset: string, type: string) => {
-    const isNegative = type === "WITHDRAWAL" || type === "FEE" || amount < 0;
+  const formatAmount = (amount: number | string, asset: string, type: string) => {
+    const numAmount = typeof amount === "string" ? parseFinancial(amount).toNumber() : amount;
+    const isNegative = type === "WITHDRAWAL" || type === "FEE" || numAmount < 0;
     const sign = isNegative ? "-" : "+";
-    const formatted = formatAssetValue(Math.abs(amount), asset);
+    const formatted = formatAssetValue(Math.abs(numAmount), asset);
     return `${sign}${formatted}`;
   };
 
@@ -624,12 +626,12 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
                                     ? "line-through text-muted-foreground"
                                     : tx.type === "WITHDRAWAL" ||
                                         tx.type === "FEE" ||
-                                        parseFloat(tx.amount) < 0
+                                        parseFinancial(tx.amount).lt(0)
                                       ? "text-rose-400"
                                       : "text-yield"
                                 }
                               >
-                                {formatAmount(parseFloat(tx.amount), tx.asset, tx.type)}
+                                {formatAmount(tx.amount, tx.asset, tx.type)}
                               </span>
                               <CryptoIcon symbol={tx.asset} className="h-3.5 w-3.5" />
                             </div>
