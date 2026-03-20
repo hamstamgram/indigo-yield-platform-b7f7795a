@@ -60,27 +60,23 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
     const pending: typeof active = [];
     const visible = active;
     const voidedCount = yieldEvents.filter((e) => e.is_voided).length;
-    const totalGross = active.reduce(
-      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.gross_yield_amount)).toNumber(),
-      0
-    );
-    const totalFees = active.reduce(
-      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.fee_amount)).toNumber(),
-      0
-    );
-    const totalNet = active.reduce(
-      (sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(),
-      0
-    );
+    const totalGross = active
+      .reduce((sum, e) => sum.plus(parseFinancial(e.gross_yield_amount)), parseFinancial(0))
+      .toNumber();
+    const totalFees = active
+      .reduce((sum, e) => sum.plus(parseFinancial(e.fee_amount)), parseFinancial(0))
+      .toNumber();
+    const totalNet = active
+      .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), parseFinancial(0))
+      .toNumber();
 
     return {
       pendingCount: pending.length,
       visibleCount: visible.length,
       voidedCount,
-      pendingYield: pending.reduce(
-        (sum, e) => parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(),
-        0
-      ),
+      pendingYield: pending
+        .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), parseFinancial(0))
+        .toNumber(),
       totalGross,
       totalFees,
       totalNet,
@@ -167,10 +163,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                     {stats.pendingCount} Pending
                   </Badge>
                 )}
-                <Badge
-                  variant="outline"
-                  className="bg-yield/10 text-yield border-yield/20"
-                >
+                <Badge variant="outline" className="bg-yield/10 text-yield border-yield/20">
                   <Eye className="h-3 w-3 mr-1" />
                   {stats.visibleCount} Visible
                 </Badge>
@@ -260,12 +253,7 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                   </TableHeader>
                   <TableBody>
                     {yieldEvents.map((event) => (
-                      <TableRow
-                        key={event.id}
-                        className={cn(
-                          event.is_voided && "opacity-60"
-                        )}
-                      >
+                      <TableRow key={event.id} className={cn(event.is_voided && "opacity-60")}>
                         <TableCell className="font-mono whitespace-nowrap py-1.5">
                           {format(new Date(event.event_date), "MMM d, yyyy")}
                         </TableCell>
