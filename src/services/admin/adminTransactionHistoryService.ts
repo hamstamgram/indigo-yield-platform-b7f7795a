@@ -442,6 +442,9 @@ export interface TransactionContextResult {
   withdrawalRequestId: string | null;
   dustSweepCount: number;
   relatedTransactions: RelatedTransaction[];
+  investorBalance: string | null;
+  asset: string | null;
+  investorName: string | null;
 }
 
 export async function getTransactionContext(
@@ -463,6 +466,9 @@ export async function getTransactionContext(
       withdrawalRequestId: null,
       dustSweepCount: 0,
       relatedTransactions: [],
+      investorBalance: null,
+      asset: null,
+      investorName: null,
     };
   }
 
@@ -505,12 +511,30 @@ export async function getTransactionContext(
 
   const isFullExit = dustSweepCount > 0 || request?.withdrawal_type === "FULL";
 
+  // Fetch investor's current position balance for preview
+  let investorBalance: string | null = null;
+  if (isFullExit) {
+    const { data: position } = await supabaseClient
+      .from("investor_positions")
+      .select("current_value")
+      .eq("investor_id", tx.investor_id)
+      .eq("fund_id", tx.fund_id)
+      .maybeSingle();
+    investorBalance = position ? String(position.current_value) : null;
+  }
+
+  // Get investor name from the withdrawal transaction
+  const withdrawalTx = relatedTransactions.find((t) => t.type === "WITHDRAWAL");
+
   return {
     isFullExit,
     hasDustSweeps: dustSweepCount > 0,
     withdrawalRequestId: request?.id ?? null,
     dustSweepCount,
     relatedTransactions,
+    investorBalance,
+    asset: tx.asset,
+    investorName: withdrawalTx?.investorName ?? null,
   };
 }
 

@@ -50,6 +50,7 @@ import {
 } from "@/services/admin/adminTransactionHistoryService";
 import { Badge } from "@/components/ui/badge";
 import { FinancialValue } from "@/components/common/FinancialValue";
+import { parseFinancial } from "@/utils/financial";
 import usePlatformError, { routeErrorAction } from "@/hooks/usePlatformError";
 import { PlatformErrorCode } from "@/types/errors/platformErrors";
 import { getCurrentUser } from "@/services/auth/authService";
@@ -404,6 +405,105 @@ export function VoidAndReissueDialog({
                 </div>
               </div>
             )}
+
+            {/* Preview of NEW transactions that will be created */}
+            {(() => {
+              const newAmount = watchedValues.amount;
+              const balance = txContext?.investorBalance;
+              const asset = txContext?.asset || transaction?.asset || "";
+              const investorName = txContext?.investorName || transaction?.investorName || "";
+
+              if (!newAmount || !balance) return null;
+
+              try {
+                const balanceDec = parseFinancial(balance);
+                const amountDec = parseFinancial(newAmount);
+                // Full exit: TRUNC(balance, 3) for withdrawal, remainder for dust
+                const truncated = balanceDec.toDecimalPlaces(3, 1); // 1 = ROUND_DOWN (floor)
+                const dust = balanceDec.minus(truncated);
+                const feesAccountName = "Indigo Fees";
+
+                return (
+                  <div className="rounded-md border border-emerald-500/20 overflow-hidden">
+                    <div className="px-3 py-2 bg-emerald-500/5 border-b border-emerald-500/20">
+                      <p className="text-xs font-medium text-emerald-400 uppercase tracking-wider">
+                        New transactions (preview)
+                      </p>
+                    </div>
+                    <div className="divide-y divide-white/5">
+                      {truncated.gt(0) && (
+                        <div className="px-3 py-2 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] uppercase tracking-wider shrink-0 border-emerald-500/30 text-emerald-400"
+                            >
+                              Withdrawal
+                            </Badge>
+                            <span className="text-sm text-muted-foreground truncate">
+                              {investorName}
+                            </span>
+                          </div>
+                          <FinancialValue
+                            value={`-${truncated.toString()}`}
+                            asset={asset}
+                            showAsset
+                            colorize
+                            className="text-sm font-mono shrink-0"
+                          />
+                        </div>
+                      )}
+                      {dust.gt(0) && (
+                        <>
+                          <div className="px-3 py-2 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] uppercase tracking-wider shrink-0 border-amber-500/30 text-amber-400"
+                              >
+                                Dust Sweep
+                              </Badge>
+                              <span className="text-sm text-muted-foreground truncate">
+                                {investorName}
+                              </span>
+                            </div>
+                            <FinancialValue
+                              value={`-${dust.toString()}`}
+                              asset={asset}
+                              showAsset
+                              colorize
+                              className="text-sm font-mono shrink-0"
+                            />
+                          </div>
+                          <div className="px-3 py-2 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] uppercase tracking-wider shrink-0 border-amber-500/30 text-amber-400"
+                              >
+                                Dust Sweep
+                              </Badge>
+                              <span className="text-sm text-muted-foreground truncate">
+                                {feesAccountName}
+                              </span>
+                            </div>
+                            <FinancialValue
+                              value={dust.toString()}
+                              asset={asset}
+                              showAsset
+                              colorize
+                              className="text-sm font-mono shrink-0"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              } catch {
+                return null;
+              }
+            })()}
           </div>
         )}
 
