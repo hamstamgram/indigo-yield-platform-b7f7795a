@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data";
+import { getTransactionContext } from "@/services/admin/adminTransactionHistoryService";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import usePlatformError, { routeErrorAction } from "@/hooks/usePlatformError";
 import { PlatformErrorCode } from "@/types/errors/platformErrors";
@@ -78,6 +79,13 @@ const reissueSchema = z
 
 type ReissueFormData = z.infer<typeof reissueSchema>;
 
+type TransactionContext = {
+  isFullExit: boolean;
+  hasDustSweeps: boolean;
+  withdrawalRequestId: string | null;
+  dustSweepCount: number;
+};
+
 /**
  * Transaction data required for void and reissue
  */
@@ -110,7 +118,9 @@ export function VoidAndReissueDialog({
 }: VoidAndReissueDialogProps) {
   const [confirmText, setConfirmText] = useState("");
   const [activeTab, setActiveTab] = useState<"changes" | "review">("changes");
-  const { voidAndReissueMutation } = useTransactionMutations();
+  const [txContext, setTxContext] = useState<TransactionContext | null>(null);
+  const [loadingContext, setLoadingContext] = useState(false);
+  const { voidAndReissueMutation, voidAndReissueFullExitMutation } = useTransactionMutations();
   const { handleError, error: platformError, clearError } = usePlatformError();
 
   const {
@@ -128,6 +138,19 @@ export function VoidAndReissueDialog({
   });
 
   const watchedValues = watch();
+
+  // Fetch transaction context when dialog opens
+  useEffect(() => {
+    if (transaction && open) {
+      setLoadingContext(true);
+      getTransactionContext(transaction.id)
+        .then(setTxContext)
+        .catch(() => setTxContext(null))
+        .finally(() => setLoadingContext(false));
+    } else {
+      setTxContext(null);
+    }
+  }, [transaction?.id, open]);
 
   // Reset form when transaction changes
   useEffect(() => {
@@ -185,6 +208,7 @@ export function VoidAndReissueDialog({
 
   const changes = getChanges();
   const hasChanges = changes.length > 0;
+  const isFullExit = txContext?.isFullExit ?? false;
 
   const onSubmit = async (data: ReissueFormData) => {
     if (!transaction) return;
@@ -203,6 +227,39 @@ export function VoidAndReissueDialog({
     const DEBIT_TYPES = ["WITHDRAWAL", "FEE", "INTERNAL_WITHDRAWAL", "IB_DEBIT"];
     const isDebit = DEBIT_TYPES.includes(transaction.type);
     const signedAmount = isDebit ? `-${data.amount.replace(/^-/, "")}` : data.amount;
+
+    if (isFullExit) {
+      voidAndReissueFullExitMutation.mutate(
+        {
+          transactionId: transaction.id,
+          newAmount: data.amount,
+          reason: data.reason.trim(),
+          investorId: transaction.investorId,
+          fundId: transaction.fundId || undefined,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Full-exit withdrawal corrected", {
+              description: "Original voided, withdrawal re-processed with dust recalculation",
+            });
+            reset();
+            setConfirmText("");
+            onSuccess();
+            onOpenChange(false);
+          },
+          onError: (err) => {
+            handleError(err, {
+              onUIAction: (_action, error) => {
+                routeErrorAction(error, {
+                  onFocusDateField: () => setActiveTab("changes"),
+                });
+              },
+            });
+          },
+        }
+      );
+      return;
+    }
 
     voidAndReissueMutation.mutate(
       {
@@ -291,6 +348,23 @@ export function VoidAndReissueDialog({
               <p className="text-sm mt-1">
                 This transaction was created automatically (yield distribution, fee, etc.). Contact
                 support if correction is needed.
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isFullExit && (
+          <Alert className="border-amber-500/20 bg-amber-500/10">
+            <AlertTriangle className="h-4 w-4 text-amber-400" />
+            <AlertDescription className="text-amber-200">
+              <strong>Full-exit withdrawal detected.</strong>
+              <p className="text-sm mt-1">
+                This correction will void the original withdrawal
+                {txContext?.dustSweepCount
+                  ? ` + ${txContext.dustSweepCount} dust sweep transactions`
+                  : ""}
+                , then re-process the full exit with the new amount. Dust will be recalculated
+                automatically.
               </p>
             </AlertDescription>
           </Alert>
@@ -435,7 +509,9 @@ export function VoidAndReissueDialog({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={voidAndReissueMutation.isPending}
+              disabled={
+                voidAndReissueMutation.isPending || voidAndReissueFullExitMutation.isPending
+              }
             >
               Cancel
             </Button>
@@ -448,10 +524,13 @@ export function VoidAndReissueDialog({
               <Button
                 type="submit"
                 disabled={
-                  voidAndReissueMutation.isPending || confirmText !== "REISSUE" || !!errors.reason
+                  voidAndReissueMutation.isPending ||
+                  voidAndReissueFullExitMutation.isPending ||
+                  confirmText !== "REISSUE" ||
+                  !!errors.reason
                 }
               >
-                {voidAndReissueMutation.isPending && (
+                {(voidAndReissueMutation.isPending || voidAndReissueFullExitMutation.isPending) && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 <RefreshCw className="mr-2 h-4 w-4" />
