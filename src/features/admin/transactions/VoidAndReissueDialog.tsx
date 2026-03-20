@@ -409,18 +409,34 @@ export function VoidAndReissueDialog({
             {/* Preview of NEW transactions that will be created */}
             {(() => {
               const newAmount = watchedValues.amount;
-              const balance = txContext?.investorBalance;
               const asset = txContext?.asset || transaction?.asset || "";
               const investorName = txContext?.investorName || transaction?.investorName || "";
 
-              if (!newAmount || !balance) return null;
+              // Compute restored balance: after voiding, the investor gets back
+              // the absolute withdrawal amount + dust. Use the voided transactions
+              // to calculate what balance will be restored to.
+              let restoredBalance = txContext?.investorBalance
+                ? parseFinancial(txContext.investorBalance)
+                : parseFinancial(0);
+
+              // If current balance is 0 (full exit already completed), compute from voided txs
+              if (restoredBalance.eq(0) && txContext?.relatedTransactions) {
+                // Sum absolute amounts of investor's voided transactions (withdrawal + dust debit)
+                const investorTxs = txContext.relatedTransactions.filter(
+                  (t) => t.investorName === investorName && parseFinancial(t.amount).lt(0)
+                );
+                restoredBalance = investorTxs.reduce(
+                  (sum, t) => sum.plus(parseFinancial(t.amount).abs()),
+                  parseFinancial(0)
+                );
+              }
+
+              if (!newAmount || restoredBalance.eq(0)) return null;
 
               try {
-                const balanceDec = parseFinancial(balance);
-                const amountDec = parseFinancial(newAmount);
-                // Full exit: TRUNC(balance, 3) for withdrawal, remainder for dust
-                const truncated = balanceDec.toDecimalPlaces(3, 1); // 1 = ROUND_DOWN (floor)
-                const dust = balanceDec.minus(truncated);
+                // Full exit: TRUNC(restored_balance, 3) for withdrawal, remainder for dust
+                const truncated = restoredBalance.toDecimalPlaces(3, 1); // 1 = ROUND_DOWN (floor)
+                const dust = restoredBalance.minus(truncated);
                 const feesAccountName = "Indigo Fees";
 
                 return (
