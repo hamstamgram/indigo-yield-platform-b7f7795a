@@ -67,6 +67,8 @@ interface VoidReissueRPCResult {
     voided_transaction_id?: string;
     new_transaction_id?: string;
   };
+  voided_tx_id?: string;
+  new_tx_id?: string;
   voided_transaction_id?: string;
   new_transaction_id?: string;
   message?: string;
@@ -269,6 +271,7 @@ async function voidAndReissueTransaction(
     p_new_notes: mergedNotes ?? undefined,
     p_admin_id: user.id,
     p_reason: params.reason,
+    p_new_tx_hash: params.newValues.tx_hash || undefined,
   });
 
   if (error) {
@@ -291,11 +294,16 @@ async function voidAndReissueTransaction(
     return {
       success: true,
       voided_transaction_id:
+        (rpcResult.voided_tx_id as string) ||
+        (rpcResult.voided_transaction_id as string) ||
         rpcResult.data?.voided_transaction_id ||
-        rpcResult.voided_transaction_id ||
         params.transactionId,
-      new_transaction_id: rpcResult.data?.new_transaction_id || rpcResult.new_transaction_id || "",
-      message: rpcResult.message,
+      new_transaction_id:
+        (rpcResult.new_tx_id as string) ||
+        (rpcResult.new_transaction_id as string) ||
+        rpcResult.data?.new_transaction_id ||
+        "",
+      message: (rpcResult.message as string) || "Transaction corrected successfully",
     };
   }
 
