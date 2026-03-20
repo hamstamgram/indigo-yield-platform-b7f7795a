@@ -88,34 +88,31 @@ rpc.call("apply_withdrawal_with_crystallization", {
 
 ## Yield Operations
 
-### adjust_investor_position (Preferred Overload)
-
-> **⚠️ Note**: This function has 2 overloads. The **8-parameter version** below is the canonical/preferred overload as it includes `p_reference_id` for idempotency.
+### adjust_investor_position
 
 ```typescript
 rpc.call("adjust_investor_position", {
-  p_investor_id: string,      // Required
   p_fund_id: string,          // Required
-  p_delta: number,            // Required - positive or negative
-  p_note: string,             // Required
-  p_admin_id: string,         // Required
-  p_tx_type: string,          // Required - e.g., "ADJUSTMENT"
+  p_investor_id: string,      // Required
+  p_amount: number,           // Required
   p_tx_date: string,          // Required
-  p_reference_id: string,     // Required for idempotency
+  p_reason: string,           // Required
+  p_admin_id: string | null,  // Optional (defaults to auth.uid())
 });
 ```
 
 ---
 
-### apply_daily_yield_to_fund_v3
+### apply_daily_yield_with_validation
 
 ```typescript
-rpc.call("apply_daily_yield_to_fund_v3", {
+rpc.call("apply_daily_yield_with_validation", {
   p_fund_id: string,
   p_yield_date: string,
   p_gross_yield_pct: number,
-  p_created_by: string | null,
-  p_purpose: string | null,
+  p_created_by: string,
+  p_purpose: string,          // Optional, default 'transaction'
+  p_skip_validation: boolean, // Optional, default false
 });
 ```
 
@@ -124,8 +121,7 @@ rpc.call("apply_daily_yield_to_fund_v3", {
 ```typescript
 rpc.call("update_transaction", {
   p_transaction_id: string,
-  p_updates: Json,  // Object with fields to update
-  p_admin_id: string,
+  p_updates: Json,            // Object with fields to update
   p_reason: string,
 });
 ```
@@ -135,8 +131,7 @@ rpc.call("update_transaction", {
 ```typescript
 rpc.call("delete_transaction", {
   p_transaction_id: string,
-  p_admin_id: string,
-  p_reason: string,
+  p_confirmation: string,
 });
 ```
 
