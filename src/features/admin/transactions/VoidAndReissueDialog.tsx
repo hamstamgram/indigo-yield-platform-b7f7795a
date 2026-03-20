@@ -132,9 +132,15 @@ export function VoidAndReissueDialog({
   // Reset form when transaction changes
   useEffect(() => {
     if (transaction) {
+      // Use absolute amount for the form — ledger stores negatives for
+      // withdrawals/fees but the user should work with positive values.
+      // The RPC handles sign based on transaction type.
+      const absAmount = transaction.amount.startsWith("-")
+        ? transaction.amount.slice(1)
+        : transaction.amount;
       reset({
         tx_date: transaction.txDate,
-        amount: transaction.amount,
+        amount: absAmount,
         notes: transaction.notes || "",
         reason: "",
         originalType: transaction.type,
@@ -157,10 +163,13 @@ export function VoidAndReissueDialog({
         newValue: watchedValues.tx_date || "",
       });
     }
-    if (watchedValues.amount !== transaction.amount) {
+    const absOriginal = transaction.amount.startsWith("-")
+      ? transaction.amount.slice(1)
+      : transaction.amount;
+    if (watchedValues.amount !== absOriginal) {
       changes.push({
         field: "Amount",
-        oldValue: `${transaction.amount} ${transaction.asset}`,
+        oldValue: `${absOriginal} ${transaction.asset}`,
         newValue: `${watchedValues.amount || "0"} ${transaction.asset}`,
       });
     }
