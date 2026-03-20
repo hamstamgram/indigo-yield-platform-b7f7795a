@@ -122,13 +122,18 @@ export async function getInvestorPortfolio(investorId?: string): Promise<Investo
 
   const positions = await getInvestorPositions(id);
 
-  // Calculate performance metrics (simplified for now)
   const totalValue = summary.totalAUM;
   const totalPnL = summary.totalEarned;
 
   const denominator = totalValue - totalPnL;
   const safePercentage = totalValue > 0 && denominator !== 0 ? (totalPnL / denominator) * 100 : 0;
 
+  // MTD/QTD cannot be computed here: InvestorPositionDetail only carries lifetime
+  // balances (currentValue, costBasis, unrealizedPnl, realizedPnl). There is no
+  // per-period income breakdown on the position snapshot. To compute MTD/QTD
+  // accurately, query transactions_v2 filtered by tx_date within the current
+  // month/quarter, summing YIELD rows per investor — that requires a separate
+  // data fetch and belongs in a dedicated period-performance service function.
   const performanceMetrics: PortfolioPerformance = {
     mtd_return: 0,
     qtd_return: 0,
