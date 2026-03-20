@@ -589,6 +589,9 @@ export const WITHDRAWAL_RELATED_KEYS = [
   QUERY_KEYS.withdrawalRequestsAdmin,
   QUERY_KEYS.pendingWithdrawals,
   QUERY_KEYS.withdrawalStats,
+  QUERY_KEYS.investorPositions(),
+  QUERY_KEYS.funds,
+  QUERY_KEYS.perAssetStats,
 ];
 
 /**
