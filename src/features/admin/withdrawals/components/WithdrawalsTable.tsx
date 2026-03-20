@@ -420,10 +420,13 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                       </TableCell>
                       <TableCell className="py-1.5">
                         <div className="flex items-center gap-2">
-                          <CryptoIcon symbol={w.fund_class ?? "ASSET"} className="h-5 w-5" />
+                          <CryptoIcon
+                            symbol={w.asset || w.fund_class || "ASSET"}
+                            className="h-5 w-5"
+                          />
                           <FinancialValue
                             value={w.requested_amount}
-                            asset={w.fund_class ?? "UNITS"}
+                            asset={w.asset || w.fund_class || "UNITS"}
                             showAsset
                           />
                         </div>
