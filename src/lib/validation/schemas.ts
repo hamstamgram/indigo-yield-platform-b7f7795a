@@ -143,7 +143,12 @@ export const depositRequestSchema = z.object({
 });
 
 export const withdrawalRequestSchema = z.object({
-  amount: z.number().positive("Amount must be positive"),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Amount must be a positive number",
+    }),
   assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   notes: z.string().max(500, "Notes too long").optional(),
 });

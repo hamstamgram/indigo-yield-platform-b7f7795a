@@ -66,7 +66,8 @@ export function WithdrawalRequestForm({
 
   const availableBalance = positions.find((p) => p.asset_symbol === selectedAsset);
 
-  const hasValidAmount = requestedAmount && !isNaN(requestedAmount) && requestedAmount > 0;
+  const hasValidAmount =
+    requestedAmount && !isNaN(Number(requestedAmount)) && Number(requestedAmount) > 0;
 
   const isAmountValid =
     availableBalance && hasValidAmount
@@ -168,7 +169,7 @@ export function WithdrawalRequestForm({
               {availableBalance && (
                 <button
                   type="button"
-                  onClick={() => setValue("amount", parseFloat(availableBalance.amount))}
+                  onClick={() => setValue("amount", availableBalance.amount)}
                   className="text-xs text-primary hover:underline font-medium"
                 >
                   Withdraw All
@@ -180,7 +181,7 @@ export function WithdrawalRequestForm({
               type="number"
               step="0.001"
               placeholder="0.000"
-              {...register("amount", { valueAsNumber: true })}
+              {...register("amount")}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
             {hasValidAmount && availableBalance && !isAmountValid && (
