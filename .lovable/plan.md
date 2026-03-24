@@ -1,39 +1,54 @@
 
 
-# Fix: Manual Withdrawals Not Creating Withdrawal Request Records
+# Fix: Ryan's Missing Dust Sweep — Retroactive Correction
 
 ## Problem
 
-When an admin creates a withdrawal via the **Add Transaction dialog**, it calls `createInvestorTransaction` → `apply_transaction_with_crystallization` RPC. This only creates a `transactions_v2` ledger entry. It does **not** create a `withdrawal_requests` record.
+Ryan's withdrawal was processed via the old manual path (before the unified withdrawal flow fix). That path never created DUST_SWEEP transactions, so:
+- Ryan's position still has residual dust (0.02 per QA audit)
+- No dust appears on the Revenue page or any ledger
+- The position-ledger mismatch is -317.62
 
-The **Withdrawals table** (`/admin/ledger?tab=withdrawals`) queries the `withdrawal_requests` table — so manual withdrawals never appear there.
+## Approach
 
-The dust sweep also fails because it uses fragile client-side logic instead of the atomic `approve_and_complete_withdrawal` RPC.
+This is a **data correction**, not a code change. The code is already fixed (unified withdrawal flow + revenue page filters include DUST_SWEEP). The missing piece is that Ryan's historical withdrawal never generated the dust records.
 
-## Fix
+## Steps
 
-For WITHDRAWAL-type transactions in `useTransactionSubmit.ts`, replace the current two-step approach with:
+### Step 1: Investigate Ryan's Current State
+Query `transactions_v2` for Ryan's IND-XRP fund to see all ledger entries, confirm the withdrawal amount, and identify the exact dust residual. Also check `withdrawal_requests` to see if a record exists.
 
-1. **Insert a `withdrawal_requests` record** via `withdrawalService.createWithdrawal()` — status `pending`, with `is_full_exit` flag
-2. **Immediately approve and complete it** via `withdrawalService.approveAndComplete()` — which atomically creates the ledger entry, handles dust sweep for full exits, and sets the withdrawal to `completed`
-3. **Remove** the client-side dust sweep code (lines 103-152) entirely
+### Step 2: Create Corrective Migration
+A one-time SQL migration that:
 
-For non-full-exit withdrawals, also use this same path so ALL withdrawals appear in the withdrawal table consistently.
+1. **Inserts a DUST_SWEEP debit** from Ryan's position (negative amount = residual balance) with:
+   - `type = 'DUST_SWEEP'`
+   - `tx_date` = the original withdrawal date (not today)
+   - `visibility_scope = 'admin_only'`
+   - `reference_id = 'DUST_SWEEP_RETRO:ryan-xrp'`
+   - `notes` explaining the retroactive correction
+
+2. **Inserts a DUST_SWEEP credit** to the INDIGO Fees account (positive amount) with matching date and reference
+
+3. **Deactivates Ryan's position** (`is_active = false`) since this is a full exit
+
+4. The `trg_ledger_sync` trigger will automatically update position balances when the transactions are inserted
+
+### Step 3: Verify
+- Position balance goes to 0
+- Dust appears on Revenue page (DUST_SWEEP type is already included in the query filter)
+- Dust appears in admin ledger
+- Date matches original withdrawal date
+
+## Safety
+- Uses the same transaction types and patterns as the production `approve_and_complete_withdrawal` RPC
+- `trg_ledger_sync` handles position updates automatically — no manual position edits
+- Migration is idempotent: checks if corrective entries already exist before inserting
+- No code changes needed — all filters already support DUST_SWEEP
 
 ## Files to Change
 
-| File | Change |
+| Type | Detail |
 |------|--------|
-| `src/features/admin/transactions/hooks/useTransactionSubmit.ts` | For WITHDRAWAL type: insert `withdrawal_requests` record via `withdrawalService.createWithdrawal`, then call `withdrawalService.approveAndComplete`. Remove client-side dust sweep. Keep DEPOSIT/FIRST_INVESTMENT/ADJUSTMENT paths unchanged. |
-
-## What stays the same
-- All non-withdrawal transaction types use the existing `createInvestorTransaction` path
-- The `approve_and_complete_withdrawal` RPC is already battle-tested from the Command Center queue
-- No database or migration changes needed
-- No other UI components affected
-
-## Safety
-- The withdrawal request insert + approve/complete is a proven path already used by the investor portal flow
-- The `approve_and_complete_withdrawal` RPC handles dust atomically in one DB transaction — no more client-side race conditions
-- If the approve step fails after insert, the request stays as `pending` in the queue (visible, recoverable)
+| Migration | One-time corrective SQL to insert missing DUST_SWEEP pair for Ryan's IND-XRP withdrawal |
 
