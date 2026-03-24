@@ -594,6 +594,11 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>{format(new Date(withdrawal.request_date), "MMM dd, yyyy")}</span>
+                  {withdrawal.settlement_date && (
+                    <span className="ml-2 text-foreground/70">
+                      Settled: {format(new Date(withdrawal.settlement_date), "MMM dd, yyyy")}
+                    </span>
+                  )}
                 </div>
 
                 {/* Notes (if any) */}
