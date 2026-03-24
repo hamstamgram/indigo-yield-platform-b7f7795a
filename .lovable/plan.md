@@ -1,39 +1,39 @@
 
 
-# Fix: Dust Not Showing on Revenue Page + Add Settlement Date to Tables
+# Fix: Manual Withdrawals Not Creating Withdrawal Request Records
 
-## Issue 1: Dust Not Visible on Revenue Page
+## Problem
 
-**Root cause**: The `internal_route_to_fees` RPC creates transactions with `purpose = 'transaction'`. The revenue page query in `feesService.ts` line 123 has `.neq("purpose", "transaction")`, which **excludes** these dust transactions entirely.
+When an admin creates a withdrawal via the **Add Transaction dialog**, it calls `createInvestorTransaction` → `apply_transaction_with_crystallization` RPC. This only creates a `transactions_v2` ledger entry. It does **not** create a `withdrawal_requests` record.
 
-**Fix**: Remove the `.neq("purpose", "transaction")` filter from `getFeeTransactions()` in `feesService.ts`. The type-based filter (`.or(type.in.(FEE_CREDIT,IB_CREDIT,YIELD,DUST,DUST_SWEEP,INTERNAL_CREDIT),investor_id.eq.{fees_id})`) already narrows to revenue-relevant records. The purpose filter was originally added to avoid showing capital flow duplicates, but it accidentally excludes all internal routing dust.
+The **Withdrawals table** (`/admin/ledger?tab=withdrawals`) queries the `withdrawal_requests` table — so manual withdrawals never appear there.
 
-## Issue 2: Dust Not Visible in Investor Ledger
+The dust sweep also fails because it uses fragile client-side logic instead of the atomic `approve_and_complete_withdrawal` RPC.
 
-**Root cause**: `useInvestorLedger.ts` line 99 filters out ALL `DUST_SWEEP` type transactions. But the manual path creates `INTERNAL_WITHDRAWAL` type (not `DUST_SWEEP`), so this filter isn't even the issue -- the `INTERNAL_WITHDRAWAL` entries have `visibility_scope = 'admin_only'` and should already appear in the admin ledger. Need to verify if it's actually a different problem (the dust sweep simply never executed).
+## Fix
 
-The existing filter `tx.type !== "DUST_SWEEP"` is correct for the **investor-facing** ledger (hides internal routing). For the **admin** ledger, this same hook is used but the admin should see these entries. However, since the manual path uses `INTERNAL_WITHDRAWAL` type (not `DUST_SWEEP`), the filter doesn't affect it. The real issue is that the dust sweep likely didn't execute at all (the toast error was missed).
+For WITHDRAWAL-type transactions in `useTransactionSubmit.ts`, replace the current two-step approach with:
 
-No change needed to the DUST_SWEEP filter -- it's working as designed.
+1. **Insert a `withdrawal_requests` record** via `withdrawalService.createWithdrawal()` — status `pending`, with `is_full_exit` flag
+2. **Immediately approve and complete it** via `withdrawalService.approveAndComplete()` — which atomically creates the ledger entry, handles dust sweep for full exits, and sets the withdrawal to `completed`
+3. **Remove** the client-side dust sweep code (lines 103-152) entirely
 
-## Issue 3: Add Settlement Date to Ledger Table and Withdrawal Table
-
-The `withdrawal_requests` table already has a `settlement_date` column. The user wants this date displayed in:
-
-1. **Withdrawal table** (`WithdrawalsTable.tsx`): Add a "Settlement Date" column
-2. **Ledger table** (`LedgerTable.tsx`): Not directly applicable since ledger transactions don't have a settlement_date field. Instead, for withdrawal-type transactions, we can show the settlement date from the linked withdrawal request if available. However this requires a join that adds complexity. A simpler approach: show it only in the Withdrawals table where the data naturally exists.
+For non-full-exit withdrawals, also use this same path so ALL withdrawals appear in the withdrawal table consistently.
 
 ## Files to Change
 
 | File | Change |
 |------|--------|
-| `src/services/admin/feesService.ts` | Remove `.neq("purpose", "transaction")` filter from `getFeeTransactions()` so dust routing transactions appear on revenue page |
-| `src/features/admin/withdrawals/components/WithdrawalsTable.tsx` | Add "Settlement Date" column to both desktop and mobile views |
-| `src/features/admin/withdrawals/hooks/useAdminWithdrawals.ts` | Ensure `settlement_date` is included in the select query |
+| `src/features/admin/transactions/hooks/useTransactionSubmit.ts` | For WITHDRAWAL type: insert `withdrawal_requests` record via `withdrawalService.createWithdrawal`, then call `withdrawalService.approveAndComplete`. Remove client-side dust sweep. Keep DEPOSIT/FIRST_INVESTMENT/ADJUSTMENT paths unchanged. |
+
+## What stays the same
+- All non-withdrawal transaction types use the existing `createInvestorTransaction` path
+- The `approve_and_complete_withdrawal` RPC is already battle-tested from the Command Center queue
+- No database or migration changes needed
+- No other UI components affected
 
 ## Safety
-
-- The revenue page fix only removes a filter — it cannot break existing data, just makes previously hidden transactions visible
-- The settlement date column is purely additive UI — no existing columns are modified
-- No database changes needed — `settlement_date` already exists on `withdrawal_requests`
+- The withdrawal request insert + approve/complete is a proven path already used by the investor portal flow
+- The `approve_and_complete_withdrawal` RPC handles dust atomically in one DB transaction — no more client-side race conditions
+- If the approve step fails after insert, the request stays as `pending` in the queue (visible, recoverable)
 
