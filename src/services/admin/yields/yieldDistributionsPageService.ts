@@ -25,6 +25,7 @@ export type DistributionRow = {
   gross_yield: number;
   total_fees: number | null;
   total_ib: number | null;
+  total_fee_credit: number | null;
   net_yield: number | null;
   recorded_aum: number;
   allocation_count: number | null;
@@ -40,6 +41,7 @@ export type AllocationRow = {
   gross_amount: number;
   fee_amount: number | null;
   ib_amount: number | null;
+  fee_credit: number | null;
   net_amount: number;
   adb_share: number | null;
   ownership_pct: number | null;
@@ -108,6 +110,7 @@ export async function fetchYieldDistributionsPageData(
         gross_yield,
         total_fees,
         total_ib,
+        total_fee_credit,
         net_yield,
         recorded_aum,
         allocation_count,
@@ -168,6 +171,7 @@ export async function fetchYieldDistributionsPageData(
         gross_amount,
         fee_amount,
         ib_amount,
+        fee_credit,
         net_amount,
         adb_share,
         ownership_pct,
