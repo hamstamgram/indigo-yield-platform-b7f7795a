@@ -10,7 +10,7 @@ export interface Deposit {
   user_id?: string;
   investor_id?: string;
   asset_symbol: string;
-  /** Financial amount - string for NUMERIC(28,10) precision */
+  /** Financial amount - string for NUMERIC(38,18) precision */
   amount: string;
   status: DepositStatus;
   transaction_hash?: string;
@@ -25,7 +25,7 @@ export interface Deposit {
 export interface DepositFormData {
   user_id: string;
   asset_symbol: string;
-  /** Financial amount - string for NUMERIC(28,10) precision */
+  /** Financial amount - string for NUMERIC(38,18) precision */
   amount: string;
   /**
    * Authoritative AUM snapshot used for crystallize-before-flow accounting.

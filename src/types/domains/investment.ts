@@ -11,7 +11,7 @@ export interface Investment {
   investor_id: string;
   fund_id: string;
   investment_date: string;
-  /** Financial amount - string for NUMERIC(28,10) precision */
+  /** Financial amount - string for NUMERIC(38,18) precision */
   amount: string;
   /** Share count - string for decimal precision */
   shares: string;
@@ -36,7 +36,7 @@ export interface InvestmentFormData {
   investor_id: string;
   fund_id: string;
   investment_date: string;
-  /** Financial amount - string for NUMERIC(28,10) precision */
+  /** Financial amount - string for NUMERIC(38,18) precision */
   amount: string;
   transaction_type: InvestmentTransactionType;
   /**

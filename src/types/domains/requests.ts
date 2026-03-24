@@ -26,7 +26,7 @@ export interface WithdrawalRequest {
   id: string;
   investor_id: string;
   fund_id: string;
-  /** Requested amount - string for NUMERIC(28,10) precision */
+  /** Requested amount - string for NUMERIC(38,18) precision */
   requested_amount: string;
   status: WithdrawalStatus;
   withdrawal_type: string;
@@ -40,7 +40,7 @@ export interface WithdrawalRequest {
 
 export interface ApproveWithdrawalParams {
   requestId: string;
-  /** @precision NUMERIC(28,10) - use string for precision */
+  /** @precision NUMERIC(38,18) - use string for precision */
   amount?: string;
   notes?: string;
 }
@@ -59,7 +59,7 @@ export interface DepositRequest {
   id: string;
   investor_id: string;
   fund_id?: string;
-  /** Deposit amount - string for NUMERIC(28,10) precision */
+  /** Deposit amount - string for NUMERIC(38,18) precision */
   amount: string;
   status: string;
   asset_symbol?: string;

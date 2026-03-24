@@ -61,29 +61,29 @@ export interface InvestorProfile {
 
 /**
  * Investor position from investor_positions table
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface InvestorPosition {
   investor_id: string;
   fund_id: string;
   fund_class: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   shares: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   cost_basis: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   current_value: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   unrealized_pnl: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   realized_pnl: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   high_water_mark: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   aum_percentage: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   mgmt_fees_paid: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   perf_fees_paid: string | null;
   last_transaction_date: string | null;
   last_modified_at: string | null;
@@ -93,14 +93,14 @@ export interface InvestorPosition {
 
 /**
  * Investor summary with aggregated position data
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface InvestorSummary extends Investor {
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_principal: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_earned: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   portfolio_value: string;
   total_positions: number;
 }

@@ -41,19 +41,19 @@ export interface YieldDistributionRecord {
   periodEnd: string | null;
   purpose: AumPurpose;
   distributionType: string;
-  /** Opening AUM - string for NUMERIC(28,10) precision */
+  /** Opening AUM - string for NUMERIC(38,18) precision */
   openingAum: string | null;
-  /** Previous AUM - string for NUMERIC(28,10) precision */
+  /** Previous AUM - string for NUMERIC(38,18) precision */
   previousAum: string | null;
-  /** Recorded AUM - string for NUMERIC(28,10) precision */
+  /** Recorded AUM - string for NUMERIC(38,18) precision */
   recordedAum: string;
-  /** Gross yield - string for NUMERIC(28,10) precision */
+  /** Gross yield - string for NUMERIC(38,18) precision */
   grossYield: string;
-  /** Net yield - string for NUMERIC(28,10) precision */
+  /** Net yield - string for NUMERIC(38,18) precision */
   netYield: string | null;
-  /** Total fees - string for NUMERIC(28,10) precision */
+  /** Total fees - string for NUMERIC(38,18) precision */
   totalFees: string | null;
-  /** Total IB - string for NUMERIC(28,10) precision */
+  /** Total IB - string for NUMERIC(38,18) precision */
   totalIb: string | null;
   /** Yield percentage - string for decimal precision */
   yieldPercentage: string | null;
@@ -85,13 +85,13 @@ export interface YieldDistributionWithFund extends YieldDistributionRecord {
  * Summary statistics for yield distributions
  */
 export interface YieldDistributionSummary {
-  /** Total gross yield - string for NUMERIC(28,10) precision */
+  /** Total gross yield - string for NUMERIC(38,18) precision */
   totalGrossYield: string;
-  /** Total net yield - string for NUMERIC(28,10) precision */
+  /** Total net yield - string for NUMERIC(38,18) precision */
   totalNetYield: string;
-  /** Total fees - string for NUMERIC(28,10) precision */
+  /** Total fees - string for NUMERIC(38,18) precision */
   totalFees: string;
-  /** Total IB fees - string for NUMERIC(28,10) precision */
+  /** Total IB fees - string for NUMERIC(38,18) precision */
   totalIbFees: string;
   distributionCount: number;
   investorCount: number;

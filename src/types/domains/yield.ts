@@ -10,7 +10,7 @@ export interface YieldCalculationInput {
   fundId: string;
   targetDate: Date;
   periodStart?: Date; // For ADB: defaults to start of month if not provided
-  /** New total AUM - string for NUMERIC(28,10) precision */
+  /** New total AUM - string for NUMERIC(38,18) precision */
   newTotalAUM: string;
   /** Base AUM the admin saw (as-of AUM) - used to compute grossYield and passed as p_recorded_aum */
   baseAUM?: string;
@@ -28,44 +28,44 @@ export interface YieldDistribution {
   investorId: string;
   investorName: string;
   accountType?: string;
-  /** Opening balance before yield - string for NUMERIC(28,10) precision */
+  /** Opening balance before yield - string for NUMERIC(38,18) precision */
   openingBalance?: string;
-  /** Current balance - string for NUMERIC(28,10) precision */
+  /** Current balance - string for NUMERIC(38,18) precision */
   currentBalance: string;
   /** Allocation percentage - string for decimal precision */
   allocationPercentage: string;
   /** Fee percentage - string for decimal precision */
   feePercentage: string;
-  /** Gross yield - string for NUMERIC(28,10) precision */
+  /** Gross yield - string for NUMERIC(38,18) precision */
   grossYield: string;
-  /** Fee amount - string for NUMERIC(28,10) precision */
+  /** Fee amount - string for NUMERIC(38,18) precision */
   feeAmount: string;
-  /** Net yield - string for NUMERIC(28,10) precision */
+  /** Net yield - string for NUMERIC(38,18) precision */
   netYield: string;
-  /** New balance - string for NUMERIC(28,10) precision */
+  /** New balance - string for NUMERIC(38,18) precision */
   newBalance: string;
-  /** Position delta - string for NUMERIC(28,10) precision */
+  /** Position delta - string for NUMERIC(38,18) precision */
   positionDelta: string;
   // IB fields
   ibParentId?: string;
   ibParentName?: string;
   /** IB percentage - string for decimal precision */
   ibPercentage: string;
-  /** IB amount - string for NUMERIC(28,10) precision */
+  /** IB amount - string for NUMERIC(38,18) precision */
   ibAmount: string;
   // Idempotency
   referenceId: string;
   wouldSkip: boolean;
   // ADB (Average Daily Balance) fields - for time-weighted yield calculation
-  /** Average daily balance - string for NUMERIC(28,10) precision */
+  /** Average daily balance - string for NUMERIC(38,18) precision */
   adb?: string;
   /** ADB weight - string for decimal precision (0-1) */
   adbWeight?: string;
-  /** Carried loss - string for NUMERIC(28,10) precision */
+  /** Carried loss - string for NUMERIC(38,18) precision */
   carriedLoss?: string;
-  /** Loss offset - string for NUMERIC(28,10) precision */
+  /** Loss offset - string for NUMERIC(38,18) precision */
   lossOffset?: string;
-  /** Taxable gain - string for NUMERIC(28,10) precision */
+  /** Taxable gain - string for NUMERIC(38,18) precision */
   taxableGain?: string;
   hasIb?: boolean; // Whether investor has an IB parent
   // V5 segmented fields
@@ -85,7 +85,7 @@ export interface IBCredit {
   ibInvestorName: string;
   sourceInvestorId: string;
   sourceInvestorName: string;
-  /** IB credit amount - string for NUMERIC(28,10) precision */
+  /** IB credit amount - string for NUMERIC(38,18) precision */
   amount: string;
   /** IB percentage - string for decimal precision */
   ibPercentage: string;
@@ -98,15 +98,15 @@ export interface IBCredit {
  * Yield totals summary
  */
 export interface YieldTotals {
-  /** Gross yield total - string for NUMERIC(28,10) precision */
+  /** Gross yield total - string for NUMERIC(38,18) precision */
   gross: string;
-  /** Total fees - string for NUMERIC(28,10) precision */
+  /** Total fees - string for NUMERIC(38,18) precision */
   fees: string;
-  /** Total IB fees - string for NUMERIC(28,10) precision */
+  /** Total IB fees - string for NUMERIC(38,18) precision */
   ibFees: string;
-  /** Net yield total - string for NUMERIC(28,10) precision */
+  /** Net yield total - string for NUMERIC(38,18) precision */
   net: string;
-  /** Indigo credit total - string for NUMERIC(28,10) precision */
+  /** Indigo credit total - string for NUMERIC(38,18) precision */
   indigoCredit: string;
 }
 
@@ -134,24 +134,24 @@ export interface YieldCalculationResult {
   effectiveDate?: string;
   purpose?: string;
   isMonthEnd?: boolean;
-  /** Current AUM - string for NUMERIC(28,10) precision */
+  /** Current AUM - string for NUMERIC(38,18) precision */
   currentAUM: string;
-  /** New AUM - string for NUMERIC(28,10) precision */
+  /** New AUM - string for NUMERIC(38,18) precision */
   newAUM: string;
-  /** Gross yield - string for NUMERIC(28,10) precision */
+  /** Gross yield - string for NUMERIC(38,18) precision */
   grossYield: string;
-  /** Net yield - string for NUMERIC(28,10) precision */
+  /** Net yield - string for NUMERIC(38,18) precision */
   netYield: string;
-  /** Total fees - string for NUMERIC(28,10) precision */
+  /** Total fees - string for NUMERIC(38,18) precision */
   totalFees: string;
-  /** Total IB fees - string for NUMERIC(28,10) precision */
+  /** Total IB fees - string for NUMERIC(38,18) precision */
   totalIbFees: string;
   /** Yield percentage - string for decimal precision */
   yieldPercentage: string;
   investorCount: number;
   distributions: YieldDistribution[];
   ibCredits: IBCredit[];
-  /** Indigo fees credit - string for NUMERIC(28,10) precision */
+  /** Indigo fees credit - string for NUMERIC(38,18) precision */
   indigoFeesCredit: string;
   indigoFeesId?: string;
   existingConflicts: string[];
@@ -163,13 +163,13 @@ export interface YieldCalculationResult {
   periodStart?: string;
   periodEnd?: string;
   daysInPeriod?: number;
-  /** Total ADB - string for NUMERIC(28,10) precision */
+  /** Total ADB - string for NUMERIC(38,18) precision */
   totalAdb?: string;
   /** Yield rate percentage - string for decimal precision */
   yieldRatePct?: string;
-  /** Total loss offset - string for NUMERIC(28,10) precision */
+  /** Total loss offset - string for NUMERIC(38,18) precision */
   totalLossOffset?: string;
-  /** Dust/rounding amount - string for NUMERIC(28,10) precision */
+  /** Dust/rounding amount - string for NUMERIC(38,18) precision */
   dustAmount?: string;
   calculationMethod?: "pro_rata" | "adb_v3" | "adb_v4" | "segmented_v5" | "unified_v6";
   features?: string[];
@@ -224,23 +224,23 @@ export interface ADBYieldRPCResult {
   fund_id?: string;
   fund_code?: string;
   fund_asset?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   gross_yield?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   net_yield?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   total_fees?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   total_ib?: string;
   investor_count?: number;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   yield_rate_pct?: string;
   days_in_period?: number;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   total_adb?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   total_loss_offset?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   dust_amount?: string;
   features?: string[];
   conservation_check?: boolean;
@@ -248,7 +248,7 @@ export interface ADBYieldRPCResult {
   allocations?: ADBAllocationItem[];
   // Crystallization info (reporting purpose)
   crystals_in_period?: number;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   crystal_gross_total?: string;
 }
 
@@ -261,14 +261,14 @@ export interface ADBAllocationItem {
   investor_email?: string;
   investor_name: string;
   account_type?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   adb: string;
   /** Percentage weight (0-100) based on ADB */
   adb_share_pct: string;
   fee_pct: string;
   /** Gross yield amount allocated to this investor */
   gross_yield: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   fee_amount: string;
   /** Net yield after fees */
   net_yield: string;
@@ -276,13 +276,13 @@ export interface ADBAllocationItem {
   ib_parent_name?: string;
   /** IB commission rate percentage */
   ib_rate?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   ib_amount?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   carried_loss?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   loss_offset?: string;
-  /** @precision NUMERIC(28,10) - string for financial safety */
+  /** @precision NUMERIC(38,18) - string for financial safety */
   taxable_gain?: string;
   has_ib?: boolean;
 }

@@ -18,7 +18,7 @@ type DbTransaction = Database["public"]["Tables"]["transactions_v2"]["Row"];
 /**
  * Core transaction type - maps to transactions_v2 table
  * This is the canonical type for transaction data
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface Transaction {
   id: string;
@@ -26,7 +26,7 @@ export interface Transaction {
   fund_id: string | null;
   type: TransactionType;
   asset: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   amount: string;
   tx_date: string;
   notes: string | null;
@@ -80,15 +80,15 @@ export interface TransactionWithDetails extends TransactionWithFund {
 
 /**
  * Transaction for ledger views (investor-facing)
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface LedgerTransaction {
   id: string;
   tx_date: string;
   type: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   amount: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   running_balance?: string;
   purpose: string | null;
   reference_id: string | null;
@@ -103,45 +103,45 @@ export interface LedgerTransaction {
 
 /**
  * Transaction for statement calculations
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface StatementTransaction {
   id: string;
   date: string;
   type: "deposit" | "withdrawal" | "interest" | "fee" | "adjustment";
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   amount: string;
   description: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   running_balance?: string;
 }
 
 /**
  * Transaction summary aggregates
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface TransactionSummary {
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_deposits: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_withdrawals: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_fees: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_yield: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   net_flow: string;
   transaction_count: number;
   by_asset?: Record<
     string,
     {
-      /** @precision NUMERIC(28,10) from database */
+      /** @precision NUMERIC(38,18) from database */
       deposits: string;
-      /** @precision NUMERIC(28,10) from database */
+      /** @precision NUMERIC(38,18) from database */
       withdrawals: string;
-      /** @precision NUMERIC(28,10) from database */
+      /** @precision NUMERIC(38,18) from database */
       fees: string;
-      /** @precision NUMERIC(28,10) from database */
+      /** @precision NUMERIC(38,18) from database */
       yield: string;
     }
   >;
@@ -173,14 +173,14 @@ export type UITransactionType = TransactionType | "FIRST_INVESTMENT";
 /**
  * Create transaction parameters (for API/service layer)
  * Uses strict DB TransactionType
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface CreateTransactionParams {
   investor_id: string;
   fund_id: string;
   type: TransactionType;
   asset: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   amount: string;
   tx_date: string;
   reference_id?: string;
@@ -192,14 +192,14 @@ export interface CreateTransactionParams {
 /**
  * Create transaction parameters for UI forms
  * Allows FIRST_INVESTMENT which gets mapped to DEPOSIT
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface CreateTransactionUIParams {
   investor_id: string;
   fund_id: string;
   type: UITransactionType;
   asset: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   amount: string;
   tx_date: string;
   /**
@@ -350,7 +350,7 @@ export function getTransactionDisplayType(
 
 /**
  * Calculate net amount (positive for deposits/interest, negative for withdrawals/fees)
- * Returns string to preserve NUMERIC(28,10) precision - use Decimal.js for calculations
+ * Returns string to preserve NUMERIC(38,18) precision - use Decimal.js for calculations
  */
 export function getTransactionNetAmount(tx: Transaction): string {
   const amount = tx.amount || "0";
@@ -415,7 +415,7 @@ export interface AdminTransactionFilters {
 
 /**
  * View model for transaction display in admin UI
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface TransactionViewModel {
   id: string;
@@ -427,7 +427,7 @@ export interface TransactionViewModel {
   asset: string;
   type: TransactionType;
   displayType: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   amount: string;
   txDate: string;
   notes: string | null;
@@ -464,7 +464,7 @@ export interface UpdateTransactionParams {
   transactionId: string;
   updates: {
     tx_date?: string;
-    /** @precision NUMERIC(28,10) - use string for precision */
+    /** @precision NUMERIC(38,18) - use string for precision */
     amount?: string;
     notes?: string;
     tx_hash?: string;
@@ -525,7 +525,7 @@ export interface VoidAndReissueParams {
   transactionId: string;
   newValues: {
     tx_date: string;
-    /** @precision NUMERIC(28,10) - use string for precision */
+    /** @precision NUMERIC(38,18) - use string for precision */
     amount: string;
     notes?: string | null;
     tx_hash?: string | null;
@@ -544,7 +544,7 @@ export interface VoidAndReissueResult {
   voided_at?: string;
   new_transaction?: {
     id: string;
-    /** @precision NUMERIC(28,10) - use string for precision */
+    /** @precision NUMERIC(38,18) - use string for precision */
     amount: string;
     tx_date: string;
   };

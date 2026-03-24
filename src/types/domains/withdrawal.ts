@@ -15,9 +15,9 @@ export interface Withdrawal {
   investor_id: string;
   fund_id: string;
   fund_class: string | null;
-  /** Requested amount - string for NUMERIC(28,10) precision */
+  /** Requested amount - string for NUMERIC(38,18) precision */
   requested_amount: string;
-  /** Processed amount - string for NUMERIC(28,10) precision */
+  /** Processed amount - string for NUMERIC(38,18) precision */
   processed_amount?: string | null;
   withdrawal_type: string;
   status: WithdrawalStatus;
@@ -52,7 +52,7 @@ export interface WithdrawalFilters {
 
 export interface PendingByAsset {
   asset: string;
-  /** Pending amount - string for NUMERIC(28,10) precision */
+  /** Pending amount - string for NUMERIC(38,18) precision */
   amount: string;
 }
 
@@ -103,7 +103,7 @@ export interface InvestorOption {
 // Position type for withdrawal form (simplified version for dropdowns)
 export interface WithdrawalInvestorPosition {
   fund_id: string;
-  /** Current value - string for NUMERIC(28,10) precision */
+  /** Current value - string for NUMERIC(38,18) precision */
   current_value: string;
   /** Share count - string for decimal precision */
   shares: string;
@@ -118,7 +118,7 @@ export interface WithdrawalInvestorPosition {
 export interface CreateWithdrawalParams {
   investorId: string;
   fundId: string;
-  /** Withdrawal amount - string for NUMERIC(28,10) precision */
+  /** Withdrawal amount - string for NUMERIC(38,18) precision */
   amount: string;
   withdrawalType: "partial" | "full";
   /** Settlement date for the withdrawal (YYYY-MM-DD). */
@@ -128,7 +128,7 @@ export interface CreateWithdrawalParams {
 
 export interface UpdateWithdrawalParams {
   withdrawalId: string;
-  /** Requested amount - string for NUMERIC(28,10) precision */
+  /** Requested amount - string for NUMERIC(38,18) precision */
   requestedAmount: string;
   withdrawalType: string;
   notes?: string;
