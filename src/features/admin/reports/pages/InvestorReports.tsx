@@ -71,7 +71,7 @@ import { sanitizeHtml } from "@/utils/sanitize";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/PageShell";
-import { useSuperAdmin } from "@/components/admin";
+import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import {
   SendConfirmDialog,
   SendProgressDialog,

@@ -11,7 +11,7 @@ import {
 import { useBreadcrumbs } from "@/hooks";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/services/auth";
-import { FundAUMBar } from "@/components/admin";
+import { FundAUMBar } from "@/features/admin/system/components/FundAUMBar";
 
 type HeaderProps = {
   toggleSidebar: () => void;

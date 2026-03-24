@@ -33,7 +33,8 @@ import {
 } from "@/components/ui";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { cn } from "@/lib/utils";
-import { AdminGuard, FinancialSnapshot } from "@/components/admin";
+import { AdminGuard } from "@/features/admin/shared/AdminGuard";
+import { FinancialSnapshot } from "@/features/admin/system/components/FinancialSnapshot";
 import { PageShell } from "@/components/layout/PageShell";
 import { MetricStrip, type MetricItem } from "@/components/common/MetricStrip";
 import {

@@ -24,7 +24,7 @@ import { Database, Search, ChevronLeft, ChevronRight, Trash2, Loader2 } from "lu
 import { Link } from "react-router-dom";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useHistoricalReports, useBulkDeleteReports, useDeleteSingleReport } from "@/hooks/data";
-import { useSuperAdmin } from "@/components/admin";
+import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { format, subMonths } from "date-fns";
 import type { DeliveryStatus } from "@/services/admin/reportQueryService";
 import { useReportSelection } from "./hooks/useReportSelection";

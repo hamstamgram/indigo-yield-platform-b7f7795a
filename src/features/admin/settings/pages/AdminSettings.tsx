@@ -50,7 +50,7 @@ import {
   XCircle,
   UserCog,
 } from "lucide-react";
-import { AdminGuard } from "@/components/admin";
+import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 import { usePlatformSettingsForm } from "@/hooks/data/admin";
 import { useAdminUsersWithRoles, useUpdateAdminRole, useSendAdminInviteEmail } from "@/hooks/data";
 import {

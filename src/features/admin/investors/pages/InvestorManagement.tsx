@@ -37,7 +37,7 @@ import {
 import { invokeFunction } from "@/lib/supabase/functions";
 import { logError } from "@/lib/logger";
 import { forceDeleteInvestorUser } from "@/services/admin";
-import { InvestorTabs } from "@/components/admin";
+import { InvestorTabs } from "@/features/admin/investors/components";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { format } from "date-fns";
 import { useInvestorDetail, useInvestorOpsIndicators } from "@/hooks/data/admin";

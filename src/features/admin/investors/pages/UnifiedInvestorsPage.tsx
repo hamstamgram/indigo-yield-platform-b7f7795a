@@ -25,7 +25,7 @@ import {
   InvestorDetailPanel,
   InvestorFiltersBar,
   UnifiedInvestorsTable,
-} from "@/components/admin";
+} from "@/features/admin/investors/components";
 import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
 import { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/data";
 
