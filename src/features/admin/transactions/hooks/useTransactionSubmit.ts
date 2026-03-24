@@ -103,29 +103,51 @@ export function useTransactionSubmit({
       // Handle Full Exit (Dust Routing)
       // Re-fetch live position balance to avoid stale prop race condition
       if (data.full_withdrawal && data.txn_type === "WITHDRAWAL") {
-        try {
-          const { data: positionData } = await supabase
+        const sweepDust = async (attempt: number): Promise<boolean> => {
+          const { data: positionData, error: posError } = await supabase
             .from("investor_positions")
             .select("current_value")
             .eq("investor_id", currentInvestorId)
             .eq("fund_id", data.fund_id)
             .single();
 
+          if (posError) {
+            logError("dust.position_fetch", posError, { fundId: data.fund_id, attempt });
+            return false;
+          }
+
           const actualDust = positionData?.current_value ?? 0;
 
-          if (actualDust > 0) {
-            toast.info(`Routing ${Number(actualDust).toFixed(10)} ${data.asset} dust to Indigo Fees...`);
-            await executeInternalRoute({
-              fromInvestorId: currentInvestorId,
-              fundId: data.fund_id,
-              amount: Number(actualDust),
-              effectiveDate: data.tx_date,
-              reason: `Full Exit Dust Cleanup - ${currentInvestorId}`,
-            });
+          if (actualDust <= 0) {
+            return true; // No dust, position is clean
           }
-        } catch (routeError) {
-          console.error("Dust routing failed:", routeError);
-          toast.warning("Withdrawal succeeded, but dust routing failed. Please check manually.");
+
+          toast.info(`Routing ${Number(actualDust).toFixed(10)} ${data.asset} dust to Indigo Fees (attempt ${attempt})...`);
+          await executeInternalRoute({
+            fromInvestorId: currentInvestorId,
+            fundId: data.fund_id,
+            amount: Number(actualDust),
+            effectiveDate: data.tx_date,
+            reason: `Full Exit Dust Cleanup - ${currentInvestorId}`,
+          });
+          return true;
+        };
+
+        try {
+          await sweepDust(1);
+        } catch (firstError) {
+          logError("dust.sweep_attempt_1", firstError, { fundId: data.fund_id });
+          // Retry once after a brief pause
+          try {
+            await new Promise((r) => setTimeout(r, 1000));
+            await sweepDust(2);
+          } catch (retryError) {
+            logError("dust.sweep_attempt_2", retryError, { fundId: data.fund_id });
+            const errMsg = retryError instanceof Error ? retryError.message : String(retryError);
+            toast.error(
+              `Withdrawal succeeded, but dust routing failed after 2 attempts: ${errMsg}. Please route dust manually.`
+            );
+          }
         }
       }
 
