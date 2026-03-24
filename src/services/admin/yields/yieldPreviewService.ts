@@ -153,8 +153,14 @@ export async function previewYieldDistribution(
 
   const ibCredits: IBCredit[] = [];
 
+  // Compute true gross yield from AUM delta (recordedAum - openingAum)
+  // This avoids showing the sum-of-allocations which excludes dust rounding
+  const trueGrossYield = parseFinancial(result.recorded_aum || 0)
+    .minus(parseFinancial(result.opening_aum || 0))
+    .toString();
+
   const totals: YieldTotals = {
-    gross: String(result.gross_yield || 0),
+    gross: trueGrossYield,
     fees: String(result.total_fees || 0),
     ibFees: String(result.total_ib || 0),
     net: String(result.net_yield || 0),

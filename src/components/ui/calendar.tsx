@@ -33,7 +33,7 @@ function Calendar({
         caption_label: "text-sm font-medium text-white min-w-[160px] text-center",
         caption_dropdowns: "flex items-center gap-2 justify-center",
         dropdown:
-          "appearance-none bg-white/5 text-white border border-white/10 rounded-lg px-2 py-1 text-sm cursor-pointer hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-0 transition-all duration-200 [color-scheme:dark]",
+          "appearance-none bg-white/5 text-white border border-white/10 rounded-lg px-2 py-1 text-sm cursor-pointer hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-0 transition-all duration-200 [color-scheme:dark] [&_option]:bg-[hsl(222,47%,11%)] [&_option]:text-white",
         dropdown_month: "mr-1",
         dropdown_year: "",
         dropdown_icon: "hidden",
