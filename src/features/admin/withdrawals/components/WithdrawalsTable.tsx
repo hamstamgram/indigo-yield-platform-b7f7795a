@@ -379,6 +379,14 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                   >
                     Request Date
                   </SortableTableHead>
+                  <SortableTableHead
+                    column="settlement_date"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Settlement Date
+                  </SortableTableHead>
                   <TableHead className="whitespace-nowrap">Notes</TableHead>
                   <TableHead className="w-[50px]">Actions</TableHead>
                 </TableRow>
@@ -471,6 +479,11 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                             </span>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="py-1.5">
+                        {w.settlement_date
+                          ? format(new Date(w.settlement_date), "MMM dd, yyyy")
+                          : <span className="text-muted-foreground">-</span>}
                       </TableCell>
                       <TableCell className="py-1.5">
                         <span className="max-w-[200px] truncate">{w.notes || "-"}</span>
@@ -581,6 +594,11 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>{format(new Date(withdrawal.request_date), "MMM dd, yyyy")}</span>
+                  {withdrawal.settlement_date && (
+                    <span className="ml-2 text-foreground/70">
+                      Settled: {format(new Date(withdrawal.settlement_date), "MMM dd, yyyy")}
+                    </span>
+                  )}
                 </div>
 
                 {/* Notes (if any) */}
