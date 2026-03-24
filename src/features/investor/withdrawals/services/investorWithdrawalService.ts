@@ -80,38 +80,8 @@ export async function getWithdrawalRequests(): Promise<WithdrawalRequest[]> {
   });
 }
 
-/**
- * Create a withdrawal request
- */
-export async function createWithdrawalRequest(
-  fundId: string,
-  amount: number,
-  withdrawalType: string = "partial",
-  notes?: string
-): Promise<string> {
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) throw new Error("Not authenticated");
-
-  const investorId = user.user.id;
-
-  // Direct insert: create_withdrawal_request RPC was removed.
-  const insertPayload: Record<string, unknown> = {
-    investor_id: investorId,
-    fund_id: fundId,
-    requested_amount: amount,
-    withdrawal_type: withdrawalType,
-    status: "pending",
-    notes,
-  };
-  const { data, error } = await supabase
-    .from("withdrawal_requests")
-    .insert(insertPayload as any)
-    .select("id")
-    .single();
-
-  if (error) throw error;
-  return (data as any)?.id as string;
-}
+// NOTE: createWithdrawalRequest removed -- canonical implementation is
+// investorPortfolioService.createWithdrawalRequest (used by useCreateWithdrawalRequest hook)
 
 /**
  * Cancel a withdrawal request (if still pending)

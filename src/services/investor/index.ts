@@ -46,7 +46,6 @@ export {
 // Withdrawal service exports
 export {
   getWithdrawalRequests,
-  createWithdrawalRequest,
   cancelWithdrawalRequest,
   getAvailableFunds,
 } from "@/features/investor/withdrawals/services/investorWithdrawalService";
