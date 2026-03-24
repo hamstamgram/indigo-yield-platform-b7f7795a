@@ -95,6 +95,8 @@ export function useTransactionSubmit({
             withdrawal_type: isFullExit ? "full" : "partial",
             status: "pending",
             is_full_exit: isFullExit,
+            request_date: data.tx_date,
+            settlement_date: data.tx_date,
             notes: data.notes || `Manual withdrawal via Add Transaction`,
           } as any)
           .select("id")
