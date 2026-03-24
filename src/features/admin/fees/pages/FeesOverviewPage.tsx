@@ -25,7 +25,7 @@ import {
   FeeDateRangeFilter,
   FeeTransactionsTable,
   exportFeesToPDF,
-} from "@/features/admin/funds/components/fees";
+} from "@/features/admin/fees/components";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 
 const feeExportColumns: ExportColumn[] = [
