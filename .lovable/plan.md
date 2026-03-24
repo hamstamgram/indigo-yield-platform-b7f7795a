@@ -1,56 +1,56 @@
 
 
-# Fix: Full Exit Dust Sweep Not Routing Remainder to INDIGO Fees
+# Fix: Full Exit Dust Not Being Swept via Manual Transaction Dialog
 
-## Root Cause
+## Diagnosis
 
-The `approve_and_complete_withdrawal` RPC has a logic gap when `p_is_full_exit = true`:
+Ryan's withdrawal went through the **manual AddTransactionDialog** (not the Withdrawal Request queue). Evidence: the transaction `reference_id` starts with `manual:` and there is no `withdrawal_requests` record for Ryan.
 
-```sql
-IF p_is_full_exit THEN
-    v_final_amount := TRUNC(v_balance, p_send_precision);  -- ignores user-entered amount!
-    v_dust := v_balance - v_final_amount;
-```
+The manual dialog has client-side dust routing logic (lines 105-129 of `useTransactionSubmit.ts`) that:
+1. Re-fetches the position balance after the withdrawal transaction
+2. Calls `executeInternalRoute` to sweep dust to INDIGO Fees
 
-It **always** auto-computes the send amount via `TRUNC(balance, 3)`, completely ignoring `p_processed_amount`. So if the admin manually types `158.8` (wanting to send exactly that and sweep the rest), the RPC overrides it with `TRUNC(158.8307, 3) = 158.830`.
+**However**, the dust routing either silently failed or the `full_withdrawal` toggle was not activated. The `catch` block on line 126 only shows a warning toast — easy to miss. No dust sweep transactions exist in the ledger for Ryan.
 
-Conversely, if the admin enters `158.8` **without** toggling Full Exit, the RPC sends exactly `158.8` with **zero dust sweep**, leaving `0.0307` stranded on the account.
+There are **two separate problems**:
 
-Either path produces a wrong result when the admin wants to send a custom amount and sweep the remainder.
+### Problem 1: Client-side dust routing is fragile
+The manual transaction dialog creates the withdrawal first, then attempts dust routing as a separate client-side call. If the second call fails (network, RLS, timing), you get a partial state: withdrawal done, dust stranded.
+
+### Problem 2: Amount auto-fill uses `Math.floor(balance * 1000) / 1000` 
+When Full Exit is toggled ON (line 238), the amount is set to `Math.floor(currentBalance * 1000) / 1000`. If `currentBalance` was stale or the user manually typed `158.8` instead of using the auto-filled value, the dust calculation diverges.
 
 ## Fix
 
-**Database migration** -- Update `approve_and_complete_withdrawal` to respect `p_processed_amount` when provided during a full exit:
+**Make the manual transaction dialog's Full Exit path use the same `approve_and_complete_withdrawal` RPC** that the Withdrawal Request flow uses. This ensures dust sweeping happens atomically in the database, not via two separate client-side calls.
 
-```sql
-IF p_is_full_exit THEN
-    -- If admin provided a specific amount, use it; otherwise auto-truncate
-    IF p_processed_amount IS NOT NULL THEN
-      v_final_amount := p_processed_amount;
-    ELSE
-      v_final_amount := TRUNC(v_balance, p_send_precision);
-    END IF;
-    v_dust := v_balance - v_final_amount;
-    -- Safety checks remain the same...
-```
+### Changes
 
-This way:
-- Admin enters `158.8` + Full Exit ON → sends `158.8`, sweeps `0.0307` as dust to INDIGO Fees
-- Admin leaves amount blank + Full Exit ON → auto-computes `TRUNC(balance, 3)` as before
-- Full Exit OFF → works exactly as today (no dust sweep)
+**`src/features/admin/transactions/hooks/useTransactionSubmit.ts`**:
+- When `data.full_withdrawal && data.txn_type === "WITHDRAWAL"`:
+  - Instead of calling `createInvestorTransaction` + client-side `executeInternalRoute`
+  - Create a withdrawal request via direct insert, then call `approve_and_complete_withdrawal` RPC with `p_is_full_exit=true` and `p_processed_amount` set to the entered amount
+  - This ensures dust sweep happens atomically in one DB transaction
+  - Remove the fragile client-side dust routing code
 
-No frontend changes needed -- the UI already passes `processedAmount` and `isFullExit` correctly to the service.
+**Alternative (simpler, lower risk)**: Keep the current two-step approach but make it more robust:
+- After the withdrawal transaction succeeds, re-fetch position balance
+- If balance > 0 and `full_withdrawal` is true, call `internal_route_to_fees` RPC
+- If dust routing fails, **automatically retry once** and if still failing, show an error (not just a warning)
+- Add the dust amount to the success toast so admin can verify
+
+### Recommended approach: Alternative (simpler)
+
+The full RPC rewrite is cleaner but riskier — it changes how the manual dialog works. The simpler fix addresses the silent failure and makes the existing path reliable:
+
+1. **Improve error handling**: Change the `catch` from `toast.warning` to `toast.error` with the actual error message
+2. **Add retry logic**: One automatic retry before giving up
+3. **Log the actual error**: The current code logs to console but doesn't surface the real failure reason
+4. **Verify `full_withdrawal` flag reaches submit**: Confirm the form data properly passes the boolean
 
 ## Files to Change
 
 | File | Change |
 |------|--------|
-| New migration SQL | Update `approve_and_complete_withdrawal` to use `p_processed_amount` when provided with `p_is_full_exit=true`, falling back to `TRUNC(v_balance, p_send_precision)` |
-
-## Safety
-
-- Only changes behavior when `p_is_full_exit = true` AND `p_processed_amount IS NOT NULL`
-- Existing auto-truncate path (no explicit amount) is unchanged
-- Non-full-exit path is completely unchanged
-- Dust sweep logic (DUST_SWEEP transactions, position deactivation) remains identical
+| `src/features/admin/transactions/hooks/useTransactionSubmit.ts` | Improve dust routing: better error handling, retry, surface real errors |
 
