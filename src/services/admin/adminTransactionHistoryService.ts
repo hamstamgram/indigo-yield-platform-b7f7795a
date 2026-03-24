@@ -271,7 +271,6 @@ async function voidAndReissueTransaction(
     p_new_notes: mergedNotes ?? undefined,
     p_admin_id: user.id,
     p_reason: params.reason,
-    p_new_tx_hash: params.newValues.tx_hash || undefined,
   });
 
   if (error) {
