@@ -48,8 +48,24 @@ function formatWithCommas(value: string | number, decimals: number): string {
  * Remove thousand separators and validate numeric input
  */
 function parseNumericInput(value: string): string {
-  // Remove commas and spaces
-  return value.replace(/[,\s]/g, "");
+  // Remove spaces
+  let cleaned = value.replace(/\s/g, "");
+
+  // Smart comma handling:
+  // If exactly one comma and no dot, treat comma as decimal separator (European notation)
+  // e.g. "1,01" -> "1.01", but "1,000,000" -> "1000000"
+  const commaCount = (cleaned.match(/,/g) || []).length;
+  const hasDot = cleaned.includes(".");
+
+  if (commaCount === 1 && !hasDot) {
+    // Single comma, no dot -> treat as decimal separator
+    cleaned = cleaned.replace(",", ".");
+  } else {
+    // Multiple commas or mixed -> strip commas (thousand separators)
+    cleaned = cleaned.replace(/,/g, "");
+  }
+
+  return cleaned;
 }
 
 export function NumericInput({
