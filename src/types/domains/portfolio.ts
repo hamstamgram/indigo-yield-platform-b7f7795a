@@ -15,11 +15,11 @@ export interface PortfolioPosition {
   asset_name: string;
   /** Share count - string for NUMERIC precision */
   shares_held: string;
-  /** Cost basis - string for NUMERIC(28,10) precision */
+  /** Cost basis - string for NUMERIC(38,18) precision */
   cost_basis: string;
-  /** Current value - string for NUMERIC(28,10) precision */
+  /** Current value - string for NUMERIC(38,18) precision */
   current_value: string;
-  /** Unrealized gain - string for NUMERIC(28,10) precision */
+  /** Unrealized gain - string for NUMERIC(38,18) precision */
   unrealized_gain: string;
   /** Unrealized gain percent - string for decimal precision */
   unrealized_gain_percent: string;
@@ -28,15 +28,15 @@ export interface PortfolioPosition {
 }
 
 export interface PortfolioSummary {
-  /** Total portfolio value - string for NUMERIC(28,10) precision */
+  /** Total portfolio value - string for NUMERIC(38,18) precision */
   total_value: string;
-  /** Total cost basis - string for NUMERIC(28,10) precision */
+  /** Total cost basis - string for NUMERIC(38,18) precision */
   total_cost_basis: string;
-  /** Total unrealized gain - string for NUMERIC(28,10) precision */
+  /** Total unrealized gain - string for NUMERIC(38,18) precision */
   total_unrealized_gain: string;
   /** Total unrealized gain percent - string for decimal precision */
   total_unrealized_gain_percent: string;
-  /** Total realized gain - string for NUMERIC(28,10) precision */
+  /** Total realized gain - string for NUMERIC(38,18) precision */
   total_realized_gain: string;
   position_count: number;
   last_updated: string;
@@ -45,7 +45,7 @@ export interface PortfolioSummary {
 export interface PortfolioAllocation {
   asset_code: AssetCode;
   asset_name: string;
-  /** Allocation value - string for NUMERIC(28,10) precision */
+  /** Allocation value - string for NUMERIC(38,18) precision */
   value: string;
   /** Allocation percentage - string for decimal precision */
   percentage: string;
@@ -54,9 +54,9 @@ export interface PortfolioAllocation {
 
 export interface PortfolioPerformance {
   date: string;
-  /** Portfolio value - string for NUMERIC(28,10) precision */
+  /** Portfolio value - string for NUMERIC(38,18) precision */
   value: string;
-  /** Return amount - string for NUMERIC(28,10) precision */
+  /** Return amount - string for NUMERIC(38,18) precision */
   return_amount: string;
   /** Return percent - string for decimal precision */
   return_percent: string;
@@ -158,7 +158,7 @@ export interface PortfolioAnalytics {
 
 export interface AllocationData {
   asset: string;
-  /** Allocation value - string for NUMERIC(28,10) precision */
+  /** Allocation value - string for NUMERIC(38,18) precision */
   value: string;
   /** Allocation percentage - string for decimal precision */
   percentage: string;

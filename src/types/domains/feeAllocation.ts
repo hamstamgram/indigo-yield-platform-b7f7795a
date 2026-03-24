@@ -30,11 +30,11 @@ export interface FeeAllocation {
   periodStart: string;
   periodEnd: string;
   purpose: AumPurpose;
-  /** Base net income - string for NUMERIC(28,10) precision */
+  /** Base net income - string for NUMERIC(38,18) precision */
   baseNetIncome: string;
   /** Fee percentage - string for decimal precision */
   feePercentage: string;
-  /** Fee amount - string for NUMERIC(28,10) precision */
+  /** Fee amount - string for NUMERIC(38,18) precision */
   feeAmount: string;
   debitTransactionId: string | null;
   creditTransactionId: string | null;

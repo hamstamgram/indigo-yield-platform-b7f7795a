@@ -233,15 +233,15 @@ export interface HoldingData {
   assetName: string;
   /** Quantity - string for NUMERIC precision */
   quantity: string;
-  /** Current price - string for NUMERIC(28,10) precision */
+  /** Current price - string for NUMERIC(38,18) precision */
   currentPrice: string;
-  /** Current value - string for NUMERIC(28,10) precision */
+  /** Current value - string for NUMERIC(38,18) precision */
   currentValue: string;
   /** Allocation percentage - string for decimal precision */
   allocationPercentage: string;
-  /** Cost basis - string for NUMERIC(28,10) precision */
+  /** Cost basis - string for NUMERIC(38,18) precision */
   costBasis: string;
-  /** Unrealized gain - string for NUMERIC(28,10) precision */
+  /** Unrealized gain - string for NUMERIC(38,18) precision */
   unrealizedGain: string;
   /** Unrealized gain percentage - string for decimal precision */
   unrealizedGainPercentage: string;
@@ -252,9 +252,9 @@ export interface TransactionData {
   date: Date | string;
   type: string;
   assetCode: string;
-  /** Transaction amount - string for NUMERIC(28,10) precision */
+  /** Transaction amount - string for NUMERIC(38,18) precision */
   amount: string;
-  /** Transaction value - string for NUMERIC(28,10) precision */
+  /** Transaction value - string for NUMERIC(38,18) precision */
   value: string;
   is_voided: boolean;
   note?: string;
@@ -266,13 +266,13 @@ export interface TransactionData {
 // Performance Period
 export interface PerformancePeriod {
   period: string;
-  /** Beginning value - string for NUMERIC(28,10) precision */
+  /** Beginning value - string for NUMERIC(38,18) precision */
   beginValue: string;
-  /** Ending value - string for NUMERIC(28,10) precision */
+  /** Ending value - string for NUMERIC(38,18) precision */
   endValue: string;
-  /** Net cash flow - string for NUMERIC(28,10) precision */
+  /** Net cash flow - string for NUMERIC(38,18) precision */
   netCashFlow: string;
-  /** Return amount - string for NUMERIC(28,10) precision */
+  /** Return amount - string for NUMERIC(38,18) precision */
   return: string;
   /** Return percentage - string for decimal precision */
   returnPercentage: string;
@@ -290,21 +290,21 @@ export interface ReportData {
     accountNumber?: string;
   };
   summary: {
-    /** Beginning balance - string for NUMERIC(28,10) precision */
+    /** Beginning balance - string for NUMERIC(38,18) precision */
     beginningBalance?: string;
-    /** Total deposits - string for NUMERIC(28,10) precision */
+    /** Total deposits - string for NUMERIC(38,18) precision */
     totalDeposits?: string;
-    /** Total withdrawals - string for NUMERIC(28,10) precision */
+    /** Total withdrawals - string for NUMERIC(38,18) precision */
     totalWithdrawals?: string;
-    /** Net income - string for NUMERIC(28,10) precision */
+    /** Net income - string for NUMERIC(38,18) precision */
     netIncome?: string;
-    /** Total fees - string for NUMERIC(28,10) precision */
+    /** Total fees - string for NUMERIC(38,18) precision */
     totalFees?: string;
-    /** Ending balance - string for NUMERIC(28,10) precision */
+    /** Ending balance - string for NUMERIC(38,18) precision */
     endingBalance?: string;
-    /** Total value - string for NUMERIC(28,10) precision */
+    /** Total value - string for NUMERIC(38,18) precision */
     totalValue?: string;
-    /** Total return - string for NUMERIC(28,10) precision */
+    /** Total return - string for NUMERIC(38,18) precision */
     totalReturn?: string;
     /** Return percentage - string for decimal precision */
     returnPercentage?: string;
@@ -324,7 +324,7 @@ export interface ReportData {
   };
   fees?: Array<{
     type: string;
-    /** Fee amount - string for NUMERIC(28,10) precision */
+    /** Fee amount - string for NUMERIC(38,18) precision */
     amount: string;
     description?: string;
   }>;

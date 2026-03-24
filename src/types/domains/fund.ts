@@ -15,7 +15,7 @@ type BenchmarkType = Database["public"]["Enums"]["benchmark_type"];
 /**
  * Core Fund type - the main type for fund data
  * Maps to the funds table with standardized naming
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface Fund {
   id: string;
@@ -25,13 +25,13 @@ export interface Fund {
   asset: string;
   status: FundStatus | null;
   inception_date: string;
-  /** @precision NUMERIC(28,10) from database - basis points */
+  /** @precision NUMERIC(38,18) from database - basis points */
   mgmt_fee_bps: string | null;
-  /** @precision NUMERIC(28,10) from database - basis points */
+  /** @precision NUMERIC(38,18) from database - basis points */
   perf_fee_bps: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   min_investment: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   high_water_mark: string | null;
   /** @precision NUMERIC(20,8) from database - minimum withdrawal in fund asset */
   min_withdrawal_amount: string | null;
@@ -53,7 +53,7 @@ export interface FundRef {
 }
 
 /**
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface FundConfiguration {
   id: string;
@@ -62,9 +62,9 @@ export interface FundConfiguration {
   currency: string;
   benchmark: BenchmarkType;
   status: FundStatus;
-  /** @precision NUMERIC(28,10) from database - basis points */
+  /** @precision NUMERIC(38,18) from database - basis points */
   mgmt_fee_bps: string;
-  /** @precision NUMERIC(28,10) from database - basis points */
+  /** @precision NUMERIC(38,18) from database - basis points */
   perf_fee_bps: string;
   inception_date: string;
   effective_from: string;
@@ -74,47 +74,47 @@ export interface FundConfiguration {
 }
 
 /**
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface FundPerformance {
   fund_id: string;
   nav_date: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   nav_per_share: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   aum: string;
   investor_count: number | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   shares_outstanding: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   gross_return_pct: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   net_return_pct: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   fees_accrued: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_inflows: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   total_outflows: string | null;
 }
 
 /**
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface FundKPI {
   fund_id: string;
   fund_code: string;
   fund_name: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   aum: string;
   investor_count: number;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   mtd_return: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   qtd_return: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   ytd_return: string | null;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   itd_return: string | null;
 }
 
@@ -207,12 +207,12 @@ export function mapFundToDb(fund: Partial<Fund>): Record<string, unknown> {
 
 /**
  * Yield settings for funds
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface YieldSettings {
   id: string;
   frequency: "daily" | "weekly";
-  /** @precision NUMERIC(28,10) from database - basis points */
+  /** @precision NUMERIC(38,18) from database - basis points */
   rate_bps: string;
   effective_from: string;
   created_by?: string;
@@ -221,14 +221,14 @@ export interface YieldSettings {
 
 /**
  * Fund fee history
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface FundFeeHistory {
   id: string;
   fund_id: string;
-  /** @precision NUMERIC(28,10) from database - basis points */
+  /** @precision NUMERIC(38,18) from database - basis points */
   mgmt_fee_bps: string;
-  /** @precision NUMERIC(28,10) from database - basis points */
+  /** @precision NUMERIC(38,18) from database - basis points */
   perf_fee_bps: string;
   effective_from: string;
   created_by: string;
@@ -237,23 +237,23 @@ export interface FundFeeHistory {
 
 /**
  * Benchmark data
- * Financial fields use string for NUMERIC(28,10) precision preservation
+ * Financial fields use string for NUMERIC(38,18) precision preservation
  */
 export interface Benchmark {
   id: number;
   symbol: string;
   date: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   price_usd: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   ret_1d?: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   ret_mtd?: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   ret_qtd?: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   ret_ytd?: string;
-  /** @precision NUMERIC(28,10) from database */
+  /** @precision NUMERIC(38,18) from database */
   ret_itd?: string;
   created_at: string;
 }

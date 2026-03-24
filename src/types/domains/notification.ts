@@ -66,9 +66,9 @@ export interface PriceAlert {
   user_id: string;
   asset_code: string; // Fixed: was asset_symbol, DB uses asset_code
   alert_type: "above" | "below" | "change_percent";
-  /** @precision NUMERIC(28,10) - use string for precision */
+  /** @precision NUMERIC(38,18) - use string for precision */
   threshold_value: string;
-  /** @precision NUMERIC(28,10) - use string for precision */
+  /** @precision NUMERIC(38,18) - use string for precision */
   current_value?: string;
   is_active: boolean;
   triggered_at?: string;

@@ -145,11 +145,11 @@ export interface IBAllocation {
   effectiveDate: string;
   purpose: AumPurpose;
   source: string | null;
-  /** Source net income - string for NUMERIC(28,10) precision */
+  /** Source net income - string for NUMERIC(38,18) precision */
   sourceNetIncome: string;
   /** IB percentage - string for decimal precision */
   ibPercentage: string;
-  /** IB fee amount - string for NUMERIC(28,10) precision */
+  /** IB fee amount - string for NUMERIC(38,18) precision */
   ibFeeAmount: string;
   payoutStatus: string;
   payoutBatchId: string | null;
@@ -177,7 +177,7 @@ export interface IBAllocationWithNames extends IBAllocation {
 export interface IBAllocationSummary {
   ibInvestorId: string;
   ibInvestorName: string;
-  /** Total amount - string for NUMERIC(28,10) precision */
+  /** Total amount - string for NUMERIC(38,18) precision */
   totalAmount: string;
   allocationCount: number;
   payoutStatus: string;
