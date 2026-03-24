@@ -26,3 +26,26 @@ Looped through every distinct `(investor_id, fund_id)` in `transactions_v2` and 
 - **All position drifts**: 0 (exact zero across all positions)
 - **All 5 withdrawal dates**: Corrected to match ledger `tx_date`
 - **No code changes needed**: All UI surfaces read from the corrected data
+
+---
+
+# Post-Upgrade Audit — COMPLETED
+
+## Bugs Fixed
+
+### BUG 1 (Critical): Admin "Add Transaction" withdrawal missing dates
+- **File**: `useTransactionSubmit.ts`
+- **Fix**: Added `settlement_date: data.tx_date` and `request_date: data.tx_date` to the `withdrawal_requests` insert
+- **Impact**: Prevents future withdrawal date bugs when admins enter historical dates
+
+### BUG 2 (Moderate): `void_and_reissue_full_exit` security check
+- **Fix**: Replaced `profiles.is_admin` column check with `public.is_admin()` RPC
+- **Impact**: Prevents potential privilege escalation via profile manipulation
+
+### BUG 3 (Low): `reconcile_investor_position_internal` cost_basis mismatch
+- **Fix**: Aligned cost_basis logic to use `ABS(amount)` for deposits and `-1 * ABS(amount)` for withdrawals, matching the canonical `recompute_investor_position`
+- **Impact**: Ensures reconciliation produces identical results to the canonical writer
+
+### Cosmetic: TypeScript precision comments
+- **Fix**: Replaced all `NUMERIC(28,10)` references with `NUMERIC(38,18)` across 19 type files
+- **Impact**: Documentation accuracy only
