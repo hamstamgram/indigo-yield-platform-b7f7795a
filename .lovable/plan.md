@@ -1,46 +1,39 @@
 
 
-# Yield Precision Audit Results
+# Fix: Dust Not Showing on Revenue Page + Add Settlement Date to Tables
 
-## Findings
+## Issue 1: Dust Not Visible on Revenue Page
 
-The recent migration (`20260324124705`) updated **two** functions to `ROUND(..., 18)`:
-1. `calculate_yield_allocations` -- used by the preview UI helper
-2. `apply_segmented_yield_distribution_v5` -- the main apply RPC
+**Root cause**: The `internal_route_to_fees` RPC creates transactions with `purpose = 'transaction'`. The revenue page query in `feesService.ts` line 123 has `.neq("purpose", "transaction")`, which **excludes** these dust transactions entirely.
 
-**However, three functions still use `ROUND(..., 8)` and were never updated:**
+**Fix**: Remove the `.neq("purpose", "transaction")` filter from `getFeeTransactions()` in `feesService.ts`. The type-based filter (`.or(type.in.(FEE_CREDIT,IB_CREDIT,YIELD,DUST,DUST_SWEEP,INTERNAL_CREDIT),investor_id.eq.{fees_id})`) already narrows to revenue-relevant records. The purpose filter was originally added to avoid showing capital flow duplicates, but it accidentally excludes all internal routing dust.
 
-| Function | Location | Status |
-|----------|----------|--------|
-| `preview_segmented_yield_distribution_v5` | `20260307000008` (latest) | ROUND(..., 8) in 6 places |
-| `calc_avg_daily_balance` | Baseline only | ROUND(..., 8) on return value |
-| `preview_daily_yield_to_fund_v3` | Baseline only | ROUND(..., 8) in 4+ places |
+## Issue 2: Dust Not Visible in Investor Ledger
 
-### Impact
+**Root cause**: `useInvestorLedger.ts` line 99 filters out ALL `DUST_SWEEP` type transactions. But the manual path creates `INTERNAL_WITHDRAWAL` type (not `DUST_SWEEP`), so this filter isn't even the issue -- the `INTERNAL_WITHDRAWAL` entries have `visibility_scope = 'admin_only'` and should already appear in the admin ledger. Need to verify if it's actually a different problem (the dust sweep simply never executed).
 
-- **`preview_segmented_yield_distribution_v5`**: This is the **primary preview RPC** called from the UI (`yieldPreviewService.ts`). It truncates all allocation amounts to 8 decimal places before returning them. The apply function then recalculates independently with 18dp, so preview and apply can show slightly different numbers.
+The existing filter `tx.type !== "DUST_SWEEP"` is correct for the **investor-facing** ledger (hides internal routing). For the **admin** ledger, this same hook is used but the admin should see these entries. However, since the manual path uses `INTERNAL_WITHDRAWAL` type (not `DUST_SWEEP`), the filter doesn't affect it. The real issue is that the dust sweep likely didn't execute at all (the toast error was missed).
 
-- **`calc_avg_daily_balance`**: Returns `ROUND(result, 8)`. This helper is used inside `preview_daily_yield_to_fund_v3` (the older ADB-based preview). Rounding the ADB to 8dp cascades into allocation calculations.
+No change needed to the DUST_SWEEP filter -- it's working as designed.
 
-- **`preview_daily_yield_to_fund_v3`**: The older preview RPC. Still registered in `rpcSignatures.ts` but appears secondary to the V5 segmented preview.
+## Issue 3: Add Settlement Date to Ledger Table and Withdrawal Table
 
-### Frontend Display
+The `withdrawal_requests` table already has a `settlement_date` column. The user wants this date displayed in:
 
-The `formatAssetAmount` function correctly handles display-only rounding based on asset type. No changes needed on the frontend.
+1. **Withdrawal table** (`WithdrawalsTable.tsx`): Add a "Settlement Date" column
+2. **Ledger table** (`LedgerTable.tsx`): Not directly applicable since ledger transactions don't have a settlement_date field. Instead, for withdrawal-type transactions, we can show the settlement date from the linked withdrawal request if available. However this requires a join that adds complexity. A simpler approach: show it only in the Withdrawals table where the data naturally exists.
 
-## Fix Plan
-
-**One new migration** that re-creates the three stale functions with `ROUND(..., 18)`:
-
-1. **`preview_segmented_yield_distribution_v5`**: Copy body from migration `20260307000008`, replace all 6 occurrences of `ROUND(..., 8)` with `ROUND(..., 18)`
-2. **`calc_avg_daily_balance`**: Replace `ROUND(v_result, 8)` with `ROUND(v_result, 18)` 
-3. **`preview_daily_yield_to_fund_v3`**: Replace all `ROUND(..., 8)` with `ROUND(..., 18)` for consistency
-
-### Files to Change
+## Files to Change
 
 | File | Change |
 |------|--------|
-| New migration SQL | `CREATE OR REPLACE` for all three functions, `ROUND(..., 8)` → `ROUND(..., 18)` |
+| `src/services/admin/feesService.ts` | Remove `.neq("purpose", "transaction")` filter from `getFeeTransactions()` so dust routing transactions appear on revenue page |
+| `src/features/admin/withdrawals/components/WithdrawalsTable.tsx` | Add "Settlement Date" column to both desktop and mobile views |
+| `src/features/admin/withdrawals/hooks/useAdminWithdrawals.ts` | Ensure `settlement_date` is included in the select query |
 
-No frontend changes needed. This ensures preview and apply use identical precision, and all intermediate calculations preserve full `NUMERIC(38,18)` fidelity.
+## Safety
+
+- The revenue page fix only removes a filter — it cannot break existing data, just makes previously hidden transactions visible
+- The settlement date column is purely additive UI — no existing columns are modified
+- No database changes needed — `settlement_date` already exists on `withdrawal_requests`
 
