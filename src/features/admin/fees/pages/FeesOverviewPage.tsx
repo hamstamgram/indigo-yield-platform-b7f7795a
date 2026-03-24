@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CSVExporter, type ExportColumn } from "@/lib/export/csv-export";
-import { AdminGuard } from "@/components/admin";
+import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 import { useToast } from "@/hooks";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { useFeesOverview } from "@/hooks/data";
@@ -25,7 +25,7 @@ import {
   FeeDateRangeFilter,
   FeeTransactionsTable,
   exportFeesToPDF,
-} from "@/components/admin/fees";
+} from "@/features/admin/funds/components/fees";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 
 const feeExportColumns: ExportColumn[] = [

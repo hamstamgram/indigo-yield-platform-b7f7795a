@@ -14,7 +14,7 @@ import {
   BulkVoidWithdrawalsDialog,
   BulkRestoreWithdrawalsDialog,
   WithdrawalBulkActionToolbar,
-} from "@/components/admin";
+} from "@/features/admin/withdrawals/components";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/domains";
 import { ArrowDownToLine, Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { ExportButton } from "@/components/common";
@@ -24,7 +24,7 @@ import { useFunds, useUrlFilters } from "@/hooks";
 import { useWithdrawalsWithStats } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 import { useWithdrawalSelection } from "@/features/admin/withdrawals/hooks/useWithdrawalSelection";
 import { useWithdrawalMutations } from "@/hooks/data";
-import { useSuperAdmin } from "@/components/admin";
+import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import { PageHeader } from "@/components/layout";
