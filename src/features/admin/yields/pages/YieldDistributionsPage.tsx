@@ -7,7 +7,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { format, startOfMonth, subMonths } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
-import { AdminGuard } from "@/components/admin";
+import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useYieldDistributionsPage } from "@/features/admin/yields/hooks/useYieldDistributionsPage";
 import type {

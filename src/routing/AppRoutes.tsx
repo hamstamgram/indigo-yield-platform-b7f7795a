@@ -20,11 +20,9 @@ import { PageLoadingSpinner } from "@/components/ui";
  * Application Routes Component
  *
  * Route Organization:
- * - Public routes: Landing, auth, info pages (16 routes)
- * - Investor routes: Dashboard, portfolio, documents, support, profile, reports (53 routes)
- * - Admin routes: Admin dashboard, investor management, operations (46 routes)
- *
- * Total: 115 routes across 3 modules
+ * - Public routes: Landing, auth, info pages
+ * - Investor routes: Dashboard, portfolio, documents, support, profile, reports
+ * - Admin routes: Admin dashboard, investor management, operations
  */
 export function AppRoutes() {
   return (

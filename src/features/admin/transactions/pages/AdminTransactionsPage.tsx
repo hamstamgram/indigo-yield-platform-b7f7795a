@@ -48,10 +48,12 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui";
-import { AdminGuard, useSuperAdmin } from "@/components/admin";
+import { AdminGuard } from "@/features/admin/shared/AdminGuard";
+import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
-import { AddTransactionDialog, VoidTransactionDialog } from "@/components/admin";
+import { AddTransactionDialog } from "@/features/admin/transactions/AddTransactionDialog";
+import { VoidTransactionDialog } from "@/features/admin/transactions";
 import { useSortableColumns } from "@/hooks";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data";

@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { AdminGuard } from "@/components/admin";
+import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 import { useFunds, useUrlFilters, useToast } from "@/hooks";
 import { canEditYields } from "@/services/admin";
 import { YieldsFilterBar, YieldsTable } from "@/features/admin/yields/components";
