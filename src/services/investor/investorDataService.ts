@@ -57,7 +57,6 @@ export {
 
 export {
   getWithdrawalRequests,
-  createWithdrawalRequest,
   cancelWithdrawalRequest,
   getAvailableFunds,
 } from "@/features/investor/withdrawals/services/investorWithdrawalService";
@@ -88,7 +87,6 @@ export const investorDataService = {
   getInvestorSummary: portfolioService.getInvestorSummary,
   getAllInvestorsWithSummary: portfolioService.getAllInvestorsWithSummary,
   getWithdrawalRequests: withdrawalService.getWithdrawalRequests,
-  createWithdrawalRequest: withdrawalService.createWithdrawalRequest,
   cancelWithdrawalRequest: withdrawalService.cancelWithdrawalRequest,
   getAvailableFunds: withdrawalService.getAvailableFunds,
   getYieldHistory: yieldHistoryService.getYieldHistory,
