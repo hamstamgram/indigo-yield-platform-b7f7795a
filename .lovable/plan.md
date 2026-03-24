@@ -1,24 +1,33 @@
 
 
-# Cosmetic Fixes Plan
+# Fix: Withdrawal Decimal Input + Yield Precision Limits
 
-## Issue 1: Calendar Month Dropdown Text Not Visible
+## Issue 1: Withdrawal Input Treats Comma as Thousand Separator
 
-The calendar uses native `<select>` dropdowns for month/year selection (`captionLayout="dropdown"`). The dropdown styling on line 36 sets `text-white` and `[color-scheme:dark]`, but the native `<option>` elements inside the `<select>` inherit the OS/browser default styling. On many platforms, the option list renders with a white/light background but the text color stays white — making months invisible.
+**What's happening**: When you type `1,01` (European decimal notation), the `NumericInput` component strips the comma (treating it as a thousand separator) via `parseNumericInput()`, turning `1,01` into `101`. On blur, this becomes `1.01` but during typing it shows `101` or `1.001`.
 
-**Fix in `src/components/ui/calendar.tsx` (line 36):**
-Add explicit option styling to the dropdown class so that the native option elements are readable on all platforms:
-- Add a CSS rule in `src/index.css` targeting `.calendar-dropdown option` with dark background and white text
-- OR simpler: add inline Tailwind classes `[&_option]:bg-[#1e293b] [&_option]:text-white` to the `dropdown` classNames entry
+**Root cause**: `parseNumericInput()` at line 50-52 of `NumericInput.tsx` does `value.replace(/[,\s]/g, "")` -- it unconditionally removes ALL commas. The `handleChange` regex `/^-?\d*\.?\d*$/` only accepts dots as decimal separators.
 
-This ensures the month/year option list has a dark background with white text, matching the rest of the dark theme.
+**Fix in `src/components/common/NumericInput.tsx`**:
+- In `parseNumericInput()`, detect if a comma is being used as a decimal separator (e.g., `1,01` has exactly one comma and no dot) and convert it to a dot
+- Rule: if the string contains a single comma and no dot, and the part after the comma has 1-6 digits, treat the comma as a decimal separator
+- If there are multiple commas (thousand separators like `1,000,000`), strip them as today
 
-## Issue 2: Yield Preview Shows Wrong Gross Amount
+---
 
-The distribute yield dialog header shows the sum of individual allocations (~5.9975) instead of the true gross yield (6.000). The difference is rounding dust.
+## Issue 2: Yield Calculations Truncate at 8 Decimals
 
-**Fix in `src/services/admin/yields/yieldPreviewService.ts`:**
-Compute `grossYield` as `recordedAum - openingAum` instead of using the sum-of-allocations value, so the headline matches the actual AUM delta.
+**What's happening**: The preview and apply RPCs use `ROUND(..., 8)` which truncates results to 8 decimal places. The database columns are `NUMERIC(38,18)`, so there's no reason to round at 8.
+
+**Root cause**: Two database functions have hardcoded precision:
+1. **`preview_segmented_yield_distribution_v5`** (baseline `20260307000008`): Uses `ROUND(..., 8)` in 3 places
+2. **`apply_segmented_yield_distribution_v5`** (latest `20260319153751`): Uses `ROUND(..., 10)` in 3 places
+
+Both should use `ROUND(..., 18)` to match the column precision.
+
+**Fix**: One new migration that re-creates both functions, changing all `ROUND(..., 8)` and `ROUND(..., 10)` calls to `ROUND(..., 18)`.
+
+Additionally, the `ASSET_PRECISION` map in `src/types/asset.ts` and the `formatAssetAmount` function in `src/utils/assets.ts` cap display precision (e.g., SOL at 6, BTC at 8). These are **display** limits and are correct for UI rendering -- they do NOT affect calculations. No changes needed there.
 
 ---
 
@@ -26,8 +35,14 @@ Compute `grossYield` as `recordedAum - openingAum` instead of using the sum-of-a
 
 | File | Change |
 |------|--------|
-| `src/components/ui/calendar.tsx` line 36 | Add `[&_option]:bg-[#1e293b] [&_option]:text-white` to the `dropdown` class string |
-| `src/services/admin/yields/yieldPreviewService.ts` | Compute `grossYield` from `recordedAum - openingAum` |
+| `src/components/common/NumericInput.tsx` | Smart comma-as-decimal detection in `parseNumericInput()` |
+| New migration SQL | Update both `preview_segmented_yield_distribution_v5` and `apply_segmented_yield_distribution_v5` to use `ROUND(..., 18)` |
 
-Both changes are purely cosmetic — no database or RPC modifications.
+## Migration Details
+
+The migration will:
+1. `CREATE OR REPLACE` the preview function, copying the current body from `20260307000008` but replacing `ROUND(..., 8)` with `ROUND(..., 18)`
+2. `CREATE OR REPLACE` the apply function, copying the current body from `20260319153751` but replacing `ROUND(..., 10)` with `ROUND(..., 18)`
+
+This is safe because columns already support `NUMERIC(38,18)` and increasing internal precision cannot break existing data.
 
