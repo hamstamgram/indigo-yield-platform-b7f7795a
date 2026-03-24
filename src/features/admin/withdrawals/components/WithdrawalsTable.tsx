@@ -379,6 +379,14 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                   >
                     Request Date
                   </SortableTableHead>
+                  <SortableTableHead
+                    column="settlement_date"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="whitespace-nowrap"
+                  >
+                    Settlement Date
+                  </SortableTableHead>
                   <TableHead className="whitespace-nowrap">Notes</TableHead>
                   <TableHead className="w-[50px]">Actions</TableHead>
                 </TableRow>

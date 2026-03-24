@@ -25,6 +25,7 @@ export interface Withdrawal {
   admin_notes: string | null;
   request_date: string;
   processed_at?: string | null;
+  settlement_date?: string | null;
   tx_hash: string | null;
   rejection_reason: string | null;
   cancellation_reason: string | null;
