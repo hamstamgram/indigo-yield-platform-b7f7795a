@@ -481,6 +481,11 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                         </div>
                       </TableCell>
                       <TableCell className="py-1.5">
+                        {w.settlement_date
+                          ? format(new Date(w.settlement_date), "MMM dd, yyyy")
+                          : <span className="text-muted-foreground">-</span>}
+                      </TableCell>
+                      <TableCell className="py-1.5">
                         <span className="max-w-[200px] truncate">{w.notes || "-"}</span>
                       </TableCell>
                       <TableCell className="py-1.5">
