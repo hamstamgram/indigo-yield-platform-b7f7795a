@@ -1,56 +1,46 @@
 
 
-# Fix: Full Exit Dust Not Being Swept via Manual Transaction Dialog
+# Yield Precision Audit Results
 
-## Diagnosis
+## Findings
 
-Ryan's withdrawal went through the **manual AddTransactionDialog** (not the Withdrawal Request queue). Evidence: the transaction `reference_id` starts with `manual:` and there is no `withdrawal_requests` record for Ryan.
+The recent migration (`20260324124705`) updated **two** functions to `ROUND(..., 18)`:
+1. `calculate_yield_allocations` -- used by the preview UI helper
+2. `apply_segmented_yield_distribution_v5` -- the main apply RPC
 
-The manual dialog has client-side dust routing logic (lines 105-129 of `useTransactionSubmit.ts`) that:
-1. Re-fetches the position balance after the withdrawal transaction
-2. Calls `executeInternalRoute` to sweep dust to INDIGO Fees
+**However, three functions still use `ROUND(..., 8)` and were never updated:**
 
-**However**, the dust routing either silently failed or the `full_withdrawal` toggle was not activated. The `catch` block on line 126 only shows a warning toast — easy to miss. No dust sweep transactions exist in the ledger for Ryan.
+| Function | Location | Status |
+|----------|----------|--------|
+| `preview_segmented_yield_distribution_v5` | `20260307000008` (latest) | ROUND(..., 8) in 6 places |
+| `calc_avg_daily_balance` | Baseline only | ROUND(..., 8) on return value |
+| `preview_daily_yield_to_fund_v3` | Baseline only | ROUND(..., 8) in 4+ places |
 
-There are **two separate problems**:
+### Impact
 
-### Problem 1: Client-side dust routing is fragile
-The manual transaction dialog creates the withdrawal first, then attempts dust routing as a separate client-side call. If the second call fails (network, RLS, timing), you get a partial state: withdrawal done, dust stranded.
+- **`preview_segmented_yield_distribution_v5`**: This is the **primary preview RPC** called from the UI (`yieldPreviewService.ts`). It truncates all allocation amounts to 8 decimal places before returning them. The apply function then recalculates independently with 18dp, so preview and apply can show slightly different numbers.
 
-### Problem 2: Amount auto-fill uses `Math.floor(balance * 1000) / 1000` 
-When Full Exit is toggled ON (line 238), the amount is set to `Math.floor(currentBalance * 1000) / 1000`. If `currentBalance` was stale or the user manually typed `158.8` instead of using the auto-filled value, the dust calculation diverges.
+- **`calc_avg_daily_balance`**: Returns `ROUND(result, 8)`. This helper is used inside `preview_daily_yield_to_fund_v3` (the older ADB-based preview). Rounding the ADB to 8dp cascades into allocation calculations.
 
-## Fix
+- **`preview_daily_yield_to_fund_v3`**: The older preview RPC. Still registered in `rpcSignatures.ts` but appears secondary to the V5 segmented preview.
 
-**Make the manual transaction dialog's Full Exit path use the same `approve_and_complete_withdrawal` RPC** that the Withdrawal Request flow uses. This ensures dust sweeping happens atomically in the database, not via two separate client-side calls.
+### Frontend Display
 
-### Changes
+The `formatAssetAmount` function correctly handles display-only rounding based on asset type. No changes needed on the frontend.
 
-**`src/features/admin/transactions/hooks/useTransactionSubmit.ts`**:
-- When `data.full_withdrawal && data.txn_type === "WITHDRAWAL"`:
-  - Instead of calling `createInvestorTransaction` + client-side `executeInternalRoute`
-  - Create a withdrawal request via direct insert, then call `approve_and_complete_withdrawal` RPC with `p_is_full_exit=true` and `p_processed_amount` set to the entered amount
-  - This ensures dust sweep happens atomically in one DB transaction
-  - Remove the fragile client-side dust routing code
+## Fix Plan
 
-**Alternative (simpler, lower risk)**: Keep the current two-step approach but make it more robust:
-- After the withdrawal transaction succeeds, re-fetch position balance
-- If balance > 0 and `full_withdrawal` is true, call `internal_route_to_fees` RPC
-- If dust routing fails, **automatically retry once** and if still failing, show an error (not just a warning)
-- Add the dust amount to the success toast so admin can verify
+**One new migration** that re-creates the three stale functions with `ROUND(..., 18)`:
 
-### Recommended approach: Alternative (simpler)
+1. **`preview_segmented_yield_distribution_v5`**: Copy body from migration `20260307000008`, replace all 6 occurrences of `ROUND(..., 8)` with `ROUND(..., 18)`
+2. **`calc_avg_daily_balance`**: Replace `ROUND(v_result, 8)` with `ROUND(v_result, 18)` 
+3. **`preview_daily_yield_to_fund_v3`**: Replace all `ROUND(..., 8)` with `ROUND(..., 18)` for consistency
 
-The full RPC rewrite is cleaner but riskier — it changes how the manual dialog works. The simpler fix addresses the silent failure and makes the existing path reliable:
-
-1. **Improve error handling**: Change the `catch` from `toast.warning` to `toast.error` with the actual error message
-2. **Add retry logic**: One automatic retry before giving up
-3. **Log the actual error**: The current code logs to console but doesn't surface the real failure reason
-4. **Verify `full_withdrawal` flag reaches submit**: Confirm the form data properly passes the boolean
-
-## Files to Change
+### Files to Change
 
 | File | Change |
 |------|--------|
-| `src/features/admin/transactions/hooks/useTransactionSubmit.ts` | Improve dust routing: better error handling, retry, surface real errors |
+| New migration SQL | `CREATE OR REPLACE` for all three functions, `ROUND(..., 8)` → `ROUND(..., 18)` |
+
+No frontend changes needed. This ensures preview and apply use identical precision, and all intermediate calculations preserve full `NUMERIC(38,18)` fidelity.
 
