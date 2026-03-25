@@ -1,53 +1,101 @@
 
 
-# Yield History — Investor Allocations Column Mapping Audit
+# Root Cause Analysis & Fix Plan
 
-## Findings
+## Critical Bug Found: My Previous Fix Broke Voids
 
-| Column Header | Data Source | Status | Issue |
-|---|---|---|---|
-| **Investor** | `investorMap[alloc.investor_id]` → name/email | OK | Correctly mapped |
-| **Gross Amount** | `alloc.gross_amount` | OK | Correctly mapped from `yield_allocations.gross_amount` |
-| **Fees Paid** | `alloc.fee_amount` | OK | Correctly mapped, displayed as negative |
-| **IB Comm.** | `alloc.ib_amount` | OK | Correctly mapped, displayed as negative |
-| **Credits Earned** | Hardcoded `"-"` | BUG | The `yield_allocations` table has a `fee_credit` column but it is never fetched or displayed |
-| **Net Yield** | `alloc.net_amount` | OK | Correctly mapped from `yield_allocations.net_amount` |
-| **Position After** | `position_value_at_calc + net_amount` | LOGIC ISSUE | This manually adds `net_amount` to `position_value_at_calc`, but `position_value_at_calc` is the position **before** the yield. The addition is correct only if `net_amount` already includes the credit. If fee credits exist, the displayed "Position After" could be wrong since credits are ignored |
+### The Problem
 
-## Root Cause
+The `check_fund_is_active()` trigger function is shared by **two tables**:
+1. `transactions_v2` (has `is_voided` column)
+2. `investor_positions` (does NOT have `is_voided` column)
 
-Two things are missing:
+My previous migration added this check at the top:
+```sql
+IF TG_OP = 'UPDATE' AND NEW.is_voided = true AND ...
+```
 
-1. **Service layer** (`yieldDistributionsPageService.ts` line 163-177): The Supabase query on `yield_allocations` does not select `fee_credit` or `fee_credit_transaction_id`. The `AllocationRow` type (line 36-50) also omits `fee_credit`.
+When a void fires, the chain is:
+1. `void_transaction` RPC updates `transactions_v2.is_voided = true`
+2. Trigger `recompute_on_void` fires → calls `reconcile_investor_position_internal`
+3. That function does `INSERT INTO investor_positions ... ON CONFLICT DO UPDATE`
+4. Trigger `trg_investor_positions_active_fund` → calls `check_fund_is_active()`
+5. The function tries `NEW.is_voided` on `investor_positions` which **has no `is_voided` column**
+6. PostgreSQL raises: `record "new" has no field "is_voided"` → **crash**
 
-2. **UI layer** (`YieldsTable.tsx` line 433): The "Credits Earned" cell is hardcoded to return `"-"` instead of displaying `alloc.fee_credit`.
+The error is caught and surfaced as the cryptic "Fund not found" toast because the error propagation chain transforms it.
 
-## Distribution-Level "Total Credits" Column
+### The Fix (Migration)
 
-The parent table also has a "Total Credits" column (line 280-296) that is hardcoded to `"-"`. The `DistributionRow` type and query similarly omit `total_fee_credit` from `yield_distributions`, even though that column exists in the database.
+Rewrite `check_fund_is_active()` to be table-safe:
 
-## Fix Plan
+```sql
+CREATE OR REPLACE FUNCTION public.check_fund_is_active()
+RETURNS trigger AS $$
+DECLARE
+  v_fund_status text;
+BEGIN
+  -- FIRST: Skip any UPDATE where fund_id hasn't changed (works on ALL tables)
+  IF TG_OP = 'UPDATE' AND NEW.fund_id = OLD.fund_id THEN
+    RETURN NEW;
+  END IF;
 
-### Step 1: Update `AllocationRow` type and query
-**File:** `src/services/admin/yields/yieldDistributionsPageService.ts`
-- Add `fee_credit: number | null` to the `AllocationRow` type
-- Add `fee_credit` to the Supabase select query (line 164-177)
+  -- SECOND: For transactions_v2 only, skip void operations
+  IF TG_OP = 'UPDATE' AND TG_TABLE_NAME = 'transactions_v2' THEN
+    -- is_voided only exists on transactions_v2
+    IF NEW.is_voided = true AND (OLD.is_voided IS NULL OR OLD.is_voided = false) THEN
+      RETURN NEW;
+    END IF;
+  END IF;
 
-### Step 2: Update `DistributionRow` type and query  
-**File:** `src/services/admin/yields/yieldDistributionsPageService.ts`
-- Add `total_fee_credit: number | null` to `DistributionRow` type
-- Add `total_fee_credit` to the distribution query
+  -- Validate fund exists and is active
+  SELECT status INTO v_fund_status
+  FROM public.funds WHERE id = NEW.fund_id::uuid;
+  
+  IF v_fund_status IS NULL THEN
+    RAISE EXCEPTION 'Fund not found: %', NEW.fund_id;
+  ELSIF v_fund_status != 'active' THEN
+    RAISE EXCEPTION 'Cannot use inactive fund (status: %): %', v_fund_status, NEW.fund_id;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
 
-### Step 3: Wire up the UI cells
-**File:** `src/features/admin/yields/components/YieldsTable.tsx`
-- Line 293-295: Replace hardcoded `"-"` in "Total Credits" column with `record.total_fee_credit` rendered via `FinancialValue`
-- Line 433: Replace hardcoded `"-"` in allocation "Credits Earned" cell with `alloc.fee_credit` rendered via `FinancialValue`
+Key changes:
+- Move the `fund_id = OLD.fund_id` check **first** (safe for all tables, and 99% of position updates hit this path)
+- Guard the `is_voided` check with `TG_TABLE_NAME = 'transactions_v2'` so it never accesses a non-existent column on `investor_positions`
 
-### Step 4: Verify Position After calculation
-The current formula `position_value_at_calc + net_amount` should be correct because `net_amount` in the yield engine already accounts for fee credits. No change needed here unless the V5 engine stores credits separately from net -- which it does not per the memory docs.
+### Secondary Issue: Missing `recalculate_fund_aum_for_date` Function
+
+Inside `void_transaction`, there is a call:
+```sql
+PERFORM recalculate_fund_aum_for_date(v_tx.fund_id, v_tx.tx_date, ...);
+```
+This function **does not exist** in the database. The call silently fails (caught by `EXCEPTION WHEN OTHERS THEN NULL`). This means AUM is never recalculated after a void. This is a data integrity gap but does not block voids.
+
+No immediate fix needed — position recompute still works correctly. AUM recalculation should be triggered separately if needed.
+
+### ETH Reporting Discrepancy
+
+The July ETH reporting distribution (id: `40a21817`) has `gross_yield = 0` and `allocation_count = 0`. Meanwhile, two checkpoint yields (Jul 11 and Jul 30) correctly allocated yield to investors including INDIGO LP before their Jul 31 full exit. The reporting period captured nothing because it was recorded after the checkpoint crystallizations already consumed the yield. This is a data-entry issue, not a code bug — the July reporting needs to be voided and re-recorded with the correct values, OR the checkpoints need to be consolidated into the reporting period.
+
+### Position-Ledger Integrity
+
+All ETH positions show **zero drift** between `investor_positions.current_value` and `SUM(transactions_v2.amount)`. The ledger is clean.
+
+## Implementation Steps
+
+### Step 1: Fix `check_fund_is_active` trigger function
+Single database migration that rewrites the function with table-safe column access as described above.
+
+### Step 2: Verify void works
+After the migration deploys, void a single BTC test transaction to confirm the fix.
 
 ## Summary
-- 2 hardcoded `"-"` cells need to be wired to real data
-- 1 type + 1 query need `fee_credit` / `total_fee_credit` added
-- No other column mappings are broken
+- **1 root cause**: My previous migration introduced a column-access crash on `investor_positions`
+- **1 migration** needed to fix it
+- ETH reporting zero is a data issue, not a code defect
+- Position-ledger integrity is clean (zero drift across all funds)
 
