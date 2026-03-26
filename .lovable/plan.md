@@ -1,86 +1,106 @@
 
 
-# Verify Every Line: Excel vs Database vs UI Rounding Audit
+# Expert Verification: Triggers, Schema, UI Operations & Data Integrity
 
-## Problem Identified
+## Context
+After the recent type hardening (`number` to `number | string`) in `yieldDistributionsPageService.ts` and the thousand-separator formatting in `FinancialValue.tsx`, we need to verify that nothing is broken across the full stack: DB triggers, schema alignment, UI operations (dialogs, previews), and column data rendering.
 
-There are **two layers** where numbers can drift from the Excel:
+## Verification Scope
 
-### Layer 1: Database Types (Precision Loss)
-The `DistributionRow` and `AllocationRow` types in `yieldDistributionsPageService.ts` declare all financial fields as JavaScript `number` (lines 25-31, 41-51). When Supabase returns `numeric(38,18)` values, the JS client silently converts them to IEEE 754 doubles (~15 significant digits). For most values this is fine, but for high-precision crypto amounts it can introduce micro-drift.
+### 1. Fix Precision Bug in YieldsTable Position After Calculation
+**File**: `src/features/admin/yields/components/YieldsTable.tsx` (line 451-453)
 
-### Layer 2: UI Display Rounding
-`FinancialValue.tsx` (the component used throughout the Yields table) calls `Decimal.toFixed(displayDecimals)` where `displayDecimals` comes from `ASSET_CONFIGS`:
-- **BTC**: 8 decimals
-- **ETH**: 6 decimals (but storage is 8)
-- **SOL**: 4 decimals (storage is 9)
-- **XRP**: 4 decimals (storage is 6)
-- **USDT**: 2 decimals (storage is 6)
-
-This means:
-- A BTC allocation of `0.00345678901` displays as `0.00345679` (rounded at 8th decimal)
-- A USDT balance of `109,538.514` displays as `109538.51` (rounded at 2nd decimal) -- and critically, **no thousand separators** because `FinancialValue` uses `Decimal.toFixed()` not `Intl.NumberFormat`
-
-The Excel likely uses different rounding rules (e.g., showing 6 decimals for USDT, or truncating instead of rounding for BTC).
-
-## Plan
-
-### Step 1: Parse Excel and Query DB for All Matching Periods
-- Parse every fund sheet from the uploaded accounting Excel
-- For each yield period that exists in the platform, extract: AUM Before, AUM After, Gross Performance, and per-investor allocations
-- Query `yield_distributions`, `yield_allocations`, `investor_positions`, and `transactions_v2` for the same periods
-- Compare every single value at full precision (18 decimals)
-
-### Step 2: Generate a Line-by-Line Comparison Report
-Create a detailed CSV/Excel showing for each distribution and each investor allocation:
-
-| Field | Excel Value | DB Value | UI Display | Match? | Delta |
-|-------|------------|----------|------------|--------|-------|
-
-This covers:
-- Distribution-level: gross_yield, net_yield, total_fees, total_ib, recorded_aum
-- Allocation-level: gross_amount, fee_amount, ib_amount, net_amount, position_value_at_calc
-- Position-level: current_value (ending balance per investor)
-
-### Step 3: Fix Type Safety (number to string)
-Change all financial fields in `DistributionRow` and `AllocationRow` from `number` to `string` to preserve full database precision through the service layer. Update `FinancialValue` calls accordingly (it already accepts `string | number`).
-
-**Files changed:**
-- `src/services/admin/yields/yieldDistributionsPageService.ts` -- change type declarations
-- No component changes needed (`FinancialValue` already handles both)
-
-### Step 4: Align Display Decimals with Excel
-Based on findings from Step 2, adjust `displayDecimals` in `ASSET_CONFIGS` (in `src/types/asset.ts`) if the Excel uses different precision than what the UI shows. For example, if the Excel shows USDT to 6 decimals but the UI shows 2, we either:
-- Match the Excel (change displayDecimals)
-- Or accept the rounding difference as intentional (admin sees full precision on hover via tooltip)
-
-### Step 5: Add Thousand Separators to FinancialValue
-Currently `FinancialValue` outputs raw `Decimal.toFixed()` without locale formatting (no commas). This makes large USDT values like `109538.51` hard to read vs the Excel's `109,538.51`. Add `Intl.NumberFormat` formatting while preserving Decimal.js precision.
-
-**File changed:**
-- `src/components/common/FinancialValue.tsx` -- format with locale after Decimal.toFixed
-
-## Technical Details
-
-### Current Display Pipeline
-```text
-DB: numeric(38,18) "109538.514321000000"
-  -> Supabase JS: number 109538.514321  (precision loss possible)
-  -> FinancialValue: Decimal("109538.514321").toFixed(2) = "109538.51"
-  -> Rendered: "109538.51 USDT" (no commas)
+Current code calls `.toNumber()` on the Decimal result, which re-introduces IEEE 754 precision loss:
+```typescript
+value={new Decimal(alloc.position_value_at_calc || 0)
+  .plus(new Decimal(alloc.net_amount || 0))
+  .toNumber()}
+```
+Change to `.toString()` so `FinancialValue` receives a full-precision string:
+```typescript
+value={new Decimal(alloc.position_value_at_calc || 0)
+  .plus(new Decimal(alloc.net_amount || 0))
+  .toString()}
 ```
 
-### Proposed Pipeline
-```text
-DB: numeric(38,18) "109538.514321000000"
-  -> Supabase JS: string "109538.514321000000" (full precision preserved)
-  -> FinancialValue: Decimal("109538.514321").toFixed(2) = "109538.51"
-  -> Intl.NumberFormat: "109,538.51"
-  -> Rendered: "109,538.51 USDT"
+### 2. Fix VoidDistributionDialog Type Mismatch
+**File**: `src/features/admin/yields/components/VoidDistributionDialog.tsx` (line 30-41)
+
+The `DistributionSummary` interface uses `number` for financial fields, but both `YieldHistoryPage` and `YieldDistributionsPage` feed it values via `Number(distribution.gross_yield)` coercion. This works but should be aligned to accept `number | string` for consistency. Update the interface:
+```typescript
+gross_yield: number | string;
+net_yield: number | string;
+total_fees: number | string;
+total_ib: number | string;
 ```
 
-### Risk Assessment
-- Type change from `number` to `string` is safe -- all downstream consumers (`FinancialValue`, `Decimal.js`) already accept both
-- Thousand separators are a display-only change, no data impact
-- Display decimal changes need careful review against Excel to pick the right values
+Then update the `FinancialValue` usage in the dialog (already accepts `number | string` -- no change needed there). The callers in `YieldHistoryPage.tsx` (line 88-90) and `YieldDistributionsPage.tsx` (line 333-336) can then stop using `Number()` coercion, preserving precision.
+
+### 3. Fix VoidTarget Type in YieldHistoryPage and YieldDistributionsPage
+**Files**: 
+- `src/features/admin/yields/pages/YieldHistoryPage.tsx` (lines 42-53)
+- `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (lines 289-300)
+
+Both declare `voidTarget` state with `number` types. Update to `number | string` and remove the `Number()` wrapping in `handleVoidOpen` callbacks to pass through raw DB precision.
+
+### 4. Fix FeeAllocationsTable Net Calculation
+**File**: `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (line 132)
+
+Current code:
+```typescript
+<FinancialValue value={Number(fa.base_net_income) - Number(fa.fee_amount)} asset={asset} />
+```
+Replace with Decimal.js for precision:
+```typescript
+<FinancialValue value={new Decimal(fa.base_net_income).minus(new Decimal(fa.fee_amount)).toString()} asset={asset} />
+```
+
+### 5. Fix CrystallizationEventsTable Number Coercion
+**File**: `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (lines 181, 187)
+
+`formatPercentage(Number(evt.investor_share_pct), 4)` and `formatPercentage(Number(evt.fee_pct || 0), 2)` -- these are safe since percentages are small numbers, but for consistency use `toNum()` from `@/utils/numeric`.
+
+### 6. Fix RouteToFees Fee Amount Extraction
+**File**: `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (line 473)
+
+```typescript
+const feeAmount = Number(allocation.fee_amount || 0);
+```
+This is used for an RPC call parameter. Ensure the coercion preserves the value correctly. Replace with `toNum(allocation.fee_amount)`.
+
+### 7. Verify YieldPreviewResults (No Changes Needed)
+**File**: `src/features/admin/yields/components/YieldPreviewResults.tsx`
+
+This component uses `toNum()` and `formatValue()` which accept `number`. The data source is `YieldCalculationResult` (from the preview RPC), which returns JS numbers from the RPC call. No type change needed here since the preview data doesn't go through the `DistributionRow` types.
+
+### 8. Verify DB Triggers Match Schema
+Run a database query to verify all critical triggers exist and reference correct columns:
+- `trg_ledger_sync` on `transactions_v2` -- references `current_value`, `cost_basis`, `cumulative_yield_earned`
+- `enforce_canonical_yield_mutation` on `yield_distributions` -- blocks direct DML
+- `delta_audit_*` triggers on `transactions_v2`, `investor_positions`, `yield_distributions`
+- `protect_*_immutable` triggers on `transactions_v2`, `fee_allocations`, `ib_allocations`
+
+This is a read-only verification query against `pg_trigger` and `pg_proc` to confirm no column name mismatches exist.
+
+### 9. Verify Export Columns Match New Types
+**File**: `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (lines 204-216)
+
+The `distributionExportColumns` reference keys like `gross_yield`, `net_yield`, `total_fees` etc. The CSV export utility needs to handle `number | string` values. Check `ExportButton` and `csv-export` to confirm they stringify values correctly (they should, since CSV is text-based).
+
+## Summary of Files Changed
+
+| File | Change |
+|------|--------|
+| `YieldsTable.tsx` | `.toNumber()` to `.toString()` in Position After calc |
+| `VoidDistributionDialog.tsx` | Update `DistributionSummary` types to `number \| string` |
+| `YieldHistoryPage.tsx` | Update `voidTarget` types, remove `Number()` coercion |
+| `YieldDistributionsPage.tsx` | Update `voidTarget`/`routeTarget` types, fix Decimal math in FeeAllocationsTable, use `toNum()` consistently |
+
+## Verification Steps (Post-Implementation)
+1. Open Yield History page -- confirm all distributions render with thousand separators
+2. Expand a distribution row -- confirm Position After shows correct precision
+3. Open Void dialog -- confirm financial values display correctly
+4. Open Yield Distributions page -- confirm FeeAllocationsTable Net column is precise
+5. Run `npx tsc --noEmit` to confirm no type errors
+6. Query DB triggers to confirm no schema drift
 
