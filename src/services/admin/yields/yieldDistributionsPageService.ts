@@ -22,12 +22,18 @@ export type DistributionRow = {
   effective_date: string;
   purpose: "reporting" | "transaction";
   distribution_type: string | null;
-  gross_yield: number;
-  total_fees: number | null;
-  total_ib: number | null;
-  total_fee_credit: number | null;
-  net_yield: number | null;
-  recorded_aum: number;
+  /** @precision NUMERIC - string preserves DB numeric(38,18) */
+  gross_yield: number | string;
+  /** @precision NUMERIC */
+  total_fees: number | string | null;
+  /** @precision NUMERIC */
+  total_ib: number | string | null;
+  /** @precision NUMERIC */
+  total_fee_credit: number | string | null;
+  /** @precision NUMERIC */
+  net_yield: number | string | null;
+  /** @precision NUMERIC */
+  recorded_aum: number | string;
   allocation_count: number | null;
   created_at: string;
   is_voided: boolean | null;
@@ -38,16 +44,26 @@ export type AllocationRow = {
   id: string;
   distribution_id: string;
   investor_id: string;
-  gross_amount: number;
-  fee_amount: number | null;
-  ib_amount: number | null;
-  fee_credit: number | null;
-  net_amount: number;
-  adb_share: number | null;
-  ownership_pct: number | null;
-  fee_pct: number | null;
-  ib_pct: number | null;
-  position_value_at_calc: number | null;
+  /** @precision NUMERIC */
+  gross_amount: number | string;
+  /** @precision NUMERIC */
+  fee_amount: number | string | null;
+  /** @precision NUMERIC */
+  ib_amount: number | string | null;
+  /** @precision NUMERIC */
+  fee_credit: number | string | null;
+  /** @precision NUMERIC */
+  net_amount: number | string;
+  /** @precision NUMERIC */
+  adb_share: number | string | null;
+  /** @precision NUMERIC */
+  ownership_pct: number | string | null;
+  /** @precision NUMERIC */
+  fee_pct: number | string | null;
+  /** @precision NUMERIC */
+  ib_pct: number | string | null;
+  /** @precision NUMERIC */
+  position_value_at_calc: number | string | null;
   ib_investor_name: string | null;
 };
 
@@ -55,25 +71,36 @@ export type FeeAllocationRow = {
   id: string;
   distribution_id: string;
   investor_id: string;
-  base_net_income: number;
-  fee_amount: number;
-  fee_percentage: number;
+  /** @precision NUMERIC */
+  base_net_income: number | string;
+  /** @precision NUMERIC */
+  fee_amount: number | string;
+  /** @precision NUMERIC */
+  fee_percentage: number | string;
 };
 
 export type YieldEventRow = {
   id: string;
   investor_id: string;
-  gross_yield_amount: number;
-  fee_amount: number | null;
-  fee_pct: number | null;
-  net_yield_amount: number;
-  investor_share_pct: number;
-  investor_balance: number;
+  /** @precision NUMERIC */
+  gross_yield_amount: number | string;
+  /** @precision NUMERIC */
+  fee_amount: number | string | null;
+  /** @precision NUMERIC */
+  fee_pct: number | string | null;
+  /** @precision NUMERIC */
+  net_yield_amount: number | string;
+  /** @precision NUMERIC */
+  investor_share_pct: number | string;
+  /** @precision NUMERIC */
+  investor_balance: number | string;
   trigger_type: string;
   period_start: string | null;
   period_end: string | null;
-  fund_aum_before: number | null;
-  fund_aum_after: number | null;
+  /** @precision NUMERIC */
+  fund_aum_before: number | string | null;
+  /** @precision NUMERIC */
+  fund_aum_after: number | string | null;
 };
 
 export type InvestorProfile = {
