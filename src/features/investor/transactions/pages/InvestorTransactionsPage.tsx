@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { Search, Receipt, Filter, Download } from "lucide-react";
 import { formatInvestorAmount } from "@/utils/assets";
+import { toNum } from "@/utils/numeric";
 import { format } from "date-fns";
 import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hooks/data";
 import { useSortableColumns } from "@/hooks";

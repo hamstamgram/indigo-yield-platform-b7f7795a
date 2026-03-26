@@ -24,6 +24,7 @@ import { VoidDistributionDialog } from "@/features/admin/yields/components/VoidD
 import { voidYieldDistribution } from "@/services/admin/yields/yieldManagementService";
 import { executeInternalRoute } from "@/services/admin/internalRouteService";
 import { formatAssetValue, formatPercentage } from "@/utils/formatters";
+import { toNum } from "@/utils/numeric";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import {
   Accordion,
