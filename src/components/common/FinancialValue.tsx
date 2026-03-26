@@ -53,16 +53,25 @@ export function FinancialValue({
   const decimals = displayDecimals ?? getAssetDecimals(asset);
 
   // Format for display
-  const displayValue = decimalValue.toFixed(decimals);
+  const rawDisplay = decimalValue.toFixed(decimals);
   const fullPrecision = decimalValue.toFixed(10);
+
+  // Add thousand separators while preserving decimal precision
+  const formatWithSeparators = (val: string): string => {
+    const [intPart, decPart] = val.split(".");
+    const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+  };
+
+  const displayValue = formatWithSeparators(rawDisplay);
 
   // Check if value is a micro-balance (exists but rounds to zero)
   const isMicroBalance =
     decimalValue.abs().greaterThan(0) &&
     decimalValue.abs().lessThan(new Decimal(10).pow(-decimals));
 
-  // Check if values differ (for tooltip decision)
-  const hasPrecisionLoss = displayValue !== fullPrecision.slice(0, displayValue.length);
+  // Check if values differ (for tooltip decision) - compare raw values without separators
+  const hasPrecisionLoss = rawDisplay !== fullPrecision.slice(0, rawDisplay.length);
 
   // Determine color based on sign
   const valueColor = colorize
@@ -75,7 +84,7 @@ export function FinancialValue({
 
   // Format the display string
   const formattedValue = `${prefix}${displayValue}${showAsset && asset ? ` ${asset}` : ""}`;
-  const formattedFullValue = `${prefix}${fullPrecision}${showAsset && asset ? ` ${asset}` : ""}`;
+  const formattedFullValue = `${prefix}${formatWithSeparators(fullPrecision)}${showAsset && asset ? ` ${asset}` : ""}`;
 
   // Micro-balance: show special indicator with tooltip
   if (isMicroBalance) {
