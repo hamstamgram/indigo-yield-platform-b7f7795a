@@ -43,10 +43,10 @@ export default function YieldHistoryPage() {
     id: string;
     fund_name: string;
     fund_asset: string;
-    gross_yield: number;
-    net_yield: number;
-    total_fees: number;
-    total_ib: number;
+    gross_yield: number | string;
+    net_yield: number | string;
+    total_fees: number | string;
+    total_ib: number | string;
     purpose: string;
     effective_date: string;
     period_end?: string;
@@ -85,10 +85,10 @@ export default function YieldHistoryPage() {
         id: distribution.id,
         fund_name: fund?.name || "Unknown",
         fund_asset: fund?.asset || "",
-        gross_yield: Number(distribution.gross_yield),
-        net_yield: Number(distribution.net_yield || 0),
-        total_fees: Number(distribution.total_fees || 0),
-        total_ib: Number(distribution.total_ib || 0),
+        gross_yield: distribution.gross_yield,
+        net_yield: distribution.net_yield || 0,
+        total_fees: distribution.total_fees || 0,
+        total_ib: distribution.total_ib || 0,
         purpose: distribution.purpose,
         effective_date: distribution.effective_date,
         period_end: distribution.period_end,

@@ -448,9 +448,9 @@ export function YieldsTable({
                       {alloc.position_value_at_calc != null ? (
                         <div className="flex flex-col items-end">
                           <FinancialValue
-                            value={new Decimal(alloc.position_value_at_calc || 0)
+                          value={new Decimal(alloc.position_value_at_calc || 0)
                               .plus(new Decimal(alloc.net_amount || 0))
-                              .toNumber()}
+                              .toString()}
                             asset={asset}
                           />
                           <span className="text-[9px] text-muted-foreground/60 uppercase">

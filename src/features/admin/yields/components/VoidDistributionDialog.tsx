@@ -31,10 +31,10 @@ interface DistributionSummary {
   id: string;
   fund_name: string;
   fund_asset: string;
-  gross_yield: number;
-  net_yield: number;
-  total_fees: number;
-  total_ib: number;
+  gross_yield: number | string;
+  net_yield: number | string;
+  total_fees: number | string;
+  total_ib: number | string;
   purpose: string;
   effective_date: string;
   period_end?: string;
