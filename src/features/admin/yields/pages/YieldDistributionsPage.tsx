@@ -123,13 +123,13 @@ function FeeAllocationsTable({
                   <FinancialValue value={fa.base_net_income} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatPercentage(fa.fee_percentage, 2)}
+                  {formatPercentage(Number(fa.fee_percentage), 2)}
                 </TableCell>
                 <TableCell className="text-right">
                   <FinancialValue value={fa.fee_amount} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right font-semibold">
-                  <FinancialValue value={fa.base_net_income - fa.fee_amount} asset={asset} />
+                  <FinancialValue value={Number(fa.base_net_income) - Number(fa.fee_amount)} asset={asset} />
                 </TableCell>
               </TableRow>
             );
@@ -178,13 +178,13 @@ function CrystallizationEventsTable({
                   <FinancialValue value={evt.investor_balance} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatPercentage(evt.investor_share_pct, 4)}
+                  {formatPercentage(Number(evt.investor_share_pct), 4)}
                 </TableCell>
                 <TableCell className="text-right">
                   <FinancialValue value={evt.gross_yield_amount} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatPercentage(evt.fee_pct || 0, 2)}
+                  {formatPercentage(Number(evt.fee_pct || 0), 2)}
                 </TableCell>
                 <TableCell className="text-right">
                   <FinancialValue value={evt.fee_amount || 0} asset={asset} />
@@ -330,10 +330,10 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         id: distribution.id,
         fund_name: fund?.name || "Unknown",
         fund_asset: fund?.asset || "",
-        gross_yield: distribution.gross_yield,
-        net_yield: distribution.net_yield || 0,
-        total_fees: distribution.total_fees || 0,
-        total_ib: distribution.total_ib || 0,
+        gross_yield: Number(distribution.gross_yield),
+        net_yield: Number(distribution.net_yield || 0),
+        total_fees: Number(distribution.total_fees || 0),
+        total_ib: Number(distribution.total_ib || 0),
         purpose: distribution.purpose,
         effective_date: distribution.effective_date,
         period_end: distribution.period_end,
@@ -454,7 +454,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         fund_id: distribution.fund_id,
         fund_name: fund?.name || "Unknown",
         fund_asset: fund?.asset || "",
-        total_fees: distribution.total_fees || 0,
+        total_fees: Number(distribution.total_fees || 0),
         effective_date: distribution.effective_date,
       });
     },
@@ -470,7 +470,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
       let routedCount = 0;
 
       for (const allocation of allocs) {
-        const feeAmount = allocation.fee_amount || 0;
+        const feeAmount = Number(allocation.fee_amount || 0);
         if (feeAmount <= 0) continue;
 
         await executeInternalRoute({
@@ -716,11 +716,11 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                     (d) => !isCrystallizationDist(d)
                                   );
                                   const crystalGross = crystalDists.reduce(
-                                    (s, d) => s + d.gross_yield,
+                                    (s, d) => s + Number(d.gross_yield),
                                     0
                                   );
                                   const regularGross = regularDists.reduce(
-                                    (s, d) => s + d.gross_yield,
+                                    (s, d) => s + Number(d.gross_yield),
                                     0
                                   );
                                   const totalGross = crystalGross + regularGross;
@@ -778,7 +778,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                     yieldEventsByDistribution[distribution.id] || [];
                                   const isCrystallization = isCrystallizationDist(distribution);
                                   const totalGross = allocations.reduce(
-                                    (sum, a) => sum + (a.gross_amount || 0),
+                                    (sum, a) => sum + Number(a.gross_amount || 0),
                                     0
                                   );
                                   return (
@@ -841,7 +841,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                             </span>
                                             <div className="ml-auto flex items-center gap-1">
                                               {!distribution.is_voided &&
-                                                (distribution.total_fees || 0) > 0 && (
+                                                Number(distribution.total_fees || 0) > 0 && (
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -1116,7 +1116,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
                                                               totalGross !== 0
-                                                                ? ((allocation.gross_amount || 0) /
+                                                                ? (Number(allocation.gross_amount || 0) /
                                                                     totalGross) *
                                                                     100
                                                                 : 0,
@@ -1131,7 +1131,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
-                                                              allocation.fee_pct || 0,
+                                                              allocation.fee_pct != null ? Number(allocation.fee_pct) : 0,
                                                               1
                                                             )}
                                                           </TableCell>
@@ -1143,7 +1143,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
-                                                              allocation.ib_pct || 0,
+                                                              allocation.ib_pct != null ? Number(allocation.ib_pct) : 0,
                                                               1
                                                             )}
                                                           </TableCell>
