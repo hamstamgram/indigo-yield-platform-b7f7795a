@@ -106,7 +106,7 @@ export default function InvestorTransactionsPage() {
         </SortableTableHead>
       ),
       cell: (item: Record<string, unknown>) => {
-        const amount = toNum(item.amount);
+        const amount = toNum(item.amount as string | number);
         return (
           <span
             className={cn(
