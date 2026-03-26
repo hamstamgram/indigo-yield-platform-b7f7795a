@@ -1,113 +1,119 @@
 
 
-# Full-Stack Verification and Remaining Precision Fixes
+# Full-Stack Integrity Audit: Remaining Risks After Precision Hardening
 
-## What Has Been Verified
-- Type hardening in `yieldDistributionsPageService.ts` (financial fields now `number | string`)
-- `FinancialValue.tsx` thousand separators and Decimal.js precision
-- `YieldsTable.tsx` Position After uses `.toString()` instead of `.toNumber()`
+## What Was Already Fixed (3 prior rounds)
+- `yieldDistributionsPageService.ts` types hardened to `number | string`
+- `FinancialValue.tsx` thousand separators added
+- `YieldsTable.tsx` Position After uses `.toString()`
 - `VoidDistributionDialog.tsx` types aligned
-- DB triggers confirmed present and enabled (42 triggers audited)
-- All entered yield periods match Excel at full precision
+- `InvestorYieldHistory.tsx` / `InvestorYieldManager.tsx` switched to `FinancialValue`
+- `ExpertPositionsTable.tsx` aggregation uses `Decimal.js`
+- `InvestorManagementDrawer.tsx` partial fix (lines 403-420 use `FinancialValue`)
+- `YieldDistributionsPage.tsx` summary aggregations use `Decimal.js`
+- `InvestorOverviewPage.tsx` removed `.toNumber()` intermediate
+- 42 DB triggers verified present and enabled
 
-## What Has NOT Been Verified / Still Broken
+## What Is Still Broken / At Risk
 
-### A. Admin Investor Yield History uses `parseFloat` (precision loss)
-**File**: `src/features/admin/investors/components/yields/InvestorYieldHistory.tsx`
+### A. InvestorManagementDrawer Line 236 -- Still Hardcoded
+Line 236 still uses `formatValue(pos.current_value, pos.asset === "BTC" ? 4 : 2)` with hardcoded decimals. Lines 403-420 were fixed but this one was missed.
 
-Lines 269, 285, 293, 300, 305 all use `parseFloat(String(event.xxx))` and feed into a local `formatNumber(value.toLocaleString(..., 6 decimals))`. This bypasses `FinancialValue` entirely and uses `parseFloat` which causes IEEE 754 precision loss for large values.
+**Fix**: Replace with `<FinancialValue value={pos.current_value} asset={pos.asset} />`
 
-**Fix**: Replace all `formatNumber(parseFloat(String(event.xxx)))` calls with `<FinancialValue value={event.xxx} asset={...} />` to match the rest of the admin portal.
+### B. ExpertPositionsTable `.toNumber()` Re-introduces Precision Loss
+Lines 289-293 use `Decimal.js` for aggregation but immediately call `.toNumber()`, converting back to IEEE 754 doubles. The `formatAssetValue()` calls on lines 308-326 then format these lossy numbers.
 
-### B. Admin Investor Yield Manager uses `.toFixed(4)` hardcoded
-**File**: `src/features/admin/investors/components/yields/InvestorYieldManager.tsx` (line 155)
+Also line 161: `position.shares.toFixed(4)` -- hardcoded 4 decimals for shares.
+Line 231: `pnlPercent.toFixed(2)` -- acceptable for percentages.
 
-`totalYield.toFixed(4)` -- raw number formatting without `FinancialValue` or thousand separators.
+**Fix**: Keep `.toNumber()` for percentage calculations (safe for small numbers), but pass `.toString()` to `FinancialValue` for monetary values (totalValue, totalCost, totalEarnings, totalPnL).
 
-**Fix**: Use `<FinancialValue value={totalYield} asset={asset} />`.
+### C. StatementsPage -- 25+ `parseFloat()` Calls on Financial Data
+Lines 60-111 and 235-281 use `parseFloat()` on every financial field (begin_balance, end_balance, additions, redemptions, net_income, rate_of_return for MTD/QTD/YTD/ITD). This is the investor-facing statement page.
 
-### C. Expert Positions Table uses raw `number` arithmetic
-**File**: `src/features/admin/investors/components/expert/ExpertPositionsTable.tsx` (lines 288-291)
+For balances, `parseFloat` loses precision beyond ~15 significant digits. For the PDF generator, these feed into `formatValue()` which already handles formatting.
 
+**Fix**: Replace `parseFloat` with `toNum()` (consistent with project pattern) for display values. For the PDF generator data object, the values are small enough that precision loss is negligible, but consistency matters.
+
+### D. InvestorTransactionsPage Line 108 -- `parseFloat(String(item.amount))`
+Uses `parseFloat` on transaction amounts for investor-facing display.
+
+**Fix**: Use `toNum()` for sign check, pass raw `item.amount` to `formatInvestorAmount`.
+
+### E. YieldPreviewResults Line 346 -- `toNum()` Addition for Closing Balance
 ```typescript
-const totalValue = assetPositions.reduce((sum, p) => sum + p.current_value, 0);
-const totalCost = assetPositions.reduce((sum, p) => sum + p.cost_basis, 0);
+formatValue(toNum(inv.openingBalance || 0) + toNum(inv.netYield), asset)
 ```
+This uses JS `+` operator on `toNum()` results. Should use `Decimal.js` for the addition, then pass string to `formatValue`.
 
-These use JS `number` addition. If `current_value` comes as a string from the DB, this produces `"0string"` concatenation bugs. Even if numeric, large values lose precision.
+Same pattern on lines 287, 298, 303, 314, 324, 341 -- all use `toNum()` for display which is acceptable since `formatValue` handles formatting, but the line 346 arithmetic should use Decimal.
 
-**Fix**: Use `Decimal.js` for aggregation, render with `FinancialValue`.
-
-### D. Investor Management Drawer uses hardcoded decimal logic
-**File**: `src/features/admin/investors/components/detail/InvestorManagementDrawer.tsx` (lines 234, 405, 412)
-
+### F. YieldDistributionsPage Line 474 -- `Number()` for RPC Parameter
 ```typescript
-formatValue(pos.current_value, pos.asset === "BTC" ? 4 : 2)
+const feeAmount = Number(allocation.fee_amount || 0);
 ```
+This feeds into `executeInternalRoute({ amount: feeAmount })`. If the RPC expects a number, this is fine for typical fee amounts. But for consistency with the precision-preserving cast pattern (memory: `as unknown as number`), should pass the string directly.
 
-Hardcoded `4` for BTC and `2` for everything else, ignoring `ASSET_CONFIGS`. No thousand separators.
+### G. Bulk Action Dialogs -- 6 Files with `parseFloat(amount)`
+`BulkUnvoidDialog`, `BulkActionToolbar`, `WithdrawalBulkActionToolbar`, `BulkVoidWithdrawalsDialog`, `BulkRestoreWithdrawalsDialog`, `BulkDeleteWithdrawalsDialog` all use `formatAssetValue(parseFloat(amount), asset)`. These are display-only and amounts are typically small, but should use `toNum()` for consistency.
 
-**Fix**: Replace with `<FinancialValue value={pos.current_value} asset={pos.asset} />`.
+### H. InvestorCompositionSheet Line 231 -- `ownership_pct.toFixed(2)`
+Acceptable -- percentages are small numbers, no precision risk.
 
-### E. YieldDistributionsPage aggregation uses `Number()` sums
-**File**: `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (lines 719-727, 782)
+### I. QuickYieldEntry Line 181 -- `yieldCalc.percentage.toFixed(2)`
+Acceptable -- computed percentage, not a financial amount.
 
-```typescript
-crystalDists.reduce((s, d) => s + Number(d.gross_yield), 0)
-```
-
-These summary calculations use `Number()` coercion. Should use `Decimal.js` for consistency.
-
-**Fix**: Replace with `new Decimal(0)` accumulator pattern.
-
-### F. Investor Portal uses `parseFinancial(...).toNumber()`
-**File**: `src/features/investor/overview/pages/InvestorOverviewPage.tsx` (line 483)
-
-```typescript
-formatInvestorNumber(parseFinancial(tx.amount).toNumber())
-```
-
-This is the investor-facing view. The `toNumber()` call loses precision. While `formatInvestorNumber` only shows 3 decimals (acceptable for investors), the intermediate conversion is unsafe.
-
-**Fix**: Pass the raw string to `formatInvestorNumber` (it already accepts `string | number`).
-
-### G. DB Trigger Column Verification (read-only query)
-Run a verification query to confirm all trigger functions reference columns that exist in their target tables. This catches schema drift if any column was renamed but a trigger function was not updated.
+---
 
 ## Implementation Plan
 
-### Step 1: Fix InvestorYieldHistory to use FinancialValue
-Replace `formatNumber(parseFloat(...))` pattern with `<FinancialValue>` throughout the component. Remove the local `formatNumber` function.
+### Step 1: Fix InvestorManagementDrawer (missed line 236)
+Replace hardcoded `formatValue` with `<FinancialValue>`.
 
-### Step 2: Fix InvestorYieldManager totalYield display
-Replace `.toFixed(4)` with `<FinancialValue>`.
+### Step 2: Fix ExpertPositionsTable monetary `.toNumber()` calls
+Use `.toString()` and `<FinancialValue>` for Value/Cost/Earnings/PnL in the summary cards (lines 308-326). Keep `.toNumber()` for percentage display.
 
-### Step 3: Fix ExpertPositionsTable aggregation
-Replace `p.current_value` numeric addition with `Decimal.js` sums. Guard against string values.
+### Step 3: Fix StatementsPage `parseFloat` pattern
+Replace all 25+ `parseFloat()` calls with `toNum()` for consistency. No functional difference for typical amounts but eliminates the anti-pattern.
 
-### Step 4: Fix InvestorManagementDrawer formatting
-Replace hardcoded `formatValue(pos.current_value, ...)` with `<FinancialValue>`.
+### Step 4: Fix InvestorTransactionsPage `parseFloat`
+Replace with `toNum()` for sign check, pass raw string to formatter.
 
-### Step 5: Fix YieldDistributionsPage summary aggregations
-Replace `Number(d.gross_yield)` reduce patterns with `Decimal.js`.
+### Step 5: Fix YieldPreviewResults closing balance arithmetic
+Replace `toNum(a) + toNum(b)` with `new Decimal(a).plus(b).toString()` on line 346.
 
-### Step 6: Fix InvestorOverviewPage `.toNumber()` call
-Pass raw string directly to `formatInvestorNumber`.
+### Step 6: Fix YieldDistributionsPage fee routing (line 474)
+Pass string directly with precision-preserving cast pattern for the RPC call.
 
-### Step 7: Run DB trigger column verification query
-Query `pg_proc` / `information_schema` to confirm no trigger references missing columns.
+### Step 7: Fix bulk action dialogs (6 files)
+Replace `parseFloat(amount)` with `toNum(amount)` across all 6 bulk dialog/toolbar files. Display-only change.
 
 ### Step 8: TypeScript build verification
-Run `npx tsc --noEmit` to confirm zero type errors after all changes.
+Run `npx tsc --noEmit` to confirm zero errors.
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `InvestorYieldHistory.tsx` | Replace `parseFloat`+`formatNumber` with `FinancialValue` |
-| `InvestorYieldManager.tsx` | Replace `.toFixed(4)` with `FinancialValue` |
-| `ExpertPositionsTable.tsx` | Use `Decimal.js` for position aggregation |
-| `InvestorManagementDrawer.tsx` | Replace hardcoded decimals with `FinancialValue` |
-| `YieldDistributionsPage.tsx` | Use `Decimal.js` for summary reduce patterns |
-| `InvestorOverviewPage.tsx` | Remove `.toNumber()` intermediate conversion |
+| File | Change | Risk |
+|------|--------|------|
+| `InvestorManagementDrawer.tsx` | Line 236: `FinancialValue` | Low |
+| `ExpertPositionsTable.tsx` | Summary cards: `.toString()` + `FinancialValue` | Medium |
+| `StatementsPage.tsx` | 25x `parseFloat` to `toNum` | Low |
+| `InvestorTransactionsPage.tsx` | `parseFloat` to `toNum` | Low |
+| `YieldPreviewResults.tsx` | Line 346: Decimal.js addition | Medium |
+| `YieldDistributionsPage.tsx` | Line 474: string passthrough | Low |
+| `BulkUnvoidDialog.tsx` | `parseFloat` to `toNum` | Low |
+| `BulkActionToolbar.tsx` | `parseFloat` to `toNum` | Low |
+| `WithdrawalBulkActionToolbar.tsx` | `parseFloat` to `toNum` | Low |
+| `BulkVoidWithdrawalsDialog.tsx` | `parseFloat` to `toNum` | Low |
+| `BulkRestoreWithdrawalsDialog.tsx` | `parseFloat` to `toNum` | Low |
+| `BulkDeleteWithdrawalsDialog.tsx` | `parseFloat` to `toNum` | Low |
+
+## What Does NOT Need Fixing
+- `NumericInput.tsx` -- input formatting, `parseFloat` is correct here
+- `toNumber()` in `utils/numeric.ts` -- utility function, not a consumer
+- `feesService.ts` `.toFixed(10)` -- service layer formatting, acceptable
+- Percentage `.toFixed(2)` calls -- small numbers, no precision risk
+- `statementGenerator.ts` -- PDF template, uses `formatValue` which handles formatting
+- DB triggers -- verified in prior round, all 42 present and enabled
 
