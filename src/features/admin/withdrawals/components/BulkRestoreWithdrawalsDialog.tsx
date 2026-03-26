@@ -139,7 +139,7 @@ export function BulkRestoreWithdrawalsDialog({
                         <td className="px-3 py-1 capitalize">{w.status}</td>
                         <td className="px-3 py-1 text-right font-mono">
                           {formatAssetValue(
-                            parseFloat(w.requested_amount),
+                            toNum(w.requested_amount),
                             w.fund_class || w.asset || "UNITS"
                           )}{" "}
                           {(w.fund_class || w.asset || "UNITS").toUpperCase()}
