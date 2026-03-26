@@ -125,7 +125,7 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
         open={ops.showConfirmDialog}
         onOpenChange={ops.setShowConfirmDialog}
         grossYield={ops.formatValue(
-          parseFloat(ops.yieldPreview?.grossYield ?? "0"),
+          toNum(ops.yieldPreview?.grossYield ?? "0"),
           ops.selectedFund?.asset ?? ""
         )}
         asset={ops.selectedFund?.asset ?? ""}

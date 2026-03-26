@@ -4,6 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Decimal from "decimal.js";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { ibManagementService } from "@/services/ib";
 import { fundService } from "@/services/admin";
@@ -69,8 +70,8 @@ export function useIBProfiles() {
         const earningsByAsset: EarningsByAsset = {};
         txEarnings.forEach((t) => {
           const asset = t.asset || (t.fund_id ? fundToAsset.get(t.fund_id) : null) || "UNKNOWN";
-          earningsByAsset[asset] =
-            (earningsByAsset[asset] || 0) + parseFloat(String(t.amount || 0));
+          earningsByAsset[asset] = new Decimal(earningsByAsset[asset] || 0).plus(new Decimal(String(t.amount || 0))).toNumber();
+            });
         });
 
         if (Object.keys(earningsByAsset).length === 0) {

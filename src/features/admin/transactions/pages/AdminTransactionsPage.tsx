@@ -241,7 +241,7 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
   );
 
   const formatAmount = (amount: number | string, asset: string, type: string) => {
-    const numAmount = typeof amount === "string" ? parseFinancial(amount).toNumber() : amount;
+    const numAmount = toNum(amount);
     const isNegative = type === "WITHDRAWAL" || type === "FEE" || numAmount < 0;
     const sign = isNegative ? "-" : "+";
     const formatted = formatAssetValue(Math.abs(numAmount), asset);

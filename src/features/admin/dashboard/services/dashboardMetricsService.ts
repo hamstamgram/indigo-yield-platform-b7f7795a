@@ -221,20 +221,23 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
   if (error) throw error;
 
   const allPositions = (positions as PositionWithProfile[] | null) || [];
-  const totalValue = allPositions
-    .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0))
-    .toNumber();
+  const totalValueDec = allPositions
+    .reduce((sum, p) => sum.plus(parseFinancial(p.current_value)), parseFinancial(0));
+  const totalValue = totalValueDec.toNumber();
 
-  return allPositions.map((p) => ({
-    investor_name:
-      `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
-      p.profile?.email ||
-      "Unknown",
-    email: p.profile?.email || "",
-    balance: p.current_value || 0,
-    ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
-    account_type: p.profile?.account_type || "investor",
-  }));
+  return allPositions.map((p) => {
+    const val = parseFinancial(p.current_value).toNumber();
+    return {
+      investor_name:
+        `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
+        p.profile?.email ||
+        "Unknown",
+      email: p.profile?.email || "",
+      balance: val,
+      ownership_pct: totalValue > 0 ? (val / totalValue) * 100 : 0,
+      account_type: p.profile?.account_type || "investor",
+    };
+  });
 }
 
 // ============================================================================

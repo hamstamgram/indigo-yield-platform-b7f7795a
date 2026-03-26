@@ -154,7 +154,7 @@ export function ApproveWithdrawalDialog({
       return;
     }
 
-    const amount = parseFinancial(processedAmount).toNumber();
+    const amount = toNum(processedAmount);
     if (isNaN(amount) || amount <= 0) {
       toast.error("Please enter a valid amount");
       return;
