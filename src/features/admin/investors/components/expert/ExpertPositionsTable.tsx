@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Decimal from "decimal.js";
 import {
   Card,
   CardContent,
@@ -285,11 +286,11 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
               );
 
               return Object.entries(assetGroups).map(([asset, assetPositions]) => {
-                const totalValue = assetPositions.reduce((sum, p) => sum + p.current_value, 0);
-                const totalCost = assetPositions.reduce((sum, p) => sum + p.cost_basis, 0);
-                const totalEarnings = assetPositions.reduce((sum, p) => sum + p.total_earnings, 0);
-                const totalPnL = totalValue - totalCost;
-                const pnlPercent = totalCost > 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0;
+                const totalValue = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.current_value || 0)), new Decimal(0)).toNumber();
+                const totalCost = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.cost_basis || 0)), new Decimal(0)).toNumber();
+                const totalEarnings = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.total_earnings || 0)), new Decimal(0)).toNumber();
+                const totalPnL = new Decimal(totalValue).minus(totalCost).toNumber();
+                const pnlPercent = totalCost > 0 ? new Decimal(totalValue).minus(totalCost).div(totalCost).times(100).toNumber() : 0;
 
                 return (
                   <div key={asset} className="border rounded-lg p-3 bg-card">
