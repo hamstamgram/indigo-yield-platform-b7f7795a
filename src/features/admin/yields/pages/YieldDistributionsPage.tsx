@@ -5,6 +5,7 @@
  */
 
 import { useState, useMemo, useCallback } from "react";
+import Decimal from "decimal.js";
 import { format, startOfMonth, subMonths } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { AdminGuard } from "@/features/admin/shared/AdminGuard";
@@ -129,7 +130,7 @@ function FeeAllocationsTable({
                   <FinancialValue value={fa.fee_amount} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right font-semibold">
-                  <FinancialValue value={Number(fa.base_net_income) - Number(fa.fee_amount)} asset={asset} />
+                  <FinancialValue value={new Decimal(fa.base_net_income || 0).minus(new Decimal(fa.fee_amount || 0)).toString()} asset={asset} />
                 </TableCell>
               </TableRow>
             );
@@ -290,10 +291,10 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
     id: string;
     fund_name: string;
     fund_asset: string;
-    gross_yield: number;
-    net_yield: number;
-    total_fees: number;
-    total_ib: number;
+    gross_yield: number | string;
+    net_yield: number | string;
+    total_fees: number | string;
+    total_ib: number | string;
     purpose: string;
     effective_date: string;
     period_end?: string;
@@ -306,7 +307,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
     fund_id: string;
     fund_name: string;
     fund_asset: string;
-    total_fees: number;
+    total_fees: number | string;
     effective_date: string;
   } | null>(null);
   const [routePending, setRoutePending] = useState(false);
@@ -330,10 +331,10 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         id: distribution.id,
         fund_name: fund?.name || "Unknown",
         fund_asset: fund?.asset || "",
-        gross_yield: Number(distribution.gross_yield),
-        net_yield: Number(distribution.net_yield || 0),
-        total_fees: Number(distribution.total_fees || 0),
-        total_ib: Number(distribution.total_ib || 0),
+        gross_yield: distribution.gross_yield,
+        net_yield: distribution.net_yield || 0,
+        total_fees: distribution.total_fees || 0,
+        total_ib: distribution.total_ib || 0,
         purpose: distribution.purpose,
         effective_date: distribution.effective_date,
         period_end: distribution.period_end,
@@ -454,7 +455,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         fund_id: distribution.fund_id,
         fund_name: fund?.name || "Unknown",
         fund_asset: fund?.asset || "",
-        total_fees: Number(distribution.total_fees || 0),
+        total_fees: distribution.total_fees || 0,
         effective_date: distribution.effective_date,
       });
     },
