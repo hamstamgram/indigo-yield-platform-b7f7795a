@@ -291,7 +291,7 @@ export function YieldsTable({
       ),
       className: "text-right text-blue-500/70",
       cell: (record: DistributionRow) => {
-        return record.total_fee_credit != null && record.total_fee_credit > 0 ? (
+        return record.total_fee_credit != null && Number(record.total_fee_credit) > 0 ? (
           <FinancialValue value={record.total_fee_credit} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
@@ -421,21 +421,21 @@ export function YieldsTable({
                       <FinancialValue value={alloc.gross_amount} asset={asset} />
                     </TableCell>
                     <TableCell className="text-right text-orange-500/80">
-                      {alloc.fee_amount != null && alloc.fee_amount > 0 ? (
-                        <FinancialValue value={-alloc.fee_amount} asset={asset} />
+                      {alloc.fee_amount != null && Number(alloc.fee_amount) > 0 ? (
+                        <FinancialValue value={alloc.fee_amount} asset={asset} prefix="-" />
                       ) : (
                         "-"
                       )}
                     </TableCell>
                     <TableCell className="text-right text-orange-500/80">
-                      {alloc.ib_amount != null && alloc.ib_amount > 0 ? (
-                        <FinancialValue value={-alloc.ib_amount} asset={asset} />
+                      {alloc.ib_amount != null && Number(alloc.ib_amount) > 0 ? (
+                        <FinancialValue value={alloc.ib_amount} asset={asset} prefix="-" />
                       ) : (
                         "-"
                       )}
                     </TableCell>
                     <TableCell className="text-right text-yield/80">
-                      {alloc.fee_credit != null && alloc.fee_credit > 0 ? (
+                      {alloc.fee_credit != null && Number(alloc.fee_credit) > 0 ? (
                         <FinancialValue value={alloc.fee_credit} asset={asset} />
                       ) : (
                         "-"
