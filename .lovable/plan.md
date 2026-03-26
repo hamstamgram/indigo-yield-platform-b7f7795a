@@ -1,80 +1,100 @@
 
 
-# Remaining Verification: What's Left and What Might Be Broken
+# Fix: "Fund Not Found" Error on Void Transaction
 
-## Current State
-No console errors detected. The app is running. TypeScript compiled clean after the last round. The 4 prior rounds fixed ~40 precision issues across 20+ files.
+## Root Cause
 
-## Remaining `parseFloat` / `.toNumber()` Instances (Not Yet Fixed)
+The `check_fund_is_active()` trigger fires on **both** `transactions_v2` and `investor_positions` tables (BEFORE INSERT OR UPDATE). When voiding a transaction, this chain occurs:
 
-These are the files that still use legacy patterns. Categorized by risk:
+```text
+void_transaction RPC
+  -> UPDATE transactions_v2 SET is_voided=true
+     -> check_fund_is_active (TG_OP=UPDATE, fund_id unchanged) -> SKIP [OK]
+     -> trg_recompute_on_void -> reconcile_investor_position_internal()
+        -> INSERT INTO investor_positions ON CONFLICT DO UPDATE
+           -> check_fund_is_active (TG_OP=INSERT) -> VALIDATES FUND STATUS [BUG]
+           -> trg_validate_position_fund_status (BEFORE INSERT) -> ALSO VALIDATES [BUG]
+```
 
-### HIGH RISK (financial data, investor-facing or aggregation)
+In PostgreSQL, `INSERT ... ON CONFLICT DO UPDATE` fires BEFORE INSERT triggers even when the row already exists (conflict path). The `check_fund_is_active` and `validate_position_fund_status` triggers on `investor_positions` fire as `TG_OP = 'INSERT'`, bypassing the UPDATE skip logic, and validate fund status. If a fund has been deactivated or archived after the transaction was created, the void fails with "Fund not found" or "Cannot use inactive fund".
 
-| # | File | Issue | Lines |
-|---|------|-------|-------|
-| 1 | `investorPositionService.ts` | 12x `.toNumber()` on `parseFinancial()` results for shares, cost_basis, current_value, earnings, allocation | 112-117, 161-183, 492-514 |
-| 2 | `investorPortfolioSummaryService.ts` | 3x `.toNumber()` on aggregated totals (totalAUM, totalEarned, totalPrincipal) | 77-85 |
-| 3 | `InvestorTransactionsTab.tsx` | 4x `parseFloat(String(transaction.amount))` for sign check and display | 132, 150, 155, 159 |
-| 4 | `useIBManagementPage.ts` | 2x `parseFloat(String(...))` for IB earnings aggregation | 73, 82 |
-| 5 | `GlobalYieldFlow.tsx` | `parseFloat(ops.yieldPreview?.grossYield)` for dialog display | 128 |
-| 6 | `AdminTransactionsPage.tsx` | `parseFinancial(amount).toNumber()` for formatting | 244 |
-| 7 | `useTransactionSubmit.ts` | `parseFinancial(data.amount).toNumber()` for large-amount check | 67 |
-| 8 | `ApproveWithdrawalDialog.tsx` | `parseFinancial(processedAmount).toNumber()` for validation | 157 |
-| 9 | `QuickYieldEntry.tsx` | 3x `.toNumber()` for yield calculation and formatting | 47, 51, 75 |
-| 10 | `dashboardMetricsService.ts` | `.toNumber()` calls on dashboard aggregations | multiple |
+The `reconcile_investor_position_internal` already sets `indigo.canonical_rpc = true`, and triggers like `enforce_canonical_position_mutation` and `enforce_canonical_position_write` respect this flag. But `check_fund_is_active` and `validate_position_fund_status` do NOT check the canonical RPC flag, creating an inconsistency.
 
-### LOW RISK (input handling, acceptable)
+## Fix (Single Migration)
 
-| File | Why It's OK |
-|------|-------------|
-| `PositionsStep.tsx` | Input parsing for form, `parseFloat` is correct |
-| `FundPositionCard.tsx` | Input field change handler |
-| `AddIBScheduleDialog.tsx` | Percentage input validation |
-| `AssetPriceDialog.tsx` | Price input fields |
-| `MonthlyReportsTable.tsx` | Edit value parsing |
-| `YieldInputForm.tsx` | Yield amount input display |
-| `NumericInput.tsx` | Input component (by design) |
+Update `check_fund_is_active()` to skip when running inside a canonical RPC context (already validated upstream):
 
-### STILL USING `Number()` (in yields pages, but safe-ish)
+```sql
+CREATE OR REPLACE FUNCTION public.check_fund_is_active()
+RETURNS trigger AS $$
+DECLARE
+  v_fund_status text;
+BEGIN
+  -- Skip when inside a canonical RPC (void, recompute, yield distribution)
+  -- These RPCs already validate their inputs
+  IF COALESCE(current_setting('indigo.canonical_rpc', true), 'false') = 'true' THEN
+    RETURN NEW;
+  END IF;
 
-| File | Pattern | Risk |
-|------|---------|------|
-| `YieldDistributionsPage.tsx` | `Number(fa.fee_percentage)` for `formatPercentage` | Safe -- percentages are small |
-| `YieldsTable.tsx` | `Number(alloc.fee_amount) > 0` for conditional rendering | Safe -- boolean check only |
-| `YieldPreviewResults.tsx` | `Number()` in percentage calculations | Safe -- percentages |
+  -- Skip any UPDATE where fund_id hasn't changed
+  IF TG_OP = 'UPDATE' AND NEW.fund_id = OLD.fund_id THEN
+    RETURN NEW;
+  END IF;
 
-## What Might Be Broken
+  -- For transactions_v2 only, skip void operations
+  IF TG_OP = 'UPDATE' AND TG_TABLE_NAME = 'transactions_v2' THEN
+    IF NEW.is_voided = true AND (OLD.is_voided IS NULL OR OLD.is_voided = false) THEN
+      RETURN NEW;
+    END IF;
+  END IF;
 
-### Nothing is functionally broken right now.
-The changes we made were all display-layer: replacing `parseFloat` with `toNum()`, adding `Decimal.js` for arithmetic, and using `FinancialValue` for rendering. These are backward-compatible since `toNum()` and `parseFloat` produce identical results for typical financial amounts (< 15 significant digits). The risk was theoretical precision loss, not runtime errors.
+  -- Validate fund exists and is active
+  SELECT status INTO v_fund_status
+  FROM public.funds WHERE id = NEW.fund_id::uuid;
+  
+  IF v_fund_status IS NULL THEN
+    RAISE EXCEPTION 'Fund not found: %', NEW.fund_id;
+  ELSIF v_fund_status != 'active' THEN
+    RAISE EXCEPTION 'Cannot use inactive fund (status: %): %', v_fund_status, NEW.fund_id;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public';
+```
 
-### Potential regression risk:
-1. **`ExpertPositionsTable.tsx`** -- We changed summary cards to use `FinancialValue` with string values. If the `formatAssetValue` function was also being used elsewhere to format these same values, there could be visual inconsistency (different decimal counts). Low risk.
-2. **`InvestorManagementDrawer.tsx`** -- We replaced `formatValue(pos.current_value, ...)` with `<FinancialValue>`. If `current_value` comes as `null` from a position with no transactions, `FinancialValue` needs to handle that. It does (defaults to `0`).
+Update `validate_position_fund_status()` similarly:
 
-## Recommended Next Step
+```sql
+CREATE OR REPLACE FUNCTION public.validate_position_fund_status()
+RETURNS trigger AS $$
+BEGIN
+  -- Skip when inside a canonical RPC
+  IF COALESCE(current_setting('indigo.canonical_rpc', true), 'false') = 'true' THEN
+    RETURN NEW;
+  END IF;
 
-### Fix the service layer `.toNumber()` pattern (Items 1-2 above)
+  IF NOT EXISTS (
+    SELECT 1 FROM public.funds WHERE id = NEW.fund_id AND status = 'active'
+  ) THEN
+    RAISE EXCEPTION 'Cannot create position on non-active fund. Fund ID: %, Status must be active.', NEW.fund_id;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public';
+```
 
-This is the most impactful remaining fix. `investorPositionService.ts` converts every financial field to JS `number` before returning it to components. This means ALL downstream investor portal components receive lossy data, regardless of whether those components use `FinancialValue`.
+## Why This Is Safe
 
-**The fix**: Change the service return types from `number` to `number | string` and return `.toString()` instead of `.toNumber()`. Then update the 3-4 consumer components to use `FinancialValue`.
+- The `indigo.canonical_rpc` flag is only set inside server-side SECURITY DEFINER functions (`void_transaction`, `reconcile_investor_position_internal`, yield RPCs)
+- It cannot be set by client-side code (the session variable is transaction-scoped via `set_config(..., true)`)
+- All canonical RPCs already validate fund existence before operating
+- This aligns with how `enforce_canonical_position_mutation` and `enforce_canonical_position_write` already work
 
-This is a **medium-risk change** because it touches the service interface used by ~10 components across the investor portal. It would require updating type definitions and all consumers.
-
-### Or: Declare victory on precision hardening
-
-For a platform with "small AUM" at soft launch, the current `.toNumber()` calls in the service layer are safe for amounts under ~$999 trillion. The display-layer fixes we've already done cover the admin portal completely. The investor portal service layer is the last frontier but is low-urgency.
-
-## Files That Would Change (if proceeding)
+## Files Changed
 
 | File | Change |
 |------|--------|
-| `investorPositionService.ts` | 12x `.toNumber()` to `.toString()`, update return types |
-| `investorPortfolioSummaryService.ts` | 3x `.toNumber()` to `.toString()` |
-| `InvestorTransactionsTab.tsx` | 4x `parseFloat` to `toNum` |
-| `useIBManagementPage.ts` | 2x `parseFloat` to `Decimal.js` aggregation |
-| `GlobalYieldFlow.tsx` | 1x `parseFloat` to `toNum` |
-| Consumer components (~5 files) | Update to handle `string` types |
+| New migration SQL | Update `check_fund_is_active()` and `validate_position_fund_status()` to skip when `indigo.canonical_rpc = true` |
 
