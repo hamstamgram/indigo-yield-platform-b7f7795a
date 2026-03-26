@@ -69,6 +69,7 @@ import { cn } from "@/lib/utils";
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 import { formatAssetValue } from "@/utils/formatters";
 import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 import { ExportButton } from "@/components/common";
 import type { ExportColumn } from "@/lib/export/csv-export";
 

@@ -25,7 +25,7 @@ import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useFunds, useFundsWithAUM } from "@/hooks/data";
-import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 
 export function QuickYieldEntry() {
   const navigate = useNavigate();

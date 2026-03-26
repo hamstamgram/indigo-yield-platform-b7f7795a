@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { createInvestorTransaction } from "@/services/shared";
-import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QueryClient } from "@tanstack/react-query";

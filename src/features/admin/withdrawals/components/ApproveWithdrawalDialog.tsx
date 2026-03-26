@@ -25,6 +25,7 @@ import { Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Decimal from "decimal.js";
 import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 
 interface ApproveWithdrawalDialogProps {
   open: boolean;
