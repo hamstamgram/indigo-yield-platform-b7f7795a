@@ -115,6 +115,9 @@ function mapPositionToExpert(pos: RawPositionRow): ExpertPosition {
     total_earnings: parseFinancial(pos.realized_pnl || 0)
       .plus(parseFinancial(pos.unrealized_pnl || 0))
       .toNumber(),
+    // NOTE: .toNumber() is acceptable here for soft-launch AUM ranges.
+    // For amounts exceeding 15 significant digits, migrate to .toString()
+    // and update ExpertPosition types + consumers to number | string.
     last_transaction_date: pos.last_transaction_date || null,
   };
 }

@@ -4,6 +4,7 @@
  */
 
 import { useState } from "react";
+import { toNum } from "@/utils/numeric";
 import {
   Card,
   CardContent,
@@ -129,7 +130,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                   className="flex items-center justify-between p-4 border rounded-lg bg-card"
                 >
                   <div className="flex items-center gap-4 flex-1">
-                    {getTransactionIcon(txType, parseFloat(String(transaction.amount)))}
+                    {getTransactionIcon(txType, toNum(transaction.amount))}
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{txType}</span>
@@ -147,16 +148,16 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                     <div
                       className={cn(
                         "font-medium",
-                        txType === "WITHDRAWAL" || parseFloat(String(transaction.amount)) < 0
+                        txType === "WITHDRAWAL" || toNum(transaction.amount) < 0
                           ? "text-red-500"
                           : "text-yield"
                       )}
                     >
-                      {txType === "WITHDRAWAL" || parseFloat(String(transaction.amount)) < 0
+                      {txType === "WITHDRAWAL" || toNum(transaction.amount) < 0
                         ? "-"
                         : "+"}
                       {formatAssetAmount(
-                        Math.abs(parseFloat(String(transaction.amount))),
+                        Math.abs(toNum(transaction.amount)),
                         transaction.fund?.code || "USD"
                       )}
                     </div>

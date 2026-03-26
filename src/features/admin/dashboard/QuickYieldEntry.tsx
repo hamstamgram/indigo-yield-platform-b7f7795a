@@ -25,7 +25,7 @@ import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useFunds, useFundsWithAUM } from "@/hooks/data";
-import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 
 export function QuickYieldEntry() {
   const navigate = useNavigate();
@@ -44,11 +44,11 @@ export function QuickYieldEntry() {
 
   const calculateYield = () => {
     if (!selectedFundData || !newAUM) return null;
-    const newAUMNum = parseFinancial(newAUM).toNumber();
+    const newAUMNum = toNum(newAUM);
     if (isNaN(newAUMNum) || newAUMNum === 0) return null;
 
     // Convert currentAUM from string to number for arithmetic
-    const currentAUMNum = parseFinancial(selectedFundData.currentAUM || 0).toNumber();
+    const currentAUMNum = toNum(selectedFundData.currentAUM || 0);
 
     const yieldAmount = newAUMNum - currentAUMNum;
     const yieldPct = currentAUMNum > 0 ? (yieldAmount / currentAUMNum) * 100 : 0;
@@ -72,7 +72,7 @@ export function QuickYieldEntry() {
   };
 
   const formatCrypto = (value: string | number, decimals: number = 4) => {
-    const numValue = parseFinancial(value).toNumber();
+    const numValue = toNum(value);
     return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,

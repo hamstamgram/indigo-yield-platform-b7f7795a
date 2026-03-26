@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { createInvestorTransaction } from "@/services/shared";
-import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QueryClient } from "@tanstack/react-query";
@@ -64,7 +64,7 @@ export function useTransactionSubmit({
     // Large deposit confirmation
     const isDeposit = data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT";
     const numericAmount =
-      typeof data.amount === "string" ? parseFinancial(data.amount).toNumber() : data.amount;
+      typeof data.amount === "string" ? toNum(data.amount) : data.amount;
     const isLargeAmount = isDeposit && numericAmount > 1_000_000;
 
     if (isLargeAmount && !largeDepositConfirmed) {
