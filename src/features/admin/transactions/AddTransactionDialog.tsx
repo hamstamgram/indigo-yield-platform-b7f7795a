@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toNum } from "@/utils/numeric";
 import { FormProvider, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -264,7 +265,7 @@ export function AddTransactionDialog({
                     <p className="text-sm text-amber-700 dark:text-amber-300">
                       You are depositing{" "}
                       <strong>
-                        {parseFloat(String(pendingLargeDeposit.amount)).toLocaleString()}{" "}
+                        {toNum(pendingLargeDeposit.amount).toLocaleString()}{" "}
                         {selectedFund?.asset}
                       </strong>
                     </p>

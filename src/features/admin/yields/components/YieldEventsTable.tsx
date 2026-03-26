@@ -5,6 +5,7 @@
 
 import { useState, useMemo } from "react";
 import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
@@ -326,7 +327,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground tabular-nums py-1.5">
                       <FormattedNumber
-                        value={-parseFloat(String(event.fee_amount))}
+                        value={-toNum(event.fee_amount)}
                         type="number"
                       />
                     </TableCell>
