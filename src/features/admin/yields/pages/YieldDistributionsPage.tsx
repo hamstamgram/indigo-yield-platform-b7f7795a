@@ -24,6 +24,7 @@ import { VoidDistributionDialog } from "@/features/admin/yields/components/VoidD
 import { voidYieldDistribution } from "@/services/admin/yields/yieldManagementService";
 import { executeInternalRoute } from "@/services/admin/internalRouteService";
 import { formatAssetValue, formatPercentage } from "@/utils/formatters";
+import { toNum } from "@/utils/numeric";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import {
   Accordion,
@@ -471,13 +472,13 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
       let routedCount = 0;
 
       for (const allocation of allocs) {
-        const feeAmount = Number(allocation.fee_amount || 0);
-        if (feeAmount <= 0) continue;
+        const feeAmountStr = String(allocation.fee_amount || "0");
+        if (toNum(feeAmountStr) <= 0) continue;
 
         await executeInternalRoute({
           fromInvestorId: allocation.investor_id,
           fundId: routeTarget.fund_id,
-          amount: feeAmount,
+          amount: feeAmountStr as unknown as number,
           effectiveDate: routeTarget.effective_date.split("T")[0],
           reason: `Fee routing from distribution ${routeTarget.id}`,
         });

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { Search, Receipt, Filter, Download } from "lucide-react";
 import { formatInvestorAmount } from "@/utils/assets";
+import { toNum } from "@/utils/numeric";
 import { format } from "date-fns";
 import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hooks/data";
 import { useSortableColumns } from "@/hooks";
@@ -105,7 +106,7 @@ export default function InvestorTransactionsPage() {
         </SortableTableHead>
       ),
       cell: (item: Record<string, unknown>) => {
-        const amount = parseFloat(String(item.amount));
+        const amount = toNum(item.amount as string | number);
         return (
           <span
             className={cn(

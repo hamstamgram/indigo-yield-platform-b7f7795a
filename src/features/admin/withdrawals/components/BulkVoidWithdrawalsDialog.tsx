@@ -22,6 +22,7 @@ import {
 import { AlertTriangle, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { formatAssetValue } from "@/utils/formatters";
+import { toNum } from "@/utils/numeric";
 import type { Withdrawal } from "@/types/domains";
 import type { WithdrawalSelectionSummary } from "../hooks/useWithdrawalSelection";
 
@@ -36,7 +37,7 @@ interface BulkVoidWithdrawalsDialogProps {
 
 function formatAmountBreakdown(amountsByAsset: Record<string, string>): string {
   return Object.entries(amountsByAsset)
-    .map(([asset, amount]) => `${formatAssetValue(parseFloat(amount), asset)} ${asset}`)
+    .map(([asset, amount]) => `${formatAssetValue(toNum(amount), asset)} ${asset}`)
     .join(" + ");
 }
 
@@ -130,7 +131,7 @@ export function BulkVoidWithdrawalsDialog({
                         <td className="px-3 py-1 capitalize">{w.status}</td>
                         <td className="px-3 py-1 text-right font-mono">
                           {formatAssetValue(
-                            parseFloat(w.requested_amount),
+                            toNum(w.requested_amount),
                             w.fund_class || w.asset || "UNITS"
                           )}{" "}
                           {(w.fund_class || w.asset || "UNITS").toUpperCase()}

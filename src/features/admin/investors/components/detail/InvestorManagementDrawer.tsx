@@ -233,7 +233,7 @@ export function InvestorManagementDrawer({
                           <span className="font-medium">{pos.fund_name}</span>
                         </div>
                         <span className="font-mono">
-                          {formatValue(pos.current_value, pos.asset === "BTC" ? 4 : 2)} {pos.asset}
+                          <FinancialValue value={pos.current_value} asset={pos.asset} />
                         </span>
                       </div>
                     ))}

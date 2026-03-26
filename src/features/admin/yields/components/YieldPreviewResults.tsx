@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { type YieldCalculationResult, type YieldDistribution } from "@/services/admin";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
 import { toNum } from "@/utils/numeric";
+import Decimal from "decimal.js";
 import React from "react";
 
 interface YieldPreviewResultsProps {
@@ -343,7 +344,7 @@ export function YieldPreviewResults({
                       )}
                     </TableCell>
                     <TableCell className="text-right font-mono font-bold text-sm bg-muted/30">
-                      {formatValue(toNum(inv.openingBalance || 0) + toNum(inv.netYield), asset)}
+                      {formatValue(Number(new Decimal(inv.openingBalance || 0).plus(new Decimal(inv.netYield || 0)).toString()), asset)}
                     </TableCell>
                   </TableRow>
                 </React.Fragment>
