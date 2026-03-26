@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { PageShell } from "@/components/layout/PageShell";
 import { formatInvestorNumber, formatInvestorAmount, getAssetLogo } from "@/utils/assets";
-import { parseFinancial } from "@/utils/financial";
+
 import { PerformanceCard } from "@/features/investor/performance/components/PerformanceCard";
 import {
   PeriodSelector,
