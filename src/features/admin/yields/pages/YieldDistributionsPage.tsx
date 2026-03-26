@@ -5,6 +5,7 @@
  */
 
 import { useState, useMemo, useCallback } from "react";
+import Decimal from "decimal.js";
 import { format, startOfMonth, subMonths } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { AdminGuard } from "@/features/admin/shared/AdminGuard";
