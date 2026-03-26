@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { PageShell } from "@/components/layout/PageShell";
 import { formatInvestorNumber, formatInvestorAmount, getAssetLogo } from "@/utils/assets";
-import { parseFinancial } from "@/utils/financial";
+
 import { PerformanceCard } from "@/features/investor/performance/components/PerformanceCard";
 import {
   PeriodSelector,
@@ -480,7 +480,7 @@ export default function InvestorOverviewPage() {
                         tx.type === "IB_CREDIT"
                           ? "+"
                           : ""}
-                        {formatInvestorNumber(parseFinancial(tx.amount).toNumber())}
+                        {formatInvestorNumber(tx.amount)}
                       </p>
                       <div className="flex items-center gap-1 justify-end mt-0.5">
                         <CryptoIcon symbol={tx.asset} className="h-3 w-3 shrink-0" />

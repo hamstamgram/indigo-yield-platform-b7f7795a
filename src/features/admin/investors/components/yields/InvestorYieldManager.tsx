@@ -5,10 +5,12 @@
  */
 
 import { useState, useMemo } from "react";
+import Decimal from "decimal.js";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Skeleton } from "@/components/ui";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import { ChevronLeft, ChevronRight, Calendar, TrendingUp, FileText, Plus } from "lucide-react";
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
 import { FundPositionCard } from "../shared/FundPositionCard";
@@ -74,7 +76,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
 
   // Calculate totals
   const totalYield = useMemo(
-    () => performance.reduce((sum, p) => sum + (p.mtd_net_income || 0), 0),
+    () => performance.reduce((sum, p) => sum.plus(new Decimal(p.mtd_net_income || 0)), new Decimal(0)).toString(),
     [performance]
   );
   const hasPerformanceData = performance.length > 0;
@@ -150,9 +152,8 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total MTD Net Income</p>
-                  <p className="text-2xl font-mono font-bold">
-                    {totalYield >= 0 ? "+" : ""}
-                    {totalYield.toFixed(4)}
+                  <p className="text-2xl font-bold">
+                    <FinancialValue value={totalYield} showAsset={false} colorize prefix={new Decimal(totalYield).greaterThanOrEqualTo(0) ? "+" : ""} />
                   </p>
                 </div>
               </div>

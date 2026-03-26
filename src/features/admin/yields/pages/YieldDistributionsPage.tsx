@@ -717,14 +717,14 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                     (d) => !isCrystallizationDist(d)
                                   );
                                   const crystalGross = crystalDists.reduce(
-                                    (s, d) => s + Number(d.gross_yield),
-                                    0
-                                  );
+                                    (s, d) => s.plus(new Decimal(d.gross_yield || 0)),
+                                    new Decimal(0)
+                                  ).toString();
                                   const regularGross = regularDists.reduce(
-                                    (s, d) => s + Number(d.gross_yield),
-                                    0
-                                  );
-                                  const totalGross = crystalGross + regularGross;
+                                    (s, d) => s.plus(new Decimal(d.gross_yield || 0)),
+                                    new Decimal(0)
+                                  ).toString();
+                                  const totalGross = new Decimal(crystalGross).plus(regularGross).toString();
                                   return (
                                     <Card className="border-purple-800/30 bg-purple-950/10">
                                       <CardContent className="py-3 px-4">
@@ -779,9 +779,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                     yieldEventsByDistribution[distribution.id] || [];
                                   const isCrystallization = isCrystallizationDist(distribution);
                                   const totalGross = allocations.reduce(
-                                    (sum, a) => sum + Number(a.gross_amount || 0),
-                                    0
-                                  );
+                                    (sum, a) => sum.plus(new Decimal(a.gross_amount || 0)),
+                                    new Decimal(0)
+                                  ).toString();
                                   return (
                                     <Card key={distribution.id}>
                                       <CardHeader className="pb-3">
@@ -1116,9 +1116,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
-                                                              totalGross !== 0
+                                                              Number(totalGross) !== 0
                                                                 ? (Number(allocation.gross_amount || 0) /
-                                                                    totalGross) *
+                                                                    Number(totalGross)) *
                                                                     100
                                                                 : 0,
                                                               2

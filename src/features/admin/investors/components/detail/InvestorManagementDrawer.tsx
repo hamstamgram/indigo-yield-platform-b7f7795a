@@ -47,6 +47,7 @@ import { InvestorYieldManager } from "../yields";
 import { InvestorPositionsTab } from "../tabs";
 import { InvestorTransactionsTab } from "../tabs";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
@@ -105,6 +106,7 @@ export function InvestorManagementDrawer({
     }
   }, [isOpen]);
 
+  // formatValue kept for delete dialog only (non-financial context)
   const formatValue = (value: number, decimals: number = 2) => {
     return value.toLocaleString("en-US", {
       minimumFractionDigits: decimals,
@@ -401,28 +403,25 @@ export function InvestorManagementDrawer({
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-muted-foreground">Balance</p>
-                          <p className="font-mono font-semibold">
-                            {formatValue(pos.current_value, pos.asset === "BTC" ? 4 : 2)}{" "}
-                            {pos.asset}
+                          <p className="font-semibold">
+                            <FinancialValue value={pos.current_value} asset={pos.asset} />
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Cost Basis</p>
-                          <p className="font-mono">
-                            {formatValue(pos.cost_basis, pos.asset === "BTC" ? 4 : 2)} {pos.asset}
+                          <p>
+                            <FinancialValue value={pos.cost_basis} asset={pos.asset} />
                           </p>
                         </div>
                         <div className="col-span-2">
                           <p className="text-muted-foreground">Unrealized P&L</p>
-                          <p
-                            className={cn(
-                              "font-mono font-semibold",
-                              pos.unrealized_pnl >= 0 ? "text-yield" : "text-rose-400"
-                            )}
-                          >
-                            {pos.unrealized_pnl >= 0 ? "+" : ""}
-                            {formatValue(pos.unrealized_pnl, pos.asset === "BTC" ? 4 : 2)}{" "}
-                            {pos.asset}
+                          <p className="font-semibold">
+                            <FinancialValue
+                              value={pos.unrealized_pnl}
+                              asset={pos.asset}
+                              colorize
+                              prefix={pos.unrealized_pnl >= 0 ? "+" : ""}
+                            />
                           </p>
                         </div>
                       </div>

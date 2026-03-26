@@ -4,8 +4,10 @@
  */
 
 import { useState, useMemo } from "react";
+import Decimal from "decimal.js";
 import { parseFinancial } from "@/utils/financial";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   Card,
   CardContent,
@@ -61,22 +63,22 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
     const visible = active;
     const voidedCount = yieldEvents.filter((e) => e.is_voided).length;
     const totalGross = active
-      .reduce((sum, e) => sum.plus(parseFinancial(e.gross_yield_amount)), parseFinancial(0))
-      .toNumber();
+      .reduce((sum, e) => sum.plus(parseFinancial(e.gross_yield_amount)), new Decimal(0))
+      .toString();
     const totalFees = active
-      .reduce((sum, e) => sum.plus(parseFinancial(e.fee_amount)), parseFinancial(0))
-      .toNumber();
+      .reduce((sum, e) => sum.plus(parseFinancial(e.fee_amount)), new Decimal(0))
+      .toString();
     const totalNet = active
-      .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), parseFinancial(0))
-      .toNumber();
+      .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), new Decimal(0))
+      .toString();
 
     return {
       pendingCount: pending.length,
       visibleCount: visible.length,
       voidedCount,
       pendingYield: pending
-        .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), parseFinancial(0))
-        .toNumber(),
+        .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount)), new Decimal(0))
+        .toString(),
       totalGross,
       totalFees,
       totalNet,
@@ -112,15 +114,9 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
     );
   };
 
-  const formatNumber = (value: number, decimals: number = 6) => {
-    return value.toLocaleString("en-US", {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    });
-  };
-
-  const formatPercent = (value: number) => {
-    return `${(value * 100).toFixed(4)}%`;
+  const formatPercent = (value: number | string) => {
+    const pct = new Decimal(value).times(100).toFixed(4);
+    return `${pct}%`;
   };
 
   if (isLoading) {
@@ -178,30 +174,25 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
               <div>
                 <p className="text-xs text-muted-foreground uppercase">Gross Yield</p>
-                <p className="text-lg font-mono font-semibold">{formatNumber(stats.totalGross)}</p>
+                <p className="text-lg font-semibold"><FinancialValue value={stats.totalGross} showAsset={false} /></p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase">Fees</p>
-                <p className="text-lg font-mono font-semibold text-muted-foreground">
-                  -{formatNumber(stats.totalFees)}
+                <p className="text-lg font-semibold text-muted-foreground">
+                  <FinancialValue value={stats.totalFees} showAsset={false} prefix="-" />
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase">Net Yield</p>
-                <p
-                  className={cn(
-                    "text-lg font-mono font-semibold",
-                    stats.totalNet >= 0 ? "text-yield" : "text-rose-400"
-                  )}
-                >
-                  {formatNumber(stats.totalNet)}
+                <p className="text-lg font-semibold">
+                  <FinancialValue value={stats.totalNet} showAsset={false} colorize />
                 </p>
               </div>
               {stats.pendingCount > 0 && (
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Pending Yield</p>
-                  <p className="text-lg font-mono font-semibold text-amber-600">
-                    {formatNumber(stats.pendingYield)}
+                  <p className="text-lg font-semibold text-amber-600">
+                    <FinancialValue value={stats.pendingYield} showAsset={false} />
                   </p>
                 </div>
               )}
@@ -262,11 +253,11 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                         </TableCell>
                         <TableCell
                           className={cn(
-                            "text-right font-mono tabular-nums py-1.5",
+                            "text-right tabular-nums py-1.5",
                             event.is_voided && "line-through"
                           )}
                         >
-                          {formatNumber(parseFloat(String(event.investor_balance)), 4)}
+                          <FinancialValue value={event.investor_balance} displayDecimals={4} showAsset={false} />
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -274,35 +265,35 @@ export function InvestorYieldHistory({ investorId, className }: InvestorYieldHis
                             event.is_voided && "line-through"
                           )}
                         >
-                          {formatPercent(parseFloat(String(event.fund_yield_pct)))}
+                          {formatPercent(event.fund_yield_pct)}
                         </TableCell>
                         <TableCell
                           className={cn(
-                            "text-right font-mono tabular-nums py-1.5",
+                            "text-right tabular-nums py-1.5",
                             event.is_voided && "line-through"
                           )}
                         >
-                          {formatNumber(parseFloat(String(event.gross_yield_amount)))}
+                          <FinancialValue value={event.gross_yield_amount} showAsset={false} />
                         </TableCell>
                         <TableCell
                           className={cn(
-                            "text-right font-mono tabular-nums text-muted-foreground py-1.5",
+                            "text-right tabular-nums text-muted-foreground py-1.5",
                             event.is_voided && "line-through"
                           )}
                         >
-                          -{formatNumber(parseFloat(String(event.fee_amount)))}
+                          <FinancialValue value={event.fee_amount} showAsset={false} prefix="-" />
                         </TableCell>
                         <TableCell
                           className={cn(
-                            "text-right font-mono tabular-nums font-medium py-1.5",
+                            "text-right tabular-nums font-medium py-1.5",
                             event.is_voided
                               ? "line-through text-muted-foreground"
-                              : parseFloat(String(event.net_yield_amount)) >= 0
+                              : new Decimal(String(event.net_yield_amount || 0)).greaterThanOrEqualTo(0)
                                 ? "text-yield"
                                 : "text-rose-400"
                           )}
                         >
-                          {formatNumber(parseFloat(String(event.net_yield_amount)))}
+                          <FinancialValue value={event.net_yield_amount} showAsset={false} />
                         </TableCell>
                         <TableCell className="py-1.5">
                           {event.is_voided ? (
