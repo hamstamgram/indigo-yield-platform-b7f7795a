@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/layout";
 import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatInvestorAmount, getAssetName } from "@/utils/assets";
+import { toNum } from "@/utils/numeric";
 import { useToast } from "@/hooks";
 import {
   useMonthlyStatements,
@@ -57,12 +58,12 @@ const StatementsPage = () => {
       const periodStart = new Date(statement.period_year, statement.period_month - 1, 1);
       const periodEnd = new Date(statement.period_year, statement.period_month, 0);
 
-      const mtdBeginBalance = parseFloat(statement.begin_balance) || 0;
-      const mtdAdditions = parseFloat(statement.additions) || 0;
-      const mtdRedemptions = parseFloat(statement.redemptions) || 0;
-      const mtdNetIncome = parseFloat(statement.net_income) || 0;
-      const mtdEndBalance = parseFloat(statement.end_balance) || 0;
-      const mtdRateOfReturn = parseFloat(statement.rate_of_return_mtd) || 0;
+      const mtdBeginBalance = toNum(statement.begin_balance);
+      const mtdAdditions = toNum(statement.additions);
+      const mtdRedemptions = toNum(statement.redemptions);
+      const mtdNetIncome = toNum(statement.net_income);
+      const mtdEndBalance = toNum(statement.end_balance);
+      const mtdRateOfReturn = toNum(statement.rate_of_return_mtd);
 
       // Lazy load PDF generator to keep bundle small
       const { generatePDF } = await import("@/lib/pdf/statementGenerator");
@@ -91,24 +92,24 @@ const StatementsPage = () => {
             mtd_net_income: mtdNetIncome,
             mtd_ending_balance: mtdEndBalance,
             mtd_rate_of_return: mtdRateOfReturn,
-            qtd_beginning_balance: parseFloat(statement.qtd_beginning_balance) || 0,
-            qtd_additions: parseFloat(statement.qtd_additions) || 0,
-            qtd_redemptions: parseFloat(statement.qtd_redemptions) || 0,
-            qtd_net_income: parseFloat(statement.qtd_net_income) || 0,
-            qtd_ending_balance: parseFloat(statement.qtd_ending_balance) || 0,
-            qtd_rate_of_return: parseFloat(statement.qtd_rate_of_return) || 0,
-            ytd_beginning_balance: parseFloat(statement.ytd_beginning_balance) || 0,
-            ytd_additions: parseFloat(statement.ytd_additions) || 0,
-            ytd_redemptions: parseFloat(statement.ytd_redemptions) || 0,
-            ytd_net_income: parseFloat(statement.ytd_net_income) || 0,
-            ytd_ending_balance: parseFloat(statement.ytd_ending_balance) || 0,
-            ytd_rate_of_return: parseFloat(statement.ytd_rate_of_return) || 0,
-            itd_beginning_balance: parseFloat(statement.itd_beginning_balance) || 0,
-            itd_additions: parseFloat(statement.itd_additions) || 0,
-            itd_redemptions: parseFloat(statement.itd_redemptions) || 0,
-            itd_net_income: parseFloat(statement.itd_net_income) || 0,
-            itd_ending_balance: parseFloat(statement.itd_ending_balance) || 0,
-            itd_rate_of_return: parseFloat(statement.itd_rate_of_return) || 0,
+            qtd_beginning_balance: toNum(statement.qtd_beginning_balance),
+            qtd_additions: toNum(statement.qtd_additions),
+            qtd_redemptions: toNum(statement.qtd_redemptions),
+            qtd_net_income: toNum(statement.qtd_net_income),
+            qtd_ending_balance: toNum(statement.qtd_ending_balance),
+            qtd_rate_of_return: toNum(statement.qtd_rate_of_return),
+            ytd_beginning_balance: toNum(statement.ytd_beginning_balance),
+            ytd_additions: toNum(statement.ytd_additions),
+            ytd_redemptions: toNum(statement.ytd_redemptions),
+            ytd_net_income: toNum(statement.ytd_net_income),
+            ytd_ending_balance: toNum(statement.ytd_ending_balance),
+            ytd_rate_of_return: toNum(statement.ytd_rate_of_return),
+            itd_beginning_balance: toNum(statement.itd_beginning_balance),
+            itd_additions: toNum(statement.itd_additions),
+            itd_redemptions: toNum(statement.itd_redemptions),
+            itd_net_income: toNum(statement.itd_net_income),
+            itd_ending_balance: toNum(statement.itd_ending_balance),
+            itd_rate_of_return: toNum(statement.itd_rate_of_return),
           },
         ],
       });
@@ -238,7 +239,7 @@ const StatementsPage = () => {
                   <p className="text-xs text-muted-foreground uppercase">Beginning Balance</p>
                   <p className="text-sm font-mono font-medium text-white">
                     {formatInvestorAmount(
-                      parseFloat(statement.begin_balance) || 0,
+                      toNum(statement.begin_balance),
                       statement.asset_code
                     )}
                   </p>
@@ -248,7 +249,7 @@ const StatementsPage = () => {
                   <p className="text-sm font-mono font-medium text-yield">
                     +
                     {formatInvestorAmount(
-                      parseFloat(statement.additions) || 0,
+                      toNum(statement.additions),
                       statement.asset_code
                     )}
                   </p>
@@ -258,7 +259,7 @@ const StatementsPage = () => {
                   <p className="text-sm font-mono font-medium text-indigo-400">
                     +
                     {formatInvestorAmount(
-                      parseFloat(statement.net_income) || 0,
+                      toNum(statement.net_income),
                       statement.asset_code
                     )}
                   </p>
@@ -267,7 +268,7 @@ const StatementsPage = () => {
                   <p className="text-xs text-muted-foreground uppercase">Ending Balance</p>
                   <p className="text-sm font-mono font-semibold text-white">
                     {formatInvestorAmount(
-                      parseFloat(statement.end_balance) || 0,
+                      toNum(statement.end_balance),
                       statement.asset_code
                     )}
                   </p>
@@ -278,7 +279,7 @@ const StatementsPage = () => {
                 <div className="mt-3 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-yield" />
                   <span className="text-sm font-mono font-medium text-yield">
-                    Return: {(parseFloat(statement.rate_of_return_mtd) || 0).toFixed(3)}% MTD
+                    Return: {toNum(statement.rate_of_return_mtd).toFixed(3)}% MTD
                   </span>
                 </div>
               )}

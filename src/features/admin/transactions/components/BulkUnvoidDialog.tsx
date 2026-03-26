@@ -20,6 +20,7 @@ import {
 import { Undo2, Loader2, Info, ChevronDown, ChevronRight } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatAssetValue } from "@/utils/formatters";
+import { toNum } from "@/utils/numeric";
 import type { TransactionViewModel } from "@/types/domains/transaction";
 import type { SelectionSummary } from "../hooks/useTransactionSelection";
 
@@ -34,7 +35,7 @@ interface BulkUnvoidDialogProps {
 
 function formatAmountBreakdown(amountsByAsset: Record<string, string>): string {
   return Object.entries(amountsByAsset)
-    .map(([asset, amount]) => `${formatAssetValue(parseFloat(amount), asset)} ${asset}`)
+    .map(([asset, amount]) => `${formatAssetValue(toNum(amount), asset)} ${asset}`)
     .join(" + ");
 }
 
@@ -131,7 +132,7 @@ export function BulkUnvoidDialog({
                         <td className="px-3 py-1 max-w-[120px] truncate">{tx.investorName}</td>
                         <td className="px-3 py-1">{tx.displayType}</td>
                         <td className="px-3 py-1 text-right font-mono">
-                          {formatAssetValue(parseFloat(tx.amount), tx.asset)} {tx.asset}
+                          {formatAssetValue(toNum(tx.amount), tx.asset)} {tx.asset}
                         </td>
                       </tr>
                     ))}

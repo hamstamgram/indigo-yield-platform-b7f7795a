@@ -7,6 +7,7 @@
 import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui";
 import { Ban, Undo2, Trash2, X } from "lucide-react";
 import { formatAssetValue } from "@/utils/formatters";
+import { toNum } from "@/utils/numeric";
 import type { WithdrawalSelectionSummary } from "../hooks/useWithdrawalSelection";
 
 interface WithdrawalBulkActionToolbarProps {
@@ -22,7 +23,7 @@ function formatAmountSummary(amountsByAsset: Record<string, string>): string {
   const entries = Object.entries(amountsByAsset);
   if (entries.length === 0) return "0";
   return entries
-    .map(([asset, amount]) => `${formatAssetValue(parseFloat(amount), asset)} ${asset}`)
+    .map(([asset, amount]) => `${formatAssetValue(toNum(amount), asset)} ${asset}`)
     .join(" + ");
 }
 

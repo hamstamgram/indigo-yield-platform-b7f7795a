@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Decimal from "decimal.js";
+import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   Card,
   CardContent,
@@ -286,11 +287,11 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
               );
 
               return Object.entries(assetGroups).map(([asset, assetPositions]) => {
-                const totalValue = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.current_value || 0)), new Decimal(0)).toNumber();
-                const totalCost = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.cost_basis || 0)), new Decimal(0)).toNumber();
-                const totalEarnings = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.total_earnings || 0)), new Decimal(0)).toNumber();
-                const totalPnL = new Decimal(totalValue).minus(totalCost).toNumber();
-                const pnlPercent = totalCost > 0 ? new Decimal(totalValue).minus(totalCost).div(totalCost).times(100).toNumber() : 0;
+                const totalValueDec = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.current_value || 0)), new Decimal(0));
+                const totalCostDec = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.cost_basis || 0)), new Decimal(0));
+                const totalEarningsDec = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.total_earnings || 0)), new Decimal(0));
+                const totalPnLDec = totalValueDec.minus(totalCostDec);
+                const pnlPercent = totalCostDec.greaterThan(0) ? totalValueDec.minus(totalCostDec).div(totalCostDec).times(100).toNumber() : 0;
 
                 return (
                   <div key={asset} className="border rounded-lg p-3 bg-card">
@@ -305,25 +306,25 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Value:</span>
-                        <span className="font-medium">{formatAssetValue(totalValue, asset)}</span>
+                        <span className="font-medium"><FinancialValue value={totalValueDec.toString()} asset={asset} showAsset={false} /></span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Cost:</span>
-                        <span className="font-medium">{formatAssetValue(totalCost, asset)}</span>
+                        <span className="font-medium"><FinancialValue value={totalCostDec.toString()} asset={asset} showAsset={false} /></span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Earnings:</span>
                         <span className="font-medium text-yield">
-                          {formatAssetValue(totalEarnings, asset)}
+                          <FinancialValue value={totalEarningsDec.toString()} asset={asset} showAsset={false} />
                         </span>
                       </div>
                       <div className="flex justify-between border-t pt-1">
                         <span className="text-muted-foreground">P&L:</span>
                         <span
-                          className={`font-semibold ${totalPnL >= 0 ? "text-yield" : "text-rose-400"}`}
+                          className={`font-semibold ${totalPnLDec.greaterThanOrEqualTo(0) ? "text-yield" : "text-rose-400"}`}
                         >
-                          {totalPnL >= 0 ? "+" : ""}
-                          {formatAssetValue(Math.abs(totalPnL), asset)} ({pnlPercent.toFixed(2)}%)
+                          {totalPnLDec.greaterThanOrEqualTo(0) ? "+" : ""}
+                          <FinancialValue value={totalPnLDec.abs().toString()} asset={asset} showAsset={false} /> ({pnlPercent.toFixed(2)}%)
                         </span>
                       </div>
                     </div>

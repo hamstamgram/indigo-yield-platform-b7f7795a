@@ -21,6 +21,7 @@ import {
 import { Undo2, Loader2, Info, ChevronDown, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { formatAssetValue } from "@/utils/formatters";
+import { toNum } from "@/utils/numeric";
 import type { Withdrawal } from "@/types/domains";
 import type { WithdrawalSelectionSummary } from "../hooks/useWithdrawalSelection";
 
@@ -35,7 +36,7 @@ interface BulkRestoreWithdrawalsDialogProps {
 
 function formatAmountBreakdown(amountsByAsset: Record<string, string>): string {
   return Object.entries(amountsByAsset)
-    .map(([asset, amount]) => `${formatAssetValue(parseFloat(amount), asset)} ${asset}`)
+    .map(([asset, amount]) => `${formatAssetValue(toNum(amount), asset)} ${asset}`)
     .join(" + ");
 }
 
