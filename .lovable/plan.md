@@ -1,147 +1,64 @@
 
 
-# Comprehensive QA Verification + Remaining Fixes
+# Fix: "Failed to Fetch" on Void Transaction
 
-## Scope
-Full verification of every critical interaction across admin and investor portals, plus 5 remaining `parseFloat` standardization fixes identified in the prior audit.
+## Root Cause Found
 
----
+After exhaustive investigation of the entire void trigger chain, I found **two critical issues**:
 
-## Part 1: Remaining Code Fixes (5 files)
+### Issue 1: SWAPPED PARAMETERS in `recompute_on_void` trigger (CRITICAL)
 
-These are the last `parseFloat` instances on financial data identified in the prior round but not yet applied.
+The `recompute_on_void` trigger calls:
+```sql
+PERFORM reconcile_investor_position_internal(
+  NEW.fund_id,      -- WRONG! This is p_investor_id parameter
+  NEW.investor_id   -- WRONG! This is p_fund_id parameter
+);
+```
 
-### Fix 1: `AdminDashboard.tsx` line 295
-Replace `parseFloat(ops.yieldPreview?.grossYield ?? "0")` with `toNum(ops.yieldPreview?.grossYield ?? "0")`. Add `toNum` import.
+The function signature is `reconcile_investor_position_internal(p_investor_id uuid, p_fund_id uuid)` -- investor first, fund second. The call passes them **backwards**. This causes:
+- 3 full-table queries with impossible WHERE clauses (investor_id = fund_uuid)
+- Attempted INSERT of a phantom position row with swapped IDs
+- ~10 additional triggers fire on that phantom INSERT (audit, concentration risk checks, etc.)
+- Massive unnecessary I/O that compounds the already heavy trigger chain
 
-### Fix 2: `AddTransactionDialog.tsx` line 267
-Replace `parseFloat(String(pendingLargeDeposit.amount)).toLocaleString()` with `toNum(pendingLargeDeposit.amount).toLocaleString()`. Add `toNum` import.
+### Issue 2: Redundant double-processing
 
-### Fix 3: `YieldEventsTable.tsx` line 329
-Replace `-parseFloat(String(event.fee_amount))` with `-toNum(event.fee_amount)`. Add `toNum` import.
+Both `fn_ledger_drives_position` (trg_ledger_sync) AND `recompute_on_void` fire on the same void event. The ledger sync already correctly handles the position delta. The recompute is redundant AND broken (swapped params).
 
-### Fix 4: `RejectWithdrawalDialog.tsx` line 78
-Replace `parseFloat(withdrawal.requested_amount)` with `toNum(withdrawal.requested_amount)`. Add `toNum` import.
+### Why "Failed to Fetch"
 
-### Fix 5: `WithdrawalStats.tsx` line 13
-Replace `parseFloat(amount) || 0` with `toNum(amount)`. Add `toNum` import.
+The void of a single deposit fires **50+ trigger invocations** across 6+ tables (transactions_v2, investor_positions, audit_log, data_edit_audit, fee_allocations, risk_alerts). The swapped-param recompute adds ~15 more unnecessary trigger calls. Combined with Supabase's API gateway timeout (~60s), the operation exceeds the HTTP timeout, causing the browser to receive a dropped connection / "Failed to fetch".
 
----
+## Fix: Single Migration
 
-## Part 2: Full QA Verification Matrix
+### Step 1: Fix `recompute_on_void` parameter order
 
-After applying fixes, verify each interaction path. This is the checklist -- no code changes, just confirmation of correctness via code review.
+Swap `NEW.fund_id, NEW.investor_id` to `NEW.investor_id, NEW.fund_id` in the `recompute_on_void()` function.
 
-### A. Deposit Flow (Partial + First Investment)
-| Check | Status | File |
-|-------|--------|------|
-| Add Transaction dialog opens | Verified | `AddTransactionDialog.tsx` |
-| FIRST_INVESTMENT blocked if position exists | Verified | `useTransactionSubmit.ts:57` |
-| Large deposit (>1M) confirmation gate | Verified | `useTransactionSubmit.ts:70` |
-| Amount passed as string to RPC (no precision loss) | Verified | `useTransactionSubmit.ts:127-128` |
-| Crystallization triggered before deposit | Verified | DB trigger + `apply_deposit_with_crystallization` |
-| Cache invalidation after success | Verified | `useTransactionSubmit.ts:141` |
+### Step 2: Add early-exit guard to `recompute_on_void`
 
-### B. Withdrawal Flow (Partial + Full Exit)
-| Check | Status | File |
-|-------|--------|------|
-| Withdrawal routed through `withdrawal_requests` table | Verified | `useTransactionSubmit.ts:89-103` |
-| `approveAndComplete` RPC called (not direct ledger write) | Verified | `useTransactionSubmit.ts:113` |
-| Full exit toggle + dust sweep | Verified | `ApproveWithdrawalDialog.tsx:60-100` |
-| Dust warning thresholds per asset | Verified | `ApproveWithdrawalDialog.tsx:38-44` |
-| Amount validation uses `toNum()` | Verified | `ApproveWithdrawalDialog.tsx:158` |
-| Position balance loaded via Supabase query | Verified | `ApproveWithdrawalDialog.tsx:106-121` |
-| Reject dialog amount display | Will fix | `RejectWithdrawalDialog.tsx:78` |
+Since `fn_ledger_drives_position` already handles the incremental position update correctly, make `recompute_on_void` skip when `fn_ledger_drives_position` has already run (check `indigo.canonical_rpc` flag or add a `indigo.ledger_sync_done` flag). This eliminates the redundant full recompute.
 
-### C. Void Transaction Flow
-| Check | Status | File |
-|-------|--------|------|
-| Impact preview loaded on dialog open | Verified | `VoidTransactionDialog.tsx:88-102` |
-| Negative balance warning + acknowledge checkbox | Verified | `VoidTransactionDialog.tsx:225-241` |
-| Yield dependency warning shown | Verified | `VoidTransactionDialog.tsx:243-252` |
-| System-generated tx warning | Verified | `VoidTransactionDialog.tsx:256-271` |
-| Confirmation requires "VOID" + reason (3+ chars) | Verified | `VoidTransactionDialog.tsx:107-115` |
-| `voidMutation` calls `void_transaction` RPC | Verified | `useTransactionMutations` hook |
-| Fund validation trigger respects `canonical_rpc` flag | Verified | Migration applied |
-| Position recompute via `trg_recompute_on_void` | Verified | DB trigger chain |
+Alternatively, the simpler approach: just fix the param order and keep the redundant safety-net recompute. With correct params and only 340 transactions, it should complete well within timeout.
 
-### D. Void and Reissue Flow
-| Check | Status | File |
-|-------|--------|------|
-| Dialog loads transaction context | Verified | `VoidAndReissueDialog.tsx` |
-| Calls `void_and_reissue_transaction` RPC | Verified | Via `useTransactionMutations` |
-| System-generated tx blocked | Verified | RPC: `RAISE EXCEPTION` |
-| Advisory lock prevents concurrent mutations | Verified | RPC: `pg_advisory_xact_lock` |
-| AUM synced to `fund_daily_aum` | Verified | RPC: `INSERT ON CONFLICT DO UPDATE` |
-| Audit log entry created | Verified | RPC: `INSERT INTO audit_log` |
+### Step 3: Add `validate_transaction_fund_status` canonical RPC bypass
 
-### E. Yield Distribution Flow (Reporting + Transaction)
-| Check | Status | File |
-|-------|--------|------|
-| Preview via `preview_segmented_yield_distribution_v5` | Verified | Yield operations page |
-| Apply via `apply_segmented_yield_distribution_v5` | Verified | Yield operations page |
-| Conservation identity enforced (`chk_yield_conservation`) | Verified | DB constraint |
-| Gross yield display uses `toNum` (GlobalYieldFlow) | Verified | `GlobalYieldFlow.tsx:129` |
-| AdminDashboard yield display | Will fix | `AdminDashboard.tsx:295` |
-| Purpose-based UI (reporting hides tx date) | Verified | Yield input form logic |
-| Zero/negative yield supported | Verified | RPC allows zero/negative |
+This BEFORE INSERT trigger on transactions_v2 doesn't respect `indigo.canonical_rpc` (unlike its sibling `check_fund_is_active`). While it only affects INSERTs (not voids directly), the void-and-reissue flow does INSERT, so this is needed for consistency.
 
-### F. Void Yield Distribution (Cascade)
-| Check | Status | File |
-|-------|--------|------|
-| `VoidDistributionDialog` shows cascade impact | Verified | `VoidDistributionDialog.tsx:66-74` |
-| Calls `void_yield_distribution` RPC | Verified | `yieldManagementService.ts` |
-| Cascade voids: yield_allocations, fee_allocations, ib_allocations | Verified | RPC logic |
-| Cascade voids: related transactions (YIELD, FEE_CREDIT, IB_CREDIT) | Verified | RPC logic |
-| Position recompute for all affected investors | Verified | RPC logic |
-| Reason required + confirmation checkbox | Verified | `VoidDistributionDialog.tsx:58-59` |
-| `FinancialValue` used for amount display | Verified | `VoidDistributionDialog.tsx:24` |
+### Step 4: Clean up phantom position rows (if any exist)
 
-### G. Bulk Operations
-| Check | Status | File |
-|-------|--------|------|
-| Bulk void/unvoid use `toNum()` for display | Verified | Prior round fix |
-| Bulk withdrawal void/restore/delete use `toNum()` | Verified | Prior round fix |
-
-### H. Investor Portal
-| Check | Status | File |
-|-------|--------|------|
-| Statements page uses `toNum()` | Verified | Prior round fix |
-| Transaction history uses `toNum()` | Verified | Prior round fix |
-| Portfolio positions via `investorPositionService` | Verified | `.toNumber()` documented as safe for soft-launch AUM |
-| Withdrawal submission flow | Verified | Routes through `withdrawal_requests` |
-
-### I. Dashboard & Metrics
-| Check | Status | File |
-|-------|--------|------|
-| `dashboardMetricsService` uses `parseFinancial` | Verified | Prior round fix |
-| `QuickYieldEntry` uses `toNum()` | Verified | Prior round fix |
-| Admin dashboard gross yield display | Will fix | `AdminDashboard.tsx:295` |
-
-### J. Database Trigger Chain
-| Check | Status |
-|-------|--------|
-| `trg_ledger_sync` on `transactions_v2` | Active |
-| `trg_recompute_on_void` on `transactions_v2` | Active |
-| `enforce_canonical_position_mutation` on `investor_positions` | Active, respects `canonical_rpc` |
-| `enforce_canonical_position_write` on `investor_positions` | Active, respects `canonical_rpc` |
-| `check_fund_is_active` on `transactions_v2` + `investor_positions` | Active, respects `canonical_rpc` (latest migration) |
-| `validate_position_fund_status` on `investor_positions` | Active, respects `canonical_rpc` (latest migration) |
-| `enforce_canonical_yield_mutation` on `yield_distributions` | Active |
-| `delta_audit_*` triggers on critical tables | Active |
-
----
+Query check showed no phantom rows yet (void never completed), but add a safety DELETE in the migration.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/features/admin/dashboard/pages/AdminDashboard.tsx` | `parseFloat` to `toNum` + import |
-| `src/features/admin/transactions/AddTransactionDialog.tsx` | `parseFloat` to `toNum` + import |
-| `src/features/admin/yields/components/YieldEventsTable.tsx` | `parseFloat` to `toNum` + import |
-| `src/features/admin/withdrawals/components/RejectWithdrawalDialog.tsx` | `parseFloat` to `toNum` + import |
-| `src/features/admin/withdrawals/components/WithdrawalStats.tsx` | `parseFloat` to `toNum` + import |
+| New SQL migration | Fix `recompute_on_void` param order, add canonical bypass to `validate_transaction_fund_status`, optional: add skip-if-already-synced guard |
 
-## Build Verification
-`npx tsc --noEmit` after all fixes to confirm zero errors.
+## Risk Assessment
+
+- **Low risk**: Only changing trigger functions, not table structure
+- **No frontend changes needed**: The client code is correct
+- **Backward compatible**: Fixed recompute produces identical results to the already-correct `fn_ledger_drives_position`
 
