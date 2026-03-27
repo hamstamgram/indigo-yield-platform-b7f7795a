@@ -364,7 +364,7 @@ export function getTransactionNetAmount(tx: Transaction): string {
   ) {
     return amount;
   }
-  if (type === "WITHDRAWAL" || type === "FEE" || type === "IB_DEBIT") {
+  if (type === "WITHDRAWAL" || type === "FEE" || type === "IB_DEBIT" || type === "IB") {
     // Return negative by prepending minus if not already negative
     return amount.startsWith("-") ? amount : `-${amount}`;
   }
@@ -389,7 +389,7 @@ export function isCredit(type: TransactionType | string): boolean {
  */
 export function isDebit(type: TransactionType | string): boolean {
   const t = typeof type === "string" ? type.toUpperCase() : String(type);
-  return t === "WITHDRAWAL" || t === "FEE" || t === "IB_DEBIT";
+  return t === "WITHDRAWAL" || t === "FEE" || t === "IB_DEBIT" || t === "IB";
 }
 
 // ============================================
