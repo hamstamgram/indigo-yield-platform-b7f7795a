@@ -1442,14 +1442,6 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_error_code"] as const,
     optionalParams: ["p_details"] as const,
   },
-  rebuild_investor_period_balances: {
-    name: "rebuild_investor_period_balances" as const,
-    returnType: "{",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_fund_id", "p_period_end", "p_period_start", "p_purpose"] as const,
-    optionalParams: [] as const,
-  },
   rebuild_position_from_ledger: {
     name: "rebuild_position_from_ledger" as const,
     returnType: "Json;",
@@ -1663,22 +1655,6 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_fund_id", "p_new_baseline"] as const,
     optionalParams: [] as const,
   },
-  update_fund_daily_aum: {
-    name: "update_fund_daily_aum" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_new_total_aum", "p_reason", "p_record_id"] as const,
-    optionalParams: [] as const,
-  },
-  update_fund_daily_aum_with_recalc: {
-    name: "update_fund_daily_aum_with_recalc" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_new_total_aum", "p_reason", "p_record_id"] as const,
-    optionalParams: [] as const,
-  },
   update_investor_aum_percentages: {
     name: "update_investor_aum_percentages" as const,
     returnType: "number;",
@@ -1710,20 +1686,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_withdrawal_id"] as const,
     optionalParams: ["p_notes", "p_reason", "p_requested_amount", "p_withdrawal_type"] as const,
-  },
-  upsert_fund_aum_after_yield: {
-    name: "upsert_fund_aum_after_yield" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [
-      "p_actor_id",
-      "p_aum_date",
-      "p_fund_id",
-      "p_purpose",
-      "p_yield_amount",
-    ] as const,
-    optionalParams: [] as const,
   },
   validate_aum_against_positions: {
     name: "validate_aum_against_positions" as const,
