@@ -38,7 +38,7 @@ async function fetchFundsWithAUM(): Promise<FundAUMData[]> {
     asset: fund.asset,
     fund_class: fund.fund_class,
     status: fund.status,
-    latest_aum: Number(fund.total_aum || 0),
+    latest_aum: toNum(fund.total_aum),
     latest_aum_date: null, // We could derive this if needed, but keeping existing behavior
     investor_count: Number(fund.investor_count || 0),
   }));
