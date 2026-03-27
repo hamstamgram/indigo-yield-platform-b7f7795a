@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Decimal from "decimal.js";
+import { toNum } from "@/utils/numeric";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import {
   Card,
@@ -153,7 +154,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         onChange={(e) =>
                           setEditValues({
                             ...editValues,
-                            shares: parseFloat(e.target.value) || 0,
+                            shares: toNum(e.target.value),
                           })
                         }
                         className="w-24"
@@ -172,7 +173,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         onChange={(e) =>
                           setEditValues({
                             ...editValues,
-                            costBasis: parseFloat(e.target.value) || 0,
+                            costBasis: toNum(e.target.value),
                           })
                         }
                         className="w-28"
@@ -193,7 +194,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         onChange={(e) =>
                           setEditValues({
                             ...editValues,
-                            currentValue: parseFloat(e.target.value) || 0,
+                            currentValue: toNum(e.target.value),
                           })
                         }
                         className="w-28"

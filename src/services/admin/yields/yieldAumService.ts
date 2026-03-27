@@ -6,6 +6,7 @@
 
 import { rpc } from "@/lib/rpc/index";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export type AumPurpose = "reporting" | "transaction";
 
@@ -63,7 +64,7 @@ export const yieldAumService = {
         fundCode: row.fund_code,
         asOfDate: row.as_of_date,
         purpose: row.purpose as AumPurpose,
-        aumValue: Number(row.aum_value || 0),
+        aumValue: parseFinancial(row.aum_value || 0).toNumber(),
         aumSource:
           row.aum_source === "fund_daily_aum" ? "yield_distribution" : (row.aum_source as any),
         aumRecordId: (row as any).aum_record_id || null,

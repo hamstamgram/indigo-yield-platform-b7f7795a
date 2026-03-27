@@ -191,7 +191,7 @@ export async function createDeposit(formData: DepositFormData): Promise<Deposit>
 
   // Send deposit notification (non-blocking)
   depositNotifications
-    .onConfirmed(profileId, txId, Number(String(amount)), assetSymbol, fund?.name)
+    .onConfirmed(profileId, txId, parseFinancial(amount).toNumber(), assetSymbol, fund?.name)
     .catch((err) => logError("depositService.notification", err, { profileId }));
 
   return getDepositById(txId);

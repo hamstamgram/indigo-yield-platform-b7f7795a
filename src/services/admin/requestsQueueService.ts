@@ -43,7 +43,7 @@ export const requestsQueueService = {
       processed_at: now,
     };
     if (params.amount) {
-      updatePayload.approved_amount = Number(parseFinancial(params.amount).toString());
+      updatePayload.approved_amount = parseFinancial(params.amount).toNumber();
       updatePayload.processed_amount = updatePayload.approved_amount;
     }
     if (params.notes) {

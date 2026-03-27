@@ -74,20 +74,11 @@ serve(async (req: Request) => {
 
     const isAdmin = userRoles?.some((r) => r.role === "admin" || r.role === "super_admin");
 
-    // Fallback to profiles.is_admin if no roles found
     if (!isAdmin) {
-      const { data: profile } = await serviceClient
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.is_admin) {
-        return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Parse request

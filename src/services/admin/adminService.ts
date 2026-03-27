@@ -52,14 +52,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .select("requested_amount")
       .eq("status", "pending");
 
-    const pendingWithdrawals =
-      withdrawalRequests?.reduce(
-        (sum, req) => parseFinancial(sum).plus(parseFinancial(req.requested_amount)).toNumber(),
-        0
-      ) || 0;
+    const pendingWithdrawals = withdrawalRequests?.reduce(
+      (sum, req) => sum.plus(parseFinancial(req.requested_amount)),
+      parseFinancial(0)
+    ).toNumber() || 0;
 
-    // TODO: Implement authoritative 24h yield calculation RPC
-    const interest24h = totalAum * 0.0001; // Current placeholder for UI
+    // Sum actual YIELD transactions from the last 24 hours
+    const yesterday = new Date(Date.now() - 86400000).toISOString();
+    const { data: recentYields } = await supabase
+      .from("transactions_v2")
+      .select("amount")
+      .eq("type", "YIELD")
+      .eq("is_voided", false)
+      .gte("created_at", yesterday);
+
+    const interest24h = recentYields?.reduce(
+      (sum, tx) => sum.plus(parseFinancial(tx.amount)),
+      parseFinancial(0)
+    ).toNumber() || 0;
 
     return {
       totalAum,
