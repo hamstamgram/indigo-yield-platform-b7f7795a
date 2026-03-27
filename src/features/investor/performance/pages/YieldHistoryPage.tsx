@@ -304,11 +304,11 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     <span
                       className={cn(
                         "font-mono font-semibold",
-                        fg.totals.net >= 0 ? "text-yield" : "text-rose-400"
+                        fg.totals.net.gte(0) ? "text-yield" : "text-rose-400"
                       )}
                     >
-                      {fg.totals.net >= 0 ? "+" : ""}
-                      {formatInvestorNumber(fg.totals.net)} {fg.fund.asset}
+                      {fg.totals.net.gte(0) ? "+" : ""}
+                      {formatInvestorNumber(fg.totals.net.toNumber())} {fg.fund.asset}
                     </span>
                   </div>
                 ))}
