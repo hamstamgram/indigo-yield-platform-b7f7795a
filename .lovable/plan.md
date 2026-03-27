@@ -1,79 +1,139 @@
 
 
-# Full Precision Audit: Remaining Issues
+# Platform Certification & Parity Report
 
-## Already Fixed (Previous Rounds)
-- DistributeYieldDialog: `grossYield` now receives raw string (comma truncation fix)
-- YieldPreviewResults: `trueTotalGross` uses Decimal accumulator
-- AdminStatementGenerator: summary totals use Decimal accumulator (lines 90-91)
-- YieldInputForm: uses `toNum()` instead of `parseFloat()`
-- MonthlyReportsTable: uses Decimal for save
-- ExpertPositionsTable: uses `parseFloat()` for edit inputs
-
-## Still Broken -- Precision Loss Affecting Excel Parity
-
-### P1: DistributeYieldDialog Ending Balance (line 257)
-`toNum(asOfAum || 0) + toNum(grossYield)` -- JS `+` on two floats. For large AUM (e.g., 109538.51 + 5803.10) this is safe at current scale, but violates the Decimal-everywhere standard. Should use `new Decimal(asOfAum || 0).plus(new Decimal(grossYield)).toNumber()` for the `formatValue()` call.
-
-### P2: YieldHistoryPage accumulation loop (lines 276-284)
-Each iteration converts back to `number` via `.toNumber()` then re-wraps in `parseFinancial()` next iteration. This defeats Decimal precision. The `fg.totals` object stores numbers, so every add cycle goes Decimal -> Number -> Decimal -> Number.
-**Fix**: Store `fg.totals` as Decimal objects, only `.toNumber()` at render time.
-
-### P3: AdminStatementGenerator position rows (lines 97-102)
-While the summary uses Decimal, individual position rows still use `Number(r.mtd_beginning_balance || 0)` etc. (6 fields). These feed into PDF generation.
-**Fix**: Use `parseFinancial(...).toNumber()` for safe handling of numeric(38,18) strings.
-
-### P4: FundPositionCard edit handler (line 91)
-`parseFloat(value) || 0` feeds into edit state and then mutation. The Decimal auto-calc on lines 96-101 operates on these floats.
-**Fix**: Use `toNum(value)` (which handles edge cases better) or keep string and parse with Decimal.
-
-### P5: FeeRevenueKPIs accumulation (line 26)
-`(map.get(fee.asset) || 0) + toNumber(fee.amount)` -- JS float accumulation across many fees.
-**Fix**: Use Decimal accumulator, `.toNumber()` only for display.
-
-### P6: investorPositionService `mapPositionToExpert` (lines 112-117)
-`parseFinancial(...).toNumber()` for `shares`, `cost_basis`, `current_value`, `total_earnings`. The comment on line 118-120 acknowledges this is acceptable at soft-launch scale but should migrate to strings. The `ExpertPosition` type uses `number`, so this requires a type change too.
-**Status**: Documented tech debt, not blocking Excel parity since these are display values already rounded by DB.
-
-### P7: CSV Export (csv-export.ts lines 215-297)
-All `parseFloat(v).toFixed(4)` formatters. For CSV export this is acceptable (4dp output), but could silently truncate if values have >15 significant digits.
-**Status**: Low risk at current scale.
-
-### P8: withdrawalService (lines 448, 627)
-`Number(params.amount)` -- amount goes into DB insert. Should use string or parseFinancial.
-**Fix**: Pass `params.amount` as string directly (DB column is numeric, accepts strings).
+## Methodology
+Traced financial values from PostgreSQL `NUMERIC(38,18)` columns through Supabase RPCs, React Query cache, service layer, and into UI rendering. Cross-referenced against the architecture's Decimal.js standard and the 18-decimal precision requirement.
 
 ---
 
-## Implementation Plan (6 files, ordered by impact)
+## VECTOR 1: Precision Leaks & Parity Discrepancies
 
-### File 1: `DistributeYieldDialog.tsx` (line 257)
-Replace `toNum(asOfAum || 0) + toNum(grossYield)` with Decimal addition:
-```ts
-new Decimal(asOfAum || 0).plus(new Decimal(grossYield || 0)).toNumber()
-```
+### P1-01: `toFinancialString()` truncates to 10dp -- database is 18dp
 
-### File 2: `YieldHistoryPage.tsx` (lines 265-284)
-Change `fg.totals` from `{ gross: number, fees: number, net: number }` to `{ gross: Decimal, fees: Decimal, net: Decimal }`. Accumulate with `.plus()`. Only `.toNumber()` at the render call sites.
+**File:** `src/utils/financial.ts`, line 393
+**Issue:** `toFinancialString()` calls `.toFixed(10)` but database columns are `NUMERIC(38,18)`. Any value round-tripped through this function loses 8 decimal places. Comment on line 390 still says "matching NUMERIC(28,10)" -- the schema was upgraded to 38,18 but this function was never updated.
+**Blast Radius:** `yieldMath.ts` uses `toFinancialString()` for `grossYield` and `calculateEndingBalance` results. Any UI component consuming these functions gets values truncated at 10dp.
+**Fix:** Change line 393 to `.toFixed(18)` and update the comment to reference `NUMERIC(38,18)`.
 
-### File 3: `AdminStatementGenerator.tsx` (lines 97-102)
-Replace 6 `Number(r.field)` calls with `parseFinancial(r.field).toNumber()`.
+### P1-02: PDF Statement Generator uses `Number()` for all financial values
 
-### File 4: `FundPositionCard.tsx` (line 91)
-Replace `parseFloat(value) || 0` with `toNum(value)` in edit handler.
+**File:** `src/services/shared/profileService.ts`, lines 272-276
+**Issue:** `getStatementPositionData()` converts all performance fields via `Number(record.mtd_beginning_balance || 0)`. These values feed into `src/lib/pdf/statementGenerator.ts` which then calls `.toFixed(4)` (lines 489-493). Two precision loss points: (1) `Number()` on 18dp strings, (2) `.toFixed(4)` truncates to 4dp regardless of asset type (BTC needs 8dp).
+**Blast Radius:** All investor PDF statements show values truncated to 4 decimal places. BTC investors with sub-satoshi balances see incorrect statements.
+**Fix:**
+- `profileService.ts` lines 272-276: Replace `Number(...)` with `parseFinancial(...).toNumber()` (safe parse with Decimal).
+- `statementGenerator.ts` lines 489-493: Use asset-aware decimal places from `ASSET_CONFIGS` instead of hardcoded `.toFixed(4)`.
 
-### File 5: `FeeRevenueKPIs.tsx` (lines 23-31)
-Replace JS float accumulation with Decimal:
-```ts
-const map = new Map<string, Decimal>();
-for (const fee of fees) {
-  const prev = map.get(fee.asset) || new Decimal(0);
-  map.set(fee.asset, prev.plus(new Decimal(fee.amount || 0)));
-}
-```
+### P1-03: Crystallization Service accumulates via Decimal-to-Number loop
 
-### File 6: `withdrawalService.ts` (lines 448, 627)
-Replace `Number(params.amount)` with `parseFinancial(params.amount).toNumber()` or pass string directly.
+**File:** `src/services/admin/yields/yieldCrystallizationService.ts`, lines 183-194
+**Issue:** Each iteration converts to `.toNumber()`, stores as `number` in the map, then re-parses with `parseFinancial()` next iteration. This Decimal -> Number -> Decimal -> Number loop compounds IEEE 754 errors across many crystallization events per investor.
+**Blast Radius:** Crystallization totals shown in admin UI drift from database truth.
+**Fix:** Store `total_gross_yield`, `total_fees`, `total_net_yield` as `Decimal` objects in the Map. Only `.toNumber()` at final return.
 
-**Total: 6 files, ~20 line changes, 0 SQL migrations**
+### P1-04: Decimal.js precision set to 20, should be 40+
+
+**File:** `src/utils/financial.ts`, line 20
+**Issue:** `Decimal.set({ precision: 20 })` provides 20 significant digits. `NUMERIC(38,18)` can represent values with up to 38 significant digits. A value like `12345678901234567890.123456789012345678` (38 digits) would be silently truncated by Decimal.js to 20 significant digits.
+**Blast Radius:** At current AUM scale (sub-$1M) this is harmless. At scale with 20+ digit values, precision loss occurs.
+**Fix:** Change `precision: 20` to `precision: 40` to exceed the 38-digit database maximum.
+
+---
+
+## VECTOR 2: Cache & UI State Vulnerabilities
+
+### P2-01: YieldDistributionsPage void/restore handlers missing full cache invalidation
+
+**File:** `src/features/admin/yields/pages/YieldDistributionsPage.tsx`
+**Lines:** 354, 375, 414, 445, 493
+**Issue:** All five mutation success handlers only invalidate `QUERY_KEYS.yieldDistributions()`. They do NOT call `invalidateAfterYieldOp()`, which also clears positions, transactions, AUM, fee allocations, IB allocations, ledger reconciliation, and per-asset stats.
+**Blast Radius:** After voiding a yield distribution from this page, all position cards, AUM dashboards, and transaction tables show stale pre-void data until manual refresh.
+**Fix:** Replace each `queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() })` with `await invalidateAfterYieldOp(queryClient)`.
+
+### P2-02: VoidYieldDialog fetches stale impact preview from deprecated function
+
+**File:** `src/features/admin/yields/components/VoidYieldDialog.tsx`, line 68
+**Issue:** Calls `getYieldVoidImpact(record.id)` which is explicitly `@deprecated` and returns `{ success: false }` (line 263-264 of yieldManagementService.ts). The impact preview always shows empty/broken data.
+**Blast Radius:** Admin sees no meaningful impact preview before voiding a yield record. Decision made blind.
+**Fix:** Either (a) remove the impact preview section entirely since the void flow works through `void_yield_distribution` RPC, or (b) implement a real preview using `get_void_transaction_impact` RPC logic.
+
+---
+
+## VECTOR 3: Trigger & Concurrency Analysis
+
+### P3-01: Confirmed -- YieldDistributionsPage void handlers are the primary concurrency UI gap
+
+The database-level advisory locks in `void_yield_distribution` and `approve_and_complete_withdrawal` are correctly scoped (confirmed in prior audit). The primary risk is the UI cache desync from P2-01 above, where an admin acts on stale position data after another admin's void completes.
+
+### P3-02: Temporal boundary -- T-1 AUM snapshot uses live positions
+
+Confirmed from prior audit (V2-01). `apply_segmented_yield_distribution_v5` reads live `investor_positions.current_value`. The advisory lock serializes concurrent mutations within the same fund, so once locked, positions are stable. The gap is between preview (unlocked) and apply (locked). No new findings beyond prior audit.
+
+---
+
+## VECTOR 4: Dead Code Inventory
+
+### Functions that throw on call (deprecated no-ops)
+
+| File | Function | Line | Status |
+|---|---|---|---|
+| `src/services/admin/yields/yieldManagementService.ts` | `voidYieldRecord()` | 93 | Throws "deprecated" |
+| `src/services/admin/yields/yieldManagementService.ts` | `updateYieldAum()` | 165 | Throws "deprecated" |
+| `src/services/admin/yields/yieldManagementService.ts` | `getYieldVoidImpact()` | 263 | Returns `{ success: false }` |
+| `src/services/admin/recordedYieldsService.ts` | `updateYieldRecord()` | 164 | Throws "deprecated" |
+| `src/services/admin/recordedYieldsService.ts` | `getYieldEditHistory()` | 177 | Returns `[]` |
+| `src/services/admin/transactionDetailsService.ts` | `checkAumExists()` | 181 | Returns `{ exists: true }` always |
+
+### Hooks consuming dead functions
+
+| File | Hook | Consumes |
+|---|---|---|
+| `src/hooks/data/shared/useYieldData.ts` | `useUpdateYieldRecord()` | `updateYieldRecord` (throws) |
+| `src/hooks/data/shared/useYieldData.ts` | `useVoidYieldRecord()` | `voidYieldRecord` (throws) |
+| `src/features/admin/yields/hooks/useRecordedYieldsPage.ts` | `useVoidYieldRecord()` | `voidYieldRecord` (throws) |
+| `src/features/admin/yields/hooks/useRecordedYieldsPage.ts` | `useUpdateYieldAum()` | `updateYieldAum` (throws) |
+
+### Re-export chains keeping dead code alive
+
+| File | Exports |
+|---|---|
+| `src/services/admin/yields/index.ts` | `voidYieldRecord`, `updateYieldAum`, `getYieldVoidImpact` |
+| `src/services/admin/index.ts` | `updateYieldRecord`, `getYieldEditHistory` |
+| `src/hooks/data/admin/exports/yields.ts` | `useVoidYieldMutation`, `useUpdateYieldAum` |
+
+### Action required
+Delete the 6 deprecated functions, 4 hooks, and clean up the 3 re-export files. The live void flow uses `voidYieldDistribution()` (not `voidYieldRecord()`).
+
+---
+
+## VECTOR 5: Architectural Enhancements
+
+### E-01: Enforce `invalidateAfterYieldOp` at the service layer
+
+Instead of relying on each page to remember correct invalidation, move cache invalidation into `voidYieldDistribution()` itself by accepting an optional `queryClient` parameter, or create a wrapper mutation hook (`useVoidYieldDistributionMutation`) that all pages import.
+
+### E-02: Asset-aware PDF formatter
+
+Create a `formatForPdf(value: string, assetCode: string)` helper that reads `ASSET_CONFIGS` decimal places and formats using `parseFinancial`. Replace all `.toFixed(4)` in statementGenerator.ts.
+
+### E-03: Automated precision regression test
+
+Add a unit test that verifies no `Number()` or `parseFloat()` calls exist in the financial data pipeline files (services, hooks, statement generators) using AST scanning or grep-based CI checks.
+
+---
+
+## Summary Matrix
+
+| ID | Severity | Vector | Issue | Files |
+|----|----------|--------|-------|-------|
+| P1-01 | **P1** | Precision | `toFinancialString` truncates to 10dp vs 18dp DB | `financial.ts` |
+| P1-02 | **P1** | Precision | PDF statements use `Number()` + `.toFixed(4)` | `profileService.ts`, `statementGenerator.ts` |
+| P1-03 | **P1** | Precision | Crystallization service Decimal-Number-Decimal loop | `yieldCrystallizationService.ts` |
+| P1-04 | **P2** | Precision | Decimal.js precision=20 vs 38-digit DB max | `financial.ts` |
+| P2-01 | **P1** | Cache | 5 yield void/restore handlers missing full invalidation | `YieldDistributionsPage.tsx` |
+| P2-02 | **P2** | Cache | VoidYieldDialog uses deprecated impact preview | `VoidYieldDialog.tsx` |
+| Dead | **P2** | Dead Code | 6 deprecated functions, 4 dead hooks, 3 stale re-exports | 9 files |
+
+**Critical Path:** P1-01 (toFinancialString 10dp truncation) and P2-01 (missing cache invalidation on yield voids) are the highest-impact items requiring immediate patching.
 
