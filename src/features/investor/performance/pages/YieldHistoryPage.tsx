@@ -408,11 +408,12 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     {fg.transactionEvents.length > 0 &&
                       (() => {
                         // Aggregate the transaction events
-                        const aggNet = fg.transactionEvents.reduce(
+                        const aggNetDec = fg.transactionEvents.reduce(
                           (sum: Decimal, e: InvestorYieldEvent) =>
                             sum.plus(parseFinancial(e.net_yield_amount)),
                           new Decimal(0)
                         );
+                        const aggNet = aggNetDec.toNumber();
                         const lastDate = fg.transactionEvents
                           .map((e) => new Date(e.event_date))
                           .sort((a, b) => b.getTime() - a.getTime())[0];
