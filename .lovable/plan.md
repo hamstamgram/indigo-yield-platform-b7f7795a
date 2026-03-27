@@ -1,79 +1,123 @@
 
 
-# Diagnostic Results & Remediation Plan
+# Diagnostic Results and Remediation Plan
 
-## Findings
+## Current State (Live DB Verification)
 
-### Issue 1: AUM Desync -- CONFIRMED
+### BTC Fund AUM: HEALED
+- `fund_daily_aum` snapshot: **10.38 BTC**
+- Live positions sum: **10.38 BTC** (exact match)
+- `check_aum_reconciliation`: `has_warning: false`, discrepancy 0
+- The previous migration successfully healed the BTC snapshots
 
-The BTC fund (`IND-BTC`) has a clear drift:
-- **Snapshot AUM** (fund_daily_aum, latest): `20.38 BTC`
-- **Live Positions Sum**: `10.38 BTC`
-- **Exact Drift**: `10.00 BTC`
+### ETH Fund AUM: STALE SNAPSHOTS (not yet healed)
+- Latest `fund_daily_aum` snapshot: **486.82 ETH** (from July 2025)
+- Live positions sum: **308.45 ETH**
+- Drift: **178.37 ETH** -- but `check_aum_reconciliation` still returns `has_warning: false` because the RPC compares positions vs ledger (not vs snapshot)
+- No new snapshots have been written since July 2025
 
-This 10 BTC delta means a voided transaction's position was correctly subtracted from `investor_positions` (via `trg_ledger_sync` + `trg_recompute_on_void`), but the `fund_daily_aum` snapshot was never refreshed. This confirms the bug we fixed in the last migration -- the old `void_transaction` called `recalculate_fund_aum_for_date` with 4 args instead of 2.
+### USDT Fund AUM: MASSIVELY STALE
+- Latest snapshot: **10.00 USDT**
+- Live positions sum: **994,196.90 USDT**
 
-The fix we deployed is correct going forward, but the **existing stale snapshots from past voids need to be healed now**.
-
-### Issue 2: Void Blocker -- NOT REPRODUCED
-
-The audit log shows **5 successful voids** in the last hour, all with `success=true`. No errors in `admin_alerts`. The void cascade is working correctly after our migration fix.
-
-If the UI still appears to "block" the void, it is likely the `check_aum_reconciliation` RPC call in the yield dialog throwing a type mismatch error (the service passes `p_as_of_date` as a `string`, but the DB function expects `date`). This would make the reconciliation widget silently fail, leaving stale "discrepancy" warnings visible and potentially blocking the yield confirm button (which requires `acknowledgeDiscrepancy` when `has_warning` is true).
-
-### Issue 3: Reconciliation RPC Type Mismatch
-
-The `check_aum_reconciliation` DB function signature is:
-```
-(p_fund_id uuid, p_tolerance_pct numeric DEFAULT 0.01, p_as_of_date date DEFAULT CURRENT_DATE)
-```
-
-But `aumReconciliationService.ts` passes `p_as_of_date` as a **string** (ISO date format). While Supabase usually casts this, the RPC wrapper may not handle it consistently, causing intermittent failures.
+### Void Blocker: NOT REPRODUCED
+- 5 successful voids logged in last hour, all `success: true`
+- Zero entries in `admin_alerts`
+- The void cascade is working after the 2-arg fix migration
 
 ---
 
-## Remediation Plan
+## Root Causes Found
 
-### Step 1: Heal existing AUM snapshots (migration)
+### Bug 1: `complete_withdrawal` dust reference pattern vs `void_transaction` cascade pattern MISMATCH (Critical)
 
-Run `recalculate_fund_aum_for_date` for BTC fund dates that have stale snapshots. This is a one-time data heal to sync `fund_daily_aum` with the current `investor_positions` reality.
+The `complete_withdrawal` RPC creates dust transactions with:
+- `reference_id = 'DUST_SWEEP_OUT:{request_id}'` (type `DUST_SWEEP`)
+- `reference_id = 'DUST_RECV:{request_id}'` (type `DUST`)
 
-```sql
--- Recalculate AUM for the dates that are stale
-SELECT recalculate_fund_aum_for_date(
-  '0a048d9b-c4cf-46eb-b428-59e10307df93'::uuid,
-  d.aum_date
-)
-FROM fund_daily_aum d
-WHERE d.fund_id = '0a048d9b-c4cf-46eb-b428-59e10307df93'
-  AND d.is_voided = false
-  AND d.aum_date >= '2026-03-01';
-```
+But `void_transaction` cascade looks for:
+- `reference_id LIKE 'dust-sweep-%'` (type `DUST_SWEEP` only)
+- `reference_id LIKE 'dust-credit-%'`
 
-### Step 2: Fix `aumReconciliationService.ts` type cast
+These patterns are **completely different**. Server-side dust from `complete_withdrawal` will NEVER be cascade-voided. Additionally, `void_transaction` only matches `type = 'DUST_SWEEP'` but the credit side uses `type = 'DUST'`.
 
-Ensure `p_as_of_date` is cast to `date` type explicitly, or remove the parameter entirely to use the DB default (`CURRENT_DATE`). This prevents silent failures in the reconciliation check.
+**Impact**: Voiding a withdrawal that had a full-exit dust sweep leaves orphaned dust transactions, creating position drift.
 
-### Step 3: Verify post-fix
+### Bug 2: Stale `fund_daily_aum` snapshots across ALL funds (not just BTC)
 
-After the heal, confirm:
-- `fund_daily_aum` latest for BTC = live positions sum (10.38)
-- `useAUMReconciliation` returns `has_warning: false`
-- Void action works from UI with detailed error surfacing (from our previous fix)
+The BTC heal migration only targeted the BTC fund. ETH, USDT, XRP all have stale or missing snapshots. This is cosmetic (the reconciliation RPC correctly compares ledger vs positions, not snapshots) but creates confusion if any UI component reads `fund_daily_aum` directly.
+
+### Non-Issue: UI mismatch display
+
+The `check_aum_reconciliation` RPC currently returns `has_warning: false` for both BTC and ETH. The `YieldInputForm` and `DistributeYieldDialog` only show discrepancy warnings when `reconciliation?.has_warning === true`. So the UI should NOT currently be blocking. If the user still sees it, it is a stale React Query cache issue that clears on page refresh.
+
+---
+
+## Remediation Steps
+
+### Step 1: Fix `void_transaction` dust cascade to match BOTH patterns
+
+Update the dust sweep cascade in `void_transaction` to match:
+- Frontend pattern: `dust-sweep-%`, `dust-credit-%` (type `DUST_SWEEP`)
+- Backend pattern: `DUST_SWEEP_OUT:%`, `DUST_RECV:%` (types `DUST_SWEEP` and `DUST`)
+
+This ensures dust from both `complete_withdrawal` (server-side) and `useTransactionSubmit` (client-side) code paths are properly cascade-voided.
+
+### Step 2: Heal ALL fund AUM snapshots (not just BTC)
+
+Run `recalculate_fund_aum_for_date` across all active funds for all non-voided snapshot dates, similar to the BTC heal but for ETH, USDT, XRP, SOL.
+
+### Step 3: Harden `useFundAUM.ts` precision
+
+Line 40 uses `Number(fund.total_aum || 0)` which loses precision beyond 15 significant digits. For USDT at 994,196.9 this is fine, but it violates the platform standard. Change to preserve string precision or use `toNum()`.
 
 ---
 
 ## Technical Details
 
 **Files to modify:**
-- `src/features/admin/funds/services/aumReconciliationService.ts` -- explicit date cast
-- One-time SQL heal via migration tool (not a schema migration, a data fix)
+- `supabase/migrations/` -- new migration with fixed `void_transaction` and data heal
+- `src/hooks/data/shared/useFundAUM.ts` -- line 40 precision fix
 
-**Root cause chain:**
-1. Old `void_transaction` called `recalculate_fund_aum_for_date(fund_id, date, purpose, admin_id)` -- 4 args
-2. Function only accepts 2 args -- call silently failed in EXCEPTION handler
-3. Position updated correctly, but AUM snapshot stayed stale
-4. UI reads stale snapshot, shows "discrepancy", blocks yield confirm
+**`void_transaction` dust cascade fix (SQL):**
+```sql
+-- Replace the existing DUST_SWEEP cascade block with:
+IF v_tx.type = 'WITHDRAWAL' THEN
+  -- Cascade: dust from BOTH frontend (dust-sweep-%) and backend (DUST_SWEEP_OUT:%) patterns
+  UPDATE public.transactions_v2
+  SET is_voided = true, voided_at = now(), voided_by = p_admin_id,
+      voided_by_profile_id = p_admin_id,
+      void_reason = 'Cascade void: dust for withdrawal ' || p_transaction_id::text
+  WHERE type IN ('DUST_SWEEP', 'DUST')
+    AND fund_id = v_tx.fund_id
+    AND tx_date = v_tx.tx_date
+    AND is_voided = false
+    AND (
+      -- Frontend pattern (useTransactionSubmit)
+      reference_id LIKE 'dust-sweep-%' OR reference_id LIKE 'dust-credit-%'
+      -- Backend pattern (complete_withdrawal)
+      OR reference_id LIKE 'DUST_SWEEP_OUT:%' OR reference_id LIKE 'DUST_RECV:%'
+    )
+    AND (investor_id = v_tx.investor_id
+      OR reference_id LIKE 'dust-credit-%'
+      OR reference_id LIKE 'DUST_RECV:%');
+END IF;
+```
 
-**Risk:** Zero. The `recalculate_fund_aum_for_date` function simply sums active positions and upserts into `fund_daily_aum`. It is idempotent.
+**Data heal (SQL):**
+```sql
+DO $$ DECLARE v_row RECORD; BEGIN
+  FOR v_row IN
+    SELECT DISTINCT f.id as fund_id, d.aum_date
+    FROM funds f
+    JOIN fund_daily_aum d ON d.fund_id = f.id AND d.is_voided = false
+    WHERE f.status = 'active'
+    ORDER BY d.aum_date
+  LOOP
+    PERFORM recalculate_fund_aum_for_date(v_row.fund_id, v_row.aum_date);
+  END LOOP;
+END; $$;
+```
+
+**Risk**: Zero. Both changes are idempotent. The void cascade fix only broadens the pattern match. The data heal simply recomputes from positions.
 
