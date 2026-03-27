@@ -86,16 +86,7 @@ export interface YieldDetails {
   updated_by_name?: string;
 }
 
-/**
- * Void a yield record by AUM record ID
- * @deprecated fund_daily_aum table was dropped — this is now a no-op.
- */
-export async function voidYieldRecord(
-  _recordId: string,
-  _reason: string
-): Promise<VoidYieldResult> {
-  throw new Error("voidYieldRecord is deprecated — use void_yield_distribution RPC instead");
-}
+// voidYieldRecord: REMOVED (deprecated -- use void_yield_distribution RPC)
 
 /**
  * Void a yield distribution by distribution ID (cascade void with audit trail)
@@ -145,30 +136,9 @@ export async function voidYieldDistribution(
   };
 }
 
-/**
- * Unvoid a yield distribution (cascade restore with audit trail)
- */
-export async function unvoidYieldDistribution(
-  distributionId: string,
-  reason: string
-): Promise<{ success: boolean; unvoided_transactions?: number; error?: string }> {
-  throw new Error("unvoid_yield_distribution RPC has been removed.");
-}
+// unvoidYieldDistribution: REMOVED (RPC was removed)
 
-/**
- * Update a yield record's AUM with audit trail
- */
-/**
- * Update a yield record's AUM with full cascade recalculation
- * @deprecated fund_daily_aum table was dropped — this is now a no-op.
- */
-export async function updateYieldAum(
-  _recordId: string,
-  _newTotalAum: number,
-  _reason: string
-): Promise<UpdateYieldResult> {
-  return { success: false } as any;
-}
+// updateYieldAum: REMOVED (deprecated -- fund_daily_aum table was dropped)
 
 /**
  * Get detailed information about a yield record
