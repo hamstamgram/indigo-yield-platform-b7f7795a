@@ -88,7 +88,7 @@ export function FundPositionCard({
   };
 
   const handleFieldChange = (field: keyof typeof editData, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    const numValue = new Decimal(value || 0).toNumber();
     setEditData((prev) => {
       const updated = { ...prev, [field]: numValue };
       // Auto-calculate net income using Decimal to avoid float drift
