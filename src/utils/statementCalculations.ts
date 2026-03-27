@@ -222,6 +222,9 @@ export async function computeStatement(
       rate_of_return_itd: 0,
     };
 
+    // Decimal accumulators per asset -- avoids .toNumber() round-trips mid-pipeline
+    const decAccum: Record<string, { begin: Decimal; deposits: Decimal; withdrawals: Decimal; interest: Decimal; fees: Decimal }> = {};
+
     // Process transactions (using deduplicated list)
     deduped.forEach((transaction) => {
       const assetCode = transaction.asset;
