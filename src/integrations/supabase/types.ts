@@ -3926,17 +3926,6 @@ export type Database = {
       }
     }
     Views: {
-      fund_aum_events: {
-        Row: {
-          closing_aum: number | null
-          event_date: string | null
-          fund_id: string | null
-          id: string | null
-          is_voided: boolean | null
-          trigger_type: string | null
-        }
-        Relationships: []
-      }
       ib_allocation_consistency: {
         Row: {
           allocated_ib_id: string | null
@@ -6444,7 +6433,6 @@ export type Database = {
         Args: { p_context?: string; p_fund_id?: string; p_yield_pct: number }
         Returns: boolean
       }
-      verify_aum_purpose_usage: { Args: never; Returns: undefined }
       verify_yield_distribution_balance: {
         Args: { p_date: string; p_fund_id: string; p_purpose?: string }
         Returns: {
