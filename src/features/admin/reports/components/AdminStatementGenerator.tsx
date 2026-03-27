@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Decimal from "decimal.js";
+import { parseFinancial } from "@/utils/formatting/parseFinancial";
 import {
   Button,
   Card,

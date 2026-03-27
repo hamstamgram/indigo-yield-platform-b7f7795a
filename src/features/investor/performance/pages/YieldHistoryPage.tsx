@@ -247,7 +247,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
         fund: { id: string; name: string; asset: string };
         monthEndEvent: InvestorYieldEvent | null;
         transactionEvents: InvestorYieldEvent[];
-        totals: { gross: number; fees: number; net: number };
+        totals: { gross: Decimal; fees: Decimal; net: Decimal };
       }
     >();
 
