@@ -219,9 +219,9 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     investor_id: row.investor_id,
     investor_name: row.investor_name,
     investor_email: row.investor_email,
-    current_value: Number(row.current_value),
-    ownership_pct: Number(row.ownership_pct),
-    mtd_yield: Number(row.mtd_yield),
+    current_value: parseFinancial(row.current_value).toNumber(),
+    ownership_pct: parseFinancial(row.ownership_pct).toNumber(),
+    mtd_yield: parseFinancial(row.mtd_yield).toNumber(),
   }));
 }
 

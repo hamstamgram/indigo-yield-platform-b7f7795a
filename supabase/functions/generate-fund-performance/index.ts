@@ -9,7 +9,7 @@ import {
 } from "../_shared/monthly-report-template-v2.ts";
 
 // Configure Decimal.js for financial precision
-Decimal.set({ precision: 28, rounding: Decimal.ROUND_HALF_UP });
+Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
 interface RequestBody {
   periodYear: number;

@@ -5,6 +5,7 @@
 
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export interface ExportColumn {
   key: string;
@@ -212,13 +213,13 @@ export class CSVExporter {
       columns: [
         { key: "asset", label: "Asset" },
         { key: "symbol", label: "Symbol" },
-        { key: "quantity", label: "Quantity", format: (v) => parseFloat(v).toFixed(4) },
-        { key: "price", label: "Price (per unit)", format: (v) => parseFloat(v).toFixed(6) },
-        { key: "value", label: "Value", format: (v) => parseFloat(v).toFixed(2) },
+        { key: "quantity", label: "Quantity", format: (v) => parseFinancial(v).toNumber().toFixed(4) },
+        { key: "price", label: "Price (per unit)", format: (v) => parseFinancial(v).toNumber().toFixed(6) },
+        { key: "value", label: "Value", format: (v) => parseFinancial(v).toNumber().toFixed(2) },
         {
           key: "percentOfPortfolio",
           label: "% of Portfolio",
-          format: (v) => `${parseFloat(v).toFixed(2)}%`,
+          format: (v) => `${parseFinancial(v).toNumber().toFixed(2)}%`,
         },
         { key: "lastUpdated", label: "Last Updated" },
       ],
@@ -235,11 +236,11 @@ export class CSVExporter {
         { key: "type", label: "Type" },
         { key: "asset_code", label: "Asset" },
         { key: "description", label: "Description" },
-        { key: "amount", label: "Amount", format: (v) => parseFloat(v).toFixed(4) },
+        { key: "amount", label: "Amount", format: (v) => parseFinancial(v).toNumber().toFixed(4) },
         {
           key: "balance",
           label: "Balance",
-          format: (v) => (v ? parseFloat(v).toFixed(4) : ""),
+          format: (v) => (v ? parseFinancial(v).toNumber().toFixed(4) : ""),
         },
         { key: "status", label: "Status" },
         { key: "reference", label: "Reference" },
@@ -274,26 +275,26 @@ export class CSVExporter {
         { key: "investor_name", label: "Investor Name" },
         { key: "fund_code", label: "Fund" },
         { key: "asset_code", label: "Asset" },
-        { key: "total_value", label: "Total Value", format: (v) => parseFloat(v).toFixed(4) },
+        { key: "total_value", label: "Total Value", format: (v) => parseFinancial(v).toNumber().toFixed(4) },
         {
           key: "cash_balance",
           label: "Cash Balance",
-          format: (v) => parseFloat(v).toFixed(4),
+          format: (v) => parseFinancial(v).toNumber().toFixed(4),
         },
         {
           key: "invested_amount",
           label: "Invested Amount",
-          format: (v) => parseFloat(v).toFixed(4),
+          format: (v) => parseFinancial(v).toNumber().toFixed(4),
         },
         {
           key: "unrealized_pnl",
           label: "Unrealized P&L",
-          format: (v) => parseFloat(v).toFixed(4),
+          format: (v) => parseFinancial(v).toNumber().toFixed(4),
         },
         {
           key: "total_return_percent",
           label: "Total Return %",
-          format: (v) => `${parseFloat(v).toFixed(2)}%`,
+          format: (v) => `${parseFinancial(v).toNumber().toFixed(2)}%`,
         },
         { key: "last_updated", label: "Last Updated" },
       ],
