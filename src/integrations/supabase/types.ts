@@ -6159,6 +6159,10 @@ export type Database = {
         }
         Returns: Json
       }
+      recalculate_fund_aum_for_date: {
+        Args: { p_fund_id: string; p_target_date: string }
+        Returns: Json
+      }
       recompute_investor_position: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: undefined
@@ -6493,8 +6497,8 @@ export type Database = {
         Args: {
           p_admin_id: string
           p_distribution_id: string
-          p_reason: string
-          p_void_crystals: boolean
+          p_reason?: string
+          p_void_crystals?: boolean
         }
         Returns: Json
       }
