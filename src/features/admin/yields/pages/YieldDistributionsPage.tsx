@@ -367,55 +367,27 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
   );
 
   const handleRestoreConfirm = useCallback(
-    async (distributionId: string, reason: string) => {
-      setRestorePending(true);
-      try {
-        await unvoidYieldDistribution(distributionId, reason);
-        toast({ title: "Distribution restored successfully" });
-        setRestoreTarget(null);
-        await invalidateAfterYieldOp(queryClient);
-      } catch (err) {
-        toast({
-          title: "Failed to restore distribution",
-          description: err instanceof Error ? err.message : "Unknown error",
-          variant: "destructive",
-        });
-      } finally {
-        setRestorePending(false);
-      }
+    async (_distributionId: string, _reason: string) => {
+      toast({
+        title: "Restore not available",
+        description: "The unvoid/restore functionality has been removed. Please create a new distribution instead.",
+        variant: "destructive",
+      });
     },
-    [queryClient, toast]
+    [toast]
   );
 
   const handleBulkRestoreConfirm = useCallback(
-    async (reason: string) => {
-      setRestorePending(true);
-      const ids = Array.from(selection.selectedIds);
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (const id of ids) {
-        try {
-          await unvoidYieldDistribution(id, reason);
-          successCount++;
-        } catch (err) {
-          errorCount++;
-          console.error(`Failed to restore distribution ${id}`, err);
-        }
-      }
-
+    async (_reason: string) => {
       toast({
-        title: "Bulk restore complete",
-        description: `Successfully restored ${successCount} distribution(s)${errorCount > 0 ? `. ${errorCount} failed.` : "."}`,
-        variant: errorCount > 0 ? "destructive" : "default",
+        title: "Restore not available",
+        description: "The unvoid/restore functionality has been removed. Please create new distributions instead.",
+        variant: "destructive",
       });
-
       setBulkRestoreDialogOpen(false);
       selection.clearSelection();
-      await invalidateAfterYieldOp(queryClient);
-      setRestorePending(false);
     },
-    [selection, queryClient, toast]
+    [selection, toast]
   );
 
   const handleBulkVoidConfirm = useCallback(
