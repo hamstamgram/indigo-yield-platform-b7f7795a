@@ -236,7 +236,7 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   if (error) {
     const err = new Error(error.userMessage || error.message || "Failed to void transaction") as ExtendedError;
     err.code = error.code;
-    err.details = error.details;
+    err.details = error.originalError;
     throw err;
   }
 
