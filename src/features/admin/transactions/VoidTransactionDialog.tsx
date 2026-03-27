@@ -82,12 +82,14 @@ export function VoidTransactionDialog({
   const [impact, setImpact] = useState<VoidImpact | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
   const [acknowledgeNegative, setAcknowledgeNegative] = useState(false);
+  const [voidError, setVoidError] = useState<{ message: string; code?: string; details?: string } | null>(null);
   const { voidMutation } = useTransactionMutations();
 
   // Fetch impact preview when dialog opens
   useEffect(() => {
     if (open && transaction?.id) {
       setLoadingImpact(true);
+      setVoidError(null);
       transactionsV2Service
         .getVoidImpact(transaction.id)
         .then(setImpact)
@@ -98,6 +100,7 @@ export function VoidTransactionDialog({
         .finally(() => setLoadingImpact(false));
     } else {
       setImpact(null);
+      setVoidError(null);
     }
   }, [open, transaction?.id]);
 
@@ -114,6 +117,8 @@ export function VoidTransactionDialog({
       return;
     }
 
+    setVoidError(null);
+
     voidMutation.mutate(
       {
         transactionId: transaction.id,
@@ -126,8 +131,21 @@ export function VoidTransactionDialog({
           setReason("");
           setConfirmText("");
           setImpact(null);
+          setVoidError(null);
           onSuccess();
           onOpenChange(false);
+        },
+        onError: (error: Error & { code?: string; details?: unknown }) => {
+          const details = error.details
+            ? typeof error.details === "string"
+              ? error.details
+              : JSON.stringify(error.details, null, 2)
+            : undefined;
+          setVoidError({
+            message: error.message,
+            code: error.code,
+            details,
+          });
         },
       }
     );
@@ -252,6 +270,24 @@ export function VoidTransactionDialog({
               )}
             </div>
           ) : null}
+
+          {/* Void Error Detail */}
+          {voidError && (
+            <Alert className="border-destructive/50 bg-destructive/10">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-destructive space-y-1">
+                <p className="font-medium">Void failed: {voidError.message}</p>
+                {voidError.code && (
+                  <p className="text-xs font-mono">Error code: {voidError.code}</p>
+                )}
+                {voidError.details && (
+                  <pre className="text-xs mt-1 p-2 bg-destructive/5 rounded overflow-auto max-h-24">
+                    {voidError.details}
+                  </pre>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
 
           {transaction.isSystemGenerated && (
             <Alert className="border-amber-500/50 bg-amber-500/10">
