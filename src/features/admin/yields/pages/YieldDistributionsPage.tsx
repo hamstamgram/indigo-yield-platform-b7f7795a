@@ -403,7 +403,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
           successCount++;
         } catch (err) {
           errorCount++;
-          console.error(`Failed to void distribution ${id}`, err);
+          logError("YieldDistributionsPage.bulkVoid", err, { distributionId: id });
         }
       }
 

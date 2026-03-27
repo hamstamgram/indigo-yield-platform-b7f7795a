@@ -33,32 +33,6 @@ export const requestsQueueService = {
   },
 
   /**
-   * Approve and complete a withdrawal request in one atomic operation via RPC
-   */
-  async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
-    const now = new Date().toISOString();
-    const updatePayload: Record<string, unknown> = {
-      status: "completed",
-      approved_at: now,
-      processed_at: now,
-    };
-    if (params.amount) {
-      updatePayload.approved_amount = parseFinancial(params.amount).toNumber();
-      updatePayload.processed_amount = updatePayload.approved_amount;
-    }
-    if (params.notes) {
-      updatePayload.admin_notes = params.notes;
-    }
-
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update(updatePayload as any)
-      .eq("id", params.requestId);
-
-    if (error) throw error;
-  },
-
-  /**
    * Reject a withdrawal request
    */
   async rejectWithdrawal(params: RejectWithdrawalParams): Promise<void> {
