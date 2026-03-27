@@ -1775,14 +1775,6 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_fund_id", "p_purpose", "p_yield_date"] as const,
     optionalParams: [] as const,
   },
-  verify_aum_purpose_usage: {
-    name: "verify_aum_purpose_usage" as const,
-    returnType: "{",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
-    optionalParams: [] as const,
-  },
   verify_yield_distribution_balance: {
     name: "verify_yield_distribution_balance" as const,
     returnType: "{",
@@ -1806,22 +1798,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_admin_id", "p_new_amount", "p_new_date", "p_original_tx_id"] as const,
     optionalParams: ["p_closing_aum", "p_new_notes", "p_new_tx_hash", "p_reason"] as const,
-  },
-  void_fund_daily_aum: {
-    name: "void_fund_daily_aum" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_reason", "p_record_id"] as const,
-    optionalParams: [] as const,
-  },
-  void_investor_yield_events_for_distribution: {
-    name: "void_investor_yield_events_for_distribution" as const,
-    returnType: "number;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_distribution_id"] as const,
-    optionalParams: ["p_admin_id", "p_reason"] as const,
   },
   void_transaction: {
     name: "void_transaction" as const,
