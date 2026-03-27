@@ -275,7 +275,9 @@ function MonthSection({ group }: { group: MonthGroup }) {
       fg.totals.gross = parseFinancial(fg.totals.gross)
         .plus(parseFinancial(e.gross_yield_amount))
         .toNumber();
-      fg.totals.fees = parseFinancial(fg.totals.fees).plus(parseFinancial(e.fee_amount)).toNumber();
+      fg.totals.fees = parseFinancial(fg.totals.fees)
+        .plus(parseFinancial(e.fee_amount))
+        .toNumber();
       fg.totals.net = parseFinancial(fg.totals.net)
         .plus(parseFinancial(e.net_yield_amount))
         .toNumber();
@@ -406,9 +408,9 @@ function MonthSection({ group }: { group: MonthGroup }) {
                       (() => {
                         // Aggregate the transaction events
                         const aggNet = fg.transactionEvents.reduce(
-                          (sum, e) =>
-                            parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(),
-                          0
+                          (sum: Decimal, e: InvestorYieldEvent) =>
+                            sum.plus(parseFinancial(e.net_yield_amount)),
+                          new Decimal(0)
                         );
                         const lastDate = fg.transactionEvents
                           .map((e) => new Date(e.event_date))

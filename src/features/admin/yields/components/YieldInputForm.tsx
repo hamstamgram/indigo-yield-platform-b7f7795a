@@ -19,6 +19,7 @@ import { ArrowRight, AlertTriangle, Info, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
+import { toNum } from "@/utils/numeric";
 import { type YieldPurpose, type Fund } from "@/hooks/data/admin/useYieldOperationsState";
 
 interface ReconciliationData {
@@ -298,13 +299,13 @@ export function YieldInputForm({
             <p
               className={cn(
                 "text-xs",
-                parseFloat(yieldAmount) < 0 ? "text-red-500" : "text-muted-foreground"
+                toNum(yieldAmount) < 0 ? "text-red-500" : "text-muted-foreground"
               )}
             >
-              Yield: {parseFloat(yieldAmount) >= 0 ? "+" : ""}
-              {selectedFund && formatValue(parseFloat(yieldAmount) || 0, selectedFund.asset)}{" "}
+              Yield: {toNum(yieldAmount) >= 0 ? "+" : ""}
+              {selectedFund && formatValue(toNum(yieldAmount) || 0, selectedFund.asset)}{" "}
               {selectedFund?.asset}
-              {parseFloat(yieldAmount) < 0 && " (loss month - fees waived)"}
+              {toNum(yieldAmount) < 0 && " (loss month - fees waived)"}
             </p>
           )}
         </div>

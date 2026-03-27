@@ -103,8 +103,8 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
 
   const saveCellEdit = useCallback(
     async (reportId: string, field: string) => {
-      const numericValue = parseFloat(editValue);
-      if (isNaN(numericValue)) {
+      const numericValue = Number(editValue);
+      if (isNaN(numericValue) || editValue.trim() === "") {
         return;
       }
 

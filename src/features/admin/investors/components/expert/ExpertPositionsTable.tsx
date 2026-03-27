@@ -153,7 +153,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         onChange={(e) =>
                           setEditValues({
                             ...editValues,
-                            shares: Number(e.target.value),
+                            shares: parseFloat(e.target.value) || 0,
                           })
                         }
                         className="w-24"
@@ -172,7 +172,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         onChange={(e) =>
                           setEditValues({
                             ...editValues,
-                            costBasis: Number(e.target.value),
+                            costBasis: parseFloat(e.target.value) || 0,
                           })
                         }
                         className="w-28"
@@ -193,7 +193,7 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                         onChange={(e) =>
                           setEditValues({
                             ...editValues,
-                            currentValue: Number(e.target.value),
+                            currentValue: parseFloat(e.target.value) || 0,
                           })
                         }
                         className="w-28"
