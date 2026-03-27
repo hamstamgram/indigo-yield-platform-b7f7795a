@@ -69,7 +69,7 @@ import { useYieldDistributionSelection } from "../hooks/useYieldDistributionSele
 import { YieldBulkActionToolbar } from "../components/YieldBulkActionToolbar";
 import { BulkRestoreDistributionsDialog } from "../components/BulkRestoreDistributionsDialog";
 import { BulkVoidDistributionsDialog } from "../components/BulkVoidDistributionsDialog";
-import { unvoidYieldDistribution } from "@/services/admin/yields/yieldManagementService";
+// unvoidYieldDistribution was removed (RPC dropped)
 
 interface Fund {
   id: string;

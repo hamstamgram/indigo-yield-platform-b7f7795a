@@ -226,10 +226,4 @@ export async function canEditYieldRecord(
   return { canEdit: true };
 }
 
-/**
- * Get void impact preview
- * @deprecated fund_daily_aum table was dropped — this is now a no-op.
- */
-export async function getYieldVoidImpact(_recordId: string): Promise<VoidAumImpactResult> {
-  return { success: false } as any;
-}
+// getYieldVoidImpact: REMOVED (deprecated -- always returned empty)
