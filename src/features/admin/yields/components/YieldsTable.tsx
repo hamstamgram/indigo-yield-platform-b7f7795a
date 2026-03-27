@@ -402,7 +402,7 @@ export function YieldsTable({
                 <TableHead className="text-right">Gross Amount</TableHead>
                 <TableHead className="text-right">Fees Paid</TableHead>
                 <TableHead className="text-right">IB Comm.</TableHead>
-                <TableHead className="text-right">Credits Earned</TableHead>
+                
                 <TableHead className="text-right">Net Yield</TableHead>
                 <TableHead className="text-right">Position After</TableHead>
               </TableRow>
@@ -430,13 +430,6 @@ export function YieldsTable({
                     <TableCell className="text-right text-orange-500/80">
                       {alloc.ib_amount != null && Number(alloc.ib_amount) > 0 ? (
                         <FinancialValue value={alloc.ib_amount} asset={asset} prefix="-" />
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right text-yield/80">
-                      {alloc.fee_credit != null && Number(alloc.fee_credit) > 0 ? (
-                        <FinancialValue value={alloc.fee_credit} asset={asset} />
                       ) : (
                         "-"
                       )}
