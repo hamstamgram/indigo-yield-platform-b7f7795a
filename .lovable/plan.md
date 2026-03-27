@@ -1,62 +1,97 @@
 
 
-# Resend Email Infrastructure Audit -- Results & Remediation Plan
+# Phase 9 & 10: Scorched Earth Cleanup + Mathematical Validation
 
-## Audit Summary: Resend Migration is COMPLETE (functionally), but has naming debt
+## Phase 10: Mathematical Validation -- COMPLETE (ALL PASS)
 
-### Finding 1: Zero MailerSend API/SDK References -- PASS
-No `MAILERSEND_API_KEY`, `api.mailersend.com`, or MailerSend SDK imports exist anywhere in Edge Functions. All 9 email-sending functions use `RESEND_API_KEY` and call `https://api.resend.com/emails`. The webhook function (`mailersend-webhook`) uses `RESEND_WEBHOOK_SIGNING_SECRET` and validates `resend-signature` headers with HMAC-SHA256. The migration to Resend is functionally complete.
+| Integrity View | Result |
+|---|---|
+| `v_ledger_reconciliation` | 0 violations |
+| `yield_distribution_conservation_check` | 0 violations |
+| `investor_position_ledger_mismatch` | 0 violations |
+| `position_transaction_reconciliation` | 0 violations |
+| `v_orphaned_positions` | 0 orphans |
+| `v_orphaned_transactions` | 0 orphans |
+| `v_fee_allocation_orphans` | 0 orphans |
+| `v_fee_calculation_orphans` | 0 orphans |
 
-### Finding 2 (P2 -- Naming Debt): Legacy "mailersend" Names Persist
-The migration swapped internals but kept old names. This creates confusion for any new developer or auditor:
-
-| Artifact | Current Name | Should Be |
-|----------|-------------|-----------|
-| Edge Function directory | `send-report-mailersend/` | `send-report-email/` or `send-report-resend/` |
-| Edge Function directory | `mailersend-webhook/` | `resend-webhook/` |
-| Frontend method | `deliveryService.sendViaMailerSend()` | `deliveryService.sendViaResend()` |
-| Frontend invocations | `supabase.functions.invoke("send-report-mailersend")` (4 call sites) | Updated name |
-| Doc references | 7 files reference "mailersend" in function names | Update to match |
-
-**Call sites referencing old names:**
-- `src/services/admin/deliveryService.ts` -- method name + invoke call
-- `src/services/admin/reports/email.ts` -- invoke call
-- `src/services/core/systemHealthService.ts` -- invoke call
-- `src/features/admin/reports/hooks/useDeliveryMutations.ts` -- method call (x2)
-- `src/types/domains/delivery.ts` -- comment
-
-### Finding 3: Resend SDK Import (P3 -- Minor)
-`send-notification-email/deno.json` imports `npm:resend@2.0.0` and uses the Resend class. All other functions use raw `fetch()` to `api.resend.com`. This inconsistency is harmless but worth noting -- the SDK adds bundle weight vs a simple fetch call.
-
-### Finding 4: Cron Job for Monthly Reports -- PASS
-Job 5 (`0 23 28-31 * *`) correctly invokes `monthly-report-scheduler` with the current anon key. The scheduler triggers `generate-fund-performance` and `process-report-delivery-queue`, both of which use Resend. No stale keys.
-
-### Finding 5: Webhook Signature Verification -- PASS
-`mailersend-webhook/index.ts` (despite the name) correctly validates Resend's `resend-signature` header using HMAC-SHA256 with `RESEND_WEBHOOK_SIGNING_SECRET`. The Resend event types (`email.sent`, `email.delivered`, `email.bounced`, etc.) are properly typed.
+**The ledger is mathematically clean. Conservation identity holds across all funds.**
 
 ---
 
-## Implementation Plan
+## Phase 9: Dead Code Inventory
 
-### Step 1: Rename `send-report-mailersend` Edge Function
-- Create `supabase/functions/send-report-email/index.ts` with the exact same content as `send-report-mailersend/index.ts`
-- Delete `supabase/functions/send-report-mailersend/`
-- Update 3 frontend call sites to invoke `"send-report-email"` instead of `"send-report-mailersend"`
+### Database Layer -- Items to Drop
 
-### Step 2: Rename `mailersend-webhook` Edge Function
-- Create `supabase/functions/resend-webhook/index.ts` with the exact same content
-- Delete `supabase/functions/mailersend-webhook/`
-- Update Resend dashboard webhook URL (user action -- must be communicated)
+| # | Artifact | Type | Status | Action |
+|---|----------|------|--------|--------|
+| 1 | `fund_aum_events` | VIEW | Exists as stub (`WHERE false`) returning NULLs. Zero rows. | **DROP VIEW** |
+| 2 | `_v5_check_distribution_uniqueness` | FUNCTION | Active, called by yield engine. Despite `v5` name, logic is current. | **KEEP** (rename later) |
+| 3 | `verify_aum_purpose_usage` | FUNCTION | Exists in DB. Legacy diagnostic. | **DROP FUNCTION** |
+| 4 | `fund_aum_mismatch` | VIEW | Referenced in docs but **does not exist** in DB. | **Remove from docs/VIEW_INVENTORY.md** |
 
-### Step 3: Rename Frontend Method
-- `deliveryService.sendViaMailerSend()` becomes `deliveryService.sendViaResend()`
-- Update 2 call sites in `useDeliveryMutations.ts`
+### Frontend Layer -- Dead Code to Remove
 
-### Step 4: Update Documentation
-- `docs/flows/STATEMENT_FLOW.md` -- update function names
-- `docs/SECURITY_REVIEW.md` -- update function references
-- `docs/PLATFORM_FLOWCHARTS.md` -- update sequence diagram (also fix "MailerSend API" label to "Resend API")
+| # | File | Issue | Action |
+|---|------|-------|--------|
+| 1 | `src/contracts/dbSchema.ts` (lines 451-485) | `investor_yield_events` schema for a dropped table | **Remove entry** |
+| 2 | `src/contracts/rpcSignatures.ts` (line 232) | `void_investor_yield_events_for_distribution` -- RPC does not exist in DB | **Remove from list + metadata** |
+| 3 | `src/features/admin/funds/services/reconciliationService.ts` | `reconcileFundPeriod()` and `reconcileInvestorPosition()` throw errors unconditionally. `testAllFunctions()` tests them knowing they fail. Dead code. | **Remove dead functions + test harness** (keep `getVoidYieldImpact` and `forceDeleteInvestor`) |
+| 4 | `src/features/admin/investors/components/expert/ExpertInvestorDashboard.tsx` | Returns `null`, zero imports anywhere | **Delete file** |
+| 5 | `src/integrations/supabase/types.ts` | Contains `fund_aum_events` view type -- auto-generated, will regenerate after view drop | **Auto-fixed by type regen** |
 
-### Risk Note
-Renaming Edge Functions means the old function URLs stop working immediately on deploy. The webhook URL in the Resend dashboard must be updated BEFORE or simultaneously with the rename of `mailersend-webhook`. The frontend changes for `send-report-mailersend` must deploy in the same push as the function rename.
+### Contracts Cleanup -- Ghost RPCs in `rpcSignatures.ts`
+
+RPCs listed in the contracts file but **not present in the database**:
+
+| RPC Name | Exists in DB? | Action |
+|----------|--------------|--------|
+| `void_investor_yield_events_for_distribution` | No | **Remove** |
+| `reconcile_fund_aum_with_positions` | No | **Remove** |
+| `void_fund_daily_aum` | No | **Remove** |
+| `recalculate_all_aum` | No | **Remove** |
+| `replace_aum_snapshot` | No | **Remove** |
+| `set_fund_daily_aum` | No | **Remove** |
+| `sync_all_fund_aum` | No | **Remove** |
+| `sync_aum_to_positions` | No | **Remove** |
+| `sync_transaction_aum_after_yield` | No | **Remove** |
+| `update_fund_daily_aum` | No | **Remove** |
+| `update_fund_daily_aum_with_recalc` | No | **Remove** |
+| `upsert_fund_aum_after_yield` | No | **Remove** |
+
+These 12 ghost RPCs in the contracts file reference functions that were dropped in the AUM purge migrations. They must be removed from both the `RPC_NAMES` array and the `RPC_SIGNATURES` metadata object.
+
+### Documentation Fixes
+
+| File | Fix |
+|------|-----|
+| `docs/patterns/VIEW_INVENTORY.md` | Remove `fund_aum_mismatch` from "Admin Integrity Views" (does not exist). Note `fund_aum_events` as dropped stub. |
+
+---
+
+## Implementation Steps
+
+### Step 1: Migration -- Drop DB dead weight
+```sql
+DROP VIEW IF EXISTS fund_aum_events;
+DROP FUNCTION IF EXISTS verify_aum_purpose_usage();
+```
+
+### Step 2: Clean `rpcSignatures.ts`
+Remove the 12 ghost RPC entries from `RPC_NAMES` array and their corresponding metadata blocks.
+
+### Step 3: Clean `dbSchema.ts`
+Remove the `investor_yield_events` table entry.
+
+### Step 4: Clean `reconciliationService.ts`
+Remove `reconcileFundPeriod`, `reconcileInvestorPosition`, their interfaces (`FundPeriodReconciliationResult`, `InvestorPositionReconciliationResult`), and the `testAllFunctions` harness. Keep `getVoidYieldImpact` and `forceDeleteInvestor`.
+
+### Step 5: Delete dead component
+Delete `src/features/admin/investors/components/expert/ExpertInvestorDashboard.tsx`.
+
+### Step 6: Update VIEW_INVENTORY.md
+Remove `fund_aum_mismatch` reference, add note about `fund_aum_events` stub being dropped.
+
+### Step 7: Verify
+Run `npx tsc --noEmit` to confirm no type breakage.
 
