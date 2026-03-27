@@ -36,14 +36,13 @@
 
 ---
 
-## Admin Integrity Views (8)
+## Admin Integrity Views (7)
 
 | View | Purpose | Used By |
 |------|---------|---------|
 | `v_crystallization_dashboard` | Crystallization gaps requiring action | `integrityOperationsService.ts` |
 | `v_crystallization_gaps` | Position yield gaps by days behind | `integrityOperationsService.ts`, smoke tests |
 | `v_ledger_reconciliation` | Ledger balance verification | `integrityOperationsService.ts`, `systemAdminService.ts` |
-| `fund_aum_mismatch` | AUM vs position sum validation | `integrityService.ts`, smoke tests |
 | `investor_position_ledger_mismatch` | Position ledger validation | `integrityService.ts`, smoke tests |
 | `yield_distribution_conservation_check` | Yield distribution math validation | `integrityService.ts`, smoke tests |
 | `ib_allocation_consistency` | IB allocation consistency check | `integrityService.ts` |
@@ -93,9 +92,9 @@
 
 ---
 
-## Dropped Views (Phase 5 + Real-Time Upgrade)
+## Dropped Views (Phase 5 + Real-Time Upgrade + Phase 9)
 
-The following 19 views were dropped:
+The following 21 views were dropped:
 
 | View | Reason |
 |------|--------|
@@ -118,6 +117,8 @@ The following 19 views were dropped:
 | `platform_fees_collected` | No frontend callers |
 | `audit_events_v` | No frontend callers |
 | `monthly_fee_summary` | No frontend callers |
+| `fund_aum_events` | Stub view (WHERE false), zero rows. Dropped Phase 9 |
+| `fund_aum_mismatch` | Never existed in DB despite being documented |
 
 ---
 
