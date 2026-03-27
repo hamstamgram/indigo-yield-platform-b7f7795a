@@ -34,6 +34,7 @@ import {
 import { format, getYear, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { parseFinancial } from "@/utils/financial";
+import Decimal from "decimal.js";
 import { formatInvestorNumber } from "@/utils/assets";
 import type {
   InvestorYieldEvent,
@@ -275,7 +276,9 @@ function MonthSection({ group }: { group: MonthGroup }) {
       fg.totals.gross = parseFinancial(fg.totals.gross)
         .plus(parseFinancial(e.gross_yield_amount))
         .toNumber();
-      fg.totals.fees = parseFinancial(fg.totals.fees).plus(parseFinancial(e.fee_amount)).toNumber();
+      fg.totals.fees = parseFinancial(fg.totals.fees)
+        .plus(parseFinancial(e.fee_amount))
+        .toNumber();
       fg.totals.net = parseFinancial(fg.totals.net)
         .plus(parseFinancial(e.net_yield_amount))
         .toNumber();
@@ -405,11 +408,12 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     {fg.transactionEvents.length > 0 &&
                       (() => {
                         // Aggregate the transaction events
-                        const aggNet = fg.transactionEvents.reduce(
-                          (sum, e) =>
-                            parseFinancial(sum).plus(parseFinancial(e.net_yield_amount)).toNumber(),
-                          0
+                        const aggNetDec = fg.transactionEvents.reduce(
+                          (sum: Decimal, e: InvestorYieldEvent) =>
+                            sum.plus(parseFinancial(e.net_yield_amount)),
+                          new Decimal(0)
                         );
+                        const aggNet = aggNetDec.toNumber();
                         const lastDate = fg.transactionEvents
                           .map((e) => new Date(e.event_date))
                           .sort((a, b) => b.getTime() - a.getTime())[0];

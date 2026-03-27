@@ -4,6 +4,7 @@
  */
 
 import { useState } from "react";
+import Decimal from "decimal.js";
 import {
   Card,
   CardContent,
@@ -90,13 +91,14 @@ export function FundPositionCard({
     const numValue = parseFloat(value) || 0;
     setEditData((prev) => {
       const updated = { ...prev, [field]: numValue };
-      // Auto-calculate net income
+      // Auto-calculate net income using Decimal to avoid float drift
       if (field !== "mtd_net_income") {
-        updated.mtd_net_income =
-          updated.mtd_ending_balance -
-          updated.mtd_beginning_balance -
-          updated.mtd_additions +
-          updated.mtd_redemptions;
+        const dec = (v: number) => new Decimal(v);
+        updated.mtd_net_income = dec(updated.mtd_ending_balance)
+          .minus(dec(updated.mtd_beginning_balance))
+          .minus(dec(updated.mtd_additions))
+          .plus(dec(updated.mtd_redemptions))
+          .toNumber();
       }
       return updated;
     });

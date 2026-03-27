@@ -66,9 +66,10 @@ export function YieldPreviewResults({
     yieldPreview.calculationMethod === "unified_v6";
 
   // The true Total Gross Yield is the sum of ALL allocations (including system fee accounts) + any dust
-  const trueTotalGross =
-    yieldPreview.distributions.reduce((acc, inv) => acc + toNum(inv.grossYield), 0) +
-    toNum((yieldPreview as any).dustAmount || 0);
+  const trueTotalGross = yieldPreview.distributions
+    .reduce((acc, inv) => acc.plus(new Decimal(inv.grossYield || 0)), new Decimal(0))
+    .plus(new Decimal((yieldPreview as any).dustAmount || 0))
+    .toNumber();
 
   return (
     <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
