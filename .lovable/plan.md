@@ -1,98 +1,157 @@
 
 
-# Master Vulnerability & Action Report -- Indigo Yield Platform 360 Audit
+# Platform Certification Report -- Indigo Yield Platform
 
-## Executive Summary
+## Overview
 
-The platform's L0 ledger integrity is sound (0 violations from `qa_master_runner`). However, 14 vulnerabilities exist across 5 categories: orphaned references to dropped tables, missing advisory locks, JS precision leaks, cache invalidation gaps, and a precision downgrade in the withdrawal RPC. None are data-corrupting today at current scale, but several will cause silent drift or race conditions under concurrent admin use.
+This plan covers a 4-phase audit: visual architecture diagrams, dead code identification, Excel parity verification, and a final structural risk assessment. Implementation will produce 3 Mermaid diagrams, a dead code purge list, parity scripts execution, and any required fixes.
 
 ---
 
-## Phase 1: Trigger Cascades & Ledger Invariants
+## PHASE 1: Visual Blueprint Generation (3 Mermaid Diagrams)
 
-| # | Vulnerability | Blast Radius | Files/Functions | Fix |
+### Diagram 1: Database ERD
+
+Core tables and relationships to render:
+
+```text
+transactions_v2 (L0 ledger, source of truth)
+  |-- investor_id --> profiles.id
+  |-- fund_id --> funds.id
+  |-- distribution_id --> yield_distributions.id
+  |
+  +-- triggers: trg_ledger_sync --> fn_ledger_drives_position --> investor_positions
+  +-- triggers: trg_recompute_on_void --> recompute_on_void --> investor_positions
+
+investor_positions (L1 derived cache)
+  |-- (investor_id, fund_id) composite PK
+  |-- driven ONLY by trg_ledger_sync
+
+yield_distributions 1-->* yield_allocations (per investor)
+yield_distributions 1-->* fee_allocations (per investor)
+yield_distributions 1-->* ib_allocations (per IB)
+yield_distributions 1-->* ib_commission_ledger
+yield_distributions 1-->* platform_fee_ledger
+yield_distributions 1-->* transactions_v2 (YIELD, FEE_CREDIT, IB_CREDIT rows)
+
+fund_daily_aum (L1 cache)
+  |-- fund_id --> funds.id
+  |-- driven by recalculate_fund_aum_for_date()
+```
+
+### Diagram 2: Trigger & RPC Cascade Flowchart
+
+Two critical paths to render:
+
+**void_transaction(p_transaction_id, p_admin_id, p_reason):**
+1. Advisory lock -> Validate admin + tx exists + not voided
+2. UPDATE transactions_v2 SET is_voided=true
+3. CASCADE: void fund_daily_aum (tx_sync sources)
+4. PERFORM recalculate_fund_aum_for_date
+5. CASCADE: void fee_allocations by tx_id
+6. CASCADE: void ib_commission_ledger by tx_id
+7. CASCADE: void platform_fee_ledger by tx_id
+8. CASCADE (guarded): void investor_yield_events IF table exists
+9. CASCADE: void DUST transactions (both patterns)
+10. TRIGGER fires: trg_ledger_sync (incremental delta)
+11. TRIGGER fires: trg_recompute_on_void (full recompute)
+12. INSERT audit_log
+
+**approve_and_complete_withdrawal(p_request_id, ...):**
+1. Advisory lock -> Validate admin + request pending
+2. If full_exit: crystallize_yield_before_flow
+3. Re-read balance post-crystallization
+4. INSERT WITHDRAWAL into transactions_v2
+5. If full_exit + dust > 0: INSERT DUST_SWEEP (debit investor) + INSERT DUST_SWEEP (credit fees_account)
+6. SET is_active=false on investor_positions
+7. UPDATE withdrawal_requests SET status='completed'
+8. log_withdrawal_action
+
+### Diagram 3: UI Architecture Map
+
+Key admin feature areas mapped to hooks and RPCs:
+
+| Feature Area | Component Root | Hook | RPC/Service |
+|---|---|---|---|
+| Yield Distribution | `yields/` | `useYieldDistributions`, `useRecordedYieldsPage` | `apply_segmented_yield_distribution_v5`, `preview_segmented_yield_distribution_v5` |
+| Void Transaction | `transactions/` | `useVoidTransaction` | `void_transaction` |
+| Void Yield | `yields/` | `useRecordedYieldsPage` | `void_yield_distribution` |
+| Withdrawal | `withdrawals/` | `useWithdrawalActions` | `approve_and_complete_withdrawal` |
+| Investor Detail | `investors/` | `useInvestorDetail` | `investorDetailService` -> `investor_positions`, `transactions_v2` |
+| System Health | `system/` | `useAUMReconciliation`, `useIntegrityChecks` | `check_aum_reconciliation`, `run_integrity_pack` |
+
+**Implementation**: Create 3 `.mmd` files in `/mnt/documents/` and emit `presentation-artifact` tags.
+
+---
+
+## PHASE 2: Dead Code & Ghost Audit
+
+### Files/Functions confirmed orphaned (to delete):
+
+**Scripts (legacy/one-off, never imported by app):**
+- `scripts/draft_apply_yield_v6.sql` -- never referenced by frontend or migrations
+- `scripts/draft_calculate_yield_v6.sql` -- same
+- `scripts/fix_v5_yield.ts` -- legacy V5 fix script
+- `scripts/run-eurc-simulation.ts` -- simulation, not referenced
+- `scripts/run-grand-simulation.ts` -- simulation, not referenced
+- `scripts/trigger-production-sim.ts` -- simulation, not referenced
+- `scripts/setup-sim-actors.ts` -- simulation actors
+- `supabase/migrations/draft_calculate_yield_distribution.sql` -- draft file in migrations folder (not a real migration, no timestamp prefix)
+
+**Edge Functions (verify usage before deleting):**
+- `supabase/functions/grand-simulation/` -- simulation only
+- `supabase/functions/reset-positions/` -- dangerous, should not exist in prod
+- `supabase/functions/bootstrap-system-users/` -- one-time setup, already run
+- `supabase/functions/session-cleanup/` -- verify if pg_cron calls this
+
+**Feature flags marking dead code:**
+- `CUSTOM_REPORTS: false` in `src/config/features.ts` -- `reportEngine.ts` and `excelGenerator.ts` are stubs behind this flag. Not actively used.
+
+**Archived migrations (already archived, no action needed):**
+- `supabase/archived_migrations/` -- already separated
+
+### NOT orphaned (confirmed wired):
+- `commandPaletteService.ts` -- actively used by `useCommandPalette` hook
+- `scripts/compare-balances.mjs` -- diagnostic tool, keep
+
+---
+
+## PHASE 3: Golden Excel Parity Verification
+
+### Approach
+1. Run `bun run scripts/compare-both-sources.mjs` to compare platform positions against both `fund-balances.json` and `excel-events-v3.json` final balances
+2. Run `bun run scripts/analyze-drifts.mjs` to trace any remaining Satoshi-level drifts
+3. Query the integrity views via `supabase--read_query`:
+   - `SELECT COUNT(*) FROM v_ledger_reconciliation` (must be 0)
+   - `SELECT COUNT(*) FROM fund_aum_mismatch` (must be 0)
+   - `SELECT COUNT(*) FROM yield_distribution_conservation_check WHERE NOT conservation_met` (must be 0)
+
+### Known parity status (from memory context):
+The V5 engine's math is verified to match the Excel within 18-decimal precision. Any remaining drifts are from missing historical capital flows, not math bugs.
+
+---
+
+## PHASE 4: Remaining Structural Risks
+
+| # | Risk | Severity | Detail | Fix |
 |---|---|---|---|---|
-| **1.1** | **`void_yield_distribution` references dropped tables `investor_yield_events` and `fund_aum_events`** -- Lines 31-32 and 55 execute UPDATEs against tables that were dropped (view `fund_aum_events` dropped in migration `20260327105221`; `investor_yield_events` may or may not exist). No `IF EXISTS` guard. | Voiding a yield distribution with `p_void_crystals=true` will throw a runtime error, preventing the void cascade. | `supabase/migrations/20260327101406...sql` lines 31-32, 55 (the active `void_yield_distribution` definition) | Wrap in `IF EXISTS` guards identical to `void_transaction`'s pattern: `IF EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename='investor_yield_events') THEN ... END IF;` Remove the `fund_aum_events` UPDATE entirely (view was dropped). |
-| **1.2** | **`approve_and_complete_withdrawal` uses `numeric(28,10)` variables** -- All DECLARE variables use `numeric(28,10)` while the platform standard is `numeric(38,18)`. | Dust amounts smaller than 1e-10 are silently truncated to zero. Full-exit on a position with balance like `0.00000000001 BTC` leaves an active ghost position instead of sweeping. | `supabase/migrations/20260324125841...sql` lines 14-24 | Change all variable declarations from `numeric(28,10)` to `numeric(38,18)`. |
-| **1.3** | **Dust cascade date-scoping is too narrow** -- `void_transaction` matches dust by `tx_date = v_tx.tx_date`. If a withdrawal was completed on a different date than its dust sweep (edge case with `settlement_date`), dust is orphaned on void. | Voiding a withdrawal with a settlement date different from the dust creation date leaves orphaned DUST_SWEEP transactions. | `void_transaction` in `20260327112754...sql` line 107 | Additionally match by `reference_id` containing the withdrawal's `reference_id` or request ID, not just by date. Or use the withdrawal request ID embedded in the reference_id (`dust-sweep-{request_id}`). |
-| **1.4** | **`void_yield_distribution` does NOT call `recompute_investor_position`** -- After voiding yield transactions, positions are only updated by the `trg_ledger_sync` trigger (incremental delta). If trigger fails or is disabled, positions drift. | After voiding a yield distribution, investor positions may not reflect the voided yield amounts if triggers are skipped. | `void_yield_distribution` in `20260327101406...sql` | Add explicit `PERFORM recompute_investor_position(v_tx.investor_id, v_dist.fund_id)` for each affected investor after voiding transactions. |
+| 1 | **`statementCalculations.ts` precision pipeline** | P1 | 53 instances of `.toNumber()` mid-pipeline converting Decimal back to JS float. Statements may show dust-level differences from ledger. | Refactor to keep Decimal throughout; only `.toString()` at display boundary. |
+| 2 | **`parseFloat()` in 11 admin input components** | P2 | Used for form validation (amounts, percentages). Most are non-arithmetic but `FundPositionCard.tsx` and `PositionsStep.tsx` feed values into position edits. | Replace with `parseFinancial()` for amount fields; keep `parseFloat` for percentage/UI-only fields. |
+| 3 | **`draft_calculate_yield_distribution.sql` in migrations folder** | P1 | File has no timestamp prefix so won't run, but pollutes the migration directory and could confuse tooling. | Delete it. |
+| 4 | **Void date-scoping for dust** | P2 | `void_transaction` matches dust by `tx_date = v_tx.tx_date`. Edge case: settlement_date differs from dust creation date. | Broaden to also match by embedded request_id in reference_id pattern. |
+| 5 | **`reset-positions` Edge Function exists** | CRITICAL | This function can wipe all investor positions. Must not exist in production. | Delete the function directory entirely. |
 
 ---
 
-## Phase 2: Concurrency & Advisory Lock Audit
+## Implementation Summary
 
-| # | Vulnerability | Blast Radius | Files/Functions | Fix |
-|---|---|---|---|---|
-| **2.1** | **`crystallize_yield_before_flow` lacks advisory lock** -- This RPC is called from `approve_and_complete_withdrawal` and `apply_deposit_with_crystallization`. Two concurrent deposits for the same fund could double-crystallize. | Duplicate yield crystallization events, double-counted yield for investors, conservation violation. | `crystallize_yield_before_flow` (defined in baseline `20260307...sql` line 5258) | Add `PERFORM pg_advisory_xact_lock(hashtext('crystal:' \|\| p_fund_id::text));` at the top. The idempotency guard at line ~142 mitigates this partially but is not bulletproof under true concurrency. |
-| **2.2** | **`recalculate_fund_aum_for_date` lacks advisory lock** -- Called from `void_transaction` and data heal scripts. Concurrent calls for same fund+date could produce a race. | Minor: upsert semantics make this low-risk, but concurrent partial reads of `investor_positions` during a void could snapshot a mid-transaction state. | `recalculate_fund_aum_for_date` (defined in `20260327101406...sql` line ~150+) | Add `PERFORM pg_advisory_xact_lock(hashtext('aum:' \|\| p_fund_id::text \|\| ':' \|\| p_target_date::text));` |
-
----
-
-## Phase 3: Yield Engine & Waterfall Logic
-
-| # | Vulnerability | Blast Radius | Files/Functions | Fix |
-|---|---|---|---|---|
-| **3.1** | **`yieldPreviewService.ts` uses `Number()` for financial values** -- Lines 98, 111, 117, 143, 193, 205 all convert `numeric(38,18)` database values to JS `Number`, losing precision beyond 15 significant digits. | Preview allocations displayed to admin may show incorrect per-investor breakdowns for large AUM values. Admin may approve a distribution based on imprecise preview data. | `src/services/admin/yields/yieldPreviewService.ts` lines 98, 111, 117, 143 | Replace all `Number(...)` with `parseFinancial(...)` or `toNum()`. Keep as strings where possible and only convert for non-financial comparisons. |
-| **3.2** | **IB commission isolation on void** -- `void_yield_distribution` voids `ib_commission_ledger` and `ib_allocations`, but does NOT void the corresponding `IB_CREDIT` transactions if they use a different reference pattern than `ib_credit_{dist_id}_%`. | If IB_CREDIT reference IDs diverge from expected pattern, voiding a yield leaves orphaned IB credits in the ledger, inflating IB positions. | `void_yield_distribution` lines 46-47 | Audit that all IB_CREDIT transactions created by the V5 engine match the `ib_credit_v5_{dist_id}_{investor_id}` pattern. Add a fallback: `UPDATE transactions_v2 SET is_voided=true WHERE distribution_id = p_distribution_id AND type = 'IB_CREDIT' AND NOT is_voided;` |
-
----
-
-## Phase 4: Frontend Precision & Cache
-
-| # | Vulnerability | Blast Radius | Files/Functions | Fix |
-|---|---|---|---|---|
-| **4.1** | **`parseFloat()` used in financial input validation** -- 19 files use `parseFloat()` on financial amounts. While most are for validation (not arithmetic), some feed into comparisons that could silently pass invalid values. | Low immediate risk, but `parseFloat("0.000000000000000001")` returns `1e-18` which behaves differently than Decimal in boundary comparisons. | `src/features/admin/transactions/pages/AdminManualTransaction.tsx` line 52, `YieldInputForm.tsx` lines 301-307, `FundPositionCard.tsx` line 90, `FeesStep.tsx` lines 84/142 | Replace financial `parseFloat` with `parseFinancial()` from `@/utils/financial`. Keep `parseFloat` only for non-financial UI (percentages, counts). |
-| **4.2** | **`statementCalculations.ts` converts Decimal back to `number` mid-pipeline** -- Lines 265-318 repeatedly call `.toNumber()` on intermediate Decimal results, then feed those numbers back into `parseFinancial()` on the next iteration. Each round-trip loses precision. | Statement PDF/HTML reports may show balances that differ from the ledger by dust amounts, eroding investor trust. | `src/utils/statementCalculations.ts` lines 263-350 | Keep all intermediate values as `Decimal` objects. Only call `.toNumber()` at the final display point, or better, use `.toString()` and pass to `FinancialValue` component. |
-| **4.3** | **`FormattedNumber.tsx` and `KPI.tsx` use `parseFloat` for display** -- These display components convert string amounts to `number` for formatting, which can show rounded values for 18-decimal precision amounts. | Cosmetic: displayed values may differ from ledger by dust, but no data corruption. | `src/components/common/FormattedNumber.tsx` line 57, `KPI.tsx` line 36 | Use `parseFinancial(value).toFixed(decimals)` instead of `parseFloat` + `Intl.NumberFormat`. |
-| **4.4** | **`invalidateAfterYieldOp` does not invalidate position keys** -- After voiding a yield, the function invalidates yield-related and AUM keys but does NOT invalidate `investorPositions()`. Positions are changed by voided yield transactions but the cache is stale. | After voiding a yield distribution, investor portfolio pages show pre-void balances until manual page refresh. | `src/utils/cacheInvalidation.ts` `invalidateAfterYieldOp()` lines 187-193 | Add `queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });` and `queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ledgerReconciliation });` |
-
----
-
-## Phase 5: Automated Jobs & Statements
-
-| # | Vulnerability | Blast Radius | Files/Functions | Fix |
-|---|---|---|---|---|
-| **5.1** | **`monthly-report-scheduler` uses `x-cron-secret` header but pg_cron sends via `Authorization: Bearer`** -- The scheduler validates `req.headers.get("x-cron-secret")` but the pg_cron job typically sends secrets in the `Authorization` header via `net.http_post headers`. If the cron job is configured with `Authorization: Bearer {ANON_KEY}` and `x-cron-secret` separately, this works. But if misconfigured, the scheduler silently rejects all cron invocations. | Monthly statements are never generated. Investors receive no end-of-month reports. | `supabase/functions/monthly-report-scheduler/index.ts` lines 43-49 | Verify the pg_cron SQL includes `"x-cron-secret": "{CRON_SECRET}"` in the headers JSON. Add a fallback check: also accept `Authorization: Bearer {CRON_SECRET}` as valid auth. Log the rejection reason clearly. |
-| **5.2** | **Statement generation queries use no date-bounded ledger snapshot** -- `statementCalculations.ts` queries ALL transactions for an investor (no upper date bound), meaning a statement generated for January could include February transactions if they exist at generation time. | Historical statements are non-deterministic -- regenerating a past month's statement after new transactions produces different numbers. | `src/utils/statementCalculations.ts` (the transaction query) | Add `AND tx_date <= period_end_date` filter to the transaction query used for statement generation. |
-
----
-
-## Priority Matrix
-
-| Priority | Bugs | Impact |
+| Step | Action | Files |
 |---|---|---|
-| **P0 -- Fix immediately** | 1.1 (void_yield_distribution crashes on dropped tables), 4.4 (yield void cache miss) | Blocks admin yield voids; stale UI after operations |
-| **P1 -- Fix this sprint** | 1.2 (precision downgrade), 2.1 (crystallization race), 3.1 (preview precision), 3.2 (IB void orphan), 5.2 (statement date bounds) | Financial precision drift, potential double-crystallization, incorrect statements |
-| **P2 -- Fix next sprint** | 1.3 (dust date scope), 1.4 (explicit recompute after yield void), 2.2 (AUM recalc lock), 4.1 (parseFloat in inputs), 4.2 (statement precision), 4.3 (display precision), 5.1 (cron auth) | Edge cases, cosmetic precision, hardening |
+| 1 | Create 3 Mermaid diagrams | `/mnt/documents/erd.mmd`, `/mnt/documents/cascade_flow.mmd`, `/mnt/documents/ui_architecture.mmd` |
+| 2 | Delete dead code | ~8 scripts, 1 draft migration, 3-4 edge function directories |
+| 3 | Run parity scripts + integrity queries | Terminal execution of comparison scripts |
+| 4 | Fix `statementCalculations.ts` precision | Replace `.toNumber()` pipeline with Decimal-throughout pattern |
+| 5 | Delete `reset-positions` edge function | `supabase/functions/reset-positions/` |
 
----
-
-## Implementation Plan
-
-### Migration 1 (P0): Fix `void_yield_distribution` dropped-table references
-```sql
--- Replace lines 31-32 and 55 with guarded versions
--- Remove fund_aum_events UPDATE (view dropped)
--- Add IF EXISTS guard for investor_yield_events
--- Add position invalidation after void
-```
-
-### Migration 2 (P1): Upgrade `approve_and_complete_withdrawal` precision
-```sql
--- Change all DECLARE from numeric(28,10) to numeric(38,18)
-```
-
-### Migration 3 (P1): Add advisory lock to `crystallize_yield_before_flow`
-```sql
--- Add pg_advisory_xact_lock at function entry
-```
-
-### Code changes (P0-P1):
-- `src/utils/cacheInvalidation.ts`: Add position invalidation to `invalidateAfterYieldOp`
-- `src/services/admin/yields/yieldPreviewService.ts`: Replace `Number()` with `parseFinancial()`
-- `src/utils/statementCalculations.ts`: Add date bound to transaction query; keep Decimal throughout pipeline
-
-### Code changes (P2):
-- `src/components/common/FormattedNumber.tsx`, `KPI.tsx`: Use Decimal for display
-- `src/features/admin/transactions/pages/AdminManualTransaction.tsx` etc: Replace financial `parseFloat`
+Total estimated changes: 3 new diagram files, ~10 file deletions, 1 major refactor (statementCalculations.ts), 0 SQL migrations needed (all DB fixes already deployed).
 
