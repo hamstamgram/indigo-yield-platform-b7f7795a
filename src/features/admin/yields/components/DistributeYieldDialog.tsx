@@ -255,7 +255,7 @@ export function DistributeYieldDialog({
                 <div className="flex items-center justify-between px-4 py-3 bg-indigo-500/10 border-t border-indigo-500/20">
                   <span className="text-sm font-semibold text-white">Ending Balance</span>
                   <span className="text-lg font-bold text-white tabular-nums">
-                    {formatValue(new Decimal(asOfAum || 0).plus(new Decimal(grossYield || 0)).toNumber(), asset)} {asset}
+                    {formatValue(Number(new Decimal(asOfAum || 0).plus(new Decimal(grossYield || 0)).toString()), asset)} {asset}
                   </span>
                 </div>
               </div>

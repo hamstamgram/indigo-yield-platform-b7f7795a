@@ -87,10 +87,9 @@ export async function getInvestorSummary(investorId: string): Promise<InvestorSu
   // Calculate asset breakdown
   const assetBreakdown: Record<string, number> = {};
   positions.forEach((pos) => {
-    if (!assetBreakdown[pos.asset]) {
-      assetBreakdown[pos.asset] = 0;
-    }
-    assetBreakdown[pos.asset] += pos.currentValue;
+    assetBreakdown[pos.asset] = parseFinancial(assetBreakdown[pos.asset] || 0)
+      .plus(parseFinancial(pos.currentValue || 0))
+      .toNumber();
   });
 
   const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
@@ -176,9 +175,9 @@ export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     name: investor.name || "Unknown",
     email: investor.email || "",
     status: investor.status || "active",
-    totalAUM: Number(investor.totalAUM || 0),
-    totalEarned: Number(investor.totalEarned || 0),
-    totalPrincipal: Number(investor.totalPrincipal || 0),
+    totalAUM: parseFinancial(investor.totalAUM || 0).toNumber(),
+    totalEarned: parseFinancial(investor.totalEarned || 0).toNumber(),
+    totalPrincipal: parseFinancial(investor.totalPrincipal || 0).toNumber(),
     positionCount: investor.positionCount || 0,
     assetBreakdown: investor.assetBreakdown || {},
     onboardingDate: investor.onboardingDate,

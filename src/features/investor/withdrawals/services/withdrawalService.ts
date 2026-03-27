@@ -482,7 +482,7 @@ export const withdrawalService = {
   async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
     const updatePayload: Record<string, unknown> = {};
     if (params.requestedAmount != null)
-      updatePayload.requested_amount = Number(params.requestedAmount);
+      updatePayload.requested_amount = String(params.requestedAmount) as unknown as number;
     if (params.notes != null) updatePayload.notes = params.notes;
 
     const { error } = await supabase
