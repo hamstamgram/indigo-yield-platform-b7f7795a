@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { batchProcess, batchMapProcess } from "@/utils/batchHelper";
+import { parseFinancial } from "@/utils/financial";
 
 export interface ProfileSummary {
   id: string;

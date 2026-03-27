@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { formatDateForDB } from "@/utils/dateUtils";
+import Decimal from "decimal.js";
 import { parseFinancial } from "@/utils/financial";
 import type {
   CrystallizationResult,
