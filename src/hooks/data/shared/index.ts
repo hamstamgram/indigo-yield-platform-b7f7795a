@@ -173,8 +173,6 @@ export {
   useYieldDetails,
   useCanEditYields,
   useCanVoidYield,
-  useUpdateYieldRecord,
-  useVoidYieldRecord,
   type YieldFilters,
   type YieldDetails,
 } from "./useYieldData";

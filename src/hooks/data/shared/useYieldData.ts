@@ -3,11 +3,9 @@
  * Abstracts yield/AUM operations from components
  */
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getYieldRecords,
-  updateYieldRecord,
-  voidYieldRecord,
   getYieldDetails,
   canVoidYieldRecord,
 } from "@/services/admin";
@@ -15,13 +13,9 @@ import { canEditYields } from "@/services/admin";
 import type {
   YieldRecord,
   YieldFilters,
-  UpdateYieldRecordInput,
 } from "@/services/admin/recordedYieldsService";
 import type { YieldDetails } from "@/services/admin/yields/yieldManagementService";
-import { toast } from "sonner";
-import { useAuth } from "@/services/auth";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 
 /**
  * Hook to fetch yield records with filters
@@ -66,57 +60,5 @@ export function useCanVoidYield(recordId: string) {
   });
 }
 
-/**
- * Hook to update a yield record
- */
-export function useUpdateYieldRecord() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({
-      recordId,
-      updates,
-      reason,
-    }: {
-      recordId: string;
-      updates: UpdateYieldRecordInput;
-      reason?: string;
-    }) => {
-      if (!user?.id) throw new Error("Not authenticated");
-      return updateYieldRecord(recordId, updates, user.id, reason);
-    },
-    onSuccess: (_, variables) => {
-      invalidateAfterYieldOp(queryClient);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDetails(variables.recordId) });
-      toast.success("Yield record updated successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to update yield record: ${error.message}`);
-    },
-  });
-}
-
-/**
- * Hook to void a yield record
- */
-export function useVoidYieldRecord() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ recordId, reason }: { recordId: string; reason: string }) => {
-      return voidYieldRecord(recordId, reason);
-    },
-    onSuccess: (_, variables) => {
-      invalidateAfterYieldOp(queryClient);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDetails(variables.recordId) });
-      toast.success("Yield record voided successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to void yield record: ${error.message}`);
-    },
-  });
-}
-
 // Re-export types for convenience
-export type { YieldRecord, YieldFilters, UpdateYieldRecordInput, YieldDetails };
+export type { YieldRecord, YieldFilters, YieldDetails };

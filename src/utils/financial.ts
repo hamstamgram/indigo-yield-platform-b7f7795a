@@ -16,8 +16,9 @@ import Decimal from "decimal.js";
 import { logWarn } from "@/lib/logger";
 
 // Configure Decimal.js for financial calculations
+// Precision must exceed NUMERIC(38,18) max of 38 significant digits
 Decimal.set({
-  precision: 20, // 20 significant digits
+  precision: 40, // 40 significant digits -- covers NUMERIC(38,18) fully
   rounding: Decimal.ROUND_HALF_UP, // Standard rounding (0.5 rounds up)
   toExpNeg: -7, // Don't use exponential notation for small numbers
   toExpPos: 21, // Don't use exponential notation for large numbers
@@ -387,10 +388,10 @@ export function parseFinancial(value: string | number | null | undefined): Decim
 
 /**
  * Convert a calculated value back to string for storage/display
- * Preserves up to 10 decimal places (matching NUMERIC(28,10))
+ * Preserves up to 18 decimal places (matching NUMERIC(38,18))
  */
 export function toFinancialString(value: Decimal | number | string): FinancialString {
-  return new Decimal(String(value)).toFixed(10);
+  return new Decimal(String(value)).toFixed(18);
 }
 
 /**
@@ -398,7 +399,7 @@ export function toFinancialString(value: Decimal | number | string): FinancialSt
  * Returns string to preserve precision
  */
 export function sumFinancials(values: (string | number | null | undefined)[]): FinancialString {
-  return values.reduce((acc, v) => acc.plus(parseFinancial(v)), new Decimal(0)).toFixed(10);
+  return values.reduce((acc, v) => acc.plus(parseFinancial(v)), new Decimal(0)).toFixed(18);
 }
 
 /**

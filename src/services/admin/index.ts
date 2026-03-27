@@ -115,8 +115,6 @@ export {
 export * from "./yields";
 export {
   getYieldRecords,
-  updateYieldRecord,
-  getYieldEditHistory,
   canEditYields,
   getInvestorVisibleAUM,
   getLastFinalizedAUMDate,

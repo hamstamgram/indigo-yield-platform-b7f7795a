@@ -157,26 +157,8 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
   });
 }
 
-/**
- * Update a yield record with audit logging
- * @deprecated fund_daily_aum table was dropped — this is now a no-op.
- */
-export async function updateYieldRecord(
-  _recordId: string,
-  _updates: UpdateYieldRecordInput,
-  _adminId: string,
-  _editReason?: string
-): Promise<any> {
-  throw new Error("updateYieldRecord is deprecated — use yieldDistributionService instead");
-}
-
-/**
- * Get yield edit history for a specific record
- * @deprecated yield_edit_audit table was dropped — this is dead code.
- */
-export async function getYieldEditHistory(_recordId: string): Promise<any[]> {
-  return [];
-}
+// updateYieldRecord: REMOVED (deprecated -- fund_daily_aum was dropped)
+// getYieldEditHistory: REMOVED (deprecated -- yield_edit_audit was dropped)
 
 /**
  * Check if current user is a Super Admin (can edit yields)

@@ -22,13 +22,10 @@ export {
 
 // Management (void, edit, details)
 export {
-  voidYieldRecord,
   voidYieldDistribution,
-  updateYieldAum,
   getYieldDetails,
   canVoidYieldRecord,
   canEditYieldRecord,
-  getYieldVoidImpact,
   type VoidYieldResult,
   type UpdateYieldResult,
   type VoidAumImpactResult,
