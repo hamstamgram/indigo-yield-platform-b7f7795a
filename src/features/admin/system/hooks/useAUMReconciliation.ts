@@ -16,7 +16,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 export function useAUMReconciliation(
   fundId: string | null,
   tolerancePct?: number,
-  asOfDate: string = new Date().toISOString().split("T")[0]
+  asOfDate?: string
 ) {
   return useQuery({
     queryKey: QUERY_KEYS.aumReconciliation(fundId || undefined, tolerancePct, asOfDate),
