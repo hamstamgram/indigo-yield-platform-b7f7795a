@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 /**
  * Result of the available balance calculation
@@ -56,9 +57,9 @@ export function useAvailableBalance(investorId: string | null, fundId: string | 
         throw withdrawalError;
       }
 
-      const positionValue = parseFloat(String(position?.current_value ?? 0));
+      const positionValue = parseFinancial(position?.current_value).toNumber();
       const totalPending = (pendingWithdrawals || []).reduce(
-        (sum, w) => sum + parseFloat(String(w.requested_amount ?? 0)),
+        (sum, w) => sum + parseFinancial(w.requested_amount).toNumber(),
         0
       );
 
