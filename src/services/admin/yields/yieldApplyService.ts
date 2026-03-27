@@ -93,6 +93,16 @@ export async function applyYieldDistribution(
     dust_amount: String(rpcResult.dust_amount ?? 0),
   };
 
+  // Refresh AUM for CURRENT_DATE to prevent stale snapshots after historical yields
+  try {
+    await callRPC("recalculate_fund_aum_for_date", {
+      p_fund_id: fundId,
+      p_target_date: formatDateForDB(new Date()),
+    });
+  } catch (aumRefreshError) {
+    logWarn("applyYieldDistribution.aumRefresh", { fundId, error: aumRefreshError });
+  }
+
   // Finalize yield visibility
   try {
     await finalizeMonthYield(fundId, targetDate.getFullYear(), targetDate.getMonth() + 1, adminId);

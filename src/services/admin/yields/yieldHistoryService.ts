@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { callRPC, callRPCNoArgs } from "@/lib/supabase/typedRPC";
 import type { FundDailyAUM, YieldPurpose } from "@/types/domains/yield";
 import { formatDateForDB, getTodayString, getMonthStartDate } from "@/utils/dateUtils";
-import { logError } from "@/lib/logger";
+import { logError, logWarn } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
 
 /** Position with fund join result */
@@ -173,10 +173,7 @@ export async function getActiveFundsWithAUM(): Promise<
     const asset = f.asset || f.fund_asset;
 
     if (!id) {
-      console.warn(
-        `[yieldHistoryService] Missing ID for fund ${code || name || "unknown"}. Raw:`,
-        f
-      );
+      logWarn("yieldHistoryService.mapFunds", { fund: code || name || "unknown" });
     }
 
     return {
