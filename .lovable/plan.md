@@ -1,47 +1,53 @@
 
 
-# Plan: Create `deepthink_context.md`
+# Fix Yield Distribution Preview & Confirm Dialog Numbers
 
-Assemble a single Markdown file at the project root containing the full source of the following files, each wrapped in a fenced code block with the file path as header:
+## Problem Summary
 
-## Files to include
+Three bugs cause incorrect numbers in the yield distribution UI:
 
-### 1. Core Contracts
-- `src/contracts/dbSchema.ts` (901 lines)
-- `src/contracts/rpcSignatures.ts` (1879 lines)
+1. **`grossYield` passed as pre-formatted string** to `DistributeYieldDialog` -- Both call sites (AdminDashboard line 295, GlobalYieldFlow line 128) pass `ops.formatValue(toNum(...))` which produces `"5,803.10"`. Inside the dialog, `toNum("5,803.10")` calls `parseFloat()` which stops at the comma, returning `5`. This breaks the Ending Balance calculation (line 265) and the reconciliation `= Gross Yield` line (198).
 
-### 2. Financial Math Utilities
-- `src/utils/financial.ts` (471 lines)
-- `src/utils/numeric.ts` (125 lines)
-- `src/utils/yieldMath.ts` (35 lines)
-- `src/utils/statementCalculations.ts` (414 lines)
+2. **Missing `asOfAum` prop** in AdminDashboard -- Line 292-314 does not pass `asOfAum`, so Ending Balance always computes against `0`.
 
-### 3. Yield Services (`src/services/admin/yields/`)
-- `index.ts`
-- `yieldDistributionService.ts` (barrel re-exports)
-- `yieldApplyService.ts`
-- `yieldPreviewService.ts`
-- `yieldCrystallizationService.ts`
-- `yieldHistoryService.ts`
-- `yieldManagementService.ts`
-- `yieldReportsService.ts`
-- `yieldDistributionsPageService.ts`
-- `yieldAumService.ts`
+3. **Duplicate "INDIGO Fees Credit" rows** -- `DistributeYieldDialog` shows it twice (lines 204-210 and 220-227 with identical values). `YieldConfirmDialog` shows it twice (lines 128-131 and 139-143). `YieldPreviewResults` shows it twice (summary card line 137 and standalone card line 167).
 
-### 4. Withdrawal Services
-- `src/features/investor/withdrawals/services/investorWithdrawalService.ts`
+---
 
-### 5. Core SQL Migrations (most recent canonical definitions)
-- `20260327113803...sql` -- Hardened `void_yield_distribution`, `approve_and_complete_withdrawal` (numeric(38,18)), `recalculate_fund_aum_for_date` with advisory lock
-- `20260327112754...sql` -- Hardened `void_transaction` with dual dust pattern cascade + global AUM heal
-- `20260324143540...sql` -- Platform precision upgrade: `recompute_investor_position`, `fn_ledger_drives_position`, `can_withdraw`, `get_available_balance`, `adjust_investor_position`, `approve_and_complete_withdrawal` (initial 38,18 version)
+## Changes
 
-### 6. RPC Gateway
-- `src/lib/rpc/index.ts`
+### 1. `GlobalYieldFlow.tsx` (line 128-131)
+Pass raw string instead of pre-formatted:
+```
+grossYield={ops.yieldPreview?.grossYield ?? "0"}
+```
 
-## Implementation
+### 2. `AdminDashboard.tsx` (lines 295-298, 312-313)
+Pass raw string and add missing `asOfAum`:
+```
+grossYield={ops.yieldPreview?.grossYield ?? "0"}
+...
+asOfAum={ops.asOfAum}
+```
 
-One file write creating `deepthink_context.md` in the project root. Each section uses a level-2 heading with the file path, followed by a triple-backtick code fence containing the full file contents. No UI components, CSS, or tests included.
+### 3. `DistributeYieldDialog.tsx`
+- **Line 159**: Format grossYield for display: `+{formatValue(toNum(grossYield), asset)}`
+- **Line 198**: Same: `{formatValue(toNum(grossYield), asset)}`
+- **Line 376**: Same for success phase
+- **Lines 220-227**: Remove duplicate "INDIGO Fees Credit" row (the `indigoFeesCredit` one duplicates `totalFees`)
+- Line 265 Ending Balance is already correct (`toNum(grossYield)` will now work since grossYield is a raw numeric string)
 
-**Estimated size**: ~120KB of pure financial/architectural source code.
+### 4. `YieldConfirmDialog.tsx`
+- **Lines 139-144**: Remove duplicate "INDIGO FEES Credit" row (same value as "INDIGO Fees Credit" on line 128)
+
+### 5. `YieldPreviewResults.tsx`
+- **Lines 167-182**: Remove duplicate standalone "INDIGO FEES Credit" card (same value as summary card on line 137)
+
+---
+
+## Summary
+- 5 files changed
+- Critical arithmetic bug fixed (Ending Balance and Gross Yield display)
+- Missing prop added (`asOfAum` on AdminDashboard)
+- 3 duplicate UI rows removed
 
