@@ -51,8 +51,6 @@ export type AllocationRow = {
   /** @precision NUMERIC */
   ib_amount: number | string | null;
   /** @precision NUMERIC */
-  fee_credit: number | string | null;
-  /** @precision NUMERIC */
   net_amount: number | string;
   /** @precision NUMERIC */
   adb_share: number | string | null;
@@ -198,7 +196,6 @@ export async function fetchYieldDistributionsPageData(
         gross_amount,
         fee_amount,
         ib_amount,
-        fee_credit,
         net_amount,
         adb_share,
         ownership_pct,
@@ -216,20 +213,35 @@ export async function fetchYieldDistributionsPageData(
       ib_investor_name?: string | null;
     })[];
 
-    // Fetch IB allocations to enrich with IB person names
+    // Fetch IB allocations to enrich with IB person names AND ib_fee_amount
     const { data: ibAllocRows } = await supabase
       .from("ib_allocations")
-      .select("distribution_id, source_investor_id, ib_investor_id")
+      .select("distribution_id, source_investor_id, ib_investor_id, ib_fee_amount")
       .in("distribution_id", distributionIds)
       .eq("is_voided", false);
 
-    // Build map: (distribution_id, source_investor_id) -> ib_investor_id
+    // Build maps: (distribution_id, source_investor_id) -> ib_investor_id and ib_fee_amount
     const ibMap = new Map<string, string>();
+    const ibAmountMap = new Map<string, number>();
     const ibPersonIds = new Set<string>();
     (ibAllocRows || []).forEach((ib) => {
       const key = `${ib.distribution_id}:${ib.source_investor_id}`;
       ibMap.set(key, ib.ib_investor_id);
+      ibAmountMap.set(key, ib.ib_fee_amount);
       ibPersonIds.add(ib.ib_investor_id);
+    });
+
+    // Fetch fee_allocations for ALL distributions to enrich yield_allocations with real fee amounts
+    const { data: allFeeRows } = await supabase
+      .from("fee_allocations")
+      .select("distribution_id, investor_id, fee_amount")
+      .in("distribution_id", distributionIds)
+      .eq("is_voided", false);
+
+    const feeAmountMap = new Map<string, number>();
+    (allFeeRows || []).forEach((r) => {
+      const key = `${r.distribution_id}:${r.investor_id}`;
+      feeAmountMap.set(key, r.fee_amount);
     });
 
     // Fetch IB person profiles
@@ -244,12 +256,16 @@ export async function fetchYieldDistributionsPageData(
       });
     }
 
-    // Enrich allocations with IB person name
+    // Enrich allocations with IB person name + real fee/IB amounts
     const allocations: AllocationRow[] = rawAllocations.map((a) => {
-      const ibKey = `${a.distribution_id}:${a.investor_id}`;
-      const ibInvestorId = ibMap.get(ibKey);
+      const key = `${a.distribution_id}:${a.investor_id}`;
+      const ibInvestorId = ibMap.get(key);
+      const realFee = feeAmountMap.get(key);
+      const realIb = ibAmountMap.get(key);
       return {
         ...a,
+        fee_amount: realFee !== undefined ? realFee : a.fee_amount,
+        ib_amount: realIb !== undefined ? realIb : a.ib_amount,
         ib_investor_name: ibInvestorId ? ibProfileMap.get(ibInvestorId) || null : null,
       };
     });
