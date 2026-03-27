@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { callRPC, callRPCNoArgs } from "@/lib/supabase/typedRPC";
 import type { FundDailyAUM, YieldPurpose } from "@/types/domains/yield";
 import { formatDateForDB, getTodayString, getMonthStartDate } from "@/utils/dateUtils";
-import { logError } from "@/lib/logger";
+import { logError, logWarn } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
 
 /** Position with fund join result */
