@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db/index";
 import { getTodayString } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export interface FeeScheduleRow {
   fund_code: string;
@@ -30,7 +31,7 @@ export async function getInvestorFeeSchedule(investorId: string): Promise<FeeSch
 
   return (data || []).map((row: any) => ({
     fund_code: row.funds?.code || row.fund_id,
-    fee_pct: Number(row.fee_pct || 0),
+    fee_pct: parseFinancial(row.fee_pct || 0).toNumber(),
     effective_date: row.effective_date as string,
   }));
 }
@@ -190,7 +191,7 @@ export async function getGlobalFee(investorId: string): Promise<number | null> {
     logError("feeScheduleService.getGlobalFee", error);
     return null;
   }
-  return data ? Number(data.fee_pct) : null;
+  return data ? parseFinancial(data.fee_pct).toNumber() : null;
 }
 
 // Plain object singleton for feeScheduleService.method() pattern
