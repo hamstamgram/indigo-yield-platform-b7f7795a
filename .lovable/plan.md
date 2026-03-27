@@ -1,99 +1,62 @@
 
 
-# Live Void Cascade Test Plan
+# Resend Email Infrastructure Audit -- Results & Remediation Plan
 
-## Test Candidate (Lowest-Risk Transaction Found)
+## Audit Summary: Resend Migration is COMPLETE (functionally), but has naming debt
 
-| Field | Value |
-|-------|-------|
-| TX ID | `4dc8cfc6-f417-4064-a1e9-b3f29bf1a46d` |
-| Type | `DUST` |
-| Amount | `+0.000000000000000001` BTC (1 wei) |
-| Date | 2025-03-31 |
-| Investor | Indigo Fees (system account) |
-| Fund | IND-BTC (`0a048d9b-...`) |
+### Finding 1: Zero MailerSend API/SDK References -- PASS
+No `MAILERSEND_API_KEY`, `api.mailersend.com`, or MailerSend SDK imports exist anywhere in Edge Functions. All 9 email-sending functions use `RESEND_API_KEY` and call `https://api.resend.com/emails`. The webhook function (`mailersend-webhook`) uses `RESEND_WEBHOOK_SIGNING_SECRET` and validates `resend-signature` headers with HMAC-SHA256. The migration to Resend is functionally complete.
 
-**Pre-test baseline:** Position = `0.044322787675625682`, Active BTC txs = 43, Audit entries = 2.
+### Finding 2 (P2 -- Naming Debt): Legacy "mailersend" Names Persist
+The migration swapped internals but kept old names. This creates confusion for any new developer or auditor:
 
-**Ghost table status:** `investor_yield_events` does NOT exist (confirmed). The void RPC's `IF EXISTS` guard will skip that cascade step cleanly.
+| Artifact | Current Name | Should Be |
+|----------|-------------|-----------|
+| Edge Function directory | `send-report-mailersend/` | `send-report-email/` or `send-report-resend/` |
+| Edge Function directory | `mailersend-webhook/` | `resend-webhook/` |
+| Frontend method | `deliveryService.sendViaMailerSend()` | `deliveryService.sendViaResend()` |
+| Frontend invocations | `supabase.functions.invoke("send-report-mailersend")` (4 call sites) | Updated name |
+| Doc references | 7 files reference "mailersend" in function names | Update to match |
 
-## Why I Cannot Execute This
+**Call sites referencing old names:**
+- `src/services/admin/deliveryService.ts` -- method name + invoke call
+- `src/services/admin/reports/email.ts` -- invoke call
+- `src/services/core/systemHealthService.ts` -- invoke call
+- `src/features/admin/reports/hooks/useDeliveryMutations.ts` -- method call (x2)
+- `src/types/domains/delivery.ts` -- comment
 
-The `supabase--read_query` tool has SELECT/INSERT-only access. `void_transaction` is a SECURITY DEFINER RPC that performs UPDATEs. You need to run this in the **Supabase SQL Editor** or via the **test script** (`scripts/void-test-tx.mjs` pattern).
+### Finding 3: Resend SDK Import (P3 -- Minor)
+`send-notification-email/deno.json` imports `npm:resend@2.0.0` and uses the Resend class. All other functions use raw `fetch()` to `api.resend.com`. This inconsistency is harmless but worth noting -- the SDK adds bundle weight vs a simple fetch call.
 
-## Commands to Run in Supabase SQL Editor
+### Finding 4: Cron Job for Monthly Reports -- PASS
+Job 5 (`0 23 28-31 * *`) correctly invokes `monthly-report-scheduler` with the current anon key. The scheduler triggers `generate-fund-performance` and `process-report-delivery-queue`, both of which use Resend. No stale keys.
 
-### Step 1: Execute Void
-```sql
-SELECT void_transaction(
-  '4dc8cfc6-f417-4064-a1e9-b3f29bf1a46d'::uuid,
-  'd7f936ee-768b-4d93-83e8-f88a6cf10ae9'::uuid,
-  'Phase 9 live void cascade test - 1 wei dust'
-);
-```
+### Finding 5: Webhook Signature Verification -- PASS
+`mailersend-webhook/index.ts` (despite the name) correctly validates Resend's `resend-signature` header using HMAC-SHA256 with `RESEND_WEBHOOK_SIGNING_SECRET`. The Resend event types (`email.sent`, `email.delivered`, `email.bounced`, etc.) are properly typed.
 
-### Step 2: Verify Cascade (run immediately after)
-```sql
--- 1. TX should be voided
-SELECT id, type, amount, is_voided, voided_by, voided_at
-FROM transactions_v2 WHERE id = '4dc8cfc6-f417-4064-a1e9-b3f29bf1a46d';
+---
 
--- 2. Position should decrease by 0.000000000000000001
-SELECT current_value, cost_basis, updated_at
-FROM investor_positions
-WHERE investor_id = 'b464a3f7-60d5-4bc0-9833-7b413bcc6cae'
-  AND fund_id = '0a048d9b-c4cf-46eb-b428-59e10307df93';
--- EXPECTED: current_value = 0.044322787675625681
+## Implementation Plan
 
--- 3. Audit log should have new void entry
-SELECT action, entity, created_at, meta
-FROM audit_log
-WHERE entity_id = '4dc8cfc6-f417-4064-a1e9-b3f29bf1a46d'
-ORDER BY created_at DESC LIMIT 1;
+### Step 1: Rename `send-report-mailersend` Edge Function
+- Create `supabase/functions/send-report-email/index.ts` with the exact same content as `send-report-mailersend/index.ts`
+- Delete `supabase/functions/send-report-mailersend/`
+- Update 3 frontend call sites to invoke `"send-report-email"` instead of `"send-report-mailersend"`
 
--- 4. Ledger reconciliation still clean
-SELECT * FROM v_ledger_reconciliation;
--- EXPECTED: 0 rows
-```
+### Step 2: Rename `mailersend-webhook` Edge Function
+- Create `supabase/functions/resend-webhook/index.ts` with the exact same content
+- Delete `supabase/functions/mailersend-webhook/`
+- Update Resend dashboard webhook URL (user action -- must be communicated)
 
-### Step 3: Unvoid to Restore (cleanup)
-```sql
-SELECT unvoid_transaction(
-  '4dc8cfc6-f417-4064-a1e9-b3f29bf1a46d'::uuid,
-  'd7f936ee-768b-4d93-83e8-f88a6cf10ae9'::uuid,
-  'Restoring after successful cascade test'
-);
-```
+### Step 3: Rename Frontend Method
+- `deliveryService.sendViaMailerSend()` becomes `deliveryService.sendViaResend()`
+- Update 2 call sites in `useDeliveryMutations.ts`
 
-### Step 4: Verify Restoration
-```sql
--- Position should be back to 0.044322787675625682
-SELECT current_value FROM investor_positions
-WHERE investor_id = 'b464a3f7-60d5-4bc0-9833-7b413bcc6cae'
-  AND fund_id = '0a048d9b-c4cf-46eb-b428-59e10307df93';
+### Step 4: Update Documentation
+- `docs/flows/STATEMENT_FLOW.md` -- update function names
+- `docs/SECURITY_REVIEW.md` -- update function references
+- `docs/PLATFORM_FLOWCHARTS.md` -- update sequence diagram (also fix "MailerSend API" label to "Resend API")
 
--- Reconciliation still clean
-SELECT * FROM v_ledger_reconciliation;
-```
-
-## What This Validates
-
-1. `void_transaction` RPC executes without error (ghost table guard works)
-2. `trg_ledger_sync` fires and reverses the position delta
-3. Audit log records the void action
-4. Ledger reconciliation remains at 0 violations after void
-5. `unvoid_transaction` restores position exactly (no precision loss)
-6. Full round-trip: position returns to exact original value
-
-## Expected Results
-
-| Check | Expected |
-|-------|----------|
-| TX `is_voided` | `true` after Step 1, `false` after Step 3 |
-| Position after void | `0.044322787675625681` (decreased by 1 wei) |
-| Position after unvoid | `0.044322787675625682` (exact restoration) |
-| `v_ledger_reconciliation` | 0 rows at all times |
-| Audit log | New `void_transaction` entry with reason |
-
-Run these 4 steps in the Supabase SQL Editor and paste the results back. I will analyze the output for any anomalies.
+### Risk Note
+Renaming Edge Functions means the old function URLs stop working immediately on deploy. The webhook URL in the Resend dashboard must be updated BEFORE or simultaneously with the rename of `mailersend-webhook`. The frontend changes for `send-report-mailersend` must deploy in the same push as the function rename.
 
