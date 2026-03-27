@@ -479,8 +479,8 @@ sequenceDiagram
     participant EF as Edge Function: generate-fund-performance
     participant DB as Database
     participant DelSvc as delivery service
-    participant Mail as Edge Function: send-report-mailersend
-    participant Email as MailerSend API
+    participant Mail as Edge Function: send-report-email
+    participant Email as Resend API
 
     Note over Admin,Email: PHASE 1: Generate performance data
 
@@ -509,10 +509,10 @@ sequenceDiagram
     DelSvc-->>UI: { queued_count }
 
     loop For each queued delivery (batch of 25)
-        UI->>DelSvc: sendViaMailerSend(deliveryId)
-        DelSvc->>Mail: invoke("send-report-mailersend")
+        UI->>DelSvc: sendViaResend(deliveryId)
+        DelSvc->>Mail: invoke("send-report-email")
         Mail->>Mail: Generate HTML email
-        Mail->>Email: Send via MailerSend API
+        Mail->>Email: Send via Resend API
         Email-->>Mail: Delivery confirmation
         Mail->>DB: UPDATE statement_email_delivery (status=sent)
         Mail-->>UI: Success
