@@ -26,6 +26,7 @@ import { executeInternalRoute } from "@/services/admin/internalRouteService";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { formatAssetValue, formatPercentage } from "@/utils/formatters";
 import { toNum } from "@/utils/numeric";
+import { logError } from "@/lib/logger";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import {
   Accordion,
@@ -403,7 +404,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
           successCount++;
         } catch (err) {
           errorCount++;
-          console.error(`Failed to void distribution ${id}`, err);
+          logError("YieldDistributionsPage.bulkVoid", err, { distributionId: id });
         }
       }
 

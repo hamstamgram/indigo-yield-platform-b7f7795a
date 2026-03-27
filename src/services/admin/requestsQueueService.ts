@@ -4,11 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc/index";
-import { parseFinancial } from "@/utils/financial";
 import type {
   WithdrawalRequest,
-  ApproveWithdrawalParams,
   RejectWithdrawalParams,
 } from "@/types/domains/requests";
 
@@ -30,32 +27,6 @@ export const requestsQueueService = {
 
     if (error) throw error;
     return (data || []) as unknown as WithdrawalRequest[];
-  },
-
-  /**
-   * Approve and complete a withdrawal request in one atomic operation via RPC
-   */
-  async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
-    const now = new Date().toISOString();
-    const updatePayload: Record<string, unknown> = {
-      status: "completed",
-      approved_at: now,
-      processed_at: now,
-    };
-    if (params.amount) {
-      updatePayload.approved_amount = parseFinancial(params.amount).toNumber();
-      updatePayload.processed_amount = updatePayload.approved_amount;
-    }
-    if (params.notes) {
-      updatePayload.admin_notes = params.notes;
-    }
-
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update(updatePayload as any)
-      .eq("id", params.requestId);
-
-    if (error) throw error;
   },
 
   /**
