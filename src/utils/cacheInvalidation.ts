@@ -187,9 +187,17 @@ function invalidateByGraph(
 export async function invalidateAfterYieldOp(queryClient: QueryClient): Promise<void> {
   invalidateByGraph(queryClient, "yield");
 
+  // P0 FIX: Yield voids change positions via trg_ledger_sync -- must invalidate position cache
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ledgerReconciliation });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.perAssetStats });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+  queryClient.invalidateQueries({ queryKey: ["aum-reconciliation"] });
+
   // Force immediate refetch of critical AUM data
   await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumAll });
   await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumUnified });
+  await queryClient.refetchQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
 }
 
 /**
