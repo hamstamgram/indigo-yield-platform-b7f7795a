@@ -1,161 +1,79 @@
 
 
-# Full UI Financial Data Audit -- Indigo Yield Platform
+# Full Precision Audit: Remaining Issues
 
-## Methodology
+## Already Fixed (Previous Rounds)
+- DistributeYieldDialog: `grossYield` now receives raw string (comma truncation fix)
+- YieldPreviewResults: `trueTotalGross` uses Decimal accumulator
+- AdminStatementGenerator: summary totals use Decimal accumulator (lines 90-91)
+- YieldInputForm: uses `toNum()` instead of `parseFloat()`
+- MonthlyReportsTable: uses Decimal for save
+- ExpertPositionsTable: uses `parseFloat()` for edit inputs
 
-Audited every component that reads from financial database tables and displays numeric values. Traced each value from database column through service/hook to UI rendering function, checking for precision loss, formatting bugs, and display inconsistencies.
+## Still Broken -- Precision Loss Affecting Excel Parity
 
----
+### P1: DistributeYieldDialog Ending Balance (line 257)
+`toNum(asOfAum || 0) + toNum(grossYield)` -- JS `+` on two floats. For large AUM (e.g., 109538.51 + 5803.10) this is safe at current scale, but violates the Decimal-everywhere standard. Should use `new Decimal(asOfAum || 0).plus(new Decimal(grossYield)).toNumber()` for the `formatValue()` call.
 
-## Component Inventory by Data Source
+### P2: YieldHistoryPage accumulation loop (lines 276-284)
+Each iteration converts back to `number` via `.toNumber()` then re-wraps in `parseFinancial()` next iteration. This defeats Decimal precision. The `fg.totals` object stores numbers, so every add cycle goes Decimal -> Number -> Decimal -> Number.
+**Fix**: Store `fg.totals` as Decimal objects, only `.toNumber()` at render time.
 
-### A. `investor_positions` (current_value, cost_basis, shares, cumulative_yield_earned)
+### P3: AdminStatementGenerator position rows (lines 97-102)
+While the summary uses Decimal, individual position rows still use `Number(r.mtd_beginning_balance || 0)` etc. (6 fields). These feed into PDF generation.
+**Fix**: Use `parseFinancial(...).toNumber()` for safe handling of numeric(38,18) strings.
 
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `InvestorOverviewTab` | Admin | `FinancialValue` with `displayDecimals={4}` | OK -- Decimal.js |
-| `InvestorPositionsTab` | Admin | `FinancialValue` | OK -- Decimal.js |
-| `ExpertPositionsTable` | Admin | `formatAssetValue()` + `toFixed(4)` for shares, `toFixed(2)` for PnL % | P2: `shares` uses JS `.toFixed()` on a number -- loses precision beyond ~15 digits |
-| `FundPositionCard` | Admin | `formatPercent()` using `(value * 100).toFixed(2)` + `parseFloat()` for edits | P2: `parseFloat()` on line 90 feeds edited values into mutation -- precision loss on position edits |
-| `InvestorPortfolioPage` | Investor | `formatInvestorAmount()` / `formatSignedInvestorAmount()` | OK -- uses `toNum()` then `toLocaleString()` |
-| `InvestorOverviewPage` | Investor | `formatInvestorNumber()` | OK -- 3 decimal places, uses `toLocaleString()` |
-| `ApproveWithdrawalDialog` | Admin | `formatAssetAmount()` | OK for display; position loaded via direct `supabase.from()` (bypasses service gateway) |
-| `WithdrawalRequestForm` | Investor | `Number(requestedAmount)` for validation | OK -- validation only |
+### P4: FundPositionCard edit handler (line 91)
+`parseFloat(value) || 0` feeds into edit state and then mutation. The Decimal auto-calc on lines 96-101 operates on these floats.
+**Fix**: Use `toNum(value)` (which handles edge cases better) or keep string and parse with Decimal.
 
-### B. `transactions_v2` (amount, running_balance)
+### P5: FeeRevenueKPIs accumulation (line 26)
+`(map.get(fee.asset) || 0) + toNumber(fee.amount)` -- JS float accumulation across many fees.
+**Fix**: Use Decimal accumulator, `.toNumber()` only for display.
 
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `LedgerTable` | Admin | `FinancialValue` | OK -- Decimal.js |
-| `InvestorTransactionsTab` | Admin | `toNum()` + `formatAssetAmount()` | OK |
-| `InvestorOverviewPage` (recent txns) | Investor | `formatInvestorNumber()` | OK |
-| `VoidTransactionDialog` | Admin | `FinancialValue` | OK |
-| `UnvoidTransactionDialog` | Admin | `FinancialValue` | OK |
-| `BulkActionToolbar` | Admin | `formatAssetValue(toNum(amount))` | OK |
+### P6: investorPositionService `mapPositionToExpert` (lines 112-117)
+`parseFinancial(...).toNumber()` for `shares`, `cost_basis`, `current_value`, `total_earnings`. The comment on line 118-120 acknowledges this is acceptable at soft-launch scale but should migrate to strings. The `ExpertPosition` type uses `number`, so this requires a type change too.
+**Status**: Documented tech debt, not blocking Excel parity since these are display values already rounded by DB.
 
-### C. `yield_distributions` / `yield_allocations` (gross_yield, net_yield, fee_amount, ib_amount)
+### P7: CSV Export (csv-export.ts lines 215-297)
+All `parseFloat(v).toFixed(4)` formatters. For CSV export this is acceptable (4dp output), but could silently truncate if values have >15 significant digits.
+**Status**: Low risk at current scale.
 
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `YieldPreviewResults` | Admin | `formatValue(toNum(...))` | **P1: `trueTotalGross` computed via `reduce` + `toNum()` -- floating-point accumulation error on many investors** |
-| `DistributeYieldDialog` | Admin | `formatValue(toNum(grossYield))` | **FIXED** (was P0 -- comma truncation). Now receives raw string. |
-| `YieldConfirmDialog` | Admin | `formatValue(toNum(...))` | OK post-fix |
-| `YieldsTable` | Admin | `FinancialValue` | OK -- Decimal.js |
-| `VoidDistributionDialog` | Admin | `FinancialValue` | OK |
-| `InvestorYieldHistory` | Admin | `FinancialValue` + `parseFinancial()` for stats | OK |
-| `YieldInputForm` | Admin | `formatValue(parseFloat(yieldAmount))` | **P2: Uses `parseFloat()` 4 times on yieldAmount (lines 301-307)** -- yieldAmount comes from `Decimal.toString()` so no comma issue, but JS float arithmetic means the displayed yield preview could differ from the actual Decimal computation by dust |
-
-### D. `fund_daily_aum` / Dashboard AUM
-
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `FundSnapshotCard` | Admin | `formatAUM()` | OK |
-| `AdminDashboard` fund cards | Admin | `ops.formatValue()` | OK |
-| `YieldInputForm` AUM display | Admin | `formatValue(displayedAum)` | OK -- `displayedAum` is a number from hook |
-| `PlatformMetricsPanel` | Admin | `toLocaleString()` | OK |
-
-### E. `investor_fund_performance` (MTD/QTD/YTD/ITD balances and returns)
-
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `FundPositionCard` | Admin | `formatPercent()` with `(value * 100).toFixed(2)` + edit via `parseFloat()` | **P2: Edit path uses `parseFloat()` -> `Number` arithmetic for net income auto-calc (lines 94-99)** |
-| `MonthlyReportsTable` | Admin | `toFixed(2)` for rates, `parseFloat(editValue)` for cell edits | **P2: `parseFloat()` on save feeds into mutation** |
-| `AdminStatementGenerator` | Admin | `Number(r.mtd_ending_balance)` in reduce | **P2: Uses `Number()` for aggregation (lines 89-101)** -- accumulated precision loss across many reports |
-| `MyPerformanceHistory` | Investor | `report.rate.toFixed(3)` | OK -- rate is small number |
-| `InvestorPortfolioPage` | Investor | `item.itdReturn.toFixed(3)` | OK -- rate |
-| `PerformanceCard` | Investor | Display only | OK |
-
-### F. `statements` table
-
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `StatementsPage` | Investor | `toNum()` + `formatInvestorAmount()` | OK for display |
-| `StatementsPage` rate display | Investor | `toNum(statement.rate_of_return_mtd).toFixed(3)` | OK -- rate |
-| `StatementsPage` PDF data | Investor | `toNum()` for 20+ fields (lines 61-112) | **P3: All statement values converted to JS `number` before passing to PDF generator. For BTC positions >10M, this could cause dust-level display errors in PDFs** |
-
-### G. `fee_allocations` / `ib_allocations` / `ib_commission_ledger`
-
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `FeeRevenueKPIs` | Admin | `toNumber(fee.amount)` in reduce | **P3: Float accumulation across many fee records** |
-| `WithdrawalStats` | Admin | Display counts only | OK |
-
-### H. `withdrawal_requests`
-
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `WithdrawalsTable` | Admin | `FinancialValue` | OK |
-| `ApproveWithdrawalDialog` | Admin | `Decimal` for dust calc, `formatAssetAmount` for display | OK |
-| `CreateWithdrawalDialog` | Admin | `parseFinancial().toNumber()` for validation | OK -- comparison only |
-
-### I. Investor Yield History (`investor_yield_events` view)
-
-| Component | Portal | Rendering Method | Issues |
-|---|---|---|---|
-| `YieldHistoryPage` | Investor | `parseFinancial().toNumber()` for totals + `formatInvestorNumber()` | **P2: Lines 275-281 and 408-410 use `.toNumber()` after Decimal accumulation -- the accumulated Decimal is correct but converting to `number` at the end loses precision for display** |
+### P8: withdrawalService (lines 448, 627)
+`Number(params.amount)` -- amount goes into DB insert. Should use string or parseFinancial.
+**Fix**: Pass `params.amount` as string directly (DB column is numeric, accepts strings).
 
 ---
 
-## Categorized Issues
+## Implementation Plan (6 files, ordered by impact)
 
-### P1 -- Arithmetic Bugs Affecting Displayed Numbers
+### File 1: `DistributeYieldDialog.tsx` (line 257)
+Replace `toNum(asOfAum || 0) + toNum(grossYield)` with Decimal addition:
+```ts
+new Decimal(asOfAum || 0).plus(new Decimal(grossYield || 0)).toNumber()
+```
 
-| # | File | Line(s) | Issue | Fix |
-|---|---|---|---|---|
-| 1 | `YieldPreviewResults.tsx` | 70-71 | `trueTotalGross` computed via JS `+` operator in `.reduce()` -- float accumulation error across many investors | Use `Decimal` accumulator: `distributions.reduce((acc, inv) => acc.plus(new Decimal(inv.grossYield)), new Decimal(0))` |
+### File 2: `YieldHistoryPage.tsx` (lines 265-284)
+Change `fg.totals` from `{ gross: number, fees: number, net: number }` to `{ gross: Decimal, fees: Decimal, net: Decimal }`. Accumulate with `.plus()`. Only `.toNumber()` at the render call sites.
 
-### P2 -- Precision Loss in Edit/Mutation Paths
+### File 3: `AdminStatementGenerator.tsx` (lines 97-102)
+Replace 6 `Number(r.field)` calls with `parseFinancial(r.field).toNumber()`.
 
-| # | File | Line(s) | Issue | Fix |
-|---|---|---|---|---|
-| 2 | `FundPositionCard.tsx` | 90 | `parseFloat(value)` feeds into performance mutation | Replace with `parseFinancial(value).toNumber()` or keep as string |
-| 3 | `MonthlyReportsTable.tsx` | 106 | `parseFloat(editValue)` for cell save | Replace with `parseFinancial(editValue)` |
-| 4 | `ExpertPositionsTable.tsx` | 156, 175, 196 | `Number(e.target.value)` for position edits | Replace with `parseFloat()` minimum or `parseFinancial()` |
-| 5 | `YieldInputForm.tsx` | 301-307 | `parseFloat(yieldAmount)` for display preview | Replace with `toNum(yieldAmount)` (consistent with rest of codebase) |
-| 6 | `AdminStatementGenerator.tsx` | 89-101 | `Number()` for report aggregation | Use `Decimal` accumulator |
-| 7 | `YieldHistoryPage.tsx` | 275-281, 408-410 | `parseFinancial().toNumber()` in accumulation loop | Keep Decimal throughout; only `.toNumber()` at final display |
+### File 4: `FundPositionCard.tsx` (line 91)
+Replace `parseFloat(value) || 0` with `toNum(value)` in edit handler.
 
-### P3 -- Low Risk Display Precision
+### File 5: `FeeRevenueKPIs.tsx` (lines 23-31)
+Replace JS float accumulation with Decimal:
+```ts
+const map = new Map<string, Decimal>();
+for (const fee of fees) {
+  const prev = map.get(fee.asset) || new Decimal(0);
+  map.set(fee.asset, prev.plus(new Decimal(fee.amount || 0)));
+}
+```
 
-| # | File | Line(s) | Issue | Fix |
-|---|---|---|---|---|
-| 8 | `StatementsPage.tsx` | 61-112 | All 20+ statement values converted to JS `number` for PDF | For current AUM scale (sub-$1M), dust is below display threshold. Monitor as AUM grows. |
-| 9 | `FeeRevenueKPIs.tsx` | 26 | Float accumulation of fee amounts | Same -- monitor at scale |
+### File 6: `withdrawalService.ts` (lines 448, 627)
+Replace `Number(params.amount)` with `parseFinancial(params.amount).toNumber()` or pass string directly.
 
-### Clean -- Components Using Safe Patterns
-
-The following components use `FinancialValue` (Decimal.js internally) or `formatAssetAmount`/`formatInvestorAmount` which are safe for display:
-
-- `LedgerTable`, `WithdrawalsTable`, `YieldsTable`, `VoidDistributionDialog`, `VoidTransactionDialog`, `UnvoidTransactionDialog`, `InvestorPositionsTab`, `InvestorOverviewTab`, `InvestorOverviewPage`, `InvestorPortfolioPage`, `ApproveWithdrawalDialog` display path, `FundSnapshotCard`
-
----
-
-## Gateway Violations (Direct Supabase Calls from Components)
-
-| File | Line | Call | Should Use |
-|---|---|---|---|
-| `ApproveWithdrawalDialog.tsx` | 106-121 | `supabase.from("investor_positions").select()` | `investorPositionService` or hook |
-
----
-
-## Implementation Plan
-
-### Phase 1: Fix P1 (1 file)
-- `YieldPreviewResults.tsx`: Replace JS `.reduce()` accumulation with `Decimal` accumulator for `trueTotalGross`
-
-### Phase 2: Fix P2 Edit Paths (5 files)
-- `FundPositionCard.tsx`: Replace `parseFloat()` with `parseFinancial()` in edit handler
-- `MonthlyReportsTable.tsx`: Replace `parseFloat()` with `parseFinancial()` in save handler
-- `ExpertPositionsTable.tsx`: Replace `Number()` with `parseFloat()` in edit inputs
-- `YieldInputForm.tsx`: Replace `parseFloat(yieldAmount)` with `toNum(yieldAmount)`
-- `AdminStatementGenerator.tsx`: Use `Decimal` for report aggregation
-
-### Phase 3: Fix P2 Display Accumulation (1 file)
-- `YieldHistoryPage.tsx`: Keep Decimal throughout accumulation, only `.toNumber()` at final render
-
-### Phase 4: Gateway Fix (1 file)
-- `ApproveWithdrawalDialog.tsx`: Extract position fetch to service/hook
-
-**Total: 8 files, 0 SQL migrations, 0 new components**
+**Total: 6 files, ~20 line changes, 0 SQL migrations**
 
