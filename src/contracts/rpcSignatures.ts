@@ -1458,14 +1458,6 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_admin_id", "p_fund_id", "p_investor_id", "p_reason"] as const,
     optionalParams: ["p_dry_run"] as const,
   },
-  recalculate_all_aum: {
-    name: "recalculate_all_aum" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
-    optionalParams: [] as const,
-  },
   recalculate_fund_aum_for_date: {
     name: "recalculate_fund_aum_for_date" as const,
     returnType: "Json;",
@@ -1553,14 +1545,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: [] as const,
     optionalParams: [] as const,
-  },
-  replace_aum_snapshot: {
-    name: "replace_aum_snapshot" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_aum_date", "p_fund_id", "p_new_total_aum"] as const,
-    optionalParams: ["p_admin_id", "p_purpose", "p_reason"] as const,
   },
   requeue_stale_sending: {
     name: "requeue_stale_sending" as const,
