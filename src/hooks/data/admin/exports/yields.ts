@@ -5,9 +5,7 @@
 export * from "@/features/admin/yields/hooks/useYieldOperations";
 export {
   useYieldRecords as useRecordedYieldsData,
-  useVoidYieldRecord as useVoidYieldMutation,
   useVoidYieldDistribution,
-  useUpdateYieldAum,
 } from "@/features/admin/yields/hooks/useRecordedYieldsPage";
 export type {
   YieldRecord,
