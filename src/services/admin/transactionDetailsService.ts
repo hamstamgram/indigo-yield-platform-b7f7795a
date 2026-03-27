@@ -173,14 +173,6 @@ export async function checkInvestorBalance(
   };
 }
 
-/**
- * Check if AUM exists for a fund on a specific date (DEPRECATED)
- * AUM tracking is purely transactional now, so it inherently always "exists" as a derivable metric.
- * We return true instantly to bypass historical validation limits.
- */
-export async function checkAumExists(fundId: string, date: string): Promise<AumCheckResult> {
-  return { exists: true };
-}
 
 /**
  * Fetch all data needed for transaction form
