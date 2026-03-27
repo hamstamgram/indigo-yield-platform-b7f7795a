@@ -1,151 +1,203 @@
 
 
-# Platform Certification Report -- Audit & Remediation Plan
+# Go-Live Operational Report -- Pre-Launch SRE Audit
 
-## STATUS: 45+ prior fixes verified CLEAN. 12 new findings across 4 vectors.
+## Executive Summary
+
+The platform has strong CI/CD and audit infrastructure. Two critical gaps remain: (1) no high-concurrency stress test (50+ parallel workers), and (2) the `golden-path.yml` workflow is not enforced as a required status check. Everything else is well-architected.
 
 ---
 
-## VECTOR 1: Precision & Parity Fixes
+## PHASE 1: Load, Stress, and Deadlock Testing
 
-### P0-01: `YieldEventsTable.tsx` -- Accumulation drift via repeated `.toNumber()` in reduce
+### What EXISTS (Good)
 
-**File:** `src/features/admin/yields/components/YieldEventsTable.tsx` (lines 89-95)
+| Test | File | Coverage |
+|------|------|----------|
+| Concurrent withdrawals (same investor, 2 parallel) | `tests/integration/yield-engine/13-concurrent-withdrawals.test.ts` | Double-spend prevention, position-ledger consistency |
+| Concurrent deposit + yield distribution (2 parallel) | `tests/integration/yield-engine/12-concurrent-deposit-yield.test.ts` | Serialization via advisory locks, zero ledger drift |
+| RPC abuse / direct write blocking | `tests/sql/rpc_abuse.sql` | Canonical guard trigger enforcement |
 
-The `reduce` calls `.toNumber()` on every iteration, converting back to `number` and losing Decimal precision across iterations. With many events this accumulates IEEE 754 rounding drift.
+### What is MISSING (Gap)
 
-**Fix:** Accumulate as Decimal, call `.toNumber()` once at the end:
+**GAP 1 (P1): No high-concurrency stress test (N=50+)**
+
+The existing tests fire 2 concurrent operations via `Promise.allSettled`. This validates serialization logic but does NOT stress-test `pg_advisory_xact_lock` under contention (queue depth, timeout behavior, connection pool exhaustion).
+
+There is no K6, Artillery, or parallel Playwright worker configuration anywhere in the repository.
+
+**Recommended action:** Create a dedicated stress test that fires `apply_segmented_yield_distribution_v5` concurrently with 20-50 `approve_and_complete_withdrawal` calls against the same fund. This can be a Vitest test using `Promise.allSettled` with 50 concurrent RPC calls, or a K6 script. This is a **post-launch hardening** item -- the existing 2-way concurrency tests plus advisory locks provide adequate protection for the current small AUM / low-traffic phase.
+
+**File to create:** `tests/integration/yield-engine/14-stress-concurrent-yield-withdrawals.test.ts`
+
 ```typescript
-const totalYield = filteredEvents
-  .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount || 0)), parseFinancial(0))
-  .toNumber();
-```
+// Stress test: 1 yield distribution + 20 concurrent withdrawals
+// Verifies advisory locks queue without deadlock under contention
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { supabase } from "./helpers/supabase-client";
+// ... seed helpers ...
 
-### P0-02: `YieldPreviewResults.tsx` -- `.toNumber()` before display
+describe("Stress: Yield + 20 Concurrent Withdrawals", () => {
+  // Setup: 1 fund, 20 investors each with 10 BTC positions
+  
+  it("should process all operations without deadlock", async () => {
+    const withdrawalPromises = investors.map((inv, i) =>
+      supabase.rpc("apply_investor_transaction", {
+        p_investor_id: inv.id,
+        p_fund_id: fund.id,
+        p_type: "WITHDRAWAL",
+        p_amount: "5",
+        p_tx_date: "2025-03-15",
+        p_reference_id: `stress_w_${i}_${Date.now()}`,
+        p_admin_id: admin.id,
+        p_new_aum: String(totalAum - 5),
+        p_purpose: "transaction",
+      })
+    );
 
-**File:** `src/features/admin/yields/components/YieldPreviewResults.tsx` (lines 69-72)
+    const yieldPromise = supabase.rpc("apply_segmented_yield_distribution_v5", {
+      // ... yield params for the fund
+    });
 
-`trueTotalGross` calls `.toNumber()` -- this is at the display boundary so acceptable, but should use `.toString()` and pass to `FinancialValue` for consistency with the precision standard.
-
-**Fix:** Keep as `.toString()` and pass to `FinancialValue` component instead of `formatValue(trueTotalGross)`.
-
-### P0-03: `DistributeYieldDialog.tsx` -- `.toNumber()` in Ending Balance calc
-
-**File:** `src/features/admin/yields/components/DistributeYieldDialog.tsx` (line 258)
-
-Ending Balance is computed via `new Decimal(...).plus(...).toNumber()` then passed to `formatValue`. Should stay as string.
-
-**Fix:** Use `.toString()` and pass to `FinancialValue` component or `formatValue` with the string directly.
-
-### P1-01: `investorPortfolioSummaryService.ts` -- `assetBreakdown` uses native `+=`
-
-**File:** `src/features/investor/portfolio/services/investorPortfolioSummaryService.ts` (line 93)
-
-`assetBreakdown[pos.asset] += pos.currentValue` uses native JS addition on a `number` typed field that comes from a position. The `InvestorPositionDetail.currentValue` is typed as `number` (already converted), so the `+=` accumulation is a precision risk for large portfolios.
-
-**Fix:** Use Decimal accumulation:
-```typescript
-const assetBreakdown: Record<string, number> = {};
-positions.forEach((pos) => {
-  const key = pos.asset;
-  assetBreakdown[key] = parseFinancial(assetBreakdown[key] || 0)
-    .plus(parseFinancial(pos.currentValue || 0))
-    .toNumber();
+    const results = await Promise.allSettled([yieldPromise, ...withdrawalPromises]);
+    
+    // No rejections with "deadlock detected"
+    const deadlocks = results.filter(
+      r => r.status === "rejected" && String(r.reason).includes("deadlock")
+    );
+    expect(deadlocks).toHaveLength(0);
+    
+    // Ledger reconciliation: zero drift
+    const { data: recon } = await supabase
+      .from("v_ledger_reconciliation")
+      .select("*")
+      .eq("fund_id", fund.id);
+    expect(recon?.length || 0).toBe(0);
+  }, 60000); // 60s timeout for stress
 });
 ```
 
-### P1-02: `investorPortfolioSummaryService.ts` -- `Number()` on line 179-181
+---
 
-**File:** `src/features/investor/portfolio/services/investorPortfolioSummaryService.ts` (lines 179-181)
+## PHASE 2: Disaster Recovery and Audit Logs
 
-`Number(investor.totalAUM || 0)` -- bare `Number()` on financial values from RPC.
+### 2A: PITR / Backup Documentation
 
-**Fix:** Replace with `parseFinancial(investor.totalAUM || 0).toNumber()`.
+**STATUS: DOCUMENTED but not machine-enforced**
 
-### P2-01: `YieldDistributionsPage.tsx` -- `Number()` on fee percentages
+`docs/DISASTER_RECOVERY.md` explicitly documents:
+- Supabase daily backups (7-day retention on Pro plan)
+- Point-in-time recovery (PITR) procedure with step-by-step instructions
+- Recovery time objectives (RTO) table
+- Pre-launch backup verification checklist
 
-**File:** `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (lines 130, 185, 191)
+`supabase/config.toml` is the local dev config and does not control production PITR -- that is a Supabase dashboard setting.
 
-`formatPercentage(Number(fa.fee_percentage), 2)` -- these are percentage values (0-100 range), not financial amounts. Low precision risk but inconsistent with standards.
+**Recommendation:** No code change needed. Before go-live, verify in the Supabase Dashboard that PITR is enabled: **Settings > Database > Backups > Point-in-time Recovery**.
 
-**Fix:** Replace with `parseFinancial(fa.fee_percentage || 0).toNumber()`.
+### 2B: Audit Log Completeness
 
-### P2-02: Display components (`KPI.tsx`, `FormattedNumber.tsx`, `ActivityFeed.tsx`) use `parseFloat`
+**STATUS: COMPREHENSIVE -- PASS**
 
-These are display-boundary components that convert strings to numbers purely for `Intl.NumberFormat`. Since they perform no arithmetic and are the final rendering step, this is **acceptable** per the standard ("`.toNumber()` only at the final display boundary"). No change needed.
+The `audit_log` table captures `actor_user` (from `auth.uid()`) and full `old_values` / `new_values` JSON diffs via multiple mechanisms:
 
-### P2-03: `withdrawalService.ts` -- `Number()` on `requestedAmount`
+| Mechanism | Tables Covered | Captures |
+|-----------|---------------|----------|
+| `delta_audit_*` triggers | `transactions_v2`, `investor_positions`, `yield_distributions`, `withdrawal_requests` | Full `to_jsonb(OLD)` vs `to_jsonb(NEW)` on every UPDATE, full record on INSERT/DELETE |
+| `audit_transaction_changes` trigger | `transactions_v2` | Redundant deep audit with trigger source metadata |
+| `audit_fee_schedule_changes` trigger | `investor_fee_schedule` | old/new fee percentages, effective dates |
+| `audit_role_changes` trigger | `user_roles` | Role grants/revokes |
+| Inline RPC audit inserts | `void_transaction`, `apply_segmented_yield_distribution_v5`, `approve_and_complete_withdrawal` | Action-specific metadata (voided amounts, distribution params) |
 
-**File:** `src/features/investor/withdrawals/services/withdrawalService.ts` (line 485)
+The `audit_log` table is **fully immutable** -- RLS policies block UPDATE and DELETE for all roles. Insert policy requires `actor_user = auth.uid()`.
 
-`Number(params.requestedAmount)` before writing to Supabase. Should use string to preserve precision for the `NUMERIC(38,18)` column.
-
-**Fix:** Replace `Number(params.requestedAmount)` with `String(params.requestedAmount)`.
+**No gaps found.**
 
 ---
 
-## VECTOR 2: React Query Cache & UI State Hydration
+## PHASE 3: CI/CD Pipeline and Deployment Gates
 
-### Assessment: CLEAN
+### 3A: Integrity Check as Merge Gate
 
-The `cacheInvalidation.ts` module is well-architected with a dependency graph approach. Key findings:
+**STATUS: EXISTS in `golden-path.yml` but needs enforcement as Required Status Check**
 
-- `invalidateAfterYieldOp` covers positions, ledger reconciliation, perAssetStats, integrity, and force-refetches AUM. **PASS**
-- `invalidateAfterTransaction` covers all transaction-derived keys and force-refetches AUM. **PASS**
-- `invalidateAfterWithdrawal` chains into `invalidateAfterTransaction`. **PASS**
-- `DistributeYieldDialog` imports `Decimal` and uses live props (`asOfAum`, `grossYield`). It does NOT cache stale data. **PASS**
+The `golden-path.yml` workflow has a robust 6-stage pipeline:
 
-**No additional cache invalidation fixes needed.**
+```text
+db-integrity --> contract-validation --> flow-pack-tests --> golden-path-tests
+            \--> sql-proof-suite --> integrity-monitor
+                                          |
+                                    summary (FAIL gate)
+```
+
+The `summary` job (line 509) explicitly fails if any critical job fails:
+```yaml
+if: needs.db-integrity.result == 'failure' || needs.sql-proof-suite.result == 'failure' || ...
+run: exit 1
+```
+
+The `sql-proof-suite` job runs `run_integrity_pack()` and **fails the pipeline** if `overall_status != 'pass'` (lines 396-406).
+
+**GAP 2 (P0): `golden-path.yml` is NOT a GitHub Required Status Check**
+
+The workflow runs on `pull_request` to `main` and `develop`, but there is nothing preventing a maintainer from merging even if it fails. GitHub branch protection rules must be configured to make the `summary` job a **required status check**.
+
+**Action (manual, not code):** In GitHub repo Settings > Branches > Branch protection rules for `main`:
+1. Enable "Require status checks to pass before merging"
+2. Add `CI Summary` (from `golden-path.yml`) as a required check
+3. Add `Lint & Type Check` (from `ci.yml`) as a required check
+
+### 3B: E2E Golden Path as Merge Blocker
+
+**STATUS: PRESENT but not enforced**
+
+`golden-path.yml` runs `tests/e2e/golden-path-smoke.spec.ts` via Playwright (lines 294-313). The `summary` job treats `golden-path-tests` failure as a pipeline failure. However, same gap as above -- it is not a GitHub Required Status Check.
+
+**Same fix as 3A above.**
+
+### 3C: `ci.yml` Pipeline Assessment
+
+The `ci.yml` pipeline is well-structured with 5 parallel jobs:
+- `lint-and-type` -- ESLint + `tsc --noEmit`
+- `test-unit` -- Unit tests
+- `sql-checks` -- Migration dry-run, admin gate verification, ledger integrity views, yield conservation
+- `contract-integrity` -- Enum contracts, SQL hygiene, gateway enforcement, protected table mutation scan
+- `qa-invariants` -- Raw enum check, dust references
+- `security-scan` -- `pnpm audit` + TruffleHog secrets scan
+
+All of these run on PR to `main`/`develop`. The `sql-checks` job runs the integrity views against a clean Postgres and verifies zero violations.
 
 ---
 
-## VECTOR 3: Trigger Cascades & Concurrency
+## Implementation Plan
 
-### Assessment: CLEAN (verified from prior audit rounds)
+### Priority 1 (Before Launch -- Manual Config)
+**GitHub Branch Protection:** Configure `main` branch to require `CI Summary` and `Lint & Type Check` as required status checks. This is a 2-minute GitHub UI change, not a code change.
 
-- `void_yield_distribution`: advisory lock by distribution_id, full cascade to yield_allocations, fee_allocations, ib_allocations, platform_fee_ledger, ib_commission_ledger. **PASS**
-- `apply_segmented_yield_distribution_v5`: advisory lock on fund_id + period. **PASS**
-- `apply_investor_transaction`: advisory lock by hash of investor_id + fund_id. **PASS**
-- `approve_and_complete_withdrawal`: atomic within RPC, dust sweep for full exits. **PASS**
-- AUM refresh after yield apply: now calls `recalculate_fund_aum_for_date(fundId, CURRENT_DATE)`. **PASS**
+### Priority 2 (Before Launch -- Manual Verification)
+**PITR Verification:** Confirm in Supabase Dashboard > Settings > Database > Backups that Point-in-Time Recovery is enabled for production.
 
-**No additional database fixes needed.**
+### Priority 3 (Post-Launch Hardening -- 1 new test file)
+**Stress Test:** Create `tests/integration/yield-engine/14-stress-concurrent-yield-withdrawals.test.ts` with 20+ concurrent operations to verify advisory lock queue behavior under contention. Not blocking for soft launch with small AUM.
 
----
-
-## VECTOR 4: Dead Code Eradication
-
-### 4A: Ghost RPC Signatures in `rpcSignatures.ts`
-
-`crystallize_month_end` (line 67, 607-614) -- This RPC was dropped in the V6 migration. The signature remains in contracts but is never called from application code.
-
-**Fix:** Remove from the `RPC_SIGNATURES` list and object in `src/contracts/rpcSignatures.ts`.
-
-### 4B: Ghost Table Schema in `dbSchema.ts`
-
-`fund_yield_snapshots` (lines 190-209) -- This table was dropped. The schema entry remains.
-
-**Fix:** Remove the `fund_yield_snapshots` entry from `src/contracts/dbSchema.ts`.
-
-### 4C: Deprecated Hook Stub
-
-`useFundYieldSnapshots` in `src/features/admin/yields/hooks/useYieldCrystallization.ts` (lines 140-151) -- Marked `@deprecated`, returns empty array with `enabled: false`. Dead code.
-
-**Fix:** Remove the function entirely. Search confirms zero external callers.
-
-### 4D: `investor_yield_events` References in Frontend
-
-All 4 frontend files referencing `investor_yield_events` are **comment-only** (documenting the V6 architecture change). These are informational and do NOT reference the table in queries. **No action needed** -- the comments are accurate documentation.
+### No Code Changes Required
+All three phases surface **operational configuration gaps** (GitHub settings, Supabase dashboard), not code defects. The CI/CD pipelines, audit triggers, and concurrency tests are already well-implemented in the codebase.
 
 ---
 
-## Implementation Summary
+## Certification Matrix
 
-| Vector | Files | Severity | Type |
-|--------|-------|----------|------|
-| V1: YieldEventsTable reduce drift | 1 TS | P0 | Precision |
-| V1: YieldPreviewResults `.toNumber()` | 1 TSX | P0 | Precision |
-| V1: DistributeYieldDialog Ending Balance | 1 TSX | P0 | Precision |
-| V1: Portfolio `assetBreakdown` `+=` | 1 TS | P1 | Precision |
-| V1: Portfolio `Number()` on financial | 1 TS | P1 | Precision |
-| V1: YieldDistributionsPage `Number()` | 1 TSX | P2 | Consistency
+| Check | Status | Action |
+|-------|--------|--------|
+| Advisory lock concurrency (2-way) | PASS | Exists in tests 12, 13 |
+| Advisory lock stress (50-way) | MISSING | Post-launch hardening |
+| PITR documentation | PASS | Documented in DR guide |
+| PITR enabled in production | VERIFY | Check Supabase dashboard |
+| Audit log: auth.uid() capture | PASS | All triggers use `auth.uid()` |
+| Audit log: old/new JSON diff | PASS | `to_jsonb(OLD)` / `to_jsonb(NEW)` |
+| Audit log immutability | PASS | RLS blocks UPDATE/DELETE |
+| Integrity pack in CI | PASS | `run_integrity_pack()` in golden-path.yml |
+| E2E golden path in CI | PASS | Playwright smoke in golden-path.yml |
+| CI as required merge gate | MISSING | Configure GitHub branch protection |
+| Security scan (secrets + audit) | PASS | TruffleHog + pnpm audit |
+
