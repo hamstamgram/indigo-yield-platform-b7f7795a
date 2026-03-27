@@ -1538,22 +1538,6 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_actor_id", "p_operation"] as const,
     optionalParams: [] as const,
   },
-  reset_all_data_keep_profiles: {
-    name: "reset_all_data_keep_profiles" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_confirmation_code"] as const,
-    optionalParams: [] as const,
-  },
-  reset_all_investor_positions: {
-    name: "reset_all_investor_positions" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_confirmation_code"] as const,
-    optionalParams: [] as const,
-  },
   retry_delivery: {
     name: "retry_delivery" as const,
     returnType: "Json",
