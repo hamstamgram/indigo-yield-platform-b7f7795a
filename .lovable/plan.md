@@ -1,104 +1,151 @@
 
 
-# Full System Audit & Verification Report
+# Platform Certification Report -- Audit & Remediation Plan
 
-## STATUS: System Core is CLEAN -- 3 Live Data Issues + 3 Minor Code Issues Remain
-
-All 45+ fixes from prior rounds are verified intact. No regressions. The ledger-to-position reconciliation is zero-drift across all funds. Cost basis integrity is clean. No orphaned allocations. No negative positions. No zero-balance active positions. No direct table mutations from frontend. No `profiles.is_admin` references. Security hardening (REVOKE on anon, is_admin() guards) all confirmed.
+## STATUS: 45+ prior fixes verified CLEAN. 12 new findings across 4 vectors.
 
 ---
 
-## CRITICAL (P0): 2 Live AUM Data Issues
+## VECTOR 1: Precision & Parity Fixes
 
-### 1. IND-BTC AUM Snapshot is Stale (10.38 vs actual 20.00)
+### P0-01: `YieldEventsTable.tsx` -- Accumulation drift via repeated `.toNumber()` in reduce
 
-The Feb 27 yield distribution (applied today at 17:07 UTC) correctly updated AUM for Feb 27 (20.0) and Feb 28 (20.0), but the AUM snapshots for March 12-27 were written BEFORE the yield was applied and still show the pre-yield value of 10.38. The `recalculate_fund_aum_for_date` only recalculates for the distribution's effective_date, not for all subsequent dates.
+**File:** `src/features/admin/yields/components/YieldEventsTable.tsx` (lines 89-95)
 
-**Impact**: Admin dashboard, yield preview, and fund cards show BTC AUM as 10.38 instead of 20.0. Next yield distribution will use wrong Opening AUM.
+The `reduce` calls `.toNumber()` on every iteration, converting back to `number` and losing Decimal precision across iterations. With many events this accumulates IEEE 754 rounding drift.
 
-**Fix**: Run `recalculate_fund_aum_for_date` for IND-BTC for today's date (2026-03-27). This is a one-time data heal. Long-term, the yield apply flow should refresh AUM for CURRENT_DATE after applying historical yields.
+**Fix:** Accumulate as Decimal, call `.toNumber()` once at the end:
+```typescript
+const totalYield = filteredEvents
+  .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount || 0)), parseFinancial(0))
+  .toNumber();
+```
 
-### 2. IND-ETH Has No AUM Snapshots Beyond July 2025
+### P0-02: `YieldPreviewResults.tsx` -- `.toNumber()` before display
 
-Latest ETH AUM snapshot is from 2025-07-31. The fund has 6 active positions summing to 308.45 but no recent AUM record. This means ETH won't appear correctly in AUM-dependent views.
+**File:** `src/features/admin/yields/components/YieldPreviewResults.tsx` (lines 69-72)
 
-**Fix**: Run `recalculate_fund_aum_for_date` for IND-ETH for today's date.
+`trueTotalGross` calls `.toNumber()` -- this is at the display boundary so acceptable, but should use `.toString()` and pass to `FinancialValue` for consistency with the precision standard.
+
+**Fix:** Keep as `.toString()` and pass to `FinancialValue` component instead of `formatValue(trueTotalGross)`.
+
+### P0-03: `DistributeYieldDialog.tsx` -- `.toNumber()` in Ending Balance calc
+
+**File:** `src/features/admin/yields/components/DistributeYieldDialog.tsx` (line 258)
+
+Ending Balance is computed via `new Decimal(...).plus(...).toNumber()` then passed to `formatValue`. Should stay as string.
+
+**Fix:** Use `.toString()` and pass to `FinancialValue` component or `formatValue` with the string directly.
+
+### P1-01: `investorPortfolioSummaryService.ts` -- `assetBreakdown` uses native `+=`
+
+**File:** `src/features/investor/portfolio/services/investorPortfolioSummaryService.ts` (line 93)
+
+`assetBreakdown[pos.asset] += pos.currentValue` uses native JS addition on a `number` typed field that comes from a position. The `InvestorPositionDetail.currentValue` is typed as `number` (already converted), so the `+=` accumulation is a precision risk for large portfolios.
+
+**Fix:** Use Decimal accumulation:
+```typescript
+const assetBreakdown: Record<string, number> = {};
+positions.forEach((pos) => {
+  const key = pos.asset;
+  assetBreakdown[key] = parseFinancial(assetBreakdown[key] || 0)
+    .plus(parseFinancial(pos.currentValue || 0))
+    .toNumber();
+});
+```
+
+### P1-02: `investorPortfolioSummaryService.ts` -- `Number()` on line 179-181
+
+**File:** `src/features/investor/portfolio/services/investorPortfolioSummaryService.ts` (lines 179-181)
+
+`Number(investor.totalAUM || 0)` -- bare `Number()` on financial values from RPC.
+
+**Fix:** Replace with `parseFinancial(investor.totalAUM || 0).toNumber()`.
+
+### P2-01: `YieldDistributionsPage.tsx` -- `Number()` on fee percentages
+
+**File:** `src/features/admin/yields/pages/YieldDistributionsPage.tsx` (lines 130, 185, 191)
+
+`formatPercentage(Number(fa.fee_percentage), 2)` -- these are percentage values (0-100 range), not financial amounts. Low precision risk but inconsistent with standards.
+
+**Fix:** Replace with `parseFinancial(fa.fee_percentage || 0).toNumber()`.
+
+### P2-02: Display components (`KPI.tsx`, `FormattedNumber.tsx`, `ActivityFeed.tsx`) use `parseFloat`
+
+These are display-boundary components that convert strings to numbers purely for `Intl.NumberFormat`. Since they perform no arithmetic and are the final rendering step, this is **acceptable** per the standard ("`.toNumber()` only at the final display boundary"). No change needed.
+
+### P2-03: `withdrawalService.ts` -- `Number()` on `requestedAmount`
+
+**File:** `src/features/investor/withdrawals/services/withdrawalService.ts` (line 485)
+
+`Number(params.requestedAmount)` before writing to Supabase. Should use string to preserve precision for the `NUMERIC(38,18)` column.
+
+**Fix:** Replace `Number(params.requestedAmount)` with `String(params.requestedAmount)`.
 
 ---
 
-## HIGH (P1): 28 Historical Conservation Violations
+## VECTOR 2: React Query Cache & UI State Hydration
 
-28 yield distributions have `gross_yield_amount` (header) that doesn't match `SUM(allocation gross) - these are historical distributions from before the V5 precision tightening. The allocation-level gross amounts were rounded to whole numbers (e.g., 6.0, 27.0, 355.0) while the header stored the precise value (e.g., 5.997576811200).
+### Assessment: CLEAN
 
-**Impact**: The integrity monitor's conservation check may flag these as violations. However, the ledger itself is correct (positions match transaction sums with zero drift). These are display/audit artifacts, not financial errors.
+The `cacheInvalidation.ts` module is well-architected with a dependency graph approach. Key findings:
 
-**Fix**: Two options:
-- Option A (recommended): Update the conservation check view to use a wider threshold for distributions created before a cutoff date (e.g., 2026-03-01)
-- Option B: Backfill `gross_yield_amount` on the 28 distribution headers to match the actual allocation sums
+- `invalidateAfterYieldOp` covers positions, ledger reconciliation, perAssetStats, integrity, and force-refetches AUM. **PASS**
+- `invalidateAfterTransaction` covers all transaction-derived keys and force-refetches AUM. **PASS**
+- `invalidateAfterWithdrawal` chains into `invalidateAfterTransaction`. **PASS**
+- `DistributeYieldDialog` imports `Decimal` and uses live props (`asOfAum`, `grossYield`). It does NOT cache stale data. **PASS**
 
----
-
-## MEDIUM (P2): 3 Code Quality Issues
-
-### 3. `feeSettingsService.ts` Uses Bare `Number()` on Financial Value (line 26)
-
-`Number(val)` on `global_fee_settings.value` (a platform fee percentage like 0.20). Low risk since it's a small config value, but inconsistent with standards.
-
-**Fix**: Replace with `parseFinancial(val).toNumber()`.
-
-### 4. `yieldHistoryService.ts` Has `console.warn` in Production (line 176)
-
-A `console.warn()` call remains in production code when a fund ID is missing during yield history fetch.
-
-**Fix**: Replace with `logWarn("yieldHistoryService.mapFunds", { fund: code || name })`.
-
-### 5. `yieldApplyService.ts` Does NOT Refresh AUM for Current Date After Historical Yield
-
-When a yield distribution is applied for a past date (e.g., Feb 27), the RPC refreshes AUM for that date but the frontend service doesn't trigger an AUM refresh for today's date. This is the root cause of P0 issue #1.
-
-**Fix**: After `applyYieldDistribution` succeeds, call `recalculate_fund_aum_for_date(fundId, CURRENT_DATE)` via RPC to ensure the latest snapshot reflects the new position balances.
+**No additional cache invalidation fixes needed.**
 
 ---
 
-## VERIFIED CLEAN (No Action Needed)
+## VECTOR 3: Trigger Cascades & Concurrency
 
-| Area | Status |
-|------|--------|
-| Ledger-to-position reconciliation | 0 mismatches |
-| Cost basis integrity | 0 mismatches |
-| Orphaned allocations (yield/fee/ib) | 0 |
-| Negative positions | 0 |
-| Zero-balance active positions | 0 |
-| Direct table mutations from frontend | None |
-| `profiles.is_admin` usage | Removed |
-| `parseFloat()` in services | Removed (all parseFinancial) |
-| `console.log/error` in features | Removed |
-| Decimal precision (40) | Correct everywhere |
-| Void cascade (yield/fee/ib allocations) | Fixed |
-| Full-exit position deactivation | Fixed |
-| Dead code (`approveWithdrawal`) | Removed |
-| Security REVOKE on anon | Applied to 20 RPCs |
-| Advisory locks | All critical RPCs covered |
-| csv-export precision | Fixed (parseFinancial) |
-| Edge function precision | Fixed (40) |
+### Assessment: CLEAN (verified from prior audit rounds)
+
+- `void_yield_distribution`: advisory lock by distribution_id, full cascade to yield_allocations, fee_allocations, ib_allocations, platform_fee_ledger, ib_commission_ledger. **PASS**
+- `apply_segmented_yield_distribution_v5`: advisory lock on fund_id + period. **PASS**
+- `apply_investor_transaction`: advisory lock by hash of investor_id + fund_id. **PASS**
+- `approve_and_complete_withdrawal`: atomic within RPC, dust sweep for full exits. **PASS**
+- AUM refresh after yield apply: now calls `recalculate_fund_aum_for_date(fundId, CURRENT_DATE)`. **PASS**
+
+**No additional database fixes needed.**
 
 ---
 
-## Implementation Plan
+## VECTOR 4: Dead Code Eradication
 
-### Phase 1: Data Heal (SQL - run via Supabase SQL Editor)
-1. Recalculate BTC AUM for today: `SELECT recalculate_fund_aum_for_date((SELECT id FROM funds WHERE code = 'IND-BTC'), CURRENT_DATE)`
-2. Recalculate ETH AUM for today: `SELECT recalculate_fund_aum_for_date((SELECT id FROM funds WHERE code = 'IND-ETH'), CURRENT_DATE)`
+### 4A: Ghost RPC Signatures in `rpcSignatures.ts`
 
-### Phase 2: Prevent Future Stale AUM (1 TS file)
-Add a post-yield AUM refresh call in `yieldApplyService.ts` that calls `recalculate_fund_aum_for_date(fundId, CURRENT_DATE)` after every successful yield application.
+`crystallize_month_end` (line 67, 607-614) -- This RPC was dropped in the V6 migration. The signature remains in contracts but is never called from application code.
 
-### Phase 3: Code Cleanup (2 TS files)
-1. `feeSettingsService.ts`: `Number(val)` to `parseFinancial(val).toNumber()`
-2. `yieldHistoryService.ts`: `console.warn` to `logWarn`
+**Fix:** Remove from the `RPC_SIGNATURES` list and object in `src/contracts/rpcSignatures.ts`.
 
-### Phase 4: Conservation Check Tolerance (1 SQL migration)
-Update the conservation check view or integrity monitor to use a wider tolerance for pre-V5 distributions, preventing false-positive alerts on the 28 historical records.
+### 4B: Ghost Table Schema in `dbSchema.ts`
 
-**Total: 1 SQL migration + 3 TypeScript files + 2 manual SQL commands**
+`fund_yield_snapshots` (lines 190-209) -- This table was dropped. The schema entry remains.
 
+**Fix:** Remove the `fund_yield_snapshots` entry from `src/contracts/dbSchema.ts`.
+
+### 4C: Deprecated Hook Stub
+
+`useFundYieldSnapshots` in `src/features/admin/yields/hooks/useYieldCrystallization.ts` (lines 140-151) -- Marked `@deprecated`, returns empty array with `enabled: false`. Dead code.
+
+**Fix:** Remove the function entirely. Search confirms zero external callers.
+
+### 4D: `investor_yield_events` References in Frontend
+
+All 4 frontend files referencing `investor_yield_events` are **comment-only** (documenting the V6 architecture change). These are informational and do NOT reference the table in queries. **No action needed** -- the comments are accurate documentation.
+
+---
+
+## Implementation Summary
+
+| Vector | Files | Severity | Type |
+|--------|-------|----------|------|
+| V1: YieldEventsTable reduce drift | 1 TS | P0 | Precision |
+| V1: YieldPreviewResults `.toNumber()` | 1 TSX | P0 | Precision |
+| V1: DistributeYieldDialog Ending Balance | 1 TSX | P0 | Precision |
+| V1: Portfolio `assetBreakdown` `+=` | 1 TS | P1 | Precision |
+| V1: Portfolio `Number()` on financial | 1 TS | P1 | Precision |
+| V1: YieldDistributionsPage `Number()` | 1 TSX | P2 | Consistency
