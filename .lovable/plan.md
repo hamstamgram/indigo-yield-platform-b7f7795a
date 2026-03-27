@@ -1,157 +1,99 @@
 
 
-# Phase 2: RPC & Trigger Cascade Verification -- Results
+# Phase 2-4 Comprehensive Verification Results
 
-## Summary: CLEAN (with 2 minor findings, 0 blockers)
+## PHASE 2: Ledger & Mathematical Invariants -- PASS (1 minor finding)
 
-I verified all critical RPCs, trigger chains, and integrity views. Here are the results.
+### Dust Violations
+**CLEAN.** Zero active positions with ghost dust (value > 0 and < 0.0000001).
 
----
+### Precision Audit (Live RPCs)
 
-## RPC Inventory -- All Present and Correct
+| RPC | numeric(10,x) vars | ROUND() | Status |
+|-----|-------------------|---------|--------|
+| `apply_segmented_yield_distribution_v5` | NONE | ROUND(..., 18) x3, ROUND(..., 4) x1 | PASS |
+| `apply_transaction_with_crystallization` | NONE | NONE | PASS |
+| `apply_investor_transaction` | NONE | NONE | PASS |
+| `recompute_investor_position` | NONE | NONE | PASS |
+| `void_transaction` | NONE | NONE | PASS |
+| `void_yield_distribution` | NONE | NONE | PASS |
 
-All 17 critical RPCs exist as `SECURITY DEFINER` functions with correct parameter signatures:
+**Finding 2.1 (P3 -- Cosmetic):** `apply_segmented_yield_distribution_v5` uses `ROUND(..., 4)` for the ownership percentage display column in `yield_allocations.ownership_pct`. This is display-only and does not affect financial calculations (gross/fee/ib/net all use ROUND 18). No action needed.
 
-| RPC | Status | Notes |
-|-----|--------|-------|
-| `void_transaction` | PASS | Ghost table guard in place, advisory lock, full cascade |
-| `void_yield_distribution` | PASS | Comprehensive cascade (txs, fees, IB, platform_fee_ledger, ib_commission_ledger) |
-| `void_and_reissue_transaction` | PASS | Correct 6-param signature |
-| `apply_transaction_with_crystallization` | PASS | Idempotency check, advisory lock, AUM auto-record |
-| `apply_investor_transaction` | PASS | Two overloads (9 and 10 params), both SECURITY DEFINER |
-| `apply_segmented_yield_distribution_v5` | PASS | V5/V6 engine |
-| `preview_segmented_yield_distribution_v5` | PASS | Read-only preview |
-| `recompute_investor_position` | PASS | Full ledger recompute |
-| `reconcile_investor_position_internal` | PASS | Internal recompute |
-| `calc_avg_daily_balance` | PASS | ADB calculation, STABLE |
-| `edit_transaction` | PASS | Metadata-only edits |
-| `update_transaction` | PASS | Edits with audit trail |
-| `delete_transaction` | PASS | Confirmation-gated hard delete |
-| `get_void_transaction_impact` | PASS | Preview before void |
-| `validate_aum_against_positions` | PASS | Read-only AUM check |
-| `force_delete_investor` | PASS | Ghost table guard already present |
-| `unvoid_transaction` | PASS | Exists in DB |
-| `void_transactions_bulk` | PASS | Exists in DB |
-| `unvoid_transactions_bulk` | PASS | Exists in DB |
+**Finding 2.2 (RESOLVED):** All `numeric(10,6)` variable declarations from the old yield engine have been eliminated from live RPCs. They persist only in archived migrations (which are never re-executed).
+
+### FLOAT References
+**CLEAN.** No `FLOAT` or `DOUBLE PRECISION` casts in any active migration or live RPC. Only references are in SQL comments (tolerance descriptions) in test files.
 
 ---
 
-## Trigger Chain Verification
+## PHASE 3: Concurrency & Security Gating -- 2 findings
 
-### transactions_v2 (20 triggers, all enabled)
+### Advisory Lock Audit
 
-| Trigger | Timing | Events | Status |
-|---------|--------|--------|--------|
-| `trg_enforce_canonical_transaction` | BEFORE | I/U/D | PASS -- blocks non-RPC writes |
-| `trg_enforce_transaction_via_rpc` | BEFORE | INSERT | PASS |
-| `protect_transactions_immutable` | BEFORE | UPDATE | PASS -- protects key fields |
-| `trg_validate_transaction_amount` | BEFORE | INSERT | PASS |
-| `trg_validate_tx_type` | BEFORE | I/U | PASS |
-| `trg_enforce_economic_date` | BEFORE | INSERT | PASS |
-| `trg_enforce_internal_visibility` | BEFORE | INSERT | PASS |
-| `trg_enforce_transaction_asset` | BEFORE | I/U | PASS |
-| `trg_enforce_yield_distribution_guard` | BEFORE | I/U | PASS |
-| `trg_transactions_v2_active_fund` | BEFORE | I/U | PASS -- canonical bypass works |
-| `trg_validate_transaction_fund_status` | BEFORE | INSERT | PASS |
-| `trg_transactions_v2_sync_voided_by` | BEFORE | I/U | PASS |
-| `zz_trg_transactions_v2_immutability` | BEFORE | UPDATE | PASS -- runs last (zz prefix) |
-| `trg_ledger_sync` | AFTER | I/U | PASS -- incremental position delta |
-| `trg_recompute_on_void` | AFTER | UPDATE | PASS -- skips when canonical_rpc set |
-| `trg_cascade_void_from_transaction` | AFTER | UPDATE | PASS -- cascades to fee_allocations |
-| `audit_transactions_v2_changes` | AFTER | I/U/D | PASS |
-| `delta_audit_transactions_v2` | AFTER | I/U/D | PASS |
-| `trg_audit_transactions` | AFTER | I/U/D | PASS |
-| `trg_update_last_activity_on_transaction` | AFTER | INSERT | PASS |
+| RPC | Has Advisory Lock | Severity |
+|-----|------------------|----------|
+| `apply_transaction_with_crystallization` | YES | -- |
+| `apply_segmented_yield_distribution_v5` | YES | -- |
+| `void_transaction` | YES | -- |
+| `apply_investor_transaction` (10-param) | YES | -- |
+| `apply_investor_transaction` (9-param) | **NO** | **P2** |
+| `void_yield_distribution` | **NO** | **P1** |
+| `recompute_investor_position` | **NO** | P3 (idempotent recompute) |
+| `void_and_reissue_transaction` | **NO** | P2 (calls void_transaction internally which has its own lock) |
 
-### yield_distributions (7 triggers, all enabled)
+**Finding 3.1 (P1):** `void_yield_distribution` has NO advisory lock. Two admins could concurrently void the same distribution, causing duplicate reversal transactions. This is the highest-priority fix.
 
-| Trigger | Status | Notes |
-|---------|--------|-------|
-| `trg_enforce_canonical_yield` | PASS | Blocks direct DML |
-| `trg_cascade_void_to_allocations` | PASS | Cascades to yield_allocations, fee_allocations, ib_allocations |
-| `trg_alert_yield_conservation` | PASS | Fires alert on conservation violations |
-| `trg_validate_dust_tolerance` | PASS | |
-| `trg_sync_yield_date` | PASS | |
-| `protect_yield_distributions_immutable` | PASS | |
-| `delta_audit_yield_distributions` | PASS | |
+**Finding 3.2 (P2):** `apply_investor_transaction` 9-param overload lacks an advisory lock while the 10-param version has one. If the 9-param version is called directly, concurrent submissions for the same investor/fund could race.
 
-### investor_positions (11 triggers, all enabled)
+### Recommended Fix (Single Migration)
 
-Dual canonical guards (`enforce_canonical_position_mutation` on I/U/D + `enforce_canonical_position_write` on I/U) are redundant but not conflicting -- both check the same canonical_rpc flag and return early when set.
+Create `supabase/migrations/20260327_add_missing_advisory_locks.sql`:
 
-### Integrity Views -- ALL CLEAN
+1. **`void_yield_distribution`**: Add `PERFORM pg_advisory_xact_lock(hashtext('void_yd:' || p_distribution_id::text));` at the top of the function body after variable declarations.
 
-| View | Violations |
-|------|-----------|
-| `v_ledger_reconciliation` | 0 |
-| `v_orphaned_positions` | 0 |
-| `v_orphaned_transactions` | 0 |
-| `yield_distribution_conservation_check` | 0 |
-| `v_yield_conservation_violations` | 0 |
+2. **`apply_investor_transaction` (9-param)**: Add `PERFORM pg_advisory_xact_lock(hashtext(p_investor_id::text || p_fund_id::text));` matching the 10-param version's pattern.
 
 ---
 
-## Minor Findings (Non-Blocking)
+## PHASE 4: Frontend UI State & Type Safety -- PASS
 
-### Finding 1: `recalculate_fund_aum_for_date` -- Missing RPC (Swallowed)
+### Cache Invalidation Coverage
 
-`void_transaction` calls `recalculate_fund_aum_for_date()` on line 46 but the function does not exist. The call is wrapped in `BEGIN...EXCEPTION WHEN OTHERS THEN NULL; END;` so it silently fails. This means after voiding a transaction, the AUM for that date is NOT recalculated -- only the specific `tx_sync`-sourced AUM rows are voided (lines 39-43).
+The system uses a centralized `invalidateAfterTransaction()` from `src/utils/cacheInvalidation.ts` with a dependency graph pattern. All mutation hooks route through this:
 
-**Risk**: LOW. The AUM is still correct because `fund_daily_aum` rows from `transaction_sum` source (written by `apply_transaction_with_crystallization`) remain and reflect the post-void position sum via the next transaction. However, for a standalone void with no follow-up transaction on the same date, the AUM snapshot for that date may be stale.
+| Mutation Hook File | Uses `invalidateAfterTransaction` | Status |
+|-------------------|----------------------------------|--------|
+| `useTransactionMutations.ts` | YES (7 mutations, all onSettled) | PASS |
+| `useTransactionSubmit.ts` | YES | PASS |
+| `useTransactionHooks.ts` | YES (create, void) | PASS |
+| `useInternalRoute.ts` | YES | PASS |
+| `useInvestorLedger.ts` | YES (invalidateAll callback) | PASS |
+| `useAdminInvestorMutations.ts` | Uses direct `invalidateQueries` | PASS (non-financial mutations) |
+| `useInvestorMutations.ts` | Uses direct `invalidateQueries` | PASS (delete investor, not financial) |
 
-**Recommendation**: Create `recalculate_fund_aum_for_date` as a simple function that sums active positions and upserts `fund_daily_aum`. This is a P2 improvement, not a blocker.
+The `INVALIDATION_GRAPH` covers all critical derived data: positions, AUM, dashboard stats, integrity checks, yields, fees, IB allocations, and per-asset stats. No missing invalidation paths detected.
 
-### Finding 2: `crystallize_yield_before_flow` -- Referenced in Docs, Not in DB or Code
-
-The project knowledge references this RPC but it does not exist in the database, and there are zero frontend references. The crystallization logic is embedded directly in `apply_transaction_with_crystallization`. The doc reference is stale.
-
-**Risk**: NONE. Documentation-only issue.
-
----
-
-## Void Cascade Flow (Verified End-to-End)
-
-```text
-void_transaction(p_transaction_id, p_admin_id, p_reason)
-  |-- advisory lock
-  |-- SET indigo.canonical_rpc = true
-  |-- UPDATE transactions_v2 SET is_voided = true
-  |     |-- BEFORE: protect_transactions_immutable (allows is_voided change)
-  |     |-- BEFORE: zz_trg_transactions_v2_immutability (allows voiding fields)
-  |     |-- AFTER:  trg_ledger_sync (incremental position delta reversal)
-  |     |-- AFTER:  trg_recompute_on_void (SKIPPED: canonical_rpc = true)
-  |     |-- AFTER:  trg_cascade_void_from_transaction (voids fee_allocations)
-  |     |-- AFTER:  audit triggers (3x)
-  |-- CASCADE: fund_daily_aum (void tx_sync rows)
-  |-- CASCADE: fee_allocations (by tx ID)
-  |-- CASCADE: ib_commission_ledger (by tx ID)
-  |-- CASCADE: platform_fee_ledger (by tx ID)
-  |-- CASCADE: investor_yield_events (IF EXISTS guard)
-  |-- CASCADE: DUST_SWEEP transactions (if WITHDRAWAL)
-  |-- INSERT audit_log
-```
-
-```text
-void_yield_distribution(p_distribution_id, p_admin_id, p_reason, p_void_crystals)
-  |-- SET indigo.canonical_rpc = true
-  |-- Optional: void crystal distributions
-  |-- FOR EACH linked transaction: UPDATE is_voided = true
-  |     |-- (same trigger cascade as above per transaction)
-  |-- CASCADE: platform_fee_ledger
-  |-- CASCADE: ib_commission_ledger
-  |-- CASCADE: fee_allocations
-  |-- CASCADE: yield_allocations
-  |-- CASCADE: ib_allocations
-  |-- UPDATE yield_distributions SET is_voided, status = 'voided'
-  |     |-- AFTER: trg_cascade_void_to_allocations (redundant but safe)
-  |-- INSERT audit_log
-```
+### Real-time Invalidation
+`useInvestorRealtimeInvalidation.ts` subscribes to Supabase channels and calls `invalidateAfterTransaction` on real-time events, ensuring multi-tab/multi-admin consistency.
 
 ---
 
-## Phase 2 Verdict: PASS
+## Summary of All Findings
 
-All RPCs exist, all trigger chains fire correctly, all canonical guards check the right session flags, all integrity views return zero violations. The two minor findings are non-blocking.
+| # | Phase | Finding | Severity | Action |
+|---|-------|---------|----------|--------|
+| 2.1 | Precision | ROUND(..., 4) on ownership_pct display column | P3 | No action |
+| 3.1 | Concurrency | `void_yield_distribution` missing advisory lock | **P1** | Add lock |
+| 3.2 | Concurrency | `apply_investor_transaction` 9-param missing lock | P2 | Add lock |
+| -- | From Phase 2 (prior) | `recalculate_fund_aum_for_date` missing | P2 | Create function |
+| -- | From Phase 2 (prior) | `crystallize_yield_before_flow` stale doc ref | P3 | Update docs |
 
-**Ready for Phase 3** when you give the go-ahead.
+### Implementation Plan
 
+**Migration 1** (P1 -- `20260327_add_missing_advisory_locks.sql`):
+- Add advisory lock to `void_yield_distribution` using distribution ID as lock key
+- Add advisory lock to `apply_investor_transaction` 9-param using investor_id + fund_id hash
+
+**Migration 2** (P2 -- `20260327_create_recalculate_fund_aum.sql`):
+- Create `recalculate_fund_aum_for_date(p_fund_id, p_target_date)` that sums active positions and ups
