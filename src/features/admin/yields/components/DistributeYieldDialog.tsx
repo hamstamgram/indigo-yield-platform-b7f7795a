@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2, Loader2, TrendingUp, Users, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import Decimal from "decimal.js";
 import { toNum } from "@/utils/numeric";
 
 interface ReconciliationData {
