@@ -87,8 +87,8 @@ const AdminStatementGenerator: React.FC = () => {
             end: period.period_end_date,
           },
           summary: {
-            total_aum: reports?.reduce((sum, r) => sum + Number(r.mtd_ending_balance || 0), 0) || 0,
-            total_pnl: reports?.reduce((sum, r) => sum + Number(r.mtd_net_income || 0), 0) || 0,
+            total_aum: reports?.reduce((sum: Decimal, r) => sum.plus(new Decimal(r.mtd_ending_balance || 0)), new Decimal(0)).toNumber() || 0,
+            total_pnl: reports?.reduce((sum: Decimal, r) => sum.plus(new Decimal(r.mtd_net_income || 0)), new Decimal(0)).toNumber() || 0,
             total_fees: 0, // Fees tracked separately
           },
           positions:

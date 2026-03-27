@@ -34,6 +34,7 @@ import {
 import { format, getYear, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { parseFinancial } from "@/utils/financial";
+import Decimal from "decimal.js";
 import { formatInvestorNumber } from "@/utils/assets";
 import type {
   InvestorYieldEvent,
