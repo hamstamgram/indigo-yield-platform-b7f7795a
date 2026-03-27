@@ -26,6 +26,7 @@ import { executeInternalRoute } from "@/services/admin/internalRouteService";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { formatAssetValue, formatPercentage } from "@/utils/formatters";
 import { toNum } from "@/utils/numeric";
+import { logError } from "@/lib/logger";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import {
   Accordion,
