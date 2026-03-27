@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import type { Database } from "@/integrations/supabase/types";
+import { toNum } from "@/utils/numeric";
 
 export interface FundAUMData {
   id: string;
