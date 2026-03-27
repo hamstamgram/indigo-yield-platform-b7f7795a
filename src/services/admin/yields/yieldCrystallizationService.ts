@@ -172,39 +172,41 @@ export async function getAggregatedYieldForPeriod(
     string,
     {
       investor_id: string;
-      total_gross_yield: number;
-      total_fees: number;
-      total_net_yield: number;
+      total_gross_yield: Decimal;
+      total_fees: Decimal;
+      total_net_yield: Decimal;
       crystallization_count: number;
     }
   >();
 
   for (const row of data || []) {
-    const amount = parseFinancial(row.amount).toNumber();
+    const amount = parseFinancial(row.amount);
     const isYield = row.type === "YIELD";
     const isFee = row.type === "FEE";
     const existing = aggregated.get(row.investor_id);
     if (existing) {
-      if (isYield)
-        existing.total_gross_yield = parseFinancial(existing.total_gross_yield)
-          .plus(amount)
-          .toNumber();
-      if (isFee)
-        existing.total_fees = parseFinancial(existing.total_fees).plus(Math.abs(amount)).toNumber();
-      existing.total_net_yield = parseFinancial(existing.total_net_yield).plus(amount).toNumber();
+      if (isYield) existing.total_gross_yield = existing.total_gross_yield.plus(amount);
+      if (isFee) existing.total_fees = existing.total_fees.plus(amount.abs());
+      existing.total_net_yield = existing.total_net_yield.plus(amount);
       existing.crystallization_count += 1;
     } else {
       aggregated.set(row.investor_id, {
         investor_id: row.investor_id,
-        total_gross_yield: isYield ? amount : 0,
-        total_fees: isFee ? Math.abs(amount) : 0,
+        total_gross_yield: isYield ? amount : new Decimal(0),
+        total_fees: isFee ? amount.abs() : new Decimal(0),
         total_net_yield: amount,
         crystallization_count: 1,
       });
     }
   }
 
-  return Array.from(aggregated.values());
+  return Array.from(aggregated.values()).map((entry) => ({
+    investor_id: entry.investor_id,
+    total_gross_yield: entry.total_gross_yield.toNumber(),
+    total_fees: entry.total_fees.toNumber(),
+    total_net_yield: entry.total_net_yield.toNumber(),
+    crystallization_count: entry.crystallization_count,
+  }));
 }
 
 /**

@@ -484,14 +484,23 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
 
   // --- Positions Table ---
   const tableColumn = ["Asset", "Balance", "Additions", "Withdrawals", "Yield", "Closing"];
-  const tableRows = data.positions.map((pos) => [
-    pos.asset_code,
-    pos.opening_balance?.toFixed(4) || pos.begin_balance?.toFixed(4) || "0.0000",
-    pos.additions?.toFixed(4) || "0.0000",
-    pos.withdrawals?.toFixed(4) || pos.redemptions?.toFixed(4) || "0.0000",
-    pos.yield_earned?.toFixed(4) || "0.0000",
-    pos.closing_balance?.toFixed(4) || pos.end_balance?.toFixed(4) || "0.0000",
-  ]);
+  const tableRows = data.positions.map((pos) => {
+    // Use asset-aware decimal places: BTC/ETH = 8dp, stablecoins = 2dp, default = 4dp
+    const asset = (pos.asset_code || "").toUpperCase();
+    const dp = ["BTC", "ETH"].includes(asset) ? 8 : ["USDT", "USDC", "EURC"].includes(asset) ? 2 : 4;
+    const fmt = (v: number | null | undefined, fallback?: number | null) => {
+      const val = v ?? fallback ?? 0;
+      return val.toFixed(dp);
+    };
+    return [
+      pos.asset_code,
+      fmt(pos.opening_balance, pos.begin_balance),
+      fmt(pos.additions),
+      fmt(pos.withdrawals, pos.redemptions),
+      fmt(pos.yield_earned),
+      fmt(pos.closing_balance, pos.end_balance),
+    ];
+  });
 
   autoTable(doc, {
     startY: 60 + summaryHeight + 10,

@@ -269,11 +269,11 @@ async function getMonthlyReports(investorId: string, reportMonth: string): Promi
 
   return (data || []).map((record: any) => ({
     asset_code: fundAssetMap.get(record.fund_name) || record.fund_name,
-    opening_balance: Number(record.mtd_beginning_balance || 0),
-    additions: Number(record.mtd_additions || 0),
-    withdrawals: Number(record.mtd_redemptions || 0),
-    yield_earned: Number(record.mtd_net_income || 0),
-    closing_balance: Number(record.mtd_ending_balance || 0),
+    opening_balance: parseFinancial(record.mtd_beginning_balance).toNumber(),
+    additions: parseFinancial(record.mtd_additions).toNumber(),
+    withdrawals: parseFinancial(record.mtd_redemptions).toNumber(),
+    yield_earned: parseFinancial(record.mtd_net_income).toNumber(),
+    closing_balance: parseFinancial(record.mtd_ending_balance).toNumber(),
   }));
 }
 
