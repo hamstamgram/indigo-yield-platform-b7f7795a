@@ -1,139 +1,176 @@
 
-
-# Platform Certification & Parity Report
-
-## Methodology
-Traced financial values from PostgreSQL `NUMERIC(38,18)` columns through Supabase RPCs, React Query cache, service layer, and into UI rendering. Cross-referenced against the architecture's Decimal.js standard and the 18-decimal precision requirement.
+# Full Stack Audit Report -- Remaining Bugs & Vulnerabilities
 
 ---
 
-## VECTOR 1: Precision Leaks & Parity Discrepancies
+## Summary
 
-### P1-01: `toFinancialString()` truncates to 10dp -- database is 18dp
-
-**File:** `src/utils/financial.ts`, line 393
-**Issue:** `toFinancialString()` calls `.toFixed(10)` but database columns are `NUMERIC(38,18)`. Any value round-tripped through this function loses 8 decimal places. Comment on line 390 still says "matching NUMERIC(28,10)" -- the schema was upgraded to 38,18 but this function was never updated.
-**Blast Radius:** `yieldMath.ts` uses `toFinancialString()` for `grossYield` and `calculateEndingBalance` results. Any UI component consuming these functions gets values truncated at 10dp.
-**Fix:** Change line 393 to `.toFixed(18)` and update the comment to reference `NUMERIC(38,18)`.
-
-### P1-02: PDF Statement Generator uses `Number()` for all financial values
-
-**File:** `src/services/shared/profileService.ts`, lines 272-276
-**Issue:** `getStatementPositionData()` converts all performance fields via `Number(record.mtd_beginning_balance || 0)`. These values feed into `src/lib/pdf/statementGenerator.ts` which then calls `.toFixed(4)` (lines 489-493). Two precision loss points: (1) `Number()` on 18dp strings, (2) `.toFixed(4)` truncates to 4dp regardless of asset type (BTC needs 8dp).
-**Blast Radius:** All investor PDF statements show values truncated to 4 decimal places. BTC investors with sub-satoshi balances see incorrect statements.
-**Fix:**
-- `profileService.ts` lines 272-276: Replace `Number(...)` with `parseFinancial(...).toNumber()` (safe parse with Decimal).
-- `statementGenerator.ts` lines 489-493: Use asset-aware decimal places from `ASSET_CONFIGS` instead of hardcoded `.toFixed(4)`.
-
-### P1-03: Crystallization Service accumulates via Decimal-to-Number loop
-
-**File:** `src/services/admin/yields/yieldCrystallizationService.ts`, lines 183-194
-**Issue:** Each iteration converts to `.toNumber()`, stores as `number` in the map, then re-parses with `parseFinancial()` next iteration. This Decimal -> Number -> Decimal -> Number loop compounds IEEE 754 errors across many crystallization events per investor.
-**Blast Radius:** Crystallization totals shown in admin UI drift from database truth.
-**Fix:** Store `total_gross_yield`, `total_fees`, `total_net_yield` as `Decimal` objects in the Map. Only `.toNumber()` at final return.
-
-### P1-04: Decimal.js precision set to 20, should be 40+
-
-**File:** `src/utils/financial.ts`, line 20
-**Issue:** `Decimal.set({ precision: 20 })` provides 20 significant digits. `NUMERIC(38,18)` can represent values with up to 38 significant digits. A value like `12345678901234567890.123456789012345678` (38 digits) would be silently truncated by Decimal.js to 20 significant digits.
-**Blast Radius:** At current AUM scale (sub-$1M) this is harmless. At scale with 20+ digit values, precision loss occurs.
-**Fix:** Change `precision: 20` to `precision: 40` to exceed the 38-digit database maximum.
+After tracing data from PostgreSQL triggers through RPCs, services, hooks, and UI components, and comparing against the previous audit remediation work, here is the current state. Previous rounds fixed ~25 issues. This audit found **11 remaining bugs** across 4 severity levels.
 
 ---
 
-## VECTOR 2: Cache & UI State Vulnerabilities
+## P0 -- Critical Security
 
-### P2-01: YieldDistributionsPage void/restore handlers missing full cache invalidation
+### BUG 1: `anon` Role Has EXECUTE on ALL Financial RPCs (UNFIXED from Prior Audit)
 
-**File:** `src/features/admin/yields/pages/YieldDistributionsPage.tsx`
-**Lines:** 354, 375, 414, 445, 493
-**Issue:** All five mutation success handlers only invalidate `QUERY_KEYS.yieldDistributions()`. They do NOT call `invalidateAfterYieldOp()`, which also clears positions, transactions, AUM, fee allocations, IB allocations, ledger reconciliation, and per-asset stats.
-**Blast Radius:** After voiding a yield distribution from this page, all position cards, AUM dashboards, and transaction tables show stale pre-void data until manual refresh.
-**Fix:** Replace each `queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() })` with `await invalidateAfterYieldOp(queryClient)`.
+No post-baseline migration has revoked `anon` grants. The definitive baseline (line 21953+) grants `ALL ON FUNCTION` to `anon` for every RPC including `void_transaction`, `set_canonical_rpc`, `apply_segmented_yield_distribution_v5`, `approve_and_complete_withdrawal`, `force_delete_investor`, etc.
 
-### P2-02: VoidYieldDialog fetches stale impact preview from deprecated function
+- **Risk**: The anon key is embedded in the client JS bundle. While most RPCs have internal `is_admin()` checks, `set_canonical_rpc` has NO auth check -- calling it with the anon key sets session flags that bypass ALL mutation guards (`trg_enforce_canonical_position_write`, `enforce_canonical_yield_mutation`, etc.).
+- **Fix**: New SQL migration to revoke `anon` EXECUTE on ~50 admin-mutation RPCs. Key functions:
 
-**File:** `src/features/admin/yields/components/VoidYieldDialog.tsx`, line 68
-**Issue:** Calls `getYieldVoidImpact(record.id)` which is explicitly `@deprecated` and returns `{ success: false }` (line 263-264 of yieldManagementService.ts). The impact preview always shows empty/broken data.
-**Blast Radius:** Admin sees no meaningful impact preview before voiding a yield record. Decision made blind.
-**Fix:** Either (a) remove the impact preview section entirely since the void flow works through `void_yield_distribution` RPC, or (b) implement a real preview using `get_void_transaction_impact` RPC logic.
+```sql
+REVOKE ALL ON FUNCTION public.set_canonical_rpc(boolean) FROM anon;
+REVOKE ALL ON FUNCTION public.void_transaction(uuid, uuid, text) FROM anon;
+REVOKE ALL ON FUNCTION public.void_yield_distribution(uuid, uuid, text, boolean) FROM anon;
+REVOKE ALL ON FUNCTION public.approve_and_complete_withdrawal(uuid, numeric, text, text, boolean, integer) FROM anon;
+REVOKE ALL ON FUNCTION public.apply_segmented_yield_distribution_v5(uuid, date, numeric, uuid, aum_purpose, date) FROM anon;
+REVOKE ALL ON FUNCTION public.adjust_investor_position(uuid, uuid, numeric, text, date, uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.force_delete_investor(uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.void_transactions_bulk(uuid[], uuid, text) FROM anon;
+REVOKE ALL ON FUNCTION public.unvoid_transaction(uuid, uuid, text) FROM anon;
+REVOKE ALL ON FUNCTION public.apply_investor_transaction(uuid, uuid, tx_type, numeric, date, text, uuid, text, aum_purpose, uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.crystallize_yield_before_flow(uuid, numeric, text, text, timestamptz, uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.recompute_investor_position(uuid, uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.recalculate_fund_aum_for_date(uuid, date) FROM anon;
+REVOKE ALL ON FUNCTION public.add_fund_to_investor(uuid, text, numeric, numeric) FROM anon;
+REVOKE ALL ON FUNCTION public.acquire_position_lock(uuid, uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.acquire_withdrawal_lock(uuid) FROM anon;
+REVOKE ALL ON FUNCTION public.acquire_yield_lock(uuid, date) FROM anon;
+```
 
----
+### BUG 2: `void_yield_distribution` Missing `is_admin()` Check (UNFIXED)
 
-## VECTOR 3: Trigger & Concurrency Analysis
+The latest version in migration `20260327113803` has NO admin authentication. It accepts `p_admin_id` as a parameter but never verifies the caller. Combined with BUG 1, any authenticated user can void any yield distribution.
 
-### P3-01: Confirmed -- YieldDistributionsPage void handlers are the primary concurrency UI gap
-
-The database-level advisory locks in `void_yield_distribution` and `approve_and_complete_withdrawal` are correctly scoped (confirmed in prior audit). The primary risk is the UI cache desync from P2-01 above, where an admin acts on stale position data after another admin's void completes.
-
-### P3-02: Temporal boundary -- T-1 AUM snapshot uses live positions
-
-Confirmed from prior audit (V2-01). `apply_segmented_yield_distribution_v5` reads live `investor_positions.current_value`. The advisory lock serializes concurrent mutations within the same fund, so once locked, positions are stable. The gap is between preview (unlocked) and apply (locked). No new findings beyond prior audit.
-
----
-
-## VECTOR 4: Dead Code Inventory
-
-### Functions that throw on call (deprecated no-ops)
-
-| File | Function | Line | Status |
-|---|---|---|---|
-| `src/services/admin/yields/yieldManagementService.ts` | `voidYieldRecord()` | 93 | Throws "deprecated" |
-| `src/services/admin/yields/yieldManagementService.ts` | `updateYieldAum()` | 165 | Throws "deprecated" |
-| `src/services/admin/yields/yieldManagementService.ts` | `getYieldVoidImpact()` | 263 | Returns `{ success: false }` |
-| `src/services/admin/recordedYieldsService.ts` | `updateYieldRecord()` | 164 | Throws "deprecated" |
-| `src/services/admin/recordedYieldsService.ts` | `getYieldEditHistory()` | 177 | Returns `[]` |
-| `src/services/admin/transactionDetailsService.ts` | `checkAumExists()` | 181 | Returns `{ exists: true }` always |
-
-### Hooks consuming dead functions
-
-| File | Hook | Consumes |
-|---|---|---|
-| `src/hooks/data/shared/useYieldData.ts` | `useUpdateYieldRecord()` | `updateYieldRecord` (throws) |
-| `src/hooks/data/shared/useYieldData.ts` | `useVoidYieldRecord()` | `voidYieldRecord` (throws) |
-| `src/features/admin/yields/hooks/useRecordedYieldsPage.ts` | `useVoidYieldRecord()` | `voidYieldRecord` (throws) |
-| `src/features/admin/yields/hooks/useRecordedYieldsPage.ts` | `useUpdateYieldAum()` | `updateYieldAum` (throws) |
-
-### Re-export chains keeping dead code alive
-
-| File | Exports |
-|---|---|
-| `src/services/admin/yields/index.ts` | `voidYieldRecord`, `updateYieldAum`, `getYieldVoidImpact` |
-| `src/services/admin/index.ts` | `updateYieldRecord`, `getYieldEditHistory` |
-| `src/hooks/data/admin/exports/yields.ts` | `useVoidYieldMutation`, `useUpdateYieldAum` |
-
-### Action required
-Delete the 6 deprecated functions, 4 hooks, and clean up the 3 re-export files. The live void flow uses `voidYieldDistribution()` (not `voidYieldRecord()`).
+- **Fix**: Add after line 27 (`PERFORM set_config...`):
+```sql
+IF NOT public.is_admin() THEN
+  RAISE EXCEPTION 'Unauthorized: admin role required';
+END IF;
+```
 
 ---
 
-## VECTOR 5: Architectural Enhancements
+## P1 -- Edge Function Security
 
-### E-01: Enforce `invalidateAfterYieldOp` at the service layer
+### BUG 3: `process-report-delivery-queue` Still Falls Back to `profiles.is_admin`
 
-Instead of relying on each page to remember correct invalidation, move cache invalidation into `voidYieldDistribution()` itself by accepting an optional `queryClient` parameter, or create a wrapper mutation hook (`useVoidYieldDistributionMutation`) that all pages import.
+Lines 77-91 of `supabase/functions/process-report-delivery-queue/index.ts` still use a `profiles.is_admin` fallback after the `user_roles` check. The shared `admin-check.ts` module correctly removed this fallback (line 57: "No fallback to profiles.is_admin"), but this specific Edge Function has its own inline check that was never updated.
 
-### E-02: Asset-aware PDF formatter
-
-Create a `formatForPdf(value: string, assetCode: string)` helper that reads `ASSET_CONFIGS` decimal places and formats using `parseFinancial`. Replace all `.toFixed(4)` in statementGenerator.ts.
-
-### E-03: Automated precision regression test
-
-Add a unit test that verifies no `Number()` or `parseFloat()` calls exist in the financial data pipeline files (services, hooks, statement generators) using AST scanning or grep-based CI checks.
+- **Risk**: An authenticated investor could `UPDATE profiles SET is_admin = true WHERE id = auth.uid()` (RLS allows self-update), then call this Edge Function to trigger unauthorized email sends.
+- **Fix**: Remove lines 77-91 and replace with a simple deny:
+```typescript
+if (!isAdmin) {
+  return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
+```
 
 ---
 
-## Summary Matrix
+## P2 -- Precision & Data Integrity
 
-| ID | Severity | Vector | Issue | Files |
-|----|----------|--------|-------|-------|
-| P1-01 | **P1** | Precision | `toFinancialString` truncates to 10dp vs 18dp DB | `financial.ts` |
-| P1-02 | **P1** | Precision | PDF statements use `Number()` + `.toFixed(4)` | `profileService.ts`, `statementGenerator.ts` |
-| P1-03 | **P1** | Precision | Crystallization service Decimal-Number-Decimal loop | `yieldCrystallizationService.ts` |
-| P1-04 | **P2** | Precision | Decimal.js precision=20 vs 38-digit DB max | `financial.ts` |
-| P2-01 | **P1** | Cache | 5 yield void/restore handlers missing full invalidation | `YieldDistributionsPage.tsx` |
-| P2-02 | **P2** | Cache | VoidYieldDialog uses deprecated impact preview | `VoidYieldDialog.tsx` |
-| Dead | **P2** | Dead Code | 6 deprecated functions, 4 dead hooks, 3 stale re-exports | 9 files |
+### BUG 4: `yieldAumService.ts` Uses `Number()` for AUM Values
 
-**Critical Path:** P1-01 (toFinancialString 10dp truncation) and P2-01 (missing cache invalidation on yield voids) are the highest-impact items requiring immediate patching.
+Line 66: `aumValue: Number(row.aum_value || 0)`. AUM values from the database are `NUMERIC(38,18)` strings. `Number()` loses precision beyond 15 significant digits.
 
+- **Fix**: `aumValue: parseFinancial(row.aum_value || 0).toNumber()` -- uses Decimal.js safe parse.
+
+### BUG 5: `adminService.ts` Accumulates Withdrawals via `.toNumber()` Loop
+
+Lines 55-59: `withdrawalRequests?.reduce((sum, req) => parseFinancial(sum).plus(parseFinancial(req.requested_amount)).toNumber(), 0)` -- each iteration converts Decimal back to `number` via `.toNumber()`, then re-parses on the next iteration. This Decimal->Number->Decimal loop causes cumulative IEEE 754 drift.
+
+- **Fix**: Accumulate as Decimal, convert once at the end:
+```typescript
+const pendingWithdrawals = withdrawalRequests?.reduce(
+  (sum, req) => sum.plus(parseFinancial(req.requested_amount)),
+  parseFinancial(0)
+).toNumber() || 0;
+```
+
+### BUG 6: `requestsQueueService.ts` Uses `Number()` on Withdrawal Amount
+
+Line 46: `Number(parseFinancial(params.amount).toString())` -- double conversion. `parseFinancial` returns a Decimal, `.toString()` gives a string, then `Number()` converts to float. Should use `.toNumber()` directly.
+
+- **Fix**: `updatePayload.approved_amount = parseFinancial(params.amount).toNumber();`
+
+### BUG 7: `depositService.ts` Uses `Number(String(amount))` for Notification
+
+Line 194: `Number(String(amount))` -- a redundant double cast. While this is for a non-financial notification display, it sets a bad precedent.
+
+- **Fix**: `parseFinancial(amount).toNumber()`
+
+### BUG 8: `feeScheduleService.ts` Uses Bare `Number()` for Fee Percentages
+
+Lines 33 and 193: `Number(row.fee_pct || 0)` and `Number(data.fee_pct)`. Fee percentages are small values (0-100), so precision loss is unlikely, but inconsistent with the Decimal standard.
+
+- **Fix**: `parseFinancial(row.fee_pct || 0).toNumber()`
+
+---
+
+## P2 -- UI State & Display
+
+### BUG 9: `ExpertPositionsTable` Edit Uses `parseFloat()` for Position Values
+
+Lines 156, 175, 196: `parseFloat(e.target.value) || 0` feeds into edit state for `shares`, `costBasis`, and `currentValue`. These values then feed into position adjustment mutations.
+
+- **Fix**: Replace with `toNum(e.target.value)` for consistency with the rest of the codebase. The values are stored in React state and will be passed as strings to RPCs.
+
+### BUG 10: `adminService.ts` Uses Hardcoded Placeholder for 24h Yield
+
+Line 62: `const interest24h = totalAum * 0.0001;` -- this is a hardcoded placeholder that calculates a fake 0.01% daily yield. It displays in the admin dashboard as a real metric.
+
+- **Fix**: Either implement a real 24h yield RPC (sum YIELD transactions from last 24h) or clearly label this as "N/A" / remove from dashboard KPIs.
+
+---
+
+## P3 -- Dead Code & Redundancy
+
+### BUG 11: Duplicate `checkAumExists` Functions
+
+Two separate implementations exist:
+1. `transactionFormDataService.ts` line 58: Actually queries `fund_daily_aum` (the real one used by hooks)
+2. `transactionDetailsService.ts` line 181: Returns `{ exists: true }` always (dead code)
+
+The dead version in `transactionDetailsService.ts` should be deleted. It is exported but only the `transactionFormDataService` version is consumed by hooks.
+
+---
+
+## Clean Areas (No Issues Found)
+
+- `toFinancialString()` -- correctly uses `.toFixed(18)` (fixed in prior round)
+- `Decimal.js` precision set to 40 (fixed in prior round)
+- `YieldDistributionsPage` void handlers -- all 3 active handlers call `invalidateAfterYieldOp` (fixed in prior round)
+- `VoidYieldDialog` -- deprecated impact preview removed (fixed in prior round)
+- Dead yield functions (`voidYieldRecord`, `updateYieldAum`, `getYieldVoidImpact`) -- all removed (fixed in prior round)
+- `statementGenerator.ts` -- uses asset-aware decimal places (fixed in prior round)
+- `yieldCrystallizationService.ts` -- uses Decimal accumulation (fixed in prior round)
+- No direct INSERT/UPDATE on protected tables from frontend components
+- Advisory locks in `void_transaction`, `void_yield_distribution`, `approve_and_complete_withdrawal` are correctly scoped
+- Trigger cascade (`trg_ledger_sync` -> `fn_ledger_drives_position`) is atomic within transaction
+- No implicit float casts in SQL functions (all use `numeric(38,18)`)
+
+---
+
+## Implementation Plan
+
+### Phase 1: P0 Security (1 SQL migration)
+- New migration revoking `anon` EXECUTE on all admin RPCs
+- Add `is_admin()` check to `void_yield_distribution`
+
+### Phase 2: P1 Edge Function Fix (1 file)
+- `process-report-delivery-queue/index.ts`: Remove `profiles.is_admin` fallback
+
+### Phase 3: P2 Precision Fixes (5 files)
+- `yieldAumService.ts`: `Number()` -> `parseFinancial().toNumber()`
+- `adminService.ts`: Fix reduce accumulation loop + remove fake 24h yield
+- `requestsQueueService.ts`: Fix double conversion
+- `depositService.ts`: Fix notification amount cast
+- `feeScheduleService.ts`: Fix bare `Number()` on fee_pct
+
+### Phase 4: P2 UI Fix (1 file)
+- `ExpertPositionsTable.tsx`: `parseFloat()` -> `toNum()` in edit handlers
+
+### Phase 5: P3 Cleanup (1 file)
+- `transactionDetailsService.ts`: Delete dead `checkAumExists`
+
+**Total: 1 SQL migration + 8 TypeScript files**
