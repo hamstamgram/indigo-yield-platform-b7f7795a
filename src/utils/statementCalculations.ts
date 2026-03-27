@@ -5,6 +5,7 @@ import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
+import Decimal from "decimal.js";
 import { supabase } from "@/integrations/supabase/client";
 
 // Re-export StatementTransaction as the canonical type for statement views
