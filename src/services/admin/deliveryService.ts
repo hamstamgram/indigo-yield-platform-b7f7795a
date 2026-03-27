@@ -174,8 +174,8 @@ export const deliveryService = {
   /**
    * Send a single delivery via Resend edge function
    */
-  async sendViaMailerSend(deliveryId: string, deliveryMode: DeliveryMode): Promise<SendResult> {
-    const { data, error } = await supabase.functions.invoke("send-report-mailersend", {
+  async sendViaResend(deliveryId: string, deliveryMode: DeliveryMode): Promise<SendResult> {
+    const { data, error } = await supabase.functions.invoke("send-report-email", {
       body: { delivery_id: deliveryId, delivery_mode: deliveryMode },
     });
 

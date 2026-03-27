@@ -495,7 +495,7 @@ This is an automated message from Indigo Yield.
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error in send-report-mailersend (resend):", errorMessage);
+    console.error("Error in send-report-email:", errorMessage);
 
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
