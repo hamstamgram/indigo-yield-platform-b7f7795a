@@ -247,7 +247,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
         fund: { id: string; name: string; asset: string };
         monthEndEvent: InvestorYieldEvent | null;
         transactionEvents: InvestorYieldEvent[];
-        totals: { gross: number; fees: number; net: number };
+        totals: { gross: Decimal; fees: Decimal; net: Decimal };
       }
     >();
 
@@ -262,7 +262,7 @@ function MonthSection({ group }: { group: MonthGroup }) {
           },
           monthEndEvent: null,
           transactionEvents: [],
-          totals: { gross: 0, fees: 0, net: 0 },
+          totals: { gross: new Decimal(0), fees: new Decimal(0), net: new Decimal(0) },
         });
       }
       const fg = map.get(e.fund_id)!;
@@ -273,15 +273,9 @@ function MonthSection({ group }: { group: MonthGroup }) {
         fg.transactionEvents.push(e);
       }
 
-      fg.totals.gross = parseFinancial(fg.totals.gross)
-        .plus(parseFinancial(e.gross_yield_amount))
-        .toNumber();
-      fg.totals.fees = parseFinancial(fg.totals.fees)
-        .plus(parseFinancial(e.fee_amount))
-        .toNumber();
-      fg.totals.net = parseFinancial(fg.totals.net)
-        .plus(parseFinancial(e.net_yield_amount))
-        .toNumber();
+      fg.totals.gross = fg.totals.gross.plus(parseFinancial(e.gross_yield_amount));
+      fg.totals.fees = fg.totals.fees.plus(parseFinancial(e.fee_amount));
+      fg.totals.net = fg.totals.net.plus(parseFinancial(e.net_yield_amount));
     });
 
     return Array.from(map.values());
@@ -310,11 +304,11 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     <span
                       className={cn(
                         "font-mono font-semibold",
-                        fg.totals.net >= 0 ? "text-yield" : "text-rose-400"
+                        fg.totals.net.gte(0) ? "text-yield" : "text-rose-400"
                       )}
                     >
-                      {fg.totals.net >= 0 ? "+" : ""}
-                      {formatInvestorNumber(fg.totals.net)} {fg.fund.asset}
+                      {fg.totals.net.gte(0) ? "+" : ""}
+                      {formatInvestorNumber(fg.totals.net.toNumber())} {fg.fund.asset}
                     </span>
                   </div>
                 ))}
@@ -338,11 +332,11 @@ function MonthSection({ group }: { group: MonthGroup }) {
                     <span
                       className={cn(
                         "font-mono",
-                        fg.totals.net >= 0 ? "text-yield" : "text-rose-400"
+                        fg.totals.net.gte(0) ? "text-yield" : "text-rose-400"
                       )}
                     >
-                      {fg.totals.net >= 0 ? "+" : ""}
-                      {formatInvestorNumber(fg.totals.net)}
+                      {fg.totals.net.gte(0) ? "+" : ""}
+                      {formatInvestorNumber(fg.totals.net.toNumber())}
                     </span>
                   </div>
                 </div>

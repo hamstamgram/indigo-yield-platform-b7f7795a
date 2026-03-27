@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2, Loader2, TrendingUp, Users, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import Decimal from "decimal.js";
 import { toNum } from "@/utils/numeric";
 
 interface ReconciliationData {
@@ -254,7 +255,7 @@ export function DistributeYieldDialog({
                 <div className="flex items-center justify-between px-4 py-3 bg-indigo-500/10 border-t border-indigo-500/20">
                   <span className="text-sm font-semibold text-white">Ending Balance</span>
                   <span className="text-lg font-bold text-white tabular-nums">
-                    {formatValue(toNum(asOfAum || 0) + toNum(grossYield), asset)} {asset}
+                    {formatValue(new Decimal(asOfAum || 0).plus(new Decimal(grossYield || 0)).toNumber(), asset)} {asset}
                   </span>
                 </div>
               </div>

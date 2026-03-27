@@ -445,7 +445,7 @@ export const withdrawalService = {
     const insertPayload: Record<string, unknown> = {
       investor_id: params.investorId,
       fund_id: params.fundId,
-      requested_amount: Number(params.amount),
+      requested_amount: String(params.amount),
       withdrawal_type: params.withdrawalType,
       status: "pending",
       notes,
@@ -624,7 +624,7 @@ export const withdrawalService = {
     const insertPayload: Record<string, unknown> = {
       investor_id: investorId,
       fund_id: params.fundId,
-      requested_amount: Number(params.amount),
+      requested_amount: String(params.amount),
       withdrawal_type: "partial",
       status: "pending",
       notes,

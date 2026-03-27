@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import { startOfMonth, startOfYear, parseISO, isWithinInterval } from "date-fns";
-import { toNumber } from "@/utils/numeric";
+import Decimal from "decimal.js";
 import type { FeeRecord } from "@/hooks/data";
 
 interface FeeRevenueKPIsProps {
@@ -21,12 +21,13 @@ interface AssetTotal {
 }
 
 function computeAssetTotals(fees: FeeRecord[]): AssetTotal[] {
-  const map = new Map<string, number>();
+  const map = new Map<string, Decimal>();
   for (const fee of fees) {
-    map.set(fee.asset, (map.get(fee.asset) || 0) + toNumber(fee.amount));
+    const prev = map.get(fee.asset) || new Decimal(0);
+    map.set(fee.asset, prev.plus(new Decimal(fee.amount || 0)));
   }
   return Array.from(map.entries())
-    .map(([asset, amount]) => ({ asset, amount }))
+    .map(([asset, dec]) => ({ asset, amount: dec.toNumber() }))
     .sort((a, b) => b.amount - a.amount);
 }
 

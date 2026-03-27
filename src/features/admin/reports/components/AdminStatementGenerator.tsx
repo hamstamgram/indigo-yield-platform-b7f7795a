@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Decimal from "decimal.js";
+import { parseFinancial } from "@/utils/financial";
 import {
   Button,
   Card,
@@ -94,12 +95,12 @@ const AdminStatementGenerator: React.FC = () => {
           positions:
             reports?.map((r) => ({
               asset_code: r.fund_name,
-              opening_balance: Number(r.mtd_beginning_balance || 0),
-              additions: Number(r.mtd_additions || 0),
-              withdrawals: Number(r.mtd_redemptions || 0),
-              yield_earned: Number(r.mtd_net_income || 0),
-              closing_balance: Number(r.mtd_ending_balance || 0),
-              rate_of_return: Number(r.mtd_rate_of_return || 0),
+              opening_balance: parseFinancial(r.mtd_beginning_balance).toNumber(),
+              additions: parseFinancial(r.mtd_additions).toNumber(),
+              withdrawals: parseFinancial(r.mtd_redemptions).toNumber(),
+              yield_earned: parseFinancial(r.mtd_net_income).toNumber(),
+              closing_balance: parseFinancial(r.mtd_ending_balance).toNumber(),
+              rate_of_return: parseFinancial(r.mtd_rate_of_return).toNumber(),
             })) || [],
         };
 
