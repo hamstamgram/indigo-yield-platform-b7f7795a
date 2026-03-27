@@ -158,7 +158,7 @@ generate-report
 generate-tax-documents
 integrity-monitor
 investor-audit
-mailersend-webhook
+resend-webhook
 mfa-totp-disable
 mfa-totp-initiate
 mfa-totp-status
@@ -173,7 +173,7 @@ send-admin-invite
 send-email
 send-investor-report
 send-notification-email
-send-report-mailersend
+send-report-email
 session-cleanup
 set-user-password
 status
