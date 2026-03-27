@@ -135,7 +135,7 @@ export interface StatusRefreshResult {
 }
 
 /**
- * Result from send-report-mailersend edge function (Resend-backed)
+ * Result from send-report-email edge function (Resend)
  */
 export interface SendResult {
   message_id: string;

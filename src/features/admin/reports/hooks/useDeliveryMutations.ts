@@ -86,7 +86,7 @@ export function useDeliveryMutations(selectedPeriodId: string) {
       deliveryId: string;
       deliveryMode: DeliveryMode;
     }) => {
-      return deliveryService.sendViaMailerSend(deliveryId, deliveryMode);
+      return deliveryService.sendViaResend(deliveryId, deliveryMode);
     },
     onSuccess: (data) => {
       toast.success("Report sent", {
@@ -153,7 +153,7 @@ export function useDeliveryMutations(selectedPeriodId: string) {
       // Process sequentially to avoid rate limits
       for (let i = 0; i < queuedIds.length; i++) {
         try {
-          await deliveryService.sendViaMailerSend(queuedIds[i], deliveryMode);
+          await deliveryService.sendViaResend(queuedIds[i], deliveryMode);
           sent++;
         } catch {
           failed++;

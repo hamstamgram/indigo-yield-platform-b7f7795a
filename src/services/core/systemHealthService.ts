@@ -152,7 +152,7 @@ async function checkStorage(): Promise<SystemHealth> {
 async function checkEmail(): Promise<SystemHealth> {
   const startTime = Date.now();
   try {
-    const { data, error } = await supabase.functions.invoke("send-report-mailersend", {
+    const { data, error } = await supabase.functions.invoke("send-report-email", {
       body: { health_check: true },
     });
 
