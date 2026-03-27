@@ -352,7 +352,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         await voidYieldDistribution(distributionId, reason, voidCrystals);
         toast({ title: "Distribution voided successfully" });
         setVoidTarget(null);
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+        await invalidateAfterYieldOp(queryClient);
       } catch (err) {
         toast({
           title: "Failed to void distribution",
@@ -373,7 +373,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         await unvoidYieldDistribution(distributionId, reason);
         toast({ title: "Distribution restored successfully" });
         setRestoreTarget(null);
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+        await invalidateAfterYieldOp(queryClient);
       } catch (err) {
         toast({
           title: "Failed to restore distribution",
@@ -412,7 +412,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
 
       setBulkRestoreDialogOpen(false);
       selection.clearSelection();
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+      await invalidateAfterYieldOp(queryClient);
       setRestorePending(false);
     },
     [selection, queryClient, toast]
@@ -443,7 +443,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
 
       setBulkVoidDialogOpen(false);
       selection.clearSelection();
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+      await invalidateAfterYieldOp(queryClient);
       setBulkVoidPending(false);
     },
     [selection, queryClient, toast]
@@ -491,7 +491,7 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
         description: `Routed fees from ${routedCount} investor allocation(s).`,
       });
       setRouteTarget(null);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
+      await invalidateAfterYieldOp(queryClient);
     } catch (err) {
       toast({
         title: "Failed to route fees",
