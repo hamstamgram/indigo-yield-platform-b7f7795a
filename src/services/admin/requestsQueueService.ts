@@ -4,11 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { rpc } from "@/lib/rpc/index";
-import { parseFinancial } from "@/utils/financial";
 import type {
   WithdrawalRequest,
-  ApproveWithdrawalParams,
   RejectWithdrawalParams,
 } from "@/types/domains/requests";
 
