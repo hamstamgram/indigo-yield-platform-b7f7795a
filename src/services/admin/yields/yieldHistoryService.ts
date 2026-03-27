@@ -173,10 +173,7 @@ export async function getActiveFundsWithAUM(): Promise<
     const asset = f.asset || f.fund_asset;
 
     if (!id) {
-      console.warn(
-        `[yieldHistoryService] Missing ID for fund ${code || name || "unknown"}. Raw:`,
-        f
-      );
+      logWarn("yieldHistoryService.mapFunds", { fund: code || name || "unknown" });
     }
 
     return {
