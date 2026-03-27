@@ -137,18 +137,6 @@ export function useInvestorYieldEventsAdmin(
   });
 }
 
-/**
- * Hook to get fund yield snapshots
- * @deprecated Removed - fund_yield_snapshots table was dropped in P1-03 cleanup
- */
-export function useFundYieldSnapshots(_fundId: string | null, _limit = 30) {
-  // Return empty data - table was removed in P1-03 unify AUM tables migration
-  return useQuery({
-    queryKey: ["deprecated-fund-yield-snapshots"],
-    queryFn: () => Promise.resolve([]),
-    enabled: false,
-  });
-}
 
 /**
  * Hook to get pending yield events count
