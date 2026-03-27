@@ -26,6 +26,7 @@ import { executeInternalRoute } from "@/services/admin/internalRouteService";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { formatAssetValue, formatPercentage } from "@/utils/formatters";
 import { toNum } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
 import { logError } from "@/lib/logger";
 import type { ExportColumn } from "@/lib/export/csv-export";
 import {
@@ -127,7 +128,7 @@ function FeeAllocationsTable({
                   <FinancialValue value={fa.base_net_income} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatPercentage(Number(fa.fee_percentage), 2)}
+                  {formatPercentage(parseFinancial(fa.fee_percentage || 0).toNumber(), 2)}
                 </TableCell>
                 <TableCell className="text-right">
                   <FinancialValue value={fa.fee_amount} asset={asset} />
@@ -182,13 +183,13 @@ function CrystallizationEventsTable({
                   <FinancialValue value={evt.investor_balance} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatPercentage(Number(evt.investor_share_pct), 4)}
+                  {formatPercentage(parseFinancial(evt.investor_share_pct || 0).toNumber(), 4)}
                 </TableCell>
                 <TableCell className="text-right">
                   <FinancialValue value={evt.gross_yield_amount} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatPercentage(Number(evt.fee_pct || 0), 2)}
+                  {formatPercentage(parseFinancial(evt.fee_pct || 0).toNumber(), 2)}
                 </TableCell>
                 <TableCell className="text-right">
                   <FinancialValue value={evt.fee_amount || 0} asset={asset} />

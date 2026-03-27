@@ -86,13 +86,9 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
   const stats = useMemo(() => {
     const pending = 0;
     const visible = filteredEvents.length;
-    const totalYield = filteredEvents.reduce(
-      (sum, e) =>
-        parseFinancial(sum)
-          .plus(parseFinancial(e.net_yield_amount || 0))
-          .toNumber(),
-      0
-    );
+    const totalYield = filteredEvents
+      .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount || 0)), parseFinancial(0))
+      .toNumber();
     return { pending, visible, total: filteredEvents.length, totalYield };
   }, [filteredEvents]);
 

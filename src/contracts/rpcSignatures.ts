@@ -64,7 +64,7 @@ export const RPC_FUNCTIONS = [
   "create_daily_position_snapshot",
   "create_integrity_alert",
   "create_withdrawal_request",
-  "crystallize_month_end",
+  
   "current_user_is_admin_or_owner",
   "delete_transaction",
   "delete_withdrawal",
@@ -603,14 +603,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_amount", "p_fund_id", "p_investor_id"] as const,
     optionalParams: ["p_notes", "p_type"] as const,
-  },
-  crystallize_month_end: {
-    name: "crystallize_month_end" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_closing_aum", "p_fund_id", "p_month_end_date"] as const,
-    optionalParams: [] as const,
   },
   current_user_is_admin_or_owner: {
     name: "current_user_is_admin_or_owner" as const,
