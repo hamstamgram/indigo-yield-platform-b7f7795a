@@ -5,6 +5,7 @@
 
 import { logError } from "@/lib/logger";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { parseFinancial } from "@/utils/financial";
 
 // ============ Types ============
 
@@ -44,7 +45,7 @@ export async function getIBReferrals(ibInvestorId: string): Promise<IBReferral[]
     emailMasked: row.email_masked,
     firstName: row.first_name,
     lastName: row.last_name,
-    ibPercentage: Number(row.ib_percentage || 0),
+    ibPercentage: parseFinancial(row.ib_percentage || 0).toNumber(),
   }));
 }
 

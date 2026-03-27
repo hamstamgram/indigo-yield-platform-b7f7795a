@@ -5,6 +5,7 @@
 
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export interface ExportColumn {
   key: string;
