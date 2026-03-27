@@ -234,13 +234,19 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   });
 
   if (error) {
-    throw new Error(error.userMessage || "Failed to void transaction");
+    const err = new Error(error.userMessage || error.message || "Failed to void transaction") as ExtendedError;
+    err.code = error.code;
+    err.details = error.details;
+    throw err;
   }
 
   // Check RPC result for success
-  const result = data as { success?: boolean; message?: string; error_code?: string } | null;
+  const result = data as { success?: boolean; message?: string; error_code?: string; details?: unknown } | null;
   if (result && result.success === false) {
-    throw new Error(result.message || result.error_code || "Failed to void transaction");
+    const err = new Error(result.message || result.error_code || "Failed to void transaction") as ExtendedError;
+    err.code = result.error_code;
+    err.details = result.details;
+    throw err;
   }
 }
 

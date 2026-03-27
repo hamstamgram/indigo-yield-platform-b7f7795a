@@ -213,6 +213,12 @@ export function invalidateAfterTransaction(
   queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumUnified });
   queryClient.refetchQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
 
+  // Invalidate AUM reconciliation so UI re-checks live vs snapshot drift
+  queryClient.invalidateQueries({ queryKey: ["aum-reconciliation"] });
+  // Invalidate integrity dashboard to refresh any mismatch indicators
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ledgerReconciliation });
+
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions(investorId) });
@@ -222,6 +228,7 @@ export function invalidateAfterTransaction(
   if (fundId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fund(fundId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminAumCheck(fundId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.aumReconciliation(fundId) });
   }
 }
 
