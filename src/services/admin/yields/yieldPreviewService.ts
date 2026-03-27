@@ -95,7 +95,7 @@ export async function previewYieldDistribution(
   const balanceMap = new Map<string, number>();
   if (positions) {
     positions.forEach((p) => {
-      balanceMap.set(p.investor_id, Number(p.current_value));
+      balanceMap.set(p.investor_id, parseFinancial(p.current_value).toNumber());
     });
   }
 
@@ -108,13 +108,13 @@ export async function previewYieldDistribution(
   }
 
   // Map distributions from V5 backend format
-  const totalOpeningAum = Number(result.opening_aum || 0);
+  const totalOpeningAum = parseFinancial(result.opening_aum || 0).toNumber();
 
   const distributions: YieldDistribution[] = (result.allocations || []).map(
     (d: V5AllocationItem) => {
       const liveBalance = balanceMap.get(d.investor_id) || 0;
       const ibParentName = d.ib_parent_id ? ibParentNameMap.get(d.ib_parent_id) || null : null;
-      const investorBalance = Number((d as any).current_value || d.opening_balance || liveBalance);
+      const investorBalance = parseFinancial((d as any).current_value || d.opening_balance || liveBalance).toNumber();
       const allocationPercentage =
         totalOpeningAum > 0
           ? parseFinancial(investorBalance)
@@ -140,7 +140,7 @@ export async function previewYieldDistribution(
         ibAmount: String(d.ib || 0),
         referenceId: "",
         wouldSkip: false,
-        hasIb: Boolean(d.ib_parent_id && Number(d.ib_rate || 0) > 0),
+        hasIb: Boolean(d.ib_parent_id && parseFinancial(d.ib_rate || 0).gt(0)),
         openingBalance: String((d as any).current_value || d.opening_balance || liveBalance),
         // Month-to-date aggregates
         mtdGross: d.mtd_gross !== undefined ? String(d.mtd_gross) : undefined,
@@ -190,7 +190,7 @@ export async function previewYieldDistribution(
             .times(100)
             .toString()
         : "0",
-    investorCount: Number(result.investor_count || distributions.length),
+    investorCount: parseInt(String(result.investor_count || distributions.length), 10),
     distributions,
     ibCredits,
     indigoFeesCredit: totals.indigoCredit,
@@ -202,7 +202,7 @@ export async function previewYieldDistribution(
     // Base V6 unified fields
     periodStart: result.period_start,
     periodEnd: result.period_end,
-    daysInPeriod: Number(result.days_in_period || 0),
+    daysInPeriod: parseInt(String(result.days_in_period || 0), 10),
     dustAmount: String(result.dust_amount || 0),
     calculationMethod: "unified_v6",
     features: result.features || ["unified_flat_proportional"],
