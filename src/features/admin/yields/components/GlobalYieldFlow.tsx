@@ -125,10 +125,7 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
       <DistributeYieldDialog
         open={ops.showConfirmDialog}
         onOpenChange={ops.setShowConfirmDialog}
-        grossYield={ops.formatValue(
-          toNum(ops.yieldPreview?.grossYield ?? "0"),
-          ops.selectedFund?.asset ?? ""
-        )}
+        grossYield={ops.yieldPreview?.grossYield ?? "0"}
         asset={ops.selectedFund?.asset ?? ""}
         fundName={ops.selectedFund?.name ?? "Selected Fund"}
         investorCount={ops.yieldPreview?.investorCount ?? 0}

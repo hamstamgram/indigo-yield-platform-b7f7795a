@@ -156,7 +156,7 @@ export function DistributeYieldDialog({
                     className="text-xl font-bold tabular-nums tracking-tight"
                     style={{ color: "hsl(var(--yield-neon))" }}
                   >
-                    +{grossYield} {asset}
+                    +{formatValue(toNum(grossYield), asset)} {asset}
                   </span>
                 </div>
                 {netYield && (
@@ -195,7 +195,7 @@ export function DistributeYieldDialog({
                           = Gross Yield
                         </span>
                         <span className="text-[11px] font-mono font-bold text-indigo-300">
-                          {grossYield} {asset}
+                          {formatValue(toNum(grossYield), asset)} {asset}
                         </span>
                       </div>
                     </div>
@@ -214,14 +214,6 @@ export function DistributeYieldDialog({
                     <span className="text-sm text-muted-foreground">IB Fees</span>
                     <span className="text-sm font-mono text-purple-400">
                       {formatValue(toNum(totalIbFees), asset)} {asset}
-                    </span>
-                  </div>
-                )}
-                {indigoFeesCredit && toNum(indigoFeesCredit) > 0 && (
-                  <div className="flex items-center justify-between px-4 py-2.5 bg-blue-500/5">
-                    <span className="text-sm text-blue-400 font-medium">INDIGO Fees Credit</span>
-                    <span className="text-sm font-mono text-blue-400 font-bold">
-                      +{formatValue(toNum(indigoFeesCredit), asset)} {asset}
                     </span>
                   </div>
                 )}
@@ -373,7 +365,7 @@ export function DistributeYieldDialog({
               <div className="text-center">
                 <p className="text-white font-semibold text-lg">Distribution complete</p>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {grossYield} {asset} distributed to {investorCount} investor
+                  {formatValue(toNum(grossYield), asset)} {asset} distributed to {investorCount} investor
                   {investorCount !== 1 ? "s" : ""}
                 </p>
               </div>

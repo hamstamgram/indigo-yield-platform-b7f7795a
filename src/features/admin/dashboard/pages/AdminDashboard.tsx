@@ -292,10 +292,7 @@ function AdminDashboardContent() {
       <DistributeYieldDialog
         open={ops.showConfirmDialog}
         onOpenChange={ops.setShowConfirmDialog}
-        grossYield={ops.formatValue(
-          toNum(ops.yieldPreview?.grossYield ?? "0"),
-          ops.selectedFund?.asset ?? ""
-        )}
+        grossYield={ops.yieldPreview?.grossYield ?? "0"}
         asset={ops.selectedFund?.asset ?? ""}
         fundName={ops.selectedFund?.name ?? "Selected Fund"}
         investorCount={ops.yieldPreview?.investorCount ?? 0}
@@ -310,6 +307,7 @@ function AdminDashboardContent() {
         netYield={ops.yieldPreview?.netYield}
         reconciliation={reconciliation}
         existingDistributionDate={ops.existingDistributionDate}
+        asOfAum={ops.asOfAum}
         formatValue={ops.formatValue}
       />
 
