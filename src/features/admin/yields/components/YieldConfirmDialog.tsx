@@ -137,12 +137,6 @@ export function YieldConfirmDialog({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">INDIGO FEES Credit:</span>
-                  <span className="font-mono text-blue-400">
-                    {formatValue(toNum(yieldPreview?.indigoFeesCredit ?? 0), asset)} {asset}
-                  </span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-muted-foreground">Investors:</span>
                   <span className="font-medium">{yieldPreview?.investorCount}</span>
                 </div>

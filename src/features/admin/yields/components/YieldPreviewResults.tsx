@@ -164,22 +164,6 @@ export function YieldPreviewResults({
         </Card>
       </div>
 
-      {/* INDIGO FEES Credit Card */}
-      {toNum(yieldPreview.indigoFeesCredit) > 0 && (
-        <Card className="border-blue-500/20 bg-blue-950/20">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-blue-400" />
-                <span className="text-sm font-medium">INDIGO FEES Credit</span>
-              </div>
-              <span className="font-mono font-bold text-blue-400">
-                +{formatValue(toNum(yieldPreview.indigoFeesCredit), asset)} {asset}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Filter Controls */}
       <div className="flex flex-wrap items-center gap-4 pt-2">
