@@ -5,6 +5,7 @@ import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";
 import { logError } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
+import Decimal from "decimal.js";
 import { supabase } from "@/integrations/supabase/client";
 
 // Re-export StatementTransaction as the canonical type for statement views
@@ -221,6 +222,9 @@ export async function computeStatement(
       rate_of_return_itd: 0,
     };
 
+    // Decimal accumulators per asset -- avoids .toNumber() round-trips mid-pipeline
+    const decAccum: Record<string, { begin: Decimal; deposits: Decimal; withdrawals: Decimal; interest: Decimal; fees: Decimal }> = {};
+
     // Process transactions (using deduplicated list)
     deduped.forEach((transaction) => {
       const assetCode = transaction.asset;
@@ -257,23 +261,33 @@ export async function computeStatement(
       const txDate = new Date(transaction.tx_date);
       const amount = parseFinancial(transaction.amount);
 
+      // Use Decimal accumulators to avoid .toNumber() mid-pipeline precision loss
+      if (!decAccum[assetCode]) {
+        decAccum[assetCode] = {
+          begin: parseFinancial(0),
+          deposits: parseFinancial(0),
+          withdrawals: parseFinancial(0),
+          interest: parseFinancial(0),
+          fees: parseFinancial(0),
+        };
+      }
+      const acc = decAccum[assetCode];
+
       // Identify if transaction is before this period (Beginning Balance)
       if (txDate < period_start) {
         if (transaction.type === "WITHDRAWAL" || transaction.type === "FEE") {
-          assetStat.begin_balance = parseFinancial(assetStat.begin_balance)
-            .minus(amount)
-            .toNumber();
+          acc.begin = acc.begin.minus(amount);
         } else {
-          assetStat.begin_balance = parseFinancial(assetStat.begin_balance).plus(amount).toNumber();
+          acc.begin = acc.begin.plus(amount);
         }
       } else {
         // Transaction is within this period
         let type: StatementTransaction["type"] = "deposit";
         if (transaction.type === "DEPOSIT") {
-          assetStat.deposits = parseFinancial(assetStat.deposits).plus(amount).toNumber();
+          acc.deposits = acc.deposits.plus(amount);
           type = "deposit";
         } else if (transaction.type === "WITHDRAWAL") {
-          assetStat.withdrawals = parseFinancial(assetStat.withdrawals).plus(amount).toNumber();
+          acc.withdrawals = acc.withdrawals.plus(amount);
           type = "withdrawal";
         } else if (
           transaction.type === "INTEREST" ||
@@ -281,19 +295,16 @@ export async function computeStatement(
           transaction.type === "FEE_CREDIT" ||
           transaction.type === "IB_CREDIT"
         ) {
-          assetStat.interest = parseFinancial(assetStat.interest).plus(amount).toNumber();
+          acc.interest = acc.interest.plus(amount);
           type = "interest";
         } else if (transaction.type === "FEE") {
-          assetStat.fees = parseFinancial(assetStat.fees).plus(amount).toNumber();
+          acc.fees = acc.fees.plus(amount);
           type = "fee";
         } else if (transaction.type === "ADJUSTMENT") {
-          // ADJUSTMENT can be positive (addition) or negative (redemption)
           if (amount.gte(0)) {
-            assetStat.deposits = parseFinancial(assetStat.deposits).plus(amount).toNumber();
+            acc.deposits = acc.deposits.plus(amount);
           } else {
-            assetStat.withdrawals = parseFinancial(assetStat.withdrawals)
-              .plus(amount.abs())
-              .toNumber();
+            acc.withdrawals = acc.withdrawals.plus(amount.abs());
           }
           type = "adjustment";
         }
@@ -308,17 +319,24 @@ export async function computeStatement(
       }
     });
 
-    // Calculate End Balances using correct formula with Decimal.js
-    Object.values(assetsMap).forEach((asset) => {
-      asset.end_balance = parseFinancial(asset.begin_balance)
-        .plus(parseFinancial(asset.deposits))
-        .minus(parseFinancial(asset.withdrawals))
-        .plus(parseFinancial(asset.interest))
-        .minus(parseFinancial(asset.fees))
+    // Flush Decimal accumulators to AssetStatement numbers (single conversion point)
+    for (const [code, acc] of Object.entries(decAccum)) {
+      const asset = assetsMap[code];
+      if (!asset) continue;
+      asset.begin_balance = acc.begin.toNumber();
+      asset.deposits = acc.deposits.toNumber();
+      asset.withdrawals = acc.withdrawals.toNumber();
+      asset.interest = acc.interest.toNumber();
+      asset.fees = acc.fees.toNumber();
+      asset.end_balance = acc.begin
+        .plus(acc.deposits)
+        .minus(acc.withdrawals)
+        .plus(acc.interest)
+        .minus(acc.fees)
         .toNumber();
-    });
+    }
 
-    // Calculate summary from all assets using Decimal.js
+    // Calculate summary from all assets using Decimal accumulators
     const assetKeys = Object.keys(assetsMap);
     if (assetKeys.length >= 1) {
       let totalBeginBalance = parseFinancial(0);
@@ -327,13 +345,15 @@ export async function computeStatement(
       let totalFees = parseFinancial(0);
       let totalEndBalance = parseFinancial(0);
 
-      Object.values(assetsMap).forEach((asset) => {
-        totalBeginBalance = totalBeginBalance.plus(parseFinancial(asset.begin_balance));
-        totalAdditions = totalAdditions.plus(parseFinancial(asset.deposits));
-        totalRedemptions = totalRedemptions.plus(parseFinancial(asset.withdrawals));
-        totalFees = totalFees.plus(parseFinancial(asset.fees));
-        totalEndBalance = totalEndBalance.plus(parseFinancial(asset.end_balance));
-      });
+      for (const acc of Object.values(decAccum)) {
+        totalBeginBalance = totalBeginBalance.plus(acc.begin);
+        totalAdditions = totalAdditions.plus(acc.deposits);
+        totalRedemptions = totalRedemptions.plus(acc.withdrawals);
+        totalFees = totalFees.plus(acc.fees);
+        totalEndBalance = totalEndBalance.plus(
+          acc.begin.plus(acc.deposits).minus(acc.withdrawals).plus(acc.interest).minus(acc.fees)
+        );
+      }
 
       summary.begin_balance = totalBeginBalance.toNumber();
       summary.additions = totalAdditions.toNumber();
