@@ -28,13 +28,18 @@ export interface AUMReconciliationResult {
 export async function checkAUMReconciliation(
   fundId: string,
   tolerancePct: number = 0.01,
-  asOfDate: string = new Date().toISOString().split("T")[0]
+  asOfDate?: string
 ): Promise<AUMReconciliationResult> {
-  const { data, error } = await rpc.call("check_aum_reconciliation", {
+  // Build params - omit p_as_of_date to use DB default (CURRENT_DATE)
+  // when not explicitly provided, avoiding string-to-date cast issues
+  const params: Record<string, unknown> = {
     p_fund_id: fundId,
     p_tolerance_pct: tolerancePct,
-    p_as_of_date: asOfDate,
-  });
+  };
+  if (asOfDate) {
+    params.p_as_of_date = asOfDate;
+  }
+  const { data, error } = await rpc.call("check_aum_reconciliation", params);
 
   if (error) throw error;
   return data as unknown as AUMReconciliationResult;
