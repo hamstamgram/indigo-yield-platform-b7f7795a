@@ -124,17 +124,17 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
         // Return real performance data from the canonical source
         return performanceData.map((perf: any) => ({
           assetCode: perf.fund_name,
-          currentBalance: Number(perf.mtd_ending_balance) || 0,
-          principal: Number(perf.itd_additions) - Number(perf.itd_redemptions) || 0,
+          currentBalance: parseFinancial(perf.mtd_ending_balance).toNumber(),
+          principal: parseFinancial(perf.itd_additions).minus(parseFinancial(perf.itd_redemptions)).toNumber(),
           metrics: {
-            mtd: Number(perf.mtd_net_income) || 0,
-            qtd: Number(perf.qtd_net_income) || 0,
-            ytd: Number(perf.ytd_net_income) || 0,
-            itd: Number(perf.itd_net_income) || 0,
-            mtdPercentage: Number(perf.mtd_rate_of_return) || 0,
-            qtdPercentage: Number(perf.qtd_rate_of_return) || 0,
-            ytdPercentage: Number(perf.ytd_rate_of_return) || 0,
-            itdPercentage: Number(perf.itd_rate_of_return) || 0,
+            mtd: parseFinancial(perf.mtd_net_income).toNumber(),
+            qtd: parseFinancial(perf.qtd_net_income).toNumber(),
+            ytd: parseFinancial(perf.ytd_net_income).toNumber(),
+            itd: parseFinancial(perf.itd_net_income).toNumber(),
+            mtdPercentage: parseFinancial(perf.mtd_rate_of_return).toNumber(),
+            qtdPercentage: parseFinancial(perf.qtd_rate_of_return).toNumber(),
+            ytdPercentage: parseFinancial(perf.ytd_rate_of_return).toNumber(),
+            itdPercentage: parseFinancial(perf.itd_rate_of_return).toNumber(),
           },
         }));
       }

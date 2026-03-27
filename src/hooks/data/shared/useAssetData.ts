@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { type AssetSummaryDetailed, getAssetName } from "@/types/asset";
 import { logError } from "@/lib/logger";
+import { parseFinancial } from "@/utils/financial";
 
 export const useAssetData = () => {
   const [loading, setLoading] = useState(true);
@@ -58,8 +59,8 @@ export const useAssetData = () => {
         // Calculate asset summaries with per-asset yield
         const summaries: AssetSummaryDetailed[] = (positions || []).map((position) => {
           const symbol = (position.fund_class || "").toUpperCase();
-          const balance = Number(position.current_value || 0);
-          const principal = Number(position.cost_basis || balance);
+          const balance = parseFinancial(position.current_value).toNumber();
+          const principal = parseFinancial(position.cost_basis || balance).toNumber();
           const totalEarned = 0; // not tracked in investor_positions
 
           // Get current rate for this asset
