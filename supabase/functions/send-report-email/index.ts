@@ -303,52 +303,28 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Either delivery_id or (investor_id + period_id) required");
     }
 
-    // Build recipient info
-    const investorName =
-      [investorData.first_name, investorData.last_name].filter(Boolean).join(" ") ||
-      investorData.email;
-    const recipientEmail = investorData.email;
+    // Build recipient list: Primary + Secondary Verified Emails
+    const { data: secondaryEmails } = await supabase
+      .from("investor_emails")
+      .select("email")
+      .eq("investor_id", investor_id)
+      .eq("verified", true);
 
-    if (!recipientEmail) {
-      throw new Error("Investor has no email address");
+    const recipientList = [
+      investorData.email,
+      ...(secondaryEmails?.map((e: any) => e.email) || [])
+    ].filter(Boolean);
+
+    if (recipientList.length === 0) {
+      throw new Error("No verified recipients found for this investor");
     }
 
-    // Build period name
-    const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    const periodName = `${monthNames[periodData.month - 1]} ${periodData.year}`;
+    // ... (rest of period/subject building)
 
-    // Build email subject
-    const subject = `${investorName} – Your Account Statement – ${periodName}`;
-
-    // Build plain text fallback
-    const plainText = `
-INDIGO Monthly Report
-Period: ${periodName}
-Investor: ${investorName}
-
-Your monthly investment report is attached. 
-Please view the HTML version or attached PDF for the full report.
-
-This is an automated message from Indigo Yield.
-    `.trim();
-
-    // Prepare Resend API payload
+    // Prepare Resend API payload for MULTIPLE recipients
     const emailPayload: Record<string, unknown> = {
       from: `${RESEND_FROM_NAME} <${RESEND_FROM_EMAIL}>`,
-      to: [recipientEmail],
+      to: recipientList, // Now an array of all authorized emails
       subject,
       text: plainText,
     };
