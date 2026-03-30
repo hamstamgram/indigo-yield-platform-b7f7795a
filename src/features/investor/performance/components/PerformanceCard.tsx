@@ -1,82 +1,45 @@
-import {
-  getAssetLogo,
-  getAssetName,
-  formatInvestorAmount,
-  formatSignedInvestorAmount,
-} from "@/utils/assets";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import React from "react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PerformancePeriod } from "./PeriodSelector";
+import { formatPercentage } from "@/utils/financial";
 
-interface PerformanceData {
+interface PerformanceCardProps {
+  title: string;
+  assetCode: string;
   beginningBalance: number;
+  endingBalance: number;
   additions: number;
   redemptions: number;
   netIncome: number;
-  endingBalance: number;
   rateOfReturn: number;
 }
 
-interface PerformanceCardProps {
-  fundName: string;
-  period: PerformancePeriod;
-  data: PerformanceData;
-}
-
-export function PerformanceCard({ fundName, data }: PerformanceCardProps) {
-  // DB stores rate_of_return already as percentage (e.g. 1.29 = 1.29%)
-  const rateOfReturn = data.rateOfReturn;
-  const isPositive = rateOfReturn > 0;
-  const isNegative = rateOfReturn < 0;
-
-  const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
-
-  const badgeBg = isPositive
-    ? "bg-yield/10 border-yield/20"
-    : isNegative
-      ? "bg-rose-500/10 border-rose-500/20"
-      : "bg-white/5 border-white/10";
-
-  const trendTextColor = isPositive
-    ? "text-yield"
-    : isNegative
-      ? "text-rose-400"
-      : "text-muted-foreground";
-
-  const netIncomeColor =
-    data.netIncome > 0
-      ? "text-[hsl(var(--yield-neon))]"
-      : data.netIncome < 0
-        ? "text-rose-400"
-        : "text-muted-foreground";
+export const PerformanceCard = ({
+  title,
+  assetCode,
+  beginningBalance,
+  endingBalance,
+  additions,
+  redemptions,
+  netIncome,
+  rateOfReturn,
+}: PerformanceCardProps) => {
+  const isPositive = rateOfReturn >= 0;
+  const TrendIcon = isPositive ? ArrowUpRight : ArrowDownRight;
+  const trendTextColor = isPositive ? "text-emerald-400" : "text-rose-400";
+  const badgeBg = isPositive ? "bg-emerald-500/10 border-emerald-500/20" : "bg-rose-500/10 border-rose-500/20";
 
   return (
-    <div
-      className="rounded-2xl overflow-hidden relative group transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg"
-      style={{
-        background: "var(--glass-bg)",
-        border: "1px solid var(--glass-border)",
-      }}
-    >
-      {/* Top light reflection */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-      {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex items-center justify-between gap-3">
+    <div className="bg-card/30 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 hover:border-white/10 hover:shadow-emerald-500/5">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-white/[0.02]">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <img
-              src={getAssetLogo(fundName)}
-              alt={fundName}
-              className="h-9 w-9 rounded-full ring-2 ring-white/10"
-            />
+          <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+            <TrendingUp className="h-4 w-4 text-emerald-400" />
           </div>
           <div>
-            <p className="text-foreground font-bold text-sm leading-tight">
-              {getAssetName(fundName)}
-            </p>
-            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">
-              {fundName}
+            <h3 className="text-sm font-bold tracking-tight text-white">{title}</h3>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+              Performance Report
             </p>
           </div>
         </div>
@@ -92,7 +55,7 @@ export function PerformanceCard({ fundName, data }: PerformanceCardProps) {
           <TrendIcon className="h-3 w-3" />
           <span>
             {isPositive ? "+" : ""}
-            {rateOfReturn.toFixed(3)}%
+            {formatPercentage(rateOfReturn, 4)}
           </span>
         </div>
       </div>
@@ -105,54 +68,50 @@ export function PerformanceCard({ fundName, data }: PerformanceCardProps) {
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">
           Ending Balance
         </p>
-        <p className="font-mono font-bold text-foreground text-2xl md:text-3xl tabular-nums leading-none">
-          {formatInvestorAmount(data.endingBalance, fundName)}
-        </p>
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-black tracking-tighter text-white">
+            {endingBalance.toLocaleString(undefined, { maximumFractionDigits: 8 })}
+          </span>
+          <span className="text-xs font-bold text-muted-foreground uppercase">{assetCode}</span>
+        </div>
       </div>
 
-      {/* Metrics grid */}
-      <div className="p-5 grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-            Beginning Balance
+      {/* Detailed stats grid */}
+      <div className="grid grid-cols-2 gap-px bg-white/5">
+        <div className="bg-card/40 p-4">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-1">
+            Beginning
           </p>
-          <p className="font-mono font-semibold text-muted-foreground text-sm tabular-nums">
-            {formatInvestorAmount(data.beginningBalance, fundName)}
-          </p>
-        </div>
-
-        <div className="space-y-1">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-            Additions
-          </p>
-          <p className="font-mono text-foreground font-semibold text-sm tabular-nums">
-            {data.additions !== 0
-              ? formatSignedInvestorAmount(data.additions, fundName)
-              : formatInvestorAmount(0, fundName)}
+          <p className="text-sm font-bold text-white/90">
+            {beginningBalance.toLocaleString(undefined, { maximumFractionDigits: 8 })}
           </p>
         </div>
-
-        <div className="space-y-1">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-            Redemptions
-          </p>
-          <p className="font-mono text-rose-400 font-semibold text-sm tabular-nums">
-            {data.redemptions !== 0
-              ? formatSignedInvestorAmount(-Math.abs(data.redemptions), fundName)
-              : formatInvestorAmount(0, fundName)}
-          </p>
-        </div>
-
-        {/* Net Income — yield-neon for positive, full width */}
-        <div className="col-span-2 pt-3 border-t border-white/5 space-y-1">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+        <div className="bg-card/40 p-4 border-l border-white/5">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-1">
             Net Income
           </p>
-          <p className={cn("font-mono font-bold text-lg tabular-nums", netIncomeColor)}>
-            {formatSignedInvestorAmount(data.netIncome, fundName)}
+          <p className={cn("text-sm font-bold", isPositive ? "text-emerald-400" : "text-rose-400")}>
+            {isPositive ? "+" : ""}
+            {netIncome.toLocaleString(undefined, { maximumFractionDigits: 8 })}
+          </p>
+        </div>
+        <div className="bg-card/40 p-4 border-t border-white/5">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-1">
+            Additions
+          </p>
+          <p className="text-sm font-bold text-emerald-400/80">
+            +{additions.toLocaleString(undefined, { maximumFractionDigits: 8 })}
+          </p>
+        </div>
+        <div className="bg-card/40 p-4 border-t border-l border-white/5">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-1">
+            Redemptions
+          </p>
+          <p className="text-sm font-bold text-rose-400/80">
+            -{Math.abs(redemptions).toLocaleString(undefined, { maximumFractionDigits: 8 })}
           </p>
         </div>
       </div>
     </div>
   );
-}
+};

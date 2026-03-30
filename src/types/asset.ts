@@ -112,7 +112,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "BTC",
     name: "BTC Yield Fund",
     decimals: 8,
-    displayDecimals: 8,
+    displayDecimals: 8, // Full precision for BTC
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png",
     color: "#F7931A",
   },
@@ -120,7 +120,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "ETH",
     name: "ETH Yield Fund",
     decimals: 8,
-    displayDecimals: 6,
+    displayDecimals: 8, // Full precision for ETH
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png",
     color: "#627EEA",
   },
@@ -128,7 +128,7 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
     symbol: "SOL",
     name: "SOL Yield Fund",
     decimals: 9,
-    displayDecimals: 4,
+    displayDecimals: 6, // 6 decimals for SOL
     logoUrl: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png",
     color: "#14F195",
   },

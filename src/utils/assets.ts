@@ -96,18 +96,21 @@ export function formatSignedAssetAmount(
 }
 
 /**
- * Format amount for investor/IB-facing views (3 decimal places).
+ * Format amount for investor/IB-facing views (3 decimal places by default, or asset-specific precision).
  * Admin portal should continue using formatAssetAmount() for full precision.
  */
 export function formatInvestorAmount(amount: string | number, symbol: string): string {
-  return formatAssetAmount(amount, symbol, INVESTOR_DISPLAY_DECIMALS);
+  const config = getAssetConfig(symbol);
+  // Respect asset-specific display precision (e.g. 8 for BTC) unless specifically overridden
+  return formatAssetAmount(amount, symbol, config.displayDecimals ?? INVESTOR_DISPLAY_DECIMALS);
 }
 
 /**
- * Format signed amount for investor/IB-facing views (3 decimal places).
+ * Format signed amount for investor/IB-facing views.
  */
 export function formatSignedInvestorAmount(amount: string | number, symbol: string): string {
-  return formatSignedAssetAmount(amount, symbol, INVESTOR_DISPLAY_DECIMALS);
+  const config = getAssetConfig(symbol);
+  return formatSignedAssetAmount(amount, symbol, config.displayDecimals ?? INVESTOR_DISPLAY_DECIMALS);
 }
 
 /**

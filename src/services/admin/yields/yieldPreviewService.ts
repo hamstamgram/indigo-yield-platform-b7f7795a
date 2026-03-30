@@ -120,7 +120,7 @@ export async function previewYieldDistribution(
           ? parseFinancial(investorBalance)
               .div(parseFinancial(totalOpeningAum))
               .times(100)
-              .toFixed(4)
+              .toFixed(10) // High precision for audit consistency
           : "0";
       return {
         investorId: d.investor_id,
