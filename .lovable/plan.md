@@ -1,83 +1,65 @@
 
 
-# Fix: Yield History Allocation Columns (Fees Paid, IB Comm. empty + Remove Credits Earned)
+# Expert Excel-to-Platform Reconciliation Analysis
 
-## Problem
+## What This Is
 
-When expanding a distribution in the Yield History table, the "Fees Paid", "IB Comm.", and "Credits Earned" columns are always empty/"-". Root cause: the V5 yield engine writes `0` to `yield_allocations.fee_amount`, `ib_amount`, and `fee_credit`. The actual fee and IB data lives in the `fee_allocations` and `ib_allocations` tables respectively. The "Credits Earned" column maps to `fee_credit` which is always `0` and has no real-world meaning -- it should be removed.
+A data analysis task (NOT a code change) that produces a comprehensive reconciliation report comparing every number in the uploaded Excel (Accounting_Yield_Funds_6.xlsx) against the live database. The output is a document at `/mnt/documents/reconciliation-report.md`.
 
-## Data Verification
+## Excel Structure (from parsing)
 
-```text
-yield_allocations.fee_amount  = always 0  (confirmed via DB query)
-yield_allocations.ib_amount   = always 0  (confirmed via DB query)
-yield_allocations.fee_credit  = always 0  (confirmed via DB query)
+| Sheet (Page) | Fund | Content |
+|---|---|---|
+| Page 1 | BTC Boosted Program | 6 periods, 3 investors + Indigo Fees |
+| Page 2 | Investments | ~130 rows: investor, date (Excel serial), currency, amount |
+| Page 3 | BTC Yield Fund | 56 periods, ~20 investors with 19-decimal balances |
+| Page 4 | ETH Yield Fund | 39 periods, ~15 investors |
+| Page 5 | USDT Yield Fund | 44 periods, ~23 investors |
+| Page 6 | SOL Yield Fund | 18 periods, ~7 investors |
+| Page 7 | XRP Yield Fund | 10 periods, ~3 investors |
+| Page 8 | Report | Capital Account Summaries per investor per fund (MTD/QTD/YTD/ITD) |
 
-fee_allocations.fee_amount    = actual fee values (e.g. 56.80, 59.66, 78.03)
-ib_allocations.ib_fee_amount  = actual IB values  (e.g. 14.20, 14.91, 19.50)
-```
+## Execution Plan
 
-## Plan
+### Step 1: Extract Final Balances from Excel
+Parse each fund sheet to extract the **last column** balance per investor. These are the "golden" reference values.
 
-### Step 1: Enrich allocations with real fee/IB data in the service layer
+### Step 2: Query Platform Positions
+Run `SELECT investor_id, fund_id, current_value FROM investor_positions WHERE is_active = true` and join with profiles and funds for names.
 
-**File:** `src/services/admin/yields/yieldDistributionsPageService.ts`
+### Step 3: Position-Level Comparison
+For each investor-fund pair, compute `variance = platform_balance - excel_balance`. Flag any variance exceeding asset-specific dust thresholds.
 
-- After fetching `yield_allocations`, also fetch `fee_allocations` and `ib_allocations` for ALL distribution IDs (not just the fallback set)
-- Build lookup maps: `{distribution_id}:{investor_id}` -> `fee_amount` and `ib_fee_amount`
-- When constructing `AllocationRow[]`, populate `fee_amount` and `ib_amount` from these maps instead of the zero values from `yield_allocations`
+### Step 4: Yield Distribution Verification
+For each yield event (Gross Performance row in each fund sheet):
+- Match to `yield_distributions` by fund + period_end
+- Compare `gross_pct` from Excel vs platform
+- Verify conservation: `gross = net + fees + ib + dust`
 
-### Step 2: Remove "Credits Earned" column from UI
+### Step 5: Transaction Count Verification
+Compare Investments sheet row count per investor-fund against `transactions_v2` deposit/withdrawal count.
 
-**File:** `src/features/admin/yields/components/YieldsTable.tsx`
+### Step 6: Report Tab Verification
+Cross-reference the Capital Account Summary values (Beginning Balance, Additions, Redemptions, Net Income, Ending Balance, Rate of Return) against the platform's `statements` table and `investor_fund_performance` records.
 
-- Remove the `<TableHead>Credits Earned</TableHead>` header (line 405)
-- Remove the corresponding `<TableCell>` that renders `alloc.fee_credit` (lines 437-443)
+### Step 7: Integrity Views
+Run all 6 integrity views and confirm zero violations.
 
-### Step 3: Clean up the AllocationRow type
+### Step 8: Compile Report
+Generate `/mnt/documents/reconciliation-report.md` with:
+- Summary table: Layer | Checks | Pass | Fail | Max Variance
+- Per-investor variance tables for any failures
+- Conservation identity check results per distribution
+- Statement/report parity results
 
-**File:** `src/services/admin/yields/yieldDistributionsPageService.ts`
+## Technical Approach
 
-- Remove `fee_credit` from the `AllocationRow` type definition (line 54)
-- Remove `fee_credit` from the Supabase select query (line 201)
+- Copy the Excel to `/tmp/` and use Python (openpyxl + decimal) to extract exact values with full precision
+- Use `psql` queries against the live database
+- All comparisons use Python `Decimal` for 18-decimal precision
+- Asset-specific tolerances: BTC/ETH/SOL/XRP: `0.00000001`, USDT/USDC: `0.0001`
 
-## Technical Details
+## Output
 
-The service enrichment query will look like:
-
-```typescript
-// Fetch fee_allocations for ALL distributions to enrich yield_allocations
-const { data: allFeeRows } = await supabase
-  .from("fee_allocations")
-  .select("distribution_id, investor_id, fee_amount")
-  .in("distribution_id", distributionIds)
-  .eq("is_voided", false);
-
-const { data: allIbRows } = await supabase
-  .from("ib_allocations")
-  .select("distribution_id, source_investor_id, ib_fee_amount")
-  .in("distribution_id", distributionIds)
-  .eq("is_voided", false);
-
-// Build maps keyed by "distribution_id:investor_id"
-const feeMap = new Map((allFeeRows || []).map(r => 
-  [`${r.distribution_id}:${r.investor_id}`, r.fee_amount]
-));
-const ibMap = new Map((allIbRows || []).map(r => 
-  [`${r.distribution_id}:${r.source_investor_id}`, r.ib_fee_amount]
-));
-
-// Enrich each allocation
-allocations.forEach(a => {
-  const key = `${a.distribution_id}:${a.investor_id}`;
-  a.fee_amount = feeMap.get(key) || a.fee_amount;
-  a.ib_amount = ibMap.get(key) || a.ib_amount;
-});
-```
-
-### Files Changed
-| File | Change |
-|------|--------|
-| `yieldDistributionsPageService.ts` | Enrich allocations with fee/IB data from their tables; remove `fee_credit` from type and query |
-| `YieldsTable.tsx` | Remove "Credits Earned" column header and cell |
+A single reconciliation report document with pass/fail per layer, plus detailed variance tables. No code changes to the platform.
 
