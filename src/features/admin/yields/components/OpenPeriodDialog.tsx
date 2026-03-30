@@ -29,6 +29,7 @@ import { getTodayUTC } from "@/utils/dateUtils";
 import { useAuth } from "@/services/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
+import { ASSET_PRECISION } from "@/types/asset";
 
 interface Fund {
   id: string;
@@ -64,12 +65,11 @@ export function OpenPeriodDialog({ open, onOpenChange, fund, onSuccess }: OpenPe
   };
 
   const formatValue = (value: number, asset: string) => {
-    if (asset === "BTC") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 8 });
-    } else if (asset === "ETH" || asset === "SOL") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
-    }
-    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    const precision = ASSET_PRECISION[asset] || 8;
+    return value.toLocaleString("en-US", { 
+      minimumFractionDigits: Math.min(2, precision), 
+      maximumFractionDigits: precision 
+    });
   };
 
   return (

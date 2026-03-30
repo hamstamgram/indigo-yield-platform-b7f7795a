@@ -192,7 +192,7 @@ export async function invalidateAfterYieldOp(queryClient: QueryClient): Promise<
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ledgerReconciliation });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.perAssetStats });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
-  queryClient.invalidateQueries({ queryKey: ["aum-reconciliation"] });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.aumReconciliation() });
 
   // Force immediate refetch of critical AUM data
   await queryClient.refetchQueries({ queryKey: QUERY_KEYS.fundAumAll });

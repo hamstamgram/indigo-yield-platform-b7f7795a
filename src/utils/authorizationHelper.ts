@@ -72,7 +72,7 @@ export function clearRoleCache(userId?: string): void {
  * Access rules:
  * - Self-access: Users can always access their own data
  * - Admin access: Admins and super_admins can access any investor's data
- * - IB access: IBs can access their referred investors' data (TODO: implement)
+ * - IB access: IBs can access their referred investors' data
  *
  * @param targetInvestorId - The investor ID whose data is being accessed
  * @param requestingUserId - Optional, uses current user if not provided

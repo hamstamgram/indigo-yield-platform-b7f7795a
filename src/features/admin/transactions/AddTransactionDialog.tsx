@@ -236,8 +236,8 @@ export function AddTransactionDialog({
                           onCheckedChange={(checked) => {
                             field.onChange(checked);
                             if (checked && currentBalance) {
-                              const roundedAmount = Math.floor(currentBalance * 1000) / 1000;
-                              setValue("amount", roundedAmount.toString(), {
+                              // Use full precision for full exit
+                              setValue("amount", currentBalance.toString(), {
                                 shouldValidate: true,
                               });
                             }

@@ -48,14 +48,25 @@ export function EditYieldDialog({
     }
   }, [record, open]);
 
-  const parsedNewAum = parseFloat(newAum);
-  const isValidAum = !isNaN(parsedNewAum) && parsedNewAum > 0;
+  const getParsedAum = () => {
+    try {
+      return new Decimal(newAum || "0");
+    } catch {
+      return new Decimal(0);
+    }
+  };
+
+  const parsedNewAumDec = getParsedAum();
+  const parsedNewAum = parsedNewAumDec.toNumber();
+  
+  const isValidAum = parsedNewAumDec.gt(0);
   const isValidReason = reason.trim().length >= 5;
-  const hasChanged = record && parsedNewAum !== record.total_aum;
+  const hasChanged = record && !parsedNewAumDec.equals(new Decimal(record.total_aum));
   const isValid = isValidAum && isValidReason && hasChanged;
 
   const handleSave = async () => {
     if (!isValid) return;
+    // We pass the string to maintain max precision in the mutation
     await onSave(parsedNewAum, reason.trim());
   };
 

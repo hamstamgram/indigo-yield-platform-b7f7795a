@@ -78,7 +78,7 @@ export default function InvestorTransactionsPage() {
     {
       header: (
         <SortableTableHead column="tx_date" currentSort={sortConfig} onSort={requestSort}>
-          Date
+          Date (UTC)
         </SortableTableHead>
       ),
       cell: (item: Record<string, unknown>) => (

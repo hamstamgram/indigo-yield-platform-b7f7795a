@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { useUpdateFundPerformance } from "@/hooks/data/admin";
+import { ASSET_PRECISION } from "@/types/asset";
+import { formatPercentage, formatInvestorAmount } from "@/utils/assets";
 
 interface PerformanceData {
   mtd_beginning_balance: number;
@@ -75,16 +77,11 @@ export function FundPositionCard({
   const isSaving = updatePerformanceMutation.isPending;
 
   const formatCrypto = (value: number) => {
-    const decimals = assetCode === "BTC" ? 8 : assetCode === "ETH" ? 6 : 4;
-    return new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    }).format(value);
+    return formatInvestorAmount(value, assetCode).split(" ")[0];
   };
 
   const formatPercent = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return "0.00%";
-    return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
+    return formatPercentage(value || 0, 2);
   };
 
   const handleFieldChange = (field: keyof typeof editData, value: string) => {
@@ -335,7 +332,7 @@ export function FundPositionCard({
                       <Input
                         type="number"
                         step="any"
-                        value={editData.mtd_net_income.toFixed(8)}
+                        value={editData.mtd_net_income.toFixed(ASSET_PRECISION[assetCode] || 8)}
                         onChange={(e) => handleFieldChange("mtd_net_income", e.target.value)}
                         className="font-mono h-9 bg-green-900/20"
                       />
