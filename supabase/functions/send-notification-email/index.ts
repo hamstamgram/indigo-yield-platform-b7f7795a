@@ -62,6 +62,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { to, subject, template, data }: EmailRequest = await req.json();
 
+    // institutional Gating: Check user preferences
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("preferences, email")
+      .eq("email", to)
+      .single();
+
+    if (profile) {
+      const prefs = profile.preferences as any;
+      const isEmailEnabled = prefs?.notifications?.email !== false;
+      const isTypeEnabled = prefs?.notifications?.[template] !== false;
+
+      if (!isEmailEnabled || !isTypeEnabled) {
+        console.log(`Skipping email to ${to}: Preference disabled for ${template}`);
+        return new Response(JSON.stringify({ success: true, message: "Skipped due to preferences" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...headers },
+        });
+      }
+    }
+
     // Email templates - Inner content only
     const templates = {
       statement_ready: {

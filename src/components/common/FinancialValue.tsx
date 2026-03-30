@@ -24,6 +24,8 @@ interface FinancialValueProps {
   prefix?: string;
   /** Whether to apply color based on value sign */
   colorize?: boolean;
+  /** Whether to allow the value to shrink on mobile viewports */
+  shrink?: boolean;
 }
 
 export function FinancialValue({
@@ -34,6 +36,7 @@ export function FinancialValue({
   showAsset = true,
   prefix = "",
   colorize = false,
+  shrink = false,
 }: FinancialValueProps) {
   // Handle null/undefined
   if (value === null || value === undefined) {
@@ -54,7 +57,7 @@ export function FinancialValue({
 
   // Format for display
   const rawDisplay = decimalValue.toFixed(decimals);
-  const fullPrecision = decimalValue.toFixed(10);
+  const fullPrecision = decimalValue.toFixed(18); // Show full 18-decimal precision in tooltips
 
   // Add thousand separators while preserving decimal precision
   const formatWithSeparators = (val: string): string => {
@@ -86,6 +89,14 @@ export function FinancialValue({
   const formattedValue = `${prefix}${displayValue}${showAsset && asset ? ` ${asset}` : ""}`;
   const formattedFullValue = `${prefix}${formatWithSeparators(fullPrecision)}${showAsset && asset ? ` ${asset}` : ""}`;
 
+  // Container classes for responsive shrink
+  const containerClasses = cn(
+    "font-mono whitespace-nowrap",
+    shrink && "inline-block max-w-[140px] overflow-hidden text-ellipsis align-bottom",
+    valueColor,
+    className
+  );
+
   // Micro-balance: show special indicator with tooltip
   if (isMicroBalance) {
     return (
@@ -103,27 +114,27 @@ export function FinancialValue({
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Micro-balance</p>
-            <p className="font-mono text-sm">{formattedFullValue}</p>
+            <p className="text-xs text-muted-foreground">Micro-balance (Exact Value)</p>
+            <p className="font-mono text-sm break-all">{formattedFullValue}</p>
           </div>
         </TooltipContent>
       </Tooltip>
     );
   }
 
-  // Regular value: show tooltip only if precision differs
-  if (hasPrecisionLoss) {
+  // Regular value: show tooltip only if precision differs or shrinking is enabled
+  if (hasPrecisionLoss || shrink) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className={cn("font-mono cursor-help", valueColor, className)}>
-            {formattedValue}
-          </span>
+          <span className={containerClasses}>{formattedValue}</span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs">
+        <TooltipContent side="top" className="max-w-md">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Full precision</p>
-            <p className="font-mono text-sm">{formattedFullValue}</p>
+            <p className="text-xs text-muted-foreground">
+              {shrink ? "Exact Value" : "Full precision"}
+            </p>
+            <p className="font-mono text-sm break-all">{formattedFullValue}</p>
           </div>
         </TooltipContent>
       </Tooltip>
@@ -131,7 +142,7 @@ export function FinancialValue({
   }
 
   // No precision loss: simple display
-  return <span className={cn("font-mono", valueColor, className)}>{formattedValue}</span>;
+  return <span className={containerClasses}>{formattedValue}</span>;
 }
 
 /**
@@ -145,10 +156,10 @@ export function sumFinancialValues(values: (number | string | null | undefined)[
 }
 
 /**
- * Check if two financial values are equal to 10th decimal
+ * Check if two financial values are equal to 18th decimal
  */
 export function financialValuesEqual(a: number | string, b: number | string): boolean {
   const decA = new Decimal(a);
   const decB = new Decimal(b);
-  return decA.minus(decB).abs().lessThan(new Decimal("0.0000000001"));
+  return decA.minus(decB).abs().isZero();
 }
