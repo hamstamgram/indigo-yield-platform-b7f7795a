@@ -1,343 +1,379 @@
 import React, { useState } from "react";
-import Decimal from "decimal.js";
-import { toNum } from "@/utils/numeric";
-import { FinancialValue } from "@/components/common/FinancialValue";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Button,
-  Input,
-  Badge,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui";
-import { Edit3, Save, X, TrendingUp, TrendingDown } from "lucide-react";
-import { CryptoIcon } from "@/components/CryptoIcons";
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  TrendingUp,
+  TrendingDown,
+  Edit2,
+  Check,
+  X,
+  History,
+  Info,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { logError } from "@/lib/logger";
-import { ExpertPosition, expertInvestorService } from "@/services/investor";
-import { formatAssetValue } from "@/utils/kpiCalculations";
+import { formatAssetValue } from "../../utils/formatters";
+import { toNum } from "@/utils/numeric";
+import { FinancialValue } from "@/components/common/FinancialValue";
+import Decimal from "decimal.js";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { formatPercentage } from "@/utils/financial";
+import { formatAdminNumber } from "@/utils/assets";
 
 interface ExpertPositionsTableProps {
-  positions: ExpertPosition[];
-  onPositionUpdate: () => void;
+  investorId: string;
+  positions: any[];
+  onRefresh: () => void;
 }
 
-const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
+export const ExpertPositionsTable = ({
+  investorId,
   positions,
-  onPositionUpdate,
-}) => {
-  const [editingPosition, setEditingPosition] = useState<string | null>(null);
+  onRefresh,
+}: ExpertPositionsTableProps) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState({
-    currentValue: 0,
-    costBasis: 0,
     shares: 0,
+    costBasis: 0,
+    currentValue: 0,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleEdit = (position: ExpertPosition) => {
-    setEditingPosition(position.id);
+  const handleEdit = (position: any) => {
+    setEditingId(position.id);
     setEditValues({
-      currentValue: position.current_value,
-      costBasis: position.cost_basis,
       shares: position.shares,
+      costBasis: position.cost_basis,
+      currentValue: position.current_value,
     });
   };
 
-  const handleSave = async (positionId: string, _isLegacy: boolean) => {
+  const handleCancel = () => {
+    setEditingId(null);
+  };
+
+  const handleSave = async (positionId: string) => {
+    setIsSubmitting(true);
     try {
-      const position = positions.find((p) => p.id === positionId);
-      if (!position) {
-        toast.error("Position not found");
-        return;
-      }
+      const { error } = await supabase
+        .from("investor_positions")
+        .update({
+          shares: editValues.shares,
+          cost_basis: editValues.costBasis,
+          current_value: editValues.currentValue,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", positionId);
 
-      await expertInvestorService.updatePositionValue(
-        position.investor_id,
-        position.fund_id,
-        editValues.currentValue
-      );
+      if (error) throw error;
 
-      setEditingPosition(null);
-      onPositionUpdate();
       toast.success("Position updated successfully");
-    } catch (error) {
-      logError("position.update", error, { positionId });
-      toast.error("Failed to update position");
+      setEditingId(null);
+      onRefresh();
+    } catch (error: any) {
+      toast.error(`Failed to update position: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCancel = () => {
-    setEditingPosition(null);
-  };
-
-  const calculatePnL = (currentValue: number, costBasis: number) => {
-    return currentValue - costBasis;
-  };
-
-  const calculatePnLPercent = (currentValue: number, costBasis: number) => {
-    if (costBasis === 0) return 0;
-    return ((currentValue - costBasis) / costBasis) * 100;
-  };
-
-  if (positions.length === 0) {
+  if (!positions || positions.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">No positions found for this investor</p>
+      <Card className="border-white/5 bg-card/50">
+        <CardContent className="py-8 text-center text-muted-foreground">
+          No active positions found for this investor.
         </CardContent>
       </Card>
     );
   }
 
+  // Group by asset for totals
+  const assetTotals = positions.reduce((acc: any, pos) => {
+    const asset = pos.asset;
+    if (!acc[asset]) acc[asset] = { totalValue: new Decimal(0), totalPnL: new Decimal(0), count: 0 };
+    acc[asset].totalValue = acc[asset].totalValue.plus(pos.current_value);
+    acc[asset].totalPnL = acc[asset].totalPnL.plus(pos.current_value).minus(pos.cost_basis);
+    acc[asset].count += 1;
+    return acc;
+  }, {});
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>All Positions</CardTitle>
-        <CardDescription>
-          Complete position history and current holdings across all funds
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table className="text-xs">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="whitespace-nowrap">Fund / Asset</TableHead>
-              <TableHead className="whitespace-nowrap">Class</TableHead>
-              <TableHead className="whitespace-nowrap">Shares</TableHead>
-              <TableHead className="whitespace-nowrap">Cost</TableHead>
-              <TableHead className="whitespace-nowrap">Value</TableHead>
-              <TableHead className="whitespace-nowrap">P&L</TableHead>
-              <TableHead className="whitespace-nowrap">P&L%</TableHead>
-              <TableHead className="whitespace-nowrap">Earnings</TableHead>
-              <TableHead className="whitespace-nowrap">Last Tx</TableHead>
-              <TableHead className="whitespace-nowrap">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {positions.map((position) => {
-              const isEditing = editingPosition === position.id;
-              const isLegacy = position.fund_class === "Legacy";
-              const pnl = calculatePnL(position.current_value, position.cost_basis);
-              const pnlPercent = calculatePnLPercent(position.current_value, position.cost_basis);
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Object.entries(assetTotals).map(([asset, data]: [string, any]) => {
+          const totalValue = data.totalValue.toString();
+          const totalPnLDec = data.totalPnL;
+          const totalCostBasis = data.totalValue.minus(totalPnLDec);
+          const pnlPercent = totalCostBasis.gt(0) 
+            ? totalPnLDec.div(totalCostBasis).times(100).toNumber() 
+            : 0;
 
-              return (
-                <TableRow key={position.id}>
-                  <TableCell className="py-1.5">
-                    <div className="flex items-center gap-2">
-                      <CryptoIcon symbol={position.asset} className="h-5 w-5" />
-                      <div>
-                        <div className="font-medium">{position.fund_name}</div>
-                        <div className="text-muted-foreground">{position.fund_code}</div>
-                      </div>
+          return (
+            <Card key={asset} className="border-white/5 bg-card/30 backdrop-blur-sm">
+              <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  {asset} Portfolio
+                </CardTitle>
+                <Badge variant="outline" className="bg-white/5 border-white/10 text-[10px]">
+                  {data.count} {data.count === 1 ? 'Fund' : 'Funds'}
+                </Badge>
+              </CardHeader>
+              <CardContent className="py-2 pb-4">
+                <div className="text-xl font-bold tracking-tight">
+                  <FinancialValue value={totalValue} asset={asset} />
+                </div>
+                <div className={`text-xs mt-1 font-medium flex items-center gap-1 ${totalPnLDec.gte(0) ? 'text-yield' : 'text-rose-400'}`}>
+                  {totalPnLDec.gte(0) ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                  <FinancialValue value={totalPnLDec.abs().toString()} asset={asset} showAsset={false} /> ({formatPercentage(pnlPercent, 4)})
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card className="border-white/5 bg-card/50 overflow-hidden shadow-xl">
+        <CardHeader className="bg-white/[0.02] border-b border-white/5 py-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <History className="h-4 w-4 text-emerald-400" />
+              Live Asset Holdings
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-1 rounded-full hover:bg-white/5 cursor-help">
+                      <Info className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    <Badge variant={isLegacy ? "secondary" : "default"} className="text-[10px]">
-                      {position.fund_class}
-                    </Badge>
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        step="0.0001"
-                        value={editValues.shares}
-                        onChange={(e) =>
-                          setEditValues({
-                            ...editValues,
-                            shares: toNum(e.target.value),
-                          })
-                        }
-                        className="w-24"
-                      />
-                    ) : (
-                      <span className="font-mono tabular-nums">{position.shares.toFixed(4)}</span>
-                    )}
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={editValues.costBasis}
-                        onChange={(e) =>
-                          setEditValues({
-                            ...editValues,
-                            costBasis: toNum(e.target.value),
-                          })
-                        }
-                        className="w-28"
-                      />
-                    ) : (
-                      <span className="font-mono tabular-nums">
-                        {formatAssetValue(position.cost_basis, position.asset)}
-                      </span>
-                    )}
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={editValues.currentValue}
-                        onChange={(e) =>
-                          setEditValues({
-                            ...editValues,
-                            currentValue: toNum(e.target.value),
-                          })
-                        }
-                        className="w-28"
-                      />
-                    ) : (
-                      <span className="font-mono tabular-nums font-semibold">
-                        {formatAssetValue(position.current_value, position.asset)}
-                      </span>
-                    )}
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    <div
-                      className={`flex items-center space-x-1 ${
-                        pnl >= 0 ? "text-yield" : "text-rose-400"
-                      }`}
-                    >
-                      {pnl >= 0 ? (
-                        <TrendingUp className="h-3 w-3" />
-                      ) : (
-                        <TrendingDown className="h-3 w-3" />
-                      )}
-                      <span className="font-mono tabular-nums">
-                        {formatAssetValue(Math.abs(pnl), position.asset)}
-                      </span>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    <span
-                      className={`font-mono tabular-nums ${
-                        pnlPercent >= 0 ? "text-yield" : "text-rose-400"
-                      }`}
-                    >
-                      {pnlPercent >= 0 ? "+" : ""}
-                      {pnlPercent.toFixed(2)}%
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    <span className="font-mono tabular-nums text-yield">
-                      {formatAssetValue(position.total_earnings, position.asset)}
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      {position.last_transaction_date
-                        ? new Date(position.last_transaction_date).toLocaleDateString()
-                        : "—"}
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="py-1.5">
-                    {isEditing ? (
-                      <div className="flex items-center space-x-1">
-                        <Button size="sm" onClick={() => handleSave(position.id, isLegacy)}>
-                          <Save className="h-3 w-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={handleCancel}>
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button size="sm" variant="ghost" onClick={() => handleEdit(position)}>
-                        <Edit3 className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-
-        {/* Summary Footer - Per Asset Totals */}
-        <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-          <div className="font-medium mb-4">Summary by Asset</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(() => {
-              // Group positions by asset
-              const assetGroups = positions.reduce(
-                (acc, pos) => {
-                  if (!acc[pos.asset]) {
-                    acc[pos.asset] = [];
-                  }
-                  acc[pos.asset].push(pos);
-                  return acc;
-                },
-                {} as Record<string, typeof positions>
-              );
-
-              return Object.entries(assetGroups).map(([asset, assetPositions]) => {
-                const totalValueDec = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.current_value || 0)), new Decimal(0));
-                const totalCostDec = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.cost_basis || 0)), new Decimal(0));
-                const totalEarningsDec = assetPositions.reduce((sum, p) => sum.plus(new Decimal(p.total_earnings || 0)), new Decimal(0));
-                const totalPnLDec = totalValueDec.minus(totalCostDec);
-                const pnlPercent = totalCostDec.greaterThan(0) ? totalValueDec.minus(totalCostDec).div(totalCostDec).times(100).toNumber() : 0;
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs text-xs">
+                    Expert mode allows direct modification of position ledger records. Use with caution.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-white/[0.01]">
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-6">
+                  Fund
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Asset
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">
+                  Shares
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">
+                  Cost Basis
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">
+                  Value
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">
+                  PnL
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">
+                  %
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">
+                  Earnings
+                </TableHead>
+                <TableHead className="h-9 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Last Update
+                </TableHead>
+                <TableHead className="h-9 w-20"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {positions.map((position) => {
+                const pnl = position.current_value - position.cost_basis;
+                const pnlPercent = position.cost_basis > 0 ? (pnl / position.cost_basis) * 100 : 0;
+                const isEditing = editingId === position.id;
+                const asset = position.asset || "BTC";
 
                 return (
-                  <div key={asset} className="border rounded-lg p-3 bg-card">
-                    <div className="font-semibold text-sm mb-2 flex items-center gap-2">
-                      <CryptoIcon symbol={asset} className="h-5 w-5" />
-                      {asset}
-                    </div>
-                    <div className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Positions:</span>
-                        <span className="font-medium">{assetPositions.length}</span>
+                  <TableRow
+                    key={position.id}
+                    className="border-white/5 hover:bg-white/[0.02] transition-colors group"
+                  >
+                    <TableCell className="py-1.5 pl-6">
+                      <div className="font-semibold text-sm text-white/90">
+                        {position.funds?.name || "Unknown Fund"}
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Value:</span>
-                        <span className="font-medium"><FinancialValue value={totalValueDec.toString()} asset={asset} showAsset={false} /></span>
+                      <div className="text-[10px] font-mono text-muted-foreground uppercase">
+                        {position.funds?.code}
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Cost:</span>
-                        <span className="font-medium"><FinancialValue value={totalCostDec.toString()} asset={asset} showAsset={false} /></span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Earnings:</span>
-                        <span className="font-medium text-yield">
-                          <FinancialValue value={totalEarningsDec.toString()} asset={asset} showAsset={false} />
+                    </TableCell>
+
+                    <TableCell className="py-1.5">
+                      <Badge variant="outline" className="bg-white/5 border-white/10 text-[10px] font-mono">
+                        {asset}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="py-1.5 text-right">
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          step="0.00000001"
+                          value={editValues.shares}
+                          onChange={(e) =>
+                            setEditValues({
+                              ...editValues,
+                              shares: toNum(e.target.value),
+                            })
+                          }
+                          className="w-24 ml-auto text-right"
+                        />
+                      ) : (
+                        <span className="font-mono tabular-nums">{formatAdminNumber(position.shares, asset)}</span>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="py-1.5 text-right">
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editValues.costBasis}
+                          onChange={(e) =>
+                            setEditValues({
+                              ...editValues,
+                              costBasis: toNum(e.target.value),
+                            })
+                          }
+                          className="w-28 ml-auto text-right"
+                        />
+                      ) : (
+                        <span className="font-mono tabular-nums">
+                          {formatAssetValue(position.cost_basis, position.asset)}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="py-1.5 text-right">
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editValues.currentValue}
+                          onChange={(e) =>
+                            setEditValues({
+                              ...editValues,
+                              currentValue: toNum(e.target.value),
+                            })
+                          }
+                          className="w-28 ml-auto text-right"
+                        />
+                      ) : (
+                        <span className="font-mono tabular-nums font-semibold">
+                          {formatAssetValue(position.current_value, position.asset)}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="py-1.5 text-right">
+                      <div
+                        className={`flex items-center justify-end space-x-1 ${
+                          pnl >= 0 ? "text-yield" : "text-rose-400"
+                        }`}
+                      >
+                        {pnl >= 0 ? (
+                          <TrendingUp className="h-3 w-3" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3" />
+                        )}
+                        <span className="font-mono tabular-nums">
+                          {formatAssetValue(Math.abs(pnl), position.asset)}
                         </span>
                       </div>
-                      <div className="flex justify-between border-t pt-1">
-                        <span className="text-muted-foreground">P&L:</span>
-                        <span
-                          className={`font-semibold ${totalPnLDec.greaterThanOrEqualTo(0) ? "text-yield" : "text-rose-400"}`}
+                    </TableCell>
+
+                    <TableCell className="py-1.5 text-right">
+                      <span
+                        className={`font-mono tabular-nums ${
+                          pnlPercent >= 0 ? "text-yield" : "text-rose-400"
+                        }`}
+                      >
+                        {pnlPercent >= 0 ? "+" : ""}
+                        {formatPercentage(pnlPercent, 4)}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="py-1.5 text-right">
+                      <span className="font-mono tabular-nums text-yield">
+                        {formatAssetValue(position.total_earnings, position.asset)}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="py-1.5">
+                      <span className="text-muted-foreground whitespace-nowrap text-xs">
+                        {position.last_transaction_date
+                          ? new Date(position.last_transaction_date).toLocaleDateString()
+                          : "—"}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="py-1.5 pr-6 text-right">
+                      {isEditing ? (
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                            onClick={() => handleSave(position.id)}
+                            disabled={isSubmitting}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                            onClick={handleCancel}
+                            disabled={isSubmitting}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleEdit(position)}
                         >
-                          {totalPnLDec.greaterThanOrEqualTo(0) ? "+" : ""}
-                          <FinancialValue value={totalPnLDec.abs().toString()} asset={asset} showAsset={false} /> ({pnlPercent.toFixed(2)}%)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                          <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
                 );
-              });
-            })()}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
-
-export default ExpertPositionsTable;

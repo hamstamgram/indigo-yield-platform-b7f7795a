@@ -136,8 +136,8 @@ export function ApproveWithdrawalDialog({
   useEffect(() => {
     if (isFullExit && !prevIsFullExitRef.current && positionBalance) {
       const balance = new Decimal(positionBalance);
-      const truncated = balance.toDecimalPlaces(INVESTOR_DISPLAY_DECIMALS, Decimal.ROUND_DOWN);
-      setProcessedAmount(truncated.toString());
+      // Use full precision for full exit
+      setProcessedAmount(balance.toString());
     } else if (!isFullExit && prevIsFullExitRef.current) {
       setProcessedAmount(withdrawal.requested_amount.toString());
     }

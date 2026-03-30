@@ -94,9 +94,38 @@ export function formatSignedAssetAmount(
   if (numAmount > 0) return `+${formatted}`;
   return formatted;
 }
+/**
+ * Format amount for admin-facing views (Full precision).
+ */
+export function formatAdminAmount(amount: string | number, symbol: string): string {
+  const config = getAssetConfig(symbol);
+  return formatAssetAmount(amount, symbol, config.decimals);
+}
+
+/**
+ * Format signed amount for admin-facing views (Full precision).
+ */
+export function formatSignedAdminAmount(amount: string | number, symbol: string): string {
+  const config = getAssetConfig(symbol);
+  return formatSignedAssetAmount(amount, symbol, config.decimals);
+}
+
+/**
+ * Format a number for admin display (full precision) WITHOUT the asset symbol.
+ */
+export function formatAdminNumber(amount: string | number, symbol: string): string {
+  const numAmount = toNum(amount);
+  const config = getAssetConfig(symbol);
+  const precision = config.decimals;
+  return numAmount.toLocaleString("en-US", {
+    minimumFractionDigits: precision,
+    maximumFractionDigits: precision,
+  });
+}
 
 /**
  * Format amount for investor/IB-facing views (3 decimal places by default, or asset-specific precision).
+...
  * Admin portal should continue using formatAssetAmount() for full precision.
  */
 export function formatInvestorAmount(amount: string | number, symbol: string): string {

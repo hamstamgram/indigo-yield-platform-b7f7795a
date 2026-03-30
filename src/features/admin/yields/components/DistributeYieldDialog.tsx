@@ -290,7 +290,7 @@ export function DistributeYieldDialog({
                       onCheckedChange={(checked) => setAcknowledgeDiscrepancy(checked === true)}
                     />
                     <span className="text-destructive">
-                      I acknowledge the {(reconciliation?.discrepancy_pct ?? 0).toFixed(2)}% AUM
+                      I acknowledge the {(reconciliation?.discrepancy_pct ?? 0).toFixed(4)}% AUM
                       discrepancy and want to proceed
                     </span>
                   </Label>
