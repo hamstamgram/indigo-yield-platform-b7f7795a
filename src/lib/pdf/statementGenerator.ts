@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { formatAUM, formatPercentage } from "@/utils/formatters";
+import { formatPercentage, formatInvestorAmount } from "@/utils/assets";
 import { logWarn } from "@/lib/logger";
 import { getFundIconByAsset } from "@/types/domains/report";
 
@@ -101,19 +101,17 @@ const loadImage = (url: string): Promise<string> => {
   });
 };
 
-const formatValue = (val: number | null | undefined, decimals = 4): string => {
+const formatValue = (val: number | null | undefined, asset: string): string => {
   if (val === null || val === undefined || isNaN(val)) return "-";
-  if (val === 0) return "0.0000";
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(val);
+  // Use high-precision investor amount formatter
+  // We split by space to remove the asset symbol (e.g., "0.04981440 BTC" -> "0.04981440")
+  return formatInvestorAmount(val, asset).split(" ")[0];
 };
 
 const formatPercent = (val: number | null | undefined): string => {
   if (val === null || val === undefined || isNaN(val)) return "-";
-  // Use centralized formatter with sign prefix
-  return formatPercentage(val, 2, true);
+  // Use high-precision formatter (4 decimals for audit consistency)
+  return formatPercentage(val, 4);
 };
 
 const getAssetFromFundName = (fundName: string): string => {
@@ -248,34 +246,34 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
     const rows = [
       {
         label: "Beginning Balance",
-        mtd: formatValue(fund.mtd_beginning_balance),
-        qtd: formatValue(fund.qtd_beginning_balance),
-        ytd: formatValue(fund.ytd_beginning_balance),
-        itd: formatValue(fund.itd_beginning_balance),
+        mtd: formatValue(fund.mtd_beginning_balance, asset),
+        qtd: formatValue(fund.qtd_beginning_balance, asset),
+        ytd: formatValue(fund.ytd_beginning_balance, asset),
+        itd: formatValue(fund.itd_beginning_balance, asset),
         isHighlight: false,
       },
       {
         label: "Additions",
-        mtd: formatValue(fund.mtd_additions),
-        qtd: formatValue(fund.qtd_additions),
-        ytd: formatValue(fund.ytd_additions),
-        itd: formatValue(fund.itd_additions),
+        mtd: formatValue(fund.mtd_additions, asset),
+        qtd: formatValue(fund.qtd_additions, asset),
+        ytd: formatValue(fund.ytd_additions, asset),
+        itd: formatValue(fund.itd_additions, asset),
         isHighlight: false,
       },
       {
         label: "Redemptions",
-        mtd: formatValue(fund.mtd_redemptions),
-        qtd: formatValue(fund.qtd_redemptions),
-        ytd: formatValue(fund.ytd_redemptions),
-        itd: formatValue(fund.itd_redemptions),
+        mtd: formatValue(fund.mtd_redemptions, asset),
+        qtd: formatValue(fund.qtd_redemptions, asset),
+        ytd: formatValue(fund.ytd_redemptions, asset),
+        itd: formatValue(fund.itd_redemptions, asset),
         isHighlight: false,
       },
       {
         label: "Net Income",
-        mtd: formatValue(fund.mtd_net_income),
-        qtd: formatValue(fund.qtd_net_income),
-        ytd: formatValue(fund.ytd_net_income),
-        itd: formatValue(fund.itd_net_income),
+        mtd: formatValue(fund.mtd_net_income, asset),
+        qtd: formatValue(fund.qtd_net_income, asset),
+        ytd: formatValue(fund.ytd_net_income, asset),
+        itd: formatValue(fund.itd_net_income, asset),
         isHighlight: true,
         colorValues: true,
         values: [
@@ -287,10 +285,10 @@ const generateModernPDF = async (data: StatementData): Promise<Blob> => {
       },
       {
         label: "Ending Balance",
-        mtd: formatValue(fund.mtd_ending_balance),
-        qtd: formatValue(fund.qtd_ending_balance),
-        ytd: formatValue(fund.ytd_ending_balance),
-        itd: formatValue(fund.itd_ending_balance),
+        mtd: formatValue(fund.mtd_ending_balance, asset),
+        qtd: formatValue(fund.qtd_ending_balance, asset),
+        ytd: formatValue(fund.ytd_ending_balance, asset),
+        itd: formatValue(fund.itd_ending_balance, asset),
         isHighlight: true,
       },
       {
@@ -463,9 +461,9 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
   let summaryY = 80;
   for (const pos of data.positions) {
     const asset = pos.asset_code || "N/A";
-    const closing = formatValue(Number(pos.closing_balance || 0));
+    const closing = formatValue(Number(pos.closing_balance || 0), asset);
     const yieldEarned = Number(pos.yield_earned || 0);
-    const yieldStr = `${yieldEarned >= 0 ? "+" : ""}${formatValue(yieldEarned)}`;
+    const yieldStr = `${yieldEarned >= 0 ? "+" : ""}${formatValue(yieldEarned, asset)}`;
 
     doc.setFontSize(9);
     doc.setTextColor(0, 0, 0);
@@ -485,12 +483,11 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
   // --- Positions Table ---
   const tableColumn = ["Asset", "Balance", "Additions", "Withdrawals", "Yield", "Closing"];
   const tableRows = data.positions.map((pos) => {
-    // Use asset-aware decimal places: BTC/ETH = 8dp, stablecoins = 2dp, default = 4dp
+    // Use high-precision investor amount formatter
     const asset = (pos.asset_code || "").toUpperCase();
-    const dp = ["BTC", "ETH"].includes(asset) ? 8 : ["USDT", "USDC", "EURC"].includes(asset) ? 2 : 4;
     const fmt = (v: number | null | undefined, fallback?: number | null) => {
       const val = v ?? fallback ?? 0;
-      return val.toFixed(dp);
+      return formatValue(val, asset);
     };
     return [
       pos.asset_code,

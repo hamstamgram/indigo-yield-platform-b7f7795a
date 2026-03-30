@@ -204,9 +204,10 @@ serve(async (req) => {
               .trim()
               .toLowerCase();
             const asset = (row[mapping.transactions.mappings.asset] || "").toString().toUpperCase();
-            const amount = Number(row[mapping.transactions.mappings.amount] || 0);
+            const amountVal = row[mapping.transactions.mappings.amount];
+            const amountStr = (amountVal === null || amountVal === undefined) ? "0" : amountVal.toString();
 
-            if (!email || !asset || amount <= 0) continue;
+            if (!email || !asset || parseFloat(amountStr) <= 0) continue;
 
             // Get investor ID
             const { data: investor } = await supabase
@@ -262,14 +263,14 @@ serve(async (req) => {
             const txDateStr = new Date(row[mapping.transactions.mappings.tx_date])
               .toISOString()
               .split("T")[0];
-            const referenceId = `import:${txDateStr}:${investor.id}:${fund.id}:${amount}`;
+            const referenceId = `import:${txDateStr}:${investor.id}:${fund.id}:${amountStr}`;
 
             const transactionData = {
               investor_id: investor.id,
               fund_id: fund.id,
               tx_date: new Date(row[mapping.transactions.mappings.tx_date]),
               asset,
-              amount,
+              amount: amountStr, // High precision
               type: "DEPOSIT",
               tx_hash: row["Transaction Hash"] || null,
               notes: row["Notes"] || `Excel import - ${new Date().toISOString()}`,
@@ -284,12 +285,6 @@ serve(async (req) => {
 
             if (!validateOnly) {
               // WARNING: Direct insert bypasses crystallization flow.
-              // This is intentional for historical data imports where:
-              // 1. No prior yield exists to crystallize
-              // 2. Positions are being bootstrapped from external records
-              // 3. The trg_ledger_sync trigger DOES fire to update positions
-              //
-              // For live operations, use apply_transaction_with_crystallization RPC.
               const { error } = await supabase.from("transactions_v2").insert(transactionData);
 
               if (error) {
@@ -334,19 +329,18 @@ serve(async (req) => {
             const navDate = row[mapping.daily_nav.columns.nav_date];
             if (!navDate) continue;
 
+            const aumVal = row[mapping.daily_nav.columns.aum];
+            const grossVal = row[mapping.daily_nav.columns.gross_return_pct];
+            const netVal = row[mapping.daily_nav.columns.net_return_pct];
+            const feesVal = row[mapping.daily_nav.columns.fees_accrued];
+
             const navData = {
               fund_id: fund.id,
               nav_date: new Date(navDate),
-              aum: Number(row[mapping.daily_nav.columns.aum] || 0),
-              gross_return_pct:
-                row[mapping.daily_nav.columns.gross_return_pct] == null
-                  ? null
-                  : Number(row[mapping.daily_nav.columns.gross_return_pct]),
-              net_return_pct:
-                row[mapping.daily_nav.columns.net_return_pct] == null
-                  ? null
-                  : Number(row[mapping.daily_nav.columns.net_return_pct]),
-              fees_accrued: Number(row[mapping.daily_nav.columns.fees_accrued] || 0),
+              aum: (aumVal === null || aumVal === undefined) ? "0" : aumVal.toString(),
+              gross_return_pct: grossVal == null ? null : grossVal.toString(),
+              net_return_pct: netVal == null ? null : netVal.toString(),
+              fees_accrued: (feesVal === null || feesVal === undefined) ? "0" : feesVal.toString(),
               created_by: user.id,
             };
 

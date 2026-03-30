@@ -63,10 +63,11 @@ function calculatePerformanceMetrics(
 function getAssetDecimals(asset: string): number {
   switch (asset.toUpperCase()) {
     case "BTC":
-      return 8;
     case "ETH":
+      return 8;
     case "SOL":
     case "XRP":
+      return 6;
     case "XAUT":
       return 4;
     case "USDC":

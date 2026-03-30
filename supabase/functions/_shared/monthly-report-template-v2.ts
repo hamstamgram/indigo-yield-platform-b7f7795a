@@ -43,10 +43,11 @@ export function getAssetDecimals(asset: string): number {
   const upperAsset = asset.toUpperCase();
   switch (upperAsset) {
     case "BTC":
-      return 8;
     case "ETH":
+      return 8; // Full precision for BTC/ETH
     case "SOL":
     case "XRP":
+      return 6; // 6 decimals for SOL/XRP
     case "XAUT":
       return 4;
     case "USDC":
@@ -80,10 +81,10 @@ export function formatAdditionRedemption(value: number | null | undefined, asset
 
 // Format net income with sign and color styling
 export function formatNetIncomeWithStyle(value: number | null | undefined, asset: string): string {
-  if (value === null || value === undefined || value === 0) {
-    return `<span style="color:#1e293b">0.00</span>`;
-  }
   const decimals = getAssetDecimals(asset);
+  if (value === null || value === undefined || value === 0) {
+    return `<span style="color:#1e293b">${(0).toFixed(decimals)}</span>`;
+  }
   const absValue = Math.abs(value).toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -98,9 +99,9 @@ export function formatNetIncomeWithStyle(value: number | null | undefined, asset
 // Format rate of return with sign and color styling
 export function formatRateOfReturnWithStyle(value: number | null | undefined): string {
   if (value === null || value === undefined || value === 0) {
-    return `<span style="color:#1e293b">0.00%</span>`;
+    return `<span style="color:#1e293b">0.0000%</span>`;
   }
-  const absValue = Math.abs(value).toFixed(2);
+  const absValue = Math.abs(value).toFixed(4);
   if (value > 0) {
     return `<span style="color:#16a34a">+${absValue}%</span>`;
   } else {
