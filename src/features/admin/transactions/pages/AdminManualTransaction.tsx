@@ -44,12 +44,21 @@ import { logError } from "@/lib/logger";
 import { getTodayString } from "@/utils/dateUtils";
 import { PageShell } from "@/components/layout/PageShell";
 
+import Decimal from "decimal.js";
+...
 // Form Schema — clean transaction form, no AUM/yield fields
 const transactionSchema = z.object({
   investorId: z.string().min(1, "Investor is required"),
   fundId: z.string().min(1, "Fund is required"),
   type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"]),
-  amount: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+  amount: z.string().refine((val) => {
+    try {
+      const d = new Decimal(val || "0");
+      return d.gt(0);
+    } catch {
+      return false;
+    }
+  }, {
     message: "Amount must be a positive number",
   }),
   txDate: z.string().min(1, "Transaction date is required"),
