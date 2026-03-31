@@ -1,66 +1,98 @@
 /**
  * Invite Service
- * Handles investor and admin invitation operations
+ * Handles investor and admin invitation operations via platform_invites
  */
 
 import { supabase } from "@/integrations/supabase/client";
 import type { InviteDetails, UserMetadata } from "./types";
 
 /**
- * Wait for profile to be created by database trigger
+ * Verify investor/admin invite token using the platform_invites table
  */
-export async function waitForProfile(userId: string, maxAttempts = 10): Promise<boolean> {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", userId)
-      .maybeSingle();
+export async function verifyInvestorInvite(inviteCode: string): Promise<InviteDetails> {
+  const { data, error } = await supabase
+    .from("platform_invites")
+    .select("email, expires_at, status")
+    .eq("invite_code", inviteCode)
+    .single();
 
-    if (profile) return true;
-    await new Promise((resolve) => setTimeout(resolve, 500));
+  if (error || !data) {
+    throw new Error("Invalid or expired invitation code");
   }
-  return false;
+
+  if (data.status !== "pending") {
+    throw new Error(`This invitation has already been ${data.status}`);
+  }
+
+  if (new Date(data.expires_at) < new Date()) {
+    throw new Error("This invitation has expired");
+  }
+
+  return {
+    email: data.email,
+    expiresAt: data.expires_at,
+  };
 }
 
 /**
- * Verify investor invite token
- * NOTE: investor_invites table was dropped
+ * Legacy wrapper for admin invites (uses same table)
  */
-export async function verifyInvestorInvite(_inviteCode: string): Promise<InviteDetails> {
-  throw new Error("Investor invites feature has been removed");
-}
-
-/**
- * Verify admin invite token
- * NOTE: admin_invites table was dropped
- */
-export async function verifyAdminInvite(_inviteCode: string): Promise<InviteDetails> {
-  throw new Error("Admin invites feature has been removed");
+export async function verifyAdminInvite(inviteCode: string): Promise<InviteDetails> {
+  return verifyInvestorInvite(inviteCode);
 }
 
 /**
  * Accept investor invitation and create account
- * NOTE: investor_invites table was dropped
  */
 export async function acceptInvestorInvite(
-  _inviteCode: string,
-  _email: string,
-  _password: string,
-  _metadata?: UserMetadata
+  inviteCode: string,
+  email: string,
+  password: string,
+  metadata?: UserMetadata
 ): Promise<string> {
-  throw new Error("Investor invites feature has been removed");
+  // 1. Final verification of code
+  await verifyInvestorInvite(inviteCode);
+
+  // 2. Sign up the user in Supabase Auth
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        first_name: metadata?.first_name,
+        last_name: metadata?.last_name,
+        onboarding_source: "platform_invite",
+      },
+    },
+  });
+
+  if (signUpError) throw signUpError;
+  if (!signUpData.user) throw new Error("Failed to create user account");
+
+  // 3. Mark invite as accepted
+  const { error: updateError } = await supabase
+    .from("platform_invites")
+    .update({ 
+      status: "accepted", 
+      accepted_at: new Date().toISOString() 
+    })
+    .eq("invite_code", inviteCode);
+
+  if (updateError) {
+    console.error("Failed to update invite status:", updateError);
+  }
+
+  return signUpData.user.id;
 }
 
 /**
  * Accept admin invitation and create account
- * NOTE: admin_invites table was dropped
  */
 export async function acceptAdminInvite(
-  _inviteCode: string,
-  _email: string,
-  _password: string,
-  _metadata?: UserMetadata
+  inviteCode: string,
+  email: string,
+  password: string,
+  metadata?: UserMetadata
 ): Promise<string> {
-  throw new Error("Admin invites feature has been removed");
+  return acceptInvestorInvite(inviteCode, email, password, metadata);
 }

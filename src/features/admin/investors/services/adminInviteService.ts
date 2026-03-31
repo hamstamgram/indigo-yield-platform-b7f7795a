@@ -25,41 +25,77 @@ export async function isSuperAdmin(): Promise<boolean> {
 }
 
 /**
- * Fetch all admin invites
- * NOTE: admin_invites table was dropped - returns empty
+ * Fetch all platform invites (Admin/Investor)
  */
 export async function getAllInvites(): Promise<AdminInvite[]> {
-  return [];
+  const { data, error } = await supabase
+    .from("platform_invites")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(row => ({
+    id: row.id,
+    email: row.email,
+    invite_code: row.invite_code,
+    created_at: row.created_at,
+    expires_at: row.expires_at,
+    used: row.status === 'accepted',
+    created_by: row.created_by
+  }));
 }
 
 /**
- * Create a new admin invite
- * NOTE: admin_invites table was dropped
+ * Create a new platform invite
  */
 export async function createInvite(
-  _email: string,
+  email: string,
   _role: string
 ): Promise<{ email: string; inviteCode: string }> {
-  throw new Error("Admin invites feature has been removed");
+  // Generate code
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  const inviteCode = Array.from(array, (b) => b.toString(16).padStart(2, "0")).join("");
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("platform_invites").insert({
+    email,
+    invite_code: inviteCode,
+    expires_at: expiresAt.toISOString(),
+    created_by: user?.id,
+  });
+
+  if (error) throw error;
+
+  return { email, inviteCode };
 }
 
 /**
- * Delete/revoke an admin invite
- * NOTE: admin_invites table was dropped
+ * Delete/revoke an invite
  */
-export async function revokeInvite(_inviteId: string): Promise<void> {
-  throw new Error("Admin invites feature has been removed");
+export async function revokeInvite(inviteId: string): Promise<void> {
+  const { error } = await supabase
+    .from("platform_invites")
+    .delete()
+    .eq("id", inviteId);
+
+  if (error) throw error;
 }
 
 /**
  * Generate invite link
  */
 export function generateInviteLink(inviteCode: string): string {
-  return `${window.location.origin}/admin-invite?code=${inviteCode}`;
+  return `${window.location.origin}/investor-invite?code=${inviteCode}`;
 }
 
 /**
- * Get the current auth session (used by invite callback page)
+ * Get the current auth session
  */
 export async function getSession() {
   return supabase.auth.getSession();
@@ -69,8 +105,15 @@ export async function getSession() {
  * Send invite email via edge function
  */
 export async function sendInviteEmail(invite: AdminInvite): Promise<void> {
-  const { error } = await supabase.functions.invoke("send-admin-invite", {
-    body: { invite },
+  const { error } = await supabase.functions.invoke("send-notification-email", {
+    body: {
+      to: invite.email,
+      template: "welcome",
+      data: {
+        name: "Member",
+        loginLink: generateInviteLink(invite.invite_code),
+      },
+    },
   });
 
   if (error) throw error;

@@ -35,35 +35,36 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // createInvestorInvite was removed (feature deprecated). Skip DB record.
-      // TODO: re-implement DB invite tracking if invite audit log is needed.
-      void (investor.email && inviteCode && user?.id); // suppress unused var warnings
+      // Persist invite in database for audit trail
+      const { error: inviteDbError } = await supabase.from("platform_invites").insert({
+        email: investor.email,
+        investor_id: investor.id,
+        invite_code: inviteCode,
+        expires_at: expiresAt.toISOString(),
+        created_by: user?.id,
+      });
 
-      // Send invite email
+      if (inviteDbError) {
+        logError("createInvestorInvite.dbError", inviteDbError);
+        // Continue anyway - email is the primary delivery
+      }
+
+      // Send invite email via notification service
       const inviteUrl = `${window.location.origin}/investor-invite?code=${inviteCode}`;
       const investorName = investor.firstName 
         ? `${investor.firstName}${investor.lastName ? ' ' + investor.lastName : ''}` 
         : '';
       
       try {
-        const { error: emailError } = await supabase.functions.invoke("send-email", {
+        const { error: emailError } = await supabase.functions.invoke("send-notification-email", {
           body: {
             to: investor.email,
-            subject: "You're Invited to Join Indigo Yield Platform",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #4F46E5;">Welcome to Indigo Yield</h1>
-                ${investorName ? `<p>Hello ${investorName},</p>` : ''}
-                <p>You've been invited to join the Indigo Yield investment platform.</p>
-                <p>Click the button below to create your account:</p>
-                <a href="${inviteUrl}" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
-                  Accept Invitation
-                </a>
-                <p style="color: #666; font-size: 14px;">This invitation expires in 7 days.</p>
-                <p style="color: #666; font-size: 14px;">If you didn't expect this invitation, you can safely ignore this email.</p>
-              </div>
-            `,
-            email_type: "investor_invite",
+            subject: "You're Invited to Join Indigo Yield",
+            template: "welcome", // Use established welcome template
+            data: {
+              name: investorName || "Investor",
+              loginLink: inviteUrl,
+            },
           },
         });
 
