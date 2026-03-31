@@ -1,1 +1,1 @@
-# Indigo Yield Platform\n\nInstitutional-grade cryptocurrency yield management system.
+Institutional-grade Ledger-Derived Yield Platform.

@@ -264,59 +264,36 @@ async function voidAndReissueTransaction(
   if (userError) throw userError;
   if (!user?.id) throw new Error("Authentication required");
 
+  // Build notes string from components if needed
   const notesParts = [params.newValues.notes || ""].filter(Boolean);
-  if (params.newValues.tx_hash) {
-    notesParts.push(`Tx hash: ${params.newValues.tx_hash}`);
-  }
   const mergedNotes = notesParts.join("\n").trim() || null;
 
+  // Use the canonical 7-parameter signature exactly
   const { data, error } = await rpc.call("void_and_reissue_transaction", {
     p_original_tx_id: params.transactionId,
-    p_new_amount: parseFinancial(params.newValues.amount).toString() as unknown as number,
+    p_new_amount: parseFinancial(params.newValues.amount).toNumber(),
     p_new_date: params.newValues.tx_date,
-    p_new_notes: mergedNotes ?? undefined,
-    p_admin_id: user.id,
     p_reason: params.reason,
+    p_admin_id: user.id,
+    p_new_notes: mergedNotes ?? undefined,
+    p_new_tx_hash: params.newValues.tx_hash ?? undefined,
   });
 
   if (error) {
-    // No legacy fallback - fail clearly with proper error message
     throw new Error(error.userMessage || error.message);
   }
 
-  // Handle typed response from RPC
-  if (data && typeof data === "object") {
-    const result = data as Record<string, unknown>;
-    if (result.success === false && result.error) {
-      // Typed error from RPC
-      const errorObj = result.error as Record<string, unknown>;
-      const err = new Error(errorObj.message as string) as ExtendedError;
-      err.code = errorObj.code as string | undefined;
-      err.details = errorObj.details;
-      throw err;
-    }
-    const rpcResult = result as VoidReissueRPCResult;
-    return {
-      success: true,
-      voided_transaction_id:
-        (rpcResult.voided_tx_id as string) ||
-        (rpcResult.voided_transaction_id as string) ||
-        rpcResult.data?.voided_transaction_id ||
-        params.transactionId,
-      new_transaction_id:
-        (rpcResult.new_tx_id as string) ||
-        (rpcResult.new_transaction_id as string) ||
-        rpcResult.data?.new_transaction_id ||
-        "",
-      message: (rpcResult.message as string) || "Transaction corrected successfully",
-    };
+  // Handle standardized response from canonical RPC
+  const result = (data as any) || {};
+  if (result.success === false) {
+    throw new Error(result.error?.message || result.message || "Failed to correct transaction");
   }
 
   return {
     success: true,
-    voided_transaction_id: params.transactionId,
-    new_transaction_id: "",
-    message: "Transaction corrected successfully",
+    voided_transaction_id: result.voided_tx_id || params.transactionId,
+    new_transaction_id: result.new_tx_id || "",
+    message: result.message || "Transaction corrected successfully",
   };
 }
 
