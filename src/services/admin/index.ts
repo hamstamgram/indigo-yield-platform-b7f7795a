@@ -1,8 +1,10 @@
 /**
- * Admin Services - Barrel Export
+ * Admin Services - Barrel Export (Canonical Redirect Shim)
  *
- * Consolidated exports for all admin-related services.
- * Organized by domain for better navigation.
+ * This file serves as a re-export shim to maintain backward compatibility
+ * during the migration to feature-based architecture.
+ *
+ * ALL active logic has been moved to src/features/admin/*/services/
  */
 
 // =============================================================================
@@ -40,7 +42,7 @@ export {
   fetchPendingItems,
 } from "@/features/admin/dashboard/services/dashboardService";
 
-export { actionBarService, type PendingCounts } from "./actionBarService";
+export { actionBarService, type PendingCounts } from "@/features/admin/shared/services/actionBarService";
 
 // =============================================================================
 // FUND MANAGEMENT
@@ -75,7 +77,7 @@ export {
   adminInvestorService,
   type AdminInvestorSummary,
   type DashboardStats,
-} from "./adminService";
+} from "@/features/admin/investors/services/adminService";
 export * from "@/features/admin/investors/services/investorSettingsService";
 export * from "@/features/admin/investors/services/investorWizardService";
 export * from "@/features/admin/investors/services/investorLifecycleService";
@@ -103,7 +105,7 @@ export {
   adminUsersService,
   type AdminUserProfile,
   type AdminInviteParams,
-} from "./adminUsersService";
+} from "@/features/admin/investors/services/adminUsersService";
 export {
   adminInviteService,
   type AdminInvite,
@@ -112,7 +114,7 @@ export {
 // =============================================================================
 // YIELD MANAGEMENT
 // =============================================================================
-export * from "./yields";
+export * from "@/features/admin/yields/services/yields";
 export {
   getYieldRecords,
   canEditYields,
@@ -120,43 +122,44 @@ export {
   getLastFinalizedAUMDate,
   type YieldRecord,
   type YieldFilters,
-} from "./recordedYieldsService";
+} from "@/features/admin/yields/services/recordedYieldsService";
+
 // =============================================================================
 // TRANSACTIONS
 // =============================================================================
-export * from "./transactionDetailsService";
+export * from "@/features/admin/transactions/services/transactionDetailsService";
 export {
   transactionFormDataService,
   type TransactionFormInvestor,
   type TransactionFormFund,
   type BalanceCheckResult,
-} from "./transactionFormDataService";
+} from "@/features/admin/transactions/services/transactionFormDataService";
 export {
   internalRouteService,
   type InvestorPositionForRoute,
   type InternalRouteParams,
   type InternalRouteResult,
-} from "./internalRouteService";
-export { adminTransactionHistoryService } from "./adminTransactionHistoryService";
+} from "@/features/admin/shared/services/internalRouteService";
+export { adminTransactionHistoryService } from "@/features/admin/transactions/services/adminTransactionHistoryService";
 
 // =============================================================================
 // REPORTS & STATEMENTS
 // =============================================================================
-export * from "./reportQueryService";
-export * from "./statementAdminService";
-export { reportService, type SendReportParams } from "./reportService";
-export { reportRecipientsService } from "./reportRecipientsService";
+export * from "@/features/admin/reports/services/reportQueryService";
+export * from "@/features/admin/reports/services/statementAdminService";
+export { reportService, type SendReportParams } from "@/features/admin/reports/services/reportService";
+export { reportRecipientsService } from "@/features/admin/reports/services/reportRecipientsService";
 
 // =============================================================================
 // IB MANAGEMENT
 // =============================================================================
-export { ibUsersService, type IBUser } from "./ibUsersService";
+export { ibUsersService, type IBUser } from "@/features/admin/ib/services/ibUsersService";
 
 // =============================================================================
 // SYSTEM & INTEGRITY
 // =============================================================================
-export { deliveryService } from "./deliveryService";
-export { integrityService } from "./integrityService";
+export { deliveryService } from "@/features/admin/reports/services/deliveryService";
+export { integrityService } from "@/features/admin/system/services/integrityService";
 export {
   integrityOperationsService,
   type IntegrityRun,
@@ -167,12 +170,12 @@ export {
   type CrystallizationGap,
   type DuplicateProfile,
   type MergeDuplicatesResult,
-} from "./integrityOperationsService";
-export { requestsQueueService } from "./requestsQueueService";
-export * from "./systemAdminService";
-export * from "./emailTrackingService";
+} from "@/features/admin/system/services/integrityOperationsService";
+export { requestsQueueService } from "@/features/admin/operations/services/requestsQueueService";
+export * from "@/features/admin/system/services/systemAdminService";
+export * from "@/features/admin/reports/services/emailTrackingService";
 
-export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";
+export { commandPaletteService, type InvestorSearchResult } from "@/features/admin/shared/services/commandPaletteService";
 
 // =============================================================================
 // REPORT SCHEDULES
@@ -182,10 +185,10 @@ export {
   createReportSchedule,
   updateReportSchedule,
   deleteReportSchedule,
-} from "./reportScheduleService";
+} from "@/features/admin/reports/services/reportScheduleService";
 
 // =============================================================================
 // ADMIN TOOLS & UTILITIES
 // =============================================================================
-export { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "./feeScheduleService";
-export { feeSettingsService } from "./feeSettingsService";
+export { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "@/features/admin/investors/services/feeScheduleService";
+export { feeSettingsService } from "@/features/admin/investors/services/feeSettingsService";

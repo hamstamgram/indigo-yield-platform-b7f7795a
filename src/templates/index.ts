@@ -7,8 +7,12 @@
  *   const html = renderTemplate('invite-investor', { INVESTOR_NAME: 'João', ... });
  */
 
-import { readFileSync } from "fs";
-import { join } from "path";
+// ─── Template imports (Vite raw string imports) ───────────────────────────
+import inviteInvestorHtml from "./invite-investor.html?raw";
+import passwordResetHtml from "./password-reset.html?raw";
+import welcomeHtml from "./welcome.html?raw";
+import statementReadyHtml from "./statement-ready.html?raw";
+import documentUploadedHtml from "./document-uploaded.html?raw";
 
 // ─── Template variable maps ────────────────────────────────────────────────
 
@@ -81,6 +85,14 @@ export type TemplateName =
   | "statement-ready"
   | "document-uploaded";
 
+const TEMPLATES: Record<TemplateName, string> = {
+  "invite-investor": inviteInvestorHtml,
+  "password-reset": passwordResetHtml,
+  welcome: welcomeHtml,
+  "statement-ready": statementReadyHtml,
+  "document-uploaded": documentUploadedHtml,
+};
+
 // ─── Defaults ─────────────────────────────────────────────────────────────
 
 const DEFAULTS = {
@@ -94,8 +106,10 @@ const DEFAULTS = {
 // ─── Core renderer ────────────────────────────────────────────────────────
 
 export function renderTemplate(name: TemplateName, vars: Record<string, string>): string {
-  const templateDir = join(__dirname, ".");
-  const raw = readFileSync(join(templateDir, `${name}.html`), "utf-8");
+  const raw = TEMPLATES[name];
+  if (!raw) {
+    throw new Error(`Template not found: ${name}`);
+  }
 
   const merged = { ...DEFAULTS, ...vars };
 

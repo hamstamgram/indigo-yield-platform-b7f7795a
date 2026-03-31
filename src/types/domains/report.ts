@@ -124,7 +124,7 @@ export interface GenerateReportResponse {
   reportId?: string;
   status?: ReportStatus;
   estimatedCompletionSeconds?: number;
-  data?: Blob | Buffer;
+  data?: Blob | Uint8Array;
   filename?: string;
   error?: string;
 }
@@ -239,7 +239,7 @@ export interface HoldingData {
   currentValue: string;
   /** Allocation percentage - string for decimal precision */
   allocationPercentage: string;
-  /** Cost basis - string for NUMERIC(38,18) precision */
+  /** cost basis - string for NUMERIC(38,18) precision */
   costBasis: string;
   /** Unrealized gain - string for NUMERIC(38,18) precision */
   unrealizedGain: string;
@@ -374,79 +374,3 @@ export interface InvestorData {
   reportDate: string;
   funds: InvestorFund[];
 }
-
-// CDN URLs for fund icons (jsDelivr cryptocurrency-icons)
-const CRYPTO_ICON_CDN = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color";
-export const FUND_ICONS: Record<string, string> = {
-  "BTC YIELD FUND": `${CRYPTO_ICON_CDN}/btc.png`,
-  "ETH YIELD FUND": `${CRYPTO_ICON_CDN}/eth.png`,
-  "USDC YIELD FUND": `${CRYPTO_ICON_CDN}/usdc.png`,
-  "USDT YIELD FUND": `${CRYPTO_ICON_CDN}/usdt.png`,
-  "SOL YIELD FUND": `${CRYPTO_ICON_CDN}/sol.png`,
-  "EURC YIELD FUND": `${CRYPTO_ICON_CDN}/eur.png`,
-  "XAUT YIELD FUND": `${CRYPTO_ICON_CDN}/gold.png`,
-  "XRP YIELD FUND": `${CRYPTO_ICON_CDN}/xrp.png`,
-  // Legacy name aliases (for backward compatibility with existing data)
-  "STABLECOIN FUND": `${CRYPTO_ICON_CDN}/usdt.png`,
-  "TOKENIZED GOLD": `${CRYPTO_ICON_CDN}/gold.png`,
-  "Tokenized Gold": `${CRYPTO_ICON_CDN}/gold.png`,
-  "Stablecoin Fund": `${CRYPTO_ICON_CDN}/usdt.png`,
-};
-
-/**
- * Asset code → fund display name mapping
- * Used to look up FUND_ICONS by asset code (BTC, ETH, etc.)
- */
-export const FUND_NAME_BY_ASSET: Record<string, string> = {
-  BTC: "BTC YIELD FUND",
-  ETH: "ETH YIELD FUND",
-  SOL: "SOL YIELD FUND",
-  USDT: "USDT YIELD FUND",
-  USDC: "USDC YIELD FUND",
-  EURC: "EURC YIELD FUND",
-  XAUT: "XAUT YIELD FUND",
-  xAUT: "XAUT YIELD FUND",
-  XRP: "XRP YIELD FUND",
-};
-
-/**
- * Get fund icon URL by asset code (e.g., "BTC" → CDN URL)
- */
-export function getFundIconByAsset(assetCode: string): string {
-  const fundName = FUND_NAME_BY_ASSET[assetCode] || FUND_NAME_BY_ASSET[assetCode.toUpperCase()];
-  if (fundName && FUND_ICONS[fundName]) {
-    return FUND_ICONS[fundName];
-  }
-  return FUND_ICONS["BTC YIELD FUND"]; // fallback
-}
-
-export const LOGO_URL = "https://indigo-yield-platform.lovable.app/brand/logo-white.svg";
-
-// Social link configuration with icon URLs from CDN
-export const SOCIAL_LINKS = {
-  linkedin: {
-    url: "https://www.linkedin.com/company/indigofund",
-    label: "LinkedIn",
-    icon: "https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png",
-  },
-  instagram: {
-    url: "https://www.instagram.com/indigofund",
-    label: "Instagram",
-    icon: "https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png",
-  },
-  twitter: {
-    url: "https://twitter.com/indigofund",
-    label: "X",
-    icon: "https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png",
-  },
-};
-
-/**
- * Returns color based on value - red for negative, green for positive
- */
-export const getValueColor = (value: string): string => {
-  if (value.startsWith("-") || value.startsWith("(")) {
-    return "#dc2626"; // Red
-  }
-  return "#16a34a"; // Green
-};

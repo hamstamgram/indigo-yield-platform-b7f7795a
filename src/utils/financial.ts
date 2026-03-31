@@ -54,16 +54,6 @@ export function formatCrypto(
 }
 
 /**
- * Format percentage
- * @param value - The percentage value (e.g., 0.05 for 5%)
- * @param decimals - Number of decimal places (default: 2)
- */
-export function formatPercentage(value: string | number | Decimal, decimals: number = 2): string {
-  const decimal = toDecimal(value).times(100);
-  return `${decimal.toFixed(decimals)}%`;
-}
-
-/**
  * Calculate yield/interest
  * Formula: Principal × Rate × (Days / 365)
  *

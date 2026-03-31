@@ -6,7 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/services/auth";
-import * as profileService from "@/services/profile/profileSettingsService";
+import * as profileService from "@/features/investor/settings/services/profileSettingsService";
 import { updatePassword } from "@/services/auth/authService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { logError } from "@/lib/logger";
@@ -204,5 +204,5 @@ export function useLocalPreferences() {
 export type {
   PersonalInfo,
   NotificationPreferences,
-} from "@/services/profile/profileSettingsService";
-export { DEFAULT_NOTIFICATION_PREFERENCES } from "@/services/profile/profileSettingsService";
+} from "@/features/investor/settings/services/profileSettingsService";
+export { DEFAULT_NOTIFICATION_PREFERENCES } from "@/features/investor/settings/services/profileSettingsService";

@@ -10,7 +10,7 @@
  * - Percentage formatting
  */
 
-// Import for internal use
+import Decimal from "decimal.js";
 import { getAssetConfig, getAssetDecimals } from "@/types/asset";
 import { parseFinancial } from "@/utils/financial";
 
@@ -199,19 +199,45 @@ export function formatAUMCompact(value: number, asset: string): string {
 // ============================================================================
 
 /**
- * Format percentage with consistent decimals
+ * Institutional Percentage Formatter
+ * Unified source of truth for all percentage displays.
+ * 
+ * @param value - The numeric value to format
+ * @param decimals - Precision (default: 2)
+ * @param showSign - Force +/- prefix (default: false)
+ * @param multiplyBy100 - If input is a ratio (0.05) instead of percentage (5) (default: false)
+ * @param zeroAsDash - If true, return "-" for zero values (default: false)
  */
 export function formatPercentage(
-  value: number,
+  value: number | string | Decimal | null | undefined,
   decimals: number = 2,
-  showSign: boolean = false
+  showSign: boolean = false,
+  multiplyBy100: boolean = false,
+  zeroAsDash: boolean = false
 ): string {
+  if (value === null || value === undefined || value === "") return zeroAsDash ? "-" : "0.00%";
+  
+  let decimal: Decimal;
+  try {
+    decimal = value instanceof Decimal ? value : new Decimal(String(value));
+  } catch {
+    return zeroAsDash ? "-" : "0.00%";
+  }
+
+  if (decimal.isZero()) {
+    return zeroAsDash ? "-" : `0.${"0".repeat(decimals)}%`;
+  }
+
+  if (multiplyBy100) {
+    decimal = decimal.times(100);
+  }
+
   const formatted = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).format(Math.abs(value));
+  }).format(decimal.abs().toNumber());
 
-  const sign = showSign && value > 0 ? "+" : value < 0 ? "-" : "";
+  const sign = showSign && decimal.gt(0) ? "+" : decimal.lt(0) ? "-" : "";
   return `${sign}${formatted}%`;
 }
 

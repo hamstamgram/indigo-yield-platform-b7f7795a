@@ -2,11 +2,13 @@ import React from "react";
 import {
   InvestorData,
   InvestorFund,
+} from "@/types/domains";
+import {
   FUND_ICONS,
   LOGO_URL,
   SOCIAL_LINKS,
   getValueColor,
-} from "@/types/domains";
+} from "@/utils/assetUtils";
 
 interface InvestorReportTemplateProps {
   investor: InvestorData;

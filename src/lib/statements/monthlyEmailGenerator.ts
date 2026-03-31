@@ -15,7 +15,8 @@
 
 import { toDecimal } from "@/utils/financial";
 import Decimal from "decimal.js";
-import { FUND_ICONS } from "@/types/domains/report";
+import { FUND_ICONS } from "@/utils/assetUtils";
+import { formatPercentage } from "@/utils/formatters";
 
 // Currency mapping
 const FUND_CURRENCY: Record<string, string> = {
@@ -111,19 +112,6 @@ function getValueColor(value: string | number | Decimal): string {
 }
 
 /**
- * Format percentage (always include % sign)
- */
-function formatPercentage(value: string | number | Decimal): string {
-  const decimal = toDecimal(value);
-
-  if (decimal.isZero()) {
-    return "-";
-  }
-
-  return `${decimal.toFixed(2)}%`;
-}
-
-/**
  * Generate fund section HTML with email-safe bgcolor attributes
  */
 function generateFundSection(fund: FundPerformance): string {
@@ -202,10 +190,10 @@ function generateFundSection(fund: FundPerformance): string {
         </tr>
         <tr>
           <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Rate of Return</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${mtdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.mtd_rate_of_return)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${qtdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.qtd_rate_of_return)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${ytdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.ytd_rate_of_return)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${itdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.itd_rate_of_return)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${mtdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.mtd_rate_of_return, 2, false, false, true)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${qtdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.qtd_rate_of_return, 2, false, false, true)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${ytdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.ytd_rate_of_return, 2, false, false, true)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${itdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.itd_rate_of_return, 2, false, false, true)}</td>
         </tr>
       </table>
     </td>

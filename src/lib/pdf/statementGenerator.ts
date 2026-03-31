@@ -3,7 +3,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { formatPercentage, formatInvestorAmount } from "@/utils/assets";
 import { logWarn } from "@/lib/logger";
-import { getFundIconByAsset } from "@/types/domains/report";
+import { getFundIconByAsset } from "@/utils/assetUtils";
 
 const COMPANY_LOGO =
   "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";

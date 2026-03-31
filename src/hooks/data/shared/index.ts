@@ -26,8 +26,6 @@ export {
   type SignInResult,
 } from "./useAuthFlow";
 
-// Dashboard metrics and queries -- moved to admin barrel (hooks/data/admin/exports/dashboard.ts)
-
 // Documents
 export { useDocuments } from "./useDocuments";
 
@@ -46,31 +44,6 @@ export {
   useDeactivateFund,
   type CreateFundInput,
 } from "./useFunds";
-// Note: Fund should be imported from @/types/domains/fund
-
-// IB Settings
-export {
-  useIBSettings,
-  useSearchUsersForIB,
-  useUpdateIBConfig,
-  useAssignIBRole,
-  usePromoteToIB,
-  useRemoveIBRole,
-  type IBConfig,
-  type IBParentOption,
-  type Referral,
-  type UserSearchResult,
-} from "./useIBSettings";
-
-// Investors list
-// Investors list - moved to main imports below
-
-// Investor wizard
-export {
-  useCreateInvestorWizard,
-  type WizardResult,
-  type WizardProgressCallback,
-} from "./useInvestorWizard";
 
 // Notification bell
 export { useNotificationBell } from "./useNotificationBell";
@@ -136,7 +109,7 @@ export {
   useTransactionWithRelated,
   useTransactionFormData,
   useBalanceCheckForTransaction,
-  useInvestorBalance as useInvestorBalanceCheck, // Backward compatibility
+  useInvestorBalance as useInvestorBalanceCheck,
   useCreateAdminTransaction,
   useTransactions,
   useInvestorTransactions,
@@ -158,34 +131,19 @@ export { useInvestors, useUnifiedInvestors, type EnrichedInvestor } from "./useI
 // User assets
 export { useUserAssets, type UserAsset } from "./useUserAssets";
 
-// Available balance for withdrawals (security: accounts for pending withdrawals)
+// Available balance for withdrawals
 export { useAvailableBalance, type AvailableBalanceResult } from "./useAvailableBalance";
 
 // Withdrawal form data
 export { useInvestorOptions, usePositionsForWithdrawal } from "./useWithdrawalFormData";
 
-// Withdrawal mutations
-export { useWithdrawalMutations } from "./useWithdrawalMutations";
-
-// Yield data
-export {
-  useYieldRecords,
-  useYieldDetails,
-  useCanEditYields,
-  useCanVoidYield,
-  type YieldFilters,
-  type YieldDetails,
-} from "./useYieldData";
-
 // Storage
 export { useUploadFundLogo } from "./useStorage";
-
-// Report history -- removed (dead code, ReportsApi.getUserReports always returned [])
 
 // Available funds
 export { useAvailableFunds } from "./useAvailableFunds";
 
-// Live platform metrics (real-time, no MV refresh needed)
+// Live platform metrics
 export {
   useLivePlatformMetrics,
   useLiveFundSummary,

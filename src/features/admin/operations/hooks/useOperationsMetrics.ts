@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { operationsService, type PendingBreakdown } from "@/services/operations/operationsService";
+import { operationsService, type PendingBreakdown } from "../services/operationsService";
 import { getSystemHealth, type SystemHealth } from "@/services/core/systemHealthService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 

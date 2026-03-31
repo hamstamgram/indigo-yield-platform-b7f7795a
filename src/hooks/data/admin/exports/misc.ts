@@ -32,3 +32,17 @@ export * from "@/features/admin/ib/hooks/useIBManagementPage";
 
 // Fund/Asset hooks
 export * from "@/features/admin/funds/hooks/useAssets";
+
+// Centralized IB settings hooks
+export {
+  useIBSettings,
+  useSearchUsersForIB,
+  useUpdateIBConfig,
+  useAssignIBRole,
+  usePromoteToIB,
+  useRemoveIBRole,
+  type IBConfig,
+  type IBParentOption,
+  type Referral,
+  type UserSearchResult,
+} from "../useIBSettings";

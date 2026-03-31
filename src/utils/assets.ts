@@ -5,6 +5,10 @@
 
 import { getAssetConfig, INVESTOR_DISPLAY_DECIMALS } from "@/types/asset";
 import { toNum } from "@/utils/numeric";
+import { formatPercentage } from "./formatters";
+
+// Re-export formatPercentage for backward compatibility
+export { formatPercentage };
 
 // Re-export all asset-related types and functions from the central location
 export {

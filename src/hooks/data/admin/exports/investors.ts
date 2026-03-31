@@ -28,6 +28,16 @@ export {
 } from "@/features/admin/investors/hooks/useAdminInvestorMutations";
 export * from "@/features/admin/investors/hooks/useAdminInvestorWithdrawals";
 
+// Centralized investor mutations
+export { useCreateInvestor, useDeleteInvestor as useAdminDeleteInvestorAction } from "../useInvestorMutations";
+
+// Investor wizard
+export {
+  useCreateInvestorWizard,
+  type WizardResult,
+  type WizardProgressCallback,
+} from "../useInvestorWizard";
+
 // Re-export types from services
 export type {
   InvestorStatus,
