@@ -1414,76 +1414,6 @@ export type Database = {
           },
         ]
       }
-      investor_daily_balance: {
-        Row: {
-          balance_date: string
-          created_at: string
-          end_of_day_balance: number
-          fund_id: string
-          id: string
-          investor_id: string
-        }
-        Insert: {
-          balance_date: string
-          created_at?: string
-          end_of_day_balance?: number
-          fund_id: string
-          id?: string
-          investor_id: string
-        }
-        Update: {
-          balance_date?: string
-          created_at?: string
-          end_of_day_balance?: number
-          fund_id?: string
-          id?: string
-          investor_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_investor_daily_balance_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_daily_balance_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "investor_daily_balance_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "investor_daily_balance_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "investor_daily_balance_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_crystallization_dashboard"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "investor_daily_balance_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-        ]
-      }
       investor_device_tokens: {
         Row: {
           created_at: string
@@ -2002,48 +1932,6 @@ export type Database = {
         }
         Relationships: []
       }
-      outreach_log: {
-        Row: {
-          campaign: string | null
-          channel: string | null
-          company: string | null
-          created_at: string | null
-          email_body: string | null
-          id: string
-          prospect_email: string | null
-          prospect_name: string | null
-          sent_at: string | null
-          status: string | null
-          subject: string | null
-        }
-        Insert: {
-          campaign?: string | null
-          channel?: string | null
-          company?: string | null
-          created_at?: string | null
-          email_body?: string | null
-          id?: string
-          prospect_email?: string | null
-          prospect_name?: string | null
-          sent_at?: string | null
-          status?: string | null
-          subject?: string | null
-        }
-        Update: {
-          campaign?: string | null
-          channel?: string | null
-          company?: string | null
-          created_at?: string | null
-          email_body?: string | null
-          id?: string
-          prospect_email?: string | null
-          prospect_name?: string | null
-          sent_at?: string | null
-          status?: string | null
-          subject?: string | null
-        }
-        Relationships: []
-      }
       platform_fee_ledger: {
         Row: {
           asset: string
@@ -2217,6 +2105,57 @@ export type Database = {
           },
         ]
       }
+      platform_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          investor_id: string | null
+          invite_code: string
+          status: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          investor_id?: string | null
+          invite_code: string
+          status?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          investor_id?: string | null
+          invite_code?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_invites_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_invites_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_type: Database["public"]["Enums"]["account_type"]
@@ -2309,33 +2248,6 @@ export type Database = {
             referencedColumns: ["investor_id"]
           },
         ]
-      }
-      qa_entity_manifest: {
-        Row: {
-          created_at: string | null
-          entity_id: string
-          entity_label: string | null
-          entity_type: string
-          id: string
-          run_tag: string
-        }
-        Insert: {
-          created_at?: string | null
-          entity_id: string
-          entity_label?: string | null
-          entity_type: string
-          id?: string
-          run_tag: string
-        }
-        Update: {
-          created_at?: string | null
-          entity_id?: string
-          entity_label?: string | null
-          entity_type?: string
-          id?: string
-          run_tag?: string
-        }
-        Relationships: []
       }
       rate_limit_config: {
         Row: {
@@ -3926,65 +3838,6 @@ export type Database = {
       }
     }
     Views: {
-      ib_allocation_consistency: {
-        Row: {
-          allocated_ib_id: string | null
-          allocated_ib_name: string | null
-          allocation_id: string | null
-          current_ib_id: string | null
-          current_ib_name: string | null
-          effective_date: string | null
-          ib_changed_since_allocation: boolean | null
-          ib_fee_amount: number | null
-          ib_removed: boolean | null
-          source_investor_id: string | null
-          source_investor_name: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
-            columns: ["allocated_ib_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
-            columns: ["allocated_ib_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "ib_allocations_source_investor_id_fkey"
-            columns: ["source_investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ib_allocations_source_investor_id_fkey"
-            columns: ["source_investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "profiles_ib_parent_id_fkey"
-            columns: ["current_ib_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_ib_parent_id_fkey"
-            columns: ["current_ib_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["investor_id"]
-          },
-        ]
-      }
       investor_position_ledger_mismatch: {
         Row: {
           discrepancy: number | null
@@ -5314,7 +5167,7 @@ export type Database = {
             }
             Returns: Json
           }
-      apply_segmented_yield_distribution_v5: {
+      apply_segmented_yield_distribution: {
         Args: {
           p_admin_id?: string
           p_distribution_date?: string
@@ -5341,17 +5194,29 @@ export type Database = {
         }
         Returns: Json
       }
-      approve_and_complete_withdrawal: {
-        Args: {
-          p_admin_notes?: string
-          p_is_full_exit?: boolean
-          p_processed_amount?: number
-          p_request_id: string
-          p_send_precision?: number
-          p_tx_hash?: string
-        }
-        Returns: Json
-      }
+      approve_and_complete_withdrawal:
+        | {
+            Args: {
+              p_admin_notes?: string
+              p_is_full_exit?: boolean
+              p_processed_amount?: number
+              p_request_id: string
+              p_send_precision?: number
+              p_tx_hash?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_notes?: string
+              p_is_full_exit?: boolean
+              p_processed_amount?: number
+              p_request_id: string
+              p_send_precision?: number
+              p_tx_hash?: string
+            }
+            Returns: Json
+          }
       approve_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -5890,6 +5755,14 @@ export type Database = {
       }
       get_platform_flow_metrics: { Args: { p_days?: number }; Returns: Json }
       get_platform_stats: { Args: never; Returns: Json }
+      get_position_at_date: {
+        Args: {
+          p_fund_id: string
+          p_investor_id: string
+          p_target_date: string
+        }
+        Returns: number
+      }
       get_position_reconciliation: {
         Args: { p_as_of_date?: string; p_fund_id?: string }
         Returns: {
@@ -6088,6 +5961,30 @@ export type Database = {
         Args: { p_keep_profile_id: string; p_merge_profile_id: string }
         Returns: Json
       }
+      preview_segmented_yield_distribution: {
+        Args: {
+          p_fund_id: string
+          p_period_end?: string
+          p_recorded_aum: number
+        }
+        Returns: {
+          account_type: string
+          current_value: number
+          fee: number
+          fee_credit: number
+          fee_pct: number
+          gross: number
+          ib: number
+          ib_credit: number
+          ib_parent_id: string
+          ib_rate: number
+          investor_email: string
+          investor_id: string
+          investor_name: string
+          net: number
+          share: number
+        }[]
+      }
       preview_segmented_yield_distribution_v5: {
         Args: {
           p_fund_id: string
@@ -6098,7 +5995,6 @@ export type Database = {
         Returns: Json
       }
       purge_fund_hard: { Args: { p_fund_id: string }; Returns: Json }
-      qa_admin_id: { Args: never; Returns: string }
       qa_fees_account_id: { Args: never; Returns: string }
       qa_fund_id: { Args: { p_asset: string }; Returns: string }
       qa_investor_id: { Args: { p_key: string }; Returns: string }
@@ -6264,38 +6160,6 @@ export type Database = {
         Returns: boolean
       }
       system_health_check: { Args: never; Returns: Json }
-      test_yield_debug: {
-        Args: never
-        Returns: {
-          account_type: string
-          fee_credit: number
-          ib_credit: number
-          investor_id: string
-          investor_name: string
-          r_current_value: number
-          r_fee: number
-          r_fee_pct: number
-          r_gross: number
-          r_ib: number
-          r_ib_rate: number
-          r_net_final: number
-          r_share: number
-        }[]
-      }
-      test_yield_debug2: {
-        Args: never
-        Returns: {
-          current_value: number
-          investor_id: string
-        }[]
-      }
-      test_yield_debug3: {
-        Args: never
-        Returns: {
-          current_value: number
-          investor_id: string
-        }[]
-      }
       unvoid_transaction: {
         Args: { p_admin_id: string; p_reason: string; p_transaction_id: string }
         Returns: Json
@@ -6456,10 +6320,11 @@ export type Database = {
       }
       void_and_reissue_transaction: {
         Args: {
-          p_admin_id: string
-          p_new_amount?: number
-          p_new_date?: string
+          p_admin_id?: string
+          p_new_amount: number
+          p_new_date: string
           p_new_notes?: string
+          p_new_tx_hash?: string
           p_original_tx_id: string
           p_reason: string
         }
@@ -6485,7 +6350,7 @@ export type Database = {
         Args: {
           p_admin_id: string
           p_distribution_id: string
-          p_reason?: string
+          p_reason: string
           p_void_crystals?: boolean
         }
         Returns: Json
