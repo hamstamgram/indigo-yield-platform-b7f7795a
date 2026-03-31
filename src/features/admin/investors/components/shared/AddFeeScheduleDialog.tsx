@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAddFeeScheduleEntry } from "@/features/investor/shared/hooks/useFeeSchedule";
 import { getTodayString } from "@/utils/dateUtils";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { toNum } from "@/utils/numeric";
 
 interface AddFeeScheduleDialogProps {
   investorId: string;
@@ -66,7 +67,7 @@ export function AddFeeScheduleDialog({
   });
 
   const handleSubmit = () => {
-    const pct = parseFloat(feePct);
+    const pct = toNum(feePct);
     if (isNaN(pct) || pct < 0 || pct > 100) {
       toast.error("Fee must be between 0 and 100");
       return;

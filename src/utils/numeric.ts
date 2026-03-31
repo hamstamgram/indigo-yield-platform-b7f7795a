@@ -1,21 +1,31 @@
+import Decimal from "decimal.js";
+
 /**
- * Numeric Utilities
- * Core utilities for converting between string (database precision) and number (UI calculations)
+ * Institutional Numeric Utilities
+ * Standardized on Decimal.js for absolute precision (18+ decimals)
  * 
- * Domain types use `string` for NUMERIC(28,10) precision preservation from the database.
- * UI components often need `number` for arithmetic, comparisons, and formatting.
+ * Domain types use `string` for NUMERIC(38,18) precision preservation from the database.
  */
 
 /**
- * Convert a string or number to number for UI calculations
- * Safe for use with database NUMERIC fields that come as strings
- * @alias toNum - shorter alias for convenience
+ * Safely parse a numeric string or number into a Decimal object.
+ * Returns Decimal(0) for invalid inputs.
+ */
+export function parseFinancial(value: string | number | null | undefined): Decimal {
+  if (value === null || value === undefined || value === "") return new Decimal(0);
+  try {
+    return new Decimal(String(value));
+  } catch {
+    return new Decimal(0);
+  }
+}
+
+/**
+ * Convert a financial string/number to a JS number for legacy UI components.
+ * WARNING: Potential precision loss for values > 15 significant digits.
  */
 export function toNumber(value: string | number | null | undefined): number {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number") return isNaN(value) ? 0 : value;
-  const parsed = parseFloat(value);
-  return isNaN(parsed) ? 0 : parsed;
+  return parseFinancial(value).toNumber();
 }
 
 /**
@@ -25,101 +35,49 @@ export const toNum = toNumber;
 
 /**
  * Convert a value to string for database storage
- * Preserves precision for NUMERIC fields
+ * Preserves full 18rd-decimal precision
  */
 export function toNumericString(value: string | number | null | undefined): string {
-  if (value === null || value === undefined || value === "") return "0";
-  return String(value);
+  return parseFinancial(value).toString();
 }
 
 /**
- * Check if a numeric value (string or number) is greater than a threshold
+ * Formats a value for institutional display
  */
-export function isGreaterThan(value: string | number | null | undefined, threshold: number): boolean {
-  return toNumber(value) > threshold;
+export function formatInstitutional(value: string | number | null | undefined, decimals = 8): string {
+  return parseFinancial(value).toFixed(decimals);
 }
 
-/**
- * Check if a numeric value (string or number) is greater than or equal to a threshold
- */
-export function isGreaterThanOrEqual(value: string | number | null | undefined, threshold: number): boolean {
-  return toNumber(value) >= threshold;
+export function isGreaterThan(value: string | number | null | undefined, threshold: string | number): boolean {
+  return parseFinancial(value).gt(parseFinancial(threshold));
 }
 
-/**
- * Check if a numeric value (string or number) is less than a threshold
- */
-export function isLessThan(value: string | number | null | undefined, threshold: number): boolean {
-  return toNumber(value) < threshold;
+export function isGreaterThanOrEqual(value: string | number | null | undefined, threshold: string | number): boolean {
+  return parseFinancial(value).gte(parseFinancial(threshold));
 }
 
-/**
- * Check if a numeric value (string or number) is less than or equal to a threshold
- */
-export function isLessThanOrEqual(value: string | number | null | undefined, threshold: number): boolean {
-  return toNumber(value) <= threshold;
+export function isLessThan(value: string | number | null | undefined, threshold: string | number): boolean {
+  return parseFinancial(value).lt(parseFinancial(threshold));
 }
 
-/**
- * Format a numeric value for display with locale formatting
- */
-export function formatNumericValue(
-  value: string | number | null | undefined,
-  options: Intl.NumberFormatOptions = {}
-): string {
-  const num = toNumber(value);
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: options.minimumFractionDigits ?? 2,
-    maximumFractionDigits: options.maximumFractionDigits ?? 6,
-    ...options,
-  }).format(num);
+export function isLessThanOrEqual(value: string | number | null | undefined, threshold: string | number): boolean {
+  return parseFinancial(value).lte(parseFinancial(threshold));
 }
 
-/**
- * Get the sign prefix for a numeric value
- */
-export function getSignPrefix(value: string | number | null | undefined): string {
-  const num = toNumber(value);
-  return num > 0 ? "+" : num < 0 ? "" : "";
+export function add(a: string | number, b: string | number): string {
+  return parseFinancial(a).plus(parseFinancial(b)).toString();
 }
 
-/**
- * Calculate percentage: (value / base) * 100
- * Returns 0 if base is 0 to avoid division by zero
- */
-export function calculatePercentage(value: string | number, base: string | number): number {
-  const numBase = toNumber(base);
-  if (numBase === 0) return 0;
-  return (toNumber(value) / numBase) * 100;
+export function subtract(a: string | number, b: string | number): string {
+  return parseFinancial(a).minus(parseFinancial(b)).toString();
 }
 
-/**
- * Subtract two numeric values: a - b
- */
-export function subtract(a: string | number, b: string | number): number {
-  return toNumber(a) - toNumber(b);
+export function multiply(a: string | number, b: string | number): string {
+  return parseFinancial(a).times(parseFinancial(b)).toString();
 }
 
-/**
- * Add two numeric values: a + b
- */
-export function add(a: string | number, b: string | number): number {
-  return toNumber(a) + toNumber(b);
-}
-
-/**
- * Multiply two numeric values: a * b
- */
-export function multiply(a: string | number, b: string | number): number {
-  return toNumber(a) * toNumber(b);
-}
-
-/**
- * Divide two numeric values: a / b
- * Returns 0 if b is 0
- */
-export function divide(a: string | number, b: string | number): number {
-  const numB = toNumber(b);
-  if (numB === 0) return 0;
-  return toNumber(a) / numB;
+export function divide(a: string | number, b: string | number): string {
+  const decB = parseFinancial(b);
+  if (decB.isZero()) return "0";
+  return parseFinancial(a).div(decB).toString();
 }

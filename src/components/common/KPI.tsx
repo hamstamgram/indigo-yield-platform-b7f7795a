@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { LucideIcon } from "lucide-react";
+import { toNum } from "@/utils/numeric";
 import { formatAUM, formatPercentage } from "@/utils/formatters";
 import { getAssetPrecision } from "@/types/asset";
 
@@ -33,7 +34,7 @@ export default function KPI({
   const formatValue = (val: string | number): string => {
     if (loading) return "...";
 
-    const numVal = typeof val === "string" ? parseFloat(val) : val;
+    const numVal = toNum(val);
 
     switch (format) {
       case "currency":

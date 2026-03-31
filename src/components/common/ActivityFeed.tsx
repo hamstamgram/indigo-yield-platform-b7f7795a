@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toNum } from "@/utils/numeric";
 import type { ActivityItem as DashboardActivityItem } from "@/types/domains";
 
 /**
@@ -164,7 +165,7 @@ function getStatusVariant(status?: string): "default" | "secondary" | "destructi
  */
 function formatAmount(amount?: string | number, asset?: string): string | null {
   if (amount === undefined || amount === null || amount === "") return null;
-  const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+  const numAmount = toNum(amount);
   if (isNaN(numAmount)) return null;
   const formatted = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,

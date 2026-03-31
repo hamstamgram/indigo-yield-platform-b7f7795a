@@ -27,6 +27,7 @@ import type { Asset, AssetPrice, AssetPriceFormData } from "@/types/asset";
 import { format } from "date-fns";
 import { TrendingUp, DollarSign } from "lucide-react";
 import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
+import { toNum } from "@/utils/numeric";
 
 interface AssetPriceDialogProps {
   asset: Asset;
@@ -127,7 +128,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            price_usd: parseFloat(e.target.value),
+                            price_usd: toNum(e.target.value),
                           })
                         }
                         required
@@ -155,7 +156,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            high_24h: e.target.value ? parseFloat(e.target.value) : undefined,
+                            high_24h: e.target.value ? toNum(e.target.value) : undefined,
                           })
                         }
                       />
@@ -171,7 +172,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            low_24h: e.target.value ? parseFloat(e.target.value) : undefined,
+                            low_24h: e.target.value ? toNum(e.target.value) : undefined,
                           })
                         }
                       />

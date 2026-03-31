@@ -17,6 +17,7 @@ import {
 import { Link2, Link2Off } from "lucide-react";
 import { useWizard } from "../WizardContext";
 import { feesSchema } from "../types";
+import { toNum } from "@/utils/numeric";
 
 type FeesFormValues = z.infer<typeof feesSchema>;
 
@@ -81,7 +82,7 @@ const FeesStep: React.FC = () => {
                       max="100"
                       className="pr-8"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(toNum(e.target.value) || 0)}
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                       %
@@ -139,7 +140,7 @@ const FeesStep: React.FC = () => {
                           className="pr-8"
                           disabled={linkFees}
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) => field.onChange(toNum(e.target.value) || 0)}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                           %

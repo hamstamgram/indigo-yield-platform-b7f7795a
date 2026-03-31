@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { strictUuidSchema } from "./schemas";
+import { parseFinancial } from "@/utils/numeric";
 
 export const investmentFormSchema = z.object({
   investor_id: strictUuidSchema,
@@ -7,10 +8,10 @@ export const investmentFormSchema = z.object({
   investment_date: z.string().min(1, { message: "Investment date is required" }),
   amount: z.string()
     .min(1, { message: "Amount is required" })
-    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, { 
+    .refine((val) => parseFinancial(val).gt(0), { 
       message: "Amount must be greater than 0" 
     })
-    .refine((val) => parseFloat(val) <= 1000000000, { 
+    .refine((val) => parseFinancial(val).lte(1000000000), { 
       message: "Amount exceeds maximum limit" 
     }),
   transaction_type: z.enum(["initial", "additional", "redemption"], {

@@ -11,6 +11,7 @@ import {
 import { useWizard } from "../WizardContext";
 import { getAssetStep, ASSET_PRECISION } from "../types";
 import { getAssetLogo } from "@/utils/assets";
+import { toNum } from "@/utils/numeric";
 import { AlertCircle, Calendar } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -59,7 +60,7 @@ const PositionsStep: React.FC = () => {
   }, [data.positions, data.positionsEffectiveDate, setCanProceed]);
 
   const handlePositionChange = (symbol: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    const numValue = toNum(value) || 0;
     const precision = ASSET_PRECISION[symbol] || 8;
 
     // Round to asset precision

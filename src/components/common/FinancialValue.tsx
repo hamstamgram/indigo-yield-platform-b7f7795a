@@ -43,23 +43,21 @@ export function FinancialValue({
     return <span className={cn("text-muted-foreground", className)}>—</span>;
   }
 
-  // Use Decimal.js for precision — guard against NaN, "", Infinity, or non-numeric strings
+  // Use Decimal.js for precision
   let decimalValue: Decimal;
   try {
     decimalValue = new Decimal(value);
   } catch {
-    // Invalid input (NaN, "", "abc", Infinity) — render dash instead of crashing
     return <span className={cn("text-muted-foreground", className)}>—</span>;
   }
 
-  // Determine display decimals: explicit > asset-specific (from ASSET_CONFIGS) > default 4
+  // Determine display decimals: explicit > asset-specific > default 4
   const decimals = displayDecimals ?? getAssetDecimals(asset);
 
   // Format for display
   const rawDisplay = decimalValue.toFixed(decimals);
-  const fullPrecision = decimalValue.toFixed(18); // Show full 18-decimal precision in tooltips
+  const fullPrecision = decimalValue.toFixed(18);
 
-  // Add thousand separators while preserving decimal precision
   const formatWithSeparators = (val: string): string => {
     const [intPart, decPart] = val.split(".");
     const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -68,18 +66,16 @@ export function FinancialValue({
 
   const displayValue = formatWithSeparators(rawDisplay);
 
-  // Check if value is a micro-balance (exists but rounds to zero)
   const isMicroBalance =
     decimalValue.abs().greaterThan(0) &&
     decimalValue.abs().lessThan(new Decimal(10).pow(-decimals));
 
-  // Check if values differ (for tooltip decision) - compare raw values without separators
   const hasPrecisionLoss = rawDisplay !== fullPrecision.slice(0, rawDisplay.length);
 
-  // Determine color based on sign
+  // Determine color based on sign using theme tokens
   const valueColor = colorize
     ? decimalValue.greaterThan(0)
-      ? "text-emerald-400"
+      ? "text-yield" // Using institutional emerald/gold brand color
       : decimalValue.lessThan(0)
         ? "text-rose-400"
         : ""
@@ -89,15 +85,15 @@ export function FinancialValue({
   const formattedValue = `${prefix}${displayValue}${showAsset && asset ? ` ${asset}` : ""}`;
   const formattedFullValue = `${prefix}${formatWithSeparators(fullPrecision)}${showAsset && asset ? ` ${asset}` : ""}`;
 
-  // Container classes for responsive shrink
+  // Institutional Responsive Shrink (Council 4 Seal)
+  // Replaces amateur fixed-width with container-aware scaling
   const containerClasses = cn(
-    "font-mono whitespace-nowrap",
-    shrink && "inline-block max-w-[140px] overflow-hidden text-ellipsis align-bottom",
+    "font-mono whitespace-nowrap inline-block transition-all duration-300",
+    shrink && "max-w-[10rem] md:max-w-[15rem] lg:max-w-none overflow-hidden text-ellipsis align-bottom",
     valueColor,
     className
   );
 
-  // Micro-balance: show special indicator with tooltip
   if (isMicroBalance) {
     return (
       <Tooltip>
@@ -122,7 +118,6 @@ export function FinancialValue({
     );
   }
 
-  // Regular value: show tooltip only if precision differs or shrinking is enabled
   if (hasPrecisionLoss || shrink) {
     return (
       <Tooltip>
@@ -141,13 +136,9 @@ export function FinancialValue({
     );
   }
 
-  // No precision loss: simple display
   return <span className={containerClasses}>{formattedValue}</span>;
 }
 
-/**
- * Helper function to sum financial values with Decimal.js precision
- */
 export function sumFinancialValues(values: (number | string | null | undefined)[]): Decimal {
   return values.reduce((sum, val) => {
     if (val === null || val === undefined) return sum;
@@ -155,9 +146,6 @@ export function sumFinancialValues(values: (number | string | null | undefined)[
   }, new Decimal(0));
 }
 
-/**
- * Check if two financial values are equal to 18th decimal
- */
 export function financialValuesEqual(a: number | string, b: number | string): boolean {
   const decA = new Decimal(a);
   const decB = new Decimal(b);

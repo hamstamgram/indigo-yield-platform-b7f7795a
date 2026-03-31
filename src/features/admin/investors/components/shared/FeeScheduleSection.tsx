@@ -33,6 +33,7 @@ import {
   useInvestorProfileSettings,
   useUpdatePerformanceFee,
 } from "@/features/investor/settings/hooks/useInvestorSettings";
+import { toNum } from "@/utils/numeric";
 import { Input, Label } from "@/components/ui";
 import { AddFeeScheduleDialog } from "./AddFeeScheduleDialog";
 
@@ -136,7 +137,7 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
                     min="0"
                     max="100"
                     value={globalFeePct}
-                    onChange={(e) => setGlobalFeePct(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => setGlobalFeePct(toNum(e.target.value))}
                     className="pr-8 font-mono"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">

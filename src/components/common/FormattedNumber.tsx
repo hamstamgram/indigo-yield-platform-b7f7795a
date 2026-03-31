@@ -6,6 +6,7 @@
  */
 
 import { cn } from "@/lib/utils";
+import { toNum } from "@/utils/numeric";
 import {
   formatAUM,
   formatAUMCompact,
@@ -54,7 +55,7 @@ export function FormattedNumber({
   }
 
   // Parse to number
-  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  const numValue = toNum(value);
 
   if (isNaN(numValue)) {
     return <span className={cn("text-muted-foreground", className)}>{placeholder}</span>;

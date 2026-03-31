@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAddIBScheduleEntry } from "@/features/investor/shared/hooks/useIBSchedule";
 import { getTodayString } from "@/utils/dateUtils";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { toNum } from "@/utils/numeric";
 
 interface AddIBScheduleDialogProps {
   investorId: string;
@@ -62,7 +63,7 @@ export function AddIBScheduleDialog({ investorId, open, onOpenChange }: AddIBSch
   });
 
   const handleSubmit = () => {
-    const pct = parseFloat(ibPct);
+    const pct = toNum(ibPct);
     if (isNaN(pct) || pct < 0 || pct > 100) {
       toast.error("IB percentage must be between 0 and 100");
       return;

@@ -5,6 +5,7 @@
 
 // Use types from central location
 import { type AssetConfig, type AssetInput, type AssetValidationResult, getAssetConfig } from "@/types/asset";
+import { toNum } from "./numeric";
 
 // Re-export types for backward compatibility
 export type { AssetInput, AssetConfig };
@@ -41,10 +42,10 @@ export function validateAssetInputs(
       if (trimmed === "") {
         value = 0;
       } else {
-        value = parseFloat(trimmed);
+        value = toNum(trimmed);
       }
     } else {
-      value = amount;
+      value = typeof amount === "number" ? amount : 0;
     }
 
     // Must be a valid number

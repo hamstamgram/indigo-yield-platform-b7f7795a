@@ -12,6 +12,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Input, type InputProps } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getAssetStep, getAssetPrecision } from "@/types/asset";
+import { toNum, parseFinancial } from "@/utils/numeric";
 import Decimal from "decimal.js";
 
 export interface NumericInputProps extends Omit<InputProps, "value" | "onChange" | "type"> {
@@ -35,7 +36,7 @@ export interface NumericInputProps extends Omit<InputProps, "value" | "onChange"
  * Format a number string with thousand separators
  */
 function formatWithCommas(value: string | number, decimals: number): string {
-  const num = typeof value === "string" ? parseFloat(value) : value;
+  const num = typeof value === "string" ? toNum(value) : value;
   if (isNaN(num)) return "";
 
   return new Intl.NumberFormat("en-US", {
@@ -92,7 +93,7 @@ export function NumericInput({
   useEffect(() => {
     if (!isFocused) {
       const strValue = String(value);
-      if (strValue && strValue !== "" && !isNaN(parseFloat(strValue))) {
+      if (strValue && strValue !== "" && !isNaN(toNum(strValue))) {
         setDisplayValue(showFormatted ? formatWithCommas(strValue, precision) : strValue);
       } else {
         setDisplayValue("");
@@ -111,7 +112,7 @@ export function NumericInput({
     setIsFocused(false);
     const parsed = parseNumericInput(displayValue);
 
-    if (parsed === "" || isNaN(parseFloat(parsed))) {
+    if (parsed === "" || isNaN(toNum(parsed))) {
       setDisplayValue("");
       onChange("");
       return;
@@ -153,7 +154,7 @@ export function NumericInput({
       const parsed = parseNumericInput(rawValue);
 
       // Check if it's a valid number in progress
-      const isValidInProgress = /^-?\d*\.?\d*$/.test(parsed) && !isNaN(parseFloat(parsed || "0"));
+      const isValidInProgress = /^-?\d*\.?\d*$/.test(parsed) && !isNaN(toNum(parsed || "0"));
 
       if (isValidInProgress) {
         // Check decimal places
