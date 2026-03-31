@@ -18,65 +18,39 @@ import { logWarn } from "@/lib/logger";
 // Configure Decimal.js for financial calculations
 // Precision must exceed NUMERIC(38,18) max of 38 significant digits
 Decimal.set({
-  precision: 40, // 40 significant digits -- covers NUMERIC(38,18) fully
-  rounding: Decimal.ROUND_HALF_UP, // Standard rounding (0.5 rounds up)
-  toExpNeg: -7, // Don't use exponential notation for small numbers
-  toExpPos: 21, // Don't use exponential notation for large numbers
-  minE: -9e15, // Min exponent
-  maxE: 9e15, // Max exponent
+  precision: 50,
+  rounding: Decimal.ROUND_HALF_UP,
+  toExpNeg: -18,
+  toExpPos: 18,
 });
 
 /**
- * Convert any number/string to Decimal
- * Always use this before performing calculations
+ * Robust conversion to Decimal
+ * Safely handles null, undefined, string, and number inputs
  */
-export function toDecimal(value: string | number | Decimal): Decimal {
+export function toDecimal(value: string | number | Decimal | null | undefined): Decimal {
+  if (value === null || value === undefined || value === "") {
+    return new Decimal(0);
+  }
   if (value instanceof Decimal) {
     return value;
   }
-  return new Decimal(value);
-}
-
-/**
- * Format cryptocurrency amount
- * @param value - The amount to format
- * @param decimals - Number of decimal places (default: 8 for crypto)
- * @param symbol - Token symbol (e.g., 'BTC')
- */
-export function formatCrypto(
-  value: string | number | Decimal,
-  decimals: number = 8,
-  symbol?: string
-): string {
-  const decimal = toDecimal(value);
-  const formatted = decimal.toFixed(decimals);
-  return symbol ? `${formatted} ${symbol}` : formatted;
-}
-
-/**
- * Calculate yield/interest
- * Formula: Principal × Rate × (Days / 365)
- *
- * @param principal - Initial investment amount
- * @param rate - Annual interest rate (decimal, e.g., 0.05 for 5%)
- * @param days - Number of days
- */
-export function calculateYield(
-  principal: string | number | Decimal,
-  rate: string | number | Decimal,
-  days: number
-): Decimal {
-  const principalDecimal = toDecimal(principal);
-  const rateDecimal = toDecimal(rate);
-  const daysPerYear = toDecimal(365);
-
-  // Yield = Principal × Rate × (Days / 365)
-  return principalDecimal.times(rateDecimal).times(days).dividedBy(daysPerYear);
+  try {
+    return new Decimal(String(value));
+  } catch (error) {
+    logWarn("financial.toDecimal", {
+      reason: "Invalid numeric value, defaulting to 0",
+      value: String(value),
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return new Decimal(0);
+  }
 }
 
 /**
  * Calculate compound interest
- * Formula: Principal × (1 + Rate/n)^(n×time) - Principal
+ * Formula: A = P(1 + r/n)^(nt)
+ * Interest = A - P = Principal × (1 + Rate/n)^(n×time) - Principal
  *
  * @param principal - Initial investment amount
  * @param rate - Annual interest rate (decimal)
@@ -447,16 +421,25 @@ export function formatFinancialDisplay(
 }
 
 /**
- * Token-Only Formatting Guidelines
- * ================================
- *
- * This codebase uses token-denominated accounting. All values are displayed
- * in native token units (BTC, ETH, USDT, etc.), NOT converted to fiat currencies.
- *
- * CORRECT USAGE:
- * - formatCrypto(1.5, 8, 'BTC')  → "1.50000000 BTC"
- * - formatCrypto(100, 2, 'USDT') → "100.00 USDT"
- *
- * All investor-facing code MUST use formatCrypto() or getAssetConfig()
- * to ensure proper token display without fiat conversion.
+ * Institutional Percentage Formatter
+ * Unified source of truth for all percentage displays.
  */
+
+/**
+ * Token-Only Formatting Guidelines
+ */
+export function formatCrypto(amount: any, decimals?: any, symbol?: any): string {
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : (typeof amount === 'number' ? amount : parseFloat(String(amount)));
+  const sym = typeof decimals === 'string' ? decimals : symbol;
+  const dec = typeof decimals === 'number' ? decimals : 8;
+  return `${numericAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: dec })} ${sym || ""}`;
+}
+
+/**
+ * Calculate yield (legacy member)
+ */
+export function calculateYield(amount: string | number | Decimal, yieldRate: string | number | Decimal): Decimal {
+  const a = toDecimal(amount);
+  const y = toDecimal(yieldRate);
+  return a.times(y).dividedBy(100);
+}

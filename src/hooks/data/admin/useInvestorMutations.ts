@@ -48,3 +48,35 @@ export function useDeleteInvestor() {
     },
   });
 }
+
+/**
+ * Hook for creating investors (Legacy/Simple).
+ * For complex creation, use useCreateInvestorWizard.
+ */
+export function useCreateInvestor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const { data: result, error } = await supabase
+        .from("profiles")
+        .insert([{
+          ...data,
+          status: data.status || "pending",
+          is_admin: false,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestors });
+      toast.success("Investor created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create investor");
+    },
+  });
+}

@@ -30,7 +30,6 @@ import {
   type UserSettings,
 } from "@/hooks/data";
 import { logError } from "@/lib/logger";
-import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/layout/PageShell";
 
 const SETTINGS_KEY = "indigo_user_settings";
@@ -38,6 +37,11 @@ const SETTINGS_KEY = "indigo_user_settings";
 const defaultSettings: UserSettings = {
   theme: "system",
   language: "en",
+  timezone: "UTC",
+  emailNotifications: true,
+  marketingEmails: false,
+  twoFactorEnabled: false,
+  currency: "USD",
   reduceAnimations: false,
   hidePortfolioValues: false,
   dashboardTimeframe: "7d",
@@ -48,184 +52,176 @@ export default function InvestorSettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const { toast } = useToast();
 
-  const { data: profile, isLoading: loading, error: profileError } = useInvestorProfileData();
-  const { data: dbPreferences } = useUserPreferences();
-  const savePreferencesMutation = useSaveUserPreferences();
+  const { data: profile, isLoading: isLoadingProfile } = useInvestorProfileData();
+  const { data: dbPrefs } = useUserPreferences();
+  const savePrefsMutation = useSaveUserPreferences();
 
-  const error = profileError ? (profileError as Error).message : null;
-
+  // Initialize from DB if available, otherwise localStorage
   useEffect(() => {
-    const loadSettings = () => {
-      const localSettings = localStorage.getItem(SETTINGS_KEY);
-      if (localSettings) {
+    if (dbPrefs) {
+      setSettings(dbPrefs);
+    } else {
+      const saved = localStorage.getItem(SETTINGS_KEY);
+      if (saved) {
         try {
-          setSettings({ ...defaultSettings, ...JSON.parse(localSettings) });
+          setSettings(JSON.parse(saved));
         } catch (e) {
-          logError("InvestorSettingsPage.loadSettings", e);
+          logError("settings.parse", e);
         }
       }
-
-      if (dbPreferences) {
-        setSettings((prev) => ({ ...prev, ...dbPreferences }));
-      }
-    };
-
-    loadSettings();
-  }, [dbPreferences]);
-
-  // Dark theme is always forced
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
-
-  const handleSaveSettings = async () => {
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-
-      if (user) {
-        await savePreferencesMutation.mutateAsync(settings);
-      }
-
-      toast({
-        title: "Settings saved",
-        description: "Your preferences have been updated.",
-      });
-    } catch (error) {
-      logError("InvestorSettingsPage.handleSaveSettings", error);
-      toast({
-        title: "Error",
-        description: "Failed to save settings. Please try again.",
-        variant: "destructive",
-      });
     }
+  }, [dbPrefs]);
+
+  const updateSetting = (key: keyof UserSettings, value: any) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+
+    // Optimistically save to localStorage
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+
+    // Persist to database
+    savePrefsMutation.mutate(newSettings, {
+      onError: () => {
+        toast({
+          title: "Failed to save preferences",
+          description: "Your settings were saved locally but not synced to the cloud.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
-  const updateSetting = <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Loading your settings...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-3xl mx-auto p-4">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>Error loading settings</AlertTitle>
-          <AlertDescription>
-            {error}
-            <div className="mt-4">
-              <Button onClick={() => window.location.reload()}>Try Again</Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const isDark = settings.theme === "dark" || (settings.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
-    <PageShell maxWidth="narrow">
-      {/* Background Decoration */}
-      <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-500/5 blur-[120px] pointer-events-none -z-10 rounded-full" />
+    <PageShell>
+      <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <PageHeader
+          title="Account Settings"
+          subtitle="Manage your profile, security, and application preferences."
+          icon={Settings}
+        />
 
-      <div className="flex items-center gap-4 py-4">
-        <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-          <Settings className="h-8 w-8 text-indigo-400" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-display font-bold text-white tracking-tight">Settings</h1>
-        </div>
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="bg-white/5 border border-white/10 p-1 mb-8 w-fit">
+            <TabsTrigger value="profile" className="px-6 data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400">
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="px-6 data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400">
+              Preferences
+            </TabsTrigger>
+            <TabsTrigger value="security" className="px-6 data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400">
+              Security
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="space-y-6 focus-visible:outline-none focus-visible:ring-0">
+            <ProfileTab profile={profile || null} loading={isLoadingProfile} />
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-6 focus-visible:outline-none focus-visible:ring-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-card/30 backdrop-blur-md border-white/5 shadow-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    {isDark ? <Moon className="h-5 w-5 text-emerald-400" /> : <Sun className="h-5 w-5 text-emerald-400" />}
+                    Appearance
+                  </CardTitle>
+                  <CardDescription>
+                    Customize the look and feel of the platform.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Theme</Label>
+                      <p className="text-xs text-muted-foreground">Select your preferred color scheme.</p>
+                    </div>
+                    <select
+                      value={settings.theme}
+                      onChange={(e) => updateSetting("theme", e.target.value)}
+                      className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500/50"
+                    >
+                      <option value="light">Light</option>
+                      <option value="dark">Dark</option>
+                      <option value="system">System</option>
+                    </select>
+                  </div>
+                  <Separator className="bg-white/5" />
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Reduce Animations</Label>
+                      <p className="text-xs text-muted-foreground">Minimize motion for a faster feel.</p>
+                    </div>
+                    <Switch
+                      checked={settings.reduceAnimations}
+                      onCheckedChange={(checked) => updateSetting("reduceAnimations", checked)}
+                    />
+                  </div>
+                  <Separator className="bg-white/5" />
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Privacy Mode</Label>
+                      <p className="text-xs text-muted-foreground">Hide sensitive balances by default.</p>
+                    </div>
+                    <Switch
+                      checked={settings.hidePortfolioValues}
+                      onCheckedChange={(checked) => updateSetting("hidePortfolioValues", checked)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/30 backdrop-blur-md border-white/5 shadow-2xl">
+                <CardHeader>
+                  <CardTitle>Regional & Display</CardTitle>
+                  <CardDescription>
+                    Set your preferred language and reporting timeframes.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Language</Label>
+                      <p className="text-xs text-muted-foreground">The platform will use this language.</p>
+                    </div>
+                    <select
+                      value={settings.language}
+                      onChange={(e) => updateSetting("language", e.target.value)}
+                      className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500/50"
+                    >
+                      <option value="en">English (US)</option>
+                      <option value="en-GB">English (UK)</option>
+                      <option value="de">German</option>
+                    </select>
+                  </div>
+                  <Separator className="bg-white/5" />
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Default View</Label>
+                      <p className="text-xs text-muted-foreground">Default timeframe for dashboard charts.</p>
+                    </div>
+                    <select
+                      value={settings.dashboardTimeframe}
+                      onChange={(e) => updateSetting("dashboardTimeframe", e.target.value)}
+                      className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500/50"
+                    >
+                      <option value="7d">Last 7 Days</option>
+                      <option value="30d">Last 30 Days</option>
+                      <option value="90d">Last Quarter</option>
+                      <option value="ytd">Year to Date</option>
+                    </select>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-6 focus-visible:outline-none focus-visible:ring-0">
+            <SecurityTab />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs defaultValue="profile" className="w-full space-y-8">
-        <TabsList className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-1 h-auto w-full md:w-auto flex-wrap justify-start">
-          <TabsTrigger
-            value="profile"
-            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
-          >
-            Profile
-          </TabsTrigger>
-          <TabsTrigger
-            value="security"
-            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
-          >
-            Security
-          </TabsTrigger>
-          <TabsTrigger
-            value="appearance"
-            className="rounded-lg data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/5 transition-all text-indigo-200/70 px-6 py-2.5"
-          >
-            Appearance
-          </TabsTrigger>
-        </TabsList>
-
-        <div className="glass-panel rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl overflow-hidden min-h-[400px]">
-          <div className="p-6 md:p-8">
-            <TabsContent value="profile" className="mt-0 space-y-6">
-              <ProfileTab profile={profile || null} loading={loading} />
-            </TabsContent>
-
-            <TabsContent value="security" className="mt-0 space-y-6">
-              <SecurityTab />
-            </TabsContent>
-
-            <TabsContent value="appearance" className="mt-0 space-y-8">
-              <div>
-                <h2 className="text-xl font-bold text-white mb-1">Appearance</h2>
-              </div>
-
-              <Separator className="bg-white/10" />
-
-              <Separator className="bg-white/10" />
-
-              <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium text-white">Reduce Animations</Label>
-                  <p className="text-sm text-indigo-200/50">
-                    Minimize animations for better performance
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.reduceAnimations}
-                  onCheckedChange={(checked) => updateSetting("reduceAnimations", checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium text-white">Hide Portfolio Values</Label>
-                  <p className="text-sm text-indigo-200/50">
-                    Mask your portfolio values for privacy
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.hidePortfolioValues}
-                  onCheckedChange={(checked) => updateSetting("hidePortfolioValues", checked)}
-                />
-              </div>
-
-              <div className="pt-4 flex justify-end">
-                <Button
-                  onClick={handleSaveSettings}
-                  disabled={savePreferencesMutation.isPending}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-8 rounded-xl h-12"
-                >
-                  {savePreferencesMutation.isPending ? "Saving..." : "Save Preferences"}
-                </Button>
-              </div>
-            </TabsContent>
-          </div>
-        </div>
-      </Tabs>
     </PageShell>
   );
 }

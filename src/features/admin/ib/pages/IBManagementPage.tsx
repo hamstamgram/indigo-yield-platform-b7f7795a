@@ -193,7 +193,7 @@ export default function IBManagementPage({ embedded = false }: { embedded?: bool
                     className="flex items-center gap-2 text-lg font-semibold font-mono"
                   >
                     <CryptoIcon symbol={asset} className="h-5 w-5" />
-                    {formatCrypto(amount, 4, asset)}
+                    {formatCrypto(String(amount), 4, asset)}
                   </div>
                 ))
               )}
@@ -310,7 +310,7 @@ export default function IBManagementPage({ embedded = false }: { embedded?: bool
                             <div key={asset} className="flex items-center gap-1">
                               <CryptoIcon symbol={asset} className="h-3.5 w-3.5" />
                               <span className="font-mono tabular-nums">
-                                {formatCrypto(amount, 4, asset)}
+                                {formatCrypto(String(amount), 4, asset)}
                               </span>
                             </div>
                           ))

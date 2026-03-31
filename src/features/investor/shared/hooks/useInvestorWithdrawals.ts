@@ -96,7 +96,7 @@ export function useSubmitWithdrawal() {
       queryClient.invalidateQueries({ queryKey: ["withdrawalRequests"] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.availableWithdrawalPositions });
       toast.success("Withdrawal Request Submitted", {
-        description: `Your request for ${formatCrypto(result.amount, 8, result.assetCode)} has been submitted for approval.`,
+        description: `Your request for ${formatCrypto(String(result.amount), 8, result.assetCode)} has been submitted for approval.`,
       });
     },
     onError: (error: Error) => {

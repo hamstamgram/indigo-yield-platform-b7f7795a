@@ -263,7 +263,7 @@ export async function applyYield(params: {
   adminId: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_segmented_yield_distribution_v5", {
+  return call("apply_segmented_yield_distribution_v5" as any, {
     p_fund_id: params.fundId,
     p_period_end: params.periodEnd,
     p_recorded_aum: params.recordedAum as unknown as number,

@@ -38,13 +38,13 @@ export function useInvestorTransactionAssets() {
 
   return useQuery({
     queryKey: QUERY_KEYS.transactionAssets(user?.id),
-    queryFn: () => getInvestorTransactionAssets(user!.id),
+    queryFn: () => getInvestorTransactionAssets(user?.id || ""),
     enabled: !!user,
   });
 }
 
 export function useInvestorTransactionsList(
-  searchTerm?: string,
+  undefined?: string,
   assetFilter?: string,
   typeFilter?: string
 ) {
@@ -53,11 +53,11 @@ export function useInvestorTransactionsList(
   return useQuery({
     queryKey: QUERY_KEYS.investorTransactions(
       user?.id || "",
-      searchTerm ? 100 : undefined,
+      0,
       assetFilter,
       typeFilter
     ),
-    queryFn: () => getInvestorTransactionsList(user!.id, searchTerm, assetFilter, typeFilter),
+    queryFn: () => getInvestorTransactionsList(user?.id || "", undefined, assetFilter, typeFilter),
     enabled: !!user,
   });
 }
@@ -74,7 +74,7 @@ export function useMonthlyStatements(year: number, assetFilter?: string) {
         data: { user: authUser },
       } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
       if (!authUser) throw new Error("No authenticated user");
-      return getInvestorStatements(authUser.id, year, assetFilter);
+      return getInvestorStatements(authUser.id, year, assetFilter, undefined);
     },
   });
 }
@@ -134,7 +134,7 @@ export function useInvestorProfileData() {
 
   return useQuery({
     queryKey: QUERY_KEYS.investorProfile(user?.id),
-    queryFn: () => getInvestorProfile(user!.id),
+    queryFn: () => getInvestorProfile(user?.id || ""),
     enabled: !!user,
   });
 }
@@ -144,7 +144,7 @@ export function useUserPreferences() {
 
   return useQuery({
     queryKey: QUERY_KEYS.userPreferences(user?.id),
-    queryFn: () => getUserPreferences(user!.id),
+    queryFn: () => getUserPreferences(user?.id || ""),
     enabled: !!user,
   });
 }
@@ -154,7 +154,7 @@ export function useSaveUserPreferences() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (settings: UserSettings) => saveUserPreferences(user!.id, settings),
+    mutationFn: (settings: UserSettings) => saveUserPreferences(user?.id || "", settings),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userPreferences(user?.id) });
     },
@@ -168,7 +168,7 @@ export function useActiveSessions() {
 
   return useQuery({
     queryKey: QUERY_KEYS.activeSessions(user?.id),
-    queryFn: () => getActiveSessions(user!.id),
+    queryFn: () => getActiveSessions(user?.id || ""),
     enabled: !!user,
   });
 }

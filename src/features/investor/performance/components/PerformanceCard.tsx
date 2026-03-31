@@ -1,28 +1,33 @@
 import React from "react";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, DollarSign } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatPercentage } from "@/utils/financial";
+import { formatPercentage } from "@/utils/formatters";
+import { type PerformancePeriod } from "./PeriodSelector";
 
-interface PerformanceCardProps {
-  title: string;
-  assetCode: string;
-  beginningBalance: number;
-  endingBalance: number;
-  additions: number;
-  redemptions: number;
-  netIncome: number;
-  rateOfReturn: number;
+export interface PerformanceCardProps {
+  fundName: string;
+  period: PerformancePeriod;
+  data: {
+    beginningBalance: number;
+    endingBalance: number;
+    additions: number;
+    redemptions: number;
+    netIncome: number;
+    rateOfReturn: number;
+  };
 }
 
 export const PerformanceCard = ({
-  title,
-  assetCode,
-  beginningBalance,
-  endingBalance,
-  additions,
-  redemptions,
-  netIncome,
-  rateOfReturn,
+  fundName,
+  period,
+  data: {
+    beginningBalance,
+    endingBalance,
+    additions,
+    redemptions,
+    netIncome,
+    rateOfReturn,
+  },
 }: PerformanceCardProps) => {
   const isPositive = rateOfReturn >= 0;
   const TrendIcon = isPositive ? ArrowUpRight : ArrowDownRight;
@@ -37,7 +42,7 @@ export const PerformanceCard = ({
             <TrendingUp className="h-4 w-4 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-white">{title}</h3>
+            <h3 className="text-sm font-bold tracking-tight text-white">{fundName}</h3>
             <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
               Performance Report
             </p>
@@ -63,7 +68,7 @@ export const PerformanceCard = ({
       {/* Divider */}
       <div className="mx-5 h-px bg-white/5" />
 
-      {/* Ending Balance — hero number */}
+      {/* Ending Balance hero number */}
       <div className="px-5 py-4 border-b border-white/5">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">
           Ending Balance
@@ -72,7 +77,7 @@ export const PerformanceCard = ({
           <span className="text-2xl font-black tracking-tighter text-white">
             {endingBalance.toLocaleString(undefined, { maximumFractionDigits: 8 })}
           </span>
-          <span className="text-xs font-bold text-muted-foreground uppercase">{assetCode}</span>
+          <span className="text-xs font-bold text-muted-foreground uppercase">{fundName}</span>
         </div>
       </div>
 

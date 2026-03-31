@@ -30,7 +30,8 @@ export async function verifyInvestorInvite(inviteCode: string): Promise<InviteDe
 
   return {
     email: data.email,
-    expiresAt: data.expires_at,
+    expires_at: data.expires_at,
+    used: false,
   };
 }
 
@@ -95,4 +96,23 @@ export async function acceptAdminInvite(
   metadata?: UserMetadata
 ): Promise<string> {
   return acceptInvestorInvite(inviteCode, email, password, metadata);
+}
+
+/**
+ * Polling function to wait for profile creation after signup
+ */
+export async function waitForProfile(userId: string, maxAttempts = 10): Promise<boolean> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!error && data) return true;
+
+    // Exponential backoff
+    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 100));
+  }
+  return false;
 }

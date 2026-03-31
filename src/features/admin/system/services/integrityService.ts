@@ -21,7 +21,7 @@ export async function fetchIntegrityChecks(): Promise<IntegrityCheck[]> {
   ] = await Promise.all([
     supabase.from("fund_aum_mismatch" as any).select("*"),
     supabase.from("yield_distribution_conservation_check").select("*"),
-    supabase.from("ib_allocation_consistency").select("*"),
+    supabase.from("ib_allocation_consistency" as any).select("*"),
     supabase.from("investor_position_ledger_mismatch").select("*"),
     supabase
       .from("investor_positions")
@@ -67,7 +67,7 @@ export async function fetchIntegrityChecks(): Promise<IntegrityCheck[]> {
       status: (ibConsistency.data?.length || 0) === 0 ? "ok" : "warning",
       count: ibConsistency.data?.length || 0,
       iconName: "users",
-      details: ibConsistency.data ?? undefined,
+      details: (ibConsistency.data as any) ?? undefined,
     },
     {
       name: "Position vs Ledger",

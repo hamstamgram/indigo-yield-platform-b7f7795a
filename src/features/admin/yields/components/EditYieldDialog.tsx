@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 /**
  * Edit Yield Dialog
  * Dialog for editing yield record AUM values

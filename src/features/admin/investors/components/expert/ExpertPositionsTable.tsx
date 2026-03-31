@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatAssetValue } from "../../utils/formatters";
+import { formatAssetValue } from "@/utils/formatters";
 import { toNum } from "@/utils/numeric";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import Decimal from "decimal.js";
@@ -32,7 +32,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatPercentage } from "@/utils/financial";
+import { formatPercentage } from "@/utils/formatters";
 import { formatAdminNumber } from "@/utils/assets";
 
 interface ExpertPositionsTableProps {
@@ -71,7 +71,7 @@ export const ExpertPositionsTable = ({
     setIsSubmitting(true);
     try {
       const { error } = await supabase
-        .from("investor_positions")
+        .from("investor_positions" as any)
         .update({
           shares: editValues.shares,
           cost_basis: editValues.costBasis,

@@ -57,6 +57,8 @@ export interface InvestorProfile {
   status: InvestorStatus;
   created_at: string;
   updated_at: string;
+  preferences?: any;
+  totp_enabled?: boolean;
 }
 
 /**
