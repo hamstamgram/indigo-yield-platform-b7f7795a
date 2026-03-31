@@ -20,7 +20,7 @@ import {
 import {
   bulkDeleteGeneratedStatements,
   deleteSingleGeneratedStatement,
-} from "@/services/admin/statementAdminService";
+} from "@/features/admin/reports/services/statementAdminService";
 import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
 
 /**
