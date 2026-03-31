@@ -11,25 +11,25 @@
 DROP FUNCTION IF EXISTS public.calculate_yield_allocations(uuid, numeric, date);
 
 CREATE OR REPLACE FUNCTION public.calculate_yield_allocations(
-    p_fund_id uuid, 
-    p_recorded_aum numeric, 
+    p_fund_id uuid,
+    p_recorded_aum numeric,
     p_period_end date DEFAULT CURRENT_DATE
 )
  RETURNS TABLE(
-    investor_id uuid, 
-    investor_name text, 
-    investor_email text, 
-    account_type text, 
-    ib_parent_id uuid, 
-    current_value numeric, 
-    share numeric, 
-    gross numeric, 
-    fee_pct numeric, 
-    fee numeric, 
-    ib_rate numeric, 
-    ib numeric, 
-    net numeric, 
-    fee_credit numeric, 
+    investor_id uuid,
+    investor_name text,
+    investor_email text,
+    account_type text,
+    ib_parent_id uuid,
+    current_value numeric,
+    share numeric,
+    gross numeric,
+    fee_pct numeric,
+    fee numeric,
+    ib_rate numeric,
+    ib numeric,
+    net numeric,
+    fee_credit numeric,
     ib_credit numeric
 )
  LANGUAGE plpgsql
@@ -59,7 +59,7 @@ BEGIN
   -- D. Calculate allocations
   RETURN QUERY
   WITH all_relevant_investors AS (
-    SELECT 
+    SELECT
       ip_in.investor_id as ari_investor_id,
       ip_in.current_value as ari_current_value
     FROM investor_positions ip_in
@@ -67,29 +67,29 @@ BEGIN
     WHERE ip_in.fund_id = p_fund_id AND ip_in.is_active = true AND ip_in.current_value > 0
     UNION
     SELECT v_fees_account_id, 0::numeric
-    WHERE v_fees_account_id IS NOT NULL 
+    WHERE v_fees_account_id IS NOT NULL
       AND NOT EXISTS (
-        SELECT 1 FROM investor_positions ip_fees 
-        WHERE ip_fees.investor_id = v_fees_account_id 
-          AND ip_fees.fund_id = p_fund_id 
+        SELECT 1 FROM investor_positions ip_fees
+        WHERE ip_fees.investor_id = v_fees_account_id
+          AND ip_fees.fund_id = p_fund_id
           AND ip_fees.is_active = true
       )
     UNION
     SELECT DISTINCT p_child.ib_parent_id, 0::numeric
     FROM investor_positions ip_child
     JOIN profiles p_child ON p_child.id = ip_child.investor_id
-    WHERE ip_child.fund_id = p_fund_id 
-      AND ip_child.is_active = true 
+    WHERE ip_child.fund_id = p_fund_id
+      AND ip_child.is_active = true
       AND p_child.ib_parent_id IS NOT NULL
       AND NOT EXISTS (
-        SELECT 1 FROM investor_positions ip_ib 
-        WHERE ip_ib.investor_id = p_child.ib_parent_id 
-          AND ip_ib.fund_id = p_fund_id 
+        SELECT 1 FROM investor_positions ip_ib
+        WHERE ip_ib.investor_id = p_child.ib_parent_id
+          AND ip_ib.fund_id = p_fund_id
           AND ip_ib.is_active = true
       )
   ),
   raw_alloc AS (
-    SELECT 
+    SELECT
       ari.ari_investor_id as r_investor_id,
       trim(COALESCE(p_in.first_name, '') || ' ' || COALESCE(p_in.last_name, '')) AS r_investor_name,
       p_in.email AS r_investor_email,
@@ -98,7 +98,7 @@ BEGIN
       ari.ari_current_value as r_current_value,
       COALESCE((ari.ari_current_value / NULLIF(v_opening_aum, 0)), 0) AS r_share,
       ROUND((v_total_month_yield * COALESCE((ari.ari_current_value / NULLIF(v_opening_aum, 0)), 0))::numeric, 8) AS r_gross,
-      CASE 
+      CASE
         WHEN v_is_negative_yield THEN 0::numeric
         WHEN p_in.account_type = 'fees_account' THEN 0::numeric
         ELSE get_investor_fee_pct(ari.ari_investor_id, p_fund_id, p_period_end)
@@ -112,8 +112,8 @@ BEGIN
     JOIN profiles p_in ON p_in.id = ari.ari_investor_id
   ),
   computed_alloc AS (
-    SELECT ra.*, 
-           ROUND((ra.r_gross * ra.r_fee_pct / 100)::numeric, 8) AS r_fee, 
+    SELECT ra.*,
+           ROUND((ra.r_gross * ra.r_fee_pct / 100)::numeric, 8) AS r_fee,
            ROUND((ra.r_gross * ra.r_ib_rate / 100)::numeric, 8) AS r_ib
     FROM raw_alloc ra
   ),
@@ -136,7 +136,7 @@ BEGIN
       CASE WHEN fa.r_investor_id = v_fees_account_id THEN fa.r_net + (v_total_month_yield - (SELECT r_sum_gross FROM totals)) ELSE fa.r_net END AS r_net_final
     FROM final_alloc_p0 fa
   )
-  SELECT 
+  SELECT
     p1.r_investor_id, p1.r_investor_name, p1.r_investor_email, p1.r_account_type, p1.r_ib_parent_id,
     p1.r_current_value, p1.r_share, p1.r_gross, p1.r_fee_pct, p1.r_fee, p1.r_ib_rate, p1.r_ib, p1.r_net_final,
     CASE WHEN p1.r_investor_id = v_fees_account_id THEN (SELECT r_total_fees_credit FROM totals) ELSE 0::numeric END AS fee_credit,

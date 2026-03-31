@@ -121,19 +121,83 @@ function computePeriodStats(
  * V6 ARCHITECTURE: Pulls DEPOSIT, WITHDRAWAL, YIELD, and FEE rows from transactions_v2.
  * The `investor_yield_events` table has been removed.
  */
-async function fetchFilteredTxs(userId: string, fundId: string, startDate?: string) {
+async function fetchFilteredTxs(userId: string, fundId: string | string[], startDate?: string) {
+  if (Array.isArray(fundId) && fundId.length === 0) return [];
+
   let txQuery = supabase
     .from("transactions_v2")
-    .select("type, amount, tx_date")
+    .select("fund_id, type, amount, tx_date")
     .eq("investor_id", userId)
-    .eq("fund_id", fundId)
     .eq("is_voided", false)
     .in("type", ["DEPOSIT", "WITHDRAWAL", "YIELD", "FEE", "ADJUSTMENT", "FEE_CREDIT", "IB_CREDIT"]);
+
+  if (Array.isArray(fundId)) {
+    txQuery = txQuery.in("fund_id", fundId);
+  } else {
+    txQuery = txQuery.eq("fund_id", fundId);
+  }
+
   if (startDate) {
     txQuery = txQuery.gte("tx_date", startDate);
   }
   const { data: txData } = await txQuery;
-  return (txData || []) as Array<{ type: string; amount: string | number; tx_date: string | null }>;
+  return (txData || []) as Array<{
+    fund_id: string;
+    type: string;
+    amount: string | number;
+    tx_date: string | null;
+  }>;
+}
+
+/**
+ * Internal helper to calculate beginning balance from transactions.
+ * Beginning balance = ending balance - (deposits - withdrawals + netIncome) for the period
+ */
+function calcBeginningBalance(
+  txs: Array<{ type: string; amount: string | number }>,
+  endingBalance: number
+) {
+  let deposits = toDecimal(0);
+  let withdrawals = toDecimal(0);
+  let income = toDecimal(0);
+  for (const tx of txs) {
+    const amt = parseFinancial(tx.amount).abs();
+    if (tx.type === "DEPOSIT") deposits = deposits.plus(amt);
+    else if (tx.type === "WITHDRAWAL") withdrawals = withdrawals.plus(amt);
+    else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
+      income = income.plus(parseFinancial(tx.amount));
+    } else if (tx.type === "ADJUSTMENT") {
+      const raw = parseFinancial(tx.amount);
+      if (raw.gte(0)) deposits = deposits.plus(raw);
+      else withdrawals = withdrawals.plus(raw.abs());
+    }
+  }
+  return toDecimal(endingBalance).minus(deposits).plus(withdrawals).minus(income).toNumber();
+}
+
+/**
+ * Synchronous core of period stats calculation.
+ * Extracted to allow batch processing of pre-fetched transactions.
+ */
+function buildPeriodStatsFromTxsSync(
+  fundTxs: Array<{ type: string; amount: string | number; tx_date: string | null }>,
+  endingBalance: number
+) {
+  const dates = getPeriodStartDates();
+
+  const filterByDate = (txs: typeof fundTxs, startDate: string) =>
+    txs.filter((tx) => (tx.tx_date || "") >= startDate);
+
+  const mtdTxs = filterByDate(fundTxs, dates.mtd);
+  const qtdTxs = filterByDate(fundTxs, dates.qtd);
+  const ytdTxs = filterByDate(fundTxs, dates.ytd);
+
+  return {
+    mtd: computePeriodStats(mtdTxs, endingBalance, calcBeginningBalance(mtdTxs, endingBalance)),
+    qtd: computePeriodStats(qtdTxs, endingBalance, calcBeginningBalance(qtdTxs, endingBalance)),
+    ytd: computePeriodStats(ytdTxs, endingBalance, calcBeginningBalance(ytdTxs, endingBalance)),
+    itd: computePeriodStats(fundTxs, endingBalance, 0),
+  };
 }
 
 /**
@@ -141,44 +205,9 @@ async function fetchFilteredTxs(userId: string, fundId: string, startDate?: stri
  * Computes MTD, QTD, YTD, ITD independently with proper date filtering.
  */
 async function buildPeriodStatsFromTxs(userId: string, fundId: string, endingBalance: number) {
-  const dates = getPeriodStartDates();
-
   // Fetch all transactions (ITD) and filter in-memory for sub-periods
   const allTxs = await fetchFilteredTxs(userId, fundId);
-
-  const filterByDate = (txs: typeof allTxs, startDate: string) =>
-    txs.filter((tx) => (tx.tx_date || "") >= startDate);
-
-  const mtdTxs = filterByDate(allTxs, dates.mtd);
-  const qtdTxs = filterByDate(allTxs, dates.qtd);
-  const ytdTxs = filterByDate(allTxs, dates.ytd);
-
-  // Beginning balance = ending balance - (deposits - withdrawals + netIncome) for the period
-  const calcBeginning = (txs: typeof allTxs) => {
-    let deposits = toDecimal(0);
-    let withdrawals = toDecimal(0);
-    let income = toDecimal(0);
-    for (const tx of txs) {
-      const amt = parseFinancial(tx.amount).abs();
-      if (tx.type === "DEPOSIT") deposits = deposits.plus(amt);
-      else if (tx.type === "WITHDRAWAL") withdrawals = withdrawals.plus(amt);
-      else if (tx.type === "YIELD" || tx.type === "FEE_CREDIT" || tx.type === "IB_CREDIT") {
-        income = income.plus(parseFinancial(tx.amount));
-      } else if (tx.type === "ADJUSTMENT") {
-        const raw = parseFinancial(tx.amount);
-        if (raw.gte(0)) deposits = deposits.plus(raw);
-        else withdrawals = withdrawals.plus(raw.abs());
-      }
-    }
-    return toDecimal(endingBalance).minus(deposits).plus(withdrawals).minus(income).toNumber();
-  };
-
-  return {
-    mtd: computePeriodStats(mtdTxs, endingBalance, calcBeginning(mtdTxs)),
-    qtd: computePeriodStats(qtdTxs, endingBalance, calcBeginning(qtdTxs)),
-    ytd: computePeriodStats(ytdTxs, endingBalance, calcBeginning(ytdTxs)),
-    itd: computePeriodStats(allTxs, endingBalance, 0),
-  };
+  return buildPeriodStatsFromTxsSync(allTxs, endingBalance);
 }
 
 /**
@@ -212,38 +241,26 @@ async function buildPerformanceHistoryFromTxs(
 
   const result: Record<string, PerformanceHistoryRecord[]> = {};
 
+  // BATCH OPTIMIZATION: Fetch all relevant transaction types for all active funds in a single query
+  const fundIds = activePositions.map((p) => p.fundId);
+  const allTxs = await fetchFilteredTxs(userId, fundIds);
+
   for (const pos of activePositions) {
-    // Get all relevant transaction types for this fund
-    const { data: txData } = await supabase
-      .from("transactions_v2")
-      .select("type, amount, tx_date")
-      .eq("investor_id", userId)
-      .eq("fund_id", pos.fundId)
-      .eq("is_voided", false)
-      .in("type", [
-        "DEPOSIT",
-        "WITHDRAWAL",
-        "YIELD",
-        "FEE",
-        "ADJUSTMENT",
-        "FEE_CREDIT",
-        "IB_CREDIT",
-      ])
-      .order("tx_date", { ascending: true });
+    const fundTxs = allTxs
+      .filter((tx) => tx.fund_id === pos.fundId)
+      .sort((a, b) => (a.tx_date || "").localeCompare(b.tx_date || ""));
 
     const allEvents: Array<{
       type: string;
       amount: string | number;
       date: string;
-    }> = (txData || []).map((tx) => ({
+    }> = fundTxs.map((tx) => ({
       type: tx.type as string,
       amount: tx.amount,
       date: tx.tx_date as string,
     }));
 
     if (allEvents.length === 0) continue;
-
-    allEvents.sort((a, b) => a.date.localeCompare(b.date));
 
     // Group into months
     const monthMap = new Map<
@@ -541,8 +558,14 @@ export const performanceService = {
     );
 
     if (missingPositions.length > 0) {
+      // BATCH OPTIMIZATION: Fetch all transactions for all missing positions at once
+      const fundIds = missingPositions.map((p) => p.fundId);
+      const allMissingTxs = await fetchFilteredTxs(userId, fundIds);
+
       for (const pos of missingPositions) {
-        const periodStats = await buildPeriodStatsFromTxs(userId, pos.fundId, pos.currentValue);
+        const fundTxs = allMissingTxs.filter((tx) => tx.fund_id === pos.fundId);
+        const periodStats = buildPeriodStatsFromTxsSync(fundTxs, pos.currentValue);
+
         perAssetStats.push({
           fundName: pos.fundName,
           assetSymbol: pos.asset,

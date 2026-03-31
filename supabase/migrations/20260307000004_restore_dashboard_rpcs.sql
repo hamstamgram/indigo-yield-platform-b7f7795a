@@ -52,7 +52,7 @@ BEGIN
   END IF;
 
   RETURN QUERY
-  SELECT 
+  SELECT
     f.id as fund_id,
     f.code as fund_code,
     f.name as fund_name,
@@ -84,16 +84,16 @@ BEGIN
   END IF;
 
   RETURN QUERY
-  SELECT 
+  SELECT
     f.id as fund_id,
     f.code as fund_code,
     COALESCE(
       (
-        SELECT pah.total_aum 
-        FROM public.fund_daily_aum pah 
-        WHERE pah.fund_id = f.id 
-          AND pah.purpose = p_purpose 
-          AND pah.aum_date <= p_as_of_date 
+        SELECT pah.total_aum
+        FROM public.fund_daily_aum pah
+        WHERE pah.fund_id = f.id
+          AND pah.purpose = p_purpose
+          AND pah.aum_date <= p_as_of_date
         ORDER BY pah.aum_date DESC LIMIT 1
       ), 0
     ) as aum_value
