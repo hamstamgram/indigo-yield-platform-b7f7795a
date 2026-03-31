@@ -4,7 +4,7 @@
  * This file serves as a re-export shim to maintain backward compatibility
  * during the migration to feature-based architecture.
  *
- * ALL active logic has been moved to src/features/admin/*/services/
+ * ALL active logic has been moved to src/features/admin/[feature]/services/
  */
 
 // =============================================================================

@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { visualizer } from "rollup-plugin-visualizer";
+import { componentTagger } from "lovable-tagger";
 
 const buildVersion = Date.now().toString();
 
@@ -39,9 +40,11 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     __APP_VERSION__: JSON.stringify(mode === "production" ? buildVersion : "dev"),
+    "process.env.NODE_ENV": JSON.stringify(mode),
   },
   plugins: [
     react(),
+    mode === "development" && componentTagger(),
     process.env.ANALYZE === "true" &&
       visualizer({
         open: true,
