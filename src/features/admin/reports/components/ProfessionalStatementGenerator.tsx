@@ -17,6 +17,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { useActiveInvestorsForStatements } from "@/hooks/data";
 import { useGenerateStatement } from "@/features/admin/reports/hooks/useAdminStatementsPage";
 import { format, subMonths } from "date-fns";
+import { getAssetDecimals } from "@/types/asset";
 
 interface PositionData {
   asset_code: string;
@@ -67,7 +68,7 @@ const ProfessionalStatementGenerator = () => {
   };
 
   const formatTokenAmount = (amount: number, asset: string) => {
-    const decimals = asset === "BTC" ? 8 : asset === "ETH" ? 6 : 2;
+    const decimals = getAssetDecimals(asset);
     return (
       new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Asset, AssetFormData, AssetPrice, AssetPriceFormData } from "@/types/asset";
+import { getAssetPrecision } from "@/types/asset";
 import { buildSafeOrFilter } from "@/utils/searchSanitizer";
 
 // Asset kind mapping based on symbol
@@ -20,7 +21,7 @@ const mapDbRowToAsset = (row: {
   symbol: row.symbol,
   name: row.name,
   kind: getAssetKind(row.symbol),
-  decimals: row.symbol === "BTC" ? 8 : row.symbol === "ETH" ? 18 : 6,
+  decimals: getAssetPrecision(row.symbol),
   is_active: row.is_active ?? true,
   price_source: "manual",
   metadata: {},

@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logError, logWarn } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
+import { getAssetDecimals, getAssetConfig } from "@/types/asset";
 
 export interface AssetKPI {
   assetCode: string;
@@ -51,17 +52,8 @@ export const formatAssetValue = (value: number, assetCode?: string): string => {
     });
   }
 
-  const assetConfig: Record<string, { decimals: number; symbol: string }> = {
-    BTC: { decimals: 8, symbol: "BTC" },
-    ETH: { decimals: 8, symbol: "ETH" },
-    SOL: { decimals: 6, symbol: "SOL" },
-    USDT: { decimals: 2, symbol: "USDT" },
-    EURC: { decimals: 2, symbol: "EURC" },
-    xAUT: { decimals: 4, symbol: "xAUT" },
-    XRP: { decimals: 6, symbol: "XRP" },
-  };
-
-  const config = assetConfig[assetCode] || { decimals: 4, symbol: assetCode };
+  const assetCfg = getAssetConfig(assetCode);
+  const config = { decimals: assetCfg.displayDecimals ?? assetCfg.decimals, symbol: assetCfg.symbol };
 
   return `${value.toLocaleString("en-US", {
     minimumFractionDigits: config.decimals,

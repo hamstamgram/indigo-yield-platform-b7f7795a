@@ -428,11 +428,14 @@ export function formatFinancialDisplay(
 /**
  * Token-Only Formatting Guidelines
  */
-export function formatCrypto(amount: any, decimals?: any, symbol?: any): string {
-  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : (typeof amount === 'number' ? amount : parseFloat(String(amount)));
+export function formatCrypto(amount: string | number | Decimal, decimals?: number | string, symbol?: string): string {
+  const d = toDecimal(amount);
   const sym = typeof decimals === 'string' ? decimals : symbol;
   const dec = typeof decimals === 'number' ? decimals : 8;
-  return `${numericAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: dec })} ${sym || ""}`;
+  const formatted = d.toFixed(dec);
+  const parts = formatted.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${parts.join(".")} ${sym || ""}`.trim();
 }
 
 /**

@@ -7,6 +7,7 @@ import { logError } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
 import Decimal from "decimal.js";
 import { supabase } from "@/integrations/supabase/client";
+import { getAssetDecimals } from "@/types/asset";
 
 // Re-export StatementTransaction as the canonical type for statement views
 export type { StatementTransaction } from "@/types/domains/transaction";
@@ -397,7 +398,7 @@ export async function computeStatement(
  * @param decimals - Number of decimal places (auto-determined by asset if not specified)
  */
 export function formatTokenAmount(amount: number, asset?: string, decimals?: number): string {
-  const assetDecimals = decimals ?? (asset === "BTC" ? 8 : asset === "ETH" ? 6 : 2);
+  const assetDecimals = decimals ?? (asset ? getAssetDecimals(asset) : 2);
   const formatted = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: assetDecimals,
