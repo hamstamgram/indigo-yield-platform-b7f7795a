@@ -203,7 +203,7 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
     mtd_yield: number;
   }>
 > {
-  const { data, error } = await callRPC("get_fund_composition" as any, {
+  const { data, error } = await callRPC("get_fund_composition", {
     p_fund_id: fundId,
   });
 

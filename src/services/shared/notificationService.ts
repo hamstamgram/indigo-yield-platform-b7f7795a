@@ -15,7 +15,7 @@ async function getMyNotifications(
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { data: [], count: 0 };
 
-  const { data, error } = await callRPC("get_paged_notifications" as any, {
+  const { data, error } = await callRPC("get_paged_notifications", {
     p_user_id: userData.user.id,
     p_limit: limit,
     p_offset: offset,

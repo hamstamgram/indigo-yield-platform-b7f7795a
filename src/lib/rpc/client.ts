@@ -20,7 +20,7 @@ const RATE_LIMITED_RPCS: Record<
     maxRequests: 10,
     actionType: "transaction",
   },
-  apply_segmented_yield_distribution_v5: {
+  apply_segmented_yield_distribution: {
     windowMs: 60000,
     maxRequests: 5,
     actionType: "yield_distribution",
@@ -263,7 +263,7 @@ export async function applyYield(params: {
   adminId: string;
   purpose?: "reporting" | "transaction";
 }): Promise<RPCResult<unknown>> {
-  return call("apply_segmented_yield_distribution_v5" as any, {
+  return call("apply_segmented_yield_distribution", {
     p_fund_id: params.fundId,
     p_period_end: params.periodEnd,
     p_recorded_aum: params.recordedAum as unknown as number,

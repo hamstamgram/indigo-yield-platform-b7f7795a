@@ -347,7 +347,7 @@ export const withdrawalService = {
 
     if (withdrawal?.status === "completed") {
       // Completed withdrawals require RPC to void transactions + recompute positions
-      const { data, error } = await supabase.rpc("void_completed_withdrawal" as any, {
+      const { data, error } = await supabase.rpc("void_completed_withdrawal", {
         p_withdrawal_id: withdrawalId,
         p_reason: reason,
       });
