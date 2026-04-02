@@ -54,17 +54,39 @@ async function login(page: Page) {
   await page.waitForSelector('text=Command Center', { timeout: 30000 });
 }
 
-async function waitForToast(page: Page) {
-  // Accept success toast OR dialog auto-close (platform sometimes skips toast on full-exit)
-  await Promise.race([
-    page.locator('[data-sonner-toast][data-type="success"]').first().waitFor({ state: 'visible', timeout: 45000 }),
-    page.getByRole('dialog', { name: 'Add Transaction' }).waitFor({ state: 'hidden', timeout: 45000 }),
-  ]);
-  // Check for error toast — surface as a test failure
+async function waitForToast(page: Page, label: string) {
+  const start = Date.now();
+  const confirmed = await Promise.race([
+    page.locator('[data-sonner-toast][data-type="success"]').first()
+      .waitFor({ state: 'visible', timeout: 45000 }).then(() => true),
+    page.getByRole('dialog', { name: 'Add Transaction' })
+      .waitFor({ state: 'hidden', timeout: 45000 }).then(() => true),
+  ]).catch(() => false);
+
+  if (!confirmed) {
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    // Collect diagnostics before throwing
+    const errToast = await page.locator('[data-sonner-toast][data-type="error"]').first()
+      .textContent().catch(() => null);
+    const dialogOpen = await page.getByRole('dialog', { name: 'Add Transaction' })
+      .isVisible().catch(() => false);
+    const validationMsgs = await page.locator('[role="dialog"] .text-sm.text-destructive')
+      .allTextContents().catch(() => [] as string[]);
+    await page.screenshot({ path: `test-results/hang-${Date.now()}.png` });
+    throw new Error(
+      `[waitForToast] Timeout after ${elapsed}s for: ${label}\n` +
+      `  dialog still open: ${dialogOpen}\n` +
+      `  error toast: ${errToast ?? '(none)'}\n` +
+      `  validation errors: ${validationMsgs.length ? validationMsgs.join(' | ') : '(none)'}\n` +
+      `  screenshot saved to test-results/hang-*.png`
+    );
+  }
+
+  // Error toast check
   const errToast = page.locator('[data-sonner-toast][data-type="error"]').first();
   if (await errToast.isVisible({ timeout: 500 }).catch(() => false)) {
     const msg = await errToast.textContent().catch(() => 'unknown error');
-    throw new Error(`Transaction failed: ${msg}`);
+    throw new Error(`[waitForToast] Transaction failed: ${msg} — for: ${label}`);
   }
 }
 
@@ -79,6 +101,9 @@ async function addTransaction(
     fullExit?: boolean;
   },
 ) {
+  const label = `${opts.type} | ${opts.investorSearch} | ${opts.amount} | ${opts.date}${opts.fullExit ? ' [full-exit]' : ''}`;
+  console.log(`[tx:start] ${label}`);
+
   // Ensure no dialog is open and page is stable before opening a new one
   await page.getByRole('dialog').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await page.waitForTimeout(500);
@@ -179,11 +204,12 @@ async function addTransaction(
   const submitBtn = page.getByRole('dialog').getByRole('button', { name: 'Add Transaction' });
   await submitBtn.waitFor({ state: 'visible', timeout: 15000 });
   await submitBtn.scrollIntoViewIfNeeded();
-  // Use force:false with retry — Playwright will re-resolve the locator on each retry
+  console.log(`[tx:submit] ${label}`);
   await submitBtn.click({ timeout: 15000 });
-  await waitForToast(page);
+  await waitForToast(page, label);
   await page.getByRole('dialog').waitFor({ state: 'hidden', timeout: 10000 });
   await page.waitForTimeout(500);
+  console.log(`[tx:done] ${label}`);
 }
 
 /** Record yield via the Record Yield dialog on the TBTC fund card */
