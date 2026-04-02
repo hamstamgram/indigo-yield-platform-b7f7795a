@@ -742,8 +742,25 @@ test.describe.serial('BTC Yield Fund Historical Replay (TEST)', () => {
     await expect(page.locator('h3:has-text("TBTC Fund")')).toBeVisible();
   });
 
+  // E2E_EPOCH_RANGE: run a subset of epochs for fast iteration.
+  // Formats: "6" (single), "6-10" (range), "6,10,15" (list). 1-indexed. Default: all.
+  const epochFilter = (() => {
+    const env = process.env.E2E_EPOCH_RANGE;
+    if (!env) return null; // null = run all
+    if (env.includes('-')) {
+      const [s, e] = env.split('-').map(Number);
+      return Array.from({ length: e - s + 1 }, (_, i) => s - 1 + i);
+    }
+    if (env.includes(',')) return env.split(',').map(n => Number(n.trim()) - 1);
+    return [Number(env) - 1];
+  })();
+  if (epochFilter) {
+    console.log(`[E2E] Epoch filter active: running epochs ${epochFilter.map(i => i + 1).join(', ')}`);
+  }
+
   for (let i = 0; i < EPOCHS.length; i++) {
     const epoch = EPOCHS[i];
+    if (epochFilter && !epochFilter.includes(i)) continue;
 
     test(`Epoch ${i + 1}: ${epoch.date} — ${epoch.description}`, async ({ page }) => {
       await login(page);
