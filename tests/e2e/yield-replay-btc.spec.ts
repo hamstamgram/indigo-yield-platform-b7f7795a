@@ -207,9 +207,9 @@ async function addTransaction(
   console.log(`[tx:submit] ${label}`);
   await submitBtn.click({ timeout: 15000 });
   // Full exits call approve_and_complete_withdrawal which crystallizes yield first —
-  // can take 60-90s on Supabase hosted. crystallize_yield_before_flow with many investors is slow.
-  // Use 200s to accommodate complex yield distribution calculations across investor base.
-  await waitForToast(page, label, opts.fullExit ? 200000 : 45000);
+  // crystallize_yield_before_flow iterates investors and generates 100+ days of daily balances.
+  // With 6+ investors, this can take 180-240s. Use 300s to stay under DB's 2min statement_timeout.
+  await waitForToast(page, label, opts.fullExit ? 300000 : 45000);
   await page.getByRole('dialog').waitFor({ state: 'hidden', timeout: 10000 });
   await page.waitForTimeout(500);
   console.log(`[tx:done] ${label}`);
