@@ -54,13 +54,13 @@ async function login(page: Page) {
   await page.waitForSelector('text=Command Center', { timeout: 30000 });
 }
 
-async function waitForToast(page: Page, label: string) {
+async function waitForToast(page: Page, label: string, timeout = 45000) {
   const start = Date.now();
   const confirmed = await Promise.race([
     page.locator('[data-sonner-toast][data-type="success"]').first()
-      .waitFor({ state: 'visible', timeout: 45000 }).then(() => true),
+      .waitFor({ state: 'visible', timeout }).then(() => true),
     page.getByRole('dialog', { name: 'Add Transaction' })
-      .waitFor({ state: 'hidden', timeout: 45000 }).then(() => true),
+      .waitFor({ state: 'hidden', timeout }).then(() => true),
   ]).catch(() => false);
 
   if (!confirmed) {
@@ -206,7 +206,9 @@ async function addTransaction(
   await submitBtn.scrollIntoViewIfNeeded();
   console.log(`[tx:submit] ${label}`);
   await submitBtn.click({ timeout: 15000 });
-  await waitForToast(page, label);
+  // Full exits call approve_and_complete_withdrawal which crystallizes yield first —
+  // can take 60-90s on Supabase hosted. Use 110s (just under DB's 2min statement_timeout).
+  await waitForToast(page, label, opts.fullExit ? 110000 : 45000);
   await page.getByRole('dialog').waitFor({ state: 'hidden', timeout: 10000 });
   await page.waitForTimeout(500);
   console.log(`[tx:done] ${label}`);

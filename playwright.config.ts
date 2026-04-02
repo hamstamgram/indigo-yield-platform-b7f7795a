@@ -16,7 +16,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     actionTimeout: 15000,
   },
-  timeout: 120000,
+  timeout: 600000, // 10 min — epochs with 3 full exits each taking 60-90s on Supabase hosted
   projects: [
     {
       name: 'chromium',
