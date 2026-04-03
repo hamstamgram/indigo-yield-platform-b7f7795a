@@ -62,6 +62,7 @@ const EPOCHS = [
   {
     date: '2024-07-31',
     closingAum: '3.490000',
+    openingAum: '3.49',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -69,6 +70,7 @@ const EPOCHS = [
   {
     date: '2024-08-21',
     closingAum: '3.500000',
+    openingAum: '3.5',
     purpose: 'transaction',
     transactions: [{ type: 'First Investment', investor: 'TEST Kyle', amount: '2' }],
     description: 'Kyle first investment 2 BTC + yield',
@@ -76,6 +78,7 @@ const EPOCHS = [
   {
     date: '2024-08-31',
     closingAum: '5.510000',
+    openingAum: '5.51',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -83,6 +86,7 @@ const EPOCHS = [
   {
     date: '2024-09-30',
     closingAum: '21.879300',
+    openingAum: '5.54',
     purpose: 'reporting',
     transactions: [
       { type: 'First Investment', investor: 'TEST Matthias', amount: '4.62' },
@@ -95,6 +99,7 @@ const EPOCHS = [
   {
     date: '2024-10-31',
     closingAum: '21.990000',
+    openingAum: '21.99',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -102,6 +107,7 @@ const EPOCHS = [
   {
     date: '2024-11-09',
     closingAum: '22.020000',
+    openingAum: '22.02',
     purpose: 'transaction',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Danielle', amount: '0.27' }],
     description: 'Danielle withdrawal 0.27 BTC + yield',
@@ -109,6 +115,7 @@ const EPOCHS = [
   {
     date: '2024-11-30',
     closingAum: '21.840000',
+    openingAum: '21.84',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -116,6 +123,7 @@ const EPOCHS = [
   {
     date: '2024-12-14',
     closingAum: '21.880000',
+    openingAum: '21.88',
     purpose: 'transaction',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Danielle', amount: '0.124' }],
     description: 'Danielle withdrawal 0.124 BTC + yield',
@@ -134,6 +142,7 @@ const EPOCHS = [
   {
     date: '2024-12-31',
     closingAum: '10.240000',
+    openingAum: '10.24',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -141,6 +150,7 @@ const EPOCHS = [
   {
     date: '2025-01-31',
     closingAum: '10.300000',
+    openingAum: '10.3',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -148,6 +158,7 @@ const EPOCHS = [
   {
     date: '2025-02-28',
     closingAum: '10.340000',
+    openingAum: '10.34',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -155,6 +166,7 @@ const EPOCHS = [
   {
     date: '2025-03-31',
     closingAum: '3.695255',
+    openingAum: '10.38',
     purpose: 'reporting',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Thomas', amount: '6.7249', fullExit: true }],
     yieldAfterTx: true,
@@ -163,6 +175,7 @@ const EPOCHS = [
   {
     date: '2025-04-16',
     closingAum: '3.705070',
+    openingAum: '3.68',
     purpose: 'transaction',
     transactions: [
       { type: 'Deposit / Top-up', investor: 'TEST Kyle', amount: '2.101' },
@@ -174,6 +187,7 @@ const EPOCHS = [
   {
     date: '2025-04-30',
     closingAum: '15.820229',
+    openingAum: '15.76',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -181,6 +195,7 @@ const EPOCHS = [
   {
     date: '2025-05-13',
     closingAum: '15.800025',
+    openingAum: '15.78',
     purpose: 'transaction',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Kyle', amount: '2.1101', fullExit: true }],
     description: 'Kyle full exit 2.1101 BTC + yield',
@@ -188,6 +203,7 @@ const EPOCHS = [
   {
     date: '2025-05-31',
     closingAum: '13.668401',
+    openingAum: '13.734',
     purpose: 'reporting',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Danielle', amount: '0.13' }],
     yieldAfterTx: true,
@@ -196,6 +212,7 @@ const EPOCHS = [
   {
     date: '2025-06-11',
     closingAum: '13.685321',
+    openingAum: '13.6446',
     purpose: 'transaction',
     transactions: [{ type: 'First Investment', investor: 'TEST Family Kabbaj', amount: '2' }],
     description: 'Kabbaj first investment 2 BTC + yield',
@@ -203,6 +220,7 @@ const EPOCHS = [
   {
     date: '2025-06-30',
     closingAum: '15.670811',
+    openingAum: '15.6577',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -210,6 +228,7 @@ const EPOCHS = [
   {
     date: '2025-07-11',
     closingAum: '15.777930',
+    openingAum: '15.7177',
     purpose: 'transaction',
     transactions: [
       { type: 'Deposit / Top-up', investor: 'TEST Thomas', amount: '6.69' },
@@ -223,6 +242,7 @@ const EPOCHS = [
   {
     date: '2025-07-24',
     closingAum: '28.108302',
+    openingAum: '28.1007',
     purpose: 'transaction',
     transactions: [{ type: 'First Investment', investor: 'TEST Oliver', amount: '2.115364' }],
     description: 'Oliver first investment 2.115364 BTC + yield',
@@ -230,6 +250,7 @@ const EPOCHS = [
   {
     date: '2025-07-25',
     closingAum: '30.219336',
+    openingAum: '30.2177',
     purpose: 'transaction',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Danielle', amount: '0.26' }],
     description: 'Danielle withdrawal 0.26 BTC + yield',
@@ -237,6 +258,7 @@ const EPOCHS = [
   {
     date: '2025-07-31',
     closingAum: '30.597713',
+    openingAum: '29.9777',
     purpose: 'reporting',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Family Kabbaj', amount: '0.6' }],
     yieldAfterTx: true,
@@ -245,6 +267,7 @@ const EPOCHS = [
   {
     date: '2025-08-20',
     closingAum: '30.742522',
+    openingAum: '30.66',
     purpose: 'transaction',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Danielle', amount: '0.11' }],
     description: 'Danielle withdrawal 0.11 BTC + yield',
@@ -252,6 +275,7 @@ const EPOCHS = [
   {
     date: '2025-08-25',
     closingAum: '30.580007',
+    openingAum: '30.565',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Family Kabbaj', amount: '0.9102' }],
     description: 'Kabbaj top-up 0.9102 BTC + yield',
@@ -259,6 +283,7 @@ const EPOCHS = [
   {
     date: '2025-08-31',
     closingAum: '31.504807',
+    openingAum: '31.49',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -266,6 +291,7 @@ const EPOCHS = [
   {
     date: '2025-09-30',
     closingAum: '31.710384',
+    openingAum: '31.6',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -273,6 +299,7 @@ const EPOCHS = [
   {
     date: '2025-10-03',
     closingAum: '31.640013',
+    openingAum: '31.62',
     purpose: 'transaction',
     transactions: [{ type: 'First Investment', investor: 'TEST Paul', amount: '0.4395' }],
     description: 'Paul first investment 0.4395 BTC + yield',
@@ -280,6 +307,7 @@ const EPOCHS = [
   {
     date: '2025-10-23',
     closingAum: '32.220702',
+    openingAum: '32.14',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Jose', amount: '0.062' }],
     description: 'Jose top-up 0.062 BTC + yield',
@@ -287,6 +315,7 @@ const EPOCHS = [
   {
     date: '2025-10-31',
     closingAum: '32.218002',
+    openingAum: '32.21',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -294,6 +323,7 @@ const EPOCHS = [
   {
     date: '2025-11-05',
     closingAum: '32.250012',
+    openingAum: '32.23',
     purpose: 'transaction',
     transactions: [
       { type: 'Withdrawal', investor: 'TEST Danielle', amount: '0.283' },
@@ -304,6 +334,7 @@ const EPOCHS = [
   {
     date: '2025-11-08',
     closingAum: '31.593861',
+    openingAum: '31.55',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Jose', amount: '0.4867' }],
     description: 'Jose top-up 0.4867 BTC + yield',
@@ -311,6 +342,7 @@ const EPOCHS = [
   {
     date: '2025-11-17',
     closingAum: '32.083317',
+    openingAum: '32.06',
     purpose: 'transaction',
     transactions: [{ type: 'First Investment', investor: 'TEST Sam', amount: '3.3' }],
     description: 'Sam first investment 3.3 BTC + yield',
@@ -328,6 +360,7 @@ const EPOCHS = [
   {
     date: '2025-11-27',
     closingAum: '36.932004',
+    openingAum: '36.92',
     purpose: 'transaction',
     transactions: [
       { type: 'First Investment', investor: 'TEST Nath', amount: '1' },
@@ -345,6 +378,7 @@ const EPOCHS = [
   {
     date: '2025-12-08',
     closingAum: '42.629056',
+    openingAum: '42.58',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Sam', amount: '1.1' }],
     description: 'Sam top-up 1.1 BTC + yield',
@@ -352,6 +386,7 @@ const EPOCHS = [
   {
     date: '2025-12-09',
     closingAum: '43.780057',
+    openingAum: '43.73',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Thomas', amount: '0.657' }],
     description: 'Thomas top-up 0.657 BTC + yield',
@@ -359,6 +394,7 @@ const EPOCHS = [
   {
     date: '2025-12-15',
     closingAum: '44.413004',
+    openingAum: '44.4',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Sam', amount: '1.17' }],
     description: 'Sam top-up 1.17 BTC + yield',
@@ -366,6 +402,7 @@ const EPOCHS = [
   {
     date: '2025-12-23',
     closingAum: '45.590002',
+    openingAum: '45.58',
     purpose: 'transaction',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Matthias', amount: '4.9896327', fullExit: true }],
     description: 'Matthias full exit + yield',
@@ -387,6 +424,7 @@ const EPOCHS = [
   {
     date: '2026-01-05',
     closingAum: '32.834707',
+    openingAum: '32.82',
     purpose: 'transaction',
     transactions: [
       { type: 'Deposit / Top-up', investor: 'TEST Family Kabbaj', amount: '2.1577' },
@@ -397,6 +435,7 @@ const EPOCHS = [
   {
     date: '2026-01-13',
     closingAum: '31.664494',
+    openingAum: '31.61',
     purpose: 'transaction',
     transactions: [
       { type: 'Deposit / Top-up', investor: 'TEST Thomas', amount: '0.1135766' },
@@ -407,6 +446,7 @@ const EPOCHS = [
   {
     date: '2026-01-19',
     closingAum: '32.374430',
+    openingAum: '32.36',
     purpose: 'transaction',
     transactions: [
       { type: 'Deposit / Top-up', investor: 'TEST Kyle', amount: '3.9998' },
@@ -417,6 +457,7 @@ const EPOCHS = [
   {
     date: '2026-01-23',
     closingAum: '36.240200',
+    openingAum: '36.24',
     purpose: 'transaction',
     transactions: [{ type: 'Withdrawal', investor: 'TEST Kyle', amount: '3.9998', fullExit: true }],
     description: 'Kyle full exit 3.9998 BTC + yield',
@@ -431,6 +472,7 @@ const EPOCHS = [
   {
     date: '2026-01-31',
     closingAum: '32.407932',
+    openingAum: '32.4',
     purpose: 'reporting',
     transactions: [],
     description: 'Pure yield',
@@ -445,6 +487,7 @@ const EPOCHS = [
   {
     date: '2026-02-06',
     closingAum: '33.133401',
+    openingAum: '33.07',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST NSVO', amount: '0.1773' }],
     description: 'NSVO top-up 0.1773 BTC + yield',
@@ -452,6 +495,7 @@ const EPOCHS = [
   {
     date: '2026-02-12',
     closingAum: '33.252700',
+    openingAum: '33.25',
     purpose: 'transaction',
     transactions: [
       { type: 'Deposit / Top-up', investor: 'TEST Jose', amount: '2.766' },
@@ -472,6 +516,7 @@ const EPOCHS = [
   {
     date: '2026-02-24',
     closingAum: '38.408509',
+    openingAum: '38.39',
     purpose: 'transaction',
     transactions: [{ type: 'Deposit / Top-up', investor: 'TEST Thomas', amount: '0.15103283' }],
     description: 'Thomas top-up 0.15103283 BTC + yield',
@@ -564,16 +609,22 @@ async function applyTransaction(client, epochIdx, investorLabel, txData) {
   return data;
 }
 
-async function applyYield(client, epochIdx, closingAum, purpose) {
+async function applyYield(client, epochIdx, closingAum, purpose, openingAum) {
   const date = EPOCHS[epochIdx].date;
 
-  const { data, error } = await client.rpc('apply_segmented_yield_distribution_v5', {
+  const rpcParams = {
     p_fund_id: FUND_ID,
     p_period_end: date,
     p_recorded_aum: parseFloat(closingAum),
     p_admin_id: ADMIN_ID,
     p_purpose: purpose || 'reporting',
-  });
+  };
+  // Pass opening AUM when provided — decouples yield from transaction ordering
+  if (openingAum !== undefined && openingAum !== null) {
+    rpcParams.p_opening_aum = parseFloat(openingAum);
+  }
+
+  const { data, error } = await client.rpc('apply_segmented_yield_distribution_v5', rpcParams);
 
   if (error) {
     throw new Error(
@@ -617,7 +668,7 @@ async function main() {
 
       // If yield BEFORE transactions
       if (epoch.closingAum !== null && !epoch.yieldAfterTx) {
-        await applyYield(client, i, epoch.closingAum, epoch.purpose);
+        await applyYield(client, i, epoch.closingAum, epoch.purpose, epoch.openingAum);
         yieldCount++;
       }
 
@@ -629,7 +680,7 @@ async function main() {
 
       // If yield AFTER transactions
       if (epoch.closingAum !== null && epoch.yieldAfterTx) {
-        await applyYield(client, i, epoch.closingAum, epoch.purpose);
+        await applyYield(client, i, epoch.closingAum, epoch.purpose, epoch.openingAum);
         yieldCount++;
       }
     }
