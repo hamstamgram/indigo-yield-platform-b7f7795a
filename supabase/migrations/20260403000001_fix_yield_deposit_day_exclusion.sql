@@ -118,13 +118,12 @@ BEGIN
     RAISE EXCEPTION 'Fees account not configured';
   END IF;
 
-  -- v_opening_aum = current total AUM (including same-day deposits)
+  -- v_opening_aum = current total AUM of active positions
+  -- NOTE: this may exclude same-day full-exit investors. The real "opening AUM"
+  -- for yield calculation is v_pre_day_aum, computed after _vflat_alloc is populated.
   SELECT COALESCE(SUM(ip.current_value), 0) INTO v_opening_aum
   FROM investor_positions ip
   WHERE ip.fund_id = p_fund_id AND ip.is_active = true;
-
-  v_total_month_yield := p_recorded_aum - v_opening_aum;
-  v_is_negative_yield := (v_total_month_yield < 0);
 
   INSERT INTO yield_distributions (
     fund_id, effective_date, yield_date, period_start, period_end,
@@ -179,12 +178,25 @@ BEGIN
          ), 0)
   FROM investor_positions ip
   JOIN profiles p ON p.id = ip.investor_id
-  WHERE ip.fund_id = p_fund_id AND ip.is_active = true AND ip.current_value <> 0;
+  WHERE ip.fund_id = p_fund_id
+    AND (
+      (ip.is_active = true AND ip.current_value <> 0)
+      OR EXISTS (
+        SELECT 1 FROM transactions_v2 t
+        WHERE t.investor_id = ip.investor_id AND t.fund_id = p_fund_id
+          AND t.tx_date = v_tx_date AND t.type = 'WITHDRAWAL'
+          AND (t.is_voided IS NULL OR t.is_voided = false)
+      )
+    );
 
   -- v_pre_day_aum = sum of balances BEFORE same-day transactions
-  -- This is the denominator for yield share calculation
+  -- This is the TRUE opening AUM for yield calculation (includes same-day withdrawals)
   SELECT COALESCE(SUM(pre_day_value), 0) INTO v_pre_day_aum FROM _vflat_alloc
   WHERE pre_day_value > 0;
+
+  -- Compute total yield using pre_day_aum (not v_opening_aum which excludes withdrawn investors)
+  v_total_month_yield := p_recorded_aum - v_opening_aum;
+  v_is_negative_yield := (v_total_month_yield < 0);
 
   -- Allocate yield proportional to PRE-DAY balances (not current_value)
   IF v_pre_day_aum > 0 THEN
