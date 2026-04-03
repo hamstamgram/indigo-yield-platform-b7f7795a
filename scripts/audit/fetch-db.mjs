@@ -147,3 +147,19 @@ export async function fetchDustTransactions(fundId) {
   if (error) throw new Error(`fetchDustTransactions: ${error.message}`);
   return data;
 }
+
+/**
+ * Fetch FEE_CREDIT transactions for a fund (fee credits applied to Indigo Fees account).
+ * These are generated when yield is distributed and fees are credited.
+ */
+export async function fetchFeeCreditTransactions(fundId) {
+  const { data, error } = await getClient()
+    .from('transactions_v2')
+    .select('id, tx_date, type, amount, investor_id')
+    .eq('fund_id', fundId)
+    .in('type', ['FEE_CREDIT'])
+    .or('is_voided.is.null,is_voided.eq.false')
+    .order('tx_date');
+  if (error) throw new Error(`fetchFeeCreditTransactions: ${error.message}`);
+  return data;
+}

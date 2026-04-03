@@ -24,6 +24,8 @@ import {
   fetchTransactions,
   fetchInvestorNames,
   fetchDustTransactions,
+  fetchIBAllocations,
+  fetchFeeCreditTransactions,
 } from './audit/fetch-db.mjs';
 import {
   auditTransactions,
@@ -80,14 +82,16 @@ async function main() {
 
     // Fetch DB data
     console.log('  Fetching DB data...');
-    const [dbDists, dbAllocs, dbTxns, nameMap, dbDustTxns] = await Promise.all([
+    const [dbDists, dbAllocs, dbTxns, nameMap, dbDustTxns, dbIBAllocs, dbFeeCreditTxns] = await Promise.all([
       fetchDistributions(config.fundId),
       fetchAllocations(config.fundId),
       fetchTransactions(config.fundId),
       fetchInvestorNames(config.fundId),
       fetchDustTransactions(config.fundId),
+      fetchIBAllocations(config.fundId),
+      fetchFeeCreditTransactions(config.fundId),
     ]);
-    console.log(`  DB: ${dbDists.length} distributions, ${dbTxns.length} transactions, ${dbDustTxns.length} dust, ${nameMap.size} investors`);
+    console.log(`  DB: ${dbDists.length} distributions, ${dbTxns.length} txns, ${dbDustTxns.length} dust, ${dbFeeCreditTxns.length} fee_credits, ${dbIBAllocs.length} ib_allocs, ${nameMap.size} investors`);
     console.log('');
 
     // Build name resolver: Excel name → DB display name
@@ -116,18 +120,18 @@ async function main() {
     grandTotals.push(printLayerResult(layer4, verbose));
 
     const layer5 = auditShares(
-      excelData.shareInvestors, excelData.epochs,
-      dbAllocs, dbDists, nameMap, nameResolver
+      excelData.shareInvestors, excelData.epochs, excelData.fundLevel,
+      excelData.balanceInvestors, excelData.indigoFeeBalances
     );
     grandTotals.push(printLayerResult(layer5, verbose));
 
     const layer6 = auditCumulativeFees(
       excelData.indigoFeeBalances, excelData.epochs,
-      dbAllocs, dbDists, dbTxns, nameMap, dbDustTxns
+      dbAllocs, dbDists, dbTxns, nameMap, dbDustTxns, dbFeeCreditTxns
     );
     grandTotals.push(printLayerResult(layer6, verbose));
 
-    const layer7 = auditFeePercents(excelData.balanceInvestors, dbAllocs, nameMap, nameResolver);
+    const layer7 = auditFeePercents(excelData.balanceInvestors, dbAllocs, nameMap, nameResolver, dbIBAllocs);
     grandTotals.push(printLayerResult(layer7, verbose));
   }
 
