@@ -113,9 +113,7 @@ BEGIN
     END IF;
   END IF;
 
-  SELECT id INTO v_fees_account_id FROM profiles
-  WHERE account_type = 'fees_account'::account_type
-  ORDER BY created_at ASC LIMIT 1;
+  v_fees_account_id := get_fees_account_for_fund(p_fund_id);
   IF v_fees_account_id IS NULL THEN
     RAISE EXCEPTION 'Fees account not configured';
   END IF;
