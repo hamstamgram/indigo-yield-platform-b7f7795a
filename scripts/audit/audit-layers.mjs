@@ -136,10 +136,10 @@ export function auditDistributions(excelFundLevel, dbDistributions) {
       });
     }
 
-    // Compare FEE AMOUNT
+    // Compare FEE+IB AMOUNT (Excel netPerf is after both fees AND IB)
     if (ep.grossPerf !== null && ep.netPerf !== null && ep.aumBefore !== null && ep.aumBefore > 0) {
       const excelFee = new Decimal(ep.aumBefore).times(new Decimal(ep.grossPerf).minus(new Decimal(ep.netPerf)));
-      const dbFee = new Decimal(db.total_fee_amount);
+      const dbFee = new Decimal(db.total_fee_amount).plus(new Decimal(db.total_ib_amount || 0));
       const diff = excelFee.minus(dbFee).abs();
       const match = diff.lt('0.001');
       results.push({
@@ -258,12 +258,12 @@ export function auditAllocations(excelInvestors, excelEpochs, excelFundLevel, db
       if (!alloc) continue;
 
       const dbGross = new Decimal(alloc.gross_amount || 0);
-      const dbFeeCredit = new Decimal(alloc.fee_credit || 0);
+      const dbFee = new Decimal(alloc.fee_amount || 0);
       const dbNet = new Decimal(alloc.net_amount || 0);
       const dbIb = new Decimal(alloc.ib_amount || 0);
 
-      // net = gross - fee_credit - ib
-      const expectedNet = dbGross.minus(dbFeeCredit).minus(dbIb);
+      // net = gross - fee - ib
+      const expectedNet = dbGross.minus(dbFee).minus(dbIb);
       const diff = dbNet.minus(expectedNet).abs();
       const match = diff.lt('0.000000001');
       results.push({

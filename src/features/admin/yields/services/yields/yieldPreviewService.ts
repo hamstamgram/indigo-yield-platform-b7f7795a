@@ -40,7 +40,7 @@ function isValidUUID(value: string): boolean {
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, newTotalAUM, purpose = "reporting" } = input;
+  const { fundId, targetDate, newTotalAUM, baseAUM, purpose = "reporting" } = input;
 
   // Validate fundId is a valid UUID
   if (!fundId || !isValidUUID(fundId)) {
@@ -63,11 +63,17 @@ export async function previewYieldDistribution(
 
   // Call V5 preview RPC (now serving V6 unified flat math beneath the hood)
   // Use .toString() for financial precision - PostgreSQL NUMERIC handles string input correctly
-  const { data, error } = await callRPC("preview_segmented_yield_distribution_v5", {
+  const parsedOpeningAum = baseAUM ? parseFinancial(baseAUM) : null;
+  const openingAumValue = parsedOpeningAum && !parsedOpeningAum.isNaN() && parsedOpeningAum.gt(0)
+    ? (parsedOpeningAum.toString() as unknown as number)
+    : undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (callRPC as any)("preview_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),
     p_recorded_aum: parsedAum.toString() as unknown as number,
     p_purpose: purpose,
+    ...(openingAumValue !== undefined && { p_opening_aum: openingAumValue }),
   });
 
   if (error) {

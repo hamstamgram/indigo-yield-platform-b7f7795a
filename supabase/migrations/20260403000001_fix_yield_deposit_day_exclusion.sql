@@ -23,7 +23,8 @@ CREATE OR REPLACE FUNCTION public.apply_segmented_yield_distribution_v5(
   p_recorded_aum numeric,
   p_admin_id uuid DEFAULT NULL,
   p_purpose aum_purpose DEFAULT 'transaction'::aum_purpose,
-  p_distribution_date date DEFAULT NULL
+  p_distribution_date date DEFAULT NULL,
+  p_opening_aum numeric DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -118,9 +119,9 @@ BEGIN
     RAISE EXCEPTION 'Fees account not configured';
   END IF;
 
-  -- v_opening_aum = current total AUM of active positions
-  -- NOTE: this may exclude same-day full-exit investors. The real "opening AUM"
-  -- for yield calculation is v_pre_day_aum, computed after _vflat_alloc is populated.
+  -- v_opening_aum: computed from active positions (post-transaction) for total yield calculation.
+  -- v_pre_day_aum: computed from pre_day_values (excludes same-day deposits) for share denominator.
+  -- p_opening_aum: optional override of v_pre_day_aum when caller has authoritative pre-transaction AUM.
   SELECT COALESCE(SUM(ip.current_value), 0) INTO v_opening_aum
   FROM investor_positions ip
   WHERE ip.fund_id = p_fund_id AND ip.is_active = true;
@@ -194,8 +195,17 @@ BEGIN
   SELECT COALESCE(SUM(pre_day_value), 0) INTO v_pre_day_aum FROM _vflat_alloc
   WHERE pre_day_value > 0;
 
-  -- Compute total yield using pre_day_aum (not v_opening_aum which excludes withdrawn investors)
-  v_total_month_yield := p_recorded_aum - v_opening_aum;
+  -- Compute total yield using Excel's formula when p_opening_aum is provided:
+  --   total_yield = AUM_After - AUM_Before
+  -- The caller passes AUM_Before as p_opening_aum and AUM_After as p_recorded_aum.
+  -- Same-day topups are already excluded from pre_day_value, so we don't subtract them
+  -- here — the yield is simply the AUM growth between the two admin-entered numbers.
+  -- When p_opening_aum is NOT provided, fall back to position-based calculation.
+  IF p_opening_aum IS NOT NULL AND p_opening_aum > 0 THEN
+    v_total_month_yield := p_recorded_aum - p_opening_aum;
+  ELSE
+    v_total_month_yield := p_recorded_aum - v_opening_aum;
+  END IF;
   v_is_negative_yield := (v_total_month_yield < 0);
 
   -- Allocate yield proportional to PRE-DAY balances (not current_value)
@@ -203,12 +213,11 @@ BEGIN
     FOR v_alloc IN SELECT * FROM _vflat_alloc LOOP
       -- Only investors with pre-day balance earn yield
       IF v_alloc.pre_day_value <= 0 THEN
-        -- Same-day depositor or fully withdrawn: 0 yield
         v_share := 0;
         v_gross := 0;
       ELSE
         v_share := v_alloc.pre_day_value / v_pre_day_aum;
-        v_gross := ROUND(v_total_month_yield * v_share, 10);
+        v_gross := v_total_month_yield * v_share;
       END IF;
 
       IF v_alloc.account_type = 'fees_account' THEN
@@ -228,9 +237,9 @@ BEGIN
         v_ib := 0;
         v_net := v_gross;
       ELSE
-        v_fee := ROUND(v_gross * v_fee_pct / 100, 10);
-        v_ib := ROUND(v_gross * v_ib_rate / 100, 10);
-        v_net := v_gross - v_fee;
+        v_fee := v_gross * v_fee_pct / 100;
+        v_ib := v_gross * v_ib_rate / 100;
+        v_net := v_gross - v_fee - v_ib;
       END IF;
 
       UPDATE _vflat_alloc SET
@@ -246,7 +255,7 @@ BEGIN
     -- Fallback: if all investors deposited today (e.g., first epoch), use current_value
     FOR v_alloc IN SELECT * FROM _vflat_alloc LOOP
       v_share := v_alloc.current_value / v_opening_aum;
-      v_gross := ROUND(v_total_month_yield * v_share, 10);
+      v_gross := v_total_month_yield * v_share;
 
       IF v_alloc.account_type = 'fees_account' THEN
         v_fee_pct := 0;
@@ -265,9 +274,9 @@ BEGIN
         v_ib := 0;
         v_net := v_gross;
       ELSE
-        v_fee := ROUND(v_gross * v_fee_pct / 100, 10);
-        v_ib := ROUND(v_gross * v_ib_rate / 100, 10);
-        v_net := v_gross - v_fee;
+        v_fee := v_gross * v_fee_pct / 100;
+        v_ib := v_gross * v_ib_rate / 100;
+        v_net := v_gross - v_fee - v_ib;
       END IF;
 
       UPDATE _vflat_alloc SET

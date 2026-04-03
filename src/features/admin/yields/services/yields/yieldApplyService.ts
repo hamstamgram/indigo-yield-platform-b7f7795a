@@ -40,7 +40,7 @@ export async function applyYieldDistribution(
   adminId: string,
   purpose: "reporting" | "transaction" = "transaction"
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, newTotalAUM, distributionDate } = input;
+  const { fundId, targetDate, newTotalAUM, baseAUM, distributionDate } = input;
 
   const periodEndDate = targetDate;
   const parsedAum = newTotalAUM != null ? parseFinancial(newTotalAUM) : null;
@@ -51,13 +51,19 @@ export async function applyYieldDistribution(
   // Call V5 apply RPC (segmented proportional allocation)
   // Use .toString() for financial precision - PostgreSQL NUMERIC handles string input correctly
   const effectiveDistDate = distributionDate ?? targetDate;
-  const { data, error } = await callRPC("apply_segmented_yield_distribution", {
+  const parsedOpeningAum = baseAUM ? parseFinancial(baseAUM) : null;
+  const openingAumValue = parsedOpeningAum && !parsedOpeningAum.isNaN() && parsedOpeningAum.gt(0)
+    ? (parsedOpeningAum.toString() as unknown as number)
+    : undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (callRPC as any)("apply_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),
     p_recorded_aum: parsedAum.toString() as unknown as number,
     p_admin_id: adminId,
     p_purpose: purpose,
     p_distribution_date: formatDateForDB(effectiveDistDate),
+    ...(openingAumValue !== undefined && { p_opening_aum: openingAumValue }),
   });
 
   if (error) {

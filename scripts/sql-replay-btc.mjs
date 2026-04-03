@@ -569,7 +569,7 @@ async function applyTransaction(client, epochIdx, investorLabel, txData) {
   let amount = parseFloat(txData.amount);
   const date = EPOCHS[epochIdx].date;
 
-  // For full exits: use actual current balance instead of hardcoded amount
+  // For full exits: withdraw the Excel amount, then sweep any residual dust
   if (txData.fullExit && txType === 'WITHDRAWAL') {
     const { data: pos } = await client
       .from('investor_positions')
@@ -577,9 +577,12 @@ async function applyTransaction(client, epochIdx, investorLabel, txData) {
       .eq('fund_id', FUND_ID)
       .eq('investor_id', investorId)
       .single();
-    if (pos && parseFloat(pos.current_value) > 0) {
-      amount = parseFloat(pos.current_value);
-      console.log(`  [full-exit] ${investorLabel}: using actual balance ${amount}`);
+    const dbBalance = pos ? parseFloat(pos.current_value) : 0;
+    const excelAmount = amount;
+    console.log(`  [full-exit] ${investorLabel}: Excel=${excelAmount}, DB=${dbBalance}, diff=${(dbBalance - excelAmount).toFixed(10)}`);
+    // Use DB balance to fully close position (avoids residual dust)
+    if (dbBalance > 0) {
+      amount = dbBalance;
     }
   }
 
@@ -619,7 +622,7 @@ async function applyYield(client, epochIdx, closingAum, purpose, openingAum) {
     p_admin_id: ADMIN_ID,
     p_purpose: purpose || 'reporting',
   };
-  // Pass opening AUM when provided — decouples yield from transaction ordering
+  // Pass opening AUM for total yield calculation — corrects accumulated rounding
   if (openingAum !== undefined && openingAum !== null) {
     rpcParams.p_opening_aum = parseFloat(openingAum);
   }
@@ -666,7 +669,7 @@ async function main() {
         `\n[EPOCH ${i + 1}] ${epoch.date} — ${epoch.description}`
       );
 
-      // If yield BEFORE transactions
+      // If yield BEFORE transactions — pass openingAum from Excel
       if (epoch.closingAum !== null && !epoch.yieldAfterTx) {
         await applyYield(client, i, epoch.closingAum, epoch.purpose, epoch.openingAum);
         yieldCount++;
@@ -678,7 +681,7 @@ async function main() {
         txCount++;
       }
 
-      // If yield AFTER transactions
+      // If yield AFTER transactions — pass openingAum from Excel
       if (epoch.closingAum !== null && epoch.yieldAfterTx) {
         await applyYield(client, i, epoch.closingAum, epoch.purpose, epoch.openingAum);
         yieldCount++;
