@@ -216,8 +216,8 @@ BEGIN
         v_ib := 0;
         v_net := v_gross;
       ELSE
-        v_fee := ROUND(v_gross * v_fee_pct, 10);
-        v_ib := ROUND(v_gross * v_ib_rate, 10);
+        v_fee := ROUND(v_gross * v_fee_pct / 100, 10);
+        v_ib := ROUND(v_gross * v_ib_rate / 100, 10);
         v_net := v_gross - v_fee;
       END IF;
 
@@ -253,8 +253,8 @@ BEGIN
         v_ib := 0;
         v_net := v_gross;
       ELSE
-        v_fee := ROUND(v_gross * v_fee_pct, 10);
-        v_ib := ROUND(v_gross * v_ib_rate, 10);
+        v_fee := ROUND(v_gross * v_fee_pct / 100, 10);
+        v_ib := ROUND(v_gross * v_ib_rate / 100, 10);
         v_net := v_gross - v_fee;
       END IF;
 

@@ -40,13 +40,11 @@ const INVESTOR_MAP = {
   'TEST Blondish': 'a0000001-0000-0000-0000-000000000009',
   'TEST Oliver': 'a0000001-0000-0000-0000-000000000010',
   'TEST Paul': 'a0000001-0000-0000-0000-000000000011',
-  'TEST Alex': 'a0000001-0000-0000-0000-000000000012',
-  'TEST Sam': 'a0000001-0000-0000-0000-000000000013',
-  'TEST Ryan': 'a0000001-0000-0000-0000-000000000014',
-  'TEST Nath': 'a0000001-0000-0000-0000-000000000015',
-  'TEST Vivie': 'a0000001-0000-0000-0000-000000000016',
-  'TEST NSVO': 'a0000001-0000-0000-0000-000000000017',
-  'TEST ALOK': 'a0000001-0000-0000-0000-000000000018',
+  'TEST Sam': 'a0000001-0000-0000-0000-000000000012',
+  'TEST Nath': 'a0000001-0000-0000-0000-000000000013',
+  'TEST Vivie': 'a0000001-0000-0000-0000-000000000014',
+  'TEST NSVO': 'a0000001-0000-0000-0000-000000000016',
+  'TEST ALOK': 'a0000001-0000-0000-0000-000000000017',
 };
 
 // ============================================================================
@@ -515,23 +513,30 @@ function mapTxType(typeStr) {
   throw new Error(`Unknown transaction type: ${typeStr}`);
 }
 
-async function purgeFundData(client) {
-  console.log(`\n[PURGE] Deleting all existing fund data...`);
-  const { data, error } = await client.rpc('purge_fund_data_for_testing', {
-    p_fund_id: FUND_ID,
-    p_confirm: FUND_ID,
-  });
-  if (error) {
-    throw new Error(`purge_fund_data_for_testing failed: ${error.message}`);
-  }
-  console.log(`[PURGE] Success — purged data for fund ${data?.fund || FUND_ID}`);
+async function purgeFundData() {
+  console.log(`\n[PURGE] Skipped — purge via MCP SQL before running this script`);
+  console.log(`[PURGE] Run: DELETE FROM ... WHERE fund_id = '${FUND_ID}'`);
 }
 
 async function applyTransaction(client, epochIdx, investorLabel, txData) {
   const investorId = getInvestorId(investorLabel);
   const txType = mapTxType(txData.type);
-  const amount = parseFloat(txData.amount);
+  let amount = parseFloat(txData.amount);
   const date = EPOCHS[epochIdx].date;
+
+  // For full exits: use actual current balance instead of hardcoded amount
+  if (txData.fullExit && txType === 'WITHDRAWAL') {
+    const { data: pos } = await client
+      .from('investor_positions')
+      .select('current_value')
+      .eq('fund_id', FUND_ID)
+      .eq('investor_id', investorId)
+      .single();
+    if (pos && parseFloat(pos.current_value) > 0) {
+      amount = parseFloat(pos.current_value);
+      console.log(`  [full-exit] ${investorLabel}: using actual balance ${amount}`);
+    }
+  }
 
   const { data, error } = await client.rpc('apply_investor_transaction', {
     p_fund_id: FUND_ID,
@@ -543,6 +548,7 @@ async function applyTransaction(client, epochIdx, investorLabel, txData) {
     p_admin_id: ADMIN_ID,
     p_notes: `SQL replay epoch ${epochIdx + 1}`,
     p_purpose: 'transaction',
+    p_distribution_id: null,
   });
 
   if (error) {
