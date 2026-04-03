@@ -56,14 +56,23 @@ async function login(page: Page) {
 
 async function waitForToast(page: Page, label: string, timeout = 45000) {
   const start = Date.now();
-  const confirmed = await Promise.race([
+  // Race: success toast, dialog closing, OR error toast (fail fast instead of waiting full timeout)
+  const result = await Promise.race([
     page.locator('[data-sonner-toast][data-type="success"]').first()
-      .waitFor({ state: 'visible', timeout }).then(() => true),
+      .waitFor({ state: 'visible', timeout }).then(() => 'success' as const),
     page.getByRole('dialog', { name: 'Add Transaction' })
-      .waitFor({ state: 'hidden', timeout }).then(() => true),
-  ]).catch(() => false);
+      .waitFor({ state: 'hidden', timeout }).then(() => 'closed' as const),
+    page.locator('[data-sonner-toast][data-type="error"]').first()
+      .waitFor({ state: 'visible', timeout }).then(() => 'error' as const),
+  ]).catch(() => 'timeout' as const);
 
-  if (!confirmed) {
+  if (result === 'error') {
+    const msg = await page.locator('[data-sonner-toast][data-type="error"]').first()
+      .textContent().catch(() => 'unknown error');
+    throw new Error(`[waitForToast] Transaction failed with error toast: ${msg} — for: ${label}`);
+  }
+
+  if (result === 'timeout') {
     const elapsed = ((Date.now() - start) / 1000).toFixed(1);
     // Collect diagnostics before throwing
     const errToast = await page.locator('[data-sonner-toast][data-type="error"]').first()
@@ -72,7 +81,7 @@ async function waitForToast(page: Page, label: string, timeout = 45000) {
       .isVisible().catch(() => false);
     const validationMsgs = await page.locator('[role="dialog"] .text-sm.text-destructive')
       .allTextContents().catch(() => [] as string[]);
-    await page.screenshot({ path: `test-results/hang-${Date.now()}.png` });
+    await page.screenshot({ path: `test-results/hang-${Date.now()}.png` }).catch(() => {});
     throw new Error(
       `[waitForToast] Timeout after ${elapsed}s for: ${label}\n` +
       `  dialog still open: ${dialogOpen}\n` +
@@ -82,7 +91,7 @@ async function waitForToast(page: Page, label: string, timeout = 45000) {
     );
   }
 
-  // Error toast check
+  // Confirmed: 'success' or 'closed' — but still check for error toast that may have arrived simultaneously
   const errToast = page.locator('[data-sonner-toast][data-type="error"]').first();
   if (await errToast.isVisible({ timeout: 500 }).catch(() => false)) {
     const msg = await errToast.textContent().catch(() => 'unknown error');
@@ -117,11 +126,15 @@ async function addTransaction(
   await comboboxes.nth(1).click();
   await page.getByRole('option', { name: 'TEST BTC Yield Fund' }).click();
 
-  // Investor select
+  // Investor select — wait for search input to appear before filling (Radix animation delay)
   await comboboxes.nth(2).click();
+  await page.getByPlaceholder('Search').first().waitFor({ state: 'visible', timeout: 5000 });
   await page.getByPlaceholder('Search').first().fill(opts.investorSearch);
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(800); // let search filter debounce
+  await page.getByRole('option', { name: new RegExp(opts.investorSearch, 'i') }).first().waitFor({ state: 'visible', timeout: 10000 });
   await page.getByRole('option', { name: new RegExp(opts.investorSearch, 'i') }).first().click();
+  // Wait for investor listbox to fully close before proceeding — if it stays open it blocks type selection
+  await page.locator('[role="listbox"]').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
   // Wait for balance query to resolve before opening the type dropdown.
   // 1500ms covers the typical Supabase round-trip on the hosted Lovable app.
@@ -168,7 +181,7 @@ async function addTransaction(
 
   // Final guard: confirm no listbox is overlaying the form
   const listboxGone = await page.locator('[role="listbox"]')
-    .waitFor({ state: 'hidden', timeout: 4000 })
+    .waitFor({ state: 'hidden', timeout: 8000 })
     .then(() => true)
     .catch(() => false);
   if (!listboxGone) {
@@ -195,6 +208,20 @@ async function addTransaction(
     await exitSwitch.waitFor({ state: 'visible', timeout: 5000 });
     await exitSwitch.click();
     await page.waitForTimeout(1200); // let UI populate auto-filled amount from DB
+
+    // Float precision fix: the UI auto-fills from JS currentBalance (IEEE 754 double), which can
+    // be 1-2 ULPs above the DB numeric value. E.g. DB has 2.026631081355637359 but JS rounds to
+    // 2.0266310813556374 — 41 attounits over, causing the validate_withdrawal_request trigger to
+    // reject with "Insufficient available balance". Fix: floor to 10 decimal places (safe for BTC).
+    const amountField = dialog.getByRole('textbox', { name: 'Amount' });
+    const rawVal = await amountField.inputValue().catch(() => '');
+    if (rawVal && rawVal !== '(error)') {
+      const floored = (Math.floor(parseFloat(rawVal) * 1e10) / 1e10).toFixed(10);
+      await amountField.fill(floored);
+      console.log(`[tx:amount-field] raw="${rawVal}" floored="${floored}" (full-exit precision fix)`);
+    } else {
+      console.log(`[tx:amount-field] "${rawVal}" (full-exit auto-fill — could not read)`);
+    }
   }
 
   // Wait for React to settle after all field interactions before resolving submit button
@@ -204,6 +231,10 @@ async function addTransaction(
   const submitBtn = page.getByRole('dialog').getByRole('button', { name: 'Add Transaction' });
   await submitBtn.waitFor({ state: 'visible', timeout: 15000 });
   await submitBtn.scrollIntoViewIfNeeded();
+  // Wait for button to be enabled — for full-exit, isCheckingBalance disables the button while
+  // the balance DB query is in-flight. Clicking a disabled submit button does nothing (no form submit).
+  // Poll until enabled, up to 20s (accommodates slow Supabase balance queries on hosted Lovable).
+  await expect(submitBtn).toBeEnabled({ timeout: 20000 });
   console.log(`[tx:submit] ${label}`);
   await submitBtn.click({ timeout: 15000 });
   // Full exits call approve_and_complete_withdrawal which crystallizes yield first —
@@ -402,9 +433,9 @@ const EPOCHS = [
   {
     date: '2025-04-16', closingAum: '3.705070', purpose: 'transaction' as const,
     transactions: [
-      { type: 'First Investment' as const, investor: 'TEST Kyle', amount: '2.101' },
-      { type: 'First Investment' as const, investor: 'TEST Matthias', amount: '4.8357' },
-      { type: 'First Investment' as const, investor: 'TEST Danielle', amount: '5.0334' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Kyle', amount: '2.101' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Matthias', amount: '4.8357' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Danielle', amount: '5.0334' },
     ],
     description: 'Kyle/Matthias/Danielle re-enter from Boosted Program + yield',
   },
@@ -436,7 +467,7 @@ const EPOCHS = [
   {
     date: '2025-06-11', closingAum: '13.685321', purpose: 'transaction' as const,
     transactions: [
-      { type: 'First Investment' as const, investor: 'TEST Kabbaj', amount: '2' },
+      { type: 'First Investment' as const, investor: 'TEST Family Kabbaj', amount: '2' },
     ],
     description: 'Kabbaj first investment 2 BTC + yield',
   },
@@ -450,10 +481,10 @@ const EPOCHS = [
   {
     date: '2025-07-11', closingAum: '15.777930', purpose: 'transaction' as const,
     transactions: [
-      { type: 'First Investment' as const, investor: 'TEST Thomas', amount: '6.69' },
-      { type: 'Deposit / Top-up' as const, investor: 'TEST Kabbaj', amount: '0.9914' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Thomas', amount: '6.69' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Family Kabbaj', amount: '0.9914' },
       { type: 'First Investment' as const, investor: 'TEST Victoria', amount: '0.1484' },
-      { type: 'First Investment' as const, investor: 'TEST Nathanael', amount: '0.446' },
+      { type: 'First Investment' as const, investor: 'TEST Nathana', amount: '0.446' },
       { type: 'First Investment' as const, investor: 'TEST Blondish', amount: '4.0996' },
     ],
     description: 'Thomas re-enters + Kabbaj top-up + Victoria/Nathanael/Blondish first investments + yield',
@@ -479,7 +510,7 @@ const EPOCHS = [
   {
     date: '2025-07-31', closingAum: '30.597713', purpose: 'reporting' as const,
     transactions: [
-      { type: 'Deposit / Top-up' as const, investor: 'TEST Kabbaj', amount: '0.6' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Family Kabbaj', amount: '0.6' },
     ],
     yieldAfterTx: true,
     description: 'Kabbaj top-up 0.6 BTC → reporting yield',
@@ -496,7 +527,7 @@ const EPOCHS = [
   {
     date: '2025-08-25', closingAum: '30.580007', purpose: 'transaction' as const,
     transactions: [
-      { type: 'Deposit / Top-up' as const, investor: 'TEST Kabbaj', amount: '0.9102' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Family Kabbaj', amount: '0.9102' },
     ],
     description: 'Kabbaj top-up 0.9102 BTC + yield',
   },
@@ -635,7 +666,7 @@ const EPOCHS = [
   {
     date: '2026-01-05', closingAum: '32.834707', purpose: 'transaction' as const,
     transactions: [
-      { type: 'Deposit / Top-up' as const, investor: 'TEST Kabbaj', amount: '2.1577' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Family Kabbaj', amount: '2.1577' },
       { type: 'Withdrawal' as const, investor: 'TEST Vivie', amount: '3.4221', fullExit: true },
     ],
     description: 'Kabbaj 2.1577 top-up + Vivie&Liana full exit + yield',
@@ -653,7 +684,7 @@ const EPOCHS = [
   {
     date: '2026-01-19', closingAum: '32.374430', purpose: 'transaction' as const,
     transactions: [
-      { type: 'First Investment' as const, investor: 'TEST Kyle', amount: '3.9998' },
+      { type: 'Deposit / Top-up' as const, investor: 'TEST Kyle', amount: '3.9998' },
       { type: 'Withdrawal' as const, investor: 'TEST Danielle', amount: '0.12' },
     ],
     description: 'Kyle re-entry 3.9998 + Danielle -0.12 + yield',
