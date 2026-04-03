@@ -581,18 +581,19 @@ export async function fetchInvestorNames(fundId) {
 }
 
 /**
- * Fetch all yield-related transactions (YIELD, FEE_CREDIT, IB_CREDIT)
- * for reconstructing balance history.
+ * Fetch DUST_SWEEP and DUST transactions for a fund.
+ * These handle full-exit dust routing (residual balance → Indigo Fees).
+ * Critical for accurate balance reconstruction.
  */
-export async function fetchYieldTransactions(fundId) {
+export async function fetchDustTransactions(fundId) {
   const { data, error } = await getClient()
     .from('transactions_v2')
-    .select('id, tx_date, type, amount, investor_id, distribution_id')
+    .select('id, tx_date, type, amount, investor_id')
     .eq('fund_id', fundId)
-    .in('type', ['YIELD', 'FEE_CREDIT', 'IB_CREDIT', 'DUST_SWEEP', 'DUST'])
+    .in('type', ['DUST_SWEEP', 'DUST'])
     .or('is_voided.is.null,is_voided.eq.false')
     .order('tx_date');
-  if (error) throw new Error(`fetchYieldTransactions: ${error.message}`);
+  if (error) throw new Error(`fetchDustTransactions: ${error.message}`);
   return data;
 }
 ```
@@ -808,7 +809,7 @@ export function auditDistributions(excelFundLevel, dbDistributions) {
 
 // ─── Layer 3: Per-investor balances ───
 
-export function auditBalances(excelInvestors, excelEpochs, dbTransactions, dbAllocations, dbDistributions, nameMap, nameResolver) {
+export function auditBalances(excelInvestors, excelEpochs, dbTransactions, dbAllocations, dbDistributions, nameMap, nameResolver, dbDustTxns = []) {
   const results = [];
 
   // Build per-investor running balance from DB
@@ -852,9 +853,10 @@ export function auditBalances(excelInvestors, excelEpochs, dbTransactions, dbAll
       continue;
     }
 
-    // Compute running balance from transactions + allocations
+    // Compute running balance from transactions + allocations + dust sweeps
     let runningBalance = new Decimal(0);
     const txnsForInvestor = dbTransactions.filter((t) => t.investor_id === investorId);
+    const dustForInvestor = dbDustTxns.filter((t) => t.investor_id === investorId);
     // All allocations for this investor
     const allocsForInvestor = dbAllocations.filter((a) => a.investor_id === investorId);
 
@@ -862,6 +864,10 @@ export function auditBalances(excelInvestors, excelEpochs, dbTransactions, dbAll
     const events = [];
     for (const t of txnsForInvestor) {
       events.push({ date: t.tx_date, type: 'txn', amount: new Decimal(t.amount) });
+    }
+    // Include DUST_SWEEP and DUST transactions (full-exit dust routing)
+    for (const t of dustForInvestor) {
+      events.push({ date: t.tx_date, type: 'dust', amount: new Decimal(t.amount) });
     }
     for (const a of allocsForInvestor) {
       const dist = dbDistributions.find((d) => d.id === a.distribution_id);
@@ -1064,23 +1070,30 @@ export function auditShares(excelShareInvestors, excelEpochs, dbAllocations, dbD
 
 // ─── Layer 6: Cumulative Indigo Fees ───
 
-export function auditCumulativeFees(excelFeeBalances, excelEpochs, dbAllocations, dbDistributions, dbTransactions, nameMap) {
+export function auditCumulativeFees(excelFeeBalances, excelEpochs, dbAllocations, dbDistributions, dbTransactions, nameMap, dbDustTxns = []) {
   const results = [];
 
-  // Find "Indigo Fees" investor_id
-  const feesEntry = [...nameMap.entries()].find(([, n]) => n === 'Indigo Fees');
-  if (!feesEntry) {
+  // Find ALL "Indigo Fees" investor IDs (there may be both "Indigo Fees" and "TEST Indigo Fees")
+  // Excel combines both into one row — yield fee_credits go to "Indigo Fees", dust sweeps go to "TEST Indigo Fees"
+  const feesIds = [...nameMap.entries()]
+    .filter(([, n]) => n.includes('Indigo') && n.includes('Fees'))
+    .map(([id]) => id);
+  if (feesIds.length === 0) {
     results.push({ ok: false, label: 'Indigo Fees investor', note: 'MISSING: no Indigo Fees investor in DB' });
     return { layer: 'Layer 6: Cumulative Indigo Fees', total: 1, passed: 0, failed: 1, results };
   }
-  const feesId = feesEntry[0];
 
-  // Reconstruct fee balance: deposits + yield allocations (net_amount for Indigo = fee_credit from others)
+  // Reconstruct fee balance: deposits + yield allocations + dust sweeps received
+  // Combine ALL Indigo Fees accounts (yield fee_credits + dust sweep credits)
   const events = [];
-  for (const t of dbTransactions.filter((t) => t.investor_id === feesId)) {
+  for (const t of dbTransactions.filter((t) => feesIds.includes(t.investor_id))) {
     events.push({ date: t.tx_date, amount: new Decimal(t.amount) });
   }
-  for (const a of dbAllocations.filter((a) => a.investor_id === feesId)) {
+  // Include dust sweeps received by any Indigo Fees account
+  for (const t of dbDustTxns.filter((t) => feesIds.includes(t.investor_id))) {
+    events.push({ date: t.tx_date, amount: new Decimal(t.amount) });
+  }
+  for (const a of dbAllocations.filter((a) => feesIds.includes(a.investor_id))) {
     const dist = dbDistributions.find((d) => d.id === a.distribution_id);
     if (!dist) continue;
     const credit = new Decimal(a.net_amount || 0)
@@ -1320,7 +1333,7 @@ import {
   fetchAllocations,
   fetchTransactions,
   fetchInvestorNames,
-  fetchYieldTransactions,
+  fetchDustTransactions,
 } from './audit/fetch-db.mjs';
 import {
   auditTransactions,
@@ -1377,13 +1390,14 @@ async function main() {
 
     // Fetch DB data
     console.log('  Fetching DB data...');
-    const [dbDists, dbAllocs, dbTxns, nameMap] = await Promise.all([
+    const [dbDists, dbAllocs, dbTxns, nameMap, dbDustTxns] = await Promise.all([
       fetchDistributions(config.fundId),
       fetchAllocations(config.fundId),
       fetchTransactions(config.fundId),
       fetchInvestorNames(config.fundId),
+      fetchDustTransactions(config.fundId),
     ]);
-    console.log(`  DB: ${dbDists.length} distributions, ${dbTxns.length} transactions, ${nameMap.size} investors`);
+    console.log(`  DB: ${dbDists.length} distributions, ${dbTxns.length} transactions, ${dbDustTxns.length} dust, ${nameMap.size} investors`);
     console.log('');
 
     // Build name resolver: Excel name → DB display name
@@ -1401,7 +1415,7 @@ async function main() {
 
     const layer3 = auditBalances(
       excelData.balanceInvestors, excelData.epochs,
-      dbTxns, dbAllocs, dbDists, nameMap, nameResolver
+      dbTxns, dbAllocs, dbDists, nameMap, nameResolver, dbDustTxns
     );
     grandTotals.push(printLayerResult(layer3, verbose));
 
@@ -1419,7 +1433,7 @@ async function main() {
 
     const layer6 = auditCumulativeFees(
       excelData.indigoFeeBalances, excelData.epochs,
-      dbAllocs, dbDists, dbTxns, nameMap
+      dbAllocs, dbDists, dbTxns, nameMap, dbDustTxns
     );
     grandTotals.push(printLayerResult(layer6, verbose));
 
