@@ -144,6 +144,13 @@ export type Database = {
             foreignKeyName: "admin_integrity_runs_scope_fund_id_fkey"
             columns: ["scope_fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "admin_integrity_runs_scope_fund_id_fkey"
+            columns: ["scope_fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -378,6 +385,13 @@ export type Database = {
             foreignKeyName: "fk_documents_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_documents_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -527,6 +541,13 @@ export type Database = {
             foreignKeyName: "fee_allocations_credit_transaction_id_fkey"
             columns: ["credit_transaction_id"]
             isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_credit_transaction_id_fkey"
+            columns: ["credit_transaction_id"]
+            isOneToOne: false
             referencedRelation: "transactions_v2"
             referencedColumns: ["id"]
           },
@@ -543,6 +564,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_transaction_distribution_orphans"
             referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_debit_transaction_id_fkey"
+            columns: ["debit_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fee_allocations_debit_transaction_id_fkey"
@@ -606,6 +634,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_fund_v2"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_fee_allocations_fund_v2"
@@ -719,6 +754,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fund_daily_aum_fund_id_fkey"
@@ -1077,6 +1119,13 @@ export type Database = {
             foreignKeyName: "ib_allocations_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -1235,6 +1284,13 @@ export type Database = {
             foreignKeyName: "ib_commission_ledger_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "ib_commission_ledger_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -1279,6 +1335,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "ib_commission_ledger_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "ib_commission_ledger_transaction_id_fkey"
@@ -1376,6 +1439,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_commission_schedule_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "ib_commission_schedule_fund_id_fkey"
@@ -1529,6 +1599,13 @@ export type Database = {
             foreignKeyName: "investor_fee_schedule_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_fee_schedule_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -1677,6 +1754,13 @@ export type Database = {
             foreignKeyName: "investor_fund_performance_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_fund_performance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -1752,6 +1836,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_position_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "investor_position_snapshots_fund_id_fkey"
@@ -1858,6 +1949,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -2016,6 +2114,13 @@ export type Database = {
             foreignKeyName: "platform_fee_ledger_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "platform_fee_ledger_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -2046,6 +2151,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "platform_fee_ledger_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "platform_fee_ledger_transaction_id_fkey"
@@ -2447,6 +2559,13 @@ export type Database = {
             foreignKeyName: "risk_alerts_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "risk_alerts_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -2618,6 +2737,13 @@ export type Database = {
             columns: ["statement_id"]
             isOneToOne: false
             referencedRelation: "generated_statements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_email_delivery_statement_id_fkey"
+            columns: ["statement_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_html"
             referencedColumns: ["id"]
           },
           {
@@ -3002,6 +3128,13 @@ export type Database = {
             foreignKeyName: "fk_transactions_v2_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -3075,20 +3208,6 @@ export type Database = {
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["investor_id"]
           },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["investor_id"]
-          },
         ]
       }
       user_roles: {
@@ -3108,6 +3227,36 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: string | null
+          last_active_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -3277,6 +3426,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -3423,6 +3579,13 @@ export type Database = {
             foreignKeyName: "yield_allocations_fee_credit_transaction_id_fkey"
             columns: ["fee_credit_transaction_id"]
             isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fee_credit_transaction_id_fkey"
+            columns: ["fee_credit_transaction_id"]
+            isOneToOne: false
             referencedRelation: "transactions_v2"
             referencedColumns: ["id"]
           },
@@ -3451,6 +3614,13 @@ export type Database = {
             foreignKeyName: "yield_allocations_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -3472,6 +3642,13 @@ export type Database = {
             foreignKeyName: "yield_allocations_ib_credit_transaction_id_fkey"
             columns: ["ib_credit_transaction_id"]
             isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_ib_credit_transaction_id_fkey"
+            columns: ["ib_credit_transaction_id"]
+            isOneToOne: false
             referencedRelation: "transactions_v2"
             referencedColumns: ["id"]
           },
@@ -3488,6 +3665,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_transaction_distribution_orphans"
             referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_ib_transaction_id_fkey"
+            columns: ["ib_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "yield_allocations_ib_transaction_id_fkey"
@@ -3660,6 +3844,13 @@ export type Database = {
             foreignKeyName: "fk_yield_distributions_fund_new"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -3789,6 +3980,13 @@ export type Database = {
             foreignKeyName: "fk_fund_sanity"
             columns: ["fund_id"]
             isOneToOne: true
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fund_sanity"
+            columns: ["fund_id"]
+            isOneToOne: true
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -3812,6 +4010,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_rate_sanity_config_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: true
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "yield_rate_sanity_config_fund_id_fkey"
@@ -3858,6 +4063,13 @@ export type Database = {
             foreignKeyName: "fk_investor_positions_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -3891,6 +4103,204 @@ export type Database = {
           },
         ]
       }
+      investor_positions_with_funds: {
+        Row: {
+          asset: string | null
+          asset_code: string | null
+          cost_basis: number | null
+          current_value: number | null
+          fund_id: string | null
+          fund_name: string | null
+          id: string | null
+          investor_id: string | null
+          is_active: boolean | null
+          shares: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      investor_transactions_view: {
+        Row: {
+          amount: number | null
+          asset: string | null
+          asset_code: string | null
+          created_at: string | null
+          fund_id: string | null
+          fund_name: string | null
+          id: string | null
+          investor_id: string | null
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          reference_id: string | null
+          transaction_date: string | null
+          transaction_type: Database["public"]["Enums"]["tx_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      monthly_statements_html: {
+        Row: {
+          created_at: string | null
+          html_content: string | null
+          id: string | null
+          investor_id: string | null
+          month: number | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_statements_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_statements_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      monthly_statements_view: {
+        Row: {
+          additions: string | null
+          asset: string | null
+          asset_code: string | null
+          begin_balance: string | null
+          beginning_balance: string | null
+          created_at: string | null
+          end_balance: string | null
+          ending_balance: string | null
+          fund_id: string | null
+          fund_name: string | null
+          investor_id: string | null
+          month: number | null
+          net_income: string | null
+          period_month: number | null
+          period_year: number | null
+          rate_of_return: string | null
+          rate_of_return_mtd: string | null
+          redemptions: string | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       position_transaction_reconciliation: {
         Row: {
           difference: number | null
@@ -3906,6 +4316,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -3987,6 +4404,13 @@ export type Database = {
             foreignKeyName: "fk_investor_positions_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -4056,6 +4480,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -4194,6 +4625,13 @@ export type Database = {
             foreignKeyName: "fee_allocations_credit_transaction_id_fkey"
             columns: ["credit_transaction_id"]
             isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_credit_transaction_id_fkey"
+            columns: ["credit_transaction_id"]
+            isOneToOne: false
             referencedRelation: "transactions_v2"
             referencedColumns: ["id"]
           },
@@ -4210,6 +4648,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_transaction_distribution_orphans"
             referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_debit_transaction_id_fkey"
+            columns: ["debit_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "investor_transactions_view"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fee_allocations_debit_transaction_id_fkey"
@@ -4273,6 +4718,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_allocations_fund_v2"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_fee_allocations_fund_v2"
@@ -4393,6 +4845,13 @@ export type Database = {
             foreignKeyName: "fk_investor_positions_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -4443,6 +4902,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -4530,6 +4996,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -4568,6 +5041,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -4646,6 +5126,13 @@ export type Database = {
             foreignKeyName: "fk_transactions_v2_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -4677,20 +5164,6 @@ export type Database = {
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["investor_id"]
           },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["investor_id"]
-          },
         ]
       }
       v_position_transaction_variance: {
@@ -4714,6 +5187,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_investor_positions_fund"
@@ -4812,6 +5292,13 @@ export type Database = {
             foreignKeyName: "fk_transactions_v2_fund"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -4838,20 +5325,6 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_transactions_v2_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_concentration_risk"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_concentration_risk"
@@ -4924,6 +5397,13 @@ export type Database = {
             foreignKeyName: "yield_allocations_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
             referencedRelation: "v_concentration_risk"
             referencedColumns: ["fund_id"]
           },
@@ -4965,6 +5445,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_yield_distributions_fund_new"
@@ -5030,6 +5517,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
           },
           {
             foreignKeyName: "fk_yield_distributions_fund_new"
@@ -5178,6 +5672,18 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_segmented_yield_distribution_v5: {
+        Args: {
+          p_admin_id?: string
+          p_distribution_date?: string
+          p_fund_id: string
+          p_opening_aum?: number
+          p_period_end: string
+          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+          p_recorded_aum: number
+        }
+        Returns: Json
+      }
       apply_transaction_with_crystallization: {
         Args: {
           p_admin_id?: string
@@ -5194,29 +5700,17 @@ export type Database = {
         }
         Returns: Json
       }
-      approve_and_complete_withdrawal:
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_is_full_exit?: boolean
-              p_processed_amount?: number
-              p_request_id: string
-              p_send_precision?: number
-              p_tx_hash?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_is_full_exit?: boolean
-              p_processed_amount?: number
-              p_request_id: string
-              p_send_precision?: number
-              p_tx_hash?: string
-            }
-            Returns: Json
-          }
+      approve_and_complete_withdrawal: {
+        Args: {
+          p_admin_notes?: string
+          p_is_full_exit?: boolean
+          p_processed_amount?: number
+          p_request_id: string
+          p_send_precision?: number
+          p_tx_hash?: string
+        }
+        Returns: Json
+      }
       approve_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -5262,26 +5756,11 @@ export type Database = {
       calculate_yield_allocations: {
         Args: {
           p_fund_id: string
-          p_period_end?: string
+          p_opening_aum_override?: number
+          p_period_end: string
           p_recorded_aum: number
         }
-        Returns: {
-          account_type: string
-          current_value: number
-          fee: number
-          fee_credit: number
-          fee_pct: number
-          gross: number
-          ib: number
-          ib_credit: number
-          ib_parent_id: string
-          ib_rate: number
-          investor_email: string
-          investor_id: string
-          investor_name: string
-          net: number
-          share: number
-        }[]
+        Returns: Record<string, unknown>[]
       }
       can_access_investor: { Args: { investor_uuid: string }; Returns: boolean }
       can_access_notification: {
@@ -5407,6 +5886,18 @@ export type Database = {
         }
         Returns: string
       }
+      crystallize_yield_before_flow: {
+        Args: {
+          p_admin_id: string
+          p_closing_aum: number
+          p_event_ts: string
+          p_fund_id: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_trigger_reference: string
+          p_trigger_type: string
+        }
+        Returns: Json
+      }
       current_user_is_admin_or_owner: {
         Args: { check_user_id: string }
         Returns: boolean
@@ -5516,6 +6007,10 @@ export type Database = {
         Args: { p_fund_id: string }
         Returns: number
       }
+      get_fees_account_for_fund: {
+        Args: { p_fund_id: string }
+        Returns: string
+      }
       get_fund_aum_as_of: {
         Args: { p_as_of_date: string; p_fund_id: string; p_purpose?: string }
         Returns: {
@@ -5532,7 +6027,9 @@ export type Database = {
       get_fund_composition: {
         Args: { p_fund_id: string }
         Returns: {
+          account_type: string
           current_value: number
+          has_ib_role: boolean
           investor_email: string
           investor_id: string
           investor_name: string
@@ -5988,10 +6485,15 @@ export type Database = {
       preview_segmented_yield_distribution_v5: {
         Args: {
           p_fund_id: string
+          p_opening_aum?: number
           p_period_end: string
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
           p_recorded_aum: number
         }
+        Returns: Json
+      }
+      purge_fund_data_for_testing: {
+        Args: { p_confirm: string; p_fund_id: string }
         Returns: Json
       }
       purge_fund_hard: { Args: { p_fund_id: string }; Returns: Json }
@@ -6107,6 +6609,7 @@ export type Database = {
           }
       reset_all_data_keep_profiles: { Args: never; Returns: undefined }
       reset_all_investor_positions: { Args: never; Returns: undefined }
+      reset_fund_test_data: { Args: { p_fund_id: string }; Returns: Json }
       reset_platform_data: { Args: { p_confirm?: string }; Returns: Json }
       restore_withdrawal: {
         Args: { p_admin_id: string; p_reason: string; p_withdrawal_id: string }
