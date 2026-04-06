@@ -1,63 +1,105 @@
 
 
-# Definitive Fix: Broken Import Paths from Architecture Migration
+# Test Data Cleanup Plan — Full Audit & Deletion
 
-## Root Cause
+## What Exists (Audit Results)
 
-The codebase migrated services from `src/services/admin/*.ts` to `src/features/admin/*/services/*.ts`. A barrel re-export exists at `src/services/admin/index.ts`, but **32 files** import from specific sub-paths (e.g., `@/services/admin/feesService`, `@/services/admin/yields/yieldManagementService`). These individual files were never created as shims, so Vite cannot resolve them.
+### 5 TEST Funds (all status: `deprecated`)
+| Fund | ID | Asset |
+|---|---|---|
+| TEST BTC Yield Fund | `00746a0e-...` | TBTC |
+| TEST ETH Yield Fund | `44cb78f6-...` | TETH |
+| TEST SOL Yield Fund | `b0f083b2-...` | TSOL |
+| TEST USDT Yield Fund | `ec01a77f-...` | TUSDT |
+| TEST XRP Yield Fund | `14e0f00a-...` | TXRP |
 
-The `tsconfig.json` also lacks `"types": ["node", "vite/client"]`, causing `process` reference errors.
+### 2 Inactive (Non-Test) Funds — Do NOT delete
+- Euro Yield Fund (IND-EURC) — `inactive`
+- Tokenized Gold (IND-XAUT) — `inactive`
 
-## Plan
+### 45 TEST Investor Profiles
+All have IDs matching `a0000001-0000-0000-0000-0000000000XX` and emails like `test.*@indigo.fund`.
 
-### Step 1: Add `types` to `tsconfig.json`
+### 1 QA Admin Profile
+- `qa.admin@indigo.fund` (id: `e06a15fb-...`) — has `admin` role in `user_roles`.
 
-Add `"types": ["node", "vite/client"]` to `compilerOptions` to resolve all `Cannot find name 'process'` errors (5 occurrences across 3 files).
+### Data Volumes Linked to Test Entities
 
-### Step 2: Create shim files for all broken sub-path imports
-
-Each shim is a one-liner re-exporting from the real feature location. Here is the complete list of **18 shim files** needed, mapped to their real sources:
-
-| Shim file to create | Re-exports from |
+| Table | Rows to Delete |
 |---|---|
-| `src/services/admin/feesService.ts` | `@/features/admin/investors/services/feesService` |
-| `src/services/admin/feeScheduleService.ts` | `@/features/admin/investors/services/feeScheduleService` |
-| `src/services/admin/reportQueryService.ts` | `@/features/admin/reports/services/reportQueryService` |
-| `src/services/admin/reportService.ts` | `@/features/admin/reports/services/reportService` |
-| `src/services/admin/statementAdminService.ts` | `@/features/admin/reports/services/statementAdminService` |
-| `src/services/admin/deliveryService.ts` | `@/features/admin/reports/services/deliveryService` |
-| `src/services/admin/systemAdminService.ts` | `@/features/admin/system/services/systemAdminService` |
-| `src/services/admin/integrityService.ts` | `@/features/admin/system/services/integrityService` |
-| `src/services/admin/transactionFormDataService.ts` | `@/features/admin/transactions/services/transactionFormDataService` |
-| `src/services/admin/transactionDetailsService.ts` | `@/features/admin/transactions/services/transactionDetailsService` |
-| `src/services/admin/adminTransactionHistoryService.ts` | `@/features/admin/transactions/services/adminTransactionHistoryService` |
-| `src/services/admin/requestsQueueService.ts` | `@/features/admin/operations/services/requestsQueueService` |
-| `src/services/admin/internalRouteService.ts` | `@/features/admin/shared/services/internalRouteService` |
-| `src/services/admin/recordedYieldsService.ts` | `@/features/admin/yields/services/recordedYieldsService` |
-| `src/services/admin/yields/index.ts` | `@/features/admin/yields/services/yields` |
-| `src/services/admin/yields/yieldDistributionService.ts` | `@/features/admin/yields/services/yields/yieldDistributionService` |
-| `src/services/admin/yields/yieldDistributionsPageService.ts` | `@/features/admin/yields/services/yields/yieldDistributionsPageService` |
-| `src/services/admin/yields/yieldManagementService.ts` | `@/features/admin/yields/services/yields/yieldManagementService` |
-| `src/services/admin/yields/yieldCrystallizationService.ts` | `@/features/admin/yields/services/yields/yieldCrystallizationService` |
-| `src/services/admin/yields/yieldAumService.ts` | `@/features/admin/yields/services/yields/yieldAumService` |
+| `transactions_v2` (test fund + test investors) | 3,232 |
+| `yield_distributions` (test funds) | 158 |
+| `yield_allocations` (test funds) | 1,619 |
+| `fee_allocations` (test funds) | 1,114 |
+| `ib_allocations` (test funds) | 170 |
+| `ib_commission_ledger` (test funds) | 170 |
+| `fund_daily_aum` (test funds) | 158 |
+| `investor_positions` (test funds/investors) | 75 |
+| `investor_position_snapshots` (test funds) | 114 |
+| `investor_fee_schedule` (test investors) | 168 |
+| `ib_commission_schedule` (test investors) | 13 |
+| `withdrawal_requests` (test funds) | 94 |
+| `risk_alerts` (test funds) | 62 |
+| `notifications` (test investors) | 10,773 |
+| `user_roles` (test investors + QA admin) | 6 |
+| `profiles` (test investors + QA admin) | 46 |
+| `funds` (5 TEST funds) | 5 |
 
-Each file follows this pattern:
-```typescript
-export * from "@/features/admin/[domain]/services/[serviceName]";
+**Total: ~17,982 rows across 17 tables.**
+
+Audit log rows (~147K) referencing test entities will NOT be deleted — the `audit_log` table is immutable by design.
+
+---
+
+## Deletion Plan
+
+Due to foreign-key-like trigger dependencies and RLS constraints (especially `no_profile_deletes` blocking direct profile deletion), this requires a **migration with a SECURITY DEFINER cleanup function** that executes in the correct dependency order.
+
+### Deletion Order (children first)
+
+```text
+Step 1: Set system_mode = 'backfill' (bypass guards)
+Step 2: Set indigo.canonical_rpc flag (bypass trigger blocks)
+Step 3: Delete from child tables (test fund IDs + test investor IDs):
+   - notifications
+   - risk_alerts
+   - withdrawal_requests
+   - investor_position_snapshots
+   - ib_commission_ledger
+   - ib_allocations
+   - fee_allocations
+   - yield_allocations
+   - fund_daily_aum
+   - platform_fee_ledger (0 rows but include for safety)
+   - investor_fee_schedule
+   - ib_commission_schedule
+   - investor_fund_performance
+   - generated_statements
+   - statement_email_delivery
+   - documents
+Step 4: Delete transactions_v2 (test funds)
+Step 5: Delete yield_distributions (test funds)
+Step 6: Delete investor_positions (test funds/investors)
+Step 7: Delete user_roles for test investor IDs + QA admin
+Step 8: Delete profiles for test investors + QA admin
+        (requires bypassing no_profile_deletes RLS — use service role / SECURITY DEFINER)
+Step 9: Delete 5 TEST funds
+Step 10: Restore system_mode = 'live'
 ```
 
-### Step 3: Fix `integrityService.ts` type-bypass cast
+### Implementation
 
-Add `as any` cast for `"ib_allocation_consistency"` table name in `src/features/admin/system/services/integrityService.ts` (line 24), per the project's established type-bypass pattern.
+A single migration that:
+1. Creates a temporary `_cleanup_test_data()` SECURITY DEFINER function
+2. Executes it
+3. Drops the function immediately after
+4. Returns a summary JSONB of rows deleted per table
 
-### What this does NOT touch
+This mirrors the pattern already used in the codebase (`20260326_temp_fast_wipe.sql`).
 
-- No service logic changes — only re-export shims
-- No component modifications
-- No database changes
-- The existing barrel at `src/services/admin/index.ts` stays as-is
-
-### Risk Assessment
-
-**Zero risk** — every shim is a pure re-export of an already-working module. No runtime behavior changes.
+### Safety Filters
+- Test funds: matched by exact 5 UUIDs (all `TEST-*` codes)
+- Test investors: matched by `id::text LIKE 'a0000001-0000-0000-0000-%'`
+- QA admin: matched by exact UUID `e06a15fb-0c5d-44d8-961a-8d5950715f37`
+- **No production data is touched** — all WHERE clauses are explicit
 
