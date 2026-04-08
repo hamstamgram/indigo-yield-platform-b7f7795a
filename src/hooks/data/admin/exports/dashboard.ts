@@ -17,10 +17,10 @@ export {
   type DeliveryRecord,
   type DeliveryDiagnostics,
   type ExclusionBreakdown,
-} from "@/hooks/data/shared/useDashboardMetrics";
+} from "@/features/admin/dashboard/hooks/useDashboardMetrics";
 
 export {
   useFundsWithAUM,
   useRecentActivities,
   usePendingItems,
-} from "@/hooks/data/shared/useDashboardQueries";
+} from "@/features/admin/dashboard/hooks/useDashboardQueries";

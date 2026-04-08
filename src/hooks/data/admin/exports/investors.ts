@@ -2,7 +2,7 @@
  * Investor-related admin hooks - Re-exports from features/admin
  */
 
-// Shared hooks (still in shared location)
+// Shared hooks (now in feature location)
 export {
   useInvestorDetail,
   useInvestorOpsIndicators,
@@ -17,7 +17,7 @@ export {
   useAdminAssets,
   useDeleteInvestor,
   type AdminInvestorSummary as AdminInvestorListItem,
-} from "@/hooks/data/shared/useInvestorHooks";
+} from "@/features/admin/investors/hooks/useInvestorHooks";
 
 // Admin investor hooks from new location
 export {
