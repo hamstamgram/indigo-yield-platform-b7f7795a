@@ -91,15 +91,19 @@ export async function cancelWithdrawalRequest(requestId: string, reason?: string
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) throw new Error("Not authenticated");
 
-  // Only allow cancelling own pending withdrawals
-  const { error } = await supabase
-    .from("withdrawal_requests")
-    .update({ status: "cancelled", notes: reason ?? "Cancelled by investor" } as any)
-    .eq("id", requestId)
-    .eq("investor_id", user.user.id)
-    .eq("status", "pending" as any);
+  // Use canonical RPC to ensure state machine validation and audit logging
+  const { data, error } = await rpc.call("cancel_withdrawal_by_investor", {
+    p_request_id: requestId,
+    p_investor_id: user.user.id,
+    p_reason: reason ?? "Cancelled by investor",
+  });
 
   if (error) throw error;
+
+  const result = data as { success: boolean; message?: string; error_code?: string } | null;
+  if (result && !result.success) {
+    throw new Error(result.message || "Failed to cancel withdrawal");
+  }
 }
 
 /**
