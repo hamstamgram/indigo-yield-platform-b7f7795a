@@ -28,7 +28,7 @@ export {
 } from "./useInvestorEnrichment";
 
 // Mutations
-export { useDeleteInvestor } from "../admin/useInvestorMutations";
+export { useDeleteInvestor } from "@/features/admin/investors/hooks/useInvestorMutations";
 
 // Re-export types from services (backward compatibility)
 export type {
