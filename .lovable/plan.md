@@ -1,88 +1,26 @@
 
 
-# Full Platform Verification Checklist — Remaining Bugs & Gaps
+# Delete Orphaned Withdrawal Requests
 
-## STATUS OF PREVIOUS FIXES
+## What's happening
 
-The withdrawal state machine bugs (BUGs 1-5) are **FIXED** — `routeToFees`, `rejectWithdrawal`, `restoreWithdrawal`, `deleteWithdrawal`, and `requestsQueueService.rejectWithdrawal` all correctly use RPCs now.
+Two withdrawal requests for investor "Vivie & Liana" are stuck in `completed` status, but every single transaction backing them has already been voided. There is zero financial data leakage — all positions are at 0 and inactive, all allocations are voided, no statements or documents exist.
 
-Database hardening (Phases 1-4) is **DONE** — redundant triggers dropped, `search_path` hardened, views converted to `SECURITY INVOKER`.
+The only cleanup needed is updating these 2 records from `completed` → `cancelled`.
 
-Core integrity views (`v_ledger_reconciliation`, `v_cost_basis_mismatch`, `v_position_transaction_variance`) all return **0 violations**.
+## Why a migration is needed
 
----
+The `trg_guard_withdrawal_state` trigger blocks direct status changes to/from `completed` without the `indigo.canonical_rpc` flag. A migration can bypass this since it runs as the database owner.
 
-## REMAINING ISSUES TO FIX (4 items)
+## Implementation
 
-### 1. `getPerAssetStats` missing `purpose` filter (LATENT BUG)
+**Single migration** that:
 
-**File**: `src/services/shared/performanceService.ts` line 434-437
+1. Sets `indigo.canonical_rpc = 'true'` session flag to bypass the guard trigger
+2. Updates withdrawal request `3f340119-d14c-46d3-8347-cb33a989518d` (the $1,000 one) to `cancelled`
+3. Updates withdrawal request `275d54e2-4cfb-4dc6-803f-ecb8753e62e3` (the $209 one) to `cancelled`
+4. Inserts an audit_log entry documenting the cleanup
+5. Resets the session flag
 
-The query on `investor_fund_performance` does not filter by `purpose = 'reporting'`. For investors this is masked by RLS, but admin views of investor stats (via `useInvestorAssetStats`) would mix transaction-purpose and reporting-purpose rows, potentially showing doubled or conflicting performance data.
-
-**Fix**: Add `.eq("purpose", "reporting")` to the query at line 437.
-
-### 2. Investor transactions service missing `visibility_scope` filter (DEFENSE-IN-DEPTH)
-
-**File**: `src/features/investor/transactions/services/transactionsV2Service.ts` line 45-53
-
-`getByInvestorId` does not filter `visibility_scope = 'investor_visible'`. System transactions (FEE_CREDIT, IB_CREDIT, DUST_SWEEP) marked `admin_only` could leak to investors if RLS is ever relaxed. The overview queries in `useInvestorOverviewQueries.ts` already apply this filter correctly — this service is the gap.
-
-**Fix**: Add `.eq("visibility_scope", "investor_visible")` after the `.eq("is_voided", false)` on line 51.
-
-### 3. `v_missing_withdrawal_transactions` false positives (3 rows)
-
-The view currently returns 3 completed withdrawals as "missing transactions." The view's JOIN looks for `reference_id LIKE 'WDR-%' OR 'dust-sweep-%' OR 'DUST_SWEEP_OUT:%'` but the actual `approve_and_complete_withdrawal` RPC uses a different reference pattern. These are false positives — the transactions exist but don't match the view's pattern.
-
-**Fix**: Update the view to also match the actual reference patterns used by the RPC (e.g., `withdrawal-%` or check by `withdrawal_request_id` in `meta` column instead).
-
-### 4. Statement generation has no empty-data guard
-
-**File**: `src/features/admin/reports/hooks/useAdminStatementsPage.ts` line 67
-
-If `getMonthlyReports` returns empty for a period (no yield distributed that month), the system generates a blank PDF statement without warning the admin.
-
-**Fix**: Before generating, check if reports data is empty and show a warning toast ("No reporting data for this period") instead of producing a blank statement.
-
----
-
-## VERIFIED WORKING — NO ISSUES
-
-These areas have been confirmed functional and correct:
-
-| Area | Status | Details |
-|------|--------|---------|
-| Deposit flow | OK | `apply_investor_transaction` → position created via `recompute_investor_position` |
-| Yield preview | OK | `preview_segmented_yield_distribution_v5` returns per-investor breakdown |
-| Yield apply | OK | `apply_segmented_yield_distribution_v5` → YIELD + FEE_CREDIT + IB_CREDIT transactions → conservation identity checked |
-| Void yield distribution | OK | `void_yield_distribution` cascades to fee_allocations, ib_allocations, platform_fee_ledger, ib_commission_ledger |
-| Partial withdrawal | OK | `approve_and_complete_withdrawal(is_full_exit=false)` → WITHDRAWAL tx → position updated |
-| Full exit + dust | OK | `approve_and_complete_withdrawal(is_full_exit=true)` → crystallize → WITHDRAWAL → DUST_SWEEP → position deactivated |
-| Void completed withdrawal | OK | `void_completed_withdrawal` → voids WITHDRAWAL + DUST_SWEEP → recomputes position |
-| Void & reissue | OK | `void_and_reissue_full_exit` → void → re-activate → new request → re-approve |
-| Reject withdrawal | OK | Now uses `reject_withdrawal` RPC with audit trail |
-| Cancel withdrawal | OK | Uses `void_completed_withdrawal` or `cancel_withdrawal_by_admin_v2` |
-| Restore withdrawal | OK | Uses `restore_withdrawal_by_admin_v2` RPC |
-| Route to fees | OK | Uses `route_withdrawal_to_fees` RPC |
-| Onboarding triggers | OK | `trg_check_duplicate_profile`, `trg_check_email_uniqueness` fire correctly |
-| Ledger sync | OK | `trg_ledger_sync` updates positions on every transaction |
-| State machine guard | OK | `trg_guard_withdrawal_state` blocks non-RPC status changes |
-| Void cascade | OK | `trg_cascade_void_from_transaction` + `trg_recompute_on_void` |
-| Integrity views | OK | All 6 core views return 0 violations |
-| Audit triggers | OK | Deduped — no more triple-logging |
-| Security hardening | OK | `search_path` set on all SECURITY DEFINER functions |
-| `include_in_reporting` | NOT USED | Field exists but no code queries it — safe to ignore for now |
-
----
-
-## IMPLEMENTATION
-
-All 4 fixes are small, low-risk changes:
-
-1. **performanceService.ts** — 1-line filter addition
-2. **transactionsV2Service.ts** — 1-line filter addition
-3. **Migration SQL** — Recreate `v_missing_withdrawal_transactions` with correct reference patterns
-4. **useAdminStatementsPage.ts** — Add empty-data guard before PDF generation
-
-Estimated effort: ~20 minutes total.
+**Post-migration verification**: Query `v_missing_withdrawal_transactions` — should return 0 rows, confirming zero orphans remain platform-wide.
 
