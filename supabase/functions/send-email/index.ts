@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { sendEmailRequestSchema, parseAndValidate } from "../_shared/validation.ts";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -52,22 +53,14 @@ serve(async (req) => {
       });
     }
 
-    // Check if user is an admin
-    const { data: profile, error: profileError } = await supabaseAuth
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile?.is_admin) {
+    // Check if user is admin via user_roles table (secure method)
+    const adminCheck = await checkAdminAccess(supabaseAuth, user.id);
+    if (!adminCheck.isAdmin) {
       console.error("[send-email] Non-admin attempted to send email:", user.email);
-      return new Response(JSON.stringify({ error: "Admin access required to send emails" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return createAdminDeniedResponse(corsHeaders);
     }
 
-    console.log("[send-email] Admin authorized:", user.email);
+    console.log("[send-email] Admin authorized:", adminCheck.email || user.email);
 
     // Validate request body
     const validation = await parseAndValidate(req, sendEmailRequestSchema, corsHeaders);
