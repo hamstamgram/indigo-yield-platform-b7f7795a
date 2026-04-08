@@ -180,7 +180,43 @@ The master E2E test suite (`tests/e2e/golive-lifecycle.spec.ts`) covers the foll
 
 ---
 
-## 6. Operational Readiness
+## 6. Go-Live Day Corrections (2026-04-08)
+
+### 6.1 Indigo Fees SOL Over-Credit Fix
+
+| Metric | Before | After |
+|---|---|---|
+| Indigo Fees SOL position | 10.9763 | **9.3316** ✅ |
+| Compensating transaction | — | `DUST_SWEEP` debit of -1.6446385727 |
+| Reference ID | — | `reconcile-dust-fees-sol-2026-04-08` |
+
+**Root cause**: During void+reissue of Indigo LP SOL withdrawal, the original DUST_SWEEP credit to fees_account was not reversed. Reissue added another credit, resulting in 2x credit. Fixed with compensating debit + ledger recompute.
+
+### 6.2 AUM Refresh
+
+| Fund | Previous Latest | Refreshed To | AUM |
+|---|---|---|---|
+| IND-SOL | 2026-02-28 | **2026-04-08** ✅ | 1,326.36 |
+| IND-USDT | 2026-03-24 | **2026-04-08** ✅ | 994,196.90 |
+
+### 6.3 Statement Period Cleanup
+
+All 4 orphan DRAFT periods finalized (all had generated statements/performance data):
+
+| Period | Status |
+|---|---|
+| November 2024 | ✅ FINALIZED |
+| November 2025 | ✅ FINALIZED |
+| December 2025 | ✅ FINALIZED |
+| January 2026 | ✅ FINALIZED |
+
+### 6.4 Leakage Audit
+
+The `audit_leakage_report()` function is available via the `audit-leakage` edge function (admin-authenticated). Must return `overall_status: "pass"` before final sign-off.
+
+---
+
+## 7. Operational Readiness
 
 | Item | Status |
 |---|---|
@@ -191,10 +227,12 @@ The master E2E test suite (`tests/e2e/golive-lifecycle.spec.ts`) covers the foll
 | Disaster recovery docs | ✅ `docs/DISASTER_RECOVERY.md` |
 | Sentry error monitoring | ✅ DSN configured |
 | PostHog analytics | ✅ Configured |
+| Leakage audit endpoint | ✅ `audit-leakage` edge function deployed |
+| Post-launch tech debt | ✅ Documented in `docs/POST_LAUNCH_TECH_DEBT.md` |
 
 ---
 
-## 7. Sign-Off
+## 8. Sign-Off
 
 | Role | Name | Date | Signature |
 |---|---|---|---|
