@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, memo } from "react";
-import { parseFinancial } from "@/utils/formatters";
+import { parseFinancial } from "@/utils/financial";
 import {
   Card,
   CardContent,
