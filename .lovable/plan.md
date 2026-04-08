@@ -1,54 +1,42 @@
 
 
-# Fix 3 Integrity Check Failures
+# Fix: Dust Credit to Indigo Fees Not Voided on Withdrawal Void
 
-## Root Cause Analysis
+## Root Cause
 
-### Failure 1: `audit_log_for_distributions` — 36 violations (FALSE POSITIVE)
-The check looks for audit_log rows where `action ILIKE '%yield%' OR action ILIKE '%adb%'`, but the actual audit entries use actions `INSERT`, `DELTA_UPDATE`, `DELETE` with entity `yield_distributions`. The action filter never matches, so all 36 non-voided distributions appear as violations. This is a bug in the check logic, not missing data.
+The `void_completed_withdrawal` RPC filters voided transactions with:
+```sql
+WHERE investor_id = v_request.investor_id  -- Only matches the withdrawing investor
+  AND type IN ('WITHDRAWAL', 'DUST_SWEEP')
+```
 
-**Fix:** Change the check to look for `entity = 'yield_distributions'` OR `action ILIKE '%yield%'` — matching the actual audit pattern.
+The DUST_SWEEP credit to **Indigo Fees** has `investor_id = b464a3f7` (the fees system account), not the withdrawing investor. So it's never matched and never voided.
 
-### Failure 2: `no_invalid_admin_accounts` — 1 violation (FALSE POSITIVE)
-The check flags profiles where `is_admin=true AND account_type != 'investor'`. The violation is `fees@indigo.fund` — the platform fees system account which legitimately has `is_admin=true` + `account_type='fees_account'`. The archived fix at `20260228_comprehensive_integrity_fixes.sql` already had the correct version (`NOT IN ('investor', 'fees_account')`) but the live baseline still uses the old version.
+The investor's dust-sweep debit IS voided (same investor_id), but the corresponding credit to Indigo Fees is left behind — creating a position drift on the fees account.
 
-**Fix:** Exclude `fees_account` from the check: `account_type NOT IN ('investor', 'fees_account')`.
+## Fix
 
-### Failure 3: `no_orphan_auth_users` — 309 violations (REAL but LOW PRIORITY)
-309 `auth.users` rows have no matching `profiles` row — 45 are test users (`test.*@indigo.fund`), 264 are from signups that never completed onboarding. This is real orphan data but not a security or integrity risk. Rather than cleaning 309 auth records (destructive), the check should be downgraded to informational or filtered to exclude known test patterns.
+One migration to `CREATE OR REPLACE FUNCTION void_completed_withdrawal` that adds a second UPDATE to void dust credits on the fees account:
 
-**Fix:** Exclude test users (`email LIKE 'test.%'`) from the violation count, and change the check severity to `warning` rather than `fail` when count > 0 but all are non-recent (older than 7 days).
+```sql
+-- Void dust credits to Indigo Fees for this withdrawal
+UPDATE transactions_v2
+SET is_voided = true, voided_by_profile_id = v_admin_id, voided_at = NOW(),
+    void_reason = p_reason
+WHERE type = 'DUST_SWEEP'
+  AND fund_id = v_request.fund_id
+  AND is_voided = false
+  AND investor_id != v_request.investor_id  -- Fees account
+  AND reference_id LIKE 'dust-credit-' || p_withdrawal_id::text || '%';
+```
 
-## Implementation: Single Migration
+This mirrors the pattern already used in `void_transaction` and `cancel_withdrawal_by_admin`, which both handle the fees-side dust credit correctly.
 
-One `CREATE OR REPLACE FUNCTION run_invariant_checks()` migration that patches all 3 checks:
+## Immediate Data Fix
 
-1. **Check 13** (`audit_log_for_distributions`): Change WHERE clause to:
-   ```sql
-   AND NOT EXISTS (
-     SELECT 1 FROM audit_log al
-     WHERE al.entity_id = yd.id::text
-       AND (al.entity = 'yield_distributions' OR al.action ILIKE '%yield%' OR al.action ILIKE '%adb%')
-   )
-   ```
+Also void the orphaned dust credit `2cbbd551` from the current incident, and recompute the Indigo Fees position.
 
-2. **Check 15** (`no_invalid_admin_accounts`): Change WHERE clause to:
-   ```sql
-   FROM profiles WHERE is_admin=true AND account_type IS NOT NULL 
-     AND account_type NOT IN ('investor', 'fees_account')
-   ```
-
-3. **Check 16** (`no_orphan_auth_users`): Exclude test users:
-   ```sql
-   WHERE p.id IS NULL AND au.email NOT LIKE 'test.%@%'
-   ```
-
-The migration will rebuild the entire `run_invariant_checks()` function with these 3 fixes while preserving all other checks unchanged.
-
-## Expected Result After Migration
-- `audit_log_for_distributions`: 0 violations (PASS)
-- `no_invalid_admin_accounts`: 0 violations (PASS)
-- `no_orphan_auth_users`: ~264 violations → informational, but could still flag — team can decide whether to clean up orphan auth records separately
-
-## No Frontend Changes Needed
+## Scope
+- 1 migration (RPC rebuild + data fix)
+- No frontend changes
 
