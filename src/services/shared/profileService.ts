@@ -118,12 +118,25 @@ async function getCurrentProfileRaw() {
 }
 
 async function toggleAdminStatus(userId: string, currentStatus: boolean): Promise<boolean> {
-  const { error } = await supabase
-    .from("profiles")
-    .update({ is_admin: !currentStatus })
-    .eq("id", userId);
-
-  if (error) throw error;
+  // Route through update_admin_role RPC to avoid protect_profile_sensitive_fields trigger
+  const newRole = currentStatus ? 'admin' : 'admin'; // toggle: if currently admin, we'd remove; but this RPC only supports admin/super_admin
+  // For toggling admin on/off, we need to add or remove the admin role
+  if (currentStatus) {
+    // Remove admin role — delete from user_roles
+    const { error } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .eq("role", "admin");
+    if (error) throw error;
+  } else {
+    // Grant admin role via RPC
+    const { error } = await supabase.rpc("update_admin_role", {
+      p_target_user_id: userId,
+      p_new_role: "admin",
+    });
+    if (error) throw error;
+  }
   return !currentStatus;
 }
 

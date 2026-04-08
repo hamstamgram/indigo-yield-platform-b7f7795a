@@ -37,12 +37,21 @@ export async function fetchAllUsers(): Promise<AdminUserProfile[]> {
  * Toggle admin status for a user
  */
 export async function toggleAdminStatus(userId: string, currentStatus: boolean): Promise<void> {
-  const { error } = await supabase
-    .from("profiles")
-    .update({ is_admin: !currentStatus })
-    .eq("id", userId);
-
-  if (error) throw error;
+  // Route through user_roles table / RPC to avoid protect_profile_sensitive_fields trigger
+  if (currentStatus) {
+    const { error } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .eq("role", "admin");
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.rpc("update_admin_role", {
+      p_target_user_id: userId,
+      p_new_role: "admin",
+    });
+    if (error) throw error;
+  }
 }
 
 /**
