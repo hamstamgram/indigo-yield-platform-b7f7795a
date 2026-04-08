@@ -1,133 +1,81 @@
 
 
-# Go-Live Gate Plan — Indigo Yield Platform
+# Remediation Plan: P0 Blockers + P1 Fixes
 
-Based on the completed audit roadmap (all 10 issues fixed, 8 migrations applied), this plan defines a staged gate process from pre-launch validation through production go-live.
+## P0-NEW-1: Backfill 6 investors missing `user_roles` rows
 
----
+**Problem:** 6 real investors (confirmed via live query) have no `user_roles` entry. Any RLS path using `has_role()` silently excludes them.
 
-## Gate 0: Audit Closure & Baseline Lock
+**Fix:** Migration that inserts `user` role for all profiles that lack a `user_roles` row:
 
-**Goal:** Confirm all remediation work is applied and nothing has regressed.
-
-**Tasks:**
-1. Run the full integrity suite against the live database:
-   - `run_invariant_checks()` — position-ledger drift, negative balances, orphans
-   - `audit_leakage_report()` — asymmetric voids, fee leakage, IB leakage
-   - `run_comprehensive_health_check()` — all 13 health checks
-2. Verify all 8 migrations are applied (query `supabase_migrations` table)
-3. Verify `anon` role has EXECUTE on only the whitelisted ~15 functions (not 200+)
-4. Verify all 4 edge functions (`set-user-password`, `send-email`, `excel_import`, `send-investor-report`) use `checkAdminAccess()` — grep for `profiles.is_admin` should return zero hits in edge function code
-5. Verify `profiles` UPDATE policy blocks sensitive fields — attempt `UPDATE profiles SET is_admin = true` as a non-admin (should fail)
-6. Verify `system_config` has no public SELECT — query as authenticated non-admin (should return 0 rows)
-7. Produce a signed-off Gate 0 report in `docs/gates/gate-0-report.md`
-
-**Sign-off:** CTO + CFO
+```sql
+INSERT INTO public.user_roles (user_id, role)
+SELECT p.id, 'user'::app_role
+FROM profiles p
+LEFT JOIN user_roles ur ON ur.user_id = p.id
+WHERE ur.id IS NULL
+  AND p.is_system_account = false
+ON CONFLICT (user_id, role) DO NOTHING;
+```
 
 ---
 
-## Gate 1: Functional Smoke Tests
+## P0-NEW-2: `audit_leakage_report()` uncallable by service_role
 
-**Goal:** Confirm all critical user journeys work end-to-end after the security tightening.
+**Problem:** Function starts with `IF NOT public.is_admin() THEN RAISE EXCEPTION`. `is_admin()` checks `auth.uid()` which is NULL for service_role/cron/edge callers. Same issue exists in `run_invariant_checks()`.
 
-**Tasks:**
-1. **Investor flows:**
-   - Login → dashboard loads with correct portfolio data
-   - View transactions, yield history, statements
-   - Submit a withdrawal request → verify state machine works
-   - Cancel own withdrawal
-   - Update profile (allowed fields only: name, phone, avatar)
-   - Attempt to update restricted fields (should be blocked)
-2. **Admin flows:**
-   - Login → admin dashboard loads with stats
-   - Create manual transaction (deposit/withdrawal)
-   - Process yield distribution (preview → apply)
-   - Void a transaction → verify cascade
-   - Approve/reject/complete a withdrawal
-   - Import Excel data
-   - Generate and send investor reports
-   - Manage users (invite, set password, assign roles)
-3. **Auth & RBAC:**
-   - Non-admin cannot access `/admin/*` routes
-   - Non-admin RPC calls to admin functions return UNAUTHORIZED
-   - Unauthenticated (anon) calls to mutation RPCs are rejected
-4. **Edge functions:**
-   - `send-email` — send test email as admin, verify non-admin is rejected
-   - `excel_import` — upload test file as admin
-   - `set-user-password` — reset a test user password
-   - `send-investor-report` — send to a test investor
-5. Document results in `docs/gates/gate-1-report.md`
+**Fix:** Rewrite the guard in both functions to allow service_role bypass:
 
-**Sign-off:** CTO
+```sql
+IF current_user NOT IN ('postgres','supabase_admin')
+   AND NOT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user)
+   AND NOT public.is_admin()
+THEN
+  RAISE EXCEPTION 'UNAUTHORIZED: Admin access required';
+END IF;
+```
+
+This preserves the admin check for normal users while allowing cron/service_role callers through.
 
 ---
 
-## Gate 2: Financial Integrity Validation
+## P1-1: `toggleAdminStatus` writes `profiles.is_admin` directly
 
-**Goal:** CFO confirms all financial data is accurate and the ledger is sound.
+**Problem:** Two functions in the codebase do `.update({ is_admin: !currentStatus })` on profiles — this will now throw against the `protect_profile_sensitive_fields` trigger.
 
-**Tasks:**
-1. Run `batch_reconcile_all_positions()` — confirm 0 drift
-2. Cross-check AUM totals: `get_funds_aum_snapshot()` vs sum of `investor_positions` where `is_active = true`
-3. Verify fee conservation: for each yield distribution, `total_amount = investor_amount + platform_fee + ib_commission`
-4. Verify the voided distribution `63b032b8` shows as voided in all related tables (transactions, fee_allocations, yield_allocations)
-5. Spot-check 3 investor accounts: compare dashboard figures against raw ledger queries
-6. Run `create_daily_position_snapshot()` and verify snapshot matches current positions
-7. Document in `docs/gates/gate-2-report.md`
+**Files to fix:**
+- `src/services/shared/profileService.ts` line 120-128
+- `src/features/admin/investors/services/adminUsersService.ts` lines 39-46
 
-**Sign-off:** CFO + CTO
+**Fix:** Replace both with an RPC call to `update_admin_role` (already exists in DB). The function should call `supabase.rpc('update_admin_role', { target_user_id, new_role })` instead of direct profile update.
 
 ---
 
-## Gate 3: Performance & Monitoring Readiness
+## P1-2: Drop 4 duplicate indexes
 
-**Goal:** Confirm the platform can handle production load and has proper observability.
+**Confirmed duplicates from live query:**
 
-**Tasks:**
-1. Verify all 68 triggers are enabled (`SELECT count(*) FROM information_schema.triggers WHERE trigger_schema = 'public'`)
-2. Confirm `integrity-monitor` edge function (cron) is deployed and running nightly
-3. Confirm `monthly-report-scheduler` cron is active
-4. Check that `admin_alerts` and `admin_integrity_runs` tables are receiving data
-5. Review Supabase dashboard: connection pool usage, query performance, storage size
-6. Verify audit log is healthy (~32 MB, not growing uncontrollably)
-7. Test the admin Operations page (`/admin/operations`) — health checks, integrity runs display correctly
-8. Document in `docs/gates/gate-3-report.md`
+| Keep | Drop | Table |
+|------|------|-------|
+| `idx_transactions_v2_fund_date` (fund_id, tx_date DESC) | `idx_tx_v2_fund_date` (identical) | transactions_v2 |
+| `idx_transactions_v2_reference_id_fund_unique` (fund_id, reference_id) | `idx_transactions_v2_reference_unique` (reference_id only — subset) | transactions_v2 |
+| `idx_positions_fund_active` (fund_id, is_active) partial | `idx_investor_positions_fund` (fund_id only — subset) | investor_positions |
+| `idx_fee_allocations_distribution` | `idx_fee_alloc_distribution` (identical) | fee_allocations |
 
-**Sign-off:** CTO
+**Fix:** Single migration with 4 `DROP INDEX IF EXISTS` statements.
 
 ---
 
-## Gate 4: Go-Live Authorization
+## P1-3 & P1-4: RLS performance warnings
 
-**Goal:** Final sign-off with all gate reports collected.
-
-**Tasks:**
-1. Compile all gate reports into `docs/gates/go-live-authorization.md`
-2. Checklist summary:
-
-| Gate | Status | Signed By |
-|------|--------|-----------|
-| Gate 0: Audit Closure | Pending | CTO + CFO |
-| Gate 1: Functional Smoke | Pending | CTO |
-| Gate 2: Financial Integrity | Pending | CFO + CTO |
-| Gate 3: Performance & Monitoring | Pending | CTO |
-| Gate 4: Go-Live Authorization | Pending | CTO + CFO |
-
-3. Record go-live date and any conditional items
-4. Publish to production domain
-
-**Sign-off:** CTO + CFO
+Deferred — these are optimization items (auth_rls_initplan wrapping, policy consolidation) that don't block go-live. Can be addressed in Gate 2.
 
 ---
 
-## Implementation
+## Implementation Order
 
-This plan creates:
-- `docs/gates/gate-0-report.md` — template with all verification queries and pass/fail fields
-- `docs/gates/gate-1-report.md` — functional test checklist
-- `docs/gates/gate-2-report.md` — financial validation checklist
-- `docs/gates/gate-3-report.md` — performance and monitoring checklist
-- `docs/gates/go-live-authorization.md` — consolidated sign-off document
-
-For Gate 0, we will also run the actual database verification queries and populate the report with live results.
+1. **Migration A** — Backfill user_roles + fix ensure_admin/audit_leakage_report/run_invariant_checks service_role bypass
+2. **Migration B** — Drop 4 duplicate indexes
+3. **Code fix** — Rewrite `toggleAdminStatus` in both services to use `update_admin_role` RPC
+4. **Update gate-0-report.md** — Mark P0-NEW-1 and P0-NEW-2 as resolved
 
