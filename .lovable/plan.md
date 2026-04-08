@@ -1,153 +1,123 @@
 
-# Full Platform Audit — CFO/CTO Go-Live Readiness Report
 
-## Executive Summary
+# Performance Audit — Findings & Recommendations
 
-Live database verification completed across all 5 active funds and 35 non-voided distributions. The yield engine is mathematically sound. All integrity checks pass. The data gaps in BTC/ETH/USDT are confirmed as manual data-entry freezes, not engine defects.
+## Critical Issues
 
----
+### 1. `useAdminStats` bypasses React Query — causes duplicate fetches & no cache sharing
 
-## Layer 1: Core Integrity Suite
+**File:** `src/features/admin/shared/hooks/useAdminStats.ts`
 
-| Check | Source | Result |
-|-------|--------|--------|
-| `audit_leakage_report()` | Live RPC | **PASS** — 0 asymmetric voids, 0 negative cost_basis, 0 fee leaks, 0 IB leaks |
-| `run_invariant_checks()` | Live RPC | **14/15 PASS** — 1 info-only (264 orphan test auth.users) |
-| `v_ledger_reconciliation` | Live view | **0 drift rows** — every position matches its ledger |
-| `v_orphaned_transactions` | Live view | **0 rows** |
-| `v_cost_basis_mismatch` | Live view | **0 rows** |
-| `v_missing_withdrawal_transactions` | Live view | **4 rows** — all Sam Johnson / IND-XRP (see Layer 6) |
+This hook uses raw `useState`/`useEffect` instead of `useQuery`. Every component that calls `useAdminStats()` creates an independent fetch + realtime subscription. Currently called from both `AdminDashboard` and `UnifiedInvestorsPage` — meaning two parallel Supabase realtime channels and two independent RPC calls to `get_admin_stats` on every navigation between those pages.
 
-**CFO verdict: PASS**
+**Fix:** Convert to `useQuery` with a stable query key. The realtime subscription should invalidate the query cache instead of calling `loadStats()` directly. This eliminates duplicate fetches and shares cache across pages.
 
 ---
 
-## Layer 2: Position Health (All Funds)
+### 2. Triple admin role check on every protected page load
 
-| Fund | Positions | Negative Value | Negative Cost Basis | Negative Shares | Inactive w/ Balance | Total AUM |
-|------|-----------|---------------|--------------------|-----------------|--------------------|-----------|
-| IND-BTC | 8 | 0 | 0 | 0 | 0 | 10.34 BTC |
-| IND-ETH | 9 | 0 | 0 | 0 | 0 | 310.45 ETH |
-| IND-SOL | 8 | 0 | 0 | 0 | 0 | 1,326.36 SOL |
-| IND-USDT | 9 | 0 | 0 | 0 | 0 | 994,196.90 USDT |
-| IND-XRP | 3 | 0 | 0 | 0 | 0 | 330,922.52 XRP |
+On every authenticated page load, the user's admin status is checked **three separate times** via different mechanisms:
 
-**Zero anomalies across 37 positions. CFO verdict: PASS**
+1. **AuthProvider** (`context.tsx:139`) — queries `user_roles` table directly
+2. **useUserRole** (`useUserRole.ts:52`) — queries `user_roles` table via React Query
+3. **DashboardLayout** (`DashboardLayout.tsx:32-33`) — calls both `useAuth()` AND `useUserRole()`
 
----
+The AuthProvider fetch (#1) is a raw Supabase query with no caching. useUserRole (#2) uses React Query with 5-min staleTime, which is good. But both fire on initial load, creating 2 network round-trips for the same data.
 
-## Layer 3: Fee Conservation (Gross = Investor Net + Fees + IB)
-
-Verified for all 34 non-voided distributions with non-zero gross yield:
-
-**Conservation error = 0.000000000000 for every single distribution.**
-
-The Indigo Fees system account earns yield on its own accumulated position (e.g., 2.4 XRP yield on IND-XRP Jan 2026). This is correctly separate from the distribution gross — it represents fund returns on the platform's own capital, not a conservation violation.
-
-**CFO verdict: PASS**
+**Fix:** Remove the direct `user_roles` query from AuthProvider. Let `useUserRole` be the single source of truth for role data (it already has caching). AuthProvider should only handle session/profile data.
 
 ---
 
-## Layer 4: Void Cascade Integrity
+### 3. `useUnifiedInvestors` — 8 parallel Supabase queries in one `queryFn` (waterfall risk)
 
-| Check | Violations |
-|-------|-----------|
-| Non-voided transactions linked to voided distributions | **0** |
-| Non-voided fee_allocations linked to voided distributions | **0** |
-| Non-voided ib_commission_ledger linked to voided distributions | **0** |
+**File:** `src/features/admin/investors/hooks/useInvestorEnrichment.ts`
 
-**All void cascades are complete. CTO verdict: PASS**
+The `queryFn` fires 4 initial queries, then 4 more enrichment queries sequentially. While the enrichment uses `Promise.all` (good), the entire 8-query batch is treated as one cache entry with a 30s staleTime — meaning ALL 8 queries re-fire on every stale check, even if only one piece of data changed.
+
+**Fix:** Split into separate `useQuery` hooks so individual parts can be cached and invalidated independently. The enrichment step can use `useQuery` with `select` or be a dependent query.
 
 ---
 
-## Layer 5: Distribution Timeline & Date Logic
+### 4. PostHog initialized twice
 
-All `month_end` distributions correctly end on calendar month-end dates. All `transaction` distributions (crystallization checkpoints) correctly use the actual transaction date. Distribution types are properly separated — `transaction` type is excluded from reporting/KPI paths per the V5 engine spec.
+**Files:** `src/main.tsx:22` and `src/App.tsx:77`
 
-| Fund | Reporting Dists | Transaction Dists | First Period | Last Period |
-|------|----------------|-------------------|--------------|-------------|
-| IND-BTC | 8 | 3 | 2024-07-01 | 2025-02-28 |
-| IND-ETH | 3 | 2 | 2025-05-01 | 2025-07-31 |
-| IND-SOL | 5 | 8 | 2025-09-01 | 2026-02-28 |
-| IND-USDT | 1 | 1 | 2025-06-01 | 2025-07-14 |
-| IND-XRP | 3 | 1 | 2025-11-01 | 2026-01-31 |
+`initPostHog()` is called both in `main.tsx` (before render) and inside `App` component (via `useEffect`). The function has an `isInitialized` guard so it's not a functional bug, but it's unnecessary work on every `App` mount.
 
-**CTO verdict: PASS**
+**Fix:** Remove the `initPostHog()` call from `App.tsx` — the one in `main.tsx` is sufficient.
 
 ---
 
-## Layer 6: Known Non-Blocking Items
+## Moderate Issues
 
-### 6a. `v_missing_withdrawal_transactions` — 4 rows (Sam Johnson / IND-XRP)
+### 5. No `React.memo` usage anywhere in the codebase
 
-Four completed withdrawal requests for Sam Johnson on IND-XRP have no matching WITHDRAWAL transaction. These appear to be test withdrawals (3 processed today 2026-04-08, 1 on 2026-03-20). They were likely processed via a direct flow that didn't create a standard withdrawal transaction, or the withdrawal transactions use a reference pattern not yet covered by the view filter.
+Zero components use `React.memo`. While `useMemo`/`useCallback` are used in 40+ files (good), expensive child components like `LiquidityRiskPanel`, `ConcentrationRiskPanel`, `FundSnapshotCard`, and list item rows re-render on every parent state change (e.g., toggling a dialog or typing in a search box).
 
-**Recommendation:** Investigate whether these are test operations. If real, create corrective WITHDRAWAL transactions. Not a financial integrity issue — positions and ledger already reconcile at 0 drift.
-
-### 6b. Orphan auth.users — 264 test accounts
-
-All are automated test accounts (`dummy*@test.com`, `neg*@expert.com`, etc.). Only 4 real orphans exist:
-- `h.monoja@gmail.com` — likely incomplete signup
-- `qa.admin@indigo.fund` — QA account
-- `hl.monoja@gmail.com` — likely incomplete signup
-- `hammadou@indigo.fund` — admin without profile
-
-**Recommendation:** Create profiles for the 2 `@indigo.fund` accounts. The 2 Gmail accounts can be cleaned up post-launch.
-
-### 6c. Anon EXECUTE Permissions — Still Open
-
-259/288 functions executable by `anon` role. Needs `ALTER DEFAULT PRIVILEGES` fix. This is the **only remaining Gate 0 blocker**.
+**Fix:** Add `React.memo` to pure presentational components, especially:
+- `FundSnapshotCard`
+- `MetricStrip`
+- Risk panel components
+- Table row components in investor lists
 
 ---
 
-## Layer 7: RLS & Security
+### 6. Heavy PDF/chart libraries in main bundle chunk
 
-| Check | Status |
-|-------|--------|
-| All tables have RLS enabled | **PASS** (0 tables without RLS) |
-| Supabase linter warnings | **0** (auth_rls_initplan + multiple_permissive all fixed) |
-| All 28 views use `security_invoker = true` | **PASS** |
-| Profile sensitive fields trigger | **Active** |
-| Edge function auth (11 functions) | **All use checkAdminAccess()** |
+`jspdf`, `html2canvas`, and `jspdf-autotable` are in a `pdf` manual chunk — but they're statically imported in `src/lib/pdf/chart-export.ts`. If any component in the main tree imports from that module, Vite may still include it in the initial load graph.
+
+**Fix:** Ensure all PDF/chart-export imports use dynamic `import()` so the ~200KB+ PDF chunk is only loaded when a user actually generates a report.
 
 ---
 
-## Layer 8: Engine Correctness — Proven by SOL
+### 7. 16 font weight files loaded on initial page load
 
-IND-SOL is current to 2026-02-28 with 13 distributions (5 reporting, 8 transaction checkpoints). The Excel audit script confirms **exact per-investor match** for SOL. This proves:
-- Time-weighted tenure allocation works correctly
-- Crystallization (pre-flow snapshots) works correctly  
-- Fee deduction and FEE_CREDIT round-trip works correctly
-- Dust sweep handling works correctly
-- The V5 engine (`flat_position_proportional_v6`) is mathematically sound
+`main.tsx` imports 16 CSS files for 3 font families × 4 weights each. Each weight file includes WOFF2 assets. Most pages only need Inter 400/600 and JetBrains Mono 400.
 
-The older funds (BTC stopped Feb 2025, ETH stopped Jul 2025, USDT stopped Jul 2025) carry pre-fix artifacts from before the dust-sweep over-credit and Indigo Fees SOL over-credit fixes were applied. These are **data-entry gaps, not engine bugs**.
+**Fix:** Reduce to essential weights (Inter 400, 500, 600, 700; Montserrat 700 only; JetBrains Mono 400). Lazy-load the rest via `@font-face` with `font-display: swap` or dynamic imports.
 
 ---
 
-## Go-Live Readiness Summary
+### 8. `MemoryCache` runs a global `setInterval` forever
 
-| Gate | Status | Blocker? |
-|------|--------|----------|
-| Financial conservation (all distributions) | **PASS** | No |
-| Position-ledger reconciliation | **PASS** | No |
-| Void cascade integrity | **PASS** | No |
-| Leakage audit | **PASS** | No |
-| Invariant checks (14/15) | **PASS** (1 info-only) | No |
-| Position health (37 positions) | **PASS** | No |
-| RLS + security posture | **PASS** | No |
-| Engine math (SOL proof) | **PASS** | No |
-| Missing XRP withdrawal txns (4) | **INFO** | No |
-| Anon EXECUTE permissions | **OPEN** | **Yes — last blocker** |
+**File:** `src/utils/performance/caching.ts:188`
 
-### Recommended Go-Live Path
+A `setInterval` runs every 5 minutes to clean up the `MemoryCache`, even if it's empty. This is a minor issue but adds unnecessary wake-ups.
 
-1. **Fix anon EXECUTE** — `ALTER DEFAULT PRIVILEGES` + re-REVOKE (migration, ~10 min)
-2. **Backfill frozen funds** — Re-enter distributions from Excel for BTC (Mar 2025+), ETH (Aug 2025+), USDT (Aug 2025+) using `apply_segmented_yield_distribution_v5`
-3. **Spot-reconcile** — After each backfill month, verify per-investor amounts against Excel
-4. **No engine code changes needed** — the engine is not broken
+**Fix:** Use a lazy cleanup strategy — run cleanup on `get()` calls instead of on a timer. Or start the interval only when the cache has entries.
 
-### Sign-Off
+---
 
-- **CTO:** All technical checks pass. Engine verified via SOL parity. Security posture clean except anon EXECUTE (fixable in one migration).
-- **CFO:** Zero financial conservation errors across 34 distributions and 5 funds. Every position matches its ledger with 0 drift. Fee/IB deductions verified to 18 decimal places. Safe to proceed once anon permissions are locked down and frozen fund data is backfilled.
+### 9. AdminDashboard is a 500-line monolith with 10+ hooks
+
+**File:** `src/features/admin/dashboard/pages/AdminDashboard.tsx`
+
+This page renders yield dialogs, transaction dialogs, risk panels, fund pickers, and metric strips all inline. Every state change (e.g., opening a dialog) triggers a re-render of the entire tree including all risk panels and charts.
+
+**Fix:** Extract dialog components (`YieldOperationsDialogs`, `AddTransactionSection`) into separate components that own their own state. This isolates re-renders to only the dialog being interacted with.
+
+---
+
+### 10. `exceljs` and `pdfjs-dist` are production dependencies
+
+These large libraries (~500KB+ combined) are in `dependencies` rather than being dynamically imported. If any module in the import tree references them statically, they'll be included in the initial bundle.
+
+**Fix:** Verify these are only used via dynamic `import()`. If not, convert their consumers to use `React.lazy` or dynamic imports.
+
+---
+
+## Summary Priority List
+
+| # | Issue | Impact | Effort |
+|---|-------|--------|--------|
+| 1 | `useAdminStats` bypasses React Query | High — duplicate fetches + channels | Low |
+| 2 | Triple admin role check | Medium — 2 extra queries per page load | Low |
+| 3 | `useUnifiedInvestors` 8-query monolith | Medium — cache thrashing | Medium |
+| 4 | Double PostHog init | Low — guarded but wasteful | Trivial |
+| 5 | No `React.memo` on heavy components | Medium — unnecessary re-renders | Medium |
+| 6 | PDF libs in static import graph | Medium — bundle size | Low |
+| 7 | 16 font files on initial load | Low-Medium — LCP impact | Low |
+| 8 | Global `setInterval` for empty cache | Low | Trivial |
+| 9 | AdminDashboard monolith re-renders | Medium — UX jank on interactions | Medium |
+| 10 | Large libs as static dependencies | Medium — bundle size | Low |
+
