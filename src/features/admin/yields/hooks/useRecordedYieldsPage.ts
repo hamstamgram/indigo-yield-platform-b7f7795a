@@ -5,12 +5,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import {
-  getYieldRecords,
-  voidYieldDistribution,
-  type YieldRecord,
-  type YieldFilters,
-} from "@/services/admin";
+import { getYieldRecords, type YieldRecord, type YieldFilters } from "@/features/admin/yields/services/recordedYieldsService";
+import { voidYieldDistribution } from "@/features/admin/yields/services/yields/yieldManagementService";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 
