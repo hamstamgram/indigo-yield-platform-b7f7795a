@@ -66,6 +66,10 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
 
       const reports = await profileService.getMonthlyReports(params.investorId, reportMonth);
 
+      if (!reports || reports.length === 0) {
+        throw new Error("No reporting data found for this period. Please ensure yield has been distributed before generating a statement.");
+      }
+
       const statementData = {
         investor: { name: investorName, id: params.investorId },
         period: {
