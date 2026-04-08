@@ -4361,6 +4361,18 @@ export type Database = {
           },
         ]
       }
+      v_audit_summary: {
+        Row: {
+          asymmetric_void_count: number | null
+          audit_timestamp: string | null
+          fee_leakage_count: number | null
+          ib_leakage_count: number | null
+          negative_cost_basis_count: number | null
+          status: string | null
+          total_issues: number | null
+        }
+        Relationships: []
+      }
       v_concentration_risk: {
         Row: {
           account_type: string | null
@@ -5727,6 +5739,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      audit_leakage_report: { Args: never; Returns: Json }
       backfill_balance_chain_fix: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: Json
