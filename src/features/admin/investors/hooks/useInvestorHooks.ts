@@ -38,6 +38,6 @@ export type {
   InvestorDetailData,
   OpsIndicators,
   InvestorPositionsData,
-  AdminInvestorPosition as InvestorPosition,
-  AdminInvestorPosition,
+  InvestorPosition,
+  InvestorPosition as AdminInvestorPosition,
 } from "@/features/admin/investors/services/investorDetailService";

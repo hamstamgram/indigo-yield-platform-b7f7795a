@@ -6,9 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { updateInvestorStatus } from "@/features/admin/investors/services/adminService";
-import { cleanupInactiveInvestors, getPendingWithdrawalsCount, type CleanupResult } from "@/features/admin/investors/services/investorLifecycleService";
+import { cleanupInactiveInvestors, getPendingWithdrawalsCount, type CleanupResult, type InvestorStatus } from "@/features/admin/investors/services/investorLifecycleService";
 import { updateFundPerformance, type PerformanceUpdateData as AdminPerformanceUpdateData } from "@/features/admin/investors/services/investorPerformanceService";
-import type { InvestorStatus } from "@/features/admin/investors/services/adminService";
 type PerformanceUpdateData = AdminPerformanceUpdateData;
 
 /**
