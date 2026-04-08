@@ -78,18 +78,15 @@ serve(async (req: Request) => {
       });
     }
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile?.is_admin) {
-      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Check if user is admin via user_roles table (secure method)
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+    const { checkAdminAccess, createAdminDeniedResponse } = await import("../_shared/admin-check.ts");
+    const adminCheck = await checkAdminAccess(serviceClient, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(corsHeaders);
     }
 
     // Check rate limit

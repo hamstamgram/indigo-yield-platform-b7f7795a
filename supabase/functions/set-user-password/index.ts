@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { setPasswordRequestSchema, parseAndValidate } from "../_shared/validation.ts";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
@@ -44,18 +45,10 @@ serve(async (req) => {
       });
     }
 
-    // Check if user is admin via profiles table
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile?.is_admin) {
-      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 403,
-      });
+    // Check if user is admin via user_roles table (secure method)
+    const adminCheck = await checkAdminAccess(supabaseAdmin, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(corsHeaders);
     }
 
     // Validate request body

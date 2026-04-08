@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 // Initialize Supabase client with service role
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -81,15 +82,10 @@ serve(async (req) => {
     return new Response("Invalid token", { status: 401, headers: corsHeaders });
   }
 
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.is_admin) {
-    return new Response("Admin access required", { status: 403, headers: corsHeaders });
+  // Check if user is admin via user_roles table (secure method)
+  const adminCheck = await checkAdminAccess(supabase, user.id);
+  if (!adminCheck.isAdmin) {
+    return createAdminDeniedResponse(corsHeaders);
   }
 
   try {
