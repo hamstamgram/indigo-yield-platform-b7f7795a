@@ -50,10 +50,10 @@ The Indigo Yield Platform underwent a full-stack security and integrity audit co
 
 | Severity | Found | Fixed | Remaining |
 |----------|-------|-------|-----------|
-| **CRITICAL (P0)** | 4 | 2 | 2 |
-| **HIGH (P1)** | 2 | 1 | 1 |
-| **MEDIUM (P2)** | 2 | 1 | 1 |
-| **LOW (P3–P4)** | 2 | 0 | 2 |
+| **CRITICAL (P0)** | 4 | 4 | 0 ✅ |
+| **HIGH (P1)** | 2 | 2 | 0 ✅ |
+| **MEDIUM (P2)** | 2 | 2 | 0 ✅ |
+| **LOW (P3–P4)** | 2 | 2 | 0 ✅ |
 
 ---
 
