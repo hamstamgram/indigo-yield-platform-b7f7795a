@@ -4,12 +4,9 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getActiveFundsWithAUM,
-  getFundInvestorCompositionWithYield as getFundInvestorComposition,
-  applyYieldDistribution,
-  type YieldCalculationInput,
-} from "@/services/admin";
+import { getActiveFundsWithAUM, getFundInvestorCompositionWithYield as getFundInvestorComposition } from "@/features/admin/yields/services/yields/yieldHistoryService";
+import { applyYieldDistribution } from "@/features/admin/yields/services/yields";
+import type { YieldCalculationInput } from "@/features/admin/yields/services/yields/yieldDistributionService";
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
