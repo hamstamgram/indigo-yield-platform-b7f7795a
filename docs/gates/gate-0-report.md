@@ -136,15 +136,16 @@ All edge functions use `checkAdminAccess()` from `_shared/admin-check.ts`. No lo
 | Area | Result |
 |------|--------|
 | Comprehensive Health Check (8 checks) | ✅ PASS |
-| Migrations (5 remediation) | ✅ Applied |
+| Migrations (7 remediation) | ✅ Applied |
 | Edge Function Auth (11 functions) | ✅ PASS |
 | Profile Field Protection | ✅ PASS |
 | System Config Lockdown | ✅ PASS |
 | Trigger Inventory (68+) | ✅ PASS |
 | P0-NEW-1: Missing user_roles | ✅ RESOLVED |
 | P0-NEW-2: Service role admin guard | ✅ RESOLVED |
+| P0-REGR-1: audit_leakage_report enum fix | ✅ RESOLVED |
 | P1-1: toggleAdminStatus code fix | ✅ RESOLVED |
-| P1-2: Duplicate indexes dropped | ✅ RESOLVED |
+| P1-2: Duplicate indexes dropped (6 total) | ✅ RESOLVED |
 | **Anon EXECUTE Permissions** | **⚠️ OPEN — needs default privileges fix** |
 
 ### Remaining Items
