@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { Download, FileText } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useActiveInvestorsForStatements } from "@/hooks/data";
+import { useActiveInvestorsForStatements } from "@/features/admin/reports/hooks/useReports";
 import { useGenerateStatement } from "@/features/admin/reports/hooks/useAdminStatementsPage";
 import { format, subMonths } from "date-fns";
 import { getAssetDecimals } from "@/types/asset";
