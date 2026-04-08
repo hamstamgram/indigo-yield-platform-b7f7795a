@@ -1,73 +1,118 @@
 
 
-# Remediation Plan: Fix All Open Audit Issues
+# CTO/CFO Backend Audit — Findings and Remediation Plan
 
-## Summary
-5 open issues remain from the platform audit. This plan addresses all of them in 3 migrations plus 1 edge function update pass.
-
----
-
-## Migration 1: P0 — Profile Privilege Escalation (Critical)
-
-**Problem:** Users can `UPDATE profiles SET is_admin = true WHERE id = auth.uid()`. Additionally, `can_insert_notification()` and `ensure_admin()` still read `profiles.is_admin` as a fallback, and 4 edge functions (`set-user-password`, `send-email`, `excel_import`, `send-investor-report`) check `profiles.is_admin` instead of `user_roles`.
-
-**Database changes:**
-
-1. **Drop** `profiles_update_own_or_admin` policy
-2. **Create** a restricted self-update policy that uses a column list — users can only update: `first_name`, `last_name`, `phone`, `avatar_url`, `preferences`, `totp_enabled`, `totp_verified`. Blocked columns: `is_admin`, `role`, `account_type`, `is_system_account`, `include_in_reporting`, `kyc_status`, `email`.
-3. **Rewrite `can_insert_notification()`** — remove `profiles.is_admin` read, use only `user_roles` check
-4. **Rewrite `ensure_admin()`** — remove `profiles.is_admin` fallback, use only `user_roles`
-5. **Patch 9 remaining functions** that read `profiles.is_admin` for admin checks — replace with `is_admin()` or `user_roles` join:
-   - `get_all_investors_summary` and `get_paged_investor_summaries` — change `WHERE p.is_admin = false` to `LEFT JOIN user_roles` exclusion
-   - `get_platform_stats`, `void_and_reissue_full_exit`, `get_investor_reports_v2`, `finalize_statement_period`, `unvoid_transaction`, `run_invariant_checks`, `rebuild_position_from_ledger` — replace `is_admin` column reads with `is_admin()` or `check_is_admin()`
-   - `update_user_profile_secure` — block `is_admin` from updatable fields
-   - `create_profile_on_signup` — sets `is_admin = false` by default (safe, but remove reference for clarity)
-   - `sync_profile_is_admin`, `sync_profile_role_from_profiles`, `sync_profile_role_from_roles` — these sync roles bidirectionally; keep as-is since they derive from `user_roles` (the source of truth)
-
-**Edge function changes (4 files):**
-
-6. **`set-user-password/index.ts`** — replace `profiles.is_admin` check with `checkAdminAccess()` from shared admin-check module
-7. **`send-email/index.ts`** — same replacement
-8. **`excel_import/index.ts`** — same replacement  
-9. **`send-investor-report/index.ts`** — same replacement
+## Audit Methodology
+Inspected all 200+ database functions, 68 triggers, RLS policies, and EXECUTE privilege grants. Ran live integrity checks against production data.
 
 ---
 
-## Migration 2: P2 + P4 — Config & Policy Cleanup
+## Live Integrity Status (All Green)
 
-1. **Drop** `system_config_read` policy (all-authenticated SELECT) — admin-only access remains via `system_config_admin_all`
-2. **Drop** `system_config_write` policy (redundant with `system_config_admin_all`)
-3. **Add** `investor_position_snapshots_select_own` policy: `USING (investor_id = auth.uid())` (P3 fix)
-
-**Frontend impact:** `systemConfigService.getPlatformSettings()` is only called from `usePlatformSettings` hook which is used exclusively on admin settings pages. No investor-side breakage.
-
----
-
-## Migration 3: P1 — Void Orphaned Distribution
-
-1. Call `void_yield_distribution('63b032b8-7b16-4335-844e-b6d49e53dba0')` to cascade-void all linked transactions, fee allocations, and ledger entries
-2. This restores conservation integrity for fund `2c123c4f`
-
-This is a data operation (not schema), so it will use the insert/update tool.
+| Check | Result |
+|-------|--------|
+| Position-to-ledger drift | **0 violations** |
+| Asymmetric voids | **0 found** |
+| Negative positions | **0 found** |
+| Negative cost basis | **0 found** |
+| Yield conservation drift | **0 violations** |
+| Duplicate distributions | **0 found** |
+| Tables without RLS | **0 found** |
+| SECURITY DEFINER without search_path | **0 found** |
+| Supabase linter | **0 warnings** |
 
 ---
 
-## Files Modified
+## Issues Found
 
-| File | Change |
-|------|--------|
-| `supabase/functions/set-user-password/index.ts` | Use `checkAdminAccess()` |
-| `supabase/functions/send-email/index.ts` | Use `checkAdminAccess()` |
-| `supabase/functions/excel_import/index.ts` | Use `checkAdminAccess()` |
-| `supabase/functions/send-investor-report/index.ts` | Use `checkAdminAccess()` |
-| 1 migration: profiles policy + 11 DB functions | Security hardening |
-| 1 migration: system_config + snapshots policies | Cleanup |
-| 1 data operation: void distribution | Integrity fix |
+### P0-A: CRITICAL — `apply_backfill_yield` has NO admin check + callable by `anon`
 
-## Risk Assessment
+`apply_backfill_yield` is a SECURITY DEFINER function that creates yield distributions, transactions, and fee allocations. It has **zero authorization checks** — no `is_admin()`, no role verification. Worse, the `anon` role has EXECUTE privilege on it.
 
-- **P0 (profiles):** Critical fix, low risk — strictly more restrictive. Self-update column list tested against existing frontend forms.
-- **P1 (void):** Tiny amount (0.09 USDT test distribution), cascade is well-tested.
-- **P2/P4 (config):** Zero risk — only admin pages use config, admin policy remains.
-- **P3 (snapshots):** Low risk — additive policy, no existing investor UI depends on it yet.
+**Impact:** An unauthenticated user with the anon key could fabricate yield distributions on any fund by calling `supabase.rpc('apply_backfill_yield', ...)`.
+
+**Fix:** Add `is_admin()` check at function start + REVOKE EXECUTE from `anon` and `public`.
+
+### P0-B: CRITICAL — `force_delete_investor` has NO admin check + callable by `anon`
+
+Only checks `auth.uid() IS NOT NULL` (authentication) but **never verifies admin role**. Any authenticated user could delete any other investor's entire data history. Also callable by `anon` if a `p_admin_id` is supplied.
+
+**Impact:** Complete data destruction of any investor account.
+
+**Fix:** Add `is_admin()` check + REVOKE EXECUTE from `anon`.
+
+### P0-C: CRITICAL — 200+ functions callable by `anon` role
+
+The entire `public` schema function catalog is EXECUTEable by the `anon` role. This includes mutation RPCs like `apply_segmented_yield_distribution_v5`, `reset_platform_data`, `approve_withdrawal`, `void_yield_distribution`, etc. While many have internal `is_admin()` guards, the attack surface is unnecessarily wide.
+
+**Fix:** Bulk REVOKE EXECUTE ON ALL FUNCTIONS from `anon`, then selectively GRANT back only the functions that legitimately need anon access (e.g., `create_profile_on_signup`, `assign_default_user_role`).
+
+### P1-A: HIGH — `create_daily_position_snapshot` has dead SQL injection code
+
+The function builds `v_fund_filter` via string concatenation (`' AND ip.fund_id = ''' || p_fund_id::text || ''''`) but **never uses it** — the actual query uses parameterized `(p_fund_id IS NULL OR ip.fund_id = p_fund_id)`. The dead concatenation code is harmless but misleading and should be removed.
+
+### P1-B: HIGH — 13 functions reference `profiles.is_admin` column
+
+Despite the migration that was supposed to fix this, the following functions still read `profiles.is_admin` in their body. Most use it for **data filtering** (not auth), but it creates coupling to a deprecated column:
+
+- `create_profile_on_signup` — sets `is_admin = FALSE` (harmless, but references deprecated column)
+- `apply_segmented_yield_distribution` (old v4) — uses `p.is_admin = false` to filter investors
+- `approve_and_complete_withdrawal` — uses `p.is_admin` somewhere in body  
+- `audit_leakage_report` — references in investor filtering
+- `get_active_funds_summary` — filters by `p.account_type` (safe)
+- `get_fund_composition` — filters by account_type (safe)
+- `dispatch_report_delivery_run`, `export_investor_data`, `queue_statement_deliveries` — investor filtering
+- `void_completed_withdrawal` — uses `is_system_account` not `is_admin` for fees lookup (safe)
+- `run_v6_void_simulation` — test harness
+
+### P2: MEDIUM — `create_daily_position_snapshot` has no admin check
+
+Any authenticated user can trigger snapshot creation, which writes to `investor_position_snapshots`. Low risk since it only captures current state, but it should be admin-only.
+
+### P3: LOW — `sync_profile_role_from_roles` still passes `p.is_admin` to `compute_profile_role`
+
+The role sync trigger reads `profiles.is_admin` to compute a display role. This is the bidirectional sync — it's by design, but creates ongoing dependency on the deprecated column.
+
+---
+
+## Remediation Plan
+
+### Migration 1: Critical Security (P0-A, P0-B, P0-C)
+
+1. Add `IF NOT public.is_admin() THEN RAISE EXCEPTION 'UNAUTHORIZED'; END IF;` to:
+   - `apply_backfill_yield`
+   - `force_delete_investor`
+   - `create_daily_position_snapshot`
+   - `crystallize_yield_before_flow`
+
+2. Bulk REVOKE EXECUTE from `anon` on ALL public functions, then GRANT back only:
+   - `create_profile_on_signup`, `assign_default_user_role` (signup triggers)
+   - `can_insert_notification`, `can_access_notification` (RLS helpers)
+   - `is_admin`, `check_is_admin`, `is_admin_safe`, `is_admin_for_jwt` (RLS helpers)
+   - `compute_profile_role`, `check_email_uniqueness`, `check_duplicate_profile` (trigger helpers)
+   - `get_system_mode` (public config)
+   - Utility/pure functions (e.g., `build_error_response`, `build_success_response`)
+
+3. REVOKE EXECUTE from `public` on critical mutation functions to close the default PUBLIC grant.
+
+### Migration 2: Code Cleanup (P1-A, P1-B)
+
+1. Remove dead `v_fund_filter` concatenation from `create_daily_position_snapshot`
+2. Replace `p.is_admin = false` filters in `apply_segmented_yield_distribution` (old v4) with `user_roles` join pattern
+
+### Estimated Scope
+
+| Item | Count |
+|------|-------|
+| Functions needing admin check added | 4 |
+| REVOKE statements | ~200 (bulk) |
+| Selective GRANT-back | ~15 functions |
+| Dead code removal | 1 function |
+| `profiles.is_admin` filter patches | 2-3 functions |
+
+### Risk
+
+- **P0 fixes (REVOKE + admin checks):** Critical priority, low regression risk — strictly tightening permissions
+- **Bulk REVOKE from anon:** Must whitelist trigger/RLS helper functions carefully to avoid breaking signup and auth flows
+- **P1 patches:** Low risk, cosmetic improvements
 
