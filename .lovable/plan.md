@@ -1,45 +1,50 @@
 
 
-# Fix: Yield Distribution Shows "0.000 BTC distributed to 0 investors"
+# Fix: Canonical Flag Missing from Critical RPCs
 
-## Root Cause
+## The Problem
 
-The `apply_segmented_yield_distribution_v5` RPC returns JSON with these field names:
-- `gross`, `net`, `fees`, `ib`, `allocations`
+The `void_yield_distribution` function in the **live database** is missing `PERFORM set_config('indigo.canonical_rpc', 'true', true)`. Without this flag, the `trg_enforce_canonical_transaction` trigger blocks all UPDATE/DELETE operations on `transactions_v2`, causing the error you saw.
 
-But `yieldApplyService.ts` (lines 88-96) reads:
-- `gross_yield`, `net_yield`, `total_fees`, `total_ib`, `allocation_count`
+The correct migration exists (`20260327173212`) but the live function was overwritten — likely by a Supabase schema diff/reset that deployed a stale version.
 
-Every field falls through to the `?? 0` default, so the result always shows 0 yield and 0 investors despite the distribution actually succeeding in the database.
+## Full Audit: RPCs That Touch transactions_v2 Without the Canonical Flag
 
-## Fix
+| Function | Operation | Actually Broken? | Why |
+|---|---|---|---|
+| **void_yield_distribution** | UPDATE | **YES — CRITICAL** | No flag, trigger blocks UPDATE |
+| **edit_transaction** | UPDATE | **YES** | No flag, trigger blocks UPDATE |
+| **delete_transaction** | DELETE | **YES** | No flag, trigger blocks DELETE |
+| adjust_investor_position | INSERT (ADJUSTMENT) | No | ADJUSTMENT is in trigger's allowed-types list |
+| void_and_reissue_transaction | INSERT | No | Calls void_transaction first which sets flag for entire transaction |
+| internal_route_to_fees | INSERT | No | Uses INTERNAL_WITHDRAWAL/INTERNAL_CREDIT (allowed types) + is_system_generated=true |
+| cascade_void_from_transaction | UPDATE (trigger) | No | Fires as part of an UPDATE that already has the flag set |
 
-**File**: `src/features/admin/yields/services/yields/yieldApplyService.ts` lines 88-96
+## Fix: Single Migration
 
-Update the `distData` mapping to read the correct RPC field names:
+One migration that rebuilds 3 functions to add the canonical flag:
 
-```ts
-const distData = {
-  opening_aum: String(rpcResult.opening_aum ?? 0),
-  recorded_aum: String(rpcResult.recorded_aum ?? 0),
-  gross_yield: String(rpcResult.gross ?? rpcResult.gross_yield ?? 0),
-  net_yield: String(rpcResult.net ?? rpcResult.net_yield ?? 0),
-  total_fees: String(rpcResult.fees ?? rpcResult.total_fees ?? 0),
-  total_ib: String(rpcResult.ib ?? rpcResult.total_ib ?? 0),
-  total_fee_credit: "0",
-  total_ib_credit: "0",
-  investor_count: Number(rpcResult.allocations ?? rpcResult.allocation_count ?? 0),
-  period_start: rpcResult.period_start as string,
-  period_end: rpcResult.period_end as string,
-  dust_amount: String(rpcResult.dust_amount ?? 0),
-};
-```
+### 1. `void_yield_distribution` — Restore the correct version from migration `20260327173212`
+- Adds `PERFORM set_config('indigo.canonical_rpc', 'true', true)` at the top of the function body
+- Keeps all existing logic: admin check, advisory lock, cascade to allocations/ledgers, position recompute, AUM refresh, audit log
+- Keeps the 4-parameter signature (distribution_id, admin_id, reason, void_crystals)
+- Re-applies GRANT/REVOKE for authenticated/service_role
 
-Uses fallback pattern (`rpcResult.gross ?? rpcResult.gross_yield`) so it works regardless of which RPC version is deployed.
+### 2. `edit_transaction` — Add canonical flag
+- Adds `PERFORM set_config('indigo.canonical_rpc', 'true', true)` after the admin check
+- All existing logic preserved (advisory lock, historical lock checks, immutable field protection, audit logging)
 
-## Impact
+### 3. `delete_transaction` — Add canonical flag
+- Adds `PERFORM set_config('indigo.canonical_rpc', 'true', true)` after the admin check
+- All existing logic preserved (confirmation check, only-voided guard, audit log, position recompute)
 
-- The success dialog and toast will now show the correct gross yield amount and investor count
-- No database changes needed — the RPC is working correctly, only the frontend field mapping is wrong
-- Single file, ~5 lines changed
+## No Frontend Changes Needed
+
+The frontend `voidYieldDistribution()` in `yieldManagementService.ts` already calls the correct RPC with the correct parameters. The bug is entirely in the database function.
+
+## Verification After Migration
+
+1. Void the distribution that failed — should succeed
+2. Run `run_integrity_pack()` — should return `pass`
+3. All 5 integrity views return 0 rows
 
