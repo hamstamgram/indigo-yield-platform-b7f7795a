@@ -7369,6 +7369,7 @@ export type Database = {
         Returns: Json
       }
       purge_fund_hard: { Args: { p_fund_id: string }; Returns: Json }
+      purge_old_audit_logs: { Args: { retention_days?: number }; Returns: Json }
       qa_fees_account_id: { Args: never; Returns: string }
       qa_fund_id: { Args: { p_asset: string }; Returns: string }
       qa_investor_id: { Args: { p_key: string }; Returns: string }
