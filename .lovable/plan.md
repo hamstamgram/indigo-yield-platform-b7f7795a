@@ -1,121 +1,88 @@
 
 
-# Withdrawal Flow Audit: Partial, Full Exit + Dust, Void & Revert
+# Full Platform Verification Checklist — Remaining Bugs & Gaps
 
-## Current Architecture
+## STATUS OF PREVIOUS FIXES
 
-The withdrawal lifecycle has 3 RPCs and 3 state machine guards:
+The withdrawal state machine bugs (BUGs 1-5) are **FIXED** — `routeToFees`, `rejectWithdrawal`, `restoreWithdrawal`, `deleteWithdrawal`, and `requestsQueueService.rejectWithdrawal` all correctly use RPCs now.
 
-```text
-PARTIAL WITHDRAWAL:
-  investor submits → pending → admin calls approve_and_complete_withdrawal(is_full_exit=false)
-    → WITHDRAWAL tx inserted (negative) → trg_ledger_sync updates position → completed
+Database hardening (Phases 1-4) is **DONE** — redundant triggers dropped, `search_path` hardened, views converted to `SECURITY INVOKER`.
 
-FULL EXIT + DUST:
-  admin calls approve_and_complete_withdrawal(is_full_exit=true)
-    → crystallize_yield_before_flow() → WITHDRAWAL tx → DUST_SWEEP (debit investor)
-    → DUST_SWEEP (credit fees_account) → position.is_active = false → completed
+Core integrity views (`v_ledger_reconciliation`, `v_cost_basis_mismatch`, `v_position_transaction_variance`) all return **0 violations**.
 
-VOID COMPLETED WITHDRAWAL:
-  admin calls void_completed_withdrawal(p_withdrawal_id)
-    → voids WITHDRAWAL + DUST_SWEEP txs → recompute_investor_position → status → cancelled
+---
 
-VOID & REISSUE:
-  admin calls void_and_reissue_full_exit(p_transaction_id, p_new_amount)
-    → void_transaction cascade → re-activate position → cancel old request
-    → create new pending request → approve_and_complete_withdrawal → dust sweep remainder
-```
+## REMAINING ISSUES TO FIX (4 items)
 
-## Issues Found (5 bugs, 2 will crash in production)
+### 1. `getPerAssetStats` missing `purpose` filter (LATENT BUG)
 
-### BUG 1: `routeToFees` bypasses state machine guard — WILL CRASH (CRITICAL)
+**File**: `src/services/shared/performanceService.ts` line 434-437
 
-**File**: `src/features/investor/withdrawals/services/withdrawalService.ts` line 466-477
+The query on `investor_fund_performance` does not filter by `purpose = 'reporting'`. For investors this is masked by RLS, but admin views of investor stats (via `useInvestorAssetStats`) would mix transaction-purpose and reporting-purpose rows, potentially showing doubled or conflicting performance data.
 
-The `routeToFees` method does a direct `.update({ status: 'completed' })` on `withdrawal_requests`. The `trg_guard_withdrawal_state` trigger blocks ANY status change to `completed` unless `indigo.canonical_rpc = 'true'`. This direct update does NOT set that flag.
+**Fix**: Add `.eq("purpose", "reporting")` to the query at line 437.
 
-**Result**: Clicking "Route to INDIGO FEES" on any pending withdrawal will throw: `CRITICAL: Status change to completed must be performed via canonical Indigo RPC`.
+### 2. Investor transactions service missing `visibility_scope` filter (DEFENSE-IN-DEPTH)
 
-**Fix**: Create a `route_to_fees` database RPC (SECURITY DEFINER) that sets `indigo.canonical_rpc`, creates the paired INTERNAL transactions, and updates status atomically. Replace the direct update in `withdrawalService.ts`.
+**File**: `src/features/investor/transactions/services/transactionsV2Service.ts` line 45-53
 
-### BUG 2: `rejectWithdrawal` bypasses `reject_withdrawal` RPC (MODERATE)
+`getByInvestorId` does not filter `visibility_scope = 'investor_visible'`. System transactions (FEE_CREDIT, IB_CREDIT, DUST_SWEEP) marked `admin_only` could leak to investors if RLS is ever relaxed. The overview queries in `useInvestorOverviewQueries.ts` already apply this filter correctly — this service is the gap.
 
-**File**: `src/features/investor/withdrawals/services/withdrawalService.ts` line 290-323
+**Fix**: Add `.eq("visibility_scope", "investor_visible")` after the `.eq("is_voided", false)` on line 51.
 
-The service does a direct `.update({ status: 'rejected' })` instead of calling the `reject_withdrawal` RPC that exists in the database. The guard trigger currently allows this (it only blocks `approved` and `completed`), but it bypasses the RPC's audit logging and validation.
+### 3. `v_missing_withdrawal_transactions` false positives (3 rows)
 
-**Fix**: Replace direct update with `supabase.rpc("reject_withdrawal", { p_request_id, p_reason, p_admin_notes })`.
+The view currently returns 3 completed withdrawals as "missing transactions." The view's JOIN looks for `reference_id LIKE 'WDR-%' OR 'dust-sweep-%' OR 'DUST_SWEEP_OUT:%'` but the actual `approve_and_complete_withdrawal` RPC uses a different reference pattern. These are false positives — the transactions exist but don't match the view's pattern.
 
-### BUG 3: `restoreWithdrawal` sets `pending` on terminal states — WILL CRASH (CRITICAL)
+**Fix**: Update the view to also match the actual reference patterns used by the RPC (e.g., `withdrawal-%` or check by `withdrawal_request_id` in `meta` column instead).
 
-**File**: `src/features/investor/withdrawals/services/withdrawalService.ts` line 522-554
+### 4. Statement generation has no empty-data guard
 
-The restore method does `.update({ status: 'pending' })` on cancelled/rejected withdrawals. The `validate_withdrawal_transition` function defines `cancelled` and `rejected` as terminal states — no transitions allowed. The guard trigger will block this.
+**File**: `src/features/admin/reports/hooks/useAdminStatementsPage.ts` line 67
 
-**Result**: Clicking "Restore" on any cancelled or rejected withdrawal will throw an `INVALID TRANSITION` error.
+If `getMonthlyReports` returns empty for a period (no yield distributed that month), the system generates a blank PDF statement without warning the admin.
 
-**Fix**: Create a `restore_withdrawal` RPC (SECURITY DEFINER) that sets the canonical flag and validates the restore is legitimate (e.g., only admin, only if no conflicting transactions exist).
+**Fix**: Before generating, check if reports data is empty and show a warning toast ("No reporting data for this period") instead of producing a blank statement.
 
-### BUG 4: `deleteWithdrawal` does direct cancel without canonical flag (MODERATE)
+---
 
-**File**: `src/features/investor/withdrawals/services/withdrawalService.ts` line 499-516
+## VERIFIED WORKING — NO ISSUES
 
-The soft-delete path does `.update({ status: 'cancelled' })` directly. If the withdrawal is `completed`, the guard will block this (completed → cancelled requires canonical RPC). For `pending` withdrawals, the guard allows it but it bypasses audit trails.
+These areas have been confirmed functional and correct:
 
-**Fix**: Route through `void_completed_withdrawal` for completed ones (already done in `cancelWithdrawal`), and through `cancel_withdrawal_by_admin` RPC for pending ones.
+| Area | Status | Details |
+|------|--------|---------|
+| Deposit flow | OK | `apply_investor_transaction` → position created via `recompute_investor_position` |
+| Yield preview | OK | `preview_segmented_yield_distribution_v5` returns per-investor breakdown |
+| Yield apply | OK | `apply_segmented_yield_distribution_v5` → YIELD + FEE_CREDIT + IB_CREDIT transactions → conservation identity checked |
+| Void yield distribution | OK | `void_yield_distribution` cascades to fee_allocations, ib_allocations, platform_fee_ledger, ib_commission_ledger |
+| Partial withdrawal | OK | `approve_and_complete_withdrawal(is_full_exit=false)` → WITHDRAWAL tx → position updated |
+| Full exit + dust | OK | `approve_and_complete_withdrawal(is_full_exit=true)` → crystallize → WITHDRAWAL → DUST_SWEEP → position deactivated |
+| Void completed withdrawal | OK | `void_completed_withdrawal` → voids WITHDRAWAL + DUST_SWEEP → recomputes position |
+| Void & reissue | OK | `void_and_reissue_full_exit` → void → re-activate → new request → re-approve |
+| Reject withdrawal | OK | Now uses `reject_withdrawal` RPC with audit trail |
+| Cancel withdrawal | OK | Uses `void_completed_withdrawal` or `cancel_withdrawal_by_admin_v2` |
+| Restore withdrawal | OK | Uses `restore_withdrawal_by_admin_v2` RPC |
+| Route to fees | OK | Uses `route_withdrawal_to_fees` RPC |
+| Onboarding triggers | OK | `trg_check_duplicate_profile`, `trg_check_email_uniqueness` fire correctly |
+| Ledger sync | OK | `trg_ledger_sync` updates positions on every transaction |
+| State machine guard | OK | `trg_guard_withdrawal_state` blocks non-RPC status changes |
+| Void cascade | OK | `trg_cascade_void_from_transaction` + `trg_recompute_on_void` |
+| Integrity views | OK | All 6 core views return 0 violations |
+| Audit triggers | OK | Deduped — no more triple-logging |
+| Security hardening | OK | `search_path` set on all SECURITY DEFINER functions |
+| `include_in_reporting` | NOT USED | Field exists but no code queries it — safe to ignore for now |
 
-### BUG 5: `requestsQueueService.rejectWithdrawal` also bypasses RPC (DUPLICATE)
+---
 
-**File**: `src/features/admin/operations/services/requestsQueueService.ts` line 35-46
+## IMPLEMENTATION
 
-Same direct update pattern as Bug 2. There's a second code path for rejecting withdrawals that also skips the RPC.
+All 4 fixes are small, low-risk changes:
 
-**Fix**: Use `reject_withdrawal` RPC here too.
+1. **performanceService.ts** — 1-line filter addition
+2. **transactionsV2Service.ts** — 1-line filter addition
+3. **Migration SQL** — Recreate `v_missing_withdrawal_transactions` with correct reference patterns
+4. **useAdminStatementsPage.ts** — Add empty-data guard before PDF generation
 
-## Remediation Plan
-
-### Migration 1: Create `route_to_fees` RPC
-
-New SECURITY DEFINER function that:
-- Validates admin access
-- Sets `indigo.canonical_rpc = 'true'`
-- Creates paired DUST_SWEEP transactions (debit investor, credit fees_account)
-- Updates withdrawal status to `completed`
-- Logs to audit_log
-
-### Migration 2: Create `restore_withdrawal` RPC
-
-New SECURITY DEFINER function that:
-- Validates admin access and sets canonical flag
-- Only allows restore from `cancelled` or `rejected`
-- Checks no conflicting active withdrawal exists for same investor+fund
-- Resets status to `pending`
-- Logs to audit_log
-
-### Code Fix 1: `withdrawalService.routeToFees` → call new `route_to_fees` RPC
-
-### Code Fix 2: `withdrawalService.rejectWithdrawal` → call `reject_withdrawal` RPC
-
-### Code Fix 3: `withdrawalService.restoreWithdrawal` → call new `restore_withdrawal` RPC
-
-### Code Fix 4: `withdrawalService.deleteWithdrawal` soft-delete → call `cancel_withdrawal_by_admin` RPC
-
-### Code Fix 5: `requestsQueueService.rejectWithdrawal` → call `reject_withdrawal` RPC
-
-## Verified Working (No Issues)
-
-- `approve_and_complete_withdrawal` — full exit with dust sweep is correctly implemented with advisory locks, crystallization, and atomic dust routing
-- `void_completed_withdrawal` — correctly voids WITHDRAWAL + DUST_SWEEP transactions, recomputes position, and uses canonical flag
-- `void_and_reissue_full_exit` — correctly chains void → re-activate → new request → re-approve with dust
-- `cancelWithdrawal` for completed status — correctly routes through `void_completed_withdrawal` RPC
-- `submitInvestorWithdrawal` — correctly inserts as `pending` (no guard issues)
-- `guard_withdrawal_state_transitions` trigger — correctly allows completed→cancelled via canonical RPC
-
-## Files to Change
-
-| File | Change |
-|------|--------|
-| New migration SQL | `route_to_fees` + `restore_withdrawal` RPCs |
-| `src/features/investor/withdrawals/services/withdrawalService.ts` | Fix 5 methods to use RPCs |
-| `src/features/admin/operations/services/requestsQueueService.ts` | Fix reject to use RPC |
+Estimated effort: ~20 minutes total.
 
