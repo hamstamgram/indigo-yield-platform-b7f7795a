@@ -13,7 +13,7 @@ import { getTodayUTC } from "@/utils/dateUtils";
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";
 import { formatAUM } from "@/utils/formatters";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
-import type { YieldDistribution } from "@/services/admin/yields";
+import type { YieldDistribution } from "@/features/admin/yields/services/yields";
 
 // Import sub-hooks
 import { useYieldSelection, type Fund } from "./yield/useYieldSelection";

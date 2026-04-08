@@ -13,7 +13,7 @@ import {
   AlertDescription,
 } from "@/components/ui";
 import { Undo2, Loader2, Info } from "lucide-react";
-import type { DistributionRow } from "@/services/admin/yields/yieldDistributionsPageService";
+import type { DistributionRow } from "@/features/admin/yields/services/yields/yieldDistributionsPageService";
 
 interface BulkRestoreDistributionsDialogProps {
   open: boolean;

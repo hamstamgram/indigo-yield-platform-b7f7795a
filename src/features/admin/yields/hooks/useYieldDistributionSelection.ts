@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import type { DistributionRow } from "@/services/admin/yields/yieldDistributionsPageService";
+import type { DistributionRow } from "@/features/admin/yields/services/yields/yieldDistributionsPageService";
 
 export interface YieldSelectionSummary {
   count: number;

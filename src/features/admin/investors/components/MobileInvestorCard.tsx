@@ -5,7 +5,7 @@
 import { Card, CardContent, CardFooter, Button, TruncatedText } from "@/components/ui";
 import { Send } from "lucide-react";
 import type { AssetRef as Asset } from "@/types/asset";
-import type { AdminInvestorSummary } from "@/services/admin";
+import { AdminInvestorSummary } from "@/features/admin/investors/services/adminService";
 import FundAssetDropdown from "./shared/FundAssetDropdown";
 import { FinancialValue } from "@/components/common/FinancialValue";
 

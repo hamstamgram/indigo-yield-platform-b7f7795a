@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { adminInvestorService, type AdminInvestorSummary } from "@/services/admin";
+import { adminInvestorService, type AdminInvestorSummary } from "@/features/admin/investors/services/adminService";
 import { assetService } from "@/services/shared";
 import { AssetRef as Asset } from "@/types/asset";
 

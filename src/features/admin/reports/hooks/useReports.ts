@@ -10,18 +10,18 @@ import {
   fetchInvestorPerformanceReports,
   fetchPerformanceReportById,
   fetchAdminInvestorReports,
-  generateFundPerformanceReports,
   fetchLatestPerformance,
   fetchActiveInvestorsForStatements,
-  sendReportEmail,
   fetchHistoricalReports,
-  deleteInvestorReport,
-} from "@/services/admin";
+} from "@/features/admin/reports/services/reports/dataFetch";
+import { generateFundPerformanceReports } from "@/features/admin/reports/services/reports/generation";
+import { sendReportEmail } from "@/features/admin/reports/services/reports/email";
+import { deleteInvestorReport } from "@/features/admin/reports/services/reports/maintenance";
 import {
   bulkDeleteGeneratedStatements,
   deleteSingleGeneratedStatement,
 } from "@/features/admin/reports/services/statementAdminService";
-import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
+import type { InvestorReportSummary, DeliveryStatus } from "@/features/admin/reports/services/reportQueryService";
 
 /**
  * Hook to fetch investor performance reports (investor-side)

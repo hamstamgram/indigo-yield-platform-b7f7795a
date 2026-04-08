@@ -6,7 +6,7 @@ import {
   previewYieldDistribution,
   checkExistingDistribution,
   type YieldCalculationResult,
-} from "@/services/admin/yields";
+} from "@/features/admin/yields/services/yields";
 import type { YieldPurpose } from "./useYieldPeriod";
 
 export function useYieldCalculation() {

@@ -5,11 +5,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import {
-  adminInvestorService,
-  investorDetailService,
-  type AdminInvestorSummary,
-} from "@/services/admin";
+import { adminInvestorService, type AdminInvestorSummary } from "@/features/admin/investors/services/adminService";
+import { investorDetailService } from "@/features/admin/investors/services/investorDetailService";
 import { assetService, profileService } from "@/services/shared";
 import { getActiveFundsForList, getActiveInvestorPositions } from "@/services/investor";
 import { AssetRef as Asset } from "@/types/asset";

@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { fetchFundsWithAUM, fetchRecentActivities, fetchPendingItems } from "@/services/admin";
+import { fetchFundsWithAUM, fetchRecentActivities, fetchPendingItems } from "@/features/admin/dashboard/services/dashboardService";
 import type { Fund } from "@/types/domains/fund";
 
 /**

@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui";
 import { MoreHorizontal, Eye, Send, RefreshCw, Trash2, Loader2 } from "lucide-react";
-import type { InvestorReportSummary } from "@/services/admin/reportQueryService";
+import type { InvestorReportSummary } from "@/features/admin/reports/services/reportQueryService";
 
 interface ReportRowActionsProps {
   report: InvestorReportSummary;

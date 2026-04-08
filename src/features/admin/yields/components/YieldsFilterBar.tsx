@@ -4,20 +4,9 @@
  */
 
 import { CryptoIcon } from "@/components/CryptoIcons";
-import {
-  Card,
-  CardContent,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Button,
-  Input,
-  Label,
-} from "@/components/ui";
+import { Card, CardContent, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, Input, Label, } from "@/components/ui";
 import { Filter } from "lucide-react";
-import type { YieldFilters } from "@/services/admin";
+import { YieldFilters } from "@/features/admin/yields/services/recordedYieldsService";
 
 interface Fund {
   id: string;

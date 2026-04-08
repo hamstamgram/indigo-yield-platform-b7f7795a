@@ -5,13 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import {
-  getEmailStats,
-  getEmailDeliveries,
-  type EmailStats,
-  type EmailDelivery,
-  type EmailFilters,
-} from "@/services/admin";
+import { getEmailStats, getEmailDeliveries, type EmailStats, type EmailDelivery, type EmailFilters } from "@/features/admin/reports/services/emailTrackingService";
 
 /**
  * Hook to fetch email statistics

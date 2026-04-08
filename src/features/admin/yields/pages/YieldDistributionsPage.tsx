@@ -16,13 +16,13 @@ import type {
   DistributionRow,
   FeeAllocationRow,
   YieldEventRow,
-} from "@/services/admin/yields/yieldDistributionsPageService";
+} from "@/features/admin/yields/services/yields/yieldDistributionsPageService";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { ExportButton } from "@/components/common/ExportButton";
 import { LastUpdated } from "@/components/common/LastUpdated";
 import { VoidDistributionDialog } from "@/features/admin/yields/components/VoidDistributionDialog";
-import { voidYieldDistribution } from "@/services/admin/yields/yieldManagementService";
-import { executeInternalRoute } from "@/services/admin/internalRouteService";
+import { voidYieldDistribution } from "@/features/admin/yields/services/yields/yieldManagementService";
+import { executeInternalRoute } from "@/features/admin/shared/services/internalRouteService";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { formatAssetValue, formatPercentage } from "@/utils/formatters";
 import { toNum } from "@/utils/numeric";

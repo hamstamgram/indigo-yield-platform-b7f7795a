@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { invokeFunction } from "@/lib/supabase/functions";
 import { logError } from "@/lib/logger";
-import { forceDeleteInvestorUser } from "@/services/admin";
+import { forceDeleteInvestorUser } from "@/features/admin/investors/services/userService";
 import { InvestorTabs } from "@/features/admin/investors/components";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { format } from "date-fns";

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui";
 import { CheckCircle, Building2, AlertTriangle, Layers, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { type YieldCalculationResult, type YieldDistribution } from "@/services/admin";
+import { type YieldCalculationResult, type YieldDistribution } from "@/features/admin/yields/services/yields";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
 import { toNum } from "@/utils/numeric";
 import Decimal from "decimal.js";

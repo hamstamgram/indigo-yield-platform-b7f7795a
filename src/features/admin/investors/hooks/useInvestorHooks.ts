@@ -33,9 +33,11 @@ export { useDeleteInvestor } from "@/features/admin/investors/hooks/useInvestorM
 // Re-export types from services (backward compatibility)
 export type {
   AdminInvestorSummary,
+} from "@/features/admin/investors/services/adminService";
+export type {
   InvestorDetailData,
   OpsIndicators,
-  AdminInvestorPosition as InvestorPosition,
   InvestorPositionsData,
-  AdminInvestorPosition,
-} from "@/services/admin";
+  InvestorPosition,
+  InvestorPosition as AdminInvestorPosition,
+} from "@/features/admin/investors/services/investorDetailService";

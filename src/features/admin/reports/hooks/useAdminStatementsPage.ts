@@ -6,7 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { profileService, statementsService, documentService } from "@/services/shared";
-import { fetchActiveInvestorsForStatements, sendStatementEmail } from "@/services/admin";
+import { fetchActiveInvestorsForStatements } from "@/features/admin/reports/services/reports/dataFetch";
+import { sendStatementEmail } from "@/features/admin/reports/services/statementAdminService";
 import type { StatementData } from "@/lib/pdf/statementGenerator";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";

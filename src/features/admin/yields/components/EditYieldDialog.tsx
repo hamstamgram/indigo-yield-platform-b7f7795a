@@ -6,20 +6,9 @@ import Decimal from "decimal.js";
 
 import { useState, useEffect } from "react";
 import { Loader2, Pencil, ArrowRight } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Button,
-  Textarea,
-  Label,
-  Badge,
-} from "@/components/ui";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Button, Textarea, Label, Badge, } from "@/components/ui";
 import { format } from "date-fns";
-import type { YieldRecord } from "@/services/admin";
+import { YieldRecord } from "@/features/admin/yields/services/recordedYieldsService";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NumericInput } from "@/components/common/NumericInput";
 import { FormattedNumber, PercentageValue } from "@/components/common/FormattedNumber";

@@ -10,7 +10,7 @@ import {
   reportService,
   type BulkGenerateOptions,
   type SendReportParams,
-} from "@/services/admin/reportService";
+} from "@/features/admin/reports/services/reportService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
 

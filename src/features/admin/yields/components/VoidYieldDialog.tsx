@@ -7,22 +7,9 @@
 
 import { useState } from "react";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  Textarea,
-  Label,
-  Checkbox,
-  Badge,
-} from "@/components/ui";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, Textarea, Label, Checkbox, Badge, } from "@/components/ui";
 import { format } from "date-fns";
-import type { YieldRecord } from "@/services/admin";
+import { YieldRecord } from "@/features/admin/yields/services/recordedYieldsService";
 import { FormattedNumber } from "@/components/common/FormattedNumber";
 
 interface VoidYieldDialogProps {

@@ -17,7 +17,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui";
 import { X, ExternalLink, User, Loader2, AlertCircle, RotateCcw, Copy, Check } from "lucide-react";
-import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
+import { AdminInvestorSummary } from "@/features/admin/investors/services/adminService";
+import { forceDeleteInvestorUser } from "@/features/admin/investors/services/userService";
 import { useAdminPendingWithdrawalsCount as usePendingWithdrawalsCount } from "@/hooks/data/admin";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { InvestorTabs } from "../tabs";

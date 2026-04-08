@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { ibUsersService, type IBUser } from "@/services/admin";
+import { ibUsersService, type IBUser } from "@/features/admin/ib/services/ibUsersService";
 
 /**
  * Hook to fetch all IB users

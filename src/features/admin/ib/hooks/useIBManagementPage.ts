@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Decimal from "decimal.js";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { ibManagementService } from "@/services/ib";
-import { fundService } from "@/services/admin";
+import { fundService } from "@/features/admin/funds/services/fundService";
 import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 

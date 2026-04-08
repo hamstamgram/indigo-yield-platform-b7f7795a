@@ -17,7 +17,7 @@ import {
   ScrollArea,
 } from "@/components/ui";
 import { Send, Mail } from "lucide-react";
-import type { InvestorReportSummary } from "@/services/admin/reportQueryService";
+import type { InvestorReportSummary } from "@/features/admin/reports/services/reportQueryService";
 
 interface SendConfirmDialogProps {
   open: boolean;
