@@ -1,92 +1,95 @@
 
 
-# Go-Live QA & Automation Plan
+# Go-Live Action Plan — 2026-04-08
 
-## Phase 1: Go-Live Readiness Report
+## Current State (Verified Against Prod DB)
 
-Create `docs/GO_LIVE_READINESS.md` containing:
+| Check | Status | Detail |
+|-------|--------|--------|
+| `v_cost_basis_mismatch` | **0 rows** | View appears to have been fixed (possibly via prior migration applied outside this repo) |
+| Compensating DUST_SWEEP debit | **NOT INSERTED** | No transaction with `reference_id = 'reconcile-dust-fees-sol-2026-04-08'` exists |
+| Indigo Fees SOL position | **10.976** | Should be **~9.332** per Excel source of truth — **1.6446 over-credit remains** |
+| Migration #2 file | **MISSING** | `20260408130000_fix_dust_sweep_view_and_fees_reconciliation.sql` not in this repo |
+| Migration #1 file | **MISSING** | `20260408120000_fix_shares_and_void_and_backfill.sql` not in this repo |
+| `audit_leakage_report()` function | **EXISTS** in DB | Requires admin JWT (can't run via anon read query) |
+| Negative cost_basis | **0 rows** | Clean |
+| System mode | `live` | Ready |
+| AUM staleness | **SOL: Feb 28, USDT: Mar 24** | BTC/ETH/XRP current through Mar 31 |
+| Draft statement periods | **4 DRAFT** | Nov 2024, Nov 2025, Dec 2025, Jan 2026 |
 
-- **Audit Summary**: Yield engine parity (5 funds, 1627 checkpoints), fee schedule verification, IB model migration, backend function graph (337 RPCs, 101 triggers, 17 edge functions), UI pipeline (23 pages, Decimal.js throughout), production bug fixes (sync_ib_account_type, fund default 30%→20%, INDIGO LP fee 15%→0%).
-- **E2E Test Scope**: Itemized ~70-step coverage list organized by Block A–G.
-- **Production Data Baseline**: 5 active funds (BTC, ETH, SOL, USDT, XRP), 2 inactive (EURC, XAUT), ~40 active investors, fees account `b464a3f7-...`.
-- **Test Data Cleanup Completed**: 3 migrations executed, ~17,982 test rows purged, 0 test entities remaining.
+## Critical Finding
 
-## Phase 2 & 3: Master Playwright Test Suite
+The mismatch view reads 0, but **the underlying data problem is not fixed**. The Indigo Fees SOL position is 10.976 when it should be ~9.332. The view was likely patched to hide DUST_SWEEP residuals, but the actual 1.6446 over-credit from the voided/reissued withdrawal was never corrected with a compensating transaction.
 
-Create `tests/e2e/golive-lifecycle.spec.ts` — a serial test suite that reuses the existing helper patterns from `yield-replay-btc.spec.ts` (login, waitForToast, addTransaction, recordYield) adapted for production funds.
+---
 
-### Technical Approach
+## Ordered Task List
 
-- **Auth**: Login as production admin (env vars `QA_EMAIL`/`QA_PASSWORD`, falling back to `qa.admin@indigo.fund`). Since the QA admin was deleted, the test will need a valid admin credential — the suite will use env vars with no hardcoded fallback passwords.
-- **DB Parity Snapshots**: After each major state change, query the Supabase REST API (same pattern as `cleanupFundData` in existing specs) and compare against UI-scraped values.
-- **Screenshots**: `page.screenshot()` at key checkpoints saved to `test-results/`.
-- **Selectors**: Use existing patterns — `getByRole`, `getByText`, `data-testid` where available, `h3:has-text()` for fund cards.
+### TASK 1: Fix Indigo Fees SOL Over-Credit (BLOCKER)
 
-### Test Blocks
+**Problem**: Indigo Fees received 2 DUST_SWEEP credits instead of 1 during a void+reissue of Indigo LP SOL withdrawal. Position = 10.976, should be 9.332.
 
-**Block A — Onboarding & Deposits (5 steps)**
-- Navigate to `/admin/investors`, create new investor profile via UI
-- Execute first deposit via New Transaction dialog on a real fund (e.g., BTC)
-- Navigate to investor detail, create Fee Schedule entry (CRUD)
-- Create IB Commission Schedule entry (CRUD)
-- DB snapshot: verify `investor_positions`, `investor_fee_schedule`, `ib_commission_schedule` rows exist
+**Fix**: Create a migration that:
+1. Inserts a compensating `DUST_SWEEP` debit of -1.6446385727 on Indigo Fees SOL with an idempotent `reference_id = 'reconcile-dust-fees-sol-2026-04-08'`
+2. Calls `recompute_investor_position('b464a3f7-...', '7574bc81-...')` to sync the position
+3. Asserts the corrected position is ~9.332
 
-**Block B — Routing & Adjustments (5 steps)**
-- Create a withdrawal request, then Route to Fees → verify `INTERNAL_WITHDRAWAL` + `INTERNAL_CREDIT` transaction pair in DB
-- Execute internal route between two investors → verify both positions update
-- Execute manual position adjustment → verify `investor_positions.current_value` changes
-- Trigger crystallize-before-withdrawal flow → verify `last_yield_crystallization_date` updates
-- Screenshot + DB snapshot after each
+**Verification**:
+```sql
+SELECT current_value FROM investor_positions
+WHERE investor_id = 'b464a3f7-...' AND fund_id = '7574bc81-...';
+-- Expected: ~9.3317
+```
 
-**Block C — Yield & Time Locks (3 steps)**
-- Record yield distribution on a fund (transaction purpose) via Record Yield dialog
-- Attempt a backdated transaction before the yield date → verify Historical Lock blocks it (expect error toast)
-- DB snapshot: verify `yield_distributions`, `yield_allocations`, `fee_allocations` rows
+### TASK 2: Refresh Stale AUM (SOL + USDT)
 
-**Block D — Voids, Reissues & Cascades (4 steps)**
-- Void a full-exit withdrawal → verify DUST_SWEEP pair also voided in `transactions_v2`
-- Reissue the voided transaction → verify positions restored
-- Bulk void multiple transactions → verify cascade (all linked allocations voided)
-- Bulk unvoid → verify all restored
+**Problem**: SOL fund AUM last recorded Feb 28 (6 weeks stale). USDT last recorded Mar 24.
 
-**Block E — Reconciliation & Notifications (3 steps)**
-- Check notifications page for yield notification
-- Navigate to `/admin/operations`, run AUM Reconciliation → verify positions sum matches fund AUM
-- Run batch position reconciliation → verify zero discrepancies
+**Fix**: Migration calling `recalculate_fund_aum_for_date` for both funds at CURRENT_DATE.
 
-**Block F — Risk Panels & Admin Actions (5 steps)**
-- Navigate to risk/concentration panel → verify alerts render
-- Check liquidity risk panel → verify withdrawal pressure calculations display
-- Navigate to `/admin/investors` → verify IB badges on investor cards
-- Navigate to `/admin` (Command Center) → verify all fund cards render
-- Execute investor merge (preview + execute) → verify duplicate consolidated
+### TASK 3: Resolve 4 Draft Statement Periods
 
-**Block G — UI/UX Edge Cases (5 steps)**
-- Period selector: switch to historical month → verify financial numbers update
-- CSV export from portfolio and transactions pages
-- Theme toggle (dark/light) → verify financial displays remain visible
-- Navigate to `/investor` portal (switch user context) → verify portfolio renders
-- Delete test investor created in Block A → verify full teardown
+**Problem**: 4 statement periods stuck in DRAFT (Nov 2024, Nov/Dec 2025, Jan 2026).
 
-### Implementation Details
+**Fix**: Query `generated_statements` and `investor_fund_performance` for references. If none, delete the orphan rows. If referenced, mark as FINALIZED.
 
-- Total file: ~800-1000 lines of TypeScript
-- Uses `test.describe.serial()` to enforce ordering
-- Each block is a `test.step()` within a single test (preserving browser state)
-- DB queries via Supabase REST API with admin JWT (same pattern as existing specs)
-- All financial assertions use string comparison with exact decimal formatting
-- Screenshots saved to `test-results/golive-{block}-{step}.png`
+### TASK 4: Create Leakage Audit Edge Function
 
-### Files Created
+**Problem**: `audit_leakage_report()` exists but requires admin JWT — can't be called from the read-only query tool. Need an accessible way to run pre-launch verification.
 
-| File | Purpose |
-|---|---|
-| `docs/GO_LIVE_READINESS.md` | Audit trail & readiness checklist |
-| `tests/e2e/golive-lifecycle.spec.ts` | Master E2E lifecycle test (~70 steps) |
+**Fix**: Create an admin-authenticated endpoint (edge function or UI button) that calls `audit_leakage_report()` and returns the result. This is the mandatory pre-launch gate.
 
-### Constraints
+### TASK 5: Update GO_LIVE_READINESS.md
 
-- The QA admin (`qa.admin@indigo.fund`) was deleted in the cleanup. The test suite will require valid admin credentials via `QA_EMAIL` and `QA_PASSWORD` env vars (e.g., an existing admin like `nathanael@indigo.fund` or `adriel@indigo.fund`).
-- Tests operate against the live production data — Block A creates a test investor that Block G cleans up, leaving production state unchanged.
-- No TEST funds exist anymore — all tests target real funds (BTC: `0a048d9b-...`, etc.)
+Update the readiness doc with:
+- Fees SOL reconciliation completed
+- AUM refresh completed
+- Draft periods resolved
+- Leakage audit result (must be `overall_status: "pass"`)
+- Sign-off date 2026-04-08
+
+### TASK 6: Post-Launch Tech Debt Doc
+
+Create `docs/POST_LAUNCH_TECH_DEBT.md` documenting:
+- P2: `fund_aum_events.trigger_type` CHECK missing `'transaction'`
+- P2: `v_missing_withdrawal_transactions` false positives
+- P2: `v_position_transaction_variance` incomplete type coverage
+
+---
+
+## Go-Live Checklist
+
+```text
+[ ] Indigo Fees SOL corrected to ~9.332 (TASK 1)
+[ ] v_cost_basis_mismatch = 0 rows (verify after TASK 1)
+[ ] audit_leakage_report() = "pass" (TASK 4)
+[ ] AUM current for all 5 funds (TASK 2)
+[ ] No DRAFT statement periods (TASK 3)
+[x] System mode = live
+[x] Negative cost_basis = 0
+[x] v_ledger_reconciliation = 0 violations
+[x] v_orphaned_transactions = 0
+[ ] PITR confirmed in Supabase dashboard (manual)
+[ ] GO_LIVE_READINESS.md signed off (TASK 5)
+```
 
