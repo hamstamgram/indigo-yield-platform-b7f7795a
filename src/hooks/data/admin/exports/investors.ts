@@ -29,14 +29,14 @@ export {
 export * from "@/features/admin/investors/hooks/useAdminInvestorWithdrawals";
 
 // Centralized investor mutations
-export { useCreateInvestor, useDeleteInvestor as useAdminDeleteInvestorAction } from "../useInvestorMutations";
+export { useCreateInvestor, useDeleteInvestor as useAdminDeleteInvestorAction } from "@/features/admin/investors/hooks/useInvestorMutations";
 
 // Investor wizard
 export {
   useCreateInvestorWizard,
   type WizardResult,
   type WizardProgressCallback,
-} from "../useInvestorWizard";
+} from "@/features/admin/investors/hooks/useInvestorWizard";
 
 // Re-export types from services
 export type {

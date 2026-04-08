@@ -7,4 +7,4 @@ export * from "@/features/admin/operations/hooks/useRequestsQueueData";
 export * from "@/features/admin/operations/hooks/useRequestsQueueMutations";
 
 // Centralized withdrawal mutations
-export { useWithdrawalMutations } from "../useWithdrawalMutations";
+export { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
