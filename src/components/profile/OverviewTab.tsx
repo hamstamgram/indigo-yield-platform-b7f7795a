@@ -169,7 +169,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
                     Verified
                   </Badge>
                 )}
-                {/* Admin badge now handled by useUserRole */}
+                {profile?.is_admin && <Badge variant="secondary">Admin</Badge>}
               </div>
             </div>
 

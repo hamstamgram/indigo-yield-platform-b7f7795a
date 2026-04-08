@@ -9,6 +9,7 @@ interface Profile {
   email: string;
   first_name?: string;
   last_name?: string;
+  is_admin: boolean;
 }
 
 interface AuthContextType {
@@ -16,7 +17,6 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  /** @deprecated Use useUserRole().isAdmin instead — kept for backward compat */
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
@@ -126,29 +126,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchProfile = async (userId: string) => {
     setProfileLoading(true);
     try {
-      // Direct query to profiles table for basic info only
-      // REMOVED: user_roles query — role checks now handled by useUserRole hook (React Query cached)
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", userId)
-        .maybeSingle();
+      // Fetch profile + role in parallel to reduce sequential latency
+      const [profileResult, roleResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", userId)
+          .maybeSingle(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .in("role", ["admin", "super_admin"]),
+      ]);
 
-      if (profileData) {
+      const isAdmin = !!(roleResult.data && roleResult.data.length > 0);
+
+      if (profileResult.data) {
         setProfile({
           id: userId,
           email: user?.email || "",
-          first_name: profileData.first_name ?? undefined,
-          last_name: profileData.last_name ?? undefined,
+          first_name: profileResult.data.first_name ?? undefined,
+          last_name: profileResult.data.last_name ?? undefined,
+          is_admin: isAdmin,
         });
       } else {
         logWarn("fetchProfile.notFound", {
           userId,
-          reason: "Profile not found in database",
+          reason: "Profile not found in database, defaulting to non-admin",
         });
         setProfile({
           id: userId,
           email: user?.email || "",
+          is_admin: false,
         });
       }
     } catch (error) {
@@ -156,6 +166,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setProfile({
         id: userId,
         email: user?.email || "",
+        is_admin: false,
       });
     } finally {
       setProfileLoading(false);
@@ -189,9 +200,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     session,
     profile,
     loading: loading && (user === null || profileLoading),
-    // isAdmin is now always false here — useUserRole is the single source of truth
-    // Kept for backward compatibility; consumers should migrate to useUserRole
-    isAdmin: false,
+    isAdmin: profile?.is_admin ?? false,
     signIn: handleSignIn,
     signOut: handleSignOut,
     signUp: handleSignUp,
