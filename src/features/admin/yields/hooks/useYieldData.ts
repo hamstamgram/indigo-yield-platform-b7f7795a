@@ -4,16 +4,9 @@
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  getYieldRecords,
-  getYieldDetails,
-  canVoidYieldRecord,
-} from "@/services/admin";
+import { getYieldRecords, getYieldDetails, canVoidYieldRecord } from "@/features/admin/yields/services/recordedYieldsService";
 import { canEditYields } from "@/features/admin/yields/services/recordedYieldsService";
-import type {
-  YieldRecord,
-  YieldFilters,
-} from "@/features/admin/yields/services/recordedYieldsService";
+import type { YieldRecord, YieldFilters, } from "@/features/admin/yields/services/recordedYieldsService";
 import type { YieldDetails } from "@/features/admin/yields/services/yields/yieldManagementService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 

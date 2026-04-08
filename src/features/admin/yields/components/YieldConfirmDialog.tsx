@@ -3,22 +3,10 @@
  * Extracted from YieldOperationsPage for maintainability
  */
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  Button,
-  Label,
-  Badge,
-  Checkbox,
-} from "@/components/ui";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, Button, Label, Badge, Checkbox, } from "@/components/ui";
 import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import type { YieldCalculationResult } from "@/services/admin";
+import { YieldCalculationResult } from "@/features/admin/yields/services/yields";
 import { toNum } from "@/utils/numeric";
 
 interface ReconciliationData {

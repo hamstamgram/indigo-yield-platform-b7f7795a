@@ -5,13 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import {
-  investorDetailService,
-  type InvestorDetailData,
-  type OpsIndicators,
-  type AdminInvestorPosition,
-  type InvestorPositionsData,
-} from "@/services/admin";
+import { investorDetailService, type InvestorDetailData, type OpsIndicators, type AdminInvestorPosition, type InvestorPositionsData } from "@/features/admin/investors/services/investorDetailService";
 
 /**
  * Hook to fetch investor detail

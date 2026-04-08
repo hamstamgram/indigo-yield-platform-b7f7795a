@@ -8,11 +8,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { internalRouteService } from "@/features/admin/shared/services/internalRouteService";
-import {
-  type InvestorPositionForRoute,
-  type InternalRouteParams,
-  type InternalRouteResult,
-} from "@/services/admin";
+import { type InvestorPositionForRoute, type InternalRouteParams, type InternalRouteResult } from "@/features/admin/shared/services/internalRouteService";
 
 /**
  * Hook to fetch investor positions for internal routing

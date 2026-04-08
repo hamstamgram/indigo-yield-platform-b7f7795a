@@ -1,22 +1,8 @@
 import React, { useState } from "react";
-import {
-  TableRow,
-  TableCell,
-  Button,
-  TruncatedText,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui";
+import { TableRow, TableCell, Button, TruncatedText, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui";
 import { Trash2 } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
-import type { AdminInvestorSummary } from "@/services/admin";
+import { AdminInvestorSummary } from "@/features/admin/investors/services/adminService";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import InviteInvestorDialog from "../forms/InviteInvestorDialog";
