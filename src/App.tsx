@@ -1,7 +1,6 @@
 // Build trigger: 2026-01-23T12:17:00Z
 import { BrowserRouter as Router, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { initPostHog } from "./utils/analytics/posthog";
 // debugCleanup removed — was logging to console in production
 import { SkipLink } from "./components/accessibility/SkipLink";
 import { ErrorBoundary } from "./components/error/ErrorBoundary";
@@ -71,11 +70,7 @@ function AppContent() {
 }
 
 function App() {
-  // Initialize observability tools on app startup
-  useEffect(() => {
-    // Initialize analytics
-    initPostHog();
-  }, []);
+  // PostHog initialized in main.tsx — no duplicate init needed
 
   return (
     <ErrorBoundary>

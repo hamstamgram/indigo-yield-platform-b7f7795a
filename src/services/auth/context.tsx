@@ -9,7 +9,6 @@ interface Profile {
   email: string;
   first_name?: string;
   last_name?: string;
-  is_admin: boolean;
 }
 
 interface AuthContextType {
@@ -17,6 +16,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  /** @deprecated Use useUserRole().isAdmin instead — kept for backward compat */
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
@@ -69,7 +69,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // SECURITY: Add a safety timeout to force loading to false if auth hangs
-    // This prevents infinite "Loading..." screens on page refresh/cache clear
     const safetyTimeout = setTimeout(() => {
       if (loading) {
         logWarn("auth.initialization_timeout", {
@@ -127,23 +126,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchProfile = async (userId: string) => {
     setProfileLoading(true);
     try {
-      // Direct query to profiles table for basic info
-      const { data: profileData, error: profileError } = await supabase
+      // Direct query to profiles table for basic info only
+      // REMOVED: user_roles query — role checks now handled by useUserRole hook (React Query cached)
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("first_name, last_name")
         .eq("id", userId)
         .maybeSingle();
-
-      // Check admin role from user_roles table (SECURITY: Server-side role check)
-      // NOTE: Use array query (not .maybeSingle()) because users can have multiple roles
-      const { data: adminRoles, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .in("role", ["admin", "super_admin"]);
-
-      // User is admin if they have ANY admin/super_admin role
-      const isAdmin = !!(adminRoles && adminRoles.length > 0);
 
       if (profileData) {
         setProfile({
@@ -151,35 +140,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: user?.email || "",
           first_name: profileData.first_name ?? undefined,
           last_name: profileData.last_name ?? undefined,
-          is_admin: isAdmin,
         });
       } else {
-        // SECURITY: Fail closed - never trust user_metadata for admin status
-        // Admin status MUST come from the user_roles table (server-verified)
         logWarn("fetchProfile.notFound", {
           userId,
-          reason: "Profile not found in database, defaulting to non-admin",
+          reason: "Profile not found in database",
         });
         setProfile({
           id: userId,
           email: user?.email || "",
-          is_admin: false, // Always default to false for security
         });
       }
     } catch (error) {
       logError("fetchProfile", error, { userId });
-
-      // SECURITY: Fail closed - no admin access if profile can't be loaded
-      // Never use user_metadata.is_admin as it can be manipulated client-side
-      // Admin status MUST come from user_roles table
       setProfile({
         id: userId,
         email: user?.email || "",
-        is_admin: false, // Always default to false for security
       });
     } finally {
       setProfileLoading(false);
-      // Ensure main loading is also cleared
       setLoading(false);
     }
   };
@@ -209,9 +188,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     profile,
-    // SECURITY: Combine states but ensure top-level 'loading' can force an unblock
     loading: loading && (user === null || profileLoading),
-    isAdmin: profile?.is_admin ?? false,
+    // isAdmin is now always false here — useUserRole is the single source of truth
+    // Kept for backward compatibility; consumers should migrate to useUserRole
+    isAdmin: false,
     signIn: handleSignIn,
     signOut: handleSignOut,
     signUp: handleSignUp,

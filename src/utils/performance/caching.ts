@@ -2,26 +2,18 @@ import { QueryClient } from "@tanstack/react-query";
 
 /**
  * Optimized QueryClient configuration
- * Use this when creating the QueryClient in App.tsx
  */
 export const queryClientConfig = {
   defaultOptions: {
     queries: {
-      // Cache for 5 minutes by default
       staleTime: 5 * 60 * 1000,
-      // Keep in cache for 10 minutes
       gcTime: 10 * 60 * 1000,
-      // Retry failed requests 3 times
       retry: 3,
-      // Retry with exponential backoff
       retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      // Don't refetch on window focus for better performance
       refetchOnWindowFocus: false,
-      // Refetch on reconnect
       refetchOnReconnect: true,
     },
     mutations: {
-      // Retry failed mutations once
       retry: 1,
     },
   },
@@ -30,17 +22,10 @@ export const queryClientConfig = {
 // Lazily-bound QueryClient reference - set by App.tsx
 let _queryClient: QueryClient | null = null;
 
-/**
- * Set the QueryClient instance (call from App.tsx after creating)
- */
 export function setQueryClient(client: QueryClient): void {
   _queryClient = client;
 }
 
-/**
- * Get the QueryClient instance
- * @throws if setQueryClient hasn't been called
- */
 function getQueryClient(): QueryClient {
   if (!_queryClient) {
     throw new Error("QueryClient not initialized. Call setQueryClient first.");
@@ -48,35 +33,23 @@ function getQueryClient(): QueryClient {
   return _queryClient;
 }
 
-// Cache keys for consistent query invalidation
 export const CACHE_KEYS = {
-  // User data
   USER_PROFILE: "userProfile",
   USER_SETTINGS: "userSettings",
-
-  // Portfolio data
   PORTFOLIO_SUMMARY: "portfolioSummary",
   PORTFOLIO_POSITIONS: "portfolioPositions",
   PORTFOLIO_PERFORMANCE: "portfolioPerformance",
-
-  // Transaction data
   TRANSACTIONS: "transactions",
   TRANSACTION_HISTORY: "transactionHistory",
   RECENT_TRANSACTIONS: "recentTransactions",
-
-  // Admin data
   ADMIN_METRICS: "adminMetrics",
   ADMIN_USERS: "adminUsers",
   ADMIN_SYSTEM_HEALTH: "adminSystemHealth",
-
-  // Real-time data (shorter cache times)
   LIVE_PRICES: "livePrices",
   MARKET_DATA: "marketData",
 } as const;
 
-// Utility functions for cache management
 export const cacheUtils = {
-  // Invalidate user-specific caches
   invalidateUserCache: (userId: string) => {
     getQueryClient().invalidateQueries({
       predicate: (query) => {
@@ -89,7 +62,6 @@ export const cacheUtils = {
     });
   },
 
-  // Invalidate portfolio caches
   invalidatePortfolioCache: () => {
     getQueryClient().invalidateQueries({
       predicate: (query) => {
@@ -102,7 +74,6 @@ export const cacheUtils = {
     });
   },
 
-  // Invalidate transaction caches
   invalidateTransactionCache: () => {
     getQueryClient().invalidateQueries({
       predicate: (query) => {
@@ -115,30 +86,26 @@ export const cacheUtils = {
     });
   },
 
-  // Clear all caches (use sparingly)
   clearAllCaches: () => {
     getQueryClient().clear();
   },
 
-  // Prefetch commonly used data
   prefetchUserData: async (userId: string) => {
-    // Prefetch user profile
     await getQueryClient().prefetchQuery({
       queryKey: [CACHE_KEYS.USER_PROFILE, userId],
       queryFn: async () => null,
-      staleTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 10 * 60 * 1000,
     });
 
-    // Prefetch portfolio summary
     await getQueryClient().prefetchQuery({
       queryKey: [CACHE_KEYS.PORTFOLIO_SUMMARY, userId],
       queryFn: async () => null,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     });
   },
 };
 
-// Memory-based cache for frequently accessed data
+// Memory-based cache with lazy cleanup (no global setInterval)
 class MemoryCache {
   private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
@@ -154,9 +121,10 @@ class MemoryCache {
     const entry = this.cache.get(key);
     if (!entry) return null;
 
-    const isExpired = Date.now() - entry.timestamp > entry.ttl;
-    if (isExpired) {
+    if (Date.now() - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
+      // Lazy cleanup: prune expired entries on read
+      if (this.cache.size > 20) this.cleanup();
       return null;
     }
 
@@ -171,7 +139,6 @@ class MemoryCache {
     this.cache.clear();
   }
 
-  // Clean up expired entries
   cleanup(): void {
     const now = Date.now();
     for (const [key, entry] of Array.from(this.cache.entries())) {
@@ -183,11 +150,3 @@ class MemoryCache {
 }
 
 export const memoryCache = new MemoryCache();
-
-// Auto cleanup every 5 minutes
-setInterval(
-  () => {
-    memoryCache.cleanup();
-  },
-  5 * 60 * 1000
-);

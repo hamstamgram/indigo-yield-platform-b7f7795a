@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +53,7 @@ function MetricItemSkeleton() {
   );
 }
 
-export function MetricStrip({ metrics, isLoading = false, className }: MetricStripProps) {
+export const MetricStrip = memo(function MetricStrip({ metrics, isLoading = false, className }: MetricStripProps) {
   if (isLoading) {
     return (
       <div
@@ -118,6 +119,6 @@ export function MetricStrip({ metrics, isLoading = false, className }: MetricStr
       })}
     </div>
   );
-}
+});
 
 export default MetricStrip;
