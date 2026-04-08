@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   Card,
   CardContent,
@@ -27,7 +28,7 @@ const concentrationConfig = {
 
 const fallbackConcentrationConfig = concentrationConfig.LOW;
 
-export function ConcentrationRiskPanel() {
+export const ConcentrationRiskPanel = memo(function ConcentrationRiskPanel() {
   const { data: concentrationData, isLoading } = useConcentrationRisk();
 
   if (isLoading) {
@@ -140,4 +141,4 @@ export function ConcentrationRiskPanel() {
       </CardContent>
     </Card>
   );
-}
+});

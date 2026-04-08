@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { generatePDF } from "@/lib/pdf/statementGenerator";
+import type { StatementData } from "@/lib/pdf/statementGenerator";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { useStatements, usePublishStatements } from "@/hooks/data";
 import { useQueryClient } from "@tanstack/react-query";
@@ -173,6 +173,7 @@ export const StatementManager: React.FC = () => {
 
               const fullName = `${investor.firstName || ""} ${investor.lastName || ""}`.trim();
 
+              const { generatePDF } = await import("@/lib/pdf/statementGenerator");
               const pdfBlob = generatePDF({
                 investor: {
                   name: fullName,

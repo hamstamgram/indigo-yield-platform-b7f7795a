@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { profileService, statementsService, documentService } from "@/services/shared";
 import { fetchActiveInvestorsForStatements, sendStatementEmail } from "@/services/admin";
-import { generatePDF } from "@/lib/pdf/statementGenerator";
+import type { StatementData } from "@/lib/pdf/statementGenerator";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 import { getMonthEndDate } from "@/utils/dateUtils";
@@ -114,6 +114,7 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
         positions: statementData.positions,
       };
 
+      const { generatePDF } = await import("@/lib/pdf/statementGenerator");
       const pdfContent = await generatePDF(mappedData);
 
       const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;
