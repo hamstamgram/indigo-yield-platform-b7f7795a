@@ -1,51 +1,26 @@
 
 
-# Withdrawal Audit — Findings & Fix Plan
+# Fix: Withdrawal RPC Uses Truncated Precision (numeric(28,10) + 3dp default)
 
-## Audit Results
+## Problem
 
-### Bug Found: Full Exit Ignores User-Entered Amount (REGRESSION)
+Two precision violations in the current `approve_and_complete_withdrawal` RPC:
 
-When you enter 331,500 for a full exit, the `approve_and_complete_withdrawal` RPC ignores your input and withdraws `TRUNC(balance, 3)` = 331,500.420 instead. The dust is then only 0.000586... instead of the expected 0.42.
+1. **Variable declarations use `numeric(28,10)`** — all internal variables (`v_final_amount`, `v_balance`, `v_dust`, `v_closing_aum`) are declared as `numeric(28,10)`, which silently truncates values to 10 decimal places. The platform standard is `numeric(38,18)`.
 
-**Root cause:** Migration `20260327173212` (line 229-231) regressed the fix from `20260324125841`. The older migration correctly checked:
-```sql
-IF p_processed_amount IS NOT NULL AND p_processed_amount > 0 THEN
-  v_final_amount := p_processed_amount;  -- Respect user input
-ELSE
-  v_final_amount := TRUNC(v_balance, p_send_precision);  -- Auto
-END IF;
-v_dust := v_balance - v_final_amount;
-```
-The newer migration replaced it with:
-```sql
-v_final_amount := TRUNC(v_balance, p_send_precision);  -- Always ignores input
-```
+2. **`p_send_precision` defaults to 3** — when no amount is provided for a full exit, the auto-truncate path uses `TRUNC(v_balance, 3)`, which chops the withdrawal amount to 3 decimal places and makes the dust artificially small (e.g., 0.0006 instead of the full 18dp remainder).
 
-The frontend (`withdrawalService.ts` line 255) correctly sends `p_processed_amount`, but it's thrown away.
+3. **Frontend never sends `p_send_precision`** — `withdrawalService.ts` does not pass this parameter, so it always falls back to the default of 3.
 
-### All Other Withdrawals: Clean
+## Fix (1 migration, no frontend changes)
 
-- **11 completed withdrawals** audited — no orphaned transactions
-- **All dust pairs balanced** — where investor-side dust sweep exists, fees-side credit exists (or both voided)
-- **No position-vs-ledger mismatches** on any active position
-- **Sam Johnson XRP residual** (0.000586762400) is from your test session — dust sweep was voided while main withdrawal stayed active. This is consistent with the ledger (position = ledger sum). It's test data, not a production bug.
+Rebuild `approve_and_complete_withdrawal` with two changes:
 
-### Reconciliation Dust on Indigo Fees SOL
+- **All variable declarations**: `numeric(28,10)` → `numeric(38,18)` (6 variables)
+- **Default `p_send_precision`**: `3` → `18` — matching the platform's numeric(38,18) storage precision. This means the auto-truncate path preserves all 18 decimal places, and dust is only the sub-attoscale residual (effectively zero unless the admin provides a specific amount).
 
-One manual correction transaction (`reconcile-dust-fees-sol-2026-04-08`, -1.644638572700) exists. Position matches ledger — no integrity issue.
+This aligns the withdrawal RPC with the precision upgrade applied to the yield engine, position recomputation, and all other financial RPCs.
 
-## Fix: 1 Migration
-
-Rebuild `approve_and_complete_withdrawal` to restore the `p_processed_amount` respect logic from migration `20260324125841`:
-
-- When `p_is_full_exit = true` AND `p_processed_amount` is provided → use that exact amount, sweep remainder as dust
-- When `p_is_full_exit = true` AND no amount provided → use `TRUNC(v_balance, p_send_precision)` (current behavior)
-- Safety cap: if `p_processed_amount > v_balance`, cap at balance
-
-This ensures:
-- User enters 331,500 → withdraws exactly 331,500, dust = 0.420586762400 → swept to Indigo Fees
-- User leaves amount blank → auto-truncates balance (legacy behavior preserved)
-
-No frontend changes needed — the service already passes `p_processed_amount`.
+### Why not remove `p_send_precision` entirely?
+It's still useful as an override for blockchain send limits (e.g., BTC on-chain only supports 8dp). But the default should be 18 (store full precision), not 3.
 
