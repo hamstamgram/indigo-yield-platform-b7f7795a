@@ -211,7 +211,7 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
       realized_pnl,
       fund_class,
       updated_at,
-      funds!fk_investor_positions_fund ( id, name, asset )
+      funds!fk_investor_positions_fund_id ( id, name, asset )
     `
     )
     .eq("investor_id", investorId)
