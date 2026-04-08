@@ -402,7 +402,7 @@ export const withdrawalService = {
         fund_id,
         current_value,
         shares,
-        funds:fund_id (
+        funds:funds!fk_investor_positions_fund_id (
           name,
           code,
           asset
