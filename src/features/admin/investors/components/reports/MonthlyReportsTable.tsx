@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, memo } from "react";
+import { parseFinancial } from "@/utils/formatters";
 import {
   Card,
   CardContent,
@@ -112,7 +113,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = memo(function Mo
         {
           reportId,
           field,
-          value: parseFloat(trimmed),
+          value: parseFinancial(trimmed).toNumber(),
           investorId,
         },
         {
