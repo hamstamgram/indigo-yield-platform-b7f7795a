@@ -150,73 +150,45 @@ The Indigo Yield Platform underwent a full-stack security and integrity audit co
 
 ---
 
-## 4. Open Issues (Pending)
+## 4. Resolved Issues (Formerly Open)
 
-### 🔴 P0: `profiles.is_admin` Column Self-Escalation
+> All 5 open issues from the initial audit have been resolved as of April 8, 2026.
 
-**Status:** NOT FIXED — Actively exploitable
+### ✅ P0: `profiles.is_admin` Column Self-Escalation — FIXED
 
-**Problem:** `profiles_update_own_or_admin` RLS policy allows any user to:
-```sql
-UPDATE profiles SET is_admin = true WHERE id = auth.uid();
-```
+**Migration:** `P0 Security Fix` (April 8, 2026)
 
-While `is_admin()` now uses `user_roles`, **15 database functions** still read `profiles.is_admin` directly:
+**Changes applied:**
+1. **Dropped** `profiles_update_own_or_admin` RLS policy
+2. **Created** `profiles_update_own_restricted` policy + `protect_profile_sensitive_fields` trigger blocking non-admin changes to: `is_admin`, `role`, `account_type`, `is_system_account`, `include_in_reporting`, `kyc_status`, `email`, `status`, `ib_parent_id`, `ib_commission_source`, `onboarding_date`
+3. **Rewrote 11 database functions** to remove `profiles.is_admin` reads:
+   - `can_insert_notification`, `ensure_admin`, `get_all_investors_summary`, `get_paged_investor_summaries`, `get_platform_stats`, `void_and_reissue_full_exit`, `get_investor_reports_v2`, `finalize_statement_period`, `unvoid_transaction`, `run_invariant_checks`, `rebuild_position_from_ledger`, `update_user_profile_secure`
+4. **Updated 4 edge functions** to use `checkAdminAccess()` from `_shared/admin-check.ts`:
+   - `set-user-password`, `send-email`, `excel_import`, `send-investor-report`
 
-| Function | Usage | Risk |
-|----------|-------|------|
-| `can_insert_notification` | Admin check via column | Notification injection |
-| `sync_profile_is_admin` | Syncs column from roles | Low (sync direction) |
-| `get_all_investors_summary` | Filter `WHERE is_admin = false` | Data leakage |
-| `get_platform_stats` | Reads column for stats | Info leak |
-| `get_investor_reports_v2` | Reads column | Info leak |
-| `void_and_reissue_full_exit` | Admin verification | Privilege escalation |
-| `sync_profile_role_from_profiles` | Syncs role | Low (trigger) |
-| `get_paged_investor_summaries` | Filter investors | Data leakage |
-| `create_profile_on_signup` | Sets default | Low |
-| `sync_profile_role_from_roles` | Syncs role | Low (trigger) |
-| `update_user_profile_secure` | Admin check | Privilege escalation |
-| `run_invariant_checks` | Integrity check | Low |
-| `ensure_admin` | Admin gate | Privilege escalation |
-| `finalize_statement_period` | Admin check | Privilege escalation |
-| `rebuild_position_from_ledger` | Admin check | Privilege escalation |
+### ✅ P1: Asymmetric Void — Distribution `63b032b8` — FIXED
 
-**Required Fix:**
-1. Replace `profiles_update_own_or_admin` with column-restricted policy (block `is_admin`, `role`, `account_type`, `is_system_account`, `include_in_reporting`, `kyc_status`)
-2. Rewrite `can_insert_notification()` to use `is_admin()`
-3. Patch all 15 functions to use `is_admin()` or `user_roles` JOIN
+**Migration:** `Void Orphaned Distribution` (April 8, 2026)
 
-### 🟡 P1: Asymmetric Void — Distribution `63b032b8`
+**Result:** `void_yield_distribution` cascade-voided 5 linked transactions, restoring conservation integrity for fund `2c123c4f`.
 
-**Status:** NOT FIXED — Data integrity gap
+### ✅ P2: `system_config` Exposed to All Users — FIXED
 
-**Problem:** Distribution `63b032b8` (fund `2c122c4f`, 2025-11-30) is active, but linked YIELD transaction `a1487a61` (investor `b464a3f7`, amount `0.0924 USDT`) is voided. Reissue never completed.
+**Migration:** `Config & Policy Cleanup` (April 8, 2026)
 
-**Required Fix:** Void distribution `63b032b8` via `void_yield_distribution` RPC.
+**Change:** Dropped `system_config_read` policy. Only `system_config_admin_all` remains.
 
-### 🟡 P2: `system_config` Exposed to All Users
+### ✅ P3: `investor_position_snapshots` Missing Investor SELECT — FIXED
 
-**Status:** NOT FIXED — Information leak
+**Migration:** `Config & Policy Cleanup` (April 8, 2026)
 
-**Problem:** `system_config_read` policy gives all authenticated users SELECT on operational settings (`maintenance_mode`, `approval_thresholds`, `dust_tolerance`).
+**Change:** Added `investor_position_snapshots_select_own` policy with `USING (investor_id = auth.uid())`.
 
-**Required Fix:** Drop `system_config_read` policy. Keep `system_config_admin_all`.
+### ✅ P4: Redundant `system_config_write` Policy — FIXED
 
-### 🔵 P3: `investor_position_snapshots` Missing Investor SELECT
+**Migration:** `Config & Policy Cleanup` (April 8, 2026)
 
-**Status:** NOT FIXED — Functional gap
-
-**Problem:** No SELECT policy for investors on their own snapshots. Admin-only.
-
-**Required Fix:** Add `investor_position_snapshots_select_own` policy with `USING (investor_id = auth.uid())`.
-
-### 🔵 P4: Redundant `system_config_write` Policy
-
-**Status:** NOT FIXED — Cleanup
-
-**Problem:** `system_config` has both `system_config_admin_all` (ALL) and `system_config_write` (ALL) — duplicate.
-
-**Required Fix:** Drop `system_config_write`.
+**Change:** Dropped `system_config_write`. Only `system_config_admin_all` remains.
 
 ---
 
@@ -239,12 +211,13 @@ While `is_admin()` now uses `user_roles`, **15 database functions** still read `
 | 13 | All 68 triggers enabled | ✅ PASS | All operational |
 | 14 | Audit tables healthy | ✅ PASS | ~32 MB total |
 | 15 | Admin check standardized to `is_admin()` | ✅ PASS | RLS policies |
-| 16 | `profiles.is_admin` column restricted | ❌ PENDING | P0 — not yet migrated |
-| 17 | 15 functions using `profiles.is_admin` patched | ❌ PENDING | P0 — not yet migrated |
-| 18 | Asymmetric void resolved | ❌ PENDING | P1 — distribution `63b032b8` |
-| 19 | `system_config` restricted to admin | ❌ PENDING | P2 |
-| 20 | `investor_position_snapshots` investor access | ❌ PENDING | P3 |
-| 21 | Redundant `system_config_write` dropped | ❌ PENDING | P4 |
+| 16 | `profiles.is_admin` column restricted | ✅ FIXED | P0 — trigger blocks non-admin changes |
+| 17 | 11 functions using `profiles.is_admin` patched | ✅ FIXED | P0 — all use `user_roles` now |
+| 18 | 4 edge functions patched | ✅ FIXED | P0 — use `checkAdminAccess()` |
+| 19 | Asymmetric void resolved | ✅ FIXED | P1 — distribution `63b032b8` voided |
+| 20 | `system_config` restricted to admin | ✅ FIXED | P2 — `system_config_read` dropped |
+| 21 | `investor_position_snapshots` investor access | ✅ FIXED | P3 — SELECT policy added |
+| 22 | Redundant `system_config_write` dropped | ✅ FIXED | P4 |
 
 ---
 
