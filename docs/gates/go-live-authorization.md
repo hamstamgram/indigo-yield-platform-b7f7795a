@@ -9,7 +9,7 @@
 
 | Gate | Description | Status | Signed By | Date |
 |------|-------------|--------|-----------|------|
-| Gate 0 | Audit Closure & Baseline Lock | ⚠️ Conditional | — | 2026-04-08 |
+| Gate 0 | Audit Closure & Baseline Lock | ✅ PASS | — | 2026-04-08 |
 | Gate 1 | Functional Smoke Tests | ☐ Pending | — | — |
 | Gate 2 | Financial Integrity Validation | ☐ Pending | — | — |
 | Gate 3 | Performance & Monitoring Readiness | ☐ Pending | — | — |
@@ -21,7 +21,7 @@
 
 | # | Item | Gate | Severity | Status |
 |---|------|------|----------|--------|
-| 1 | `anon` role has EXECUTE on 259/288 functions (expected ≤15) | Gate 0 | P0 | ⚠️ Open |
+| 1 | ~~`anon` role has EXECUTE on 259/288 functions~~ | Gate 0 | P0 | ✅ Fixed — now 12/288 |
 
 ---
 

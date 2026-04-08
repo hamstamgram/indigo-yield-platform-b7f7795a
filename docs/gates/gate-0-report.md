@@ -95,14 +95,18 @@ Fixed: Guard updated to allow service_role bypass. Also inherits fix from `is_ad
 
 ---
 
-## 7. Anon Role Execute Permissions
+## 7. Anon Role Execute Permissions — RESOLVED ✅
 
 | Metric | Value | Expected | Status |
 |--------|-------|----------|--------|
 | Total public functions | 288 | — | — |
-| Functions executable by `anon` | **259** | ~15 | ⚠️ **OPEN** |
+| Functions executable by `anon` | **12** | ≤15 | ✅ **PASS** |
 
-**Note:** The bulk REVOKE migration is applied but `anon` still has EXECUTE on 259 functions due to default privileges or subsequent grants. Requires investigation of `ALTER DEFAULT PRIVILEGES`.
+**Fix (Migration D — 2026-04-08):**
+- Revoked EXECUTE from `anon` and `PUBLIC` on all public functions
+- Set `ALTER DEFAULT PRIVILEGES` to prevent future auto-grants
+- Whitelisted 12 essential functions (signup triggers, RLS helpers)
+- Verified `authenticated` and `service_role` retain full access
 
 ---
 
@@ -150,13 +154,13 @@ All edge functions use `checkAdminAccess()` from `_shared/admin-check.ts`. No lo
 | yield_distributions policy consolidation | ✅ RESOLVED (Migration C) |
 | v_missing_withdrawal_transactions fix | ✅ RESOLVED (Migration C) |
 | Supabase linter | ✅ 0 warnings |
-| **Anon EXECUTE Permissions** | **⚠️ OPEN — needs default privileges fix** |
+| Anon EXECUTE permissions (12/288) | ✅ RESOLVED (Migration D) |
 
 ### Remaining Items
 
-1. **Anon EXECUTE permissions:** Bulk REVOKE applied but default privileges may be re-granting. Needs `ALTER DEFAULT PRIVILEGES` investigation.
+None — all Gate 0 items resolved. Ready for CTO + CFO sign-off.
 
 ---
 
 *Report updated: 2026-04-08*
-*Next: Fix default privileges → re-verify anon count → CTO + CFO sign-off*
+*All blockers resolved. Proceed to Gate 1 (Functional Smoke Tests).*
