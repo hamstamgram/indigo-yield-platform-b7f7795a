@@ -49,6 +49,7 @@ export async function getByInvestorId(
     )
     .eq("investor_id", investorId)
     .eq("is_voided", false)
+    .eq("visibility_scope", "investor_visible")
     .order("tx_date", { ascending: false })
     .order("id", { ascending: false });
 

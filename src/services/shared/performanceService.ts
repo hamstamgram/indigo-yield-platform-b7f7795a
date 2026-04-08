@@ -434,7 +434,8 @@ export const performanceService = {
     let perfQuery = supabase
       .from("investor_fund_performance")
       .select("*, period:statement_periods!inner(year, month, period_end_date)")
-      .eq("investor_id", userId);
+      .eq("investor_id", userId)
+      .eq("purpose", "reporting");
 
     if (periodId) {
       perfQuery = perfQuery.eq("period_id", periodId);
