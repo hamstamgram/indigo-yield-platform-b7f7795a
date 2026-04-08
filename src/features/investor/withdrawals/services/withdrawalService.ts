@@ -581,7 +581,7 @@ export const withdrawalService = {
   async getInvestorWithdrawalPositions(investorId: string) {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select(`fund_id, shares, current_value, funds ( asset )`)
+      .select(`fund_id, shares, current_value, funds!fk_investor_positions_fund_id ( asset )`)
       .eq("investor_id", investorId)
       .gt("shares", 0);
 

@@ -204,7 +204,7 @@ export const reportService = {
   async getInvestorPositions(investorId: string) {
     const { data, error } = await supabase
       .from("investor_positions")
-      .select("*, funds(name, code, asset)")
+      .select("*, funds!fk_investor_positions_fund_id(name, code, asset)")
       .eq("investor_id", investorId)
       .limit(100);
 

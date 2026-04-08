@@ -354,7 +354,7 @@ export async function getAllInvestorsExpertSummary(): Promise<ExpertInvestor[]> 
       realized_pnl,
       unrealized_pnl,
       last_transaction_date,
-      funds (
+      funds!fk_investor_positions_fund_id (
         id,
         code,
         name,
@@ -404,7 +404,7 @@ export async function getInvestorExpertView(investorId: string): Promise<ExpertI
       realized_pnl,
       unrealized_pnl,
       last_transaction_date,
-      funds (
+      funds!fk_investor_positions_fund_id (
         id,
         code,
         name,
@@ -460,7 +460,7 @@ export async function getPositionsByFund(
       `
       investor_id, fund_id, fund_class, shares, cost_basis, current_value,
       unrealized_pnl, realized_pnl, last_transaction_date, updated_at,
-      funds (name, code, asset, fund_class)
+      funds!fk_investor_positions_fund_id (name, code, asset, fund_class)
     `
     )
     .eq("fund_id", fundId)

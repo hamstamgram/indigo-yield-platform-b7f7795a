@@ -47,7 +47,7 @@ export const useUserAssets = () => {
       // Fallback: Query investor_positions directly for new investors
       const { data: positions, error: positionsError } = await supabase
         .from("investor_positions")
-        .select("fund:funds(code, asset)")
+        .select("fund:funds!fk_investor_positions_fund_id(code, asset)")
         .eq("investor_id", user.id)
         .eq("is_active", true)
         .neq("current_value", 0);

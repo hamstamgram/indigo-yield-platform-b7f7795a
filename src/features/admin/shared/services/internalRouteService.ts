@@ -44,7 +44,7 @@ export async function fetchInvestorPositionsForRoute(
       `
       fund_id,
       current_value,
-      funds!fk_investor_positions_fund ( id, name, asset )
+      funds!fk_investor_positions_fund_id ( id, name, asset )
     `
     )
     .eq("investor_id", investorId)

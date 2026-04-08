@@ -20,7 +20,7 @@ export function useDeleteInvestor() {
     mutationFn: async (investorId: string) => {
       const { data: activePositions } = await supabase
         .from("investor_positions")
-        .select("fund_id, current_value, funds:fund_id(name)")
+        .select("fund_id, current_value, funds:funds!fk_investor_positions_fund_id(name)")
         .eq("investor_id", investorId)
         .gt("current_value", 0);
 
