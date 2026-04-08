@@ -13,7 +13,7 @@ import {
   Label,
 } from "@/components/ui";
 import { Loader2, ArrowRightLeft } from "lucide-react";
-import { useWithdrawalMutations } from "@/hooks/data";
+import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
 import { useAuth } from "@/services/auth";
 
 interface RouteToFeesDialogProps {
