@@ -12,9 +12,8 @@ import { transactionsV2Service } from "@/services/investor";
 import {
   getTransactionById,
   getTransactionWithRelated,
-  getTransactionFormData,
-  checkInvestorBalance,
-} from "@/services/admin";
+} from "@/features/admin/transactions/services/transactionDetailsService";
+import { getTransactionFormData, checkInvestorBalance } from "@/features/admin/transactions/services/transactionFormDataService";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { Database } from "@/integrations/supabase/types";

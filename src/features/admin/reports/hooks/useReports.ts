@@ -10,13 +10,13 @@ import {
   fetchInvestorPerformanceReports,
   fetchPerformanceReportById,
   fetchAdminInvestorReports,
-  generateFundPerformanceReports,
   fetchLatestPerformance,
   fetchActiveInvestorsForStatements,
-  sendReportEmail,
   fetchHistoricalReports,
-  deleteInvestorReport,
-} from "@/services/admin";
+} from "@/features/admin/reports/services/reports/dataFetch";
+import { generateFundPerformanceReports } from "@/features/admin/reports/services/reports/generation";
+import { sendReportEmail } from "@/features/admin/reports/services/reports/email";
+import { deleteInvestorReport } from "@/features/admin/reports/services/reports/maintenance";
 import {
   bulkDeleteGeneratedStatements,
   deleteSingleGeneratedStatement,
