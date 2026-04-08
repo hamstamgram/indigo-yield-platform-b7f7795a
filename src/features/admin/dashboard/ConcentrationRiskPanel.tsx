@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   Card,
   CardContent,

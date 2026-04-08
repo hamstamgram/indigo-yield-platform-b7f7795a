@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, Badge, Progress } from "@/components/ui";
 import { Droplets, TrendingDown, AlertTriangle } from "lucide-react";
 import { useLiquidityRisk, type LiquidityRisk } from "@/features/admin/system/hooks/useRiskAlerts";
@@ -12,7 +13,7 @@ const riskLevelConfig = {
 
 const fallbackRiskConfig = riskLevelConfig.LOW;
 
-export function LiquidityRiskPanel() {
+export const LiquidityRiskPanel = memo(function LiquidityRiskPanel() {
   const { data: liquidityData, isLoading } = useLiquidityRisk();
 
   if (isLoading) {
@@ -132,4 +133,4 @@ export function LiquidityRiskPanel() {
       </CardContent>
     </Card>
   );
-}
+});
