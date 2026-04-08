@@ -136,7 +136,7 @@ All edge functions use `checkAdminAccess()` from `_shared/admin-check.ts`. No lo
 | Area | Result |
 |------|--------|
 | Comprehensive Health Check (8 checks) | ✅ PASS |
-| Migrations (7 remediation) | ✅ Applied |
+| Migrations (7 remediation + Migration C) | ✅ Applied |
 | Edge Function Auth (11 functions) | ✅ PASS |
 | Profile Field Protection | ✅ PASS |
 | System Config Lockdown | ✅ PASS |
@@ -146,6 +146,10 @@ All edge functions use `checkAdminAccess()` from `_shared/admin-check.ts`. No lo
 | P0-REGR-1: audit_leakage_report enum fix | ✅ RESOLVED |
 | P1-1: toggleAdminStatus code fix | ✅ RESOLVED |
 | P1-2: Duplicate indexes dropped (6 total) | ✅ RESOLVED |
+| RLS InitPlan optimization (10 policies) | ✅ RESOLVED (Migration C) |
+| yield_distributions policy consolidation | ✅ RESOLVED (Migration C) |
+| v_missing_withdrawal_transactions fix | ✅ RESOLVED (Migration C) |
+| Supabase linter | ✅ 0 warnings |
 | **Anon EXECUTE Permissions** | **⚠️ OPEN — needs default privileges fix** |
 
 ### Remaining Items
@@ -154,5 +158,5 @@ All edge functions use `checkAdminAccess()` from `_shared/admin-check.ts`. No lo
 
 ---
 
-*Report generated: 2026-04-08*
+*Report updated: 2026-04-08*
 *Next: Fix default privileges → re-verify anon count → CTO + CFO sign-off*
