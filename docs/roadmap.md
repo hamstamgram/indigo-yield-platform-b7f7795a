@@ -218,6 +218,8 @@ The Indigo Yield Platform underwent a full-stack security and integrity audit co
 | 20 | `system_config` restricted to admin | ✅ FIXED | P2 — `system_config_read` dropped |
 | 21 | `investor_position_snapshots` investor access | ✅ FIXED | P3 — SELECT policy added |
 | 22 | Redundant `system_config_write` dropped | ✅ FIXED | P4 |
+| 23 | `anon` role EXECUTE revoked on all functions | ✅ PASS | Bulk REVOKE applied |
+| 24 | Edge functions use `checkAdminAccess()` | ✅ PASS | 4 functions patched |
 
 ---
 
@@ -323,12 +325,12 @@ The Indigo Yield Platform underwent a full-stack security and integrity audit co
 | 17 | `investor_emails` | Identity | ✅ | Active |
 | 18 | `investor_fee_schedule` | Config | ✅ | Active |
 | 19 | `investor_fund_performance` | Reporting | ✅ | Active |
-| 20 | `investor_position_snapshots` | Financial | ✅ Admin-only | Active |
+| 20 | `investor_position_snapshots` | Financial | ✅ Admin + Investor SELECT | Active |
 | 21 | `investor_positions` | Financial | ✅ + FK + Unique | Active |
 | 22 | `notifications` | Comms | ✅ | Active |
 | 23 | `platform_fee_ledger` | Financial | ✅ + Unique | Active |
 | 24 | `platform_invites` | Identity | ✅ | Active |
-| 25 | `profiles` | Identity | ✅ ⚠️ P0 | Active |
+| 25 | `profiles` | Identity | ✅ Restricted | Active |
 | 26 | `rate_limit_config` | Config | ✅ | Active |
 | 27 | `report_schedules` | Reporting | ✅ | Active |
 | 28 | `risk_alerts` | Operations | ✅ | Active |
@@ -336,7 +338,7 @@ The Indigo Yield Platform underwent a full-stack security and integrity audit co
 | 30 | `statement_periods` | Reporting | ✅ | Active |
 | 31 | `statements` | Reporting | ✅ | Active |
 | 32 | `support_tickets` | Support | ✅ | Active |
-| 33 | `system_config` | Config | ✅ ⚠️ P2 | Active |
+| 33 | `system_config` | Config | ✅ Admin-only | Active |
 | 34 | `transactions_v2` | Financial | ✅ + FK | Active |
 | 35 | `user_roles` | RBAC | ✅ | Active |
 | 36 | `user_sessions` | Auth | ✅ | Active |
@@ -358,12 +360,12 @@ The Indigo Yield Platform underwent a full-stack security and integrity audit co
 | `audit_user_role_changes` | Trigger | No |
 | `can_access_investor` | RLS Helper | No |
 | `can_access_notification` | RLS Helper | No |
-| `can_insert_notification` | RLS Helper | ⚠️ Uses `profiles.is_admin` |
+| `can_insert_notification` | RLS Helper | ✅ Uses `user_roles` |
 | `check_is_admin` (via `is_admin`) | RLS | ✅ |
 | `compute_profile_role` | Helper | No |
 | `create_profile_on_signup` | Trigger | ✅ |
 | `current_user_is_admin_or_owner` | RLS Helper | No |
-| `ensure_admin` | Guard | No |
+| `ensure_admin` | Guard | ✅ Uses `user_roles` |
 | `get_user_admin_status` | Query | No |
 | `has_role` | RLS Helper | ✅ |
 | `has_super_admin_role` | RLS Helper | No |
@@ -807,7 +809,7 @@ All 25 active investor positions were verified against the transaction ledger. *
 | Orphaned positions (no profile) | **0** |
 | Orphaned transactions (no profile) | **0** |
 | Active yield distributions | **36** |
-| Conservation violations | **0** (except P1 asymmetric void) |
+| Conservation violations | **0** ✅ |
 
 ### Asymmetric Void Summary
 
@@ -819,13 +821,13 @@ All 25 active investor positions were verified against the transaction ledger. *
 | Affected Investor | `b464a3f7` |
 | Amount | 0.0924 USDT |
 | Cause | Failed void-and-reissue (reissue never completed) |
-| Status | **Pending void** |
+| Status | **✅ Voided (April 8, 2026)** |
 
 ### Leakage Audit (`audit_leakage_report()`)
 
 | Check | Status |
 |-------|--------|
-| Asymmetric voids | ⚠️ 1 found (P1) |
+| Asymmetric voids | ✅ Resolved — voided |
 | Negative cost basis | ✅ None |
 | Fee leakage (charged ≠ credited) | ✅ None |
 | IB commission leakage | ✅ None |
@@ -840,6 +842,23 @@ All 25 active investor positions were verified against the transaction ledger. *
 | `20260408180849` | P0-B: Drop storage broad-access policies + path-based ownership | ✅ Applied |
 | `20260408180849` | P1: `search_path = public` on 20 functions | ✅ Applied |
 | `20260408180849` | P2: Drop redundant `ib_commission_ledger_select` + `platform_fee_ledger_select` | ✅ Applied |
+| `20260408191318` | P0: Profiles privilege escalation fix — restricted UPDATE policy + sensitive field trigger + 11 functions rewritten | ✅ Applied |
+| `20260408191426` | P2-P4: Drop `system_config_read/write` + add `investor_position_snapshots_select_own` | ✅ Applied |
+| `20260408191518` | P1: Void orphaned distribution `63b032b8` — cascade-voided 5 transactions | ✅ Applied |
+| `20260408195502` | P0-C: Bulk REVOKE EXECUTE from `anon` on all functions + selective GRANT-back whitelist + REVOKE from PUBLIC on critical mutations | ✅ Applied |
+
+---
+
+## Appendix: Edge Function Security Patches
+
+| Edge Function | Change | Method |
+|---------------|--------|--------|
+| `set-user-password/index.ts` | Replaced `profiles.is_admin` check with `checkAdminAccess()` | `_shared/admin-check.ts` |
+| `send-email/index.ts` | Added `checkAdminAccess()` guard | `_shared/admin-check.ts` |
+| `excel_import/index.ts` | Added `checkAdminAccess()` guard | `_shared/admin-check.ts` |
+| `send-investor-report/index.ts` | Added `checkAdminAccess()` guard | `_shared/admin-check.ts` |
+
+All 4 functions now use `user_roles` table exclusively — no fallback to `profiles.is_admin`.
 
 ---
 
