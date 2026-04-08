@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
 import { toNum } from "@/utils/numeric";
-import { type YieldPurpose, type Fund } from "@/hooks/data/admin/useYieldOperationsState";
+import { type YieldPurpose, type Fund } from "@/features/admin/yields/hooks/useYieldOperationsState";
 
 interface ReconciliationData {
   has_warning: boolean;

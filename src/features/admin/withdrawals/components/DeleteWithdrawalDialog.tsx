@@ -17,7 +17,7 @@ import {
   Checkbox,
 } from "@/components/ui";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
-import { useWithdrawalMutations } from "@/hooks/data";
+import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
 
 interface DeleteWithdrawalDialogProps {
   open: boolean;

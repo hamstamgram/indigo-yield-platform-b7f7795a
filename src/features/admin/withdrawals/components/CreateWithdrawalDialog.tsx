@@ -43,8 +43,8 @@ import {
   useInvestorOptions,
   usePositionsForWithdrawal,
   useAvailableBalance,
-  useWithdrawalMutations,
 } from "@/hooks/data";
+import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
 import { parseFinancial } from "@/utils/financial";
 // Removed useFundYieldLock
 

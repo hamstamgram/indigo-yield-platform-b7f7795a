@@ -65,7 +65,7 @@ import {
   useGenerateFundPerformance,
   useSendReportEmail,
   useDeleteInvestorReport,
-} from "@/hooks/data";
+} from "@/features/admin/reports/hooks/useReports";
 import type { InvestorReportSummary } from "@/services/admin/reportQueryService";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { supabase } from "@/integrations/supabase/client";

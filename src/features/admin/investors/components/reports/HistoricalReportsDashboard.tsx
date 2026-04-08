@@ -23,7 +23,7 @@ import {
 import { Database, Search, ChevronLeft, ChevronRight, Trash2, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useHistoricalReports, useBulkDeleteReports, useDeleteSingleReport } from "@/hooks/data";
+import { useHistoricalReports, useBulkDeleteReports, useDeleteSingleReport } from "@/features/admin/reports/hooks/useReports";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { format, subMonths } from "date-fns";
 import type { DeliveryStatus } from "@/services/admin/reportQueryService";

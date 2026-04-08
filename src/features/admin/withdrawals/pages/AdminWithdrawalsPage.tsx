@@ -23,7 +23,7 @@ import type { ExportColumn } from "@/lib/export/csv-export";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useWithdrawalsWithStats } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 import { useWithdrawalSelection } from "@/features/admin/withdrawals/hooks/useWithdrawalSelection";
-import { useWithdrawalMutations } from "@/hooks/data";
+import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";

@@ -55,7 +55,7 @@ import { useNavigate } from "react-router-dom";
 
 import { AddTransactionDialog } from "@/features/admin/transactions/AddTransactionDialog";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { useYieldOperationsState } from "@/hooks/data/admin/useYieldOperationsState";
+import { useYieldOperationsState } from "@/features/admin/yields/hooks/useYieldOperationsState";
 import {
   usePendingYieldEvents,
   useInvestorCrystallizationEvents,

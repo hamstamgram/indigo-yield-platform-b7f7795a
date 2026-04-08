@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { Loader2, Pencil, AlertTriangle } from "lucide-react";
-import { useWithdrawalMutations } from "@/hooks/data";
+import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
 
 interface EditWithdrawalDialogProps {
   open: boolean;

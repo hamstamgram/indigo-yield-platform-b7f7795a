@@ -85,7 +85,7 @@ export { useRealtimeNotifications } from "./useRealtimeNotifications";
 // Realtime subscription
 export { useRealtimeSubscription, useLedgerSubscription } from "./useRealtimeSubscription";
 
-// Reports
+// Reports (re-exported from canonical feature location)
 export {
   useInvestorPerformanceReports,
   usePerformanceReportDetail,
@@ -98,10 +98,10 @@ export {
   useDeleteInvestorReport,
   useBulkDeleteReports,
   useDeleteSingleReport,
-} from "./useReports";
+} from "@/features/admin/reports/hooks/useReports";
 
-// Statements
-export { useStatements, usePublishStatements, type StatementDraft } from "./useStatements";
+// Statements (re-exported from canonical feature location)
+export { useStatements, usePublishStatements, type StatementDraft } from "@/features/admin/reports/hooks/useStatements";
 
 // Transaction hooks (consolidated)
 export {
@@ -125,8 +125,8 @@ export {
   type TransactionFilters,
 } from "./useTransactionHooks";
 
-// Investor hooks (consolidated)
-export { useInvestors, useUnifiedInvestors, type EnrichedInvestor } from "./useInvestorHooks";
+// Investor hooks (re-exported from canonical feature location)
+export { useInvestors, useUnifiedInvestors, type EnrichedInvestor } from "@/features/admin/investors/hooks/useInvestorHooks";
 
 // User assets
 export { useUserAssets, type UserAsset } from "./useUserAssets";

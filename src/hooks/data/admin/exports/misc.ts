@@ -45,4 +45,4 @@ export {
   type IBParentOption,
   type Referral,
   type UserSearchResult,
-} from "../useIBSettings";
+} from "@/features/admin/ib/hooks/useIBSettings";

@@ -2,7 +2,7 @@
  * Investor-related admin hooks - Re-exports from features/admin
  */
 
-// Shared hooks (still in shared location)
+// Shared hooks (now in feature location)
 export {
   useInvestorDetail,
   useInvestorOpsIndicators,
@@ -17,7 +17,7 @@ export {
   useAdminAssets,
   useDeleteInvestor,
   type AdminInvestorSummary as AdminInvestorListItem,
-} from "@/hooks/data/shared/useInvestorHooks";
+} from "@/features/admin/investors/hooks/useInvestorHooks";
 
 // Admin investor hooks from new location
 export {
@@ -29,14 +29,14 @@ export {
 export * from "@/features/admin/investors/hooks/useAdminInvestorWithdrawals";
 
 // Centralized investor mutations
-export { useCreateInvestor, useDeleteInvestor as useAdminDeleteInvestorAction } from "../useInvestorMutations";
+export { useCreateInvestor, useDeleteInvestor as useAdminDeleteInvestorAction } from "@/features/admin/investors/hooks/useInvestorMutations";
 
 // Investor wizard
 export {
   useCreateInvestorWizard,
   type WizardResult,
   type WizardProgressCallback,
-} from "../useInvestorWizard";
+} from "@/features/admin/investors/hooks/useInvestorWizard";
 
 // Re-export types from services
 export type {

@@ -16,9 +16,9 @@ export {
   useCanVoidYield,
   type YieldFilters,
   type YieldDetails,
-} from "../useYieldData";
+} from "@/features/admin/yields/hooks/useYieldData";
 
-export { useFundYieldLock } from "../useFundYieldLock";
+export { useFundYieldLock } from "@/features/admin/yields/hooks/useFundYieldLock";
 export type {
   YieldRecord,
   YieldRecord as RecordedYieldRecord,
