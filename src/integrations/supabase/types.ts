@@ -6845,7 +6845,7 @@ export type Database = {
         Returns: Json
       }
       void_completed_withdrawal: {
-        Args: { p_reason?: string; p_withdrawal_id: string }
+        Args: { p_reason: string; p_withdrawal_id: string }
         Returns: Json
       }
       void_transaction: {
