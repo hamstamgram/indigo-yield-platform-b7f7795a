@@ -80,6 +80,18 @@ Fixed: Guard updated to allow service_role bypass. Also inherits fix from `is_ad
 | `idx_transactions_v2_reference_unique` | transactions_v2 | Subset of compound unique index |
 | `idx_investor_positions_fund` | investor_positions | Subset of `idx_positions_fund_active` |
 | `idx_fee_alloc_distribution` | fee_allocations | Duplicate of `idx_fee_allocations_distribution` |
+| `idx_audit_log_date` | audit_log | Duplicate of `idx_audit_log_created_desc` |
+| `uq_investor_positions_investor_fund` | investor_positions | Duplicate of `investor_positions_pkey` |
+
+---
+
+## 6b. P0-REGR-1: `audit_leakage_report()` Invalid Enum — RESOLVED ✅
+
+**Problem:** Function referenced `'REDEMPTION'` which does not exist in `tx_type` enum, crashing the entire report on every call.
+
+**Fix:** Replaced `'WITHDRAWAL', 'REDEMPTION'` with `'WITHDRAWAL', 'INTERNAL_WITHDRAWAL'` in the asymmetric voids check.
+
+**Verification:** `audit_leakage_report()` now returns `overall_status: pass` with 0 violations across all 4 checks.
 
 ---
 
@@ -124,15 +136,16 @@ All edge functions use `checkAdminAccess()` from `_shared/admin-check.ts`. No lo
 | Area | Result |
 |------|--------|
 | Comprehensive Health Check (8 checks) | ✅ PASS |
-| Migrations (5 remediation) | ✅ Applied |
+| Migrations (7 remediation) | ✅ Applied |
 | Edge Function Auth (11 functions) | ✅ PASS |
 | Profile Field Protection | ✅ PASS |
 | System Config Lockdown | ✅ PASS |
 | Trigger Inventory (68+) | ✅ PASS |
 | P0-NEW-1: Missing user_roles | ✅ RESOLVED |
 | P0-NEW-2: Service role admin guard | ✅ RESOLVED |
+| P0-REGR-1: audit_leakage_report enum fix | ✅ RESOLVED |
 | P1-1: toggleAdminStatus code fix | ✅ RESOLVED |
-| P1-2: Duplicate indexes dropped | ✅ RESOLVED |
+| P1-2: Duplicate indexes dropped (6 total) | ✅ RESOLVED |
 | **Anon EXECUTE Permissions** | **⚠️ OPEN — needs default privileges fix** |
 
 ### Remaining Items
