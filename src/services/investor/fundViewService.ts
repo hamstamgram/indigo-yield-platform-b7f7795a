@@ -161,7 +161,7 @@ export async function getInvestorPositionsWithFunds(
       last_yield_crystallization_date,
       lock_until_date,
       updated_at,
-      fund:funds!fk_investor_positions_fund (
+      fund:funds!fk_investor_positions_fund_id (
         id,
         code,
         name,

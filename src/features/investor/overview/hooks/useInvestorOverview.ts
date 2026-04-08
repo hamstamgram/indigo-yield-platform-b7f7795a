@@ -33,7 +33,7 @@ export function useInvestorOverview(investorId: string) {
           fund_id,
           current_value,
           shares,
-          funds!inner(name, asset, status)
+          funds!fk_investor_positions_fund_id!inner(name, asset, status)
         `
         )
         .eq("investor_id", investorId);

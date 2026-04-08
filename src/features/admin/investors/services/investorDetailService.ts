@@ -157,7 +157,7 @@ export async function fetchInvestorPositionsWithTotals(
       cost_basis,
       unrealized_pnl,
       realized_pnl,
-      funds!fk_investor_positions_fund(name, code, asset)
+      funds!fk_investor_positions_fund_id(name, code, asset)
     `
     )
     .eq("investor_id", investorId)
@@ -199,7 +199,7 @@ export async function fetchActivePositions(investorId: string): Promise<Investor
       cost_basis,
       unrealized_pnl,
       realized_pnl,
-      funds!fk_investor_positions_fund(name, code, asset)
+      funds!fk_investor_positions_fund_id(name, code, asset)
     `
     )
     .eq("investor_id", investorId)
