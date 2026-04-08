@@ -80,6 +80,18 @@ Fixed: Guard updated to allow service_role bypass. Also inherits fix from `is_ad
 | `idx_transactions_v2_reference_unique` | transactions_v2 | Subset of compound unique index |
 | `idx_investor_positions_fund` | investor_positions | Subset of `idx_positions_fund_active` |
 | `idx_fee_alloc_distribution` | fee_allocations | Duplicate of `idx_fee_allocations_distribution` |
+| `idx_audit_log_date` | audit_log | Duplicate of `idx_audit_log_created_desc` |
+| `uq_investor_positions_investor_fund` | investor_positions | Duplicate of `investor_positions_pkey` |
+
+---
+
+## 6b. P0-REGR-1: `audit_leakage_report()` Invalid Enum — RESOLVED ✅
+
+**Problem:** Function referenced `'REDEMPTION'` which does not exist in `tx_type` enum, crashing the entire report on every call.
+
+**Fix:** Replaced `'WITHDRAWAL', 'REDEMPTION'` with `'WITHDRAWAL', 'INTERNAL_WITHDRAWAL'` in the asymmetric voids check.
+
+**Verification:** `audit_leakage_report()` now returns `overall_status: pass` with 0 violations across all 4 checks.
 
 ---
 
