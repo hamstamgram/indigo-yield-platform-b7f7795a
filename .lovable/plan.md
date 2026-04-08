@@ -1,71 +1,51 @@
 
 
-# Platform Bug & Issue Audit — Findings Report
+# Withdrawal Audit — Findings & Fix Plan
 
-## Critical Issue #1: 5 Unvoided Transactions from Voided Distribution (DATA FIX)
+## Audit Results
 
-**Severity: HIGH** — Active ledger corruption
+### Bug Found: Full Exit Ignores User-Entered Amount (REGRESSION)
 
-Distribution `c9110b45` (BTC fund, 2025-03-31) was voided on 2026-03-27, but **5 transactions were not voided** during the cascade:
+When you enter 331,500 for a full exit, the `approve_and_complete_withdrawal` RPC ignores your input and withdraws `TRUNC(balance, 3)` = 331,500.420 instead. The dust is then only 0.000586... instead of the expected 0.42.
 
-| Investor | Type | Amount |
-|---|---|---|
-| Jose Molla | YIELD | 0.01183... BTC |
-| Indigo Fees | FEE_CREDIT | 0.00208... BTC |
-| Thomas Puech | YIELD | 0.02591... BTC |
-| Indigo Fees | YIELD | 0.00016... BTC |
-| Indigo Fees | DUST | 0.000...001 BTC |
-
-**Root cause:** This void happened on 2026-03-27, before the `void_yield_distribution` function was rebuilt with the canonical RPC flag (migration `20260408153659`). The function likely failed mid-execution — the distribution record was marked `is_voided=true`, but the transaction cascade was incomplete.
-
-**Fix:** Data migration to void these 5 orphaned transactions and recompute affected positions (Jose Molla, Thomas Puech, Indigo Fees in BTC fund).
-
----
-
-## Issue #2: 11 Legacy Withdrawal Requests with No Linked Transaction (INFORMATIONAL)
-
-11 `withdrawal_requests` with `status=completed` have no transaction whose `reference_id` contains the withdrawal request ID. However, all 11 have matching unvoided WITHDRAWAL transactions linked by investor_id + fund_id — they just use the `WDR-{investor}-{date}-{hash}` reference format instead of embedding the withdrawal request UUID.
-
-**Root cause:** These are pre-RPC legacy withdrawals imported during the seed/migration phase. The `reference_id` format was standardized later.
-
-**Impact:** None on financial integrity — transactions exist and balances are correct. The `v_missing_withdrawal_transactions` view (P2 tech debt item #2) may flag these as false positives.
-
-**Fix:** No data fix needed. This is already tracked in `POST_LAUNCH_TECH_DEBT.md` item #2.
-
----
-
-## Issue #3: IB/Fees Positions with Zero Cost Basis (EXPECTED)
-
-6 positions have `cost_basis=0` with positive `current_value`:
-- 3 are **Indigo Fees** (system account) — fees accounts never have deposits, only FEE_CREDIT/YIELD/DUST
-- 3 are **IB investors** (Alex Jacobs, Ryan Van Der Wall, Lars Ahlgreen) — they receive IB_CREDIT commissions, not deposits
-
-**Impact:** None — this is correct behavior. Cost basis only tracks DEPOSIT amounts.
-
-**Fix:** None needed. Could optionally exclude `fees_account` and IB-only investors from the `zero_cost_basis_with_value` check if it's added to the integrity monitor.
-
----
-
-## Implementation Plan (1 migration)
-
-### Migration: Void orphaned transactions from distribution c9110b45
-
+**Root cause:** Migration `20260327173212` (line 229-231) regressed the fix from `20260324125841`. The older migration correctly checked:
 ```sql
--- 1. Void the 5 orphaned transactions
-UPDATE transactions_v2
-SET is_voided = true,
-    voided_at = NOW(),
-    void_reason = 'Orphaned: parent distribution c9110b45 was voided on 2026-03-27 but these transactions were missed'
-WHERE distribution_id = 'c9110b45-9339-4090-b4f3-bad4b2784ca2'
-  AND is_voided = false;
-
--- 2. Recompute positions for affected investors
-SELECT recompute_investor_position('203caf71-a9ac-4e2a-bbd3-b45dd51758d4', '0a048d9b-c4cf-46eb-b428-59e10307df93');  -- Jose Molla BTC
-SELECT recompute_investor_position('44801beb-4476-4a9b-9751-4e70267f6953', '0a048d9b-c4cf-46eb-b428-59e10307df93');  -- Thomas Puech BTC
-SELECT recompute_investor_position('b464a3f7-60d5-4bc0-9833-7b413bcc6cae', '0a048d9b-c4cf-46eb-b428-59e10307df93');  -- Indigo Fees BTC
+IF p_processed_amount IS NOT NULL AND p_processed_amount > 0 THEN
+  v_final_amount := p_processed_amount;  -- Respect user input
+ELSE
+  v_final_amount := TRUNC(v_balance, p_send_precision);  -- Auto
+END IF;
+v_dust := v_balance - v_final_amount;
+```
+The newer migration replaced it with:
+```sql
+v_final_amount := TRUNC(v_balance, p_send_precision);  -- Always ignores input
 ```
 
-This requires the canonical RPC flag, so the UPDATE must be wrapped in a function or use `SET LOCAL`.
+The frontend (`withdrawalService.ts` line 255) correctly sends `p_processed_amount`, but it's thrown away.
 
-### No frontend changes needed
+### All Other Withdrawals: Clean
+
+- **11 completed withdrawals** audited — no orphaned transactions
+- **All dust pairs balanced** — where investor-side dust sweep exists, fees-side credit exists (or both voided)
+- **No position-vs-ledger mismatches** on any active position
+- **Sam Johnson XRP residual** (0.000586762400) is from your test session — dust sweep was voided while main withdrawal stayed active. This is consistent with the ledger (position = ledger sum). It's test data, not a production bug.
+
+### Reconciliation Dust on Indigo Fees SOL
+
+One manual correction transaction (`reconcile-dust-fees-sol-2026-04-08`, -1.644638572700) exists. Position matches ledger — no integrity issue.
+
+## Fix: 1 Migration
+
+Rebuild `approve_and_complete_withdrawal` to restore the `p_processed_amount` respect logic from migration `20260324125841`:
+
+- When `p_is_full_exit = true` AND `p_processed_amount` is provided → use that exact amount, sweep remainder as dust
+- When `p_is_full_exit = true` AND no amount provided → use `TRUNC(v_balance, p_send_precision)` (current behavior)
+- Safety cap: if `p_processed_amount > v_balance`, cap at balance
+
+This ensures:
+- User enters 331,500 → withdraws exactly 331,500, dust = 0.420586762400 → swept to Indigo Fees
+- User leaves amount blank → auto-truncates balance (legacy behavior preserved)
+
+No frontend changes needed — the service already passes `p_processed_amount`.
 
