@@ -1,125 +1,142 @@
 
 
-# Platform Architecture Audit Report
+# Database Architecture Audit Report
 
 ## Executive Summary
 
-The codebase has successfully migrated most logic into a feature-based structure (`src/features/admin/` and `src/features/investor/`). However, the migration left behind a thick layer of re-export shims, duplicated hook barrels, and "shared" directories that blur ownership. Below are findings ranked from most critical to optional.
+40 tables, 28 views, ~1.2 GB of audit data accumulated in 3 weeks. The schema is functionally complete but has four systemic issues: **inconsistent admin-check functions**, **redundant/overlapping RLS policies**, **zero foreign keys on the schema** (all FK references are orphaned), and **audit table bloat** (774 MB in 22 days with no archival).
 
 ---
 
-## Finding 1: Triple-Indirection Hook Barrel (Critical)
+## Finding 1: ZERO Enforced Foreign Keys (Critical)
 
-**Problem:** Hooks pass through 3 layers before reaching consumers:
+**Problem:** The `information_schema.table_constraints` query for FK type returns **0 rows**. Despite `pg_constraint` reporting FK counts per table, the actual FK metadata shows every single `*_id` UUID column across all 40 tables lacks a real foreign key constraint.
 
-```text
-src/features/admin/yields/hooks/useYieldOperations.ts   ← actual logic
-  ↑ re-exported by
-src/hooks/data/admin/exports/yields.ts                  ← barrel shim
-  ↑ re-exported by
-src/hooks/data/admin/index.ts                           ← barrel shim
-  ↑ re-exported by
-src/hooks/data/index.ts                                 ← barrel shim
-  ↑ imported by
-src/features/admin/yields/components/SomeComponent.tsx  ← consumer
-```
+Over **90 UUID columns** named `investor_id`, `fund_id`, `period_id`, `distribution_id`, `transaction_id`, etc. have no referential integrity enforcement. This means:
+- Orphaned records can exist silently (e.g., a `fee_allocation` referencing a deleted fund)
+- CASCADE deletes don't work — data cleanup is fully manual
+- The integrity views (`v_orphaned_positions`, `v_fee_allocation_orphans`, etc.) exist as compensating controls, which confirms the team is aware
 
-This creates circular-like dependency risk, slows IDE resolution, and makes dead-code elimination harder. The same pattern applies to all 9 barrel files in `src/hooks/data/admin/exports/`.
+**Recommendation:** Add FK constraints to the most critical financial relationships first:
+1. `transactions_v2.fund_id → funds.id`
+2. `transactions_v2.investor_id → profiles.id`
+3. `yield_distributions.fund_id → funds.id`
+4. `fee_allocations.distribution_id → yield_distributions.id`
+5. `investor_positions.fund_id → funds.id` and `investor_positions.investor_id → profiles.id`
 
-**Recommendation:** Features should import directly from their own domain (`@/features/admin/yields/hooks/...`). The entire `src/hooks/data/admin/` directory (index + exports + yield subfolder) is pure re-export overhead. Plan a phased removal: update imports in features first, then delete the barrels.
+Use `NOT VALID` initially to avoid locking tables, then `VALIDATE CONSTRAINT` in a separate migration.
 
 ---
 
-## Finding 2: Bloated "Shared" Hooks Directory (Critical)
+## Finding 2: Four Different Admin-Check Functions (Critical)
 
-**Problem:** `src/hooks/data/shared/` has 28 files containing hooks that are not truly shared. Examples:
-- `useDashboardMetrics.ts` / `useDashboardQueries.ts` — admin-only, re-exported through the admin dashboard barrel
-- `useInvestorHooks.ts` — admin investor management hooks living in "shared"
-- `useReports.ts` — admin-only report operations (generate, send, delete)
-- `useStatements.ts` — admin statement publishing
+**Problem:** RLS policies across the database use **four different functions** to check admin status:
 
-These should live in their respective feature directories. Only genuinely cross-cutting hooks (auth, profiles, realtime, funds CRUD) belong in shared.
+| Function | Used by |
+|----------|---------|
+| `is_admin()` | 25+ tables (most common) |
+| `is_admin_for_jwt()` | `assets`, `audit_log`, `statements` |
+| `is_admin_safe()` | `profiles`, `investor_emails`, `rate_limit_config`, `transactions_v2`, `yield_distributions` |
+| `check_is_admin(auth.uid())` | `data_edit_audit`, `statement_periods`, `statements`, `support_tickets` |
 
-**Recommendation:** Move ~15 hooks from `src/hooks/data/shared/` into their owning feature folder. Keep only truly bidirectional hooks (auth, profiles, realtime subscription, fund CRUD, notifications).
+This creates confusion about which function to use, potential security inconsistencies (do they all check the same thing?), and maintenance burden.
 
----
-
-## Finding 3: Services Shim Layer is Stale (High)
-
-**Problem:** `src/services/admin/` contains 15 one-liner re-export files (e.g., `feesService.ts`, `reportService.ts`) plus a 194-line `index.ts` barrel. These were necessary during the migration, but now 35 feature files still import from `@/services/admin` instead of directly from `@/features/admin/.../services/`.
-
-**Recommendation:** In a single sweep, update all 35 feature files to import from their co-located service, then delete the 15 shim files and reduce `src/services/admin/index.ts` to a minimal public API (or remove it entirely).
+**Recommendation:** Audit the implementation of all four functions. If they are functionally equivalent, standardize on one (likely `is_admin()`) and migrate all policies. If they differ (e.g., `is_admin_safe()` avoids recursion), document why and reduce to at most two.
 
 ---
 
-## Finding 4: Duplicate Alias Exports (Medium)
+## Finding 3: Redundant/Overlapping RLS Policies (High)
 
-**Problem:** Several barrel files export the same symbol under multiple names:
-- `system.ts` line 15-16: `useCreateAdminInvite` exported as itself, `useCreateSystemAdminInvite`, and `useCreateAdminInvitePage` — same function, 3 names
-- `yields.ts` line 24-25: `YieldRecord` re-exported as `RecordedYieldRecord`, `YieldFilters` as `RecordedYieldFilters`
-- `investors.ts`: `useDeleteInvestor` exported twice under different names
+**Problem:** Several tables have overlapping policies that grant the same access through multiple paths:
 
-This creates confusion about which import to use and inflates the public API surface.
+**`statements` (6 policies):**
+- `statements_admin_all` (ALL via `check_is_admin`) — already covers SELECT, INSERT, UPDATE, DELETE
+- `statements_select_admin` (SELECT via `is_admin_for_jwt`) — redundant with ALL
+- `statements_insert_admin` (INSERT via `is_admin_for_jwt`) — redundant with ALL
+- `statements_update_admin` (UPDATE via `is_admin_for_jwt`) — redundant with ALL
+- `statements_delete_admin` (DELETE via `is_admin_for_jwt`) — redundant with ALL
+- Only `statements_select_own` is unique
 
-**Recommendation:** Consolidate to one canonical name per export. Find and update all consumers, then remove the aliases.
+**`withdrawal_requests` (5 policies):**
+- `withdrawal_requests_admin_manage` (ALL) covers everything
+- Two SELECT policies for investors: `Users can view own withdrawal requests` and `investors_view_own_withdrawals` — doing the same thing
 
----
+**`statement_periods` (3 policies):**
+- Two ALL policies (`Admins can manage statement periods` via `is_admin()` and `statement_periods_admin` via `check_is_admin()`) — fully redundant
 
-## Finding 5: Hook Logic Remaining in `src/hooks/data/admin/` (Medium)
-
-**Problem:** Six files in `src/hooks/data/admin/` contain actual hook logic rather than re-exports:
-- `useYieldData.ts`, `useYieldOperationsState.ts`, `useFundYieldLock.ts` — yield domain hooks
-- `useIBSettings.ts` — IB domain hook
-- `useInvestorMutations.ts` — investor domain hook
-- `useWithdrawalMutations.ts` — withdrawal domain hook
-- Plus 4 files in `yield/` subfolder
-
-These should live in `src/features/admin/{domain}/hooks/`.
-
-**Recommendation:** Move each file into its owning feature folder and update the 1-2 import sites per file.
+**Recommendation:** For each table, keep the single broadest admin policy (the ALL policy) and remove the per-command duplicates. Consolidate duplicate investor SELECT policies.
 
 ---
 
-## Finding 6: `src/components/common/` Underused (Low)
+## Finding 4: Audit Log Bloat — 774 MB in 22 Days (High)
 
-**Problem:** `src/components/common/` has 12 shared UI components (ExportButton, FormattedNumber, MetricStrip, etc.), but only 4 feature files import from it. The rest import from `@/components/ui`. The split between `common/` and `ui/` is ambiguous.
+**Problem:** `audit_log` has 623K rows (774 MB) and `data_edit_audit` has 78K rows (458 MB), totaling **1.23 GB** accumulated since March 17. At this rate, the database will reach several GB within months.
 
-**Recommendation:** Either merge `common/` into `ui/` (if they're all general-purpose) or document the distinction clearly. Currently it's unclear where a new shared component should go.
+There is no partitioning, no archival policy, and no TTL mechanism.
 
----
-
-## Finding 7: `src/services/core/` vs `src/services/shared/` Overlap (Low)
-
-**Problem:** Two directories serve similar purposes:
-- `src/services/core/`: dataIntegrityService, systemHealthService, reportUpsertService, supportService
-- `src/services/shared/`: auditLogService, performanceService, transactionService, etc.
-
-The distinction between "core" and "shared" is not well-defined.
-
-**Recommendation:** Merge into a single `src/services/shared/` (or `src/services/platform/`) directory. Move domain-specific services (reportUpsertService, dataIntegrityService) into their feature folders.
+**Recommendation:**
+1. **Immediate**: Add a partitioning strategy (range partition by `created_at` month)
+2. **Short-term**: Create an archival function that moves records older than 90 days to a `audit_log_archive` table or exports to storage
+3. **Investigate**: 623K rows in 22 days (~28K/day) seems excessive for a platform with 46 profiles — check if triggers are logging too aggressively (e.g., every SELECT or every RLS check)
 
 ---
 
-## Finding 8: `src/hooks/data/investor/index.ts` is a 134-line Shim (Low)
+## Finding 5: Missing Unique Constraints on Financial Tables (Medium)
 
-**Problem:** This barrel re-exports everything from `src/features/investor/*/hooks/`. Investor features already import directly from their own hooks, so this barrel primarily serves cross-domain imports (admin pages viewing investor data).
+**Problem:** Several financial tables lack unique constraints that would prevent duplicate entries:
 
-**Recommendation:** Audit consumers. If only admin features use it, create a thin `@/features/investor/public-api.ts` instead.
+| Table | Missing constraint |
+|-------|-------------------|
+| `fund_daily_aum` | No unique on `(fund_id, aum_date, purpose)` — allows duplicate AUM entries for the same fund/date |
+| `platform_fee_ledger` | No unique on `(yield_distribution_id, investor_id)` — allows double-charging |
+| `ib_commission_ledger` | No unique on `(yield_distribution_id, source_investor_id, ib_id)` |
+| `investor_positions` | No unique on `(investor_id, fund_id)` — could allow duplicate position rows |
+
+The application layer may prevent duplicates, but database-level enforcement is the last line of defense for financial data.
+
+**Recommendation:** Add unique constraints (or unique partial indexes excluding voided records) to each of these tables.
+
+---
+
+## Finding 6: Unused Tables (Low)
+
+**Problem:** Several tables have 0 rows and appear unused:
+
+| Table | Rows | Purpose |
+|-------|------|---------|
+| `admin_alerts` | 0 | Alert system — possibly unimplemented |
+| `report_schedules` | 0 | Scheduled reports — unimplemented |
+| `investor_device_tokens` | 0 | Push notifications — unimplemented |
+| `user_sessions` | 0 | Session tracking — unused |
+| `documents` | 0 | Document storage — unused |
+| `global_fee_settings` | 0 | Fee config — using `investor_fee_schedule` instead? |
+| `investor_emails` | 0 | Multi-email — using `profiles.email` instead? |
+
+**Recommendation:** Audit whether these are planned features or dead schema. Mark unused tables with a comment or archive them to reduce cognitive overhead.
+
+---
+
+## Finding 7: 28 Diagnostic Views — No Ownership Documentation (Low)
+
+The database has 28 views, roughly split between:
+- **Investor-facing**: `investor_positions_with_funds`, `investor_transactions_view`, `monthly_statements_view`
+- **Integrity/diagnostic**: `v_orphaned_positions`, `v_cost_basis_mismatch`, `v_ledger_reconciliation`, etc.
+
+These are valuable but undocumented. No comments indicate which views are used by the app vs. which are admin-only diagnostic tools.
+
+**Recommendation:** Add `COMMENT ON VIEW` for each, indicating whether it's app-facing, admin-diagnostic, or deprecated.
 
 ---
 
 ## Ordered Action Plan
 
-| Priority | Action | Files Affected | Risk |
-|----------|--------|---------------|------|
-| **P0** | Move 6 hook files from `hooks/data/admin/` into `features/admin/{domain}/hooks/` | ~12 files | Low |
-| **P1** | Update 35 feature files to import directly from `@/features/admin/.../services/` instead of `@/services/admin` | ~35 files | Low |
-| **P2** | Move ~15 admin-only hooks from `hooks/data/shared/` into feature folders | ~30 files | Medium |
-| **P3** | Remove duplicate alias exports in barrel files | ~10 files | Low |
-| **P4** | Delete `src/services/admin/` shim files after P1 | 16 files deleted | Low |
-| **P5** | Delete `src/hooks/data/admin/exports/` barrel after P0+P2 | 10 files deleted | Low |
-| **P6** | Merge `services/core/` into `services/shared/` | ~8 files | Low |
-| **P7** | Clarify `components/common/` vs `components/ui/` | Documentation | None |
-
-Each step is independently deployable. P0-P1 provide the highest clarity improvement with the lowest risk.
+| Priority | Action | Impact | Risk |
+|----------|--------|--------|------|
+| **P0** | Standardize admin-check functions to 1-2 canonical functions | Eliminates security ambiguity | Medium (policy rewrite) |
+| **P1** | Remove redundant RLS policies on `statements`, `withdrawal_requests`, `statement_periods` | Cleaner policy evaluation, fewer plan nodes | Low |
+| **P2** | Add unique constraints to `fund_daily_aum`, `platform_fee_ledger`, `ib_commission_ledger`, `investor_positions` | Prevents duplicate financial records | Medium (validate existing data first) |
+| **P3** | Add FK constraints (with `NOT VALID`) to core financial tables | Referential integrity | Low (NOT VALID avoids locks) |
+| **P4** | Investigate audit_log volume (28K rows/day) and add archival | Prevents DB bloat | Low |
+| **P5** | Document or archive unused 0-row tables | Reduces cognitive overhead | None |
+| **P6** | Add `COMMENT ON VIEW` to all 28 views | Documentation | None |
 
