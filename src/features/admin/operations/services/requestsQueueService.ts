@@ -33,15 +33,11 @@ export const requestsQueueService = {
    * Reject a withdrawal request
    */
   async rejectWithdrawal(params: RejectWithdrawalParams): Promise<void> {
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update({
-        status: "rejected",
-        rejection_reason: params.reason,
-        admin_notes: params.notes,
-        rejected_at: new Date().toISOString(),
-      } as any)
-      .eq("id", params.requestId);
+    const { error } = await supabase.rpc("reject_withdrawal", {
+      p_request_id: params.requestId,
+      p_reason: params.reason,
+      p_admin_notes: params.notes,
+    });
 
     if (error) throw error;
   },

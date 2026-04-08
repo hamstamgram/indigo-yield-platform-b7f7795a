@@ -5789,6 +5789,10 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      cancel_withdrawal_by_admin_v2: {
+        Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
+        Returns: boolean
+      }
       cancel_withdrawal_by_investor: {
         Args: { p_investor_id: string; p_reason?: string; p_request_id: string }
         Returns: Json
@@ -6609,11 +6613,24 @@ export type Database = {
         Args: { p_admin_id: string; p_reason: string; p_withdrawal_id: string }
         Returns: Json
       }
-      retry_delivery: { Args: { p_delivery_id: string }; Returns: Json }
-      route_withdrawal_to_fees: {
-        Args: { p_actor_id: string; p_reason?: string; p_request_id: string }
+      restore_withdrawal_by_admin_v2: {
+        Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      retry_delivery: { Args: { p_delivery_id: string }; Returns: Json }
+      route_withdrawal_to_fees:
+        | {
+            Args: {
+              p_actor_id: string
+              p_reason?: string
+              p_request_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: { p_reason?: string; p_request_id: string }
+            Returns: boolean
+          }
       run_comprehensive_health_check: {
         Args: never
         Returns: {

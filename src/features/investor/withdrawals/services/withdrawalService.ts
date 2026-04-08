@@ -298,21 +298,17 @@ export const withdrawalService = {
 
     log.info("Rejecting withdrawal", { withdrawalId, reason });
 
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update({
-        status: "rejected",
-        rejection_reason: reason,
-        admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-        rejected_at: new Date().toISOString(),
-      } as any)
-      .eq("id", withdrawalId);
+    const { error } = await supabase.rpc("reject_withdrawal", {
+      p_request_id: withdrawalId,
+      p_reason: reason,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
       log.error("Error rejecting withdrawal", error);
       const errorMessage = error.message || "Failed to reject withdrawal";
       throw new Error(
-        errorMessage.includes("Admin only")
+        errorMessage.includes("UNAUTHORIZED") || errorMessage.includes("Admin only")
           ? "You don't have admin privileges to reject withdrawals"
           : errorMessage
       );
@@ -366,22 +362,18 @@ export const withdrawalService = {
       return { correlationId: corrId };
     }
 
-    // Pending/approved withdrawals: direct status update (no transactions to void)
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update({
-        status: "cancelled",
-        cancellation_reason: reason,
-        admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-        cancelled_at: new Date().toISOString(),
-      } as any)
-      .eq("id", withdrawalId);
+    // Pending/approved withdrawals: use canonical RPC for audit trail + state machine compliance
+    const { error } = await supabase.rpc("cancel_withdrawal_by_admin_v2", {
+      p_request_id: withdrawalId,
+      p_reason: reason,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
       log.error("Error cancelling withdrawal", error);
       const errorMessage = error.message || "Failed to cancel withdrawal";
       throw new Error(
-        errorMessage.includes("Admin only")
+        errorMessage.includes("UNAUTHORIZED") || errorMessage.includes("Admin only")
           ? "You don't have admin privileges to cancel withdrawals"
           : errorMessage
       );
@@ -464,16 +456,19 @@ export const withdrawalService = {
    * Requires super_admin role - actorId is used for authorization check
    */
   async routeToFees(params: RouteToFeesParams): Promise<void> {
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update({
-        status: "completed",
-        admin_notes: params.reason || "Routed to INDIGO FEES",
-        processed_at: new Date().toISOString(),
-      } as any)
-      .eq("id", params.withdrawalId);
+    const { error } = await supabase.rpc("route_withdrawal_to_fees", {
+      p_request_id: params.withdrawalId,
+      p_reason: params.reason || "Routed to INDIGO FEES",
+    });
 
-    if (error) throw error;
+    if (error) {
+      const msg = error.message || "Failed to route withdrawal to fees";
+      throw new Error(
+        msg.includes("UNAUTHORIZED")
+          ? "You don't have admin privileges to route withdrawals"
+          : msg
+      );
+    }
   },
 
   /**
@@ -504,14 +499,11 @@ export const withdrawalService = {
         .eq("id", params.withdrawalId);
       if (error) throw error;
     } else {
-      const { error } = await supabase
-        .from("withdrawal_requests")
-        .update({
-          status: "cancelled",
-          cancellation_reason: params.reason,
-          cancelled_at: new Date().toISOString(),
-        } as any)
-        .eq("id", params.withdrawalId);
+      // Use canonical RPC for proper audit trail and state machine compliance
+      const { error } = await supabase.rpc("cancel_withdrawal_by_admin_v2", {
+        p_request_id: params.withdrawalId,
+        p_reason: params.reason || "Cancelled by admin",
+      });
       if (error) throw error;
     }
   },
@@ -529,21 +521,19 @@ export const withdrawalService = {
 
     log.info("Restoring withdrawal", { withdrawalId, reason });
 
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update({
-        status: "pending",
-        admin_notes: adminNotes
-          ? `${adminNotes} [${corrId}] Restored: ${reason}`
-          : `[${corrId}] Restored: ${reason}`,
-      } as any)
-      .eq("id", withdrawalId);
+    const { error } = await supabase.rpc("restore_withdrawal_by_admin_v2", {
+      p_request_id: withdrawalId,
+      p_reason: reason,
+      p_admin_notes: adminNotes
+        ? `${adminNotes} [${corrId}]`
+        : `[${corrId}]`,
+    });
 
     if (error) {
       log.error("Error restoring withdrawal", error);
       const errorMessage = error.message || "Failed to restore withdrawal";
       throw new Error(
-        errorMessage.includes("Admin only") || errorMessage.includes("ensure_admin")
+        errorMessage.includes("UNAUTHORIZED") || errorMessage.includes("Admin only")
           ? "You don't have admin privileges to restore withdrawals"
           : errorMessage
       );
