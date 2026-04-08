@@ -1,81 +1,73 @@
 
 
-# Remediation Plan: P0 Blockers + P1 Fixes
+# Fix P0-REGR-1 + Drop 2 Remaining Duplicate Indexes
 
-## P0-NEW-1: Backfill 6 investors missing `user_roles` rows
+## Findings (verified live)
 
-**Problem:** 6 real investors (confirmed via live query) have no `user_roles` entry. Any RLS path using `has_role()` silently excludes them.
+1. **P0-REGR-1**: `audit_leakage_report()` references `'REDEMPTION'` in the `t1.type IN (...)` clause — this enum value does not exist in `tx_type`, crashing the function on every call.
 
-**Fix:** Migration that inserts `user` role for all profiles that lack a `user_roles` row:
+2. **Duplicate index #1**: `idx_audit_log_date` and `idx_audit_log_created_desc` are identical — both `btree (created_at DESC)` on `audit_log`.
 
-```sql
-INSERT INTO public.user_roles (user_id, role)
-SELECT p.id, 'user'::app_role
-FROM profiles p
-LEFT JOIN user_roles ur ON ur.user_id = p.id
-WHERE ur.id IS NULL
-  AND p.is_system_account = false
-ON CONFLICT (user_id, role) DO NOTHING;
-```
+3. **Duplicate index #2**: `uq_investor_positions_investor_fund` is `UNIQUE (investor_id, fund_id)` — identical to `investor_positions_pkey` which is also `UNIQUE (investor_id, fund_id)`.
 
----
+## Single Migration
 
-## P0-NEW-2: `audit_leakage_report()` uncallable by service_role
+One migration that:
 
-**Problem:** Function starts with `IF NOT public.is_admin() THEN RAISE EXCEPTION`. `is_admin()` checks `auth.uid()` which is NULL for service_role/cron/edge callers. Same issue exists in `run_invariant_checks()`.
+1. **Replaces `audit_leakage_report()`** — changes `'WITHDRAWAL', 'REDEMPTION'` to `'WITHDRAWAL', 'INTERNAL_WITHDRAWAL'` (matching the correct enum values). Preserves the service_role guard and all 4 checks.
 
-**Fix:** Rewrite the guard in both functions to allow service_role bypass:
+2. **Drops `idx_audit_log_date`** — redundant with `idx_audit_log_created_desc`.
+
+3. **Drops `uq_investor_positions_investor_fund`** — redundant with `investor_positions_pkey`.
+
+## SQL
 
 ```sql
-IF current_user NOT IN ('postgres','supabase_admin')
-   AND NOT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user)
-   AND NOT public.is_admin()
-THEN
-  RAISE EXCEPTION 'UNAUTHORIZED: Admin access required';
-END IF;
+-- P0-REGR-1: Fix invalid enum reference
+CREATE OR REPLACE FUNCTION public.audit_leakage_report()
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+  v_asym int; v_neg_cb int; v_fee int; v_ib int;
+BEGIN
+  IF current_user NOT IN ('postgres','supabase_admin','service_role')
+     AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'UNAUTHORIZED: Admin access required' USING ERRCODE='P0001';
+  END IF;
+
+  SELECT count(*) INTO v_asym
+  FROM transactions_v2 t1
+  JOIN transactions_v2 t2
+    ON t1.investor_id = t2.investor_id AND t1.fund_id = t2.fund_id
+  WHERE t1.is_voided = true
+    AND t2.is_voided = false
+    AND t1.type IN ('WITHDRAWAL','INTERNAL_WITHDRAWAL')
+    AND t2.type IN ('DUST_SWEEP','ADJUSTMENT')
+    AND t2.meta->>'related_tx' = t1.id::text;
+
+  SELECT count(*) INTO v_neg_cb FROM investor_positions WHERE cost_basis < 0 AND is_active;
+  SELECT count(*) INTO v_fee FROM fee_allocations fa
+    JOIN yield_distributions yd ON fa.distribution_id = yd.id
+    WHERE fa.is_voided = false AND yd.is_voided = false AND fa.fee_amount <= 0;
+  SELECT count(*) INTO v_ib FROM ib_commission_ledger
+    WHERE is_voided = false AND ib_commission_amount <= 0;
+
+  RETURN jsonb_build_object(
+    'overall_status', CASE WHEN v_asym+v_neg_cb+v_fee+v_ib = 0 THEN 'pass' ELSE 'fail' END,
+    'checks', jsonb_build_array(
+      jsonb_build_object('check','asymmetric_voids','violations',v_asym),
+      jsonb_build_object('check','negative_cost_basis','violations',v_neg_cb),
+      jsonb_build_object('check','fee_allocation_leakage','violations',v_fee),
+      jsonb_build_object('check','ib_commission_leakage','violations',v_ib)),
+    'run_at', now());
+END;$$;
+
+-- P1: Drop remaining duplicate indexes
+DROP INDEX IF EXISTS idx_audit_log_date;
+DROP INDEX IF EXISTS uq_investor_positions_investor_fund;
 ```
 
-This preserves the admin check for normal users while allowing cron/service_role callers through.
+## Post-Migration
 
----
-
-## P1-1: `toggleAdminStatus` writes `profiles.is_admin` directly
-
-**Problem:** Two functions in the codebase do `.update({ is_admin: !currentStatus })` on profiles — this will now throw against the `protect_profile_sensitive_fields` trigger.
-
-**Files to fix:**
-- `src/services/shared/profileService.ts` line 120-128
-- `src/features/admin/investors/services/adminUsersService.ts` lines 39-46
-
-**Fix:** Replace both with an RPC call to `update_admin_role` (already exists in DB). The function should call `supabase.rpc('update_admin_role', { target_user_id, new_role })` instead of direct profile update.
-
----
-
-## P1-2: Drop 4 duplicate indexes
-
-**Confirmed duplicates from live query:**
-
-| Keep | Drop | Table |
-|------|------|-------|
-| `idx_transactions_v2_fund_date` (fund_id, tx_date DESC) | `idx_tx_v2_fund_date` (identical) | transactions_v2 |
-| `idx_transactions_v2_reference_id_fund_unique` (fund_id, reference_id) | `idx_transactions_v2_reference_unique` (reference_id only — subset) | transactions_v2 |
-| `idx_positions_fund_active` (fund_id, is_active) partial | `idx_investor_positions_fund` (fund_id only — subset) | investor_positions |
-| `idx_fee_allocations_distribution` | `idx_fee_alloc_distribution` (identical) | fee_allocations |
-
-**Fix:** Single migration with 4 `DROP INDEX IF EXISTS` statements.
-
----
-
-## P1-3 & P1-4: RLS performance warnings
-
-Deferred — these are optimization items (auth_rls_initplan wrapping, policy consolidation) that don't block go-live. Can be addressed in Gate 2.
-
----
-
-## Implementation Order
-
-1. **Migration A** — Backfill user_roles + fix ensure_admin/audit_leakage_report/run_invariant_checks service_role bypass
-2. **Migration B** — Drop 4 duplicate indexes
-3. **Code fix** — Rewrite `toggleAdminStatus` in both services to use `update_admin_role` RPC
-4. **Update gate-0-report.md** — Mark P0-NEW-1 and P0-NEW-2 as resolved
+Update `docs/gates/gate-0-report.md` to record P0-REGR-1 as resolved and the final duplicate index cleanup.
 
