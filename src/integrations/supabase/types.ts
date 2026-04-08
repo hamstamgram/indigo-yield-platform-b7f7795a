@@ -5562,7 +5562,6 @@ export type Database = {
       }
     }
     Functions: {
-      _fast_wipe: { Args: never; Returns: Json }
       _resolve_investor_fee_pct: {
         Args: {
           p_effective_date: string
@@ -5826,17 +5825,15 @@ export type Database = {
       }
       check_duplicate_ib_allocations: { Args: never; Returns: number }
       check_duplicate_transaction_refs: { Args: never; Returns: number }
-      check_historical_lock:
-        | { Args: { p_fund_id: string; p_tx_date: string }; Returns: boolean }
-        | {
-            Args: {
-              p_exclude_distribution_id?: string
-              p_fund_id: string
-              p_inclusive: boolean
-              p_tx_date: string
-            }
-            Returns: boolean
-          }
+      check_historical_lock: {
+        Args: {
+          p_exclude_distribution_id?: string
+          p_fund_id: string
+          p_inclusive: boolean
+          p_tx_date: string
+        }
+        Returns: boolean
+      }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
       check_platform_data_integrity: { Args: never; Returns: Json }
       check_transaction_sources: {
@@ -5943,20 +5940,15 @@ export type Database = {
       }
       ensure_admin: { Args: never; Returns: undefined }
       export_investor_data: { Args: { p_user_id: string }; Returns: Json }
-      finalize_month_yield:
-        | {
-            Args: { p_admin_id?: string; p_fund_id: string; p_month: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_fund_id: string
-              p_period_month: number
-              p_period_year: number
-            }
-            Returns: Json
-          }
+      finalize_month_yield: {
+        Args: {
+          p_admin_id: string
+          p_fund_id: string
+          p_period_month: number
+          p_period_year: number
+        }
+        Returns: Json
+      }
       finalize_statement_period: {
         Args: { p_admin_id: string; p_period_id: string }
         Returns: undefined
@@ -6390,27 +6382,17 @@ export type Database = {
         }
         Returns: boolean
       }
-      log_audit_event:
-        | {
-            Args: {
-              p_action: string
-              p_entity: string
-              p_entity_id: string
-              p_meta: Json
-              p_new_values: Json
-              p_old_values: Json
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_action: string
-              p_details: string
-              p_record_id: string
-              p_table_name: string
-            }
-            Returns: string
-          }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_entity: string
+          p_entity_id: string
+          p_meta: Json
+          p_new_values: Json
+          p_old_values: Json
+        }
+        Returns: string
+      }
       log_aum_position_mismatch: { Args: never; Returns: undefined }
       log_financial_operation: {
         Args: {
@@ -6620,7 +6602,6 @@ export type Database = {
             Args: { p_actor_id: string; p_operation: string }
             Returns: undefined
           }
-      reset_all_data_keep_profiles: { Args: never; Returns: undefined }
       reset_all_investor_positions: { Args: never; Returns: undefined }
       reset_fund_test_data: { Args: { p_fund_id: string }; Returns: Json }
       reset_platform_data: { Args: { p_confirm?: string }; Returns: Json }
