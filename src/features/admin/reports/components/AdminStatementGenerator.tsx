@@ -14,7 +14,7 @@ import {
 import { FileText, Loader2, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
-import { generatePDF } from "@/lib/pdf/statementGenerator";
+import type { StatementData } from "@/lib/pdf/statementGenerator";
 import { checkStatementExists } from "@/services/core/reportUpsertService";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { profileService, statementsService, documentService } from "@/services/shared";
