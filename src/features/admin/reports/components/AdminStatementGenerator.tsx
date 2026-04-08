@@ -105,6 +105,7 @@ const AdminStatementGenerator: React.FC = () => {
         };
 
         // Generate PDF
+        const { generatePDF } = await import("@/lib/pdf/statementGenerator");
         const pdfBlob = await generatePDF(statementData);
 
         // Upload via service

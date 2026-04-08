@@ -114,6 +114,7 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
         positions: statementData.positions,
       };
 
+      const { generatePDF } = await import("@/lib/pdf/statementGenerator");
       const pdfContent = await generatePDF(mappedData);
 
       const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;

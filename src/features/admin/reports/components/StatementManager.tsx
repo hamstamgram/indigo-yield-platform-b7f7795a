@@ -173,6 +173,7 @@ export const StatementManager: React.FC = () => {
 
               const fullName = `${investor.firstName || ""} ${investor.lastName || ""}`.trim();
 
+              const { generatePDF } = await import("@/lib/pdf/statementGenerator");
               const pdfBlob = generatePDF({
                 investor: {
                   name: fullName,
