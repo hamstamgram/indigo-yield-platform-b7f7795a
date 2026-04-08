@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { applyYieldDistribution } from "@/services/admin";
+import { applyYieldDistribution } from "@/features/admin/yields/services/yields";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 import { formatAUM } from "@/utils/formatters";
 import { parseFinancial } from "@/utils/financial";

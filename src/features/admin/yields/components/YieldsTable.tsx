@@ -39,7 +39,7 @@ import type {
   DistributionRow,
   AllocationRow,
   InvestorProfile,
-} from "@/services/admin/yields/yieldDistributionsPageService";
+} from "@/features/admin/yields/services/yields/yieldDistributionsPageService";
 
 interface Fund {
   id: string;

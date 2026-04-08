@@ -42,7 +42,8 @@ import {
   Trash2,
   AlertTriangle,
 } from "lucide-react";
-import { AdminInvestorSummary, forceDeleteInvestorUser } from "@/services/admin";
+import { AdminInvestorSummary } from "@/features/admin/investors/services/adminService";
+import { forceDeleteInvestorUser } from "@/features/admin/investors/services/userService";
 import { InvestorYieldManager } from "../yields";
 import { InvestorPositionsTab } from "../tabs";
 import { InvestorTransactionsTab } from "../tabs";

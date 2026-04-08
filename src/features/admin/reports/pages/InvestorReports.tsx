@@ -66,7 +66,7 @@ import {
   useSendReportEmail,
   useDeleteInvestorReport,
 } from "@/features/admin/reports/hooks/useReports";
-import type { InvestorReportSummary } from "@/services/admin/reportQueryService";
+import type { InvestorReportSummary } from "@/features/admin/reports/services/reportQueryService";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";

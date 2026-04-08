@@ -9,7 +9,7 @@ import {
   getInvestorPositionsWithFunds,
   getInvestorPerformanceForPeriod,
   getInvestorFeeSchedule,
-} from "@/services/admin/yields/yieldDistributionService";
+} from "@/features/admin/yields/services/yields/yieldDistributionService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**

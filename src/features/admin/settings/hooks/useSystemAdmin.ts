@@ -27,7 +27,7 @@ import {
   type DeliveryQueueMetrics,
   type IntegrityData,
   type IntegrityCheck,
-} from "@/services/admin/systemAdminService";
+} from "@/features/admin/system/services/systemAdminService";
 
 // Re-export types
 export type {

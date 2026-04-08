@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deliveryService } from "@/services/admin";
+import { deliveryService } from "@/features/admin/reports/services/deliveryService";
 import { invalidateAfterDeliveryOp } from "@/utils/cacheInvalidation";
 import type { DeliveryMode, BatchSendResult, QueueResult } from "@/types/domains/delivery";
 import { logDebug } from "@/lib/logger";

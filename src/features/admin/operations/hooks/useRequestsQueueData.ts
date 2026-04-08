@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { requestsQueueService } from "@/services/admin/requestsQueueService";
+import { requestsQueueService } from "@/features/admin/operations/services/requestsQueueService";
 import { depositService } from "@/services/investor/depositService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { WithdrawalRequest, DepositRequest } from "@/types/domains/requests";

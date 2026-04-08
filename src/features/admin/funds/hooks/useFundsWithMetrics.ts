@@ -6,7 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { logError } from "@/lib/logger";
 import { toast } from "sonner";
-import { fundService, deleteFund as deleteFundService } from "@/services/admin";
+import { fundService, deleteFund as deleteFundService } from "@/features/admin/funds/services/fundService";
 import { auditLogService } from "@/services/shared";
 import { useAuth } from "@/services/auth";
 import type { Fund, FundStatus } from "@/types/domains/fund";

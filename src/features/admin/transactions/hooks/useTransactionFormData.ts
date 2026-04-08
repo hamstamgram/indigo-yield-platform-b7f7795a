@@ -10,7 +10,7 @@ import {
   type TransactionFormInvestor,
   type TransactionFormFund,
   type BalanceCheckResult,
-} from "@/services/admin/transactionFormDataService";
+} from "@/features/admin/transactions/services/transactionFormDataService";
 
 /**
  * Hook to fetch investors for transaction form

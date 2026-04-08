@@ -5,9 +5,9 @@
 
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { integrityService } from "@/services/admin";
+import { integrityService } from "@/features/admin/system/services/integrityService";
 import type { IntegrityCheck, AuditEvent, IntegrityStatus } from "@/types/domains/integrity";
-import type { InvariantSuiteResult } from "@/services/admin/integrityService";
+import type { InvariantSuiteResult } from "@/features/admin/system/services/integrityService";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 

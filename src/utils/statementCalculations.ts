@@ -1,5 +1,5 @@
 import { profileService } from "@/services/shared";
-import { fundService } from "@/services/admin";
+import { fundService } from "@/features/admin/funds/services/fundService";
 import { transactionsV2Service } from "@/services/investor";
 import { StatementTransaction } from "@/types/domains/transaction";
 import { getMonthEndDate } from "@/utils/dateUtils";

@@ -3,7 +3,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { yieldAumService, type AumPurpose } from "@/services/admin/yields/yieldAumService";
+import { yieldAumService, type AumPurpose } from "@/features/admin/yields/services/yields/yieldAumService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**

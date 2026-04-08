@@ -6,7 +6,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { deleteInvestorUser } from "@/services/admin";
+import { deleteInvestorUser } from "@/features/admin/investors/services/userService";
 import { supabase } from "@/integrations/supabase/client";
 
 /**

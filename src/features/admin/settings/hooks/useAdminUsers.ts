@@ -6,8 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useToast } from "@/hooks";
-import { adminUsersService } from "@/services/admin";
-import { type AdminUserProfile, type AdminInviteParams } from "@/services/admin";
+import { adminUsersService } from "@/features/admin/investors/services/adminUsersService";
+import { type AdminUserProfile, type AdminInviteParams } from "@/features/admin/investors/services/adminUsersService";
 
 /**
  * Hook to fetch all users for admin management

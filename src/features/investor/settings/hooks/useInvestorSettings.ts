@@ -12,7 +12,7 @@ import {
   type InvestorProfileData,
   type ReportPeriod,
 } from "@/features/admin/investors/services/investorSettingsService";
-import { feeScheduleService } from "@/services/admin/feeScheduleService";
+import { feeScheduleService } from "@/features/admin/investors/services/feeScheduleService";
 
 /**
  * Hook to fetch investor profile for settings panel

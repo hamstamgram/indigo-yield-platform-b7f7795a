@@ -53,7 +53,7 @@ import {
 } from "@/hooks/data";
 import { useInvariantChecks } from "@/hooks/data";
 import { getOverallStatus, type ServiceStatus } from "@/services/core/systemHealthService";
-import type { InvariantSuiteResult, InvariantCheckResult } from "@/services/admin/integrityService";
+import type { InvariantSuiteResult, InvariantCheckResult } from "@/features/admin/system/services/integrityService";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Activity,

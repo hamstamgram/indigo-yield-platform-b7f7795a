@@ -5,7 +5,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { adminTransactionHistoryService } from "@/services/admin";
+import { adminTransactionHistoryService } from "@/features/admin/transactions/services/adminTransactionHistoryService";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import type {
   UpdateTransactionParams,

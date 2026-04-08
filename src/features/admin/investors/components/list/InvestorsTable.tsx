@@ -5,7 +5,7 @@ import EditableInvestorRow from "./EditableInvestorRow";
 import InvestorsTableHeader from "./InvestorsTableHeader";
 import { useIsMobile } from "@/hooks";
 import MobileInvestorCard from "../MobileInvestorCard";
-import { AdminInvestorSummary } from "@/services/admin";
+import { AdminInvestorSummary } from "@/features/admin/investors/services/adminService";
 import { AssetRef as Asset } from "@/types/asset";
 
 interface InvestorsTableProps {

@@ -7,18 +7,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 import { useFunds, useUrlFilters, useToast } from "@/hooks";
-import { canEditYields } from "@/services/admin";
+import { canEditYields } from "@/features/admin/yields/services/recordedYieldsService";
 import { YieldsFilterBar, YieldsTable } from "@/features/admin/yields/components";
 import { VoidDistributionDialog } from "@/features/admin/yields/components/VoidDistributionDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { voidYieldDistribution } from "@/services/admin/yields/yieldManagementService";
+import { voidYieldDistribution } from "@/features/admin/yields/services/yields/yieldManagementService";
 import {
   useYieldDistributionsPage,
   type YieldDistributionsFilters,
 } from "@/features/admin/yields/hooks/useYieldDistributionsPage";
 import { PageShell } from "@/components/layout/PageShell";
-import type { DistributionRow } from "@/services/admin/yields/yieldDistributionsPageService";
+import type { DistributionRow } from "@/features/admin/yields/services/yields/yieldDistributionsPageService";
 
 interface Fund {
   id: string;

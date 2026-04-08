@@ -16,7 +16,7 @@ import {
   type FeeAllocation,
   type YieldEarned,
   type FeeSummary,
-} from "@/services/admin/feesService";
+} from "@/features/admin/investors/services/feesService";
 import type { FundRef } from "@/types/domains/fund";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 

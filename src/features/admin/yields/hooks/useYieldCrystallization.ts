@@ -13,7 +13,7 @@ import {
   getAggregatedYieldForPeriod,
   getInvestorCrystallizationEvents,
   type InvestorCrystallizationEvent,
-} from "@/services/admin/yields/yieldCrystallizationService";
+} from "@/features/admin/yields/services/yields/yieldCrystallizationService";
 import { useAuth } from "@/services/auth";
 import { toast } from "sonner";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";

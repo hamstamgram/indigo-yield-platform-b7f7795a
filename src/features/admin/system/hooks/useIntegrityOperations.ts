@@ -6,7 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { integrityOperationsService } from "@/services/admin";
+import { integrityOperationsService } from "@/features/admin/system/services/integrityOperationsService";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 

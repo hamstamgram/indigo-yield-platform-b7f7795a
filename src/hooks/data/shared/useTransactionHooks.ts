@@ -25,7 +25,7 @@ import type {
   FundForTransaction,
   BalanceCheckResult,
   AumCheckResult,
-} from "@/services/admin/transactionDetailsService";
+} from "@/features/admin/transactions/services/transactionDetailsService";
 import type { CreateTransactionUIParams } from "@/types/domains/transaction";
 
 // Import TransactionWithFund from canonical source

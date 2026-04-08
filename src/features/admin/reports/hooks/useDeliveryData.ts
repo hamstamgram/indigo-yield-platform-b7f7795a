@@ -6,7 +6,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { deliveryService } from "@/services/admin/deliveryService";
+import { deliveryService } from "@/features/admin/reports/services/deliveryService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type { DeliveryFilters } from "@/types/domains/delivery";
 

@@ -29,7 +29,8 @@ import { Loader2, AlertTriangle, RotateCcw as ResetIcon, Percent } from "lucide-
 import { logError } from "@/lib/logger";
 import { useAuth } from "@/services/auth";
 import { FundLogoUpload } from "./FundLogoUpload";
-import { updateFund, checkFundUsage, feeSettingsService, deleteFund } from "@/services/admin";
+import { updateFund, checkFundUsage, deleteFund } from "@/features/admin/funds/services/fundService";
+import { feeSettingsService } from "@/features/admin/investors/services/feeSettingsService";
 import { auditLogService } from "@/services/shared";
 import { getTodayUTC } from "@/utils/dateUtils";
 import type { Fund } from "@/types/domains/fund";

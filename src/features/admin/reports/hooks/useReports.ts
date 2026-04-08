@@ -21,7 +21,7 @@ import {
   bulkDeleteGeneratedStatements,
   deleteSingleGeneratedStatement,
 } from "@/features/admin/reports/services/statementAdminService";
-import type { InvestorReportSummary, DeliveryStatus } from "@/services/admin/reportQueryService";
+import type { InvestorReportSummary, DeliveryStatus } from "@/features/admin/reports/services/reportQueryService";
 
 /**
  * Hook to fetch investor performance reports (investor-side)

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getLastFinalizedAUMDate } from "@/services/admin/recordedYieldsService";
+import { getLastFinalizedAUMDate } from "@/features/admin/yields/services/recordedYieldsService";
 
 export const USE_FUND_YIELD_LOCK_QUERY_KEY = "useFundYieldLock";
 

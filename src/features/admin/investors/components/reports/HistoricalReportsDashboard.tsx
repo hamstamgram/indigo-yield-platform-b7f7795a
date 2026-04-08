@@ -26,7 +26,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { useHistoricalReports, useBulkDeleteReports, useDeleteSingleReport } from "@/features/admin/reports/hooks/useReports";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { format, subMonths } from "date-fns";
-import type { DeliveryStatus } from "@/services/admin/reportQueryService";
+import type { DeliveryStatus } from "@/features/admin/reports/services/reportQueryService";
 import { useReportSelection } from "./hooks/useReportSelection";
 import type { HistoricalReport } from "./hooks/useReportSelection";
 import { ReportBulkActionToolbar } from "./components/ReportBulkActionToolbar";

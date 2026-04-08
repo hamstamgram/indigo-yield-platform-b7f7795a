@@ -47,7 +47,7 @@ import {
   getTransactionContext,
   type TransactionContextResult,
   type RelatedTransaction,
-} from "@/services/admin/adminTransactionHistoryService";
+} from "@/features/admin/transactions/services/adminTransactionHistoryService";
 import { Badge } from "@/components/ui/badge";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { parseFinancial } from "@/utils/financial";

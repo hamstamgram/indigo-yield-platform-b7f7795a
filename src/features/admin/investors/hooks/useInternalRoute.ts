@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { internalRouteService } from "@/services/admin";
+import { internalRouteService } from "@/features/admin/shared/services/internalRouteService";
 import {
   type InvestorPositionForRoute,
   type InternalRouteParams,
