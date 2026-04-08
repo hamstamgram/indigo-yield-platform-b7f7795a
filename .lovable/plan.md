@@ -1,50 +1,133 @@
 
 
-# Plan: Update `docs/roadmap.md` with All Post-Creation Fixes
+# Go-Live Gate Plan — Indigo Yield Platform
 
-## What Changed Since the Roadmap Was Written
+Based on the completed audit roadmap (all 10 issues fixed, 8 migrations applied), this plan defines a staged gate process from pre-launch validation through production go-live.
 
-Four additional migrations and four edge function updates were applied after the roadmap was created. The roadmap already has Section 4 (Resolved Issues) updated, but several other sections still contain stale data.
+---
 
-## Changes to Make
+## Gate 0: Audit Closure & Baseline Lock
 
-### 1. Section 8 — Database Table Inventory (lines 305-346)
-- **Row 20** (`investor_position_snapshots`): Change `✅ Admin-only` → `✅ Admin + Investor SELECT` (P3 fix)
-- **Row 25** (`profiles`): Remove `⚠️ P0` marker → `✅ Restricted` (privilege escalation fixed)
-- **Row 33** (`system_config`): Remove `⚠️ P2` marker → `✅ Admin-only` (policy cleanup done)
+**Goal:** Confirm all remediation work is applied and nothing has regressed.
 
-### 2. Section 9 — Database Function Inventory (line 361)
-- **`can_insert_notification`**: Change `⚠️ Uses profiles.is_admin` → `✅ Uses user_roles` (patched in Migration 1)
-- **`ensure_admin`**: Same update if marked with warning
+**Tasks:**
+1. Run the full integrity suite against the live database:
+   - `run_invariant_checks()` — position-ledger drift, negative balances, orphans
+   - `audit_leakage_report()` — asymmetric voids, fee leakage, IB leakage
+   - `run_comprehensive_health_check()` — all 13 health checks
+2. Verify all 8 migrations are applied (query `supabase_migrations` table)
+3. Verify `anon` role has EXECUTE on only the whitelisted ~15 functions (not 200+)
+4. Verify all 4 edge functions (`set-user-password`, `send-email`, `excel_import`, `send-investor-report`) use `checkAdminAccess()` — grep for `profiles.is_admin` should return zero hits in edge function code
+5. Verify `profiles` UPDATE policy blocks sensitive fields — attempt `UPDATE profiles SET is_admin = true` as a non-admin (should fail)
+6. Verify `system_config` has no public SELECT — query as authenticated non-admin (should return 0 rows)
+7. Produce a signed-off Gate 0 report in `docs/gates/gate-0-report.md`
 
-### 3. Section 11 — Financial Integrity Report (lines 797-832)
-- **Line 810**: Change `0 (except P1 asymmetric void)` → `0 ✅`
-- **Asymmetric Void Summary** (lines 812-822): Change Status from `Pending void` → `✅ Voided (April 8, 2026)`
-- **Leakage Audit** (line 828): Change `⚠️ 1 found (P1)` → `✅ Resolved — voided`
+**Sign-off:** CTO + CFO
 
-### 4. Appendix — Migration History (lines 835-843)
-Add 4 new migration entries:
+---
 
-| Migration | Content | Status |
-|-----------|---------|--------|
-| `20260408191318` | P0: Profiles privilege escalation fix — restricted UPDATE policy + sensitive field trigger + 11 functions rewritten | ✅ Applied |
-| `20260408191426` | P2-P4: Drop `system_config_read/write` + add `investor_position_snapshots_select_own` | ✅ Applied |
-| `20260408191518` | P1: Void orphaned distribution `63b032b8` — cascade-voided 5 transactions | ✅ Applied |
-| `20260408195502` | P0-C: Bulk REVOKE EXECUTE from `anon` on all functions + selective GRANT-back whitelist + REVOKE from PUBLIC on critical mutations | ✅ Applied |
+## Gate 1: Functional Smoke Tests
 
-### 5. Add New Section: Edge Function Security Updates (after Section 7)
-Document the 4 edge functions patched to use `checkAdminAccess()`:
-- `set-user-password/index.ts`
-- `send-email/index.ts`
-- `excel_import/index.ts`
-- `send-investor-report/index.ts`
+**Goal:** Confirm all critical user journeys work end-to-end after the security tightening.
 
-### 6. Section 5 — Verification Checklist
-Add 2 new verification rows:
-- `anon` role EXECUTE revoked on all functions (bulk REVOKE) — ✅ PASS
-- Edge functions use `checkAdminAccess()` — ✅ PASS (4 functions)
+**Tasks:**
+1. **Investor flows:**
+   - Login → dashboard loads with correct portfolio data
+   - View transactions, yield history, statements
+   - Submit a withdrawal request → verify state machine works
+   - Cancel own withdrawal
+   - Update profile (allowed fields only: name, phone, avatar)
+   - Attempt to update restricted fields (should be blocked)
+2. **Admin flows:**
+   - Login → admin dashboard loads with stats
+   - Create manual transaction (deposit/withdrawal)
+   - Process yield distribution (preview → apply)
+   - Void a transaction → verify cascade
+   - Approve/reject/complete a withdrawal
+   - Import Excel data
+   - Generate and send investor reports
+   - Manage users (invite, set password, assign roles)
+3. **Auth & RBAC:**
+   - Non-admin cannot access `/admin/*` routes
+   - Non-admin RPC calls to admin functions return UNAUTHORIZED
+   - Unauthenticated (anon) calls to mutation RPCs are rejected
+4. **Edge functions:**
+   - `send-email` — send test email as admin, verify non-admin is rejected
+   - `excel_import` — upload test file as admin
+   - `set-user-password` — reset a test user password
+   - `send-investor-report` — send to a test investor
+5. Document results in `docs/gates/gate-1-report.md`
 
-## Scope
-- Single file edit: `docs/roadmap.md`
-- No code changes, no migrations — documentation only
+**Sign-off:** CTO
+
+---
+
+## Gate 2: Financial Integrity Validation
+
+**Goal:** CFO confirms all financial data is accurate and the ledger is sound.
+
+**Tasks:**
+1. Run `batch_reconcile_all_positions()` — confirm 0 drift
+2. Cross-check AUM totals: `get_funds_aum_snapshot()` vs sum of `investor_positions` where `is_active = true`
+3. Verify fee conservation: for each yield distribution, `total_amount = investor_amount + platform_fee + ib_commission`
+4. Verify the voided distribution `63b032b8` shows as voided in all related tables (transactions, fee_allocations, yield_allocations)
+5. Spot-check 3 investor accounts: compare dashboard figures against raw ledger queries
+6. Run `create_daily_position_snapshot()` and verify snapshot matches current positions
+7. Document in `docs/gates/gate-2-report.md`
+
+**Sign-off:** CFO + CTO
+
+---
+
+## Gate 3: Performance & Monitoring Readiness
+
+**Goal:** Confirm the platform can handle production load and has proper observability.
+
+**Tasks:**
+1. Verify all 68 triggers are enabled (`SELECT count(*) FROM information_schema.triggers WHERE trigger_schema = 'public'`)
+2. Confirm `integrity-monitor` edge function (cron) is deployed and running nightly
+3. Confirm `monthly-report-scheduler` cron is active
+4. Check that `admin_alerts` and `admin_integrity_runs` tables are receiving data
+5. Review Supabase dashboard: connection pool usage, query performance, storage size
+6. Verify audit log is healthy (~32 MB, not growing uncontrollably)
+7. Test the admin Operations page (`/admin/operations`) — health checks, integrity runs display correctly
+8. Document in `docs/gates/gate-3-report.md`
+
+**Sign-off:** CTO
+
+---
+
+## Gate 4: Go-Live Authorization
+
+**Goal:** Final sign-off with all gate reports collected.
+
+**Tasks:**
+1. Compile all gate reports into `docs/gates/go-live-authorization.md`
+2. Checklist summary:
+
+| Gate | Status | Signed By |
+|------|--------|-----------|
+| Gate 0: Audit Closure | Pending | CTO + CFO |
+| Gate 1: Functional Smoke | Pending | CTO |
+| Gate 2: Financial Integrity | Pending | CFO + CTO |
+| Gate 3: Performance & Monitoring | Pending | CTO |
+| Gate 4: Go-Live Authorization | Pending | CTO + CFO |
+
+3. Record go-live date and any conditional items
+4. Publish to production domain
+
+**Sign-off:** CTO + CFO
+
+---
+
+## Implementation
+
+This plan creates:
+- `docs/gates/gate-0-report.md` — template with all verification queries and pass/fail fields
+- `docs/gates/gate-1-report.md` — functional test checklist
+- `docs/gates/gate-2-report.md` — financial validation checklist
+- `docs/gates/gate-3-report.md` — performance and monitoring checklist
+- `docs/gates/go-live-authorization.md` — consolidated sign-off document
+
+For Gate 0, we will also run the actual database verification queries and populate the report with live results.
 
