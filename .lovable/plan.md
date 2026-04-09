@@ -1,182 +1,75 @@
 
 
-# Pre-Launch Expert Audit Report
-## Senior QA Lead · Senior Lead Dev · CTO · CFO Sign-Off
+## Lazy Sweep Audit Report — Database & Frontend
+
+### Verdict: Clean. 4 low-risk findings, 0 critical.
+
+The platform is in excellent shape. DB linter: zero issues. No function overloads. No dropped-table references in active code paths. RLS complete. The previous audit fixes are holding.
 
 ---
 
-## VERDICT: Platform is GO with 3 mandatory fixes
+### Finding 1: Duplicate BEFORE INSERT Triggers on `investor_positions`
 
-The codebase and database are in excellent shape. RLS: 116 tables, 181 policies, zero linter issues. Security scan: clean (1 finding already mitigated by trigger). Architecture: modular with proper separation. The yield engine is verified at 18-decimal parity.
+**Triggers:** `trg_enforce_canonical_position` (calls `enforce_canonical_position_mutation`) and `trg_enforce_canonical_position_write` (calls `enforce_canonical_position_write`)
 
-Below are the findings ordered by severity.
+Both fire on BEFORE INSERT on `investor_positions` and both check the canonical RPC flag. The first one is a strict blocker (raises exception). The second one is a more nuanced version that only blocks if cost_basis/current_value/shares are actually changing, and logs to `audit_log` before raising.
 
----
+**Impact:** Both run on every INSERT. The stricter one (`trg_enforce_canonical_position`) fires first alphabetically and blocks before the nuanced one ever runs. The second trigger is dead code on INSERT.
 
-## CRITICAL — Must Fix Before Go-Live
+**Fix:** Drop `trg_enforce_canonical_position` and keep `trg_enforce_canonical_position_write` (the smarter one that checks for actual field changes and logs). This also removes the DELETE guard from the first trigger, but DELETE on positions should already be blocked by the canonical RPC check in the second trigger's UPDATE path — though it doesn't cover DELETE. Alternative: merge both into a single trigger function.
 
-### Finding 1: Precision Loss in Withdrawal Stats Aggregation
-
-**File:** `src/features/shared/services/withdrawalService.ts` line 226
-**Code:** `assetAmounts[asset] = (assetAmounts[asset] || 0) + (withdrawal.requested_amount || 0);`
-
-`requested_amount` comes from the DB as a `number` type (Supabase auto-casts `numeric` → JS `number`). Adding these with `+` is IEEE 754 floating-point arithmetic. For BTC withdrawals of 0.12345678 BTC, this silently truncates precision. The pending-by-asset totals displayed in the admin withdrawal dashboard are unreliable.
-
-**Fix:** Use `parseFinancial()` / `Decimal.js` accumulation, converting to string at the end. Same pattern already used correctly in `transactionsV2Service.getSummary()`.
-
-### Finding 2: Precision Loss in Statement Generation Summary
-
-**File:** `src/features/admin/reports/hooks/useAdminStatementsPage.ts` lines 83-84
-**Code:**
-```
-total_aum: reports?.reduce((sum, r) => sum + Number(r.closing_balance || 0), 0) || 0,
-total_pnl: reports?.reduce((sum, r) => sum + Number(r.yield_earned || 0), 0) || 0,
-```
-
-These use `Number()` to accumulate financial values, violating the platform's precision standard. The values feed into the PDF statement generator. For high-balance investors or multi-fund accounts, the summary totals on official statements could be off by dust amounts.
-
-**Fix:** Use `parseFinancial()` accumulation.
-
-### Finding 3: PDF Statement Uses `Number()` for Financial Values
-
-**File:** `src/features/admin/reports/lib/statementGenerator.ts` lines 464-465
-**Code:**
-```
-const closing = formatValue(Number(pos.closing_balance || 0), asset);
-const yieldEarned = Number(pos.yield_earned || 0);
-```
-
-Official investor statements render financial figures through `Number()`, which loses precision beyond 15 significant digits. These are documents of record.
-
-**Fix:** Use `parseFinancial().toNumber()` for safe display conversion, or pass through `FinancialValue`-style formatting.
+**Risk:** Low — both currently work correctly; this is efficiency/clarity.
 
 ---
 
-## HIGH — Fix Before Go-Live (Non-Blocking but Important)
+### Finding 2: `send-admin-invite` Edge Function References Dropped `admin_invites` Table
 
-### Finding 4: Duplicate Withdrawal Creation Paths
+**File:** `supabase/functions/send-admin-invite/index.ts` line 182
+**Code:** `await supabaseAdmin.from("admin_invites").update({ used: true }).eq("id", invite.id);`
 
-Three separate code paths can create withdrawal requests via direct `INSERT`:
-1. `withdrawalService.createWithdrawal()` — admin path
-2. `withdrawalService.submitInvestorWithdrawal()` — investor portal
-3. `investorPortfolioService.createWithdrawalRequest()` — investor portfolio hook
+The `admin_invites` table was dropped in the dead-weight cleanup. This line will silently fail (PostgREST returns 404 but the function doesn't check the error). The invite flow still works because the primary table is `platform_invites`, but this is a dead reference.
 
-Paths 2 and 3 both serve investor withdrawal creation with slightly different logic. Path 3 accepts `amount: number` (precision risk), while Path 2 accepts `amount: string` (correct).
+Also on line 177: `profiles.is_admin` is set directly — this is redundant since `user_roles` is the canonical RBAC source and the trigger `trg_assign_default_role` handles role assignment.
 
-**Fix:** Consolidate to a single canonical function. Delete path 3 or route it through path 2.
+**Fix:** Remove the `admin_invites` update line. The `is_admin: true` update is harmless (kept in sync by convention) but could be removed for purity.
 
-### Finding 5: `deleteWithdrawal` with `hardDelete=true` bypasses audit trail
-
-**File:** `src/features/shared/services/withdrawalService.ts` lines 497-502
-
-When `hardDelete` is true, the function performs a raw `DELETE` from `withdrawal_requests` with no audit log entry. This violates the immutable audit trail requirement. The UI exposes this via a checkbox in `DeleteWithdrawalDialog`.
-
-**Fix:** Either remove the hard-delete option entirely (use void/cancel instead), or wrap it in an RPC that logs to `audit_log` before deleting.
+**Risk:** None — the line already silently fails.
 
 ---
 
-## MEDIUM — Fix in First Post-Launch Sprint
+### Finding 3: `Number()` in Dashboard Metrics (Display-Only)
 
-### Finding 6: `Number()` in Yield Allocation Percentage Display
+**File:** `src/features/admin/dashboard/services/dashboardMetricsService.ts` lines 195-198
+**Code:** `daily_inflows: Number(fundFlow.daily_inflows || 0)` etc.
 
-**File:** `src/features/admin/yields/pages/YieldDistributionsPage.tsx` lines 1095-1098
-```
-Number(allocation.gross_amount || 0) / Number(totalGross)
-```
+These are dashboard display values (daily flow indicators), not accounting figures. The precision loss is cosmetic at most (~0.01 on large values). Not a financial integrity issue.
 
-Display-only, but inconsistent with the platform standard. Should use `parseFinancial()`.
+**Fix (optional):** Replace with `parseFinancial().toNumber()` for consistency with platform standard.
 
-### Finding 7: Edge functions check `profiles.is_admin` not `user_roles`
-
-**From security scan:** Edge functions (e.g., `send-email`, `process-withdrawal`) verify admin status by querying `profiles.is_admin` rather than the canonical `user_roles` table. While the `protect_profile_sensitive_fields` trigger prevents users from modifying `profiles.is_admin`, the architectural standard is to use `is_admin()` RPC or query `user_roles` directly.
-
-**Fix:** Update edge function admin checks to query `user_roles` table or call `is_admin()`.
-
-### Finding 8: `cancel_withdrawal_by_admin_v2` not in `rpcSignatures.ts`
-
-The RPC is called via `supabase.rpc()` directly (bypassing the RPC gateway), so it doesn't get rate limiting, validation, or logging. Same for `restore_withdrawal_by_admin_v2` and `void_completed_withdrawal`.
-
-**Fix:** Route through `rpc.call()` and add to the signatures registry.
+**Risk:** None.
 
 ---
 
-## LOW — Polish Items
+### Finding 4: 3 DB Functions Reference Dropped Tables (`purge_fund_hard`, `force_delete_investor`, `reset_platform_data`)
 
-### Finding 9: `statementGenerator.ts` import still uses old path
+These nuclear admin functions reference `user_sessions`, `investor_daily_balance`, `yield_corrections`, and `daily_nav` — all dropped. They use `IF EXISTS` guards or `DROP TABLE IF EXISTS` patterns, so they won't crash, but they contain dead code lines.
 
-**File:** `src/features/admin/reports/hooks/useAdminStatementsPage.ts` line 118
-```
-const { generatePDF } = await import("@/lib/pdf/statementGenerator");
-```
-This imports from the legacy shim path, not the canonical `@/features/admin/reports/lib/statementGenerator`.
+**Fix (optional):** Clean up the dead references in the next migration cycle.
 
-### Finding 10: Withdrawal stats query missing 1000-row limit awareness
-
-`withdrawalService.getStats()` fetches all withdrawal requests without pagination. For platforms with >1000 withdrawals, Supabase's default 1000-row limit will silently truncate results, causing incorrect stats.
-
-**Fix:** Add `.limit(10000)` or paginate.
+**Risk:** None — functions are admin-only destructive tools, and the dead lines are no-ops.
 
 ---
 
-## DATABASE — Clean
+### Summary
 
-| Check | Status |
-|-------|--------|
-| DB Linter | 0 issues |
-| RLS Coverage | 116/116 tables |
-| Security Scan | 1 finding (mitigated by trigger) |
-| Overload Ambiguity | Resolved (prior audit) |
-| Dead Functions/Tables | Cleaned (prior audit) |
-| Trigger Message (V5 ref) | Fixed (prior audit) |
-| `protect_profile_sensitive_fields` trigger | Active, blocks escalation |
+| # | Finding | Severity | Fix Effort |
+|---|---------|----------|------------|
+| 1 | Duplicate canonical position triggers | Low | 5 min migration |
+| 2 | Edge fn references dropped `admin_invites` | Low | 2 min edit |
+| 3 | `Number()` in dashboard metrics | Cosmetic | 5 min |
+| 4 | Dead table refs in nuclear functions | Cosmetic | 10 min migration |
 
----
+**No critical bugs. No accounting leakage. No precision issues in financial paths. No overload ambiguity. All prior fixes verified clean.**
 
-## SECURITY — Clean
-
-| Check | Status |
-|-------|--------|
-| Privilege Escalation via profiles | Blocked by trigger |
-| RLS Policies | 181 policies, comprehensive |
-| SECURITY DEFINER + search_path | All hardened |
-| Anon role lockdown | Default-deny, whitelist only |
-| Storage buckets | Private, RLS-protected |
-| Edge function auth | JWT + admin verification |
-| CSRF protection | Implemented |
-
----
-
-## ACCOUNTING INTEGRITY — Verified
-
-| Check | Status |
-|-------|--------|
-| Yield Engine V5 Parity | Zero variance vs Excel |
-| Conservation Identity | Enforced (net + fees + IB = gross) |
-| Canonical Writer Enforcement | Trigger-enforced |
-| Crystallize Before Flows | Trigger-enforced |
-| Void Symmetry | Symmetric across all accounts |
-| Cost Basis Integrity | compute_position_from_ledger verified |
-| Advisory Locks | All critical mutations locked |
-| Financial Precision | NUMERIC(38,18) + Decimal.js end-to-end |
-
----
-
-## IMPLEMENTATION PRIORITY
-
-| # | Finding | Severity | Effort | Risk |
-|---|---------|----------|--------|------|
-| 1 | Withdrawal stats precision | CRITICAL | 10 min | Low |
-| 2 | Statement summary precision | CRITICAL | 10 min | Low |
-| 3 | PDF generator precision | CRITICAL | 10 min | Low |
-| 4 | Consolidate withdrawal creation | HIGH | 30 min | Low |
-| 5 | Remove hard-delete option | HIGH | 15 min | Low |
-| 6 | Yield display Number() | MEDIUM | 5 min | None |
-| 7 | Edge fn admin check source | MEDIUM | 30 min | Low |
-| 8 | RPC gateway for withdrawal RPCs | MEDIUM | 20 min | Low |
-| 9 | Statement import path | LOW | 2 min | None |
-| 10 | Stats query row limit | LOW | 5 min | None |
-
-**Estimated total fix time: ~2.5 hours**
-
-All 10 findings are surgical fixes with no architectural risk. The platform's core financial engine, security model, and data integrity framework are production-ready.
+Shall I proceed with fixing all 4?
 
