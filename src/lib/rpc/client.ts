@@ -212,54 +212,6 @@ export async function callNoArgs<T extends RPCFunctionName>(
 // CANONICAL MUTATION HELPERS
 // =============================================================================
 
-export async function deposit(params: {
-  fundId: string;
-  investorId: string;
-  /** Amount as string for NUMERIC precision */
-  amount: string;
-  txDate: string;
-  adminId: string;
-  referenceId: string;
-  notes?: string;
-  purpose?: "reporting" | "transaction";
-}): Promise<RPCResult<unknown>> {
-  return call("apply_transaction_with_crystallization", {
-    p_fund_id: params.fundId,
-    p_investor_id: params.investorId,
-    p_tx_type: "DEPOSIT",
-    p_amount: params.amount as unknown as number,
-    p_tx_date: params.txDate,
-    p_reference_id: params.referenceId,
-    p_admin_id: params.adminId,
-    p_notes: params.notes,
-    p_purpose: params.purpose,
-  });
-}
-
-export async function withdrawal(params: {
-  fundId: string;
-  investorId: string;
-  /** Amount as string for NUMERIC precision */
-  amount: string;
-  txDate: string;
-  adminId: string;
-  referenceId: string;
-  notes?: string;
-  purpose?: "reporting" | "transaction";
-}): Promise<RPCResult<unknown>> {
-  return call("apply_transaction_with_crystallization", {
-    p_fund_id: params.fundId,
-    p_investor_id: params.investorId,
-    p_tx_type: "WITHDRAWAL",
-    p_amount: params.amount as unknown as number,
-    p_tx_date: params.txDate,
-    p_reference_id: params.referenceId,
-    p_admin_id: params.adminId,
-    p_notes: params.notes,
-    p_purpose: params.purpose,
-  });
-}
-
 export async function applyYield(params: {
   fundId: string;
   periodEnd: string;
@@ -279,19 +231,4 @@ export async function applyYield(params: {
     p_opening_aum: params.openingAum ? (params.openingAum as unknown as number) : undefined,
     p_distribution_date: params.distributionDate,
   } as any);
-}
-
-export async function previewYield(params: {
-  fundId: string;
-  periodEnd: string;
-  /** Recorded AUM as string for NUMERIC precision */
-  recordedAum: string;
-  purpose?: "reporting" | "transaction";
-}): Promise<RPCResult<unknown>> {
-  return call("preview_segmented_yield_distribution_v5", {
-    p_fund_id: params.fundId,
-    p_period_end: params.periodEnd,
-    p_recorded_aum: params.recordedAum as unknown as number,
-    p_purpose: params.purpose,
-  });
 }
