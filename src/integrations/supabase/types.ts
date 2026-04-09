@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _temp_function_dump: {
+        Row: {
+          func_def: string | null
+          func_name: string | null
+          id: number
+        }
+        Insert: {
+          func_def?: string | null
+          func_name?: string | null
+          id?: number
+        }
+        Update: {
+          func_def?: string | null
+          func_name?: string | null
+          id?: number
+        }
+        Relationships: []
+      }
       admin_alerts: {
         Row: {
           acknowledged_at: string | null
