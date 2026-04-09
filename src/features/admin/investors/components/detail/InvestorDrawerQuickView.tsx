@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { InvestorKpiChips } from "./InvestorKpiChips";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
-import { useInvestorQuickView, useInvestorRecentActivity } from "@/features/investor/shared/hooks/useInvestorData";
+import { useInvestorQuickView, useInvestorRecentActivity } from "@/features/shared/hooks/useInvestorData";
 import { formatTokenAmount } from "@/utils/statementCalculations";
 import { format } from "date-fns";
 

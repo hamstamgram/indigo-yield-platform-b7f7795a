@@ -13,8 +13,8 @@
 import { useState, useCallback, useMemo } from "react";
 import { toast } from "@/hooks";
 import { useUrlFilters } from "@/hooks";
-import { useInvestorLedger } from "@/features/investor/shared/hooks/useInvestorLedger";
-import { useInvestorDefaultFund } from "@/features/investor/overview/hooks/useInvestorOverview";
+import { useInvestorLedger } from "@/features/shared/hooks/useInvestorLedger";
+import { useInvestorDefaultFund } from "@/features/shared/hooks/useInvestorOverview";
 import { useLedgerSubscription } from "@/hooks/data/shared/useRealtimeSubscription";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { VoidTransactionDialog } from "@/features/admin/transactions/VoidTransactionDialog";

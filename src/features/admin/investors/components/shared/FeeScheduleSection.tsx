@@ -28,11 +28,11 @@ import { toast } from "sonner";
 import {
   useFeeSchedule,
   useDeleteFeeScheduleEntry,
-} from "@/features/investor/shared/hooks/useFeeSchedule";
+} from "@/features/shared/hooks/useFeeSchedule";
 import {
   useInvestorProfileSettings,
   useUpdatePerformanceFee,
-} from "@/features/investor/settings/hooks/useInvestorSettings";
+} from "@/features/shared/hooks/useInvestorSettings";
 import { toNum } from "@/utils/numeric";
 import { Input, Label } from "@/components/ui";
 import { AddFeeScheduleDialog } from "./AddFeeScheduleDialog";
