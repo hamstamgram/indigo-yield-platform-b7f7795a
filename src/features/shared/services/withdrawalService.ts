@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
+import { parseFinancial } from "@/utils/financial";
 import {
   Withdrawal,
   WithdrawalFilters,
@@ -184,7 +185,8 @@ export const withdrawalService = {
   async getStats(filters?: WithdrawalFilters): Promise<WithdrawalStats> {
     let query = supabase
       .from("withdrawal_requests")
-      .select("status, requested_amount, fund:funds(asset)");
+      .select("status, requested_amount, fund:funds(asset)")
+      .limit(10000);
 
     // Apply same filters as getWithdrawals for consistency
     if (filters?.status && filters.status !== "all") {
@@ -210,7 +212,7 @@ export const withdrawalService = {
       pending_by_asset: [],
     };
 
-    const assetAmounts: Record<string, number> = {};
+    const assetAmounts: Record<string, ReturnType<typeof parseFinancial>> = {};
 
     data?.forEach((withdrawal) => {
       const status = withdrawal.status as keyof Pick<
@@ -220,16 +222,17 @@ export const withdrawalService = {
       if (status in stats && typeof stats[status] === "number") {
         (stats[status] as number)++;
       }
-      // Group pending amounts by asset
+      // Group pending amounts by asset using Decimal.js for precision
       if (withdrawal.status === "pending" || withdrawal.status === "approved") {
         const asset = (withdrawal.fund as { asset?: string } | null)?.asset || "Unknown";
-        assetAmounts[asset] = (assetAmounts[asset] || 0) + (withdrawal.requested_amount || 0);
+        const amount = parseFinancial(withdrawal.requested_amount || 0);
+        assetAmounts[asset] = assetAmounts[asset] ? assetAmounts[asset].plus(amount) : amount;
       }
     });
 
     // Convert to array sorted by asset name
     stats.pending_by_asset = Object.entries(assetAmounts)
-      .map(([asset, amount]) => ({ asset, amount: String(amount) }))
+      .map(([asset, amount]) => ({ asset, amount: amount.toFixed() }))
       .sort((a, b) => a.asset.localeCompare(b.asset));
 
     return stats;
