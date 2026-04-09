@@ -1,7 +1,7 @@
 import { isValidTxType, mapUITypeToDb } from "@/contracts/dbEnums";
 import { normalizeError } from "./normalization";
 import { validateParams } from "./validation";
-import { call, callNoArgs, deposit, withdrawal, applyYield, previewYield } from "./client";
+import { call, callNoArgs, applyYield } from "./client";
 
 export const rpc = {
   /** Generic RPC call with full type safety */
@@ -10,14 +10,8 @@ export const rpc = {
   callNoArgs,
 
   // Canonical mutation helpers
-  /** Create deposit with crystallization */
-  deposit,
-  /** Create withdrawal with crystallization */
-  withdrawal,
-  /** Apply yield distribution */
+  /** Apply yield distribution (V5) */
   applyYield,
-  /** Preview yield distribution */
-  previewYield,
 
   // Utilities
   /** Map UI transaction type to DB type */

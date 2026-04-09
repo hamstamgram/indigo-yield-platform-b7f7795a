@@ -12,7 +12,7 @@ async function exportInvestorData(userId: string): Promise<InvestorExportData> {
   const [profile, investments, transactions, documents] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("investor_positions").select("*").eq("investor_id", userId),
-    supabase.from("transactions_v2").select("*").eq("investor_id", userId),
+    supabase.from("transactions_v2").select("*").eq("investor_id", userId).eq("is_voided", false).eq("visibility_scope", "investor_visible"),
     supabase.from("documents").select("*").eq("user_id", userId),
   ]);
 

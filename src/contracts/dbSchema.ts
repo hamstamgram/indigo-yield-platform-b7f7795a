@@ -308,19 +308,6 @@ export const DB_TABLES = {
     ] as const,
     rlsEnabled: true,
   },
-  investor_daily_balance: {
-    name: "investor_daily_balance" as const,
-    primaryKey: ["id"] as const,
-    columns: [
-      "balance_date",
-      "created_at",
-      "end_of_day_balance",
-      "fund_id",
-      "id",
-      "investor_id",
-    ] as const,
-    rlsEnabled: true,
-  },
   investor_emails: {
     name: "investor_emails" as const,
     primaryKey: ["id"] as const,

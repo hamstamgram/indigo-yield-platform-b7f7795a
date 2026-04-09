@@ -91,7 +91,7 @@ export function useTransactionSubmit({
           .insert({
             investor_id: currentInvestorId,
             fund_id: data.fund_id,
-            requested_amount: Number(amountStr),
+            requested_amount: amountStr,
             withdrawal_type: isFullExit ? "full" : "partial",
             status: "pending",
             is_full_exit: isFullExit,
