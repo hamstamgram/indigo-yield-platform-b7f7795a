@@ -34,7 +34,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { formatAUM } from "@/utils/formatters";
-import { useTransactionFormInvestors, useTransactionFormFunds, useTransactionFormBalanceCheck, useTransactionFormAumCheck } from "@/features/admin/transactions/hooks/useTransactionFormData";
+import { useTransactionFormInvestors, useTransactionFormFunds, useInvestorBalanceCheck as useTransactionFormBalanceCheck, useAumCheck as useTransactionFormAumCheck } from "@/features/admin/transactions/hooks/useTransactionFormData";
 import { logError } from "@/lib/logger";
 import { getTodayString } from "@/utils/dateUtils";
 import { PageShell } from "@/components/layout/PageShell";

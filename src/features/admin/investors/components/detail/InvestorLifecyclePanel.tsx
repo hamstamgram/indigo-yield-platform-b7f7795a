@@ -18,7 +18,7 @@ import { Calendar, User, UserX, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 import { useCleanupInactiveInvestors } from "@/features/admin/investors/hooks/useAdminInvestorMutations";
-import { useAdminUpdateInvestorStatus as useUpdateInvestorStatus } from "@/features/investor/shared/hooks/useInvestorData";
+import { useUpdateInvestorStatus } from "@/features/admin/investors/hooks/useAdminInvestorMutations";
 const InvestorLifecyclePanel = () => {
   const [selectedInvestor] = useState<string>("");
   const [entryDate, setEntryDate] = useState<string>("");
