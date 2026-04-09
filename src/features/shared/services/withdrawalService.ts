@@ -497,20 +497,13 @@ export const withdrawalService = {
    * Delete or cancel a withdrawal request
    */
   async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
-    if (params.hardDelete) {
-      const { error } = await supabase
-        .from("withdrawal_requests")
-        .delete()
-        .eq("id", params.withdrawalId);
-      if (error) throw error;
-    } else {
-      // Use canonical RPC for proper audit trail and state machine compliance
-      const { error } = await supabase.rpc("cancel_withdrawal_by_admin_v2", {
-        p_request_id: params.withdrawalId,
-        p_reason: params.reason || "Cancelled by admin",
-      });
-      if (error) throw error;
-    }
+    // Always use canonical RPC for proper audit trail and state machine compliance.
+    // Hard-delete is no longer supported — all deletions go through cancel RPC.
+    const { error } = await supabase.rpc("cancel_withdrawal_by_admin_v2", {
+      p_request_id: params.withdrawalId,
+      p_reason: params.reason || "Cancelled by admin",
+    });
+    if (error) throw error;
   },
 
   /**

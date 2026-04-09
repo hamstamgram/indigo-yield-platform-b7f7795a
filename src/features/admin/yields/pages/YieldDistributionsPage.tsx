@@ -1092,11 +1092,12 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
-                                                              Number(totalGross) !== 0
-                                                                ? (Number(allocation.gross_amount || 0) /
-                                                                    Number(totalGross)) *
-                                                                    100
-                                                                : 0,
+                                                              parseFinancial(totalGross).isZero()
+                                                                ? 0
+                                                                : parseFinancial(allocation.gross_amount || 0)
+                                                                    .div(parseFinancial(totalGross))
+                                                                    .mul(100)
+                                                                    .toNumber(),
                                                               2
                                                             )}
                                                           </TableCell>
