@@ -21,7 +21,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { useCreateFund } from "@/hooks/data";
+import { useCreateFund } from "@/hooks/data/shared/useFunds";
 import { getTodayUTC } from "@/utils/dateUtils";
 import { parseISO } from "date-fns";
 import { FundLogoUpload } from "./FundLogoUpload";

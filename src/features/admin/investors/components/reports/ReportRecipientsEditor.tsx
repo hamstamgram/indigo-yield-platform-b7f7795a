@@ -14,8 +14,7 @@ import {
   EmailChipsInput,
 } from "@/components/ui";
 import { Mail, Pencil, X, Save, Loader2, Info } from "lucide-react";
-import { useReportRecipients, useUpdateReportRecipients } from "@/hooks/data/admin";
-
+import { useReportRecipients, useUpdateReportRecipients } from "@/features/admin/reports/hooks/useReportRecipients";
 interface ReportRecipientsEditorProps {
   investorId: string;
   investorEmail: string;

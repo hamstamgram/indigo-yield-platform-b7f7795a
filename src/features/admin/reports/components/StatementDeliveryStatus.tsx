@@ -10,8 +10,7 @@ import {
   RotateCcw,
   Mail,
 } from "lucide-react";
-import { useDeliveryStatus, useRetryDelivery } from "@/hooks/data";
-
+import { useDeliveryStatus, useRetryDelivery } from "@/features/admin/dashboard/hooks/useDashboardMetrics";
 interface StatementDeliveryStatusProps {
   statementId: string;
   investorId?: string;

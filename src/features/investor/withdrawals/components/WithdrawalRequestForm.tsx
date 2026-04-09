@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
-import { useSubmitWithdrawal } from "@/hooks/data";
+import { useSubmitWithdrawal } from "@/features/investor/shared/hooks/useInvestorWithdrawals";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
 export interface WithdrawalPosition {

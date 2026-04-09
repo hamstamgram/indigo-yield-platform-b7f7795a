@@ -12,7 +12,7 @@ import {
   Separator,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { useInvestorProfileData, useSaveUserPreferences } from "@/hooks/data";
+import { useInvestorProfileData, useSaveUserPreferences } from "@/features/investor/transactions/hooks/useInvestorPortal";
 import { logError } from "@/lib/logger";
 
 const NotificationsTab = () => {

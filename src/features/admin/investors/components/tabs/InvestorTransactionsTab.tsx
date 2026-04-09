@@ -20,12 +20,8 @@ import { cn } from "@/lib/utils";
 import { useRealtimeSubscription } from "@/hooks";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { formatAssetAmount } from "@/utils/assets";
-import {
-  useInvestorTransactions,
-  useInvestorTransactionSummary,
-  useInvestorProfileWithFund,
-} from "@/hooks/data";
-
+import { useInvestorProfileWithFund } from "@/hooks/data/shared/useProfiles";
+import { useInvestorTransactions, useInvestorTransactionSummary } from "@/hooks/data/shared/useTransactionHooks";
 interface InvestorTransactionsTabProps {
   investorId: string;
 }

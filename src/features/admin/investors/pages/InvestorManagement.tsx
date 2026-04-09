@@ -40,8 +40,7 @@ import { forceDeleteInvestorUser } from "@/features/admin/investors/services/use
 import { InvestorTabs } from "@/features/admin/investors/components";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { format } from "date-fns";
-import { useInvestorDetail, useInvestorOpsIndicators } from "@/hooks/data/admin";
-
+import { useInvestorDetail, useInvestorOpsIndicators } from "@/features/admin/investors/hooks/useInvestorHooks";
 const InvestorManagement = () => {
   const { id } = useParams();
   const navigate = useNavigate();

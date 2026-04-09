@@ -28,7 +28,7 @@ import { AlertCircle } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import { toNumber } from "@/utils/numeric";
-import type { FeeRecord } from "@/hooks/data";
+import type { FeeRecord } from "@/features/admin/fees/hooks/useFees";
 import { useSortableColumns } from "@/hooks";
 
 interface FundOption {

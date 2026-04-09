@@ -27,8 +27,8 @@ import {
   UnifiedInvestorsTable,
 } from "@/features/admin/investors/components";
 import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
-import { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/data";
-
+import { useUnifiedInvestors } from "@/features/admin/investors/hooks/useInvestorHooks";
+import { type EnrichedInvestor } from "@/features/admin/investors/hooks/useInvestorHooks";
 interface RecentInvestor {
   id: string;
   name: string;

@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import { Loader2, CheckCircle, XCircle, Play, CheckCircle2, PlusCircle, Ban } from "lucide-react";
-import { useWithdrawalAuditLogs } from "@/hooks/data/admin";
-
+import { useWithdrawalAuditLogs } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 interface WithdrawalAuditTimelineProps {
   withdrawalId: string;
 }

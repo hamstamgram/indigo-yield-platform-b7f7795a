@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout";
 import { PageShell } from "@/components/layout/PageShell";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";
+import { useInvestorDocuments, useDocumentDownload } from "@/features/investor/documents/hooks/useInvestorPortfolioQueries";
 import { useSortableColumns } from "@/hooks";
 import type { InvestorDocument } from "@/services/investor";
 import { logError } from "@/lib/logger";

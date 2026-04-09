@@ -14,8 +14,7 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { useVerifyInvestorInvite, useAcceptInvestorInvite } from "@/hooks/data";
-
+import { useVerifyInvestorInvite, useAcceptInvestorInvite } from "@/hooks/data/shared/useAuthFlow";
 const InvestorInvite = () => {
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("code");

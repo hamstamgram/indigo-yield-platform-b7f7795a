@@ -23,12 +23,8 @@ import {
 import ProfileTab from "@/components/account/ProfileTab";
 import SecurityTab from "@/components/account/SecurityTab";
 import { useAuth } from "@/services/auth";
-import {
-  useInvestorProfileData,
-  useUserPreferences,
-  useSaveUserPreferences,
-  type UserSettings,
-} from "@/hooks/data";
+import { useInvestorProfileData, useUserPreferences, useSaveUserPreferences } from "@/features/investor/transactions/hooks/useInvestorPortal";
+import { type UserSettings } from "@/features/investor/transactions/hooks/useInvestorPortal";
 import { logError } from "@/lib/logger";
 import { PageShell } from "@/components/layout/PageShell";
 

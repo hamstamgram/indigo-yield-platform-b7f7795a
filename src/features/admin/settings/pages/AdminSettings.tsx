@@ -51,8 +51,8 @@ import {
   UserCog,
 } from "lucide-react";
 import { AdminGuard } from "@/features/admin/shared/AdminGuard";
-import { usePlatformSettingsForm } from "@/hooks/data/admin";
-import { useAdminUsersWithRoles, useUpdateAdminRole, useSendAdminInviteEmail } from "@/hooks/data";
+import { usePlatformSettingsForm } from "@/features/admin/settings/hooks/usePlatformSettings";
+import { useAdminUsersWithRoles, useUpdateAdminRole, useSendAdminInviteEmail } from "@/features/admin/settings/hooks/useSystemAdmin";
 import {
   useAdminInvitesList,
   useCreateAdminInvite,

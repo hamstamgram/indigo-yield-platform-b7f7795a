@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { Loader2, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { getTodayString, getTodayUTC } from "@/utils/dateUtils";
-import { useInvestorPositionsForRoute, useInternalRouteMutation } from "@/hooks/data/admin";
+import { useInvestorPositionsForRoute, useInternalRouteMutation } from "@/features/admin/investors/hooks/useInternalRoute";
 import { FinancialValue } from "@/components/common/FinancialValue";
 
 interface InternalRouteDialogProps {

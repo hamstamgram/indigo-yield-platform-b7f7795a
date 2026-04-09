@@ -1,14 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  usePerAssetStats,
-  useRecentInvestorTransactions,
-  usePendingWithdrawalsCount,
-  useLatestStatementSummary,
-  useRealtimeSubscription,
-  useAvailableStatementPeriods,
-} from "@/hooks/data";
+import { useRecentInvestorTransactions, usePendingWithdrawalsCount, useLatestStatementSummary } from "@/features/investor/overview/hooks/useInvestorOverviewQueries";
+import { usePerAssetStats, useAvailableStatementPeriods } from "@/features/investor/performance/hooks/useInvestorPerformance";
+import { useRealtimeSubscription } from "@/hooks/data/shared/useRealtimeSubscription";
 import { useAuth } from "@/services/auth";
 import { useMemo } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";

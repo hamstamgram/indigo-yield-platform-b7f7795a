@@ -15,12 +15,7 @@ import { ChevronLeft, ChevronRight, Calendar, TrendingUp, FileText, Plus } from 
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
 import { FundPositionCard } from "../shared/FundPositionCard";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
-import {
-  useStatementPeriodId,
-  useInvestorPositionsWithFunds,
-  useInvestorPerformanceForPeriod,
-} from "@/hooks/data";
-
+import { useStatementPeriodId, useInvestorPositionsWithFunds, useInvestorPerformanceForPeriod } from "@/features/investor/performance/hooks/useInvestorYieldData";
 interface InvestorYieldManagerProps {
   investorId: string;
   investorName?: string;

@@ -17,7 +17,7 @@ import { Search, Receipt, Filter, Download } from "lucide-react";
 import { formatInvestorAmount } from "@/utils/assets";
 import { toNum } from "@/utils/numeric";
 import { format } from "date-fns";
-import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/hooks/data";
+import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/features/investor/transactions/hooks/useInvestorPortal";
 import { useSortableColumns } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { CryptoIcon } from "@/components/CryptoIcons";

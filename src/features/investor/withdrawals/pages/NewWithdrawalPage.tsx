@@ -1,4 +1,4 @@
-import { useWithdrawalPositions } from "@/hooks/data";
+import { useWithdrawalPositions } from "@/features/investor/shared/hooks/useInvestorWithdrawals";
 import { WithdrawalRequestForm } from "@/features/investor/withdrawals/components/WithdrawalRequestForm";
 import { Card, CardContent, Button } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";

@@ -7,8 +7,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
 import { useAuth } from "@/services/auth";
-import { useSuperAdminCheck } from "@/hooks/data/admin";
-
+import { useSuperAdminCheck } from "@/features/admin/settings/hooks/useAdminUsers";
 interface SuperAdminGuardProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;

@@ -26,7 +26,7 @@ import {
 import { toast } from "sonner";
 import type { StatementData } from "@/lib/pdf/statementGenerator";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
-import { useStatements, usePublishStatements } from "@/hooks/data";
+import { useStatements, usePublishStatements } from "@/features/admin/reports/hooks/useStatements";
 import { useQueryClient } from "@tanstack/react-query";
 import { profileService, statementsService } from "@/services/shared";
 import { transactionsV2Service } from "@/services/investor";

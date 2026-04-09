@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { Coins, TrendingUp, TrendingDown, Database } from "lucide-react";
-import { useAssetStats } from "@/hooks/data/admin";
-
+import { useAssetStats } from "@/features/admin/funds/hooks/useAssets";
 export function AssetStats() {
   const { data: stats, isLoading } = useAssetStats();
 

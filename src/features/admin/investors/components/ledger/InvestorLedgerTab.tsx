@@ -13,7 +13,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { toast } from "@/hooks";
 import { useUrlFilters, useInvestorLedger, useInvestorDefaultFund } from "@/hooks";
-import { useLedgerSubscription } from "@/hooks/data";
+import { useLedgerSubscription } from "@/hooks/data/shared/useRealtimeSubscription";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { VoidTransactionDialog } from "@/features/admin/transactions/VoidTransactionDialog";
 import { VoidAndReissueDialog } from "@/features/admin/transactions/VoidAndReissueDialog";

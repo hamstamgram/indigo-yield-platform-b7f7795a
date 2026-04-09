@@ -8,8 +8,7 @@ import { DollarSign, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import { toNumber } from "@/utils/numeric";
-import type { YieldEarned } from "@/hooks/data";
-
+import type { YieldEarned } from "@/features/admin/fees/hooks/useFees";
 interface YieldEarnedSummaryCardProps {
   yields: YieldEarned[];
 }
