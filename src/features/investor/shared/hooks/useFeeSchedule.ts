@@ -3,5 +3,5 @@ export {
   useFeeSchedule,
   useAddFeeScheduleEntry,
   useDeleteFeeScheduleEntry,
-  useFeeHistory,
+  type FeeScheduleEntry,
 } from "@/features/shared/hooks/useFeeSchedule";
