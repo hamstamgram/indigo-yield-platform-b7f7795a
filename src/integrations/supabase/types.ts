@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _temp_function_dump: {
-        Row: {
-          func_def: string | null
-          func_name: string | null
-          id: number
-        }
-        Insert: {
-          func_def?: string | null
-          func_name?: string | null
-          id?: number
-        }
-        Update: {
-          func_def?: string | null
-          func_name?: string | null
-          id?: number
-        }
-        Relationships: []
-      }
       admin_alerts: {
         Row: {
           acknowledged_at: string | null
@@ -3417,36 +3399,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_sessions: {
-        Row: {
-          created_at: string | null
-          expires_at: string | null
-          id: string
-          ip_address: string | null
-          last_active_at: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          ip_address?: string | null
-          last_active_at?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          ip_address?: string | null
-          last_active_at?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       withdrawal_requests: {
         Row: {
           admin_notes: string | null
@@ -6599,44 +6551,18 @@ export type Database = {
         }
         Returns: string
       }
-      apply_investor_transaction:
-        | {
-            Args: {
-              p_admin_id?: string
-              p_amount: number
-              p_distribution_id?: string
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_reference_id: string
-              p_tx_date: string
-              p_tx_type: Database["public"]["Enums"]["tx_type"]
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_amount: number
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_reference_id: string
-              p_tx_date: string
-              p_tx_type: Database["public"]["Enums"]["tx_type"]
-            }
-            Returns: Json
-          }
-      apply_segmented_yield_distribution: {
+      apply_investor_transaction: {
         Args: {
           p_admin_id?: string
-          p_distribution_date?: string
+          p_amount: number
+          p_distribution_id?: string
           p_fund_id: string
-          p_period_end: string
+          p_investor_id: string
+          p_notes?: string
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_recorded_aum: number
+          p_reference_id: string
+          p_tx_date: string
+          p_tx_type: Database["public"]["Enums"]["tx_type"]
         }
         Returns: Json
       }
@@ -7412,30 +7338,6 @@ export type Database = {
         Args: { p_keep_profile_id: string; p_merge_profile_id: string }
         Returns: Json
       }
-      preview_segmented_yield_distribution: {
-        Args: {
-          p_fund_id: string
-          p_period_end?: string
-          p_recorded_aum: number
-        }
-        Returns: {
-          account_type: string
-          current_value: number
-          fee: number
-          fee_credit: number
-          fee_pct: number
-          gross: number
-          ib: number
-          ib_credit: number
-          ib_parent_id: string
-          ib_rate: number
-          investor_email: string
-          investor_id: string
-          investor_name: string
-          net: number
-          share: number
-        }[]
-      }
       preview_segmented_yield_distribution_v5: {
         Args: {
           p_fund_id: string
@@ -7574,19 +7476,10 @@ export type Database = {
         Returns: boolean
       }
       retry_delivery: { Args: { p_delivery_id: string }; Returns: Json }
-      route_withdrawal_to_fees:
-        | {
-            Args: {
-              p_actor_id: string
-              p_reason?: string
-              p_request_id: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: { p_reason?: string; p_request_id: string }
-            Returns: boolean
-          }
+      route_withdrawal_to_fees: {
+        Args: { p_reason?: string; p_request_id: string }
+        Returns: boolean
+      }
       run_comprehensive_health_check: {
         Args: never
         Returns: {
@@ -7614,10 +7507,6 @@ export type Database = {
         Returns: Json
       }
       run_invariant_checks: { Args: never; Returns: Json }
-      run_v6_e2e_simulation: { Args: never; Returns: Json }
-      run_v6_user_simulation: { Args: never; Returns: Json }
-      run_v6_user_simulation_isolated: { Args: never; Returns: Json }
-      run_v6_void_simulation: { Args: never; Returns: Json }
       set_canonical_rpc: { Args: { enabled?: boolean }; Returns: undefined }
       start_processing_withdrawal: {
         Args: {
