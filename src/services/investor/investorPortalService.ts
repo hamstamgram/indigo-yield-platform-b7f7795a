@@ -178,26 +178,9 @@ export async function saveUserPreferences(userId: string, preferences: Partial<U
 /**
  * Load active sessions for security panel
  */
-export async function getActiveSessions(userId: string): Promise<Session[]> {
-  const { data, error } = await supabase
-    .from("user_sessions" as any)
-    .select("id, ip_address, user_agent, last_active_at")
-    .eq("user_id", userId)
-    .order("last_active_at", { ascending: false });
-
-  if (error) {
-    logError("getActiveSessions", error, { userId });
-    return [];
-  }
-
-  // Map to frontend Session interface
-  return (data as any[] || []).map(s => ({
-    id: s.id,
-    ip: s.ip_address || "Unknown",
-    user_agent: s.user_agent || "Unknown",
-    last_active: s.last_active_at,
-    is_current: false, // Determined by client layer
-  }));
+export async function getActiveSessions(_userId: string): Promise<Session[]> {
+  // TODO: user_sessions table was dropped — re-implement when session management feature is built
+  return [];
 }
 
 /**
@@ -205,10 +188,10 @@ export async function getActiveSessions(userId: string): Promise<Session[]> {
  */
 export async function getAccessLogs(userId: string, limit: number = 20): Promise<AccessLog[]> {
   const { data, error } = await supabase
-    .from("audit_logs" as any)
-    .select("id, event_type, ip_address, user_agent, created_at, metadata")
-    .eq("user_id", userId)
-    .in("event_type", ["login", "logout", "password_change", "2fa_enabled", "2fa_disabled"])
+    .from("audit_log")
+    .select("id, action, created_at, meta")
+    .eq("actor_user", userId)
+    .in("action", ["login", "logout", "password_change", "2fa_enabled", "2fa_disabled"])
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -217,7 +200,14 @@ export async function getAccessLogs(userId: string, limit: number = 20): Promise
     return [];
   }
 
-  return (data as any[] || []) as AccessLog[];
+  return (data || []).map(row => ({
+    id: row.id,
+    event_type: row.action,
+    ip_address: (row.meta as any)?.ip_address || "Unknown",
+    user_agent: (row.meta as any)?.user_agent || "Unknown",
+    created_at: row.created_at,
+    metadata: row.meta,
+  }));
 }
 
 /**
