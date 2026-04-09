@@ -25,6 +25,11 @@ const RATE_LIMITED_RPCS: Record<
     maxRequests: 5,
     actionType: "yield_distribution",
   },
+  apply_segmented_yield_distribution_v5: {
+    windowMs: 60000,
+    maxRequests: 5,
+    actionType: "yield_distribution",
+  },
   approve_and_complete_withdrawal: { windowMs: 60000, maxRequests: 10, actionType: "withdrawal" },
   reject_withdrawal: { windowMs: 60000, maxRequests: 20, actionType: "withdrawal_approval" },
 
@@ -261,15 +266,19 @@ export async function applyYield(params: {
   /** Recorded AUM as string for NUMERIC precision */
   recordedAum: string;
   adminId: string;
-  purpose?: "reporting" | "transaction";
+  purpose: "reporting" | "transaction";
+  openingAum?: string;
+  distributionDate?: string;
 }): Promise<RPCResult<unknown>> {
-  return call("apply_segmented_yield_distribution", {
+  return call("apply_segmented_yield_distribution_v5" as RPCFunctionName, {
     p_fund_id: params.fundId,
     p_period_end: params.periodEnd,
     p_recorded_aum: params.recordedAum as unknown as number,
     p_admin_id: params.adminId,
     p_purpose: params.purpose,
-  });
+    p_opening_aum: params.openingAum ? (params.openingAum as unknown as number) : undefined,
+    p_distribution_date: params.distributionDate,
+  } as any);
 }
 
 export async function previewYield(params: {

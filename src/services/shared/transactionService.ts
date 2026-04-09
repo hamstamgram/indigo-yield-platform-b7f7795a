@@ -73,6 +73,7 @@ export async function fetchUserTransactions(): Promise<UserTransaction[]> {
       )
       .eq("investor_id", investorId)
       .eq("is_voided", false) // Exclude voided transactions
+      .eq("visibility_scope", "investor_visible") // Only show investor-visible transactions
       .order("tx_date", { ascending: false })
       .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
       .limit(100);
