@@ -307,6 +307,14 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum"] as const,
     optionalParams: ["p_admin_id", "p_distribution_date", "p_purpose"] as const,
   },
+  apply_segmented_yield_distribution_v5: {
+    name: "apply_segmented_yield_distribution_v5" as const,
+    returnType: "Json;",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum", "p_purpose"] as const,
+    optionalParams: ["p_opening_aum", "p_admin_id", "p_distribution_date"] as const,
+  },
   approve_and_complete_withdrawal: {
     name: "approve_and_complete_withdrawal" as const,
     returnType: "Json;",
