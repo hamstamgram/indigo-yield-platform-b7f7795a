@@ -7998,6 +7998,7 @@ export type Database = {
         | "completed"
         | "rejected"
         | "cancelled"
+        | "voided"
       yield_distribution_status:
         | "draft"
         | "applied"
@@ -8296,6 +8297,7 @@ export const Constants = {
         "completed",
         "rejected",
         "cancelled",
+        "voided",
       ],
       yield_distribution_status: [
         "draft",
