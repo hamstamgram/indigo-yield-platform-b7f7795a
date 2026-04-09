@@ -163,6 +163,7 @@ export const RPC_FUNCTIONS = [
   "reconcile_all_positions",
   "reject_withdrawal",
   "reopen_yield_period",
+  "restore_withdrawal_by_admin_v2",
   "repair_all_positions",
   "requeue_stale_sending",
   "require_admin",
