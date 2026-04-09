@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ibScheduleService } from "@/features/admin/ib/services/ibScheduleService";
+import { ibScheduleService } from "@/features/shared/services/ibScheduleService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function useIBSchedule(investorId: string) {

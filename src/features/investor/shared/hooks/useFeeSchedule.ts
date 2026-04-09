@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { feeScheduleService } from "@/features/admin/investors/services/feeScheduleService";
+import { feeScheduleService } from "@/features/shared/services/feeScheduleService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export interface FeeScheduleEntry {

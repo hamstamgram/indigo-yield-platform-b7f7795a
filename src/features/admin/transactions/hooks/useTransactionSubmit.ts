@@ -8,7 +8,7 @@ import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QueryClient } from "@tanstack/react-query";
 import { TransactionFormData } from "./useTransactionForm";
 import { supabase } from "@/integrations/supabase/client";
-import { withdrawalService } from "@/features/investor/withdrawals/services/withdrawalService";
+import { withdrawalService } from "@/features/shared/services/withdrawalService";
 
 interface UseTransactionSubmitParams {
   selectedInvestorId: string;

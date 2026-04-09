@@ -86,17 +86,17 @@ export { depositService } from "./depositService";
 export type { DepositService } from "./depositService";
 
 // Withdrawal service (admin operations)
-export { withdrawalService } from "@/features/investor/withdrawals/services/withdrawalService";
+export { withdrawalService } from "@/features/shared/services/withdrawalService";
 
 // Investment service
 export { investmentService } from "./investmentService";
 
 // Transactions V2 service (named after transactions_v2 table)
-export { transactionsV2Service } from "@/features/investor/transactions/services/transactionsV2Service";
+export { transactionsV2Service } from "@/features/shared/services/transactionsV2Service";
 export type {
   TransactionRecord,
   TransactionFilters as TransactionRecordFilters,
-} from "@/features/investor/transactions/services/transactionsV2Service";
+} from "@/features/shared/services/transactionsV2Service";
 
 // Investor Portfolio service (for investor-facing pages)
 export { investorPortfolioService } from "@/features/investor/portfolio/services/investorPortfolioService";
