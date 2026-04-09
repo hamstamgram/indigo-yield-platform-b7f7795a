@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useInvestorPositions } from "@/hooks";
+import { useInvestorPositions } from "@/features/admin/investors/hooks/useInvestorDetailHooks";
 import AddTransactionDialog from "@/features/admin/transactions/AddTransactionDialog";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import {

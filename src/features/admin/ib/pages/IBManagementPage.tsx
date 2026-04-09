@@ -36,7 +36,8 @@ import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format } from "date-fns";
 import { formatCrypto } from "@/utils/financial";
-import { useIBProfiles, useCreateIB, useSortableColumns, type EarningsByAsset } from "@/hooks";
+import { useIBProfiles, useCreateIB, type EarningsByAsset } from "@/features/admin/ib/hooks/useIBManagementPage";
+import { useSortableColumns } from "@/hooks";
 import { PageShell } from "@/components/layout/PageShell";
 
 export default function IBManagementPage({ embedded = false }: { embedded?: boolean }) {

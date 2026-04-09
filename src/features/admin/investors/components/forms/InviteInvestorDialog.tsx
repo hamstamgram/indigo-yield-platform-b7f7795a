@@ -9,7 +9,7 @@ import {
   Button,
 } from "@/components/ui";
 import { Loader2, Mail } from "lucide-react";
-import { useInvestorInvite } from "@/hooks";
+import { useInvestorInvite } from "@/features/investor/shared/hooks/useInvestorInvite";
 
 interface InvestorInfo {
   id: string;

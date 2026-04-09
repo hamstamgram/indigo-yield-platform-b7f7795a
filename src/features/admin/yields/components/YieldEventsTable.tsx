@@ -35,7 +35,8 @@ import {
 import { Search, Download, Eye, Clock, TrendingUp, Users, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { useFundYieldEvents } from "@/features/admin/yields/hooks/useYieldCrystallization";
-import { useActiveFundsWithAUM, useSortableColumns } from "@/hooks";
+import { useActiveFundsWithAUM } from "@/features/admin/yields/hooks/useYieldOperations";
+import { useSortableColumns } from "@/hooks";
 import { cn } from "@/lib/utils";
 import type { YieldEvent } from "@/types/domains/yieldCrystallization";
 import { FormattedNumber, PercentageValue } from "@/components/common/FormattedNumber";

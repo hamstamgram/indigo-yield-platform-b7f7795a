@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import type { useActiveFundsWithAUM } from "@/hooks";
+import type { useActiveFundsWithAUM } from "@/features/admin/yields/hooks/useYieldOperations";
 
 export type Fund = NonNullable<ReturnType<typeof useActiveFundsWithAUM>["data"]>[number];
 
