@@ -28,7 +28,7 @@ import { formatAssetValue, formatPercentage } from "@/utils/formatters";
 import { toNum } from "@/utils/numeric";
 import { parseFinancial } from "@/utils/financial";
 import { logError } from "@/lib/logger";
-import type { ExportColumn } from "@/lib/export/csv-export";
+import type { ExportColumn } from "@/utils/export/csv-export";
 import {
   Accordion,
   AccordionContent,

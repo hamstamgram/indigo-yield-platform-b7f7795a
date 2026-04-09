@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import { toast } from "sonner";
-import type { StatementData } from "@/lib/pdf/statementGenerator";
+import type { StatementData } from "@/features/admin/reports/lib/statementGenerator";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { useStatements, usePublishStatements } from "@/features/admin/reports/hooks/useStatements";
 import { useQueryClient } from "@tanstack/react-query";

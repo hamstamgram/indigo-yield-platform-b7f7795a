@@ -19,7 +19,7 @@ import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/domains"
 import { ArrowDownToLine, Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { ExportButton } from "@/components/common";
 import { MetricStrip, type MetricItem } from "@/components/common/MetricStrip";
-import type { ExportColumn } from "@/lib/export/csv-export";
+import type { ExportColumn } from "@/utils/export/csv-export";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useWithdrawalsWithStats } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 import { useWithdrawalSelection } from "@/features/admin/withdrawals/hooks/useWithdrawalSelection";

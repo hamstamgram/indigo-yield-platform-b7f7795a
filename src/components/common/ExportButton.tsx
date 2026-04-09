@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CSVExporter, type ExportColumn } from "@/lib/export/csv-export";
+import { CSVExporter, type ExportColumn } from "@/utils/export/csv-export";
 import { useToast } from "@/hooks";
 import { cn } from "@/lib/utils";
 
