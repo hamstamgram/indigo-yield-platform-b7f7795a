@@ -4,10 +4,13 @@
  */
 export {
   getInvestorFeeSchedule,
-  getFeeHistory,
-  addFeeScheduleEntry,
-  updateFeeScheduleEntry,
-  deleteFeeScheduleEntry,
+  getInvestorFeeHistory,
+  addFeeEntry,
+  updateFeeRateForAllFunds,
+  deleteFeeEntry,
+  getFeeScheduleWithFunds,
+  upsertGlobalFee,
+  getGlobalFee,
   feeScheduleService,
   type FeeScheduleRow,
   type FeeHistoryRow,
