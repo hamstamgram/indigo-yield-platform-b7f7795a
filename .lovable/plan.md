@@ -1,87 +1,110 @@
 
 
-## Fresh Full-Stack Audit — Remaining Bugs & Gaps
+## Deep DB Specialist Audit — Findings & Fix Plan
 
-### Status of Previously Identified Issues
-Issues already fixed in prior rounds (confirmed via code review):
-- `fetchUserTransactions` visibility_scope filter — FIXED
-- Admin prefetch for `/admin/transactions` — FIXED (removed)
-- `investorPortfolioService` String precision — FIXED
-- `rpc.applyYield` upgraded to V5 — FIXED
-- V5 added to `RATE_LIMITED_RPCS` — FIXED
-- `WithdrawalStats` voided/cancelled counters — FIXED
+### Previously Fixed (Confirmed in DB)
+- `crystallize_yield_before_flow`: No longer references `fund_aum_events` or `get_existing_preflow_aum` — FIXED
+- `run_integrity_pack`: Check 2 uses inline query (no `fund_aum_mismatch` view) — FIXED
+- `run_integrity_pack`: Check 3 uses `residual` column — FIXED
+- `purge_fund_hard`, `force_delete_investor`, `reset_platform_data`: IF EXISTS guards for dropped tables — FIXED
 
 ---
 
-### Finding 1 — MEDIUM: `useTransactionSubmit` passes `Number(amountStr)` for withdrawal amount
+### Finding 1 — HIGH: `apply_investor_transaction` has a dangerous overload pair
 
-**File**: `src/features/admin/transactions/hooks/useTransactionSubmit.ts` line 94
+**9-param version**: `p_admin_id` is REQUIRED (no default)
+**10-param version**: `p_admin_id DEFAULT NULL`, plus `p_distribution_id DEFAULT NULL`
 
-The admin "Add Transaction" withdrawal path converts amount via `Number(amountStr)`, losing NUMERIC precision. Every other withdrawal insert path uses `String()`. For BTC amounts with 8+ decimal places, this causes IEEE 754 floating-point drift.
+When called with named params excluding both `p_admin_id` and `p_distribution_id` (6 required params), **both overloads match** — PostgreSQL raises "could not choose the best candidate function". Currently all DB callers use named params and always pass `p_admin_id`, so it resolves. But:
 
-**Fix**: Change `requested_amount: Number(amountStr)` to `requested_amount: amountStr` (it's already a string from line 86).
+- `complete_withdrawal` passes 8 named params (including `p_admin_id`, excluding `p_purpose` and `p_distribution_id`) — both overloads match with 8 params since both have `p_purpose` with a default. PostgreSQL resolves this because the 9-param version matches exactly (8 explicit + 1 default), while the 10-param version needs 2 defaults. **This works but is fragile.**
+- The 9-param overload is strictly a subset of the 10-param version and adds no value — it should be dropped.
 
----
-
-### Finding 2 — LOW: Dead RPC helpers `rpc.deposit`, `rpc.withdrawal`, `rpc.previewYield`
-
-**File**: `src/lib/rpc/client.ts` lines 215-297
-
-These three exported functions are never called anywhere in the codebase. `deposit` and `withdrawal` call the old `apply_transaction_with_crystallization` (not the canonical `apply_investor_transaction`). `previewYield` already correctly calls V5 but is unused. They are maintenance traps for future developers.
-
-**Fix**: Remove all three dead helpers from `client.ts` and their re-exports from `src/lib/rpc/index.ts`.
+**Fix**: Drop the 9-param overload. The 10-param version with `p_admin_id DEFAULT NULL` and `p_distribution_id DEFAULT NULL` handles all use cases.
 
 ---
 
-### Finding 3 — LOW: `investorDataExportService` has no visibility or voided filter
+### Finding 2 — HIGH: `route_withdrawal_to_fees` has ambiguous overloads
 
-**File**: `src/services/shared/investorDataExportService.ts` line 15
+**2-param**: `(p_request_id uuid, p_reason text DEFAULT ...)`
+**3-param**: `(p_request_id uuid, p_actor_id uuid, p_reason text DEFAULT NULL)`
 
-The export queries `transactions_v2` with `select("*")` and no `is_voided` or `visibility_scope` filter. If this service is ever used in investor context, it would leak admin-only and voided transactions into the export.
+Frontend calls with `{ p_request_id, p_reason }` — this matches the 2-param version. The 3-param version is never called (zero callers in DB or frontend). No internal DB callers either.
 
-Currently unused by any UI component (only exported from barrel file), but a latent data leak.
-
-**Fix**: Add `.eq("is_voided", false).eq("visibility_scope", "investor_visible")` to the transactions query.
-
----
-
-### Finding 4 — LOW: `dbSchema.ts` contains stale `investor_daily_balance` table definition
-
-**File**: `src/contracts/dbSchema.ts` lines 311-323
-
-This table was dropped from the database but its schema definition remains in the frontend contract. Not a runtime issue (no code queries it), but misleading documentation.
-
-**Fix**: Remove the `investor_daily_balance` entry from `DB_TABLES`.
+**Fix**: Drop the 3-param overload. It's dead code with ambiguity risk.
 
 ---
 
-### Finding 5 — INFO: `useInvestorOverview` missing `visibility_scope` on "last transaction date" query
+### Finding 3 — MEDIUM: `user_sessions` table still exists (was supposed to be dropped)
 
-**File**: `src/features/investor/overview/hooks/useInvestorOverview.ts` lines 63-70
+The dead weight cleanup migration `20260210100000_dead_weight_cleanup_phase0_4.sql` includes `DROP TABLE IF EXISTS user_sessions CASCADE`, but the table still exists in the live DB. Either the migration was never applied to production, or the table was re-created afterward.
 
-The query fetches the last `tx_date` for an investor without filtering `visibility_scope`. If the last transaction is admin-only (e.g., DUST_SWEEP), the displayed "last activity" date could reference an internal event. Low impact since it only shows a date, not transaction details, and RLS limits to the investor's own rows.
+**Fix**: Add a migration to drop it again.
 
-**Fix**: Add `.eq("visibility_scope", "investor_visible")` to the query.
+---
+
+### Finding 4 — MEDIUM: `_temp_function_dump` table with 288 rows — debug artifact
+
+This table has no RLS, no foreign keys, and contains function definitions (likely from a one-time debug dump). It's publicly visible to any authenticated user who guesses the table name.
+
+**Fix**: Drop this table.
+
+---
+
+### Finding 5 — MEDIUM: V4 yield function `apply_segmented_yield_distribution` is dead weight
+
+The V4 function exists and is only referenced by:
+- `enforce_canonical_yield_mutation` trigger error message (text reference only)
+- The dead V4 `rpc.applyYield` frontend helper (already updated to V5)
+- `rpcSignatures.ts` contract
+
+No actual callers use V4 for yield distribution. V5 is the canonical engine.
+
+**Fix**: Drop `apply_segmented_yield_distribution` and `preview_segmented_yield_distribution` from the DB. Remove from `rpcSignatures.ts` and `RATE_LIMITED_RPCS`. Update the trigger error message to reference V5.
+
+---
+
+### Finding 6 — LOW: 4 simulation functions are dead test weight
+
+`run_v6_e2e_simulation`, `run_v6_user_simulation`, `run_v6_user_simulation_isolated`, `run_v6_void_simulation` — these are dev-only test harnesses with hardcoded test dates (3025-09-02). They consume DB space and reference production RPCs.
+
+**Fix**: Drop all 4 simulation functions.
+
+---
+
+### Finding 7 — LOW: `enforce_canonical_yield_mutation` trigger message references V4
+
+The trigger error message says "Use canonical RPC: apply_segmented_yield_distribution" — should reference V5.
+
+**Fix**: Update the function to reference `apply_segmented_yield_distribution_v5`.
 
 ---
 
 ## Implementation Plan
 
-### Change Set 1 — Precision fix (1 file)
-1. `useTransactionSubmit.ts` line 94: Change `Number(amountStr)` to `amountStr`
+### Migration 1 — Drop dangerous overloads (2 items)
+1. Drop 9-param `apply_investor_transaction` overload (keep 10-param with all defaults)
+2. Drop 3-param `route_withdrawal_to_fees` overload (keep 2-param)
 
-### Change Set 2 — Dead code removal (2 files)
-2. Remove `deposit`, `withdrawal`, `previewYield` from `src/lib/rpc/client.ts`
-3. Remove their re-exports from `src/lib/rpc/index.ts`
+### Migration 2 — Drop dead functions and tables (7 items)
+3. Drop `apply_segmented_yield_distribution` (V4)
+4. Drop `preview_segmented_yield_distribution` (V4 preview)
+5. Drop 4 simulation functions (`run_v6_*`)
+6. Drop `_temp_function_dump` table
+7. Drop `user_sessions` table
 
-### Change Set 3 — Defense-in-depth (3 files)
-4. Add visibility + voided filters to `investorDataExportService.ts`
-5. Remove `investor_daily_balance` from `dbSchema.ts`
-6. Add `visibility_scope` filter to `useInvestorOverview.ts` last-transaction query
+### Migration 3 — Fix trigger message
+8. Update `enforce_canonical_yield_mutation` to reference V5
+
+### Frontend sync
+9. Remove `apply_segmented_yield_distribution` from `rpcSignatures.ts` and `RATE_LIMITED_RPCS`
+10. Remove `preview_segmented_yield_distribution` from `rpcSignatures.ts`
+11. Update `CANONICAL_MUTATION_RPCS.YIELD` to reference V5
 
 ### Risk Assessment
-- All changes are frontend-only, no migrations
-- No business logic changes
-- Dead code removal is safe (confirmed zero callers)
-- The precision fix (Finding 1) is the highest-value item
+- Dropping the 9-param overload is safe: all callers use named params and the 10-param version covers all cases (confirmed by reviewing every caller in the DB)
+- Dropping V4 yield is safe: zero active callers, V5 is canonical
+- Dropping simulation functions is safe: dev-only, never called from production code
+- `_temp_function_dump` is a debug artifact with no dependents
+- `user_sessions` has zero rows and zero FK references
 
