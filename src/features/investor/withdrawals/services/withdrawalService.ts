@@ -215,7 +215,7 @@ export const withdrawalService = {
     data?.forEach((withdrawal) => {
       const status = withdrawal.status as keyof Pick<
         WithdrawalStats,
-        "pending" | "approved" | "processing" | "completed" | "rejected"
+        "pending" | "approved" | "processing" | "completed" | "rejected" | "voided" | "cancelled"
       >;
       if (status in stats && typeof stats[status] === "number") {
         (stats[status] as number)++;
