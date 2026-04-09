@@ -50,6 +50,7 @@ export const RPC_FUNCTIONS = [
   "check_aum_reconciliation",
   "check_duplicate_ib_allocations",
   "check_duplicate_transaction_refs",
+  "cancel_withdrawal_by_admin_v2",
   "check_is_admin",
   "check_platform_data_integrity",
   "check_transaction_sources",
