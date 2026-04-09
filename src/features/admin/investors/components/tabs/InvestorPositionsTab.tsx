@@ -85,21 +85,21 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
               </TableHeader>
               <TableBody>
                 {positions.map((pos) => (
-                  <TableRow key={`${pos.investor_id}-${pos.fund_id}`}>
-                    <TableCell className="font-medium py-1.5">{pos.funds?.name}</TableCell>
+                  <TableRow key={pos.fund_id}>
+                    <TableCell className="font-medium py-1.5">{pos.fund_name}</TableCell>
                     <TableCell className="font-mono tabular-nums py-1.5">
-                      <FinancialValue value={pos.current_value} asset={pos.funds?.asset} />
+                      <FinancialValue value={pos.current_value} asset={pos.asset} />
                     </TableCell>
                     <TableCell className="py-1.5">
                       <div className="flex items-center gap-1.5">
-                        <CryptoIcon symbol={pos.funds?.asset || ""} className="h-4 w-4" />
-                        <span className="font-medium">{pos.funds?.asset}</span>
+                        <CryptoIcon symbol={pos.asset || ""} className="h-4 w-4" />
+                        <span className="font-medium">{pos.asset}</span>
                       </div>
                     </TableCell>
                     <TableCell className="font-mono tabular-nums py-1.5">
                       <FinancialValue
                         value={pos.realized_pnl || 0}
-                        asset={pos.funds?.asset}
+                        asset={pos.asset}
                         colorize
                         prefix="+"
                       />
