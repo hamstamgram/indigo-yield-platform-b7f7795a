@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { formatPercentage, formatInvestorAmount } from "@/utils/assets";
 import { logWarn } from "@/lib/logger";
 import { getFundIconByAsset } from "@/utils/assetUtils";
+import { parseFinancial } from "@/utils/financial";
 
 const COMPANY_LOGO =
   "https://storage.mlcdn.com/account_image/855106/5D1naaoOoLlct3mSzZSkkv7ELCCCG4kr7W9CJwSy.jpg";
@@ -461,8 +462,8 @@ const generateLegacyPDF = async (data: LegacyStatementData): Promise<Blob> => {
   let summaryY = 80;
   for (const pos of data.positions) {
     const asset = pos.asset_code || "N/A";
-    const closing = formatValue(Number(pos.closing_balance || 0), asset);
-    const yieldEarned = Number(pos.yield_earned || 0);
+    const closing = formatValue(parseFinancial(pos.closing_balance || 0).toNumber(), asset);
+    const yieldEarned = parseFinancial(pos.yield_earned || 0).toNumber();
     const yieldStr = `${yieldEarned >= 0 ? "+" : ""}${formatValue(yieldEarned, asset)}`;
 
     doc.setFontSize(9);

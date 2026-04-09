@@ -6,6 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { profileService, statementsService, documentService } from "@/services/shared";
+import { parseFinancial } from "@/utils/financial";
 import { fetchActiveInvestorsForStatements } from "@/features/admin/reports/services/reports/dataFetch";
 import { sendStatementEmail } from "@/features/admin/reports/services/statementAdminService";
 import type { StatementData } from "@/features/admin/reports/lib/statementGenerator";
@@ -80,8 +81,8 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
           end_date: getMonthEndDate(params.year, params.month),
         },
         summary: {
-          total_aum: reports?.reduce((sum, r) => sum + Number(r.closing_balance || 0), 0) || 0,
-          total_pnl: reports?.reduce((sum, r) => sum + Number(r.yield_earned || 0), 0) || 0,
+          total_aum: reports?.reduce((sum, r) => sum.plus(parseFinancial(r.closing_balance || 0)), parseFinancial(0)).toNumber() || 0,
+          total_pnl: reports?.reduce((sum, r) => sum.plus(parseFinancial(r.yield_earned || 0)), parseFinancial(0)).toNumber() || 0,
           total_fees: 0,
         },
         positions:
@@ -115,7 +116,7 @@ export function useGenerateStatement(onGeneratingChange?: (investorId: string | 
         positions: statementData.positions,
       };
 
-      const { generatePDF } = await import("@/lib/pdf/statementGenerator");
+      const { generatePDF } = await import("@/features/admin/reports/lib/statementGenerator");
       const pdfContent = await generatePDF(mappedData);
 
       const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;
