@@ -33,13 +33,9 @@ export const ADMIN_ROUTE_PREFETCH: Record<string, PrefetchFn> = {
     });
   },
 
-  "/admin/transactions": async (qc) => {
-    await qc.prefetchQuery({
-      queryKey: QUERY_KEYS.transactions(),
-      queryFn: () => transactionService.fetchUserTransactions(),
-      staleTime: 60 * 1000,
-    });
-  },
+  // NOTE: /admin/transactions prefetch removed — it was incorrectly using
+  // fetchUserTransactions() (current user's own txns) instead of the admin
+  // transaction history fetcher. The admin ledger page fetches its own data.
 
   "/admin/funds": async (qc) => {
     await qc.prefetchQuery({

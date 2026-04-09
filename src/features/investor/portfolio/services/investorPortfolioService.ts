@@ -151,7 +151,7 @@ export const investorPortfolioService = {
     const insertPayload: Record<string, unknown> = {
       investor_id: params.investorId,
       fund_id: params.fundId,
-      requested_amount: params.amount,
+      requested_amount: String(params.amount) as unknown as number,
       withdrawal_type: params.type,
       status: "pending",
       notes: params.notes,

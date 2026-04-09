@@ -62,6 +62,8 @@ export interface WithdrawalStats {
   processing: number;
   completed: number;
   rejected: number;
+  voided: number;
+  cancelled: number;
   pending_by_asset: PendingByAsset[];
 }
 
