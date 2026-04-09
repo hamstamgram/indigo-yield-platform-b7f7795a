@@ -103,6 +103,8 @@ const statusColors: Record<WithdrawalFullStatus, string> = {
     "bg-rose-500/10 text-rose-400 border-rose-500/20 uppercase tracking-wider text-[10px] font-mono",
   cancelled:
     "bg-gray-500/10 text-gray-400 border-gray-500/20 uppercase tracking-wider text-[10px] font-mono",
+  voided:
+    "bg-rose-500/10 text-rose-400 border-rose-500/20 uppercase tracking-wider text-[10px] font-mono",
 };
 
 // Memoized ActionsDropdown component to prevent re-renders

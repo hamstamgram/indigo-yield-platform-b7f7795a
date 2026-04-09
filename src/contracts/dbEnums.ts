@@ -955,6 +955,7 @@ export const WITHDRAWAL_STATUS_VALUES = [
   "completed",
   "rejected",
   "cancelled",
+  "voided",
 ] as const;
 
 export const WithdrawalStatusSchema = z.enum(WITHDRAWAL_STATUS_VALUES, {
@@ -977,6 +978,7 @@ export const DB_WITHDRAWAL_STATUS = {
   completed: "completed",
   rejected: "rejected",
   cancelled: "cancelled",
+  voided: "voided",
 } as const satisfies Record<string, WithdrawalStatus>;
 
 export function isValidWithdrawalStatus(value: string): value is WithdrawalStatus {
