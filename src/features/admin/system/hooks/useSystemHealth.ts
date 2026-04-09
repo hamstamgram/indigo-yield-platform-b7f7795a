@@ -10,7 +10,7 @@ import {
   getOverallStatus,
   type SystemHealth,
   type ServiceStatus,
-} from "@/services/core/systemHealthService";
+} from "@/features/admin/system/services/systemHealthService";
 
 /**
  * Hook to fetch system health status

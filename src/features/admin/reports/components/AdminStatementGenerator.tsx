@@ -15,7 +15,7 @@ import { FileText, Loader2, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks";
 import { logError } from "@/lib/logger";
 import type { StatementData } from "@/lib/pdf/statementGenerator";
-import { checkStatementExists } from "@/services/core/reportUpsertService";
+import { checkStatementExists } from "@/features/admin/system/services/reportUpsertService";
 import { useSuperAdmin } from "@/features/admin/shared/SuperAdminGuard";
 import { profileService, statementsService, documentService } from "@/services/shared";
 
