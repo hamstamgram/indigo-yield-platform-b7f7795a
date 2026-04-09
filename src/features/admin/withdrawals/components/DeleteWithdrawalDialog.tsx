@@ -14,7 +14,6 @@ import {
   Label,
   Alert,
   AlertDescription,
-  Checkbox,
 } from "@/components/ui";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
@@ -34,7 +33,6 @@ export function DeleteWithdrawalDialog({
 }: DeleteWithdrawalDialogProps) {
   const [reason, setReason] = useState("");
   const [confirmText, setConfirmText] = useState("");
-  const [hardDelete, setHardDelete] = useState(false);
 
   const { deleteMutation } = useWithdrawalMutations();
 
@@ -47,7 +45,7 @@ export function DeleteWithdrawalDialog({
       {
         withdrawalId: withdrawal.id,
         reason,
-        hardDelete,
+        hardDelete: false,
         investorId: withdrawal.investor_id,
         fundId: withdrawal.fund_id,
       },
@@ -56,7 +54,6 @@ export function DeleteWithdrawalDialog({
           onOpenChange(false);
           setReason("");
           setConfirmText("");
-          setHardDelete(false);
           onSuccess?.();
         },
       }
@@ -75,7 +72,7 @@ export function DeleteWithdrawalDialog({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
             <Trash2 className="h-5 w-5" />
-            Delete Withdrawal
+            Cancel Withdrawal
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="text-left space-y-3 text-sm text-muted-foreground">
@@ -89,8 +86,7 @@ export function DeleteWithdrawalDialog({
               ) : (
                 <>
                   <p>
-                    You are about to {hardDelete ? "permanently delete" : "cancel"} this withdrawal
-                    request.
+                    You are about to cancel this withdrawal request.
                   </p>
                   <div className="bg-muted rounded-md p-3 space-y-1 text-sm">
                     <p>
@@ -121,25 +117,14 @@ export function DeleteWithdrawalDialog({
         {canDelete && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="delete-reason">Reason for Deletion *</Label>
+              <Label htmlFor="delete-reason">Reason for Cancellation *</Label>
               <Textarea
                 id="delete-reason"
-                placeholder="Why are you deleting this withdrawal?"
+                placeholder="Why are you cancelling this withdrawal?"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={2}
               />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="hard-delete"
-                checked={hardDelete}
-                onCheckedChange={(checked) => setHardDelete(checked === true)}
-              />
-              <Label htmlFor="hard-delete" className="text-sm font-normal">
-                Permanently delete (cannot be recovered)
-              </Label>
             </div>
 
             <Alert variant="destructive">
@@ -174,10 +159,10 @@ export function DeleteWithdrawalDialog({
             {deleteMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Deleting...
+                Cancelling...
               </>
             ) : (
-              "Delete Withdrawal"
+              "Cancel Withdrawal"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

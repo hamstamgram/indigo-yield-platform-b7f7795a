@@ -139,7 +139,8 @@ export const investorPortfolioService = {
   },
 
   /**
-   * Create withdrawal request via RPC
+   * Create withdrawal request — delegates to canonical withdrawalService
+   * @deprecated Use withdrawalService.submitInvestorWithdrawal() directly
    */
   async createWithdrawalRequest(params: {
     investorId: string;
@@ -148,17 +149,13 @@ export const investorPortfolioService = {
     type: string;
     notes?: string;
   }): Promise<void> {
-    const insertPayload: Record<string, unknown> = {
-      investor_id: params.investorId,
-      fund_id: params.fundId,
-      requested_amount: String(params.amount) as unknown as number,
-      withdrawal_type: params.type,
-      status: "pending",
+    // Import dynamically to avoid circular deps
+    const { withdrawalService } = await import("@/features/shared/services/withdrawalService");
+    await withdrawalService.submitInvestorWithdrawal({
+      fundId: params.fundId,
+      amount: String(params.amount), // Convert number to string for precision safety
       notes: params.notes,
-    };
-    const { error } = await supabase.from("withdrawal_requests").insert(insertPayload as any);
-
-    if (error) throw error;
+    });
   },
 };
 
