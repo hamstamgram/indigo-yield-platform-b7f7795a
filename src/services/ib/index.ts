@@ -1,18 +1,8 @@
 /**
- * IB Services barrel export
- *
- * This module provides all IB (Introducing Broker) related services:
- * - ibManagementService: IB role assignment and management
- * - Config functions: IB configuration CRUD operations
- * - Referral functions: IB referral queries
+ * IB Services - Re-exports from canonical feature location
+ * @deprecated Import directly from @/features/admin/ib/services/ instead
  */
-
-// IB config operations
-export * from "./config";
-
-// Referral queries
-export * from "./referrals";
-
-// Role management
-export * from "./management";
-export { ibManagementService } from "./management";
+export * from "@/features/admin/ib/services/ibConfigService";
+export * from "@/features/admin/ib/services/ibReferralsService";
+export * from "@/features/admin/ib/services/ibManagementService";
+export { ibManagementService } from "@/features/admin/ib/services/ibManagementService";

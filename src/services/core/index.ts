@@ -1,19 +1,7 @@
 /**
- * Core Services - Foundational/infrastructure services
+ * Core Services - Re-exports from canonical feature locations
+ * @deprecated Import directly from feature paths instead
  */
-
-// Auth is now in lib/auth - import from there
-// export { AuthService, authService } from "./AuthService";
-// export type { SignUpData, SignInData } from "./AuthService";
-
-// Data integrity
-export * from "./dataIntegrityService";
-
-// System health
-export * from "./systemHealthService";
-
-// Report services
-export * from "./reportUpsertService";
-
-// Support service
-export * from "./supportService";
+export * from "@/features/admin/system/services/dataIntegrityService";
+export * from "@/features/admin/system/services/systemHealthService";
+export * from "@/features/admin/system/services/reportUpsertService";

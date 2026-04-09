@@ -71,7 +71,7 @@ import { formatAssetValue } from "@/utils/formatters";
 import { parseFinancial } from "@/utils/financial";
 import { toNum } from "@/utils/numeric";
 import { ExportButton } from "@/components/common";
-import type { ExportColumn } from "@/lib/export/csv-export";
+import type { ExportColumn } from "@/utils/export/csv-export";
 
 const PAGE_SIZE = 50;
 

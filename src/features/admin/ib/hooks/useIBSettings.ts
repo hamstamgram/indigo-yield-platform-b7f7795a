@@ -7,10 +7,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getInvestorIBConfig,
   updateInvestorIBConfig,
+} from "@/features/admin/ib/services/ibConfigService";
+import {
   getIBReferrals,
   getAvailableIBParents,
-  ibManagementService,
-} from "@/services/ib";
+} from "@/features/admin/ib/services/ibReferralsService";
+import { ibManagementService } from "@/features/admin/ib/services/ibManagementService";
 import { auditLogService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";

@@ -8,7 +8,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { profileService, statementsService, documentService } from "@/services/shared";
 import { fetchActiveInvestorsForStatements } from "@/features/admin/reports/services/reports/dataFetch";
 import { sendStatementEmail } from "@/features/admin/reports/services/statementAdminService";
-import type { StatementData } from "@/lib/pdf/statementGenerator";
+import type { StatementData } from "@/features/admin/reports/lib/statementGenerator";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 import { getMonthEndDate } from "@/utils/dateUtils";

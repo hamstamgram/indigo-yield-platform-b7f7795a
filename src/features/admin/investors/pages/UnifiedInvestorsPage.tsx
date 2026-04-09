@@ -18,7 +18,7 @@ import {
 } from "@/components/ui";
 import { Loader2, RefreshCw, Clock } from "lucide-react";
 import { ExportButton } from "@/components/common";
-import type { ExportColumn } from "@/lib/export/csv-export";
+import type { ExportColumn } from "@/utils/export/csv-export";
 import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 import {
   AddInvestorDialog,

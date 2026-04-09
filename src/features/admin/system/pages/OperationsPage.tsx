@@ -48,7 +48,7 @@ import { useDeliveryQueueMetrics } from "@/features/admin/settings/hooks/useSyst
 import { useIntegrityRuns, useAdminAlerts, useAcknowledgeAlert } from "@/features/admin/system/hooks/useIntegrityOperations";
 import { useSystemHealth } from "@/features/admin/system/hooks/useSystemHealth";
 import { useInvariantChecks } from "@/features/admin/system/hooks/useIntegrityData";
-import { getOverallStatus, type ServiceStatus } from "@/services/core/systemHealthService";
+import { getOverallStatus, type ServiceStatus } from "@/features/admin/system/services/systemHealthService";
 import type { InvariantSuiteResult, InvariantCheckResult } from "@/features/admin/system/services/integrityService";
 import { formatDistanceToNow, format } from "date-fns";
 import {

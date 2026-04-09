@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { CSVExporter, type ExportColumn } from "@/lib/export/csv-export";
+import { CSVExporter, type ExportColumn } from "@/utils/export/csv-export";
 import { AdminGuard } from "@/features/admin/shared/AdminGuard";
 import { useToast } from "@/hooks";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
