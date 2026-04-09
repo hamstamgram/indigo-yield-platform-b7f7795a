@@ -1,62 +1,98 @@
 
 
-## Expert CTO Audit: Functions & Triggers Gap Analysis
+## Full-Graph Expert Audit — Findings & Fix Plan
 
-### Finding 1 — CRITICAL: `crystallize_yield_before_flow` writes to dropped table `investor_yield_events`
+### Finding 1 — CRITICAL: `crystallize_yield_before_flow` references dropped `fund_aum_events` table
 
-**Risk**: Runtime crash on every deposit/withdrawal that triggers crystallization.
+**Status**: Unguarded. Will crash at runtime.
 
-The function contains an **unguarded** `INSERT INTO investor_yield_events (...)` statement. The table `investor_yield_events` **does not exist** (confirmed via `information_schema`). Unlike `void_transaction` and `force_delete_investor` which have `IF EXISTS` guards, this function has none.
+The function has **two** fallback code paths (lines 83-88 and 128-131) that query `fund_aum_events`, which does **not exist** — confirmed no table, no view, no materialized view. The function `get_existing_preflow_aum` that it calls also does not exist in the DB, meaning line 64 will crash even before reaching the `fund_aum_events` fallback.
 
-**Why it hasn't crashed yet**: The code path only executes when crystallization actually distributes yield (non-zero yield with active investors in a fund that has accrued since last checkpoint). If all deposits/withdrawals so far happened on days without accumulated yield, the INSERT was never reached.
+These paths execute when `fund_daily_aum` has no matching record for the fund/date combination. In that case the function falls through to the `fund_aum_events` query and crashes with `relation "fund_aum_events" does not exist`.
 
-**Fix**: Wrap the `INSERT INTO investor_yield_events` block in an `IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'investor_yield_events')` guard, or remove the dead code entirely since the table was intentionally dropped.
-
-**Recommended**: Remove the entire `investor_yield_events` INSERT block — the data it would capture is already recorded in `yield_distributions` and `transactions_v2`.
+**Fix**: Replace the `fund_aum_events` fallback blocks with position-sum fallback (sum of `investor_positions.current_value`), which is already used on line 135-137 of the same function. Also guard the `get_existing_preflow_aum` call with an existence check or remove it if the function doesn't exist.
 
 ---
 
-### Finding 2 — MEDIUM: `run_integrity_pack` only checks 5 of 13 integrity views
+### Finding 2 — CRITICAL: `run_integrity_pack` Check 2 references non-existent `fund_aum_mismatch` view
 
-The integrity pack currently checks:
-1. `v_ledger_reconciliation`
-2. `fund_aum_mismatch`
-3. `yield_distribution_conservation_check`
-4. `v_orphaned_transactions`
-5. `v_ghost_completed_withdrawals`
+The view `fund_aum_mismatch` does not exist (confirmed: not in `pg_class`, not in `pg_views`). Check 2 (lines 27-37) will crash the entire integrity pack when it tries to query this view, **silently preventing all 13 checks from running**.
 
-**Missing** (8 views not wired in):
-- `v_cost_basis_mismatch` — detects position/ledger cost basis drift
-- `v_fee_allocation_orphans` — fee allocations without matching distributions
-- `v_ib_allocation_orphans` — IB allocations without matching distributions
-- `v_yield_allocation_orphans` — yield allocations without matching distributions
-- `v_missing_withdrawal_transactions` — completed withdrawals without ledger entries
-- `v_orphaned_positions` — positions without any transactions
-- `v_ledger_position_mismatches` — position values diverged from ledger sums
-- `v_transaction_distribution_orphans` — transactions referencing non-existent distributions
-
-**Risk**: Silent data corruption goes undetected by automated monitoring. The nightly integrity job and admin dashboard only surface 5 categories of violations.
-
-**Fix**: Add FOR loops for each missing view to `run_integrity_pack`, following the same pattern as existing checks.
+**Fix**: Either create the `fund_aum_mismatch` view, or remove Check 2 from the pack. Given that `fund_daily_aum` is the only AUM table remaining, the view should compare `fund_daily_aum.total_aum` against `SUM(investor_positions.current_value)` per fund.
 
 ---
 
-### Finding 3 — LOW: Redundant canonical position triggers
+### Finding 3 — CRITICAL: `run_integrity_pack` Check 3 references wrong column `conservation_gap`
 
-Two BEFORE triggers fire on every INSERT/UPDATE to `investor_positions`:
-- `trg_enforce_canonical_position` → `enforce_canonical_position_mutation` (blocks ALL ops unless canonical)
-- `trg_enforce_canonical_position_write` → `enforce_canonical_position_write` (blocks cost_basis/current_value/shares changes unless canonical)
+The `yield_distribution_conservation_check` view uses column `residual`, not `conservation_gap`. Lines 42 and 47 will crash with `column "conservation_gap" does not exist`, again killing the entire integrity pack.
 
-On INSERT/UPDATE, the first trigger already blocks everything. The second is redundant but harmless — it adds audit logging of blocked attempts. On DELETE, only the first fires. **No fix needed**, but note this adds ~1ms overhead per position write.
+**Fix**: Change `conservation_gap` to `residual` in Check 3.
 
 ---
 
-### Finding 4 — LOW: `get_health_trend` and `get_latest_health_status` are stub functions
+### Finding 4 — MEDIUM: `rpcSignatures.ts` contract has `securityDefiner: false` for 100+ SECURITY DEFINER functions
 
-Both return empty result sets (the `system_health_snapshots` table was dropped). If any UI component calls these, it gets empty data silently.
+Nearly every function in the DB is `SECURITY DEFINER`, but the contract marks most as `false`. This is informational only (Supabase JS doesn't use this flag), but it means the contract is unreliable as documentation.
 
-**Fix**: Either drop these functions entirely or verify no frontend code calls them. If called, remove the UI references.
+**Fix**: Bulk-update all `securityDefiner` flags in the contract to match the DB. This is a metadata-only change with zero runtime impact.
 
 ---
 
-### Finding 5
+### Finding 5 — MEDIUM: `adjust_investor_position` contract marks `p_tx_date` as optional but DB requires it
+
+DB signature: `(p_fund_id uuid, p_investor_id uuid, p_amount numeric, p_tx_date date, p_reason text, p_admin_id uuid DEFAULT NULL)` — only `p_admin_id` has a default.
+
+Contract: `requiredParams: ["p_amount", "p_fund_id", "p_investor_id", "p_reason"], optionalParams: ["p_admin_id", "p_tx_date"]`
+
+**Current risk**: Low — the sole caller (`transactionService.ts:202`) always passes `p_tx_date`. But any future caller trusting the contract would crash.
+
+**Fix**: Move `p_tx_date` from `optionalParams` to `requiredParams`.
+
+---
+
+### Finding 6 — MEDIUM: `apply_segmented_yield_distribution_v5` missing from `rpcSignatures.ts`
+
+The V5 yield engine is the primary yield distribution path. It exists in the DB and is called from `yieldApplyService.ts:59` via `callRPC as any` (type cast bypass). It's missing from the contract entirely, meaning no compile-time param validation.
+
+**Fix**: Add the V5 signature to the contract with correct params: `requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum", "p_purpose"], optionalParams: ["p_opening_aum", "p_admin_id", "p_distribution_date"]`.
+
+---
+
+### Finding 7 — LOW: `force_delete_investor` references `investor_daily_balance` (dropped table)
+
+Line 289 of `force_delete_investor` runs `DELETE FROM investor_daily_balance WHERE investor_id = p_investor_id`. This table does not exist. However, the DELETE will crash without an IF EXISTS guard.
+
+Similarly, `purge_fund_hard` and `reset_platform_data` reference this table.
+
+**Fix**: Add IF EXISTS guards for `investor_daily_balance` in all 3 functions.
+
+---
+
+### Finding 8 — LOW: `get_health_trend` and `get_latest_health_status` are dead stubs
+
+Both return empty result sets. They exist in the frontend contract and are called from the health dashboard. Safe but wasteful.
+
+**Fix**: Optionally drop from contract if no UI references, or leave as-is.
+
+---
+
+### Summary of Changes
+
+**Migration 1 — Critical fixes (3 items)**
+1. Rewrite `crystallize_yield_before_flow` to remove `fund_aum_events` fallbacks and the `get_existing_preflow_aum` call, replacing with position-sum fallback
+2. Fix `run_integrity_pack` Check 2: replace `fund_aum_mismatch` with a working AUM comparison query or create the missing view
+3. Fix `run_integrity_pack` Check 3: change `conservation_gap` to `residual`
+
+**Migration 2 — Guard fixes**
+4. Add IF EXISTS guard for `investor_daily_balance` in `force_delete_investor`, `purge_fund_hard`, `reset_platform_data`
+
+**Frontend fix**
+5. Fix `adjust_investor_position` contract: move `p_tx_date` to required
+6. Add `apply_segmented_yield_distribution_v5` to `rpcSignatures.ts`
+7. Bulk-fix `securityDefiner` flags (optional, documentation-only)
+
+### Risk Assessment
+- Migrations are defensive (guards, column renames, fallback rewrites)
+- No business logic changes — same data flows, same calculations
+- The `crystallize_yield_before_flow` rewrite removes dead references but preserves the position-sum fallback that already exists in the function
+
