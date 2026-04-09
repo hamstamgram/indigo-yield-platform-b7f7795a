@@ -28,7 +28,6 @@ export const RPC_FUNCTIONS = [
   "add_fund_to_investor",
   "adjust_investor_position",
   "apply_transaction_with_crystallization",
-  "apply_segmented_yield_distribution",
   "apply_segmented_yield_distribution_v5",
   "approve_and_complete_withdrawal",
   "approve_withdrawal",
@@ -298,14 +297,6 @@ export const RPC_SIGNATURES = {
       "p_tx_type",
     ] as const,
     optionalParams: ["p_notes", "p_purpose"] as const,
-  },
-  apply_segmented_yield_distribution: {
-    name: "apply_segmented_yield_distribution" as const,
-    returnType: "Json;",
-    returnsSet: false,
-    securityDefiner: true,
-    requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum"] as const,
-    optionalParams: ["p_admin_id", "p_distribution_date", "p_purpose"] as const,
   },
   apply_segmented_yield_distribution_v5: {
     name: "apply_segmented_yield_distribution_v5" as const,
@@ -1749,7 +1740,7 @@ export const CANONICAL_MUTATION_RPCS = {
   /** V6: All deposits/withdrawals go through the unified transaction RPC */
   WITHDRAWAL: "apply_investor_transaction",
   /** V6: Yield distribution */
-  YIELD: "apply_segmented_yield_distribution",
+  YIELD: "apply_segmented_yield_distribution_v5",
   /** V6: Voiding transactions */
   VOID: "void_transaction",
   /** V6: Voiding yield distributions */

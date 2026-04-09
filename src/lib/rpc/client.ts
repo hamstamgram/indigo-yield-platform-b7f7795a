@@ -20,11 +20,6 @@ const RATE_LIMITED_RPCS: Record<
     maxRequests: 10,
     actionType: "transaction",
   },
-  apply_segmented_yield_distribution: {
-    windowMs: 60000,
-    maxRequests: 5,
-    actionType: "yield_distribution",
-  },
   apply_segmented_yield_distribution_v5: {
     windowMs: 60000,
     maxRequests: 5,
