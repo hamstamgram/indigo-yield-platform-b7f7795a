@@ -7,7 +7,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { fetchAdminStats } from "@/features/admin/dashboard/services/adminStatsService";
 import { withdrawalService } from "@/features/investor/withdrawals/services/withdrawalService";
-import { transactionService } from "@/services/shared/transactionService";
 import * as fundService from "@/features/admin/funds/services/fundService";
 
 type PrefetchFn = (queryClient: QueryClient) => Promise<void>;
@@ -49,7 +48,7 @@ export const ADMIN_ROUTE_PREFETCH: Record<string, PrefetchFn> = {
 /**
  * High-priority routes to prefetch on admin page load
  */
-export const HIGH_PRIORITY_ADMIN_ROUTES = ["/admin", "/admin/transactions"];
+export const HIGH_PRIORITY_ADMIN_ROUTES = ["/admin"];
 
 /**
  * Check if a route has a prefetch function defined
