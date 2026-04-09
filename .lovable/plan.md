@@ -1,23 +1,61 @@
 
 
-## Full Platform Architecture & Data Flow Diagram
+## Fix: Cascade Void Status to Withdrawal Requests
 
-I've generated a comprehensive Mermaid diagram that maps the **entire system graph** — every table, RPC, trigger chain, edge function, integrity view, and frontend route — so you can visually trace any flow end-to-end and spot orphan risks.
+### Problem
+When a WITHDRAWAL or DUST_SWEEP transaction is voided via `void_transaction`, the linked `withdrawal_requests` record stays "completed" — creating a ghost state where the management UI shows a successful withdrawal that the ledger has reversed. Found 3 affected records, all for the same investor.
 
-### What the diagram covers
+### Root Cause
+The `void_transaction` RPC cascades to 6 tables (fee_allocations, ib_commission_ledger, platform_fee_ledger, fund_daily_aum, investor_yield_events, dust transactions) but has **zero logic** to cascade back to `withdrawal_requests`. The `cascade_void_from_transaction` trigger also omits this table.
 
-1. **Authentication Layer** — `auth.users` -> `profiles` -> `user_roles` with trigger sync chain
-2. **Capital Flow RPCs** — Deposit (with crystallization-first), Manual Transaction, Withdrawal (via `withdrawal_requests` state machine)
-3. **Yield Distribution Engine** — Preview -> Apply V5 -> creates YIELD/FEE_CREDIT/IB_CREDIT transactions + allocation records across 4 tables
-4. **Canonical Ledger** (`transactions_v2`) — Single source of truth with 14 BEFORE INSERT guards and AFTER triggers driving position recomputation
-5. **Position Layer** — `investor_positions` derived from ledger via `recompute_investor_position`, with 7 BEFORE INSERT guards including canonical write enforcement
-6. **Void Cascade** — `void_transaction` and `void_yield_distribution` with trigger-driven cascades to `fee_allocations`, `ib_allocations`, `platform_fee_ledger`, `ib_commission_ledger`
-7. **Integrity System** — `run_integrity_pack` checking 9 views (cost basis mismatch, orphaned positions/transactions, conservation violations, ledger mismatches, fee/IB/yield allocation orphans, missing withdrawal transactions)
-8. **Reporting** — Statement generation, PDF storage, email delivery pipeline, fund performance computation
-9. **Frontend** — 8 admin pages and 6 investor pages with their data source connections
+### Fix (3 parts, single migration)
 
-### Key architectural findings (no risks detected)
+**Part 1 — Extend the state machine to allow `completed -> voided`**
 
-- **No orphan risk in void cascades**: `void_yield_distribution` explicitly cascades to all 4 allocation tables + linked transactions. The `cascade_void_from_transaction` and `cascade_void_to_allocations` triggers provide backup cascade on UPDATE.
-- **Position integrity is enforced**: The `trg_enforce_canonical_position_write` trigger blocks any direct write not flagged with `indigo.canonical_rpc`, ensuring only `recompute_investor_position` can mutate positions.
-- **Ledger immutability**: `zz
+Update `validate_withdrawal_transition` to add:
+```
+processing → completed | cancelled | voided
+completed → voided   (NEW — only via canonical RPC)
+```
+The `trg_guard_withdrawal_state` trigger already blocks non-canonical transitions to/from completed, so this is safe.
+
+**Part 2 — Add withdrawal cascade to `void_transaction` RPC**
+
+After the existing DUST cascade block (line ~108), add:
+```sql
+-- CASCADE: withdrawal_requests (for WITHDRAWAL/DUST_SWEEP types)
+IF v_tx.type IN ('WITHDRAWAL', 'INTERNAL_WITHDRAWAL') THEN
+  UPDATE withdrawal_requests
+  SET status = 'voided'
+  WHERE status = 'completed'
+    AND id::text = ANY(
+      -- Extract request ID from reference patterns: WR-{id}, WDR-{id}
+      regexp_matches(v_tx.reference_id, '(?:WR-|WDR-)([0-9a-f-]{36})')
+    );
+END IF;
+```
+Also add matching logic in `cascade_void_from_transaction` trigger as a backup.
+
+**Part 3 — Fix existing 3 records**
+
+Data fix via canonical RPC context for the 3 orphaned withdrawal_requests:
+- `8b440397-a0a3-449c-b4fd-bfebf3e47d57`
+- `91a41a37-366e-4aca-8cbb-e7735b63044f`
+- `a953883a-9fe8-41d4-ad4d-d9be229f7782`
+
+Set status to `voided` with audit trail.
+
+**Part 4 — Add integrity view**
+
+Create `v_ghost_completed_withdrawals` to detect any future mismatches where `withdrawal_requests.status = 'completed'` but all linked transactions are voided. Wire into `run_integrity_pack`.
+
+### What is NOT changed
+- No frontend code changes needed (withdrawal tables already display status from DB)
+- No changes to `approve_and_complete_withdrawal`, deposit flows, or yield engine
+- No changes to position recomputation (already handled by void_transaction's existing cascade)
+
+### Risk assessment
+- The state machine guard requires `indigo.canonical_rpc` for transitions from `completed` — the `void_transaction` RPC already sets this flag, so the cascade will pass the guard
+- Advisory lock in `void_transaction` prevents concurrent race conditions
+- The fix is purely additive to the existing void cascade chain
+
