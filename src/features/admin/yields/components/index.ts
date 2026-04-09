@@ -23,4 +23,4 @@ export { YieldsTable } from "./YieldsTable";
 export { GlobalYieldFlow } from "./GlobalYieldFlow";
 
 // Re-export void hook for convenience
-export { useVoidYieldDistribution } from "@/hooks/data/admin";
+export { useVoidYieldDistribution } from "@/features/admin/yields/hooks/useRecordedYieldsPage";
