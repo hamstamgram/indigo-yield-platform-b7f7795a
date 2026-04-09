@@ -18,7 +18,6 @@ import {
   Textarea,
   Alert,
   AlertDescription,
-  Checkbox,
 } from "@/components/ui";
 import { AlertTriangle, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
@@ -52,20 +51,18 @@ export function BulkDeleteWithdrawalsDialog({
 }: BulkDeleteWithdrawalsDialogProps) {
   const [reason, setReason] = useState("");
   const [confirmText, setConfirmText] = useState("");
-  const [hardDelete, setHardDelete] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   const handleClose = () => {
     setReason("");
     setConfirmText("");
-    setHardDelete(false);
     setDetailsOpen(false);
     onOpenChange(false);
   };
 
   const handleConfirm = () => {
     if (confirmText !== "DELETE" || reason.trim().length < 3) return;
-    onConfirm(reason.trim(), hardDelete);
+    onConfirm(reason.trim(), false);
   };
 
   return (
@@ -77,8 +74,8 @@ export function BulkDeleteWithdrawalsDialog({
             Delete {summary.count} Withdrawal{summary.count !== 1 ? "s" : ""}
           </DialogTitle>
           <DialogDescription>
-            This will {hardDelete ? "permanently delete" : "cancel"} all selected withdrawal
-            requests. This action is logged for audit purposes.
+            This will cancel all selected withdrawal requests. This action is logged for audit
+            purposes.
           </DialogDescription>
         </DialogHeader>
 
@@ -163,17 +160,7 @@ export function BulkDeleteWithdrawalsDialog({
             </p>
           </div>
 
-          {/* Hard delete toggle */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="bulk-hard-delete"
-              checked={hardDelete}
-              onCheckedChange={(checked) => setHardDelete(checked === true)}
-            />
-            <Label htmlFor="bulk-hard-delete" className="text-sm font-normal">
-              Permanently delete (cannot be recovered)
-            </Label>
-          </div>
+          {/* Confirmation */}
 
           {/* Confirmation */}
           <div className="space-y-2">
