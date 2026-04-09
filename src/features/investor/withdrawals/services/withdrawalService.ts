@@ -205,6 +205,8 @@ export const withdrawalService = {
       processing: 0,
       completed: 0,
       rejected: 0,
+      voided: 0,
+      cancelled: 0,
       pending_by_asset: [],
     };
 
