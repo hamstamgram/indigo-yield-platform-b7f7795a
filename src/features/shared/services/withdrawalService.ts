@@ -348,10 +348,10 @@ export const withdrawalService = {
 
     if (withdrawal?.status === "completed") {
       // Completed withdrawals require RPC to void transactions + recompute positions
-      const { data, error } = await supabase.rpc("void_completed_withdrawal", {
+      const { data, error } = await rpc.call("void_completed_withdrawal", {
         p_withdrawal_id: withdrawalId,
         p_reason: reason,
-      });
+      } as any);
 
       if (error) {
         log.error("Error voiding completed withdrawal", error);
@@ -368,11 +368,11 @@ export const withdrawalService = {
     }
 
     // Pending/approved withdrawals: use canonical RPC for audit trail + state machine compliance
-    const { error } = await supabase.rpc("cancel_withdrawal_by_admin_v2", {
+    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2", {
       p_request_id: withdrawalId,
       p_reason: reason,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-    });
+    } as any);
 
     if (error) {
       log.error("Error cancelling withdrawal", error);
@@ -499,10 +499,10 @@ export const withdrawalService = {
   async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
     // Always use canonical RPC for proper audit trail and state machine compliance.
     // Hard-delete is no longer supported — all deletions go through cancel RPC.
-    const { error } = await supabase.rpc("cancel_withdrawal_by_admin_v2", {
+    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2", {
       p_request_id: params.withdrawalId,
       p_reason: params.reason || "Cancelled by admin",
-    });
+    } as any);
     if (error) throw error;
   },
 
@@ -519,13 +519,13 @@ export const withdrawalService = {
 
     log.info("Restoring withdrawal", { withdrawalId, reason });
 
-    const { error } = await supabase.rpc("restore_withdrawal_by_admin_v2", {
+    const { error } = await rpc.call("restore_withdrawal_by_admin_v2", {
       p_request_id: withdrawalId,
       p_reason: reason,
       p_admin_notes: adminNotes
         ? `${adminNotes} [${corrId}]`
         : `[${corrId}]`,
-    });
+    } as any);
 
     if (error) {
       log.error("Error restoring withdrawal", error);
