@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import {
   useIBSchedule,
   useDeleteIBScheduleEntry,
-} from "@/features/investor/shared/hooks/useIBSchedule";
+} from "@/features/shared/hooks/useIBSchedule";
 import { AddIBScheduleDialog } from "./AddIBScheduleDialog";
 
 interface IBScheduleSectionProps {

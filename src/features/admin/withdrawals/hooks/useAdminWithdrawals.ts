@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { withdrawalService } from "@/features/investor/withdrawals/services/withdrawalService";
+import { withdrawalService } from "@/features/shared/services/withdrawalService";
 import {
   WithdrawalFilters,
   WithdrawalStats,

@@ -19,7 +19,7 @@ import {
   AlertCircle,
   Send,
 } from "lucide-react";
-import { useInvestorOverview } from "@/features/investor/overview/hooks/useInvestorOverview";
+import { useInvestorOverview } from "@/features/shared/hooks/useInvestorOverview";
 import { format } from "date-fns";
 
 interface InvestorOverviewTabProps {
