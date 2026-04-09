@@ -178,8 +178,7 @@ serve(async (req) => {
           .eq("id", existingProfile.id);
       }
 
-      // Mark invite as used
-      await supabaseAdmin.from("admin_invites").update({ used: true }).eq("id", invite.id);
+      // admin_invites table was dropped; invite status tracked via platform_invites
 
       console.log("Role assigned successfully to existing user:", invite.intended_role);
 
