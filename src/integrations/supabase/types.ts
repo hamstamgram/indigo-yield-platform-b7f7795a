@@ -7466,7 +7466,7 @@ export type Database = {
           }
       reset_all_investor_positions: { Args: never; Returns: undefined }
       reset_fund_test_data: { Args: { p_fund_id: string }; Returns: Json }
-      reset_platform_data: { Args: { p_confirm?: string }; Returns: Json }
+      reset_platform_data: { Args: { p_confirm: string }; Returns: Json }
       restore_withdrawal: {
         Args: { p_admin_id: string; p_reason: string; p_withdrawal_id: string }
         Returns: Json
