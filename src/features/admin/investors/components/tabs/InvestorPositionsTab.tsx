@@ -27,7 +27,8 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
   const queryClient = useQueryClient();
 
   // Use extracted hook for positions
-  const { data: positions, isLoading } = useInvestorPositions(investorId);
+  const { data: positionsData, isLoading } = useInvestorPositions(investorId);
+  const positions = positionsData?.positions;
 
   // State for inline Add Transaction modal
   const [showAddTxDialog, setShowAddTxDialog] = useState(false);
