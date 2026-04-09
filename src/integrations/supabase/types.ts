@@ -5374,6 +5374,70 @@ export type Database = {
           },
         ]
       }
+      v_ghost_completed_withdrawals: {
+        Row: {
+          active_txs: number | null
+          fund_id: string | null
+          investor_id: string | null
+          processed_at: string | null
+          requested_amount: number | null
+          total_linked_txs: number | null
+          voided_txs: number | null
+          withdrawal_request_id: string | null
+          wr_status: Database["public"]["Enums"]["withdrawal_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_statements_view"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_concentration_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_crystallization_dashboard"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
       v_ib_allocation_orphans: {
         Row: {
           distribution_id: string | null
@@ -7741,7 +7805,11 @@ export type Database = {
         Returns: Json
       }
       void_transaction: {
-        Args: { p_admin_id: string; p_reason: string; p_transaction_id: string }
+        Args: {
+          p_admin_id: string
+          p_reason?: string
+          p_transaction_id: string
+        }
         Returns: Json
       }
       void_transactions_bulk: {
