@@ -1,98 +1,119 @@
 
 
-## Full-Graph Expert Audit — Findings & Fix Plan
+## Full-Stack Expert Audit — Comprehensive Findings & Fix Plan
 
-### Finding 1 — CRITICAL: `crystallize_yield_before_flow` references dropped `fund_aum_events` table
-
-**Status**: Unguarded. Will crash at runtime.
-
-The function has **two** fallback code paths (lines 83-88 and 128-131) that query `fund_aum_events`, which does **not exist** — confirmed no table, no view, no materialized view. The function `get_existing_preflow_aum` that it calls also does not exist in the DB, meaning line 64 will crash even before reaching the `fund_aum_events` fallback.
-
-These paths execute when `fund_daily_aum` has no matching record for the fund/date combination. In that case the function falls through to the `fund_aum_events` query and crashes with `relation "fund_aum_events" does not exist`.
-
-**Fix**: Replace the `fund_aum_events` fallback blocks with position-sum fallback (sum of `investor_positions.current_value`), which is already used on line 135-137 of the same function. Also guard the `get_existing_preflow_aum` call with an existence check or remove it if the function doesn't exist.
+### TEAM: Frontend Specialist, Database Specialist, Senior Dev, CTO
 
 ---
 
-### Finding 2 — CRITICAL: `run_integrity_pack` Check 2 references non-existent `fund_aum_mismatch` view
+### Finding 1 — CRITICAL: Admin prefetch loads WRONG data for /admin/transactions
 
-The view `fund_aum_mismatch` does not exist (confirmed: not in `pg_class`, not in `pg_views`). Check 2 (lines 27-37) will crash the entire integrity pack when it tries to query this view, **silently preventing all 13 checks from running**.
+**Specialist**: Frontend
 
-**Fix**: Either create the `fund_aum_mismatch` view, or remove Check 2 from the pack. Given that `fund_daily_aum` is the only AUM table remaining, the view should compare `fund_daily_aum.total_aum` against `SUM(investor_positions.current_value)` per fund.
+`src/utils/prefetch/adminPrefetch.ts` line 39 calls `transactionService.fetchUserTransactions()` to prefetch the admin transactions page. This function fetches the **current admin user's own transactions** (filtered by `auth.uid()`), NOT all transactions. The admin transactions page uses `useTransactions()` from `useTransactionHooks.ts` which calls the correct `fetchTransactions()`.
 
----
+**Impact**: The prefetch populates the wrong query key with wrong data. When the admin page loads, it either shows the admin's own transactions briefly (flash of wrong content) or triggers a redundant re-fetch, wasting the prefetch entirely.
 
-### Finding 3 — CRITICAL: `run_integrity_pack` Check 3 references wrong column `conservation_gap`
-
-The `yield_distribution_conservation_check` view uses column `residual`, not `conservation_gap`. Lines 42 and 47 will crash with `column "conservation_gap" does not exist`, again killing the entire integrity pack.
-
-**Fix**: Change `conservation_gap` to `residual` in Check 3.
+**Fix**: Replace the prefetch with the correct admin transaction fetcher, or remove the prefetch for this route entirely since the query key won't match.
 
 ---
 
-### Finding 4 — MEDIUM: `rpcSignatures.ts` contract has `securityDefiner: false` for 100+ SECURITY DEFINER functions
+### Finding 2 — CRITICAL: `fetchUserTransactions` (shared service) missing `visibility_scope` filter
 
-Nearly every function in the DB is `SECURITY DEFINER`, but the contract marks most as `false`. This is informational only (Supabase JS doesn't use this flag), but it means the contract is unreliable as documentation.
+**Specialist**: Senior Dev / Security
 
-**Fix**: Bulk-update all `securityDefiner` flags in the contract to match the DB. This is a metadata-only change with zero runtime impact.
+`src/services/shared/transactionService.ts:fetchUserTransactions()` queries `transactions_v2` filtered by `investor_id` and `is_voided = false`, but does NOT filter by `visibility_scope = 'investor_visible'`. This means admin-only transactions (IB_CREDIT, DUST, internal types) leak into the result set.
 
----
+Meanwhile, the actual investor-facing code in `src/features/investor/transactions/services/transactionsV2Service.ts` and `useInvestorOverviewQueries.ts` correctly filter by `visibility_scope = 'investor_visible'`.
 
-### Finding 5 — MEDIUM: `adjust_investor_position` contract marks `p_tx_date` as optional but DB requires it
+**Impact**: If `fetchUserTransactions` is called from investor context (it's designed for "user transaction views" per its JSDoc), internal system transactions become visible. Currently only used by admin prefetch (Finding 1), but any future investor-facing use would leak data.
 
-DB signature: `(p_fund_id uuid, p_investor_id uuid, p_amount numeric, p_tx_date date, p_reason text, p_admin_id uuid DEFAULT NULL)` — only `p_admin_id` has a default.
-
-Contract: `requiredParams: ["p_amount", "p_fund_id", "p_investor_id", "p_reason"], optionalParams: ["p_admin_id", "p_tx_date"]`
-
-**Current risk**: Low — the sole caller (`transactionService.ts:202`) always passes `p_tx_date`. But any future caller trusting the contract would crash.
-
-**Fix**: Move `p_tx_date` from `optionalParams` to `requiredParams`.
+**Fix**: Add `.eq("visibility_scope", "investor_visible")` to the query in `fetchUserTransactions`.
 
 ---
 
-### Finding 6 — MEDIUM: `apply_segmented_yield_distribution_v5` missing from `rpcSignatures.ts`
+### Finding 3 — MEDIUM: `rpc.applyYield` helper calls V4 (stale), not V5
 
-The V5 yield engine is the primary yield distribution path. It exists in the DB and is called from `yieldApplyService.ts:59` via `callRPC as any` (type cast bypass). It's missing from the contract entirely, meaning no compile-time param validation.
+**Specialist**: Senior Dev
 
-**Fix**: Add the V5 signature to the contract with correct params: `requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum", "p_purpose"], optionalParams: ["p_opening_aum", "p_admin_id", "p_distribution_date"]`.
+`src/lib/rpc/client.ts:applyYield()` (line 266) calls `apply_segmented_yield_distribution` (V4). The actual yield pipeline uses `apply_segmented_yield_distribution_v5` via `yieldApplyService.ts`.
 
----
+**Impact**: Currently no code calls `rpc.applyYield`, so this is dead code. But it's a trap for future developers who might use the convenient `rpc.applyYield` helper expecting V5 behavior.
 
-### Finding 7 — LOW: `force_delete_investor` references `investor_daily_balance` (dropped table)
-
-Line 289 of `force_delete_investor` runs `DELETE FROM investor_daily_balance WHERE investor_id = p_investor_id`. This table does not exist. However, the DELETE will crash without an IF EXISTS guard.
-
-Similarly, `purge_fund_hard` and `reset_platform_data` reference this table.
-
-**Fix**: Add IF EXISTS guards for `investor_daily_balance` in all 3 functions.
+**Fix**: Update `rpc.applyYield` to call V5 with correct params (add `p_purpose` as required), or remove it and direct callers to `yieldApplyService.applyYieldDistribution`.
 
 ---
 
-### Finding 8 — LOW: `get_health_trend` and `get_latest_health_status` are dead stubs
+### Finding 4 — MEDIUM: `useTransactionSubmit` withdrawal path bypasses RPC with direct insert
 
-Both return empty result sets. They exist in the frontend contract and are called from the health dashboard. Safe but wasteful.
+**Specialist**: CTO / Database
 
-**Fix**: Optionally drop from contract if no UI references, or leave as-is.
+`src/features/admin/transactions/hooks/useTransactionSubmit.ts` lines 87-112 create a withdrawal via direct `supabase.from("withdrawal_requests").insert(...)` followed by `withdrawalService.approveAndComplete()`. This bypasses `create_withdrawal_request` RPC which has validation, advisory locking, and audit logging.
+
+**Impact**: Missing validation (e.g., balance checks, cooling-off enforcement) and no advisory lock means potential race conditions if two admins create+approve withdrawals simultaneously for the same investor.
+
+**Fix**: Route through `create_withdrawal_request` RPC instead of direct insert, or at minimum call `can_withdraw` validation before the insert.
 
 ---
 
-### Summary of Changes
+### Finding 5 — MEDIUM: `investorPortfolioService.createWithdrawalRequest` passes raw number, not string
 
-**Migration 1 — Critical fixes (3 items)**
-1. Rewrite `crystallize_yield_before_flow` to remove `fund_aum_events` fallbacks and the `get_existing_preflow_aum` call, replacing with position-sum fallback
-2. Fix `run_integrity_pack` Check 2: replace `fund_aum_mismatch` with a working AUM comparison query or create the missing view
-3. Fix `run_integrity_pack` Check 3: change `conservation_gap` to `residual`
+**Specialist**: Frontend / Precision
 
-**Migration 2 — Guard fixes**
-4. Add IF EXISTS guard for `investor_daily_balance` in `force_delete_investor`, `purge_fund_hard`, `reset_platform_data`
+`src/features/investor/portfolio/services/investorPortfolioService.ts` line 155 passes `requested_amount: params.amount` where `params.amount` is typed as `number`. All other withdrawal insert paths use `String(params.amount)` to preserve NUMERIC precision. This path risks floating-point drift on amounts like `0.00000001` BTC.
 
-**Frontend fix**
-5. Fix `adjust_investor_position` contract: move `p_tx_date` to required
-6. Add `apply_segmented_yield_distribution_v5` to `rpcSignatures.ts`
-7. Bulk-fix `securityDefiner` flags (optional, documentation-only)
+**Fix**: Change to `requested_amount: String(params.amount)`.
+
+---
+
+### Finding 6 — LOW: `rpc.applyYield` (V4 helper) has wrong rate limit key
+
+**Specialist**: Senior Dev
+
+`RATE_LIMITED_RPCS` in `client.ts` has an entry for `apply_segmented_yield_distribution` (V4) but NOT `apply_segmented_yield_distribution_v5`. The V5 function (the one actually used) has no rate limiting.
+
+**Fix**: Add `apply_segmented_yield_distribution_v5` to `RATE_LIMITED_RPCS` with the same config as V4.
+
+---
+
+### Finding 7 — LOW: Dead code in `rpc.previewYield` and `rpc.withdrawal`/`rpc.deposit` helpers
+
+**Specialist**: Frontend
+
+`rpc.previewYield`, `rpc.deposit`, and `rpc.withdrawal` in `client.ts` are never called anywhere in the codebase. The actual yield preview uses `preview_segmented_yield_distribution_v5` via `callRPC`. Deposits/withdrawals go through `transactionService.createInvestorTransaction`.
+
+**Fix**: Either remove these dead helpers or update them to match current paths. Keeping them is a maintenance trap.
+
+---
+
+### Finding 8 — LOW: `WithdrawalStats` type doesn't include "voided" status count
+
+**Specialist**: Frontend
+
+`withdrawalService.getStats()` counts pending/approved/processing/completed/rejected but skips "voided" and "cancelled" statuses. Voided withdrawals (added in the recent migration) are silently uncounted.
+
+**Fix**: Add `voided` and `cancelled` to the stats counter.
+
+---
+
+## Implementation Plan
+
+### Change Set 1 — Critical frontend fixes (2 items)
+1. Fix `adminPrefetch.ts`: remove or correct the `/admin/transactions` prefetch
+2. Add `visibility_scope` filter to `fetchUserTransactions` in `transactionService.ts`
+
+### Change Set 2 — Precision and safety fixes (2 items)
+3. Fix `investorPortfolioService.ts`: `String(params.amount)` for numeric precision
+4. Add `can_withdraw` validation to `useTransactionSubmit` withdrawal path (or route through RPC)
+
+### Change Set 3 — Dead code and rate limiting (3 items)
+5. Update `rpc.applyYield` to call V5, or remove the dead helper
+6. Add V5 to `RATE_LIMITED_RPCS`
+7. Add voided/cancelled to withdrawal stats counter
 
 ### Risk Assessment
-- Migrations are defensive (guards, column renames, fallback rewrites)
-- No business logic changes — same data flows, same calculations
-- The `crystallize_yield_before_flow` rewrite removes dead references but preserves the position-sum fallback that already exists in the function
+- All changes are frontend-only, no database migrations
+- No business logic changes in the DB layer
+- Finding 2 (visibility_scope) is a data-visibility fix with zero position/ledger impact
+- Finding 4 (direct insert bypass) is the highest-risk item but the fix is straightforward
 
