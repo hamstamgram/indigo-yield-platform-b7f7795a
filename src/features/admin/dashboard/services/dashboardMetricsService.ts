@@ -192,10 +192,10 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
     const fundFlow = flows[row.fund_id] || {};
     flowMap.set(row.fund_id, {
       fund_id: row.fund_id,
-      daily_inflows: Number(fundFlow.daily_inflows || 0),
-      daily_outflows: Number(fundFlow.daily_outflows || 0),
-      net_flow_24h: Number(fundFlow.net_flow_24h || 0),
-      aum: Number(row.aum_value || 0),
+      daily_inflows: parseFinancial(fundFlow.daily_inflows || 0).toNumber(),
+      daily_outflows: parseFinancial(fundFlow.daily_outflows || 0).toNumber(),
+      net_flow_24h: parseFinancial(fundFlow.net_flow_24h || 0).toNumber(),
+      aum: parseFinancial(row.aum_value || 0).toNumber(),
     });
   }
 
