@@ -1,4 +1,5 @@
-import { usePerAssetStats, useSortableColumns } from "@/hooks";
+import { usePerAssetStats } from "@/features/investor/performance/hooks/useInvestorPerformance";
+import { useSortableColumns } from "@/hooks";
 import { ResponsiveTable, EmptyState, Button, SortableTableHead } from "@/components/ui";
 import { getAssetName, formatInvestorAmount, formatSignedInvestorAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";

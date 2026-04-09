@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, Badge, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui";
 import { AlertCircle, ArrowUpCircle, FileText, Search, RefreshCw, Calendar } from "lucide-react";
 import { useAuth } from "@/services/auth";
-import { usePendingCounts } from "@/hooks/data/admin";
+import { usePendingCounts } from "@/features/admin/shared/hooks/useActionBar";
 import { formatShortcut, SHORTCUTS } from "@/hooks";
 import { format } from "date-fns";
 

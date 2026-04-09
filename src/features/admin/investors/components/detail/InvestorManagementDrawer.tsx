@@ -53,10 +53,12 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import {
-  useAdminInvestorPositions,
-  useInvestorActivePositions,
-  type AdminInvestorPosition,
+  
+  
+  
 } from "@/hooks";
+import { useAdminInvestorPositions, useInvestorActivePositions } from "@/features/admin/investors/hooks/useInvestorDetailHooks";
+import type { InvestorPosition as AdminInvestorPosition } from "@/features/admin/investors/services/investorDetailService";
 
 type DeleteStep = "check" | "confirm-with-positions" | "confirm-empty" | "deleting";
 

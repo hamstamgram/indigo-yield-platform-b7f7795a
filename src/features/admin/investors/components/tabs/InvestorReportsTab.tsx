@@ -7,8 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from "@/components/ui";
 import { FileText, ExternalLink, Eye, Send, Loader2, Calendar, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
-import { useInvestorReportPeriods } from "@/hooks/data";
-
+import { useInvestorReportPeriods } from "@/features/investor/settings/hooks/useInvestorSettings";
 interface InvestorReportsTabProps {
   investorId: string;
   investorName?: string;

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui";
 import { AlertTriangle, Loader2, Info, TrendingDown, Database } from "lucide-react";
 import { toast } from "sonner";
-import { useTransactionMutations } from "@/hooks/data";
+import { useTransactionMutations } from "@/features/admin/transactions/hooks/useTransactionMutations";
 import { transactionsV2Service } from "@/features/investor/transactions/services/transactionsV2Service";
 import { FinancialValue } from "@/components/common/FinancialValue";
 import { logError } from "@/lib/logger";

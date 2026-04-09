@@ -24,7 +24,8 @@ import {
 import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useFunds, useFundsWithAUM } from "@/hooks/data";
+import { useFundsWithAUM } from "@/features/admin/dashboard/hooks/useDashboardQueries";
+import { useFunds } from "@/hooks/data/shared/useFunds";
 import { toNum } from "@/utils/numeric";
 
 export function QuickYieldEntry() {

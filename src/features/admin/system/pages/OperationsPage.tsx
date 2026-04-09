@@ -44,14 +44,10 @@ import { PageShell } from "@/components/layout/PageShell";
 import { useAuth } from "@/services/auth";
 
 import { useTabFromUrl } from "@/hooks/ui/useTabFromUrl";
-import {
-  useSystemHealth,
-  useDeliveryQueueMetrics,
-  useIntegrityRuns,
-  useAdminAlerts,
-  useAcknowledgeAlert,
-} from "@/hooks/data";
-import { useInvariantChecks } from "@/hooks/data";
+import { useDeliveryQueueMetrics } from "@/features/admin/settings/hooks/useSystemAdmin";
+import { useIntegrityRuns, useAdminAlerts, useAcknowledgeAlert } from "@/features/admin/system/hooks/useIntegrityOperations";
+import { useSystemHealth } from "@/features/admin/system/hooks/useSystemHealth";
+import { useInvariantChecks } from "@/features/admin/system/hooks/useIntegrityData";
 import { getOverallStatus, type ServiceStatus } from "@/services/core/systemHealthService";
 import type { InvariantSuiteResult, InvariantCheckResult } from "@/features/admin/system/services/integrityService";
 import { formatDistanceToNow, format } from "date-fns";

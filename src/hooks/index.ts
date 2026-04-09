@@ -9,8 +9,8 @@
 // Auth hooks
 export * from "./auth";
 
-// Data hooks
-export * from "./data";
+// Data hooks (shared only - admin/investor barrels removed in Phase 1B)
+export * from "./data/shared";
 
 // UI hooks
 export * from "./ui";

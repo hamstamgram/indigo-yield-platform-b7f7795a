@@ -13,8 +13,7 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { useVerifyAdminInvite, useAcceptAdminInvite } from "@/hooks/data";
-
+import { useVerifyAdminInvite, useAcceptAdminInvite } from "@/hooks/data/shared/useAuthFlow";
 const AdminInvite = () => {
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("code");

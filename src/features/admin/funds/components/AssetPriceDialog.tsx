@@ -22,7 +22,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { assetService } from "@/services/shared";
-import { useAssetPrices, useLatestAssetPrice } from "@/hooks/data/admin";
+import { useAssetPrices, useLatestAssetPrice } from "@/features/admin/funds/hooks/useAssets";
 import type { Asset, AssetPrice, AssetPriceFormData } from "@/types/asset";
 import { format } from "date-fns";
 import { TrendingUp, DollarSign } from "lucide-react";

@@ -28,8 +28,7 @@ import {
 import { FileText, Search } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
-import type { FeeAllocation } from "@/hooks/data";
-
+import type { FeeAllocation } from "@/features/admin/fees/hooks/useFees";
 interface FeeAllocationAuditTableProps {
   allocations: FeeAllocation[];
 }

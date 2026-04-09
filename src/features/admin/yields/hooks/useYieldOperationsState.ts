@@ -7,7 +7,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { startOfMonth, endOfMonth, format, parseISO } from "date-fns";
 import { useAuth } from "@/services/auth";
-import { useActiveFundsWithAUM } from "@/hooks";
+import { useActiveFundsWithAUM } from "@/features/admin/yields/hooks/useYieldOperations";
 import { getTodayUTC } from "@/utils/dateUtils";
 
 import { useAUMReconciliation } from "@/features/admin/system/hooks/useAUMReconciliation";

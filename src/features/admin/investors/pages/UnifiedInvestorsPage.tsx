@@ -26,9 +26,10 @@ import {
   InvestorFiltersBar,
   UnifiedInvestorsTable,
 } from "@/features/admin/investors/components";
-import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
-import { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/data";
-
+import { useUrlFilters, useSortableColumns } from "@/hooks";
+import { useAdminStats } from "@/features/admin/shared/hooks/useAdminStats";
+import { useUnifiedInvestors } from "@/features/admin/investors/hooks/useInvestorHooks";
+import { type EnrichedInvestor } from "@/features/admin/investors/hooks/useInvestorHooks";
 interface RecentInvestor {
   id: string;
   name: string;

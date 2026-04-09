@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui";
 import { Search, Edit, TrendingUp } from "lucide-react";
-import { useAssets } from "@/hooks/data/admin";
+import { useAssets } from "@/features/admin/funds/hooks/useAssets";
 import { useSortableColumns } from "@/hooks";
 import { EditAssetDialog } from "./EditAssetDialog";
 import { AssetPriceDialog } from "./AssetPriceDialog";

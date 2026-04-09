@@ -6,7 +6,8 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Skeleton } from "@/components/ui";
 import { ArrowUpCircle, FileText, AlertTriangle, ChevronRight, CheckCircle2 } from "lucide-react";
-import { usePendingItems, useRealtimeSubscription } from "@/hooks/data";
+import { usePendingItems } from "@/features/admin/dashboard/hooks/useDashboardQueries";
+import { useRealtimeSubscription } from "@/hooks/data/shared/useRealtimeSubscription";
 import type { PendingItem } from "@/types/domains";
 
 export function PendingActionsPanel() {

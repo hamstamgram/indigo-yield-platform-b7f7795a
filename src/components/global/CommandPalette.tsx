@@ -25,8 +25,7 @@ import {
 } from "lucide-react";
 import { useKeyboardShortcuts, SHORTCUTS, formatShortcut } from "@/hooks";
 import { useAuth } from "@/services/auth";
-import { useCommandPaletteInvestors } from "@/hooks/data/admin";
-
+import { useCommandPaletteInvestors } from "@/features/admin/shared/hooks/useCommandPalette";
 interface CommandPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

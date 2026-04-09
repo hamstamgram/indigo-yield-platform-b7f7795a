@@ -10,8 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { Search, Users, ArrowDownToLine, X } from "lucide-react";
-import type { EnrichedInvestor } from "@/hooks/data";
-
+import type { EnrichedInvestor } from "@/features/admin/investors/hooks/useInvestorHooks";
 interface Fund {
   id: string;
   name: string;

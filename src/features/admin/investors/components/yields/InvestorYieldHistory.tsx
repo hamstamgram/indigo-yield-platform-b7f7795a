@@ -33,7 +33,7 @@ import {
 import { ChevronDown, Clock, Eye, TrendingUp, Wallet, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { useInvestorYieldEventsAdmin } from "@/features/admin/yields/hooks/useYieldCrystallization";
-import { useActiveFundsWithAUM } from "@/hooks";
+import { useActiveFundsWithAUM } from "@/features/admin/yields/hooks/useYieldOperations";
 import { cn } from "@/lib/utils";
 import type { YieldEvent } from "@/types/domains/yieldCrystallization";
 

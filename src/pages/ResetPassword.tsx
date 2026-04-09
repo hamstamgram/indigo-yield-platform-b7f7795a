@@ -12,8 +12,7 @@ import {
   AlertDescription,
 } from "@/components/ui";
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useResetPassword, useSetSessionFromTokens } from "@/hooks/data";
-
+import { useResetPassword, useSetSessionFromTokens } from "@/hooks/data/shared/useAuthFlow";
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

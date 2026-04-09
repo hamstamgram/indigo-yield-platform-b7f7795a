@@ -39,11 +39,8 @@ import { formatAssetAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NumericInput } from "@/components/common/NumericInput";
 import { Badge } from "@/components/ui";
-import {
-  useInvestorOptions,
-  usePositionsForWithdrawal,
-  useAvailableBalance,
-} from "@/hooks/data";
+import { useAvailableBalance } from "@/hooks/data/shared/useAvailableBalance";
+import { useInvestorOptions, usePositionsForWithdrawal } from "@/hooks/data/shared/useWithdrawalFormData";
 import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
 import { parseFinancial } from "@/utils/financial";
 // Removed useFundYieldLock

@@ -44,7 +44,7 @@ import {
   PlatformMetricsPanel,
   QuickActionsBar,
 } from "@/features/admin/dashboard";
-import { useAdminStats } from "@/hooks";
+import { useAdminStats } from "@/features/admin/shared/hooks/useAdminStats";
 import {
   useUnacknowledgedAlertCount,
   useRealtimeAlerts,

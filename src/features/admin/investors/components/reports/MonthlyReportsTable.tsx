@@ -22,13 +22,8 @@ import {
 } from "@/components/ui";
 import { formatTokenBalance } from "@/utils/formatters";
 import { Save, Calendar } from "lucide-react";
-import {
-  useInvestorMonthlyReports,
-  useCreateMonthlyTemplate,
-  useUpdateMonthlyReportField,
-  type MonthlyReport,
-} from "@/hooks/data";
-
+import { useInvestorMonthlyReports, useCreateMonthlyTemplate, useUpdateMonthlyReportField } from "@/features/admin/investors/hooks/useMonthlyReports";
+import { type MonthlyReport } from "@/features/admin/investors/hooks/useMonthlyReports";
 // Memoized month options generator
 const getMonthOptions = () => {
   const months = [];

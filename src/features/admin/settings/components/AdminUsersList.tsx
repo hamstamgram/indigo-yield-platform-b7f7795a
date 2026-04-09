@@ -29,12 +29,7 @@ import {
 } from "@/components/ui";
 import { useAuth } from "@/services/auth";
 import { Loader2, UserCheck, UserMinus, Users } from "lucide-react";
-import {
-  useAdminUsersList,
-  useToggleAdminStatusMutation,
-  useSendAdminInviteMutation,
-} from "@/hooks/data/admin";
-
+import { useAdminUsersAll as useAdminUsersList, useToggleAdminStatusMutation, useSendAdminInviteMutation } from "@/features/admin/settings/hooks/useAdminUsers";
 const AdminUsersList = () => {
   const { user } = useAuth();
   const [inviteEmail, setInviteEmail] = useState("");

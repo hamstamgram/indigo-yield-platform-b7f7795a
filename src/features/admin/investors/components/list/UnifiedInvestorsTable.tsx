@@ -12,8 +12,7 @@ import { User, Users, ExternalLink, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import type { EnrichedInvestor } from "@/hooks/data";
-
+import type { EnrichedInvestor } from "@/features/admin/investors/hooks/useInvestorHooks";
 interface SortConfig {
   column: string;
   direction: "asc" | "desc";

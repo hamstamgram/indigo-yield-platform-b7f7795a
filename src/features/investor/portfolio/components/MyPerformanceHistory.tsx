@@ -8,7 +8,7 @@ import {
   getAssetName,
 } from "@/utils/assets";
 import { Loader2, TrendingUp, Calendar } from "lucide-react";
-import { usePerformanceHistory } from "@/hooks/data/investor";
+import { usePerformanceHistory } from "@/features/investor/documents/hooks/useInvestorPortfolioQueries";
 import { type PerformanceHistoryRecord } from "@/services/shared";
 import { parseFinancial } from "@/utils/financial";
 

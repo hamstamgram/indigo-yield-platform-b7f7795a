@@ -14,8 +14,7 @@ import {
   AlertDescription,
 } from "@/components/ui";
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
-import { useSignIn, useCheckAuthSession } from "@/hooks/data";
-
+import { useSignIn, useCheckAuthSession } from "@/hooks/data/shared/useAuthFlow";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

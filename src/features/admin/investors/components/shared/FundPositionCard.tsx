@@ -21,7 +21,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
-import { useUpdateFundPerformance } from "@/hooks/data/admin";
+import { useUpdateFundPerformance } from "@/features/admin/investors/hooks/useAdminInvestorMutations";
 import { ASSET_PRECISION } from "@/types/asset";
 import { formatPercentage, formatInvestorAmount } from "@/utils/assets";
 

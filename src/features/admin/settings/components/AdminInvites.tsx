@@ -26,15 +26,8 @@ import {
 import { useToast } from "@/hooks";
 import { Loader2, Copy, Send, Trash, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
-import {
-  useAdminInvites,
-  useCreateAdminInvite,
-  useSendAdminInvite,
-  useDeleteAdminInvite,
-  useCopyInviteLink,
-  useIsSuperAdmin,
-} from "@/hooks/data";
-
+import { useAdminInvites, useSendAdminInvite, useDeleteAdminInvite, useCopyInviteLink, useIsSuperAdmin } from "@/features/admin/settings/hooks/useAdminInvites";
+import { useCreateAdminInvite } from "@/features/admin/settings/hooks/useSystemAdmin";
 const AdminInvites = () => {
   const [newEmail, setNewEmail] = useState("");
   const { toast } = useToast();

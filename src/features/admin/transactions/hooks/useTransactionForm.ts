@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { getTodayString } from "@/utils/dateUtils";
-import { useInvestorBalance, useTransactionHistory } from "@/hooks";
+import { useInvestorBalance, useTransactionHistory } from "@/features/investor/portfolio/hooks/useInvestorBalance";
 
 // Transaction validation schema
 export const transactionSchema = z

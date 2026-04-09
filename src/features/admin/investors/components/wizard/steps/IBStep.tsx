@@ -21,8 +21,7 @@ import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWizard } from "../WizardContext";
 import { ibSchema } from "../types";
-import { useIBUsers } from "@/hooks/data/admin";
-
+import { useIBUsers } from "@/features/admin/ib/hooks/useIBUsers";
 const newIbSchema = z.object({
   email: z.string().email("Valid email required"),
   first_name: z.string().min(1, "First name required"),

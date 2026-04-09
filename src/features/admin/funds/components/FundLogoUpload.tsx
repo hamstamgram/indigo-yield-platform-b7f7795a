@@ -8,8 +8,7 @@ import { Button } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUploadFundLogo } from "@/hooks/data/shared";
-
+import { useUploadFundLogo } from "@/hooks/data/shared/useStorage";
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 

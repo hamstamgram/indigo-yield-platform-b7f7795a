@@ -255,8 +255,8 @@ function ActivityEmptyState() {
 /**
  * Unified Activity Feed Component
  */
-import { useRecentActivities, useRealtimeSubscription } from "@/hooks/data";
-
+import { useRecentActivities } from "@/features/admin/dashboard/hooks/useDashboardQueries";
+import { useRealtimeSubscription } from "@/hooks/data/shared/useRealtimeSubscription";
 /**
  * ActivityFeed - Unified activity feed component
  */

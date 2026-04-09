@@ -32,8 +32,7 @@ import { RejectWithdrawalDialog } from "@/features/admin/withdrawals/components/
 import { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
 import { formatAssetAmount } from "@/utils/assets";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useAdminInvestorWithdrawals } from "@/hooks/data";
-
+import { useAdminInvestorWithdrawals } from "@/features/admin/investors/hooks/useAdminInvestorWithdrawals";
 interface InvestorWithdrawalsTabProps {
   investorId: string;
 }

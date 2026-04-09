@@ -16,12 +16,8 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatInvestorAmount, getAssetName } from "@/utils/assets";
 import { toNum } from "@/utils/numeric";
 import { useToast } from "@/hooks";
-import {
-  useMonthlyStatements,
-  useStatementYears,
-  useStatementAssets,
-  type MonthlyStatement,
-} from "@/hooks/data";
+import { useMonthlyStatements, useStatementYears, useStatementAssets } from "@/features/investor/transactions/hooks/useInvestorPortal";
+import { type MonthlyStatement } from "@/features/investor/transactions/hooks/useInvestorPortal";
 import { useAuth } from "@/services/auth";
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";

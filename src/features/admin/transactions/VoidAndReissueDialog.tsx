@@ -42,7 +42,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useTransactionMutations } from "@/hooks/data";
+import { useTransactionMutations } from "@/features/admin/transactions/hooks/useTransactionMutations";
 import {
   getTransactionContext,
   type TransactionContextResult,

@@ -9,8 +9,7 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
 import { startOfMonth, startOfYear, parseISO, isWithinInterval } from "date-fns";
 import Decimal from "decimal.js";
-import type { FeeRecord } from "@/hooks/data";
-
+import type { FeeRecord } from "@/features/admin/fees/hooks/useFees";
 interface FeeRevenueKPIsProps {
   fees: FeeRecord[];
 }

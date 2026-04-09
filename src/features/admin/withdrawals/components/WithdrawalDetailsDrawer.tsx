@@ -18,8 +18,7 @@ import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, ArrowRightLeft } 
 import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
-import { useWithdrawalById } from "@/hooks/data/admin";
-
+import { useWithdrawalById } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 interface WithdrawalDetailsDrawerProps {
   withdrawalId: string | null;
   open: boolean;

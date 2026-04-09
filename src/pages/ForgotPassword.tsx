@@ -12,8 +12,7 @@ import {
   AlertDescription,
 } from "@/components/ui";
 import { Mail, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useRequestPasswordReset } from "@/hooks/data";
-
+import { useRequestPasswordReset } from "@/hooks/data/shared/useAuthFlow";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);

@@ -56,8 +56,8 @@ import { AddTransactionDialog } from "@/features/admin/transactions/AddTransacti
 import { VoidTransactionDialog } from "@/features/admin/transactions";
 import { useSortableColumns } from "@/hooks";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data";
-import { useTransactionMutations } from "@/hooks/data";
+import { useAdminActiveFunds, useAdminTransactions } from "@/features/admin/transactions/hooks/useAdminTransactionHistory";
+import { useTransactionMutations } from "@/features/admin/transactions/hooks/useTransactionMutations";
 import { useTransactionSelection } from "../hooks/useTransactionSelection";
 import { BulkActionToolbar } from "../components/BulkActionToolbar";
 import { BulkVoidDialog } from "../components/BulkVoidDialog";

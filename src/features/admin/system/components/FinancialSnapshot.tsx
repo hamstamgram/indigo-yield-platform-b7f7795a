@@ -13,7 +13,7 @@ import {
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useFundAUM } from "@/hooks";
-import { useHistoricalFlowData, useFundComposition } from "@/hooks/data";
+import { useHistoricalFlowData, useFundComposition } from "@/features/admin/dashboard/hooks/useDashboardMetrics";
 import { toast } from "sonner";
 import { FundSnapshotCard } from "@/features/admin/dashboard/FundSnapshotCard";
 import { InvestorCompositionSheet } from "@/features/admin/dashboard/InvestorCompositionSheet";

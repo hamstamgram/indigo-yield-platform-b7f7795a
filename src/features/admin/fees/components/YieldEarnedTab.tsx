@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { DollarSign, ArrowUpRight } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
-import type { YieldEarned } from "@/hooks/data";
-
+import type { YieldEarned } from "@/features/admin/fees/hooks/useFees";
 interface YieldEarnedTabProps {
   yields: YieldEarned[];
 }

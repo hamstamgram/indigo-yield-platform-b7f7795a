@@ -14,8 +14,7 @@ import {
   Badge,
 } from "@/components/ui";
 import { Calendar, Plus, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
-import { useGenerateTemplates } from "@/hooks/data";
-
+import { useGenerateTemplates } from "@/features/admin/reports/hooks/useReportData";
 const BulkDataGenerator: React.FC = () => {
   const [startMonth, setStartMonth] = useState("2024-06");
   const [endMonth, setEndMonth] = useState("2024-09");

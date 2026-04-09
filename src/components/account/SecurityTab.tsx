@@ -19,8 +19,8 @@ import {
   Badge,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { useChangePassword, useInvestorProfileData } from "@/hooks/data";
-
+import { useInvestorProfileData } from "@/features/investor/transactions/hooks/useInvestorPortal";
+import { useChangePassword } from "@/hooks/data/shared/useProfileSettings";
 const SecurityTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
