@@ -55,6 +55,19 @@ export type RPCFunctions = Database["public"]["Functions"] & {
     Args: Record<string, never>;
     Returns: unknown;
   };
+  // Explicitly add functions that need type enforcement
+  unvoid_transaction: {
+    Args: { p_transaction_id: string; p_admin_id: string; p_reason: string };
+    Returns: unknown;
+  };
+  unvoid_transactions_bulk: {
+    Args: { p_transaction_ids: string[]; p_admin_id: string; p_reason: string };
+    Returns: unknown;
+  };
+  void_transactions_bulk: {
+    Args: { p_transaction_ids: string[]; p_admin_id: string; p_reason: string };
+    Returns: unknown;
+  };
 };
 
 export type RPCFunctionName = keyof RPCFunctions;

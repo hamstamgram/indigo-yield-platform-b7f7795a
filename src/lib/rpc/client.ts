@@ -8,6 +8,35 @@ import { normalizeError } from "./normalization";
 import { validateParams } from "./validation";
 
 // =============================================================================
+// RETRY CONFIGURATION
+// =============================================================================
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+const RETRYABLE_ERROR_CODES = [
+  "NETWORK_ERROR",
+  "TIMEOUT",
+  "SERVER_ERROR",
+  "SERVICE_UNAVAILABLE",
+  "BAD_GATEWAY",
+  "GATEWAY_TIMEOUT",
+];
+
+function isRetryableError(error: { code?: string; message?: string }): boolean {
+  const code = error.code?.toUpperCase() || "";
+  const message = error.message?.toUpperCase() || "";
+  return (
+    RETRYABLE_ERROR_CODES.some(
+      (c) => code.includes(c) || message.includes(c)
+    ) || code === "500" || code === "502" || code === "503" || code === "504"
+  );
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// =============================================================================
 // RATE LIMITING CONFIGURATION
 // =============================================================================
 
@@ -80,7 +109,7 @@ function sanitizeParams(params: unknown): unknown {
 }
 
 /**
- * Call an RPC function with full type safety, validation, and rate limiting
+ * Call an RPC function with full type safety, validation, rate limiting, and retry logic
  */
 export async function call<T extends RPCFunctionName>(
   functionName: T,
@@ -89,58 +118,118 @@ export async function call<T extends RPCFunctionName>(
   const startTime = Date.now();
   const requestId = Math.random().toString(36).slice(2, 10);
 
-  try {
-    // Validate parameters
-    validateParams(functionName, params);
+  let lastError: { code?: string; message?: string } | null = null;
 
-    // Check rate limiting for sensitive mutations
-    const isMutation = (Object.values(CANONICAL_MUTATION_RPCS) as string[]).includes(
-      String(functionName)
-    );
-    if (isMutation) {
-      // Extract actor ID from params if available
-      const p = params as Record<string, unknown>;
-      const actorId = (p.p_admin_id || p.p_created_by || p.p_actor_id) as string | undefined;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      // Validate parameters
+      validateParams(functionName, params);
 
-      const allowed = await checkRateLimit(String(functionName), actorId);
-      if (!allowed) {
-        logWarn(`rpc.rateLimit.blocked.${String(functionName)}`, {
+      // Check rate limiting for sensitive mutations
+      const isMutation = (Object.values(CANONICAL_MUTATION_RPCS) as string[]).includes(
+        String(functionName)
+      );
+      if (isMutation) {
+        // Extract actor ID from params if available
+        const p = params as Record<string, unknown>;
+        const actorId = (p.p_admin_id || p.p_created_by || p.p_actor_id) as string | undefined;
+
+        const allowed = await checkRateLimit(String(functionName), actorId);
+        if (!allowed) {
+          logWarn(`rpc.rateLimit.blocked.${String(functionName)}`, {
+            requestId,
+            actorId,
+          });
+          return {
+            data: null,
+            error: {
+              message: "Rate limit exceeded",
+              code: "RATE_LIMITED",
+              userMessage: "Too many requests. Please wait a moment before trying again.",
+            },
+            success: false,
+          };
+        }
+
+        logInfo(`rpc.mutation.${String(functionName)}`, {
           requestId,
-          actorId,
+          params: sanitizeParams(params),
+        });
+      }
+
+      // Execute RPC — cast required because RPCFunctions extends Database["public"]["Functions"]
+      // with additional functions that exist in production but aren't in generated types yet.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await supabase.rpc(functionName as any, params as any);
+      const durationMs = Date.now() - startTime;
+
+      if (error) {
+        console.error(
+          `[RPC_ERROR] ${String(functionName)} attempt ${attempt}/${MAX_RETRIES} failed.`,
+          JSON.stringify(error)
+        );
+        const normalizedError = normalizeError(error, String(functionName));
+        lastError = { code: normalizedError.code, message: normalizedError.message };
+
+        // If retryable and not last attempt, retry
+        if (isRetryableError(error) && attempt < MAX_RETRIES) {
+          logWarn(`rpc.retry.${String(functionName)}`, {
+            requestId,
+            attempt,
+            maxRetries: MAX_RETRIES,
+            error: normalizedError.code,
+          });
+          await sleep(RETRY_DELAY_MS * attempt); // Exponential backoff
+          continue;
+        }
+
+        logError(`rpc.error.${String(functionName)}`, error, {
+          requestId,
+          code: normalizedError.code,
+          durationMs,
+          attempts: attempt,
         });
         return {
           data: null,
-          error: {
-            message: "Rate limit exceeded",
-            code: "RATE_LIMITED",
-            userMessage: "Too many requests. Please wait a moment before trying again.",
-          },
+          error: normalizedError,
           success: false,
         };
       }
 
-      logInfo(`rpc.mutation.${String(functionName)}`, {
-        requestId,
-        params: sanitizeParams(params),
-      });
-    }
+      // Log completion for mutations (helps with debugging and observability)
+      if (isMutation) {
+        logInfo(`rpc.complete.${String(functionName)}`, {
+          requestId,
+          success: true,
+          durationMs,
+          attempts: attempt,
+        });
+      }
 
-    // Execute RPC — cast required because RPCFunctions extends Database["public"]["Functions"]
-    // with additional functions that exist in production but aren't in generated types yet.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await supabase.rpc(functionName as any, params as any);
-    const durationMs = Date.now() - startTime;
+      return {
+        data: data as RPCFunctions[T]["Returns"],
+        error: null,
+        success: true,
+      };
+    } catch (err) {
+      const normalizedError = normalizeError(err, String(functionName));
+      lastError = { code: normalizedError.code, message: normalizedError.message };
 
-    if (error) {
-      console.error(
-        `[CRITICAL_RPC_ERROR] ${String(functionName)} failed. Exact error:`,
-        JSON.stringify(error)
-      );
-      const normalizedError = normalizeError(error, String(functionName));
-      logError(`rpc.error.${String(functionName)}`, error, {
+      // Retry on catchable errors
+      if (isRetryableError(normalizedError) && attempt < MAX_RETRIES) {
+        logWarn(`rpc.retry.exception.${String(functionName)}`, {
+          requestId,
+          attempt,
+          maxRetries: MAX_RETRIES,
+        });
+        await sleep(RETRY_DELAY_MS * attempt);
+        continue;
+      }
+
+      logError(`rpc.exception.${String(functionName)}`, err, {
         requestId,
-        code: normalizedError.code,
-        durationMs,
+        durationMs: Date.now() - startTime,
+        attempts: attempt,
       });
       return {
         data: null,
@@ -148,33 +237,18 @@ export async function call<T extends RPCFunctionName>(
         success: false,
       };
     }
-
-    // Log completion for mutations (helps with debugging and observability)
-    if (isMutation) {
-      logInfo(`rpc.complete.${String(functionName)}`, {
-        requestId,
-        success: true,
-        durationMs,
-      });
-    }
-
-    return {
-      data: data as RPCFunctions[T]["Returns"],
-      error: null,
-      success: true,
-    };
-  } catch (err) {
-    const normalizedError = normalizeError(err, String(functionName));
-    logError(`rpc.exception.${String(functionName)}`, err, {
-      requestId,
-      durationMs: Date.now() - startTime,
-    });
-    return {
-      data: null,
-      error: normalizedError,
-      success: false,
-    };
   }
+
+  // Should never reach here, but handle case where all retries exhausted
+  return {
+    data: null,
+    error: {
+      code: "RETRY_EXHAUSTED",
+      message: lastError?.message || "All retry attempts failed",
+      userMessage: "An unexpected error occurred. Please try again.",
+    },
+    success: false,
+  };
 }
 
 /**
