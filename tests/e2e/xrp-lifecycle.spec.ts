@@ -156,7 +156,6 @@ test.describe.serial('XRP Yield Fund Lifecycle', () => {
 
   test('A1: Create XRP Yield Fund', async () => {
     const funds = await insert('funds', {
-      code: 'IND-XRP',
       name: 'Ripple Yield Fund',
       asset: 'XRP',
       status: 'active',
