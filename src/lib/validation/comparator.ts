@@ -1,4 +1,4 @@
-import { ExcelParser } from './excelParser';
+import { ExcelParser, AumSnapshot, YieldEvent } from './excelParser';
 import { FundReplayer } from './fundReplayer';
 
 export interface ValidationResult {
@@ -6,6 +6,7 @@ export interface ValidationResult {
   currency: string;
   passed: boolean;
   discrepancies: Discrepancy[];
+  snapshotValidations: SnapshotValidation[];
   engineState: any;
   excelExpectations: any;
 }
@@ -19,6 +20,17 @@ export interface Discrepancy {
   difference: number;
   relativeDifference: number;
   acceptable: boolean;
+}
+
+export interface SnapshotValidation {
+  date: string;
+  type: 'aum' | 'investor' | 'yield';
+  investorName?: string;
+  expectedValue: number;
+  actualValue: number;
+  difference: number;
+  acceptable: boolean;
+  comments: string[];
 }
 
 /**
@@ -98,6 +110,7 @@ export class Comparator {
       currency: fundData.currency,
       passed,
       discrepancies,
+      snapshotValidations: [],
       engineState,
       excelExpectations,
     };
@@ -158,5 +171,145 @@ export class Comparator {
     }
 
     return report;
+  }
+
+  /**
+   * Validate AUM snapshots against engine state at each checkpoint
+   */
+  validateAumSnapshots(
+    snapshots: AumSnapshot[],
+    engineStates: Record<string, { totalAum: number; positions: Record<string, number> }>
+  ): SnapshotValidation[] {
+    const validations: SnapshotValidation[] = [];
+
+    for (const snapshot of snapshots) {
+      const engineState = engineStates[snapshot.date];
+      
+      if (!engineState) {
+        validations.push({
+          date: snapshot.date,
+          type: 'aum',
+          expectedValue: snapshot.aumBefore,
+          actualValue: 0,
+          difference: -snapshot.aumBefore,
+          acceptable: false,
+          comments: ['No engine state found for this date', ...snapshot.comments],
+        });
+        continue;
+      }
+
+      const totalAum = engineState.totalAum;
+      const diff = totalAum - snapshot.aumBefore;
+      const absoluteDiff = Math.abs(diff);
+      const isAcceptable = absoluteDiff <= Comparator.DEFAULT_TOLERANCE;
+
+      validations.push({
+        date: snapshot.date,
+        type: 'aum',
+        expectedValue: snapshot.aumBefore,
+        actualValue: totalAum,
+        difference: diff,
+        acceptable: isAcceptable,
+        comments: snapshot.comments,
+      });
+    }
+
+    return validations;
+  }
+
+  /**
+   * Validate yield events against engine state
+   */
+  validateYieldEvents(
+    yieldEvents: YieldEvent[],
+    engineYieldDistributions: Array<{
+      periodEnd: string;
+      grossYield: number;
+      purpose: string;
+    }>
+  ): SnapshotValidation[] {
+    const validations: SnapshotValidation[] = [];
+
+    for (const event of yieldEvents) {
+      const matchingDist = engineYieldDistributions.find(
+        d => d.periodEnd === event.date && d.purpose === event.purpose
+      );
+
+      if (!matchingDist) {
+        validations.push({
+          date: event.date,
+          type: 'yield',
+          expectedValue: event.grossYield,
+          actualValue: 0,
+          difference: -event.grossYield,
+          acceptable: false,
+          comments: [`Expected ${event.purpose} yield of ${event.grossYield}`],
+        });
+        continue;
+      }
+
+      const diff = matchingDist.grossYield - event.grossYield;
+      const absoluteDiff = Math.abs(diff);
+      const isAcceptable = absoluteDiff <= Comparator.DEFAULT_TOLERANCE;
+
+      validations.push({
+        date: event.date,
+        type: 'yield',
+        expectedValue: event.grossYield,
+        actualValue: matchingDist.grossYield,
+        difference: diff,
+        acceptable: isAcceptable,
+        comments: [`${event.purpose} yield`],
+      });
+    }
+
+    return validations;
+  }
+
+  /**
+   * Generate snapshot validation report
+   */
+  generateSnapshotReport(validations: SnapshotValidation[]): string {
+    const lines: string[] = ['\n=== SNAPSHOT VALIDATION ==='];
+
+    for (const v of validations) {
+      const status = v.acceptable ? '✅' : '❌';
+      lines.push(`${status} ${v.date} [${v.type}]`);
+      
+      if (v.investorName) {
+        lines.push(`   Investor: ${v.investorName}`);
+      }
+      
+      lines.push(`   Expected: ${v.expectedValue.toFixed(6)}`);
+      lines.push(`   Actual:   ${v.actualValue.toFixed(6)}`);
+      lines.push(`   Diff:     ${v.difference.toFixed(6)}`);
+      
+      if (v.comments.length > 0) {
+        lines.push(`   Notes:    ${v.comments.join('; ')}`);
+      }
+    }
+
+    const passedCount = validations.filter(v => v.acceptable).length;
+    const totalCount = validations.length;
+    lines.push(`\nSnapshot Summary: ${passedCount}/${totalCount} passed`);
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Add snapshot validations to ValidationResult
+   */
+  addSnapshotValidations(
+    result: ValidationResult,
+    aumValidations: SnapshotValidation[],
+    yieldValidations: SnapshotValidation[]
+  ): ValidationResult {
+    return {
+      ...result,
+      snapshotValidations: [...aumValidations, ...yieldValidations],
+      passed: result.passed && 
+              aumValidations.every(v => v.acceptable) &&
+              yieldValidations.every(v => v.acceptable),
+    };
   }
 }

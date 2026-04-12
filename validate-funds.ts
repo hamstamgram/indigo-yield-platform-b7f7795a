@@ -56,6 +56,7 @@ async function main() {
     currency: fund.currency,
     passed: true, // Placeholder - actual validation would require database comparison
     discrepancies: [],
+    snapshotValidations: [],
     engineState: {},
     excelExpectations: positions[fund.fundName] || {}
   }));

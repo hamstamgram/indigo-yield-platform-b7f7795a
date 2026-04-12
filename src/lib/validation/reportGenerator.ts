@@ -1,4 +1,4 @@
-import { ValidationResult } from './comparator';
+import { ValidationResult, SnapshotValidation } from './comparator';
 
 /**
  * Generates validation reports in various formats
@@ -20,6 +20,7 @@ export class ReportGenerator {
         currency: result.currency,
         passed: result.passed,
         discrepancyCount: result.discrepancies.length,
+        snapshotCount: result.snapshotValidations?.length || 0,
         discrepancies: result.discrepancies.map(d => ({
           type: d.type,
           investorName: d.investorName,
@@ -29,6 +30,16 @@ export class ReportGenerator {
           difference: d.difference,
           relativeDifference: d.relativeDifference,
           acceptable: d.acceptable,
+        })),
+        snapshotValidations: (result.snapshotValidations || []).map(s => ({
+          date: s.date,
+          type: s.type,
+          investorName: s.investorName,
+          expectedValue: s.expectedValue,
+          actualValue: s.actualValue,
+          difference: s.difference,
+          acceptable: s.acceptable,
+          comments: s.comments,
         })),
       })),
     };
@@ -51,6 +62,25 @@ export class ReportGenerator {
       report += `Fund: ${result.fundName} (${result.currency})\n`;
       report += `Status: ${result.passed ? '✅ PASSED' : '❌ FAILED'}\n`;
       
+      // Snapshot validations
+      const snapshots = result.snapshotValidations || [];
+      if (snapshots.length > 0) {
+        const passedSnapshots = snapshots.filter(s => s.acceptable).length;
+        report += `Snapshots: ${passedSnapshots}/${snapshots.length} passed\n`;
+        
+        const failedSnapshots = snapshots.filter(s => !s.acceptable);
+        if (failedSnapshots.length > 0) {
+          for (const s of failedSnapshots) {
+            report += `  ❌ ${s.date} [${s.type}]`;
+            if (s.investorName) report += ` - ${s.investorName}`;
+            report += `\n`;
+            report += `     Expected: ${s.expectedValue.toFixed(6)}, Actual: ${s.actualValue.toFixed(6)}\n`;
+            report += `     Diff: ${s.difference.toFixed(6)}\n`;
+          }
+        }
+      }
+      
+      // Position discrepancies
       if (!result.passed && result.discrepancies.length > 0) {
         report += `Discrepancies Found: ${result.discrepancies.length}\n`;
         for (const d of result.discrepancies) {
@@ -96,9 +126,11 @@ export class ReportGenerator {
         .fund-content { padding: 15px; }
         .discrepancy { background: #f8d7da; margin: 10px 0; padding: 10px; border-radius: 3px; }
         .discrepancy.ok { background: #d4edda; }
+        .snapshot-table { margin-top: 15px; }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background: #f2f2f2; }
+        .section { margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -113,20 +145,55 @@ export class ReportGenerator {
         <div><h2>Failed</h2><div class="failed">${failedCount}</div></div>
     </div>
     
-    ${results.map(result => `
+    ${results.map(result => {
+      const snapshots = result.snapshotValidations || [];
+      const passedSnapshots = snapshots.filter(s => s.acceptable).length;
+      const failedSnapshots = snapshots.filter(s => !s.acceptable);
+      
+      return `
     <div class="fund">
         <div class="fund-header">
             <h2>${result.fundName} (${result.currency})</h2>
             <div class="${result.passed ? 'passed' : 'failed'}">
                 ${result.passed ? '✅ PASSED' : '❌ FAILED'} 
-                (${result.discrepancies.length} discrepancies)
+                (${result.discrepancies.length} discrepancies, ${passedSnapshots}/${snapshots.length} snapshots)
             </div>
         </div>
         <div class="fund-content">
-            ${result.passed ? 
-                '<p>All positions match Excel expectations within tolerance.</p>' : 
-                `
-                <h3>Discrepancies Found:</h3>
+            ${snapshots.length > 0 ? `
+            <div class="section">
+                <h3>Snapshot Validations</h3>
+                <table class="snapshot-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Investor</th>
+                            <th>Expected</th>
+                            <th>Actual</th>
+                            <th>Diff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${snapshots.map(s => `
+                        <tr class="${s.acceptable ? 'ok' : ''}">
+                            <td>${s.date}</td>
+                            <td>${s.type}</td>
+                            <td>${s.investorName || '-'}</td>
+                            <td>${s.expectedValue.toFixed(6)}</td>
+                            <td>${s.actualValue.toFixed(6)}</td>
+                            <td>${s.difference.toFixed(6)}</td>
+                            <td>${s.acceptable ? '✅ OK' : '❌ FAIL'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+            ` : ''}
+            
+            ${!result.passed && result.discrepancies.length > 0 ? `
+            <div class="section">
+                <h3>Position Discrepancies</h3>
                 <table>
                     <thead>
                         <tr>
@@ -152,10 +219,13 @@ export class ReportGenerator {
                         </tr>`).join('')}
                     </tbody>
                 </table>
-                `}
+            </div>
+            ` : ''}
+            
+            ${result.passed ? '<p>✅ All positions and snapshots match Excel expectations within tolerance.</p>' : ''}
         </div>
     </div>
-    `).join('')}
+    `;}).join('')}
     
     <div class="header" style="margin-top: 30px;">
         <h2>Overall Verdict</h2>

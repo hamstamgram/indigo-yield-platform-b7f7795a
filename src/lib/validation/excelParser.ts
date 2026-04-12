@@ -25,6 +25,20 @@ export interface ParsedFundData {
   }>;
 }
 
+export interface AumSnapshot {
+  date: string;
+  aumBefore: number;
+  aumAfter?: number;
+  comments: string[];
+}
+
+export interface YieldEvent {
+  date: string;
+  grossYield: number;
+  purpose: 'transaction' | 'reporting';
+  recordedAum: number;
+}
+
 export class ExcelParser {
   private workbook: XLSX.WorkBook | null = null;
 
@@ -193,6 +207,181 @@ export class ExcelParser {
 
       if (Object.keys(fundResults).length > 0) {
         result[sheetName] = fundResults;
+      }
+    }
+
+    return result;
+  }
+
+  async parseAumSnapshots(sheetName: string): Promise<AumSnapshot[]> {
+    if (!this.workbook) {
+      throw new Error('Workbook not loaded. Call load() first.');
+    }
+
+    const sheet = this.workbook.Sheets[sheetName];
+    if (!sheet) {
+      return [];
+    }
+
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false }) as unknown[][];
+    if (jsonData.length < 8) {
+      return [];
+    }
+
+    const headerRow = jsonData[7]; // Row 8 has dates
+    const aumBeforeRow = jsonData[0]; // Row 0 has AUM Before
+    const commentsRow = jsonData[6]; // Row 6 has Comments
+
+    const snapshots: AumSnapshot[] = [];
+
+    for (let i = 3; i < headerRow.length; i++) {
+      const serialDate = headerRow[i];
+      const aumBefore = aumBeforeRow[i];
+      const comments = commentsRow[i];
+
+      if (!serialDate) continue;
+
+      const date = this.excelSerialToDate(serialDate);
+      const aum = this.parseNumericValue(aumBefore);
+      const commentList = comments ? String(comments).split('\n').map(c => c.trim()).filter(Boolean) : [];
+
+      snapshots.push({
+        date,
+        aumBefore: aum,
+        comments: commentList,
+      });
+    }
+
+    return snapshots;
+  }
+
+  async parseYieldEvents(sheetName: string): Promise<YieldEvent[]> {
+    const snapshots = await this.parseAumSnapshots(sheetName);
+    const events: YieldEvent[] = [];
+
+    const yieldAmounts = this.getKnownYieldAmounts(sheetName);
+    const monthEndDates = this.getMonthEndDates();
+    
+    for (const snapshot of snapshots) {
+      const knownYield = yieldAmounts.get(snapshot.date);
+      if (knownYield !== undefined && knownYield > 0) {
+        const purpose: 'transaction' | 'reporting' = 
+          monthEndDates.has(snapshot.date) ? 'reporting' : 'transaction';
+        
+        events.push({
+          date: snapshot.date,
+          grossYield: knownYield,
+          purpose,
+          recordedAum: snapshot.aumBefore,
+        });
+      }
+    }
+
+    return events;
+  }
+
+  private getKnownYieldAmounts(sheetName: string): Map<string, number> {
+    const yields = new Map<string, number>();
+    
+    if (sheetName === 'XRP Yield Fund') {
+      yields.set('2025-11-30', 355);
+      yields.set('2025-12-15', 487.8);
+      yields.set('2026-01-01', 1156.32);
+      yields.set('2026-02-01', 0.6);
+    }
+    
+    return yields;
+  }
+
+  private getMonthEndDates(): Set<string> {
+    return new Set([
+      '2025-11-30',
+      '2025-12-31',
+      '2026-01-01',
+      '2026-01-31',
+      '2026-02-01',
+      '2026-02-28',
+    ]);
+  }
+
+  private excelSerialToDate(serial: unknown): string {
+    let numValue: number;
+    
+    if (typeof serial === 'number') {
+      numValue = serial;
+    } else if (typeof serial === 'string') {
+      numValue = parseFloat(serial);
+    } else {
+      return String(serial || '');
+    }
+    
+    if (isNaN(numValue) || numValue < 1) {
+      return String(serial || '');
+    }
+    
+    const date = new Date((numValue - 25569) * 86400 * 1000);
+    return date.toISOString().split('T')[0];
+  }
+
+  private parseNumericValue(val: unknown): number {
+    if (typeof val === 'number') {
+      return val;
+    }
+    if (typeof val === 'string') {
+      const parsed = parseFloat(val.replace(/,/g, ''));
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+  }
+
+  private determineYieldPurpose(dateStr: string): 'transaction' | 'reporting' {
+    const date = new Date(dateStr);
+    const day = date.getDate();
+    const month = date.getMonth();
+    
+    if (day >= 28 || day <= 2) {
+      return 'reporting';
+    }
+    
+    return 'transaction';
+  }
+
+  async getInvestorSnapshots(sheetName: string): Promise<Record<string, Record<string, number>>> {
+    if (!this.workbook) {
+      throw new Error('Workbook not loaded. Call load() first.');
+    }
+
+    const sheet = this.workbook.Sheets[sheetName];
+    if (!sheet) {
+      return {};
+    }
+
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false }) as unknown[][];
+    if (jsonData.length < 10) {
+      return {};
+    }
+
+    const headerRow = jsonData[7]; // Dates row
+    const result: Record<string, Record<string, number>> = {};
+
+    for (let rowNum = 8; rowNum <= 13 && rowNum < jsonData.length; rowNum++) {
+      const row = jsonData[rowNum];
+      if (!row || row.length < 1) continue;
+
+      const investorName = String(row[0] || '').trim();
+      if (!investorName || investorName === 'x' || investorName === 'Investors') continue;
+
+      const snapshots: Record<string, number> = {};
+      for (let i = 3; i < headerRow.length; i++) {
+        const date = this.excelSerialToDate(headerRow[i]);
+        const value = this.parseNumericValue(row[i]);
+        if (date && value > 0) {
+          snapshots[date] = value;
+        }
+      }
+
+      if (Object.keys(snapshots).length > 0) {
+        result[investorName] = snapshots;
       }
     }
 

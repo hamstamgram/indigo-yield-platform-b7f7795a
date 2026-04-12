@@ -1,11 +1,16 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { ParsedFundData, ExcelTransaction } from './excelParser';
+import { ParsedFundData, ExcelTransaction, YieldEvent, AumSnapshot } from './excelParser';
 import { TransactionMapper } from './transactionMapper';
 
 interface FinancialTransactionResult {
   success: boolean;
   transactionId?: string;
   error?: string;
+}
+
+interface EngineState {
+  totalAum: number;
+  positions: Record<string, number>;
 }
 
 interface FundState {
@@ -17,6 +22,12 @@ interface FundState {
   }>;
   transactions: string[]; // transaction IDs
   yieldDistributions: string[]; // distribution IDs
+  engineStates: Record<string, EngineState>; // date -> state snapshot
+  yieldEvents: Array<{
+    periodEnd: string;
+    grossYield: number;
+    purpose: string;
+  }>;
 }
 
 export class FundReplayer {
@@ -24,17 +35,23 @@ export class FundReplayer {
   private transactionMapper: TransactionMapper;
   private fundId: string;
   private investorIdMap: Map<string, string>; // investorName -> investorId
+  private investorIdToName: Map<string, string>; // investorId -> investorName
   private fundState: FundState;
+  private adminId: string;
 
-  constructor(supabase: SupabaseClient) {
+  constructor(supabase: SupabaseClient, adminId: string = 'cd60cf98-8ae8-436d-b53c-d1b3cbca3c47') {
     this.supabase = supabase;
     this.transactionMapper = new TransactionMapper();
     this.fundId = '';
     this.investorIdMap = new Map();
+    this.investorIdToName = new Map();
+    this.adminId = adminId;
     this.fundState = {
       positions: {},
       transactions: [],
       yieldDistributions: [],
+      engineStates: {},
+      yieldEvents: [],
     };
   }
 
@@ -65,6 +82,7 @@ export class FundReplayer {
       // For validation, we'll use predefined IDs or create them
       const investorId = await this.getOrCreateInvestor(investor.name);
       this.investorIdMap.set(investor.name, investorId);
+      this.investorIdToName.set(investorId, investor.name);
 
       // Create profile
       await this.supabase.from('profiles').upsert({
@@ -108,33 +126,97 @@ export class FundReplayer {
   }
 
   /**
-   * Replay the complete fund lifecycle
+   * Replay the complete fund lifecycle with yield distributions and snapshots
    */
-  async replayLifecycle(fundData: ParsedFundData): Promise<FundState> {
-    // Group transactions by date to handle same-day transactions correctly
+  async replayLifecycle(
+    fundData: ParsedFundData,
+    yieldEvents: YieldEvent[],
+    snapshots: AumSnapshot[]
+  ): Promise<FundState> {
     const groupedTxns = this.transactionMapper.groupTransactionsByDate(fundData.transactions);
-    
-    // Process each day in chronological order
-    for (const [dateString, transactions] of Array.from(groupedTxns.entries()).sort()) {
+    const sortedDates = Array.from(groupedTxns.entries()).sort((a, b) => 
+      new Date(a[0]).getTime() - new Date(b[0]).getTime()
+    );
+
+    // Capture initial state
+    await this.captureState(sortedDates[0]?.[0] || '1970-01-01');
+
+    for (const [dateString, transactions] of sortedDates) {
+      // Apply yield distribution BEFORE transactions if there's a yield event for this date
+      const yieldForDate = yieldEvents.filter(e => e.date === dateString);
+      for (const yieldEvent of yieldForDate) {
+        await this.applyYieldDistribution(yieldEvent);
+      }
+
       // Process all transactions for this day
       for (const excelTx of transactions) {
         await this.processTransaction(excelTx, fundData);
       }
-      
-      // Check if we need to apply yield distribution for month-end
-      // This is simplified - in reality we'd check if it's the last day of the month
-      // and if there's a yield event recorded in Excel
-      const date = new Date(dateString);
-      if (date.getDate() === 28 || date.getDate() === 30 || date.getDate() === 31) {
-        // Simple heuristic - real implementation would check Excel for yield events
-        await this.applyMonthEndYield(dateString);
-      }
+
+      // Capture state after all operations for this date
+      await this.captureState(dateString);
     }
-    
-    // Apply any final yield distribution
-    await this.applyFinalYieldIfNeeded(fundData);
-    
+
     return this.fundState;
+  }
+
+  /**
+   * Capture current engine state at a given date checkpoint
+   */
+  private async captureState(date: string): Promise<void> {
+    const { data: positions, error } = await this.supabase
+      .from('investor_positions')
+      .select('investor_id, current_value')
+      .eq('fund_id', this.fundId);
+
+    if (error || !positions) {
+      console.error(`Failed to capture state for ${date}:`, error);
+      return;
+    }
+
+    const positionMap: Record<string, number> = {};
+    let totalAum = 0;
+
+    for (const pos of positions) {
+      const investorName = this.investorIdToName.get(pos.investor_id) || pos.investor_id;
+      const value = Number(pos.current_value) || 0;
+      positionMap[investorName] = value;
+      totalAum += value;
+    }
+
+    this.fundState.engineStates[date] = {
+      totalAum,
+      positions: positionMap,
+    };
+  }
+
+  /**
+   * Apply yield distribution from Excel event data
+   */
+  async applyYieldDistribution(yieldEvent: YieldEvent): Promise<void> {
+    const { data, error } = await this.supabase
+      .rpc('apply_segmented_yield_distribution_v5', {
+        p_fund_id: this.fundId,
+        p_period_end: yieldEvent.date,
+        p_recorded_aum: yieldEvent.recordedAum,
+        p_purpose: yieldEvent.purpose,
+        p_admin_id: this.adminId,
+        p_yield_amount: yieldEvent.grossYield,
+      });
+
+    if (error) {
+      console.error(`Failed to apply yield distribution for ${yieldEvent.date}:`, error.message);
+      throw error;
+    }
+
+    if (data) {
+      this.fundState.yieldDistributions.push(data.id || data.distribution_id || String(data));
+      this.fundState.yieldEvents.push({
+        periodEnd: yieldEvent.date,
+        grossYield: yieldEvent.grossYield,
+        purpose: yieldEvent.purpose,
+      });
+    }
   }
 
   /**
@@ -173,25 +255,6 @@ export class FundReplayer {
     if (data) {
       this.fundState.transactions.push(data);
     }
-  }
-
-  /**
-   * Apply month-end yield distribution
-   */
-  private async applyMonthEndYield(dateString: string): Promise<void> {
-    // This would call the yield distribution RPC
-    // For now, we'll skip as the exact logic depends on the yield calculation
-    // In a full implementation, this would:
-    // 1. Calculate yield based on period performance
-    // 2. Call apply_segmented_yield_distribution_v5
-    // 3. Record the distribution ID
-  }
-
-  /**
-   * Apply final yield if needed based on Excel data
-   */
-  private async applyFinalYieldIfNeeded(fundData: ParsedFundData): Promise<void> {
-    // Similar to above - would check Excel for final yield data
   }
 
   /**
@@ -276,6 +339,8 @@ export class FundReplayer {
       positions: positionMap,
       transactions: [...this.fundState.transactions],
       yieldDistributions: [...this.fundState.yieldDistributions],
+      engineStates: { ...this.fundState.engineStates },
+      yieldEvents: [...this.fundState.yieldEvents],
     };
   }
 }
