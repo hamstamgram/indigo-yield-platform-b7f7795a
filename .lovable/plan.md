@@ -1,39 +1,40 @@
 
 
-# XRP Fund Reconciliation Fix
+# Database Restoration Plan
 
 ## What Happened
-Sam's 330,500.42 XRP withdrawal (Jan 2) was voided during testing, inflating his position by ~330k. The Excel treats it as real. Everything else cascaded from that.
+The Supabase project was reset to a blank state. The `public` schema is completely empty:
+- **0 tables** (should be 40+)
+- **0 functions** (should be 200+)
+- **0 triggers** (should be 68)
 
-## Actions Required
+Only 11 recent patch migrations (April 9-10) are recorded in `supabase_migrations.schema_migrations`, but they all reference non-existent objects (tables, functions, triggers) so they had no effect.
 
-### 1. Un-void Sam's withdrawal (the main fix)
-- Transaction `43a80892-14ed-4c5c-b4b7-8042b9c34629` — WITHDRAWAL of -330,500.42 XRP on 2026-01-02
-- Use the `unvoid_transaction` RPC to restore it
-- Also update the withdrawal_request `8b440397` status from `voided` back to `completed`
-- The ledger trigger will automatically subtract 330,500.42 from Sam's position
+The codebase has **101 migration files** including the `20260307000000_definitive_baseline.sql` (24,217 lines) which defines the entire schema.
 
-### 2. Void the Jan 5 deposits (not in Excel)
-- Ryan's 63.284 XRP deposit — not in Excel investments sheet
-- Indigo's 253.136 XRP deposit — not in Excel investments sheet
-- These were manual top-ups that don't exist in the source of truth
+## Recovery Options
 
-### 3. Void the stray 0.1 YIELD to Indigo (Nov 30)
-- Orphan YIELD with no distribution_id — test artifact
+### Option A: Re-apply via Supabase CLI (Recommended)
+1. Use `supabase db reset` on the linked project to replay all 101 migrations from scratch
+2. This will recreate all tables, functions, triggers, enums, RLS policies, and seed data
+3. After schema restoration, re-seed the financial data from the Excel source of truth
 
-### 4. Verify Jan 31 yield is now correct
-- With the withdrawal restored, AUM ~795 becomes the correct value
-- The existing Jan 31 yield distribution (which used AUM=795) would then be correct
-- Verify the yield amounts match Excel expectations
+### Option B: Manual baseline restoration
+1. Clear the `supabase_migrations.schema_migrations` table (remove the 11 stale records)
+2. Apply the `20260307000000_definitive_baseline.sql` migration first (creates all tables, types, functions, triggers)
+3. Apply the remaining 100 migrations in version order
+4. Verify with `run_integrity_pack`
 
-### 5. Run integrity pack
-- Confirm zero violations after all corrections
+### Option C: Supabase Dashboard restoration
+1. If PITR (Point-in-Time Recovery) is enabled on the Supabase project, restore to a point before April 9 when the database was intact
+2. Then apply only the April 9-10 migrations that were needed
 
-## Technical Details
-- Un-void uses the `unvoid_transaction` RPC which sets `is_voided = false` and the `fn_ledger_drives_position` trigger automatically restores the position effect
-- Withdrawal request status update requires a migration since the state machine trigger guards transitions — we'll use `set_config('indigo.canonical_rpc', 'true', true)` to bypass
-- Void operations for items 2-3 use the existing `void_transaction` RPC
+## What This Means for the Go-Live Verification
+The reconciliation work we were doing is paused until the database is restored. Once the schema is back:
+1. All financial data (transactions, positions, yield distributions) will need to be re-seeded or restored
+2. The XRP fund fixes (un-voiding Sam's withdrawal, etc.) will need to be re-applied
+3. The full 5-fund reconciliation against the Excel can then proceed
 
-## Expected Final State (XRP Fund)
-After fixes, Sam's position drops from ~330,202 to near 0, matching the Excel. Total fund AUM drops to ~795 range. Jan 31 yield distribution becomes correct.
+## Recommendation
+**Check if PITR is available first** — that's the fastest path to full restoration with all data intact. If not, Option B (manual baseline + sequential migrations) is the safest approach since we control every step.
 
