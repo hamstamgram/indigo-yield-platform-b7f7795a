@@ -28,7 +28,7 @@ interface Fund {
 }
 
 export default function YieldHistoryPage() {
-  const { data: fundsData = [] } = useFunds(true);
+  const { data: fundsData = [] } = useFunds({ status: 'active' });
   const funds: Fund[] = fundsData.map((f) => ({
     id: f.id,
     code: f.code,

@@ -17,7 +17,7 @@ import {
   Switch,
 } from "@/components/ui";
 import { AlertTriangle, Info, Loader2 } from "lucide-react";
-import { useActiveFunds, useInvestorsForTransaction } from "@/hooks";
+import { useFunds, useInvestorsForTransaction } from "@/hooks";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -55,7 +55,7 @@ export function AddTransactionDialog({
   const [investorError, setInvestorError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
-  const { data: funds, isLoading: fundsLoading } = useActiveFunds();
+  const { data: funds, isLoading: fundsLoading } = useFunds({ status: 'active' });
   const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorsForTransaction(open);
 
   const { form, isFirstInvestment, hasExistingPosition, isCheckingBalance, currentBalance } =

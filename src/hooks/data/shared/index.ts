@@ -3,8 +3,7 @@
  * Hooks used by both admin and investor contexts
  */
 
-// Active funds
-export { useActiveFunds, formatFundLabel, formatFundLabelFull } from "./useActiveFunds";
+
 
 // Asset data
 export { useAssetData } from "./useAssetData";
@@ -42,14 +41,13 @@ export {
   useCreateFund,
   useUpdateFund,
   useDeactivateFund,
+  formatFundLabel,
+  formatFundLabelFull,
   type CreateFundInput,
 } from "./useFunds";
 
-// Notification bell
-export { useNotificationBell } from "./useNotificationBell";
-
 // Notifications
-export { useNotifications, usePriceAlerts } from "./useNotifications";
+export { useNotifications, useNotificationBell, usePriceAlerts } from "./useNotifications";
 
 // Profile settings
 export {
@@ -140,8 +138,7 @@ export { useInvestorOptions, usePositionsForWithdrawal } from "./useWithdrawalFo
 // Storage
 export { useUploadFundLogo } from "./useStorage";
 
-// Available funds
-export { useAvailableFunds } from "./useAvailableFunds";
+
 
 // Live platform metrics
 export {

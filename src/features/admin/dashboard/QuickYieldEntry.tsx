@@ -34,7 +34,7 @@ export function QuickYieldEntry() {
   const [newAUM, setNewAUM] = useState<string>("");
 
   // Use the data hook for funds
-  const { data: baseFunds, isLoading: fundsLoading } = useFunds(true); // activeOnly
+  const { data: baseFunds, isLoading: fundsLoading } = useFunds({ status: 'active' });
 
   // Use the dashboard hook for AUM data
   const { data: funds = [], isLoading: aumLoading } = useFundsWithAUM(baseFunds);

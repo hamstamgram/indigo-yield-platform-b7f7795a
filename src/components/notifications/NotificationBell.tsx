@@ -5,7 +5,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Badge } from "@/components/ui";
 import { Bell, BellRing } from "lucide-react";
-import { useNotificationBell } from "@/hooks/data/shared/useNotificationBell";
+import { useNotificationBell } from "@/hooks";
 interface NotificationBellProps {
   className?: string;
 }
