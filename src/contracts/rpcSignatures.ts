@@ -152,8 +152,7 @@ export const RPC_FUNCTIONS = [
   "preview_segmented_yield_distribution_v5",
   "purge_fund_hard",
   "qa_fees_account_id",
-  "qa_fund_id",
-  "qa_investor_id",
+
   "queue_statement_deliveries",
   "raise_platform_error",
   "rebuild_position_from_ledger",
@@ -1289,22 +1288,7 @@ export const RPC_SIGNATURES = {
     requiredParams: [] as const,
     optionalParams: [] as const,
   },
-  qa_fund_id: {
-    name: "qa_fund_id" as const,
-    returnType: "string",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_asset"] as const,
-    optionalParams: [] as const,
-  },
-  qa_investor_id: {
-    name: "qa_investor_id" as const,
-    returnType: "string",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_key"] as const,
-    optionalParams: [] as const,
-  },
+
   queue_statement_deliveries: {
     name: "queue_statement_deliveries" as const,
     returnType: "Json;",
