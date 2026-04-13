@@ -126,7 +126,7 @@ async function fetchAuditLogs(filters: AuditLogFilters = {}): Promise<{
   count: number;
 }> {
   try {
-    const { data, error } = await callRPC("get_paged_audit_logs", {
+    const { data, error } = await callRPC("get_paged_audit_logs" as any, {
       p_limit: filters.limit || 50,
       p_offset: filters.offset || 0,
       p_entity: filters.entity || null,

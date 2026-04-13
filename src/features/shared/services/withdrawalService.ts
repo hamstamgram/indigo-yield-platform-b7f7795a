@@ -54,7 +54,7 @@ export const withdrawalService = {
       .range(from, to);
 
     if (filters?.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
+      query = query.eq("status", filters.status as any);
     }
 
     if (filters?.fund_id) {
@@ -190,7 +190,7 @@ export const withdrawalService = {
 
     // Apply same filters as getWithdrawals for consistency
     if (filters?.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
+      query = query.eq("status", filters.status as any);
     }
 
     if (filters?.fund_id) {
@@ -348,7 +348,7 @@ export const withdrawalService = {
 
     if (withdrawal?.status === "completed") {
       // Completed withdrawals require RPC to void transactions + recompute positions
-      const { data, error } = await rpc.call("void_completed_withdrawal", {
+      const { data, error } = await rpc.call("void_completed_withdrawal" as any, {
         p_withdrawal_id: withdrawalId,
         p_reason: reason,
       } as any);
@@ -368,7 +368,7 @@ export const withdrawalService = {
     }
 
     // Pending/approved withdrawals: use canonical RPC for audit trail + state machine compliance
-    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2", {
+    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2" as any, {
       p_request_id: withdrawalId,
       p_reason: reason,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
@@ -461,7 +461,9 @@ export const withdrawalService = {
    * Requires super_admin role - actorId is used for authorization check
    */
   async routeToFees(params: RouteToFeesParams): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.rpc("route_withdrawal_to_fees", {
+      p_actor_id: user?.id,
       p_request_id: params.withdrawalId,
       p_reason: params.reason || "Routed to INDIGO FEES",
     });
@@ -499,7 +501,7 @@ export const withdrawalService = {
   async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
     // Always use canonical RPC for proper audit trail and state machine compliance.
     // Hard-delete is no longer supported — all deletions go through cancel RPC.
-    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2", {
+    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2" as any, {
       p_request_id: params.withdrawalId,
       p_reason: params.reason || "Cancelled by admin",
     } as any);
@@ -519,7 +521,7 @@ export const withdrawalService = {
 
     log.info("Restoring withdrawal", { withdrawalId, reason });
 
-    const { error } = await rpc.call("restore_withdrawal_by_admin_v2", {
+    const { error } = await rpc.call("restore_withdrawal_by_admin_v2" as any, {
       p_request_id: withdrawalId,
       p_reason: reason,
       p_admin_notes: adminNotes

@@ -103,7 +103,7 @@ export async function applyYieldDistribution(
   try {
     await callRPC("recalculate_fund_aum_for_date", {
       p_fund_id: fundId,
-      p_target_date: formatDateForDB(new Date()),
+      p_date: formatDateForDB(new Date()),
     });
   } catch (aumRefreshError) {
     logWarn("applyYieldDistribution.aumRefresh", { fundId, error: aumRefreshError });

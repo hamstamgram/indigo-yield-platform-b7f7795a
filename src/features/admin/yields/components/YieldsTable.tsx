@@ -291,8 +291,8 @@ export function YieldsTable({
       ),
       className: "text-right text-blue-500/70",
       cell: (record: DistributionRow) => {
-        return record.total_fee_credit != null && Number(record.total_fee_credit) > 0 ? (
-          <FinancialValue value={record.total_fee_credit} asset={getFund(record.fund_id)?.asset} />
+        return record.total_fee_amount != null && Number(record.total_fee_amount) > 0 ? (
+          <FinancialValue value={record.total_fee_amount} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
         );

@@ -29,7 +29,7 @@ export type DistributionRow = {
   /** @precision NUMERIC */
   total_ib: number | string | null;
   /** @precision NUMERIC */
-  total_fee_credit: number | string | null;
+  total_fee_amount: number | string | null;
   /** @precision NUMERIC */
   net_yield: number | string | null;
   /** @precision NUMERIC */
@@ -135,7 +135,7 @@ export async function fetchYieldDistributionsPageData(
         gross_yield,
         total_fees,
         total_ib,
-        total_fee_credit,
+        total_fee_amount,
         net_yield,
         recorded_aum,
         allocation_count,

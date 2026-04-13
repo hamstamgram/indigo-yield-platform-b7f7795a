@@ -205,6 +205,7 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
 > {
   const { data, error } = await callRPC("get_fund_composition", {
     p_fund_id: fundId,
+    p_date: new Date().toISOString().split('T')[0],
   });
 
   if (error) {

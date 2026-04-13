@@ -12,8 +12,471 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      _fee_schedule_backup: {
+        Row: {
+          created_at: string | null
+          effective_date: string | null
+          end_date: string | null
+          fee_pct: number | null
+          fund_id: string | null
+          id: string | null
+          investor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          effective_date?: string | null
+          end_date?: string | null
+          fee_pct?: number | null
+          fund_id?: string | null
+          id?: string | null
+          investor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          effective_date?: string | null
+          end_date?: string | null
+          fee_pct?: number | null
+          fund_id?: string | null
+          id?: string | null
+          investor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      _fund_aum_backup: {
+        Row: {
+          as_of_date: string | null
+          aum_date: string | null
+          created_at: string | null
+          created_by: string | null
+          fund_id: string | null
+          id: string | null
+          is_month_end: boolean | null
+          is_voided: boolean | null
+          nav_per_share: number | null
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          source: string | null
+          temporal_lock_bypass: boolean | null
+          total_aum: number | null
+          total_shares: number | null
+          updated_at: string | null
+          updated_by: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+          voided_by_profile_id: string | null
+        }
+        Insert: {
+          as_of_date?: string | null
+          aum_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          fund_id?: string | null
+          id?: string | null
+          is_month_end?: boolean | null
+          is_voided?: boolean | null
+          nav_per_share?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          source?: string | null
+          temporal_lock_bypass?: boolean | null
+          total_aum?: number | null
+          total_shares?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_profile_id?: string | null
+        }
+        Update: {
+          as_of_date?: string | null
+          aum_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          fund_id?: string | null
+          id?: string | null
+          is_month_end?: boolean | null
+          is_voided?: boolean | null
+          nav_per_share?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          source?: string | null
+          temporal_lock_bypass?: boolean | null
+          total_aum?: number | null
+          total_shares?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_profile_id?: string | null
+        }
+        Relationships: []
+      }
+      _funds_backup: {
+        Row: {
+          asset: string | null
+          code: string | null
+          cooling_off_hours: number | null
+          created_at: string | null
+          fund_class: string | null
+          high_water_mark: number | null
+          id: string | null
+          inception_date: string | null
+          large_withdrawal_threshold: number | null
+          lock_period_days: number | null
+          logo_url: string | null
+          max_daily_yield_pct: number | null
+          mgmt_fee_bps: number | null
+          min_investment: number | null
+          min_withdrawal_amount: number | null
+          name: string | null
+          perf_fee_bps: number | null
+          status: Database["public"]["Enums"]["fund_status"] | null
+          strategy: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset?: string | null
+          code?: string | null
+          cooling_off_hours?: number | null
+          created_at?: string | null
+          fund_class?: string | null
+          high_water_mark?: number | null
+          id?: string | null
+          inception_date?: string | null
+          large_withdrawal_threshold?: number | null
+          lock_period_days?: number | null
+          logo_url?: string | null
+          max_daily_yield_pct?: number | null
+          mgmt_fee_bps?: number | null
+          min_investment?: number | null
+          min_withdrawal_amount?: number | null
+          name?: string | null
+          perf_fee_bps?: number | null
+          status?: Database["public"]["Enums"]["fund_status"] | null
+          strategy?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset?: string | null
+          code?: string | null
+          cooling_off_hours?: number | null
+          created_at?: string | null
+          fund_class?: string | null
+          high_water_mark?: number | null
+          id?: string | null
+          inception_date?: string | null
+          large_withdrawal_threshold?: number | null
+          lock_period_days?: number | null
+          logo_url?: string | null
+          max_daily_yield_pct?: number | null
+          mgmt_fee_bps?: number | null
+          min_investment?: number | null
+          min_withdrawal_amount?: number | null
+          name?: string | null
+          perf_fee_bps?: number | null
+          status?: Database["public"]["Enums"]["fund_status"] | null
+          strategy?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      _ib_schedule_backup: {
+        Row: {
+          created_at: string | null
+          effective_date: string | null
+          end_date: string | null
+          fund_id: string | null
+          ib_percentage: number | null
+          id: string | null
+          investor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          effective_date?: string | null
+          end_date?: string | null
+          fund_id?: string | null
+          ib_percentage?: number | null
+          id?: string | null
+          investor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          effective_date?: string | null
+          end_date?: string | null
+          fund_id?: string | null
+          ib_percentage?: number | null
+          id?: string | null
+          investor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      _positions_backup: {
+        Row: {
+          aum_percentage: number | null
+          cost_basis: number | null
+          cumulative_yield_earned: number | null
+          current_value: number | null
+          fund_class: string | null
+          fund_id: string | null
+          high_water_mark: number | null
+          investor_id: string | null
+          is_active: boolean | null
+          last_transaction_date: string | null
+          last_yield_crystallization_date: string | null
+          lock_until_date: string | null
+          mgmt_fees_paid: number | null
+          perf_fees_paid: number | null
+          realized_pnl: number | null
+          shares: number | null
+          unrealized_pnl: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          aum_percentage?: number | null
+          cost_basis?: number | null
+          cumulative_yield_earned?: number | null
+          current_value?: number | null
+          fund_class?: string | null
+          fund_id?: string | null
+          high_water_mark?: number | null
+          investor_id?: string | null
+          is_active?: boolean | null
+          last_transaction_date?: string | null
+          last_yield_crystallization_date?: string | null
+          lock_until_date?: string | null
+          mgmt_fees_paid?: number | null
+          perf_fees_paid?: number | null
+          realized_pnl?: number | null
+          shares?: number | null
+          unrealized_pnl?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          aum_percentage?: number | null
+          cost_basis?: number | null
+          cumulative_yield_earned?: number | null
+          current_value?: number | null
+          fund_class?: string | null
+          fund_id?: string | null
+          high_water_mark?: number | null
+          investor_id?: string | null
+          is_active?: boolean | null
+          last_transaction_date?: string | null
+          last_yield_crystallization_date?: string | null
+          lock_until_date?: string | null
+          mgmt_fees_paid?: number | null
+          perf_fees_paid?: number | null
+          realized_pnl?: number | null
+          shares?: number | null
+          unrealized_pnl?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      _profiles_backup: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"] | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          ib_parent_id: string | null
+          ib_percentage: number | null
+          id: string | null
+          is_admin: boolean | null
+          last_name: string | null
+          status: string | null
+        }
+        Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          ib_parent_id?: string | null
+          ib_percentage?: number | null
+          id?: string | null
+          is_admin?: boolean | null
+          last_name?: string | null
+          status?: string | null
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          ib_parent_id?: string | null
+          ib_percentage?: number | null
+          id?: string | null
+          is_admin?: boolean | null
+          last_name?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      _transactions_backup: {
+        Row: {
+          amount: number | null
+          approved_at: string | null
+          approved_by: string | null
+          asset: string | null
+          balance_after: number | null
+          balance_before: number | null
+          correction_id: string | null
+          created_at: string | null
+          created_by: string | null
+          distribution_id: string | null
+          fund_class: string | null
+          fund_id: string | null
+          id: string | null
+          investor_id: string | null
+          is_system_generated: boolean | null
+          is_voided: boolean | null
+          meta: Json | null
+          notes: string | null
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          reference_id: string | null
+          source: Database["public"]["Enums"]["tx_source"] | null
+          transfer_id: string | null
+          tx_date: string | null
+          tx_hash: string | null
+          tx_subtype: string | null
+          type: Database["public"]["Enums"]["tx_type"] | null
+          value_date: string | null
+          visibility_scope:
+            | Database["public"]["Enums"]["visibility_scope"]
+            | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+          voided_by_profile_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          asset?: string | null
+          balance_after?: number | null
+          balance_before?: number | null
+          correction_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          distribution_id?: string | null
+          fund_class?: string | null
+          fund_id?: string | null
+          id?: string | null
+          investor_id?: string | null
+          is_system_generated?: boolean | null
+          is_voided?: boolean | null
+          meta?: Json | null
+          notes?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          reference_id?: string | null
+          source?: Database["public"]["Enums"]["tx_source"] | null
+          transfer_id?: string | null
+          tx_date?: string | null
+          tx_hash?: string | null
+          tx_subtype?: string | null
+          type?: Database["public"]["Enums"]["tx_type"] | null
+          value_date?: string | null
+          visibility_scope?:
+            | Database["public"]["Enums"]["visibility_scope"]
+            | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_profile_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          asset?: string | null
+          balance_after?: number | null
+          balance_before?: number | null
+          correction_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          distribution_id?: string | null
+          fund_class?: string | null
+          fund_id?: string | null
+          id?: string | null
+          investor_id?: string | null
+          is_system_generated?: boolean | null
+          is_voided?: boolean | null
+          meta?: Json | null
+          notes?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          reference_id?: string | null
+          source?: Database["public"]["Enums"]["tx_source"] | null
+          transfer_id?: string | null
+          tx_date?: string | null
+          tx_hash?: string | null
+          tx_subtype?: string | null
+          type?: Database["public"]["Enums"]["tx_type"] | null
+          value_date?: string | null
+          visibility_scope?:
+            | Database["public"]["Enums"]["visibility_scope"]
+            | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_profile_id?: string | null
+        }
+        Relationships: []
+      }
+      _user_roles_backup: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_alerts: {
         Row: {
           acknowledged_at: string | null
@@ -637,6 +1100,116 @@ export type Database = {
           },
         ]
       }
+      fund_aum_events: {
+        Row: {
+          closing_aum: number
+          created_at: string | null
+          created_by: string | null
+          event_date: string
+          event_ts: string
+          fund_id: string
+          id: string
+          is_voided: boolean | null
+          opening_aum: number
+          post_flow_aum: number | null
+          pre_flow_aum: number | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          trigger_reference: string | null
+          trigger_type: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          closing_aum?: number
+          created_at?: string | null
+          created_by?: string | null
+          event_date: string
+          event_ts?: string
+          fund_id: string
+          id?: string
+          is_voided?: boolean | null
+          opening_aum?: number
+          post_flow_aum?: number | null
+          pre_flow_aum?: number | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          trigger_reference?: string | null
+          trigger_type?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          closing_aum?: number
+          created_at?: string | null
+          created_by?: string | null
+          event_date?: string
+          event_ts?: string
+          fund_id?: string
+          id?: string
+          is_voided?: boolean | null
+          opening_aum?: number
+          post_flow_aum?: number | null
+          pre_flow_aum?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
+          trigger_reference?: string | null
+          trigger_type?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_aum_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_aum_events_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_aum_events_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_aum_events_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_aum_events_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_aum_events_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_aum_events_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fund_daily_aum: {
         Row: {
           as_of_date: string | null
@@ -760,6 +1333,112 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      fund_yield_snapshots: {
+        Row: {
+          closing_aum: number
+          created_at: string | null
+          created_by: string | null
+          days_in_period: number | null
+          fees_amount: number | null
+          fund_id: string
+          gross_yield_amount: number | null
+          gross_yield_pct: number | null
+          ib_commission_amount: number | null
+          id: string
+          investor_count: number | null
+          net_yield_amount: number | null
+          opening_aum: number
+          period_end: string | null
+          period_start: string | null
+          snapshot_date: string
+          trigger_reference: string | null
+          trigger_type: string
+        }
+        Insert: {
+          closing_aum: number
+          created_at?: string | null
+          created_by?: string | null
+          days_in_period?: number | null
+          fees_amount?: number | null
+          fund_id: string
+          gross_yield_amount?: number | null
+          gross_yield_pct?: number | null
+          ib_commission_amount?: number | null
+          id?: string
+          investor_count?: number | null
+          net_yield_amount?: number | null
+          opening_aum: number
+          period_end?: string | null
+          period_start?: string | null
+          snapshot_date: string
+          trigger_reference?: string | null
+          trigger_type: string
+        }
+        Update: {
+          closing_aum?: number
+          created_at?: string | null
+          created_by?: string | null
+          days_in_period?: number | null
+          fees_amount?: number | null
+          fund_id?: string
+          gross_yield_amount?: number | null
+          gross_yield_pct?: number | null
+          ib_commission_amount?: number | null
+          id?: string
+          investor_count?: number | null
+          net_yield_amount?: number | null
+          opening_aum?: number
+          period_end?: string | null
+          period_start?: string | null
+          snapshot_date?: string
+          trigger_reference?: string | null
+          trigger_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_yield_snapshots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
           },
         ]
       }
@@ -1350,6 +2029,91 @@ export type Database = {
           },
           {
             foreignKeyName: "ib_commission_schedule_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_daily_balance: {
+        Row: {
+          balance_date: string
+          created_at: string | null
+          deposits: number | null
+          end_of_day_balance: number
+          fees_debited: number | null
+          fund_id: string
+          id: string
+          investor_id: string
+          start_of_day_balance: number
+          withdrawals: number | null
+          yield_credited: number | null
+        }
+        Insert: {
+          balance_date: string
+          created_at?: string | null
+          deposits?: number | null
+          end_of_day_balance?: number
+          fees_debited?: number | null
+          fund_id: string
+          id?: string
+          investor_id: string
+          start_of_day_balance?: number
+          withdrawals?: number | null
+          yield_credited?: number | null
+        }
+        Update: {
+          balance_date?: string
+          created_at?: string | null
+          deposits?: number | null
+          end_of_day_balance?: number
+          fees_debited?: number | null
+          fund_id?: string
+          id?: string
+          investor_id?: string
+          start_of_day_balance?: number
+          withdrawals?: number | null
+          yield_credited?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_daily_balance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_daily_balance_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -2181,6 +2945,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_invites: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          intended_role: string | null
+          invite_code: string
+          status: string | null
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          intended_role?: string | null
+          invite_code: string
+          status?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          intended_role?: string | null
+          invite_code?: string
+          status?: string | null
+          used_at?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -3138,6 +3938,7 @@ export type Database = {
           fund_id: string
           id: string
           investor_id: string | null
+          is_full_exit: boolean | null
           notes: string | null
           processed_amount: number | null
           processed_at: string | null
@@ -3169,6 +3970,7 @@ export type Database = {
           fund_id: string
           id?: string
           investor_id?: string | null
+          is_full_exit?: boolean | null
           notes?: string | null
           processed_amount?: number | null
           processed_at?: string | null
@@ -3200,6 +4002,7 @@ export type Database = {
           fund_id?: string
           id?: string
           investor_id?: string | null
+          is_full_exit?: boolean | null
           notes?: string | null
           processed_amount?: number | null
           processed_at?: string | null
@@ -4437,6 +5240,101 @@ export type Database = {
           },
         ]
       }
+      v_ledger_position_mismatches: {
+        Row: {
+          fund_id: string | null
+          investor_id: string | null
+          ledger_value: number | null
+          mismatch: number | null
+          position_value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund_id"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund_id"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund_id"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund_id"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund_id"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_investor_id"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_ledger_reconciliation: {
         Row: {
           asset: string | null
@@ -5294,23 +6192,9 @@ export type Database = {
       apply_investor_transaction:
         | {
             Args: {
-              p_admin_id?: string
-              p_amount: number
-              p_distribution_id?: string
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_reference_id: string
-              p_tx_date: string
-              p_tx_type: Database["public"]["Enums"]["tx_type"]
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
               p_admin_id: string
               p_amount: number
+              p_distribution_id?: string
               p_fund_id: string
               p_investor_id: string
               p_notes?: string
@@ -5337,40 +6221,18 @@ export type Database = {
             }
             Returns: Json
           }
-      apply_segmented_yield_distribution_v5:
-        | {
-            Args: {
-              p_admin_id?: string
-              p_fund_id: string
-              p_period_end: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_recorded_aum: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_distribution_date?: string
-              p_fund_id: string
-              p_period_end: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_recorded_aum: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_distribution_date?: string
-              p_fund_id: string
-              p_opening_aum?: number
-              p_period_end: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_recorded_aum: number
-            }
-            Returns: Json
-          }
+      apply_segmented_yield_distribution_v5: {
+        Args: {
+          p_admin_id?: string
+          p_distribution_date?: string
+          p_fund_id: string
+          p_opening_aum?: number
+          p_period_end: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_recorded_aum: number
+        }
+        Returns: Json
+      }
       apply_transaction_with_crystallization: {
         Args: {
           p_admin_id?: string
@@ -5380,7 +6242,7 @@ export type Database = {
           p_investor_id: string
           p_new_total_aum?: number
           p_notes?: string
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_purpose?: string
           p_reference_id: string
           p_tx_date: string
           p_tx_type: string
@@ -5545,16 +6407,29 @@ export type Database = {
           variance: number
         }[]
       }
-      check_aum_reconciliation: {
-        Args: {
-          p_as_of_date: string
-          p_fund_id: string
-          p_tolerance_pct?: number
-        }
-        Returns: Json
-      }
+      check_aum_reconciliation:
+        | {
+            Args: {
+              p_as_of_date: string
+              p_fund_id: string
+              p_tolerance_pct?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_as_of_date?: string
+              p_fund_id: string
+              p_tolerance?: number
+            }
+            Returns: Json
+          }
       check_duplicate_ib_allocations: { Args: never; Returns: number }
       check_duplicate_transaction_refs: { Args: never; Returns: number }
+      check_historical_lock: {
+        Args: { p_date: string; p_fund_id: string; p_is_update?: boolean }
+        Returns: boolean
+      }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
       check_platform_data_integrity: { Args: never; Returns: Json }
       check_transaction_sources: {
@@ -5761,6 +6636,10 @@ export type Database = {
           event_ts: string
         }[]
       }
+      get_fees_account_for_fund: {
+        Args: { p_fund_id: string }
+        Returns: string
+      }
       get_fund_aum_as_of: {
         Args: {
           p_as_of_date: string
@@ -5850,7 +6729,7 @@ export type Database = {
         }[]
       }
       get_ib_parent_candidates: {
-        Args: { p_exclude_id: string }
+        Args: { p_exclude_id?: string }
         Returns: {
           email_masked: string
           first_name: string
@@ -6266,17 +7145,15 @@ export type Database = {
         Returns: Json
       }
       recalculate_all_aum: { Args: never; Returns: Json }
-      recalculate_fund_aum_for_date:
-        | {
-            Args: {
-              p_actor_id?: string
-              p_date: string
-              p_fund_id: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-            }
-            Returns: Json
-          }
-        | { Args: { p_fund_id: string; p_target_date: string }; Returns: Json }
+      recalculate_fund_aum_for_date: {
+        Args: {
+          p_actor_id?: string
+          p_date: string
+          p_fund_id: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Returns: Json
+      }
       recompute_investor_position: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: undefined
@@ -6348,7 +7225,10 @@ export type Database = {
         Args: { p_minutes?: number; p_period_id: string }
         Returns: Json
       }
-      require_admin: { Args: { p_operation?: string }; Returns: undefined }
+      require_admin: {
+        Args: { p_admin_id?: string; p_operation?: string }
+        Returns: undefined
+      }
       require_super_admin:
         | { Args: never; Returns: string }
         | {
@@ -6653,7 +7533,11 @@ export type Database = {
         Returns: number
       }
       void_transaction: {
-        Args: { p_admin_id: string; p_reason: string; p_transaction_id: string }
+        Args: {
+          p_admin_id: string
+          p_reason?: string
+          p_transaction_id: string
+        }
         Returns: Json
       }
       void_transactions_bulk: {
@@ -6851,6 +7735,483 @@ export type Database = {
       [_ in never]: never
     }
   }
+  storage: {
+    Tables: {
+      buckets: {
+        Row: {
+          allowed_mime_types: string[] | null
+          avif_autodetection: boolean | null
+          created_at: string | null
+          file_size_limit: number | null
+          id: string
+          name: string
+          owner: string | null
+          owner_id: string | null
+          public: boolean | null
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id: string
+          name: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id?: string
+          name?: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      buckets_analytics: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          format: string
+          id: string
+          name: string
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          format?: string
+          id?: string
+          name: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          format?: string
+          id?: string
+          name?: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      buckets_vectors: {
+        Row: {
+          created_at: string
+          id: string
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      migrations: {
+        Row: {
+          executed_at: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Insert: {
+          executed_at?: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Update: {
+          executed_at?: string | null
+          hash?: string
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      objects: {
+        Row: {
+          bucket_id: string | null
+          created_at: string | null
+          id: string
+          last_accessed_at: string | null
+          metadata: Json | null
+          name: string | null
+          owner: string | null
+          owner_id: string | null
+          path_tokens: string[] | null
+          updated_at: string | null
+          user_metadata: Json | null
+          version: string | null
+        }
+        Insert: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Update: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objects_bucketId_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          id: string
+          in_progress_size: number
+          key: string
+          metadata: Json | null
+          owner_id: string | null
+          upload_signature: string
+          user_metadata: Json | null
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          id: string
+          in_progress_size?: number
+          key: string
+          metadata?: Json | null
+          owner_id?: string | null
+          upload_signature: string
+          user_metadata?: Json | null
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          id?: string
+          in_progress_size?: number
+          key?: string
+          metadata?: Json | null
+          owner_id?: string | null
+          upload_signature?: string
+          user_metadata?: Json | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads_parts: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          etag: string
+          id: string
+          key: string
+          owner_id: string | null
+          part_number: number
+          size: number
+          upload_id: string
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          etag: string
+          id?: string
+          key: string
+          owner_id?: string | null
+          part_number: number
+          size?: number
+          upload_id: string
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          etag?: string
+          id?: string
+          key?: string
+          owner_id?: string | null
+          part_number?: number
+          size?: number
+          upload_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "s3_multipart_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vector_indexes: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          data_type: string
+          dimension: number
+          distance_metric: string
+          id: string
+          metadata_configuration: Json | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          data_type: string
+          dimension: number
+          distance_metric: string
+          id?: string
+          metadata_configuration?: Json | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          data_type?: string
+          dimension?: number
+          distance_metric?: string
+          id?: string
+          metadata_configuration?: Json | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vector_indexes_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets_vectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      allow_any_operation: {
+        Args: { expected_operations: string[] }
+        Returns: boolean
+      }
+      allow_only_operation: {
+        Args: { expected_operation: string }
+        Returns: boolean
+      }
+      can_insert_object: {
+        Args: { bucketid: string; metadata: Json; name: string; owner: string }
+        Returns: undefined
+      }
+      delete_leaf_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] }
+        Returns: undefined
+      }
+      extension: { Args: { name: string }; Returns: string }
+      filename: { Args: { name: string }; Returns: string }
+      foldername: { Args: { name: string }; Returns: string[] }
+      get_common_prefix: {
+        Args: { p_delimiter: string; p_key: string; p_prefix: string }
+        Returns: string
+      }
+      get_level: { Args: { name: string }; Returns: number }
+      get_prefix: { Args: { name: string }; Returns: string }
+      get_prefixes: { Args: { name: string }; Returns: string[] }
+      get_size_by_bucket: {
+        Args: never
+        Returns: {
+          bucket_id: string
+          size: number
+        }[]
+      }
+      list_multipart_uploads_with_delimiter: {
+        Args: {
+          bucket_id: string
+          delimiter_param: string
+          max_keys?: number
+          next_key_token?: string
+          next_upload_token?: string
+          prefix_param: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          key: string
+        }[]
+      }
+      list_objects_with_delimiter: {
+        Args: {
+          _bucket_id: string
+          delimiter_param: string
+          max_keys?: number
+          next_token?: string
+          prefix_param: string
+          sort_order?: string
+          start_after?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      operation: { Args: never; Returns: string }
+      search: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      search_by_timestamp: {
+        Args: {
+          p_bucket_id: string
+          p_level: number
+          p_limit: number
+          p_prefix: string
+          p_sort_column: string
+          p_sort_column_after: string
+          p_sort_order: string
+          p_start_after: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          key: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      search_legacy_v1: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      search_v2: {
+        Args: {
+          bucket_name: string
+          levels?: number
+          limits?: number
+          prefix: string
+          sort_column?: string
+          sort_column_after?: string
+          sort_order?: string
+          start_after?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          key: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+    }
+    Enums: {
+      buckettype: "STANDARD" | "ANALYTICS" | "VECTOR"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
@@ -6971,6 +8332,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       access_event: [
@@ -7128,6 +8492,7 @@ export const Constants = {
         "completed",
         "rejected",
         "cancelled",
+        "voided",
       ],
       yield_distribution_status: [
         "draft",
@@ -7137,6 +8502,11 @@ export const Constants = {
         "corrected",
         "rolled_back",
       ],
+    },
+  },
+  storage: {
+    Enums: {
+      buckettype: ["STANDARD", "ANALYTICS", "VECTOR"],
     },
   },
 } as const
