@@ -171,7 +171,7 @@ function WithdrawalsPageContent({ embedded = false }: { embedded?: boolean }) {
   );
 
   // Use the data hook for active funds
-  const { data: fundsData = [] } = useFunds(true); // activeOnly
+  const { data: fundsData = [] } = useFunds({ status: 'active' });
   const funds: Fund[] = fundsData.map((f) => ({
     id: f.id,
     code: f.code,

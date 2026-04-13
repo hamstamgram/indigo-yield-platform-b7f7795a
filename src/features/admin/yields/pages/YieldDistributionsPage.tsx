@@ -221,7 +221,7 @@ const distributionExportColumns: ExportColumn[] = [
 ];
 
 export function YieldDistributionsContent({ embedded = false }: { embedded?: boolean } = {}) {
-  const { data: fundsData = [] } = useFunds(true);
+  const { data: fundsData = [] } = useFunds({ status: 'active' });
   const funds: Fund[] = fundsData.map((f) => ({
     id: f.id,
     code: f.code,

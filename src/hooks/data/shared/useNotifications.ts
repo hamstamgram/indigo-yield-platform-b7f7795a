@@ -5,6 +5,7 @@ import { toNotification, toNotifications } from "@/lib/typeAdapters";
 import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
 import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { useToast } from "@/hooks";
+import { useAuth } from "@/services/auth";
 import { notificationService } from "@/services/shared";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -281,5 +282,22 @@ export function usePriceAlerts(userId?: string) {
       updateMutation.mutateAsync({ alertId, updates }),
     deleteAlert: deleteMutation.mutateAsync,
     refreshAlerts: () => queryClient.invalidateQueries({ queryKey }),
+  };
+}
+
+
+/**
+ * useNotificationBell - Lightweight hook for notification bell component
+ * Provides only unread count and refresh method
+ * Uses useNotifications internally to avoid duplication
+ */
+export function useNotificationBell() {
+  const { user } = useAuth();
+  const { unreadCount, loading, refreshNotifications } = useNotifications(user?.id);
+
+  return {
+    unreadCount,
+    loading,
+    refresh: refreshNotifications,
   };
 }

@@ -28,12 +28,35 @@ const LOCAL_QUERY_KEYS = {
 /**
  * Fetch all funds
  */
-export function useFunds(activeOnly = false) {
+/**
+ * Fetch funds with optional status filtering
+ * @param options - Query options
+ * @param options.status - Filter by status: 'all' (default) | 'active' | 'available'
+ */
+export function useFunds(options?: { status?: 'all' | 'active' | 'available' }) {
+  const status = options?.status ?? 'all';
+  
+  const queryKey = (() => {
+    switch (status) {
+      case 'active':
+        return LOCAL_QUERY_KEYS.activeFunds;
+      case 'available':
+        return [QUERY_KEYS.funds, 'available'] as const;
+      default:
+        return LOCAL_QUERY_KEYS.funds;
+    }
+  })();
+
   return useQuery<Fund[]>({
-    queryKey: activeOnly ? LOCAL_QUERY_KEYS.activeFunds : LOCAL_QUERY_KEYS.funds,
+    queryKey,
     queryFn: async (): Promise<Fund[]> => {
       const funds = await fundService.getAllFunds();
-      const result = activeOnly ? funds.filter((f) => f.status === "active") : funds;
+      
+      // Filter by status if needed
+      const result = status === 'all' 
+        ? funds 
+        : funds.filter((f) => f.status === 'active');
+      
       return result as Fund[];
     },
     staleTime: 5 * 60 * 1000,
@@ -206,4 +229,20 @@ export function useDeactivateFund() {
       });
     },
   });
+}
+
+
+/**
+ * Format fund for display in dropdowns
+ * Returns: "{fund_code} - {asset}" or "{fund_name} ({asset})"
+ */
+export function formatFundLabel(fund: Fund): string {
+  return `${fund.code} - ${fund.asset}`;
+}
+
+/**
+ * Format fund with full name for display
+ */
+export function formatFundLabelFull(fund: Fund): string {
+  return `${fund.name} (${fund.asset})`;
 }

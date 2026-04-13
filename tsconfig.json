@@ -33,7 +33,8 @@
     "test-reports",
     "scripts",
     "vite.config.ts",
-    "archive"
+    "archive",
+    "docs/audit"
   ],
   "include": [
     "**/*.ts",
