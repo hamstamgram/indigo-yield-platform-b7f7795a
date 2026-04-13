@@ -32,7 +32,7 @@ BEGIN
   IF NEW.role IS DISTINCT FROM OLD.role THEN
     RAISE EXCEPTION 'Cannot modify role field';
   END IF;
-  IF NEW.account_type IS DISTINCT FROM OLD.account_type THEN
+  IF NEW.account_type IS DISTINCT FROM OLD.account_type AND NOT is_admin() THEN
     RAISE EXCEPTION 'Cannot modify account_type field';
   END IF;
   IF NEW.is_system_account IS DISTINCT FROM OLD.is_system_account THEN
@@ -50,7 +50,7 @@ BEGIN
   IF NEW.status IS DISTINCT FROM OLD.status THEN
     RAISE EXCEPTION 'Cannot modify status field';
   END IF;
-  IF NEW.ib_parent_id IS DISTINCT FROM OLD.ib_parent_id THEN
+  IF NEW.ib_parent_id IS DISTINCT FROM OLD.ib_parent_id AND NOT is_admin() THEN
     RAISE EXCEPTION 'Cannot modify ib_parent_id field';
   END IF;
   IF NEW.ib_commission_source IS DISTINCT FROM OLD.ib_commission_source THEN

@@ -1673,6 +1673,7 @@ export type Database = {
           investor_id: string
           is_active: boolean | null
           last_transaction_date: string | null
+          last_yield_crystallization_date: string | null
           lock_until_date: string | null
           mgmt_fees_paid: number | null
           perf_fees_paid: number | null
@@ -1692,6 +1693,7 @@ export type Database = {
           investor_id: string
           is_active?: boolean | null
           last_transaction_date?: string | null
+          last_yield_crystallization_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
           perf_fees_paid?: number | null
@@ -1711,6 +1713,7 @@ export type Database = {
           investor_id?: string
           is_active?: boolean | null
           last_transaction_date?: string | null
+          last_yield_crystallization_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
           perf_fees_paid?: number | null
@@ -6389,6 +6392,12 @@ export type Database = {
       }
       run_integrity_pack: { Args: never; Returns: Json }
       run_invariant_checks: { Args: never; Returns: Json }
+      set_account_type_for_ib:
+        | { Args: { p_user_id: string }; Returns: undefined }
+        | {
+            Args: { p_account_type: string; p_user_id: string }
+            Returns: undefined
+          }
       set_canonical_rpc: { Args: { enabled?: boolean }; Returns: undefined }
       set_fund_daily_aum: {
         Args: {

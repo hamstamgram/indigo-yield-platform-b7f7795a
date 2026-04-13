@@ -7,6 +7,9 @@ import { componentTagger } from "lovable-tagger";
 const buildVersion = Date.now().toString();
 
 export default defineConfig(({ mode }) => ({
+  test: {
+    exclude: ["tests/e2e/**", "node_modules/**"],
+  },
   server: {
     host: "::",
     port: 8080,

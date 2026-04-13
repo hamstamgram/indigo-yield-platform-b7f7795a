@@ -3,6 +3,7 @@
  *
  * Displays per-fund fee schedule entries for an investor.
  * Allows add/delete of fee schedule overrides.
+ * Also allows linking an IB parent to the investor.
  */
 
 import { useState } from "react";
@@ -12,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardTitle as DialogTitle,
   Button,
   Badge,
   AlertDialog,
@@ -23,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui";
-import { CalendarDays, Plus, Trash2, Loader2, Save, Percent } from "lucide-react";
+import { CalendarDays, Plus, Trash2, Loader2, Save, Percent, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   useFeeSchedule,
@@ -36,6 +38,16 @@ import {
 import { toNum } from "@/utils/numeric";
 import { Input, Label } from "@/components/ui";
 import { AddFeeScheduleDialog } from "./AddFeeScheduleDialog";
+import { getAvailableIBParents, type AvailableIBParent } from "@/features/admin/ib/services/ibReferralsService";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui";
+import { useQuery } from "@tanstack/react-query";
 
 interface FeeScheduleSectionProps {
   investorId: string;
@@ -53,6 +65,18 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
     id: string;
     fundName: string;
   } | null>(null);
+  const [isUpdatingIB, setIsUpdatingIB] = useState(false);
+
+  // Fetch available IB parents
+  const { data: availableIBs = [], isLoading: isLoadingIBs } = useQuery({
+    queryKey: ["available-ib-parents", investorId],
+    queryFn: () => getAvailableIBParents(investorId),
+    enabled: true,
+  });
+
+  // Current IB parent from profile
+  const currentIBParentId = profile?.ib_parent_id || null;
+  const currentIBPercentage = profile?.ib_percentage || 0;
 
   // Sync global fee from schedule entries (fund_id=NULL entry)
   const [initialSync, setInitialSync] = useState(false);
@@ -73,6 +97,30 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
       toast.success("Global performance fee updated");
     } catch (err) {
       toast.error("Failed to update global fee");
+    }
+  };
+
+  const handleIBParentChange = async (newIBParentId: string | null) => {
+    setIsUpdatingIB(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ 
+          ib_parent_id: newIBParentId,
+          // Set default IB percentage based on selection, or clear if null
+          ib_percentage: newIBParentId ? (currentIBPercentage || 2) : 0
+        })
+        .eq("id", investorId);
+
+      if (error) throw error;
+      
+      toast.success(newIBParentId ? "IB parent linked successfully" : "IB parent removed");
+    } catch (err: any) {
+      toast.error("Failed to update IB parent", {
+        description: err?.message || "Unknown error"
+      });
+    } finally {
+      setIsUpdatingIB(false);
     }
   };
 
@@ -122,6 +170,44 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* IB Parent Link Section */}
+          <div className="space-y-4 pb-4 border-b">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                IB Partner
+              </Label>
+              <div className="flex gap-2 items-center">
+                <Select
+                  value={currentIBParentId || "__none__"}
+                  onValueChange={(val) => handleIBParentChange(val === "__none__" ? null : val)}
+                  disabled={isUpdatingIB || isLoadingIBs}
+                >
+                  <SelectTrigger className="w-full max-w-xs">
+                    <SelectValue placeholder={isLoadingIBs ? "Loading IBs..." : "Select IB Partner"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">None (no IB linked)</SelectItem>
+                    {availableIBs.map((ib) => (
+                      <SelectItem key={ib.id} value={ib.id}>
+                        {ib.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isUpdatingIB && <Loader2 className="h-4 w-4 animate-spin" />}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Link an Introducing Broker to this investor. Commission rates are configured in the IB Commission Schedule below.
+              </p>
+              {currentIBParentId && currentIBPercentage > 0 && (
+                <Badge variant="secondary" className="font-mono text-xs">
+                  Current: {currentIBPercentage}% commission
+                </Badge>
+              )}
+            </div>
+          </div>
+
           {/* Global Performance Fee */}
           <div className="space-y-4 pb-4 border-b">
             <div className="space-y-2 max-w-sm">
@@ -239,7 +325,7 @@ export function FeeScheduleSection({ investorId }: FeeScheduleSectionProps) {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Fee Schedule Entry</AlertDialogTitle>
+            <DialogTitle>Delete Fee Schedule Entry</DialogTitle>
             <AlertDialogDescription>
               Remove the fee schedule entry for <strong>{deleteTarget?.fundName}</strong>? The
               investor will fall back to their global fee override or the fund default.

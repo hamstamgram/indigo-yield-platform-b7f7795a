@@ -19,6 +19,8 @@ export interface InvestorProfileData {
   phone: string | null;
   status: string;
   created_at: string | null;
+  ib_parent_id: string | null;
+  ib_percentage: number;
 }
 
 export interface ReportPeriod {
@@ -41,7 +43,7 @@ export async function getInvestorProfileForSettings(
 ): Promise<InvestorProfileData> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, email, phone, status, created_at")
+    .select("id, first_name, last_name, email, phone, status, created_at, ib_parent_id, ib_percentage")
     .eq("id", investorId)
     .maybeSingle();
 
@@ -63,6 +65,8 @@ export async function getInvestorProfileForSettings(
     phone: data.phone,
     status: data.status || "active",
     created_at: data.created_at,
+    ib_parent_id: data.ib_parent_id || null,
+    ib_percentage: data.ib_percentage || 0,
   };
 }
 
