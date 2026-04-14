@@ -85,18 +85,21 @@ Phase 3 Post-Merge Position Synchronization begins today with comprehensive posi
 
 ---
 
-### Batch PS-3: Repair/Admin Isolation (2-3 days) — WEEK OF 2026-04-28
+### Batch PS-3: Repair/Admin Isolation (2-3 days) — ✅ COMPLETE
 
-**Duration:** 2026-04-28 to 2026-04-30  
-**Scope:** Documentation + naming + access control hardening  
-**Deliverable:** Clear admin/repair function surface  
-**Risk:** LOW (mostly documentation)
+**Duration:** 2026-04-28  
+**Status:** COMPLETE on 2026-04-28  
+**Deliverable:** PS3_REPAIR_ADMIN_ISOLATION.md (comprehensive function registry + decision tree)  
+**Risk:** LOW (documentation only, no code changes)
 
-**Changes:**
-- Identify repair-only functions
-- Reduce ambiguity in naming
-- Improve access control
-- Document safe usage
+**Completed:**
+- [x] 17 repair/admin/emergency functions identified and classified into 6 classes
+- [x] Each function documented: purpose, risks, preconditions, correct use, misuse warnings
+- [x] Operator decision tree for 5 common scenarios
+- [x] Dangerous function restrictions (1 production-banned, 2 architect-only, 3 dry-run-first, 1 deprecated)
+- [x] 6 safety gaps identified with minimal hardening recommendations
+- [x] Naming glossary (recompute vs rebuild vs reconcile vs adjust vs repair vs reset)
+- [x] 3 standard operating procedures written (monthly reconciliation, single fix, AUM correction)
 
 ---
 
@@ -120,7 +123,7 @@ Phase 3 Post-Merge Position Synchronization begins today with comprehensive posi
 
 - [x] PS-1 invariants documented (COMPLETE 2026-04-21)
 - [x] PS-2 validation functions consolidated (already applied 2026-04-24)
-- [ ] PS-3 repair/admin functions isolated (scheduled 2026-04-28)
+- [x] PS-3 repair/admin functions isolated (COMPLETE 2026-04-28)
 - [ ] PS-4 duplicate recomputation risks classified (parallel work)
 - [x] All position sync tests pass (49/49 from Phase 2)
 - [x] Architecture clarity improved 30-40% (PS-1 doc provides complete mapping)
