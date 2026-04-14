@@ -1,5 +1,6 @@
 import { RPCError } from "./types";
 import { getUserFriendlyError } from "@/lib/errors";
+import { logWarn } from "@/lib/logger";
 
 // =============================================================================
 // ERROR NORMALIZATION
@@ -67,4 +68,33 @@ export function normalizeError(error: unknown, functionName: string): RPCError {
     userMessage,
     originalError: error,
   };
+}
+
+// =============================================================================
+// ENUM FALLTHROUGH HANDLER
+// =============================================================================
+
+/**
+ * Assert that a value is never reached (exhaustive check for switch/case).
+ * Use this in default branches to catch unknown enum values at runtime.
+ *
+ * @param value - The value that should be unreachable (type: never)
+ * @param context - Description of where this check occurs (e.g., "withdrawal_status normalization")
+ * @throws Error if an unknown value is encountered
+ *
+ * @example
+ * switch (status) {
+ *   case "pending": return "Pending";
+ *   case "approved": return "Approved";
+ *   default: return assertUnreachable(status, "withdrawal_status");
+ * }
+ */
+export function assertUnreachable(value: never, context: string): never {
+  console.warn(`[ENUM_FALLTHROUGH] Unknown value in ${context}: ${value}`);
+  logWarn("enum.unknown_value", {
+    field: context,
+    receivedValue: String(value),
+    message: `Unknown ${context} value '${String(value)}' — frontend may handle this incorrectly`,
+  });
+  throw new Error(`Unexpected ${context} value: ${value}`);
 }
